@@ -25,10 +25,6 @@ public class FragmentLogin extends NetworkFragment<UserModel> {
 
     private ProgressBar mProgressBar;
     private MaterialEditText userName, password;
-    private CardView login;
-    private TextView goSign;
-    private View rootView;
-
 
     @Override
     void initLayout() {
@@ -40,7 +36,7 @@ public class FragmentLogin extends NetworkFragment<UserModel> {
         mProgressBar = v.findViewById(R.id.progress);
         userName = v.findViewById(R.id.user_name);
         password = v.findViewById(R.id.password);
-        login = v.findViewById(R.id.login);
+        CardView login = v.findViewById(R.id.login);
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
