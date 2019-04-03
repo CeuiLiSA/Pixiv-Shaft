@@ -1,12 +1,9 @@
 package ceui.lisa.network;
 
 import ceui.lisa.response.ListIllustResponse;
-import ceui.lisa.response.LoginResponse;
 import io.reactivex.Observable;
-import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
-import retrofit2.http.POST;
 import retrofit2.http.Query;
 
 public interface AppApi {

@@ -1,6 +1,6 @@
 package ceui.lisa.response;
 
-public class LoginResponse {
+public class UserModel {
 
 
     /**
@@ -112,6 +112,26 @@ public class LoginResponse {
             private String password;
             private String mail_address;
             private boolean is_premium;
+            private boolean is_login;
+
+            public long getLastTokenTime() {
+                return lastTokenTime;
+            }
+
+            public void setLastTokenTime(long lastTokenTime) {
+                this.lastTokenTime = lastTokenTime;
+            }
+
+            private long lastTokenTime = -1;
+
+            public boolean isIs_login() {
+                return is_login;
+            }
+
+            public void setIs_login(boolean is_login) {
+                this.is_login = is_login;
+            }
+
             private int x_restrict;
             private boolean is_mail_authorized;
             private boolean require_policy_agreement;

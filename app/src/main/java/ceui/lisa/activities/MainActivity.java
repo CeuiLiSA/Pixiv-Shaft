@@ -1,5 +1,6 @@
-package ceui.lisa;
+package ceui.lisa.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -13,13 +14,23 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
-public class MainActivity extends AppCompatActivity
+import ceui.lisa.R;
+import ceui.lisa.activities.BaseActivity;
+import ceui.lisa.fragments.FragmentLogin;
+import ceui.lisa.response.Local;
+import ceui.lisa.response.UserModel;
+import ceui.lisa.utils.Common;
+
+public class MainActivity extends BaseActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+    protected void initLayout() {
+        mLayoutID = R.layout.activity_main;
+    }
+
+    @Override
+    protected void initView() {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -40,6 +51,18 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+    }
+
+    @Override
+    protected void initData() {
+        UserModel userModel = Local.getUser();
+        if(userModel != null && userModel.getResponse().getUser().isIs_login()){
+            Common.showToast("已登录");
+        }else {
+            Common.showToast("未登录");
+            Intent intent = new Intent(mContext, LoginActivity.class);
+            startActivity(intent);
+        }
     }
 
     @Override
