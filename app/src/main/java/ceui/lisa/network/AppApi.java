@@ -2,8 +2,11 @@ package ceui.lisa.network;
 
 import ceui.lisa.response.ListIllustResponse;
 import io.reactivex.Observable;
+import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
+import retrofit2.http.Header;
+import retrofit2.http.POST;
 import retrofit2.http.Query;
 
 public interface AppApi {
@@ -16,7 +19,8 @@ public interface AppApi {
      * @return
      */
     @FormUrlEncoded
-    @GET("/v1/illust/ranking")
-    Observable<ListIllustResponse> getRank(@Query("filter") String filter,
-                                           @Query("mode") String mode);
+    @POST("/v1/illust/ranking")
+    Observable<ListIllustResponse> getRank(@Header("Authorization") String token,
+                                           @Field("filter") String filter,
+                                           @Field("mode") String mode);
 }

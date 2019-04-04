@@ -10,12 +10,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import ceui.lisa.response.Local;
+import ceui.lisa.response.UserModel;
+
 public abstract class BaseFragment extends Fragment {
 
     protected Context mContext;
     protected Activity mActivity;
     protected int mLayoutID;
     protected View parentView;
+    protected UserModel mUserModel;
 
     abstract void initLayout();
 
@@ -29,6 +33,7 @@ public abstract class BaseFragment extends Fragment {
         super.onCreate(savedInstanceState);
         mContext = getContext();
         mActivity = getActivity();
+        mUserModel = Local.getUser();
     }
 
     @Nullable

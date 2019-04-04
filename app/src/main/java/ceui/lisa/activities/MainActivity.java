@@ -57,7 +57,8 @@ public class MainActivity extends BaseActivity
     protected void initData() {
         UserModel userModel = Local.getUser();
         if(userModel != null && userModel.getResponse().getUser().isIs_login()){
-            Common.showToast("已登录");
+            Intent intent = new Intent(mContext, IllustActivity.class);
+            startActivity(intent);
         }else {
             Common.showToast("未登录");
             Intent intent = new Intent(mContext, LoginActivity.class);

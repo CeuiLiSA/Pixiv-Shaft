@@ -11,6 +11,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class Retro {
 
     private static final String ACCOUNT_BASE_URL = "https://oauth.secure.pixiv.net";
+    private static final String API_BASE_URL = "https://app-api.pixiv.net/";
 
 
 
@@ -22,12 +23,13 @@ public class Retro {
         OkHttpClient okHttpClient = new OkHttpClient
                 .Builder()
                 .addInterceptor(loggingInterceptor)
+                //.addInterceptor(new TokenInterceptor())
                 .build();
         Retrofit retrofit = new Retrofit.Builder()
                 .client(okHttpClient)
                 .addConverterFactory(GsonConverterFactory.create())
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .baseUrl(ACCOUNT_BASE_URL)
+                .baseUrl(API_BASE_URL)
                 .build();
         return retrofit.create(AppApi.class);
     }
