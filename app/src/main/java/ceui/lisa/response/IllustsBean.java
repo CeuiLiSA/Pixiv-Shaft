@@ -51,7 +51,23 @@ public class IllustsBean {
     private boolean is_muted;
     private List<TagsBean> tags;
     private List<?> tools;
-    private List<?> meta_pages;
+    private List<MetaPagesBean> meta_pages;
+
+    public static class MetaPagesBean {
+        /**
+         * image_urls : {"square_medium":"https://i.pximg.net/c/360x360_70/img-master/img/2019/04/03/21/13/11/74027091_p0_square1200.jpg","medium":"https://i.pximg.net/c/540x540_70/img-master/img/2019/04/03/21/13/11/74027091_p0_master1200.jpg","large":"https://i.pximg.net/c/600x1200_90/img-master/img/2019/04/03/21/13/11/74027091_p0_master1200.jpg","original":"https://i.pximg.net/img-original/img/2019/04/03/21/13/11/74027091_p0.png"}
+         */
+
+        private ImageUrlsBean image_urls;
+
+        public ImageUrlsBean getImage_urls() {
+            return image_urls;
+        }
+
+        public void setImage_urls(ImageUrlsBean image_urls) {
+            this.image_urls = image_urls;
+        }
+    }
 
     public int getId() {
         return id;
@@ -229,11 +245,11 @@ public class IllustsBean {
         this.tools = tools;
     }
 
-    public List<?> getMeta_pages() {
+    public List<MetaPagesBean> getMeta_pages() {
         return meta_pages;
     }
 
-    public void setMeta_pages(List<?> meta_pages) {
+    public void setMeta_pages(List<MetaPagesBean> meta_pages) {
         this.meta_pages = meta_pages;
     }
 

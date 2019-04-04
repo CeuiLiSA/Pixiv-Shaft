@@ -2,6 +2,7 @@ package ceui.lisa.network;
 
 import ceui.lisa.response.UserModel;
 import io.reactivex.Observable;
+import retrofit2.Call;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.POST;
@@ -48,11 +49,11 @@ public interface AccountApi {
      */
     @FormUrlEncoded
     @POST("/auth/token")
-    Observable<UserModel> refreshToken(@Field("client_id") String client_id,
-                                       @Field("client_secret") String client_secret,
-                                       @Field("grant_type") String grant_type,
-                                       @Field("refresh_token") String refresh_token,
-                                       @Field("device_token") String device_token,
-                                       @Field("get_secure_url") String get_secure_url,
-                                       @Field("include_policy") String include_policy);
+    Call<UserModel> refreshToken(@Field("client_id") String client_id,
+                                 @Field("client_secret") String client_secret,
+                                 @Field("grant_type") String grant_type,
+                                 @Field("refresh_token") String refresh_token,
+                                 @Field("device_token") String device_token,
+                                 @Field("get_secure_url") boolean get_secure_url,
+                                 @Field("include_policy") boolean include_policy);
 }

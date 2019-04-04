@@ -23,7 +23,7 @@ public class Retro {
         OkHttpClient okHttpClient = new OkHttpClient
                 .Builder()
                 .addInterceptor(loggingInterceptor)
-                //.addInterceptor(new TokenInterceptor())
+                .addInterceptor(new TokenInterceptor())
                 .build();
         Retrofit retrofit = new Retrofit.Builder()
                 .client(okHttpClient)

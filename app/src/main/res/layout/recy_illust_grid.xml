@@ -4,7 +4,7 @@
     android:layout_height="wrap_content">
 
     <ImageView
-        android:layout_width="200dp"
+        android:layout_width="wrap_content"
         android:id="@+id/illust_image"
         android:scaleType="centerCrop"
         android:layout_height="200dp" />

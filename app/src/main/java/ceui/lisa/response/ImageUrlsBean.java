@@ -2,14 +2,16 @@ package ceui.lisa.response;
 
 public class ImageUrlsBean {
     /**
-     * square_medium : https://i.pximg.net/c/540x540_10_webp/img-master/img/2019/03/30/16/33/50/73949833_p0_square1200.jpg
-     * medium : https://i.pximg.net/c/540x540_70/img-master/img/2019/03/30/16/33/50/73949833_p0_master1200.jpg
-     * large : https://i.pximg.net/c/600x1200_90_webp/img-master/img/2019/03/30/16/33/50/73949833_p0_master1200.jpg
+     * square_medium : https://i.pximg.net/c/360x360_70/img-master/img/2019/04/03/21/13/11/74027091_p0_square1200.jpg
+     * medium : https://i.pximg.net/c/540x540_70/img-master/img/2019/04/03/21/13/11/74027091_p0_master1200.jpg
+     * large : https://i.pximg.net/c/600x1200_90/img-master/img/2019/04/03/21/13/11/74027091_p0_master1200.jpg
+     * original : https://i.pximg.net/img-original/img/2019/04/03/21/13/11/74027091_p0.png
      */
 
     private String square_medium;
     private String medium;
     private String large;
+    private String original;
 
     public String getSquare_medium() {
         return square_medium;
@@ -33,5 +35,13 @@ public class ImageUrlsBean {
 
     public void setLarge(String large) {
         this.large = large;
+    }
+
+    public String getOriginal() {
+        return original;
+    }
+
+    public void setOriginal(String original) {
+        this.original = original;
     }
 }

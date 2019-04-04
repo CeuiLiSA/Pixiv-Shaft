@@ -18,9 +18,8 @@ public interface AppApi {
      * @param mode
      * @return
      */
-    @FormUrlEncoded
-    @POST("/v1/illust/ranking")
+    @GET("/v1/illust/ranking")
     Observable<ListIllustResponse> getRank(@Header("Authorization") String token,
-                                           @Field("filter") String filter,
-                                           @Field("mode") String mode);
+                                           @Query("filter") String filter,
+                                           @Query("mode") String mode);
 }

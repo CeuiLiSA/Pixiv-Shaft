@@ -81,7 +81,6 @@ public class FragmentLogin extends NetworkFragment<UserModel> {
                         if(userModel != null){
                             userModel.getResponse().getUser().setPassword(password.getText().toString());
                             userModel.getResponse().getUser().setIs_login(true);
-                            userModel.getResponse().getUser().setLastTokenTime(System.currentTimeMillis());
                             Local.saveUser(userModel);
                             mProgressBar.setVisibility(View.INVISIBLE);
                             Common.showToast("登录成功");

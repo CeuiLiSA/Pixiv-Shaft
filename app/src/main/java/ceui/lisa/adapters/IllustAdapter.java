@@ -18,6 +18,7 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.interfs.OnItemClickListener;
 import ceui.lisa.response.IllustsBean;
+import ceui.lisa.utils.GlideUtil;
 
 
 /**
@@ -46,7 +47,7 @@ public class IllustAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         final TagHolder currentOne = (TagHolder) holder;
-        Glide.with(mContext).load(allIllust.get(position).getMeta_single_page()).into(currentOne.illust);
+        Glide.with(mContext).load(GlideUtil.getMediumImg(allIllust.get(position))).into(currentOne.illust);
         if(mOnItemClickListener != null){
             holder.itemView.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 0));
         }
