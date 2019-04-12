@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:cardElevation="2dp"
+    app:cardCornerRadius="@dimen/four_dp"
+    app:cardBackgroundColor="#f2f2f2"
+    android:clickable="true"
+    android:foreground="?attr/selectableItemBackground"
     android:layout_height="wrap_content">
+
 
     <ImageView
         android:layout_width="wrap_content"
@@ -9,4 +16,4 @@
         android:scaleType="centerCrop"
         android:layout_height="wrap_content" />
 
-</RelativeLayout>
+</android.support.v7.widget.CardView>

@@ -10,7 +10,7 @@ public class Refresh {
         mTag = tag;
     }
 
-    void nowFresh() {
-        Common.showToast("开始刷新 " + mTag);
+    public String nowFresh() {
+        return "开始刷新 " + mTag;
     }
 }

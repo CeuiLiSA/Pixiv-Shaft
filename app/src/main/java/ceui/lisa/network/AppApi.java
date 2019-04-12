@@ -8,6 +8,7 @@ import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.POST;
 import retrofit2.http.Query;
+import retrofit2.http.Url;
 
 public interface AppApi {
 
@@ -22,4 +23,9 @@ public interface AppApi {
     Observable<ListIllustResponse> getRank(@Header("Authorization") String token,
                                            @Query("filter") String filter,
                                            @Query("mode") String mode);
+
+
+    @GET
+    Observable<ListIllustResponse> getNextRank(@Header("Authorization") String token,
+                                           @Url String next_url);
 }

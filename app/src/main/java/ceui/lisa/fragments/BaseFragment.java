@@ -38,11 +38,7 @@ public abstract class BaseFragment extends Fragment {
         mUserModel = Local.getUser();
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        EventBus.getDefault().register(this);
-    }
+
 
     @Nullable
     @Override
@@ -62,11 +58,7 @@ public abstract class BaseFragment extends Fragment {
         return parentView;
     }
 
-    @Override
-    public void onStop() {
-        super.onStop();
-        EventBus.getDefault().unregister(this);
-    }
+
 
     @Override
     public void onViewCreated(@NonNull View view,

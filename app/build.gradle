@@ -45,6 +45,8 @@ dependencies {
     implementation 'com.github.bumptech.glide:glide:4.9.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.9.0'
     implementation 'org.greenrobot:eventbus:3.1.1'
+    implementation 'jp.wasabeef:glide-transformations:4.0.1'
+    implementation 'jp.co.cyberagent.android:gpuimage:2.0.3'
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'

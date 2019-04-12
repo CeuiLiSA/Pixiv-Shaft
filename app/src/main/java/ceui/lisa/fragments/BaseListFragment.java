@@ -15,6 +15,7 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.interfs.ListShow;
+import ceui.lisa.utils.Common;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -94,6 +95,8 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
     protected RefreshLayout mRefreshLayout;
     protected List<ListItem> allItems = new ArrayList<>();
     protected ProgressBar mProgressBar;
+    protected String nextUrl = "";
+
     @Override
     void initLayout() {
         mLayoutID = R.layout.activity_simple_list;
@@ -119,6 +122,7 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
         mRefreshLayout.setRefreshHeader(new DeliveryHeader(mContext));
         mRefreshLayout.setOnRefreshListener(layout -> getFirstData());
         mRefreshLayout.setOnLoadMoreListener(layout -> getNextData());
+        mRefreshLayout.setEnableLoadMore(false);
         mRefreshLayout.setEnableLoadMore(hasNext());
         return v;
     }
@@ -146,6 +150,8 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
      */
     abstract Observable<Response> initApi();
 
+    abstract Observable<Response> initNextApi();
+
     /**
      * the callback after getting the first page of data
      *
@@ -172,8 +178,10 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
                             if (response != null) {
                                 allItems.clear();
                                 allItems.addAll(response.getList());
+                                nextUrl = response.getNextUrl();
                                 initAdapter();
                                 mRefreshLayout.finishRefresh(true);
+                                mRefreshLayout.setEnableLoadMore(true);
                                 if(mAdapter != null) {
                                     mRecyclerView.setAdapter(mAdapter);
                                 }
@@ -202,39 +210,45 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
      * 获取后续数据
      */
     public void getNextData() {
-        mApi = initApi();
+        mApi = initNextApi();
         if (mApi != null) {
-            mApi.subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Observer<Response>() {
-                        @Override
-                        public void onSubscribe(Disposable d) {
+            if(nextUrl.length() == 0){
+                Common.showToast("next url 为空");
+            }else {
+                mApi.subscribeOn(Schedulers.newThread())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new Observer<Response>() {
+                            @Override
+                            public void onSubscribe(Disposable d) {
 
-                        }
+                            }
 
-                        @Override
-                        public void onNext(Response response) {
-                            if (response != null) {
-                                allItems.addAll(response.getList());
-                                mRefreshLayout.finishLoadMore(true);
-                                if(mAdapter != null) {
-                                    mAdapter.notifyDataSetChanged();
+                            @Override
+                            public void onNext(Response response) {
+                                if (response != null) {
+                                    int lastSize = allItems.size();
+                                    allItems.addAll(response.getList());
+                                    nextUrl = response.getNextUrl();
+                                    mRefreshLayout.finishLoadMore(true);
+                                    if (mAdapter != null) {
+                                        mAdapter.notifyItemRangeChanged(lastSize, response.getList().size());
+                                    }
+                                } else {
+                                    mRefreshLayout.finishLoadMore(false);
                                 }
-                            } else {
+                            }
+
+                            @Override
+                            public void onError(Throwable e) {
                                 mRefreshLayout.finishLoadMore(false);
                             }
-                        }
 
-                        @Override
-                        public void onError(Throwable e) {
-                            mRefreshLayout.finishLoadMore(false);
-                        }
+                            @Override
+                            public void onComplete() {
 
-                        @Override
-                        public void onComplete() {
-
-                        }
-                    });
+                            }
+                        });
+            }
         }
     }
 }
