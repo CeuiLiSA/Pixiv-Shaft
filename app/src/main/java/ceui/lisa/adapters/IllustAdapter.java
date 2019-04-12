@@ -30,11 +30,14 @@ public class IllustAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     private LayoutInflater mLayoutInflater;
     private OnItemClickListener mOnItemClickListener;
     private List<IllustsBean> allIllust;
+    private int imageSize = 0;
 
     public IllustAdapter(List<IllustsBean> list, Context context) {
         mContext = context;
         mLayoutInflater = LayoutInflater.from(mContext);
         allIllust = list;
+        imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
+                3 * mContext.getResources().getDimensionPixelSize(R.dimen.eight_dp))/2;
     }
 
     @NonNull
@@ -47,6 +50,10 @@ public class IllustAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         final TagHolder currentOne = (TagHolder) holder;
+        ViewGroup.LayoutParams params = currentOne.illust.getLayoutParams();
+        params.height = imageSize;
+        params.width = imageSize;
+        currentOne.illust.setLayoutParams(params);
         Glide.with(mContext).load(GlideUtil.getMediumImg(allIllust.get(position))).into(currentOne.illust);
         if(mOnItemClickListener != null){
             holder.itemView.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 0));

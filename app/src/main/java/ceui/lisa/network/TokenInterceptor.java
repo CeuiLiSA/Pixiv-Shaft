@@ -22,10 +22,10 @@ public class TokenInterceptor implements Interceptor {
         Response response = chain.proceed(request);
 
         if (isTokenExpired(response)) {
-            String newSession = getNewToken();
+            String newToken = getNewToken();
             Request newRequest = chain.request()
                     .newBuilder()
-                    .header("Authorization", "Bearer " + newSession)
+                    .header("Authorization", "Bearer " + newToken)
                     .build();
             return chain.proceed(newRequest);
         }

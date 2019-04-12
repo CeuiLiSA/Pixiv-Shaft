@@ -59,10 +59,12 @@ public class MainActivity extends BaseActivity
         if(userModel != null && userModel.getResponse().getUser().isIs_login()){
             Intent intent = new Intent(mContext, IllustActivity.class);
             startActivity(intent);
+            finish();
         }else {
             Common.showToast("未登录");
             Intent intent = new Intent(mContext, LoginActivity.class);
             startActivity(intent);
+            finish();
         }
     }
 

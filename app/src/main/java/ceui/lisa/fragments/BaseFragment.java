@@ -10,6 +10,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import org.greenrobot.eventbus.EventBus;
+
 import ceui.lisa.response.Local;
 import ceui.lisa.response.UserModel;
 
@@ -36,6 +38,12 @@ public abstract class BaseFragment extends Fragment {
         mUserModel = Local.getUser();
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        EventBus.getDefault().register(this);
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -52,6 +60,12 @@ public abstract class BaseFragment extends Fragment {
                 viewGroup.removeView(parentView);
         }
         return parentView;
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        EventBus.getDefault().unregister(this);
     }
 
     @Override
