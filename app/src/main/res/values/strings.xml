@@ -7,4 +7,15 @@
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_blank">BlankActivity</string>
+
+
+
+    <string name="empty_list_1">居然啥也没有</string>
+    <string name="empty_list_2">居然啥也没有</string>
+    <string name="empty_list_3">居然啥也没有</string>
+    <string name="empty_list_4">居然啥也没有</string>
+    <string name="empty_list_5">居然啥也没有</string>
+    <string name="empty_list_6">居然啥也没有</string>
+    <string name="empty_list_7">居然啥也没有</string>
+    <string name="empty_list_8">居然啥也没有</string>
 </resources>

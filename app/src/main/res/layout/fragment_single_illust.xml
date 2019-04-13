@@ -42,6 +42,24 @@
             android:scaleType="centerCrop"
             android:layout_height="300dp" />
 
+
+        <ImageView
+            android:layout_width="29dp"
+            android:id="@+id/refresh"
+            android:tint="@color/loginBackground"
+            android:src="@drawable/ic_refresh_black_24dp"
+            android:layout_gravity="center"
+            android:visibility="invisible"
+            android:layout_height="29dp" />
+
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:id="@+id/progress"
+            android:indeterminateTint="@color/loginBackground"
+            android:layout_gravity="center"
+            android:layout_height="wrap_content" />
+
     </android.support.v7.widget.CardView>
 
 

@@ -113,7 +113,6 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
             toolbar.setVisibility(View.GONE);
         }
         mProgressBar = v.findViewById(R.id.progress);
-
         mRecyclerView = v.findViewById(R.id.recyclerView);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(mContext);
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
@@ -125,6 +124,7 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
         mRefreshLayout.setOnLoadMoreListener(layout -> getNextData());
         mRefreshLayout.setEnableLoadMore(false);
         mRefreshLayout.setEnableLoadMore(hasNext());
+        initRecyclerView();
         return v;
     }
 
@@ -152,6 +152,10 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
     abstract Observable<Response> initApi();
 
     abstract Observable<Response> initNextApi();
+
+    void initRecyclerView(){
+
+    }
 
     /**
      * the callback after getting the first page of data

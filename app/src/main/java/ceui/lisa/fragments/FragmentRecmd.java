@@ -39,6 +39,15 @@ public class FragmentRecmd extends BaseListFragment<ListIllustResponse, IllustSt
     }
 
     @Override
+    void initRecyclerView() {
+        super.initRecyclerView();
+        mRecyclerView.addItemDecoration(new SpacesItemDecoration(DensityUtil.dp2px(4.0f)));
+        StaggeredGridLayoutManager layoutManager =
+                new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
+        mRecyclerView.setLayoutManager(layoutManager);
+    }
+
+    @Override
     Observable<ListIllustResponse> initApi() {
         //return Retro.getAppApi().getRecmdIllust("Bearer " + mUserModel.getResponse().getAccess_token(), "for_android", false);
         return null;
@@ -62,9 +71,5 @@ public class FragmentRecmd extends BaseListFragment<ListIllustResponse, IllustSt
                 startActivity(intent);
             }
         });
-        mRecyclerView.addItemDecoration(new SpacesItemDecoration(DensityUtil.dp2px(4.0f)));
-        StaggeredGridLayoutManager layoutManager =
-                new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
-        mRecyclerView.setLayoutManager(layoutManager);
     }
 }
