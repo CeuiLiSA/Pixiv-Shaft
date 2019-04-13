@@ -26,13 +26,24 @@
     </android.support.v7.widget.Toolbar>
 
 
-    <ImageView
+    <android.support.v7.widget.CardView
         android:layout_width="match_parent"
         android:layout_below="@+id/toolbar"
-        android:layout_marginStart="@dimen/sixteen_dp"
-        android:layout_marginTop="@dimen/eight_dp"
-        android:id="@+id/origin_image"
-        android:layout_marginEnd="@dimen/sixteen_dp"
-        android:layout_height="300dp" />
+        app:cardElevation="@dimen/four_dp"
+        app:cardCornerRadius="@dimen/four_dp"
+        android:layout_marginStart="@dimen/twelve_dp"
+        android:layout_marginEnd="@dimen/twelve_dp"
+        android:layout_marginBottom="@dimen/eight_dp"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:id="@+id/origin_image"
+            android:scaleType="centerCrop"
+            android:layout_height="300dp" />
+
+    </android.support.v7.widget.CardView>
+
+
 
 </RelativeLayout>

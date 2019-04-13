@@ -1,8 +1,9 @@
 package ceui.lisa.response;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class IllustsBean {
+public class IllustsBean implements Serializable {
     /**
      * id : 73949833
      * title : 命に繋がる魂の絆
@@ -53,7 +54,7 @@ public class IllustsBean {
     private List<?> tools;
     private List<MetaPagesBean> meta_pages;
 
-    public static class MetaPagesBean {
+    public static class MetaPagesBean implements Serializable{
         /**
          * image_urls : {"square_medium":"https://i.pximg.net/c/360x360_70/img-master/img/2019/04/03/21/13/11/74027091_p0_square1200.jpg","medium":"https://i.pximg.net/c/540x540_70/img-master/img/2019/04/03/21/13/11/74027091_p0_master1200.jpg","large":"https://i.pximg.net/c/600x1200_90/img-master/img/2019/04/03/21/13/11/74027091_p0_master1200.jpg","original":"https://i.pximg.net/img-original/img/2019/04/03/21/13/11/74027091_p0.png"}
          */
@@ -255,7 +256,7 @@ public class IllustsBean {
 
 
 
-    public static class UserBean {
+    public static class UserBean implements Serializable{
         /**
          * id : 74184
          * name : 零＠通販始めた
@@ -310,7 +311,7 @@ public class IllustsBean {
             this.is_followed = is_followed;
         }
 
-        public static class ProfileImageUrlsBean {
+        public static class ProfileImageUrlsBean implements Serializable{
             /**
              * medium : https://i.pximg.net/user-profile/img/2017/04/27/10/00/38/12474975_a0a699ea19f387df0f98bc5a9b7d26d3_170.png
              */

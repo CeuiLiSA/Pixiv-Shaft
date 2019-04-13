@@ -1,6 +1,8 @@
 package ceui.lisa.response;
 
-public class TagsBean {
+import java.io.Serializable;
+
+public class TagsBean implements Serializable {
     /**
      * name : 山の女王ファリア
      * translated_name : 山之女王 法俐雅

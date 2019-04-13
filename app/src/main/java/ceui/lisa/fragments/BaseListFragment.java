@@ -16,6 +16,7 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.interfs.ListShow;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Local;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -182,6 +183,7 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
                                 initAdapter();
                                 mRefreshLayout.finishRefresh(true);
                                 mRefreshLayout.setEnableLoadMore(true);
+                                Local.saveIllustList(allItems);
                                 if(mAdapter != null) {
                                     mRecyclerView.setAdapter(mAdapter);
                                 }
@@ -203,6 +205,17 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
 
                         }
                     });
+        }else {
+            Common.showToast("从本地加载图片");
+            allItems.clear();
+            allItems.addAll(Local.getLocalIllust());
+            initAdapter();
+            mRefreshLayout.finishRefresh(true);
+            mRefreshLayout.setEnableLoadMore(true);
+            if(mAdapter != null) {
+                mRecyclerView.setAdapter(mAdapter);
+            }
+            mProgressBar.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -214,6 +227,7 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
         if (mApi != null) {
             if(nextUrl.length() == 0){
                 Common.showToast("next url 为空");
+                mRefreshLayout.finishLoadMore(false);
             }else {
                 mApi.subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
@@ -230,6 +244,7 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
                                     allItems.addAll(response.getList());
                                     nextUrl = response.getNextUrl();
                                     mRefreshLayout.finishLoadMore(true);
+                                    Local.saveIllustList(allItems);
                                     if (mAdapter != null) {
                                         mAdapter.notifyItemRangeChanged(lastSize, response.getList().size());
                                     }

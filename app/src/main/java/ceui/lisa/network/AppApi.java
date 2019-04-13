@@ -26,6 +26,22 @@ public interface AppApi {
 
 
     @GET
-    Observable<ListIllustResponse> getNextRank(@Header("Authorization") String token,
+    Observable<ListIllustResponse> getNextIllust(@Header("Authorization") String token,
                                            @Url String next_url);
+
+
+
+
+    /**
+     * 推荐榜单
+     *
+     * @param token
+     * @param filter
+     * @param include_ranking_illusts
+     * @return
+     */
+    @GET("/v1/illust/recommended")
+    Observable<ListIllustResponse> getRecmdIllust(@Header("Authorization") String token,
+                                                  @Query("filter") String filter,
+                                                  @Query("include_ranking_illusts") boolean include_ranking_illusts);
 }

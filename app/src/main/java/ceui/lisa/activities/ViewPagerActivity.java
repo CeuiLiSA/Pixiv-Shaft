@@ -17,9 +17,7 @@ import ceui.lisa.response.IllustsBean;
 
 public class ViewPagerActivity extends BaseActivity{
 
-    private int position = -1;
     private List<IllustsBean> mIllusts = new ArrayList<>();
-    //private Toolbar mToolbar;
 
     @Override
     protected void initLayout() {
@@ -34,7 +32,6 @@ public class ViewPagerActivity extends BaseActivity{
     protected void initView() {
         mIllusts.addAll(Shaft.allIllusts);
         ViewPager viewPager = findViewById(R.id.view_pager);
-        //mToolbar = findViewById(R.id.toolbar);
         viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override
             public Fragment getItem(int i) {
@@ -46,20 +43,13 @@ public class ViewPagerActivity extends BaseActivity{
                 return mIllusts.size();
             }
         });
-        position = getIntent().getIntExtra("position", -1);
+        int position = getIntent().getIntExtra("position", 0);
         viewPager.setCurrentItem(position);
+
     }
 
     @Override
     protected void initData() {
 
     }
-
-//    public Toolbar getToolbar() {
-//        return mToolbar;
-//    }
-//
-//    public void setToolbar(Toolbar toolbar) {
-//        mToolbar = toolbar;
-//    }
 }

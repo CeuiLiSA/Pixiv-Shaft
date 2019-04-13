@@ -16,6 +16,7 @@ import ceui.lisa.response.IllustsBean;
 import ceui.lisa.utils.GlideUtil;
 import jp.wasabeef.glide.transformations.BlurTransformation;
 
+import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 import static com.bumptech.glide.request.RequestOptions.bitmapTransform;
 
 public class FragmentSingleIllust extends BaseFragment {
@@ -37,20 +38,23 @@ public class FragmentSingleIllust extends BaseFragment {
     View initView(View v) {
         ImageView imageView = v.findViewById(R.id.bg_image);
         ImageView originImage = v.findViewById(R.id.origin_image);
-
-
         Toolbar toolbar = v.findViewById(R.id.toolbar);
         toolbar.setPadding(0, Shaft.statusHeight, 0, 0);
+        toolbar.setTitle(illust.getTitle() + "  ");
+        toolbar.setTitleTextAppearance(mContext, R.style.toolbarText);
         ViewGroup.LayoutParams params = originImage.getLayoutParams();
-        int width = mContext.getResources().getDisplayMetrics().widthPixels - 2 * DensityUtil.dp2px(16.0f);
-        int height = illust.getHeight() * width / illust.getWidth();
-        params.height = height;
+        int width = mContext.getResources().getDisplayMetrics().widthPixels - 2 * DensityUtil.dp2px(12.0f);
+        params.height = illust.getHeight() * width / illust.getWidth();
         originImage.setLayoutParams(params);
-        Glide.with(mContext).load(GlideUtil.getSquare(illust)).apply(
-                bitmapTransform(new BlurTransformation(25, 3)))
+        Glide.with(mContext)
+                .load(GlideUtil.getSquare(illust))
+                .apply(bitmapTransform(new BlurTransformation(25, 3)))
+                .transition(withCrossFade())
                 .into(imageView);
-        Glide.with(mContext).load(GlideUtil.getLargeImage(illust)).into(originImage);
-        //((ViewPagerActivity)getActivity()).getToolbar().setTitle(illust.getTitle());
+        Glide.with(mContext)
+                .load(GlideUtil.getLargeImage(illust))
+                .transition(withCrossFade())
+                .into(originImage);
         return v;
     }
 

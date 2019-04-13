@@ -1,36 +1,47 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import android.support.v4.view.ViewPager;
-import android.support.v7.widget.GridLayoutManager;
+import android.support.annotation.NonNull;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 
 import com.scwang.smartrefresh.layout.util.DensityUtil;
 
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
-
-import ceui.lisa.activities.BlankActivity;
+import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.ViewPagerActivity;
-import ceui.lisa.adapters.IllustAdapter;
 import ceui.lisa.adapters.IllustStagAdapter;
 import ceui.lisa.interfs.OnItemClickListener;
 import ceui.lisa.network.Retro;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.response.ListIllustResponse;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.GridItemDecoration;
+import ceui.lisa.utils.Local;
 import ceui.lisa.utils.SpacesItemDecoration;
 import io.reactivex.Observable;
 
-public class FragmentIllustList extends BaseListFragment<ListIllustResponse, IllustStagAdapter, IllustsBean> {
+/**
+ * fragment recommend 推荐图集
+ */
+public class FragmentRecmd extends BaseListFragment<ListIllustResponse, IllustStagAdapter, IllustsBean> {
+
+    @Override
+    void initLayout() {
+        mLayoutID = R.layout.fragment_blank;
+    }
+
+    @Override
+    boolean showToolbar() {
+        return false;
+    }
 
     @Override
     Observable<ListIllustResponse> initApi() {
-        return Retro.getAppApi().getRank("Bearer " + mUserModel.getResponse().getAccess_token(), "for_android", "day_male");
+        //return Retro.getAppApi().getRecmdIllust("Bearer " + mUserModel.getResponse().getAccess_token(), "for_android", false);
+        return null;
     }
 
     @Override

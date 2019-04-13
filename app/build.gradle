@@ -47,6 +47,8 @@ dependencies {
     implementation 'org.greenrobot:eventbus:3.1.1'
     implementation 'jp.wasabeef:glide-transformations:4.0.1'
     implementation 'jp.co.cyberagent.android:gpuimage:2.0.3'
+    implementation 'com.sackcentury:shinebutton:0.2.0'
+    implementation 'de.hdodenhof:circleimageview:3.0.0'
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'

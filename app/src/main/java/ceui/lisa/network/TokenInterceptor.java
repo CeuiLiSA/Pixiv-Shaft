@@ -3,9 +3,8 @@ package ceui.lisa.network;
 import java.io.IOException;
 
 import ceui.lisa.fragments.FragmentLogin;
-import ceui.lisa.response.Local;
+import ceui.lisa.utils.Local;
 import ceui.lisa.response.UserModel;
-import ceui.lisa.utils.Common;
 import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -61,8 +60,8 @@ public class TokenInterceptor implements Interceptor {
                 true,
                 true);
         UserModel newUser = call.execute().body();
-        userModel.getResponse().getUser().setPassword(userModel.getResponse().getUser().getPassword());
-        userModel.getResponse().getUser().setIs_login(true);
+        newUser.getResponse().getUser().setPassword(userModel.getResponse().getUser().getPassword());
+        newUser.getResponse().getUser().setIs_login(true);
         Local.saveUser(newUser);
         if(newUser != null && newUser.getResponse() != null) {
             return newUser.getResponse().getAccess_token();

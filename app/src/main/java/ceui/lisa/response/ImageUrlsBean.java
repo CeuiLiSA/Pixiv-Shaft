@@ -1,6 +1,8 @@
 package ceui.lisa.response;
 
-public class ImageUrlsBean {
+import java.io.Serializable;
+
+public class ImageUrlsBean implements Serializable {
     /**
      * square_medium : https://i.pximg.net/c/360x360_70/img-master/img/2019/04/03/21/13/11/74027091_p0_square1200.jpg
      * medium : https://i.pximg.net/c/540x540_70/img-master/img/2019/04/03/21/13/11/74027091_p0_master1200.jpg
