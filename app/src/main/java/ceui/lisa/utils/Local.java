@@ -173,13 +173,13 @@ public class Local {
      * @param <T>
      */
     public static <T> void getLocalIllust(Callback<List<T>> callback) {
-        IllustPip<T> pip = new IllustPip<>();
+        List<T> localIllust = new ArrayList<>();
         Observable.create((ObservableOnSubscribe<String>) emitter -> {
             emitter.onNext("开始读取本地文件");
             Common.showLog("Observable thread is : " + Thread.currentThread().getName());
             FileInputStream fis = Shaft.getContext().openFileInput("RecommendIllust");//获得输入流
             ObjectInputStream ois = new ObjectInputStream(fis);
-            pip.setBeans((List<T>) ois.readObject());
+            localIllust.addAll((List<T>) ois.readObject());
             fis.close();
             ois.close();
             emitter.onNext("本地文件读取完成");
@@ -205,7 +205,7 @@ public class Local {
 
                     @Override
                     public void onComplete() {
-                        callback.doSomething(pip.getBeans());
+                        callback.doSomething(localIllust);
                     }
                 });
     }
