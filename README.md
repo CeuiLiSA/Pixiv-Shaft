@@ -1,7 +1,6 @@
 # Shaft
 
 ```java
-
     public static class IllustPip<Target>{
 
         private List<Target> beans = new ArrayList<>();
@@ -14,9 +13,9 @@
             this.beans = beans;
         }
     }
+```
 
-
-
+```java
     public static <T> void getLocalIllust(Callback<List<T>> callback) {
         IllustPip<T> pip = new IllustPip<>();
         Observable.create((ObservableOnSubscribe<String>) emitter -> {
