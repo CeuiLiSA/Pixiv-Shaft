@@ -14,7 +14,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.interfs.Callback;
 import ceui.lisa.interfs.ListShow;
+import ceui.lisa.response.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import io.reactivex.Observable;
@@ -114,17 +116,12 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
         }
         mProgressBar = v.findViewById(R.id.progress);
         mRecyclerView = v.findViewById(R.id.recyclerView);
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(mContext);
-        linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-        mRecyclerView.setLayoutManager(linearLayoutManager);
-        mRecyclerView.setHasFixedSize(true);
+        initRecyclerView();
         mRefreshLayout = v.findViewById(R.id.refreshLayout);
         mRefreshLayout.setRefreshHeader(new DeliveryHeader(mContext));
         mRefreshLayout.setOnRefreshListener(layout -> getFirstData());
         mRefreshLayout.setOnLoadMoreListener(layout -> getNextData());
-        mRefreshLayout.setEnableLoadMore(false);
         mRefreshLayout.setEnableLoadMore(hasNext());
-        initRecyclerView();
         return v;
     }
 
@@ -158,7 +155,7 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
     }
 
     /**
-     * the callback after getting the first page of data
+     * the callback after getting the first page of datan
      *
      */
     abstract void initAdapter();
@@ -185,12 +182,9 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
                                 allItems.addAll(response.getList());
                                 nextUrl = response.getNextUrl();
                                 initAdapter();
+                                Local.saveIllustList(allItems, 0);
                                 mRefreshLayout.finishRefresh(true);
-                                mRefreshLayout.setEnableLoadMore(true);
-                                Local.saveIllustList(allItems);
-                                if(mAdapter != null) {
-                                    mRecyclerView.setAdapter(mAdapter);
-                                }
+                                mRecyclerView.setAdapter(mAdapter);
                             } else {
                                 mRefreshLayout.finishRefresh(false);
                             }
@@ -210,16 +204,14 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
                         }
                     });
         }else {
-            Common.showToast("从本地加载图片");
             allItems.clear();
-            allItems.addAll(Local.getLocalIllust());
-            initAdapter();
-            mRefreshLayout.finishRefresh(true);
-            mRefreshLayout.setEnableLoadMore(true);
-            if(mAdapter != null) {
+            Local.getLocalIllust((Callback<List<ListItem>>) t -> {
+                allItems.addAll(t);
+                initAdapter();
+                mRefreshLayout.finishRefresh(true);
                 mRecyclerView.setAdapter(mAdapter);
-            }
-            mProgressBar.setVisibility(View.INVISIBLE);
+                mProgressBar.setVisibility(View.INVISIBLE);
+            });
         }
     }
 

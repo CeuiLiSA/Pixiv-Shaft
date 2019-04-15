@@ -50,8 +50,9 @@ public abstract class BaseFragment extends Fragment {
             initData();
         } else {
             ViewGroup viewGroup = (ViewGroup) parentView.getParent();
-            if (viewGroup != null)
+            if (viewGroup != null) {
                 viewGroup.removeView(parentView);
+            }
         }
         return parentView;
     }

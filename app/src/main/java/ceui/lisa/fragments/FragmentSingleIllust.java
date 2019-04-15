@@ -33,7 +33,7 @@ public class FragmentSingleIllust extends BaseFragment {
 
     private IllustsBean illust;
     private ProgressBar mProgressBar;
-    private ImageView refresh;
+    private ImageView refresh, imageView, originImage;
 
     public static FragmentSingleIllust newInstance(IllustsBean illustsBean){
         FragmentSingleIllust fragmentSingleIllust = new FragmentSingleIllust();
@@ -48,40 +48,16 @@ public class FragmentSingleIllust extends BaseFragment {
 
     @Override
     View initView(View v) {
-        ImageView imageView = v.findViewById(R.id.bg_image);
-        ImageView originImage = v.findViewById(R.id.origin_image);
+        imageView = v.findViewById(R.id.bg_image);
+        originImage = v.findViewById(R.id.origin_image);
         mProgressBar = v.findViewById(R.id.progress);
         CubeGrid cubeGrid = new CubeGrid();
         cubeGrid.setColor(getResources().getColor(R.color.loginBackground));
         mProgressBar.setIndeterminateDrawable(cubeGrid);
         refresh = v.findViewById(R.id.refresh);
         refresh.setOnClickListener(view -> {
-            mProgressBar.setVisibility(View.VISIBLE);
-            Glide.with(mContext)
-                    .load(GlideUtil.getSquare(illust))
-                    .apply(bitmapTransform(new BlurTransformation(25, 3)))
-                    .transition(withCrossFade())
-                    .into(imageView);
-            Glide.with(mContext)
-                    .load(GlideUtil.getLargeImage(illust))
-                    .transition(withCrossFade())
-                    .listener(new RequestListener<Drawable>() {
-                        @Override
-                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                            mProgressBar.setVisibility(View.INVISIBLE);
-                            refresh.setVisibility(View.VISIBLE);
-                            Common.showToast("图片加载失败");
-                            return false;
-                        }
-
-                        @Override
-                        public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                            mProgressBar.setVisibility(View.INVISIBLE);
-                            refresh.setVisibility(View.INVISIBLE);
-                            return false;
-                        }
-                    })
-                    .into(originImage);
+            refresh.setVisibility(View.INVISIBLE);
+            loadImage();
         });
         Toolbar toolbar = v.findViewById(R.id.toolbar);
         toolbar.setPadding(0, Shaft.statusHeight, 0, 0);
@@ -91,6 +67,11 @@ public class FragmentSingleIllust extends BaseFragment {
         int width = mContext.getResources().getDisplayMetrics().widthPixels - 2 * DensityUtil.dp2px(12.0f);
         params.height = illust.getHeight() * width / illust.getWidth();
         originImage.setLayoutParams(params);
+        return v;
+    }
+
+    private void loadImage(){
+        mProgressBar.setVisibility(View.VISIBLE);
         Glide.with(mContext)
                 .load(GlideUtil.getSquare(illust))
                 .apply(bitmapTransform(new BlurTransformation(25, 3)))
@@ -116,17 +97,13 @@ public class FragmentSingleIllust extends BaseFragment {
                     }
                 })
                 .into(originImage);
-        return v;
     }
 
     @Override
     void initData() {
-
+        loadImage();
     }
 
-    public IllustsBean getIllust() {
-        return illust;
-    }
 
     public void setIllust(IllustsBean illust) {
         this.illust = illust;

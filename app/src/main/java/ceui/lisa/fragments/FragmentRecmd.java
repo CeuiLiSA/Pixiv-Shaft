@@ -40,11 +40,7 @@ public class FragmentRecmd extends BaseListFragment<ListIllustResponse, IllustSt
 
     @Override
     void initRecyclerView() {
-        super.initRecyclerView();
         mRecyclerView.addItemDecoration(new SpacesItemDecoration(DensityUtil.dp2px(4.0f)));
-        StaggeredGridLayoutManager layoutManager =
-                new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
-        mRecyclerView.setLayoutManager(layoutManager);
     }
 
     @Override
@@ -60,6 +56,9 @@ public class FragmentRecmd extends BaseListFragment<ListIllustResponse, IllustSt
 
     @Override
     void initAdapter() {
+        StaggeredGridLayoutManager layoutManager =
+                new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
+        mRecyclerView.setLayoutManager(layoutManager);
         mAdapter = new IllustStagAdapter(allItems, mContext);
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
