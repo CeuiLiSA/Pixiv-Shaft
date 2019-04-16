@@ -10,6 +10,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
+import java.util.List;
+
+import ceui.lisa.utils.Channel;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.response.UserModel;
 
@@ -35,8 +43,6 @@ public abstract class BaseFragment extends Fragment {
         mActivity = getActivity();
         mUserModel = Local.getUser();
     }
-
-
 
     @Nullable
     @Override

@@ -6,6 +6,7 @@ import android.content.Context;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 import com.scwang.smartrefresh.layout.header.ClassicsHeader;
+import com.scwang.smartrefresh.layout.util.DensityUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +30,7 @@ public class Shaft extends Application {
     /**
      * 状态栏高度，初始化
      */
-    public static int statusHeight = 0;
+    public static int statusHeight = 0, toolbarHeight = 0;
 
 
     static {
@@ -56,6 +57,7 @@ public class Shaft extends Application {
         if (resourceId > 0) {
             statusHeight = sContext.getResources().getDimensionPixelSize(resourceId);
         }
+        toolbarHeight = DensityUtil.dp2px(56.0f);
     }
 
     public static Context getContext() {

@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.ScrollView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource;
@@ -18,10 +19,14 @@ import com.github.ybq.android.spinkit.sprite.Sprite;
 import com.github.ybq.android.spinkit.style.CubeGrid;
 import com.scwang.smartrefresh.layout.util.DensityUtil;
 
+import org.greenrobot.eventbus.EventBus;
+
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.ViewPagerActivity;
+import ceui.lisa.interfs.Callable;
 import ceui.lisa.response.IllustsBean;
+import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import jp.wasabeef.glide.transformations.BlurTransformation;
@@ -63,10 +68,34 @@ public class FragmentSingleIllust extends BaseFragment {
         toolbar.setPadding(0, Shaft.statusHeight, 0, 0);
         toolbar.setTitle(illust.getTitle() + "  ");
         toolbar.setTitleTextAppearance(mContext, R.style.toolbarText);
+
+
+        /**
+         * 设置一个空白的imageview作为头部，作为占位,
+         * 这样原图就会刚好在toolbar 下方，不会被toolbar遮住
+         */
+        ImageView head = v.findViewById(R.id.head);
+        ViewGroup.LayoutParams headParams = head.getLayoutParams();
+        headParams.height = Shaft.statusHeight + Shaft.toolbarHeight;
+        head.setLayoutParams(headParams);
+
+
+        /**
+         * 计算原图 宽高
+         */
         ViewGroup.LayoutParams params = originImage.getLayoutParams();
         int width = mContext.getResources().getDisplayMetrics().widthPixels - 2 * DensityUtil.dp2px(12.0f);
         params.height = illust.getHeight() * width / illust.getWidth();
         originImage.setLayoutParams(params);
+        originImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Channel<IllustsBean> channel = new Channel<>();
+                channel.setReceiver("FragmentRecmd");
+                channel.setObject(illust);
+                EventBus.getDefault().post(channel);
+            }
+        });
         return v;
     }
 

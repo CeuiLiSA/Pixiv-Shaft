@@ -1,6 +1,7 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
@@ -10,14 +11,20 @@ import android.widget.RelativeLayout;
 
 import com.scwang.smartrefresh.layout.util.DensityUtil;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.IllustStagAdapter;
+import ceui.lisa.interfs.Callable;
 import ceui.lisa.interfs.OnItemClickListener;
 import ceui.lisa.network.Retro;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.response.ListIllustResponse;
+import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.SpacesItemDecoration;

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
+    android:clipChildren="true"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
@@ -10,6 +11,83 @@
         android:id="@+id/bg_image"
         android:scaleType="centerCrop"
         android:layout_height="match_parent" />
+
+
+
+
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:orientation="vertical"
+            android:layout_height="wrap_content">
+
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:id="@+id/head"
+                android:layout_height="50dp" />
+
+            <android.support.v7.widget.CardView
+                android:layout_width="match_parent"
+                app:cardElevation="@dimen/four_dp"
+                android:id="@+id/image_card"
+                app:cardCornerRadius="@dimen/four_dp"
+                android:layout_marginStart="@dimen/twelve_dp"
+                android:layout_marginEnd="@dimen/twelve_dp"
+                android:layout_marginBottom="@dimen/eight_dp"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:id="@+id/origin_image"
+                    android:scaleType="centerCrop"
+                    android:layout_height="300dp" />
+
+
+                <ImageView
+                    android:layout_width="29dp"
+                    android:id="@+id/refresh"
+                    android:tint="@color/loginBackground"
+                    android:src="@drawable/ic_refresh_black_24dp"
+                    android:layout_gravity="center"
+                    android:visibility="invisible"
+                    android:layout_height="29dp" />
+
+
+                <ProgressBar
+                    android:layout_width="wrap_content"
+                    android:id="@+id/progress"
+                    android:indeterminateTint="@color/loginBackground"
+                    android:layout_gravity="center"
+                    android:layout_height="wrap_content" />
+
+            </android.support.v7.widget.CardView>
+
+
+
+            <android.support.design.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_marginStart="@dimen/twelve_dp"
+                android:layout_marginEnd="@dimen/twelve_dp"
+                app:strokeColor="@color/colorAccent"
+                app:cardElevation="@dimen/four_dp"
+                app:cardPreventCornerOverlap="true"
+                android:layout_marginBottom="@dimen/sixteen_dp"
+                app:strokeWidth="@dimen/four_dp"
+                app:cardCornerRadius="@dimen/four_dp"
+                android:layout_height="200dp">
+
+
+            </android.support.design.card.MaterialCardView>
+
+        </LinearLayout>
+    </ScrollView>
 
 
     <android.support.v7.widget.Toolbar
@@ -24,44 +102,6 @@
         app:titleTextColor="@android:color/white">
 
     </android.support.v7.widget.Toolbar>
-
-
-    <android.support.v7.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_below="@+id/toolbar"
-        app:cardElevation="@dimen/four_dp"
-        app:cardCornerRadius="@dimen/four_dp"
-        android:layout_marginStart="@dimen/twelve_dp"
-        android:layout_marginEnd="@dimen/twelve_dp"
-        android:layout_marginBottom="@dimen/eight_dp"
-        android:layout_height="wrap_content">
-
-        <ImageView
-            android:layout_width="match_parent"
-            android:id="@+id/origin_image"
-            android:scaleType="centerCrop"
-            android:layout_height="300dp" />
-
-
-        <ImageView
-            android:layout_width="29dp"
-            android:id="@+id/refresh"
-            android:tint="@color/loginBackground"
-            android:src="@drawable/ic_refresh_black_24dp"
-            android:layout_gravity="center"
-            android:visibility="invisible"
-            android:layout_height="29dp" />
-
-
-        <ProgressBar
-            android:layout_width="wrap_content"
-            android:id="@+id/progress"
-            android:indeterminateTint="@color/loginBackground"
-            android:layout_gravity="center"
-            android:layout_height="wrap_content" />
-
-    </android.support.v7.widget.CardView>
-
 
 
 </RelativeLayout>
