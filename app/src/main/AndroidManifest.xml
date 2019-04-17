@@ -35,6 +35,7 @@
         <activity android:name=".activities.LoginActivity" />
         <activity android:name=".activities.IllustActivity" />
         <activity android:name=".activities.ViewPagerActivity" />
+        <activity android:name=".activities.CoverActivity" />
     </application>
 
 </manifest>

@@ -37,7 +37,7 @@ public class FragmentRecmd extends BaseListFragment<ListIllustResponse, IllustSt
 
     @Override
     void initLayout() {
-        mLayoutID = R.layout.fragment_blank;
+        mLayoutID = R.layout.activity_simple_list;
     }
 
     @Override
@@ -52,8 +52,8 @@ public class FragmentRecmd extends BaseListFragment<ListIllustResponse, IllustSt
 
     @Override
     Observable<ListIllustResponse> initApi() {
-        //return Retro.getAppApi().getRecmdIllust("Bearer " + mUserModel.getResponse().getAccess_token(), "for_android", false);
-        return null;
+        return Retro.getAppApi().getRecmdIllust("Bearer " + mUserModel.getResponse().getAccess_token(), "for_android", false);
+        //return null;
     }
 
     @Override

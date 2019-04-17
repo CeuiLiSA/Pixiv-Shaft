@@ -327,4 +327,34 @@ public class IllustsBean implements Serializable {
             }
         }
     }
+
+
+    @Override
+    public String toString() {
+        return "IllustsBean{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", type='" + type + '\'' +
+                ", image_urls=" + image_urls +
+                ", caption='" + caption + '\'' +
+                ", restrict=" + restrict +
+                ", user=" + user +
+                ", create_date='" + create_date + '\'' +
+                ", page_count=" + page_count +
+                ", width=" + width +
+                ", height=" + height +
+                ", sanity_level=" + sanity_level +
+                ", x_restrict=" + x_restrict +
+                ", series=" + series +
+                ", meta_single_page=" + meta_single_page +
+                ", total_view=" + total_view +
+                ", total_bookmarks=" + total_bookmarks +
+                ", is_bookmarked=" + is_bookmarked +
+                ", visible=" + visible +
+                ", is_muted=" + is_muted +
+                ", tags=" + tags +
+                ", tools=" + tools +
+                ", meta_pages=" + meta_pages +
+                '}';
+    }
 }

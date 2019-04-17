@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 
@@ -50,7 +51,14 @@ public class IllustStagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
         params.width = imageSize;
         params.height = allIllust.get(position).getHeight() * imageSize / allIllust.get(position).getWidth();
+
+        if(params.height < 300){
+            params.height = 300;
+        }else if(params.height > 500){
+            params.height = 500;
+        }
         currentOne.illust.setLayoutParams(params);
+        currentOne.title.setText(allIllust.get(position).getTitle());
         Glide.with(mContext).load(GlideUtil.getMediumImg(allIllust.get(position))).into(currentOne.illust);
         if(mOnItemClickListener != null){
             holder.itemView.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 0));
@@ -68,10 +76,12 @@ public class IllustStagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     public static class TagHolder extends RecyclerView.ViewHolder {
         ImageView illust;
+        TextView title;
 
         TagHolder(View itemView) {
             super(itemView);
             illust = itemView.findViewById(R.id.illust_image);
+            title = itemView.findViewById(R.id.title);
         }
     }
 }

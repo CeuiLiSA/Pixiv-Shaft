@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_1"
+        android:orderInCategory="100"
+        android:title="插画"
+        android:icon="@drawable/ic_gesture_black_24dp"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_2"
+        android:orderInCategory="100"
+        android:title="用户"
+        android:icon="@drawable/ic_people_black_24dp"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_3"
+        android:orderInCategory="100"
+        android:title="其他"
+        android:icon="@drawable/ic_dashboard_black_24dp"
+        app:showAsAction="always" />
+
+</menu>
