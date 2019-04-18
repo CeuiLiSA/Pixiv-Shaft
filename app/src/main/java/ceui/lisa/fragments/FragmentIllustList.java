@@ -30,12 +30,12 @@ public class FragmentIllustList extends BaseListFragment<ListIllustResponse, Ill
 
     @Override
     Observable<ListIllustResponse> initApi() {
-        return Retro.getAppApi().getRank("Bearer " + mUserModel.getResponse().getAccess_token(), "for_android", "day_male");
+        return Retro.getAppApi().getRank(mUserModel.getResponse().getAccess_token(), "day_male");
     }
 
     @Override
     Observable<ListIllustResponse> initNextApi() {
-        return Retro.getAppApi().getNextIllust("Bearer " + mUserModel.getResponse().getAccess_token(), nextUrl);
+        return Retro.getAppApi().getNextIllust(mUserModel.getResponse().getAccess_token(), nextUrl);
     }
 
     @Override

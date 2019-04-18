@@ -1,5 +1,6 @@
 package ceui.lisa.fragments;
 
+import android.content.Intent;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v7.widget.GridLayoutManager;
@@ -10,15 +11,16 @@ import com.bumptech.glide.Glide;
 import com.scwang.smartrefresh.layout.util.DensityUtil;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.SearchResultActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.HotTagAdapter;
+import ceui.lisa.interfs.OnItemClickListener;
 import ceui.lisa.network.Retro;
 import ceui.lisa.response.TrendingtagResponse;
 import ceui.lisa.utils.AppBarStateChangeListener;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.GridItemDecoration;
 import io.reactivex.Observable;
-import jp.wasabeef.glide.transformations.BlurTransformation;
 
 import static com.bumptech.glide.request.RequestOptions.bitmapTransform;
 
@@ -32,9 +34,7 @@ public class FragmentHotTag extends BaseListFragment<TrendingtagResponse, HotTag
                 new GridItemDecoration(3,
                         DensityUtil.dp2px(8.0f),
                         true));
-        return Retro.getAppApi().getHotTags(
-                "Bearer " + mUserModel.getResponse().getAccess_token(),
-                "for_android");
+        return Retro.getAppApi().getHotTags(mUserModel.getResponse().getAccess_token());
         //return null;
     }
 
@@ -83,6 +83,14 @@ public class FragmentHotTag extends BaseListFragment<TrendingtagResponse, HotTag
     @Override
     void initAdapter() {
         mAdapter = new HotTagAdapter(allItems, mContext);
+        mAdapter.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(View v, int position, int viewType) {
+                Intent intent = new Intent(mContext, SearchResultActivity.class);
+                intent.putExtra("key word", allItems.get(position).getTag());
+                startActivity(intent);
+            }
+        });
         GridLayoutManager layoutManager = new GridLayoutManager(mContext, 3);
         mRecyclerView.setLayoutManager(layoutManager);
 

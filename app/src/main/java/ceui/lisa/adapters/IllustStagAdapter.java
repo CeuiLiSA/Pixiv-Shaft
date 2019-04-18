@@ -40,7 +40,7 @@ public class IllustStagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = mLayoutInflater.inflate(R.layout.recy_illust_grid, parent, false);
+        View view = mLayoutInflater.inflate(R.layout.recy_illust_stagger, parent, false);
         return new TagHolder(view);
     }
 

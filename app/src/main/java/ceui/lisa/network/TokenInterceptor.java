@@ -25,7 +25,7 @@ public class TokenInterceptor implements Interceptor {
             String newToken = getNewToken();
             Request newRequest = chain.request()
                     .newBuilder()
-                    .header("Authorization", "Bearer " + newToken)
+                    .header("Authorization", newToken)
                     .build();
             return chain.proceed(newRequest);
         }
@@ -62,7 +62,6 @@ public class TokenInterceptor implements Interceptor {
                 true);
         UserModel newUser = call.execute().body();
         newUser.getResponse().getUser().setPassword(userModel.getResponse().getUser().getPassword());
-        newUser.getResponse().getUser().setIs_login(true);
         Local.saveUser(newUser);
         if(newUser != null && newUser.getResponse() != null) {
             return newUser.getResponse().getAccess_token();

@@ -2,7 +2,11 @@ package ceui.lisa.network;
 
 import android.util.Log;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
@@ -23,11 +27,19 @@ public class Retro {
         OkHttpClient okHttpClient = new OkHttpClient
                 .Builder()
                 .addInterceptor(loggingInterceptor)
+                .addInterceptor(chain -> {
+                    Request localRequest = chain.request().newBuilder()
+                            .addHeader("User-Agent:", "PixivAndroidApp/5.0.134 (Android 6.0.1; D6653)")
+                            .addHeader("Accept-Language:", "zh_CN")
+                            .build();
+                    return chain.proceed(localRequest);
+                })
                 .addInterceptor(new TokenInterceptor())
                 .build();
+        Gson gson = new GsonBuilder().setLenient().create();
         Retrofit retrofit = new Retrofit.Builder()
                 .client(okHttpClient)
-                .addConverterFactory(GsonConverterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create(gson))
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .baseUrl(API_BASE_URL)
                 .build();
@@ -41,10 +53,18 @@ public class Retro {
         OkHttpClient okHttpClient = new OkHttpClient
                 .Builder()
                 .addInterceptor(loggingInterceptor)
+                .addInterceptor(chain -> {
+                    Request localRequest = chain.request().newBuilder()
+                            .addHeader("User-Agent:", "PixivAndroidApp/5.0.134 (Android 6.0.1; D6653)")
+                            .addHeader("Accept-Language:", "zh_CN")
+                            .build();
+                    return chain.proceed(localRequest);
+                })
                 .build();
+        Gson gson = new GsonBuilder().setLenient().create();
         Retrofit retrofit = new Retrofit.Builder()
                 .client(okHttpClient)
-                .addConverterFactory(GsonConverterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create(gson))
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .baseUrl(ACCOUNT_BASE_URL)
                 .build();

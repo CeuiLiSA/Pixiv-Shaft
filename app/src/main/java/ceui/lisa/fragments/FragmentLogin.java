@@ -1,5 +1,6 @@
 package ceui.lisa.fragments;
 
+import android.content.Intent;
 import android.support.v7.widget.CardView;
 import android.view.View;
 import android.widget.ProgressBar;
@@ -7,6 +8,7 @@ import android.widget.ProgressBar;
 import com.rengwuxian.materialedittext.MaterialEditText;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.CoverActivity;
 import ceui.lisa.network.Retro;
 import ceui.lisa.utils.Local;
 import ceui.lisa.response.UserModel;
@@ -79,16 +81,17 @@ public class FragmentLogin extends NetworkFragment<UserModel> {
                     public void onNext(UserModel userModel) {
                         if(userModel != null){
                             userModel.getResponse().getUser().setPassword(password.getText().toString());
-                            userModel.getResponse().getUser().setIs_login(true);
                             Local.saveUser(userModel);
                             mProgressBar.setVisibility(View.INVISIBLE);
-                            Common.showToast("登录成功");
+                            Intent intent = new Intent(mContext, CoverActivity.class);
+                            startActivity(intent);
                         }
                     }
 
                     @Override
                     public void onError(Throwable e) {
-
+                        e.printStackTrace();
+                        Common.showLog("222222");
                     }
 
                     @Override

@@ -35,12 +35,17 @@ public class Local {
 
     public static void saveUser(UserModel userModel){
         if(userModel != null){
+            Common.showLog("333333");
+            userModel.getResponse().getUser().setIs_login(true);
+            String token = userModel.getResponse().getAccess_token();
+            userModel.getResponse().setAccess_token("Bearer " + token);
             Gson gson = new Gson();
             String userString = gson.toJson(userModel, UserModel.class);
             SharedPreferences localData = Shaft.getContext().getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = localData.edit();
             editor.putString(USER, userString);
             editor.apply();
+            Common.showLog("444444");
         }
     }
 

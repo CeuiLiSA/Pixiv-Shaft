@@ -7,12 +7,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 
 import com.bumptech.glide.Glide;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
@@ -37,7 +35,7 @@ public class IllustAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         mLayoutInflater = LayoutInflater.from(mContext);
         allIllust = list;
         imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
-                3 * mContext.getResources().getDimensionPixelSize(R.dimen.eight_dp))/2;
+                mContext.getResources().getDimensionPixelSize(R.dimen.eight_dp))/2;
     }
 
     @NonNull

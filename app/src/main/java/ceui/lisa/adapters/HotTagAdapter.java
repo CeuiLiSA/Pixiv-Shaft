@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 
@@ -52,6 +53,7 @@ public class HotTagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         params.height = imageSize * 13 / 10;
         params.width = imageSize;
         currentOne.illust.setLayoutParams(params);
+        currentOne.title.setText(allIllust.get(position).getTranslated_name());
         Glide.with(mContext).load(GlideUtil.getMediumImg(allIllust.get(position).getIllust())).into(currentOne.illust);
         if(mOnItemClickListener != null){
             holder.itemView.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 0));
@@ -69,10 +71,11 @@ public class HotTagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
     public static class TagHolder extends RecyclerView.ViewHolder {
         ImageView illust;
-
+        TextView title;
         TagHolder(View itemView) {
             super(itemView);
             illust = itemView.findViewById(R.id.illust_image);
+            title = itemView.findViewById(R.id.title);
         }
     }
 }
