@@ -31,7 +31,14 @@
             android:maxLines="1"
             android:ellipsize="end"
             android:layout_marginBottom="@dimen/four_dp"
-            android:layout_alignParentBottom="true"
+            android:textColor="@android:color/white"
+            android:shadowColor="#FF000000"
+            android:shadowDx="5"
+            android:shadowDy="5"
+            android:shadowRadius="5"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:layout_alignBottom="@+id/illust_image"
             android:layout_height="wrap_content" />
 
 

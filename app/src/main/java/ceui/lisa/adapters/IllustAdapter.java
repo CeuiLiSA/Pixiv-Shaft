@@ -35,7 +35,7 @@ public class IllustAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         mLayoutInflater = LayoutInflater.from(mContext);
         allIllust = list;
         imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
-                mContext.getResources().getDimensionPixelSize(R.dimen.eight_dp))/2;
+                mContext.getResources().getDimensionPixelSize(R.dimen.four_dp))/2;
     }
 
     @NonNull

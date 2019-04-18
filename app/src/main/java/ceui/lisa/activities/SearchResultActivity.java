@@ -12,9 +12,4 @@ public class SearchResultActivity extends FragmentActivity<FragmentSearchResult>
         String keyWord = intent.getStringExtra("key word");
         return FragmentSearchResult.newInstance(keyWord);
     }
-
-    @Override
-    protected void initData() {
-
-    }
 }

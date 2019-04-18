@@ -21,8 +21,4 @@ public class IllustActivity extends FragmentActivity<FragmentIllustList> {
         return new FragmentIllustList();
     }
 
-    @Override
-    protected void initData() {
-
-    }
 }

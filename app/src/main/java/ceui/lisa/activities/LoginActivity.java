@@ -20,9 +20,4 @@ public class LoginActivity extends FragmentActivity<FragmentLogin> {
     protected FragmentLogin createNewFragment() {
         return new FragmentLogin();
     }
-
-    @Override
-    protected void initData() {
-
-    }
 }

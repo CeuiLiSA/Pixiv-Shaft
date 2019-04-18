@@ -30,24 +30,22 @@ public class FragmentHotTag extends BaseListFragment<TrendingtagResponse, HotTag
 
     @Override
     Observable<TrendingtagResponse> initApi() {
-        mRecyclerView.addItemDecoration(
-                new GridItemDecoration(3,
-                        DensityUtil.dp2px(8.0f),
-                        true));
         return Retro.getAppApi().getHotTags(mUserModel.getResponse().getAccess_token());
-        //return null;
+    }
+
+    @Override
+    void initRecyclerView() {
+        super.initRecyclerView();
+        mRecyclerView.addItemDecoration(new GridItemDecoration(3,
+                DensityUtil.dp2px(6.0f), true));
+        GridLayoutManager layoutManager = new GridLayoutManager(mContext, 3);
+        mRecyclerView.setLayoutManager(layoutManager);
     }
 
     @Override
     void initLayout() {
         mLayoutID = R.layout.fragment_hot_tag;
     }
-
-    @Override
-    boolean showToolbar() {
-        return true;
-    }
-
 
     @Override
     View initView(View v) {
@@ -91,9 +89,6 @@ public class FragmentHotTag extends BaseListFragment<TrendingtagResponse, HotTag
                 startActivity(intent);
             }
         });
-        GridLayoutManager layoutManager = new GridLayoutManager(mContext, 3);
-        mRecyclerView.setLayoutManager(layoutManager);
-
         Glide.with(mContext)
                 .load(GlideUtil.getLargeImage(allItems.get((int) (Math.random() * allItems.size())).getIllust()))
                 //.apply(bitmapTransform(new BlurTransformation(15, 3)))

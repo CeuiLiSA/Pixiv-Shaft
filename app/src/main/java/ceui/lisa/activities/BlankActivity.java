@@ -23,8 +23,4 @@ public class BlankActivity extends FragmentActivity<FragmentRecmd> {
         return null;
     }
 
-    @Override
-    protected void initData() {
-
-    }
 }

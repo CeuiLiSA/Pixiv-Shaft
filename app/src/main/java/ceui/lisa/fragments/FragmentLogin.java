@@ -91,7 +91,6 @@ public class FragmentLogin extends NetworkFragment<UserModel> {
                     @Override
                     public void onError(Throwable e) {
                         e.printStackTrace();
-                        Common.showLog("222222");
                     }
 
                     @Override

@@ -1,12 +1,17 @@
 package ceui.lisa.fragments;
 
+import android.content.Intent;
 import android.support.v7.widget.GridLayoutManager;
+import android.view.View;
 
 import com.scwang.smartrefresh.layout.util.DensityUtil;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.Shaft;
+import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.IllustAdapter;
 import ceui.lisa.adapters.IllustStagAdapter;
+import ceui.lisa.interfs.OnItemClickListener;
 import ceui.lisa.network.Retro;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.response.ListIllustResponse;
@@ -41,6 +46,14 @@ public class FragmentSearchResult extends BaseListFragment<ListIllustResponse, I
     }
 
     @Override
+    void initRecyclerView() {
+        super.initRecyclerView();
+        GridLayoutManager manager = new GridLayoutManager(mContext, 2);
+        mRecyclerView.setLayoutManager(manager);
+        mRecyclerView.addItemDecoration(new GridItemDecoration(2, DensityUtil.dp2px(4.0f), false));
+    }
+
+    @Override
     String getToolbarTitle() {
         return keyWord;
     }
@@ -57,10 +70,17 @@ public class FragmentSearchResult extends BaseListFragment<ListIllustResponse, I
 
     @Override
     void initAdapter() {
-        GridLayoutManager manager = new GridLayoutManager(mContext, 2);
-        mRecyclerView.setLayoutManager(manager);
-        mRecyclerView.addItemDecoration(new GridItemDecoration(2, DensityUtil.dp2px(8.0f), false));
         mAdapter = new IllustAdapter(allItems, mContext);
+        mAdapter.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(View v, int position, int viewType) {
+                Shaft.allIllusts.clear();
+                Shaft.allIllusts.addAll(allItems);
+                Intent intent = new Intent(mContext, ViewPagerActivity.class);
+                intent.putExtra("position", position);
+                startActivity(intent);
+            }
+        });
     }
 
     public String getKeyWord() {

@@ -40,5 +40,10 @@ public abstract class FragmentActivity<T extends Fragment> extends BaseActivity 
     }
 
     protected abstract T createNewFragment();
+
+    @Override
+    protected void initData() {
+
+    }
 }
 

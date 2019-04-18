@@ -18,6 +18,7 @@ import ceui.lisa.interfs.Callback;
 import ceui.lisa.interfs.ListShow;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.ListObserver;
 import ceui.lisa.utils.Local;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
@@ -172,33 +173,23 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
             mProgressBar.setVisibility(View.VISIBLE);
             mApi.subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Observer<Response>() {
-                        @Override
-                        public void onSubscribe(Disposable d) {
+                    .subscribe(new ListObserver<Response>() {
 
+                        @Override
+                        public void success(Response response) {
+                            allItems.clear();
+                            allItems.addAll(response.getList());
+                            nextUrl = response.getNextUrl();
+                            initAdapter();
+                            mRefreshLayout.finishRefresh(true);
+                            mProgressBar.setVisibility(View.INVISIBLE);
+                            mRecyclerView.setAdapter(mAdapter);
                         }
 
                         @Override
-                        public void onNext(Response response) {
-                            if (response != null) {
-                                allItems.clear();
-                                allItems.addAll(response.getList());
-                                nextUrl = response.getNextUrl();
-                                initAdapter();
-                                //Local.saveIllustList(allItems, 0);
-                                mRefreshLayout.finishRefresh(true);
-                                mRecyclerView.setAdapter(mAdapter);
-                            } else {
-                                mRefreshLayout.finishRefresh(false);
-                            }
-                            mProgressBar.setVisibility(View.INVISIBLE);
-                        }
-
-                        @Override
-                        public void onError(Throwable e) {
-                            e.printStackTrace();
-                            mProgressBar.setVisibility(View.INVISIBLE);
+                        public void dataError() {
                             mRefreshLayout.finishRefresh(false);
+                            mProgressBar.setVisibility(View.INVISIBLE);
                         }
 
                         @Override
@@ -206,15 +197,6 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
 
                         }
                     });
-        }else {
-            allItems.clear();
-//            Local.getLocalIllust((Callback<List<ListItem>>) t -> {
-//                allItems.addAll(t);
-//                initAdapter();
-//                mRefreshLayout.finishRefresh(true);
-//                mRecyclerView.setAdapter(mAdapter);
-//                mProgressBar.setVisibility(View.INVISIBLE);
-//            });
         }
     }
 
@@ -230,30 +212,20 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
             }else {
                 mApi.subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(new Observer<Response>() {
+                        .subscribe(new ListObserver<Response>() {
                             @Override
-                            public void onSubscribe(Disposable d) {
-
-                            }
-
-                            @Override
-                            public void onNext(Response response) {
-                                if (response != null) {
-                                    int lastSize = allItems.size();
-                                    allItems.addAll(response.getList());
-                                    nextUrl = response.getNextUrl();
-                                    mRefreshLayout.finishLoadMore(true);
-                                    //Local.saveIllustList(allItems);
-                                    if (mAdapter != null) {
-                                        mAdapter.notifyItemRangeChanged(lastSize, response.getList().size());
-                                    }
-                                } else {
-                                    mRefreshLayout.finishLoadMore(false);
+                            public void success(Response response) {
+                                int lastSize = allItems.size();
+                                allItems.addAll(response.getList());
+                                nextUrl = response.getNextUrl();
+                                mRefreshLayout.finishLoadMore(true);
+                                if (mAdapter != null) {
+                                    mAdapter.notifyItemRangeChanged(lastSize, response.getList().size());
                                 }
                             }
 
                             @Override
-                            public void onError(Throwable e) {
+                            public void dataError() {
                                 mRefreshLayout.finishLoadMore(false);
                             }
 

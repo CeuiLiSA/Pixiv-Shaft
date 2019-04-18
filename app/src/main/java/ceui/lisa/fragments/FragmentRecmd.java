@@ -41,11 +41,6 @@ public class FragmentRecmd extends BaseListFragment<ListIllustResponse, IllustSt
     }
 
     @Override
-    boolean showToolbar() {
-        return true;
-    }
-
-    @Override
     String getToolbarTitle() {
         return "推荐作品";
     }
@@ -59,13 +54,11 @@ public class FragmentRecmd extends BaseListFragment<ListIllustResponse, IllustSt
     @Override
     Observable<ListIllustResponse> initApi() {
         return Retro.getAppApi().getRecmdIllust(mUserModel.getResponse().getAccess_token(), false);
-        //return null;
     }
 
     @Override
     Observable<ListIllustResponse> initNextApi() {
-        //return Retro.getAppApi().getNextIllust("Bearer " + mUserModel.getResponse().getAccess_token(), nextUrl);
-        return null;
+        return Retro.getAppApi().getNextIllust("Bearer " + mUserModel.getResponse().getAccess_token(), nextUrl);
     }
 
     @Override
