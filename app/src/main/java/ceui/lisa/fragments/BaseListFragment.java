@@ -98,6 +98,7 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
     protected RefreshLayout mRefreshLayout;
     protected List<ListItem> allItems = new ArrayList<>();
     protected ProgressBar mProgressBar;
+    protected Toolbar mToolbar;
     protected String nextUrl = "";
 
     @Override
@@ -107,12 +108,14 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
 
     @Override
     View initView(View v) {
-        Toolbar toolbar = v.findViewById(R.id.toolbar);
+        mToolbar = v.findViewById(R.id.toolbar);
         if(showToolbar()){
-            toolbar.setNavigationOnClickListener(view -> getActivity().finish());
-            toolbar.setTitle(getToolbarTitle());
+            mToolbar.setNavigationOnClickListener(view -> getActivity().finish());
+            mToolbar.setTitle(getToolbarTitle());
         }else {
-            toolbar.setVisibility(View.GONE);
+            if(mToolbar != null) {
+                mToolbar.setVisibility(View.GONE);
+            }
         }
         mProgressBar = v.findViewById(R.id.progress);
         mRecyclerView = v.findViewById(R.id.recyclerView);
@@ -182,7 +185,7 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
                                 allItems.addAll(response.getList());
                                 nextUrl = response.getNextUrl();
                                 initAdapter();
-                                Local.saveIllustList(allItems, 0);
+                                //Local.saveIllustList(allItems, 0);
                                 mRefreshLayout.finishRefresh(true);
                                 mRecyclerView.setAdapter(mAdapter);
                             } else {
@@ -205,13 +208,13 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
                     });
         }else {
             allItems.clear();
-            Local.getLocalIllust((Callback<List<ListItem>>) t -> {
-                allItems.addAll(t);
-                initAdapter();
-                mRefreshLayout.finishRefresh(true);
-                mRecyclerView.setAdapter(mAdapter);
-                mProgressBar.setVisibility(View.INVISIBLE);
-            });
+//            Local.getLocalIllust((Callback<List<ListItem>>) t -> {
+//                allItems.addAll(t);
+//                initAdapter();
+//                mRefreshLayout.finishRefresh(true);
+//                mRecyclerView.setAdapter(mAdapter);
+//                mProgressBar.setVisibility(View.INVISIBLE);
+//            });
         }
     }
 
@@ -240,7 +243,7 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
                                     allItems.addAll(response.getList());
                                     nextUrl = response.getNextUrl();
                                     mRefreshLayout.finishLoadMore(true);
-                                    Local.saveIllustList(allItems);
+                                    //Local.saveIllustList(allItems);
                                     if (mAdapter != null) {
                                         mAdapter.notifyItemRangeChanged(lastSize, response.getList().size());
                                     }

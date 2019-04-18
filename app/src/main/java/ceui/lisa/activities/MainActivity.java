@@ -25,9 +25,6 @@ import ceui.lisa.utils.Common;
 public class MainActivity extends BaseActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-
-    private ViewPager mViewPager;
-
     @Override
     protected void initLayout() {
         getWindow().setStatusBarColor(Color.TRANSPARENT);
@@ -39,71 +36,17 @@ public class MainActivity extends BaseActivity
 
     @Override
     protected void initView() {
-        mViewPager = findViewById(R.id.view_pager);
     }
 
-
-    private void initFragment(){
-        NavigationView navigationView = findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-        BottomNavigationView bottomNavigationView = findViewById(R.id.navigation_view);
-        bottomNavigationView.setOnNavigationItemSelectedListener(menuItem -> {
-            if(menuItem.getItemId() == R.id.action_1){
-                mViewPager.setCurrentItem(0);
-                return true;
-            }else if(menuItem.getItemId() == R.id.action_2){
-                mViewPager.setCurrentItem(1);
-                return true;
-            }else if(menuItem.getItemId() == R.id.action_3){
-                mViewPager.setCurrentItem(2);
-                return true;
-            }else {
-                return false;
-            }
-        });
-        BaseFragment[] baseFragments = new BaseFragment[]{new FragmentBlank(), new FragmentRecmd(), new FragmentBlank()};
-        mViewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
-            @Override
-            public Fragment getItem(int i) {
-                return baseFragments[i];
-            }
-
-            @Override
-            public int getCount() {
-                return baseFragments.length;
-            }
-        });
-        mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-            @Override
-            public void onPageScrolled(int i, float v, int i1) {
-
-            }
-
-            @Override
-            public void onPageSelected(int i) {
-                 bottomNavigationView.getMenu().getItem(i).setChecked(true);
-            }
-
-            @Override
-            public void onPageScrollStateChanged(int i) {
-
-            }
-        });
-    }
 
 
     @Override
     protected void initData() {
         UserModel userModel = Local.getUser();
         if(userModel != null && userModel.getResponse().getUser().isIs_login()){
-//            Intent intent = new Intent(mContext, BlankActivity.class);
-//            startActivity(intent);
-//            finish();
-            initFragment();
             Intent intent = new Intent(mContext, CoverActivity.class);
             startActivity(intent);
-            //finish();
-
+            finish();
         }else {
             Common.showToast("未登录");
             Intent intent = new Intent(mContext, LoginActivity.class);

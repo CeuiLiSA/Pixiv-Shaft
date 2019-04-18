@@ -19,7 +19,8 @@ public class BlankActivity extends FragmentActivity<FragmentRecmd> {
 
     @Override
     protected FragmentRecmd createNewFragment() {
-        return new FragmentRecmd();
+        //return new FragmentRecmd();
+        return null;
     }
 
     @Override

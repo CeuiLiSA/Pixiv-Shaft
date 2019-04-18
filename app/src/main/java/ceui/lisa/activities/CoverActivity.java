@@ -20,6 +20,7 @@ import java.util.Random;
 import ceui.lisa.R;
 import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentBlank;
+import ceui.lisa.fragments.FragmentHotTag;
 import ceui.lisa.fragments.FragmentRecmd;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.utils.Local;
@@ -77,14 +78,10 @@ public class CoverActivity extends BaseActivity {
 
 
     private void initFragment(){
-        List<IllustsBean> beanList = Local.getLocalIllust();
-        Common.showLog("how many ? " + beanList.size());
-        int left = (int)(Math.random()*beanList.size());
-        int right = (int)(Math.random()*beanList.size());
         BaseFragment[] baseFragments = new BaseFragment[]{
-                FragmentBlank.newInstance(beanList.get(left)),
+                new FragmentHotTag(),
                 new FragmentRecmd(),
-                FragmentBlank.newInstance(beanList.get(right))
+                new FragmentBlank()
         };
         mViewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override

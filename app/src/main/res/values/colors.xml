@@ -6,4 +6,6 @@
 
 
     <color name="loginBackground">#56baec</color>
+    <color name="background">#f2f2f2</color>
+    <color name="dark_bg">#999999</color>
 </resources>

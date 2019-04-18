@@ -1,6 +1,7 @@
 package ceui.lisa.network;
 
 import ceui.lisa.response.ListIllustResponse;
+import ceui.lisa.response.TrendingtagResponse;
 import io.reactivex.Observable;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
@@ -44,4 +45,10 @@ public interface AppApi {
     Observable<ListIllustResponse> getRecmdIllust(@Header("Authorization") String token,
                                                   @Query("filter") String filter,
                                                   @Query("include_ranking_illusts") boolean include_ranking_illusts);
+
+
+
+    @GET("/v1/trending-tags/illust")
+    Observable<TrendingtagResponse> getHotTags(@Header("Authorization") String token,
+                                               @Query("filter") String filter);
 }
