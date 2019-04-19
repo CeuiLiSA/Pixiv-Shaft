@@ -1,5 +1,164 @@
 # Shaft
 
+
+
+### 所有的列表均继承自BaseListFragment
+```java
+
+public abstract class BaseListFragment<Response extends ListShow<ListItem>,
+        Adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>,
+        ListItem> extends BaseFragment {
+
+    public static final int PAGE_SIZE = 20;
+    protected Observable<Response> mApi;
+    protected Adapter mAdapter;
+    protected RecyclerView mRecyclerView;
+    protected RefreshLayout mRefreshLayout;
+    protected List<ListItem> allItems = new ArrayList<>();
+    protected ProgressBar mProgressBar;
+    protected Toolbar mToolbar;
+    protected String nextUrl = "";
+
+    @Override
+    void initLayout() {
+        mLayoutID = R.layout.activity_simple_list;
+    }
+
+    @Override
+    View initView(View v) {
+        mToolbar = v.findViewById(R.id.toolbar);
+        if(showToolbar()){
+            mToolbar.setNavigationOnClickListener(view -> getActivity().finish());
+            mToolbar.setTitle(getToolbarTitle());
+        }else {
+            if(mToolbar != null) {
+                mToolbar.setVisibility(View.GONE);
+            }
+        }
+        mProgressBar = v.findViewById(R.id.progress);
+        mRecyclerView = v.findViewById(R.id.recyclerView);
+        initRecyclerView();
+        mRefreshLayout = v.findViewById(R.id.refreshLayout);
+        mRefreshLayout.setRefreshHeader(new DeliveryHeader(mContext));
+        mRefreshLayout.setOnRefreshListener(layout -> getFirstData());
+        mRefreshLayout.setOnLoadMoreListener(layout -> getNextData());
+        mRefreshLayout.setEnableLoadMore(hasNext());
+        return v;
+    }
+
+    String getToolbarTitle(){
+        return " ";
+    }
+
+    @Override
+    void initData() {
+        getFirstData();
+    }
+
+
+    boolean hasNext() {
+        return true;
+    }
+
+    boolean showToolbar() {
+        return true;
+    }
+
+    /**
+     *
+     */
+    abstract Observable<Response> initApi();
+
+    abstract Observable<Response> initNextApi();
+
+    void initRecyclerView(){
+
+    }
+
+    /**
+     * the callback after getting the first page of datan
+     *
+     */
+    abstract void initAdapter();
+
+    /**
+     * 获取第一波数据
+     */
+    public void getFirstData() {
+        mApi = initApi();
+        if (mApi != null) {
+            mProgressBar.setVisibility(View.VISIBLE);
+            mApi.subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new ListObserver<Response>() {
+
+                        @Override
+                        public void success(Response response) {
+                            allItems.clear();
+                            allItems.addAll(response.getList());
+                            nextUrl = response.getNextUrl();
+                            initAdapter();
+                            mRefreshLayout.finishRefresh(true);
+                            mProgressBar.setVisibility(View.INVISIBLE);
+                            mRecyclerView.setAdapter(mAdapter);
+                        }
+
+                        @Override
+                        public void dataError() {
+                            mRefreshLayout.finishRefresh(false);
+                            mProgressBar.setVisibility(View.INVISIBLE);
+                        }
+
+                        @Override
+                        public void onComplete() {
+
+                        }
+                    });
+        }
+    }
+
+    /**
+     * 获取后续数据
+     */
+    public void getNextData() {
+        mApi = initNextApi();
+        if (mApi != null) {
+            if(nextUrl.length() == 0){
+                Common.showToast("next url 为空");
+                mRefreshLayout.finishLoadMore(false);
+            }else {
+                mApi.subscribeOn(Schedulers.newThread())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new ListObserver<Response>() {
+                            @Override
+                            public void success(Response response) {
+                                int lastSize = allItems.size();
+                                allItems.addAll(response.getList());
+                                nextUrl = response.getNextUrl();
+                                mRefreshLayout.finishLoadMore(true);
+                                if (mAdapter != null) {
+                                    mAdapter.notifyItemRangeChanged(lastSize, response.getList().size());
+                                }
+                            }
+
+                            @Override
+                            public void dataError() {
+                                mRefreshLayout.finishLoadMore(false);
+                            }
+
+                            @Override
+                            public void onComplete() {
+
+                            }
+                        });
+            }
+        }
+    }
+}
+```
+
+
+
 ```java
     public static class IllustPip<Target>{
 
@@ -55,6 +214,42 @@
     }
 ```
 
+### 这样一来将会大大减少代码量，子类只需要这样
+```java
 
-有亮眼的设计的同学，请联系fatemercis@qq.com或留下链接/截图，十分感谢
+public class FragmentIllustList extends BaseListFragment<ListIllustResponse, IllustStagAdapter, IllustsBean> {
+
+    @Override
+    Observable<ListIllustResponse> initApi() {
+        return Retro.getAppApi().getRank(mUserModel.getResponse().getAccess_token(), "day_male");
+    }
+
+    @Override
+    Observable<ListIllustResponse> initNextApi() {
+        return Retro.getAppApi().getNextIllust(mUserModel.getResponse().getAccess_token(), nextUrl);
+    }
+
+    @Override
+    void initAdapter() {
+        mAdapter = new IllustStagAdapter(allItems, mContext);
+        mAdapter.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(View v, int position, int viewType) {
+                Shaft.allIllusts.clear();
+                Shaft.allIllusts.addAll(allItems);
+                Intent intent = new Intent(mContext, ViewPagerActivity.class);
+                intent.putExtra("position", position);
+                startActivity(intent);
+            }
+        });
+        mRecyclerView.addItemDecoration(new SpacesItemDecoration(DensityUtil.dp2px(4.0f)));
+        StaggeredGridLayoutManager layoutManager =
+                new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
+        mRecyclerView.setLayoutManager(layoutManager);
+    }
+}
+```
+
+
+######有亮眼的设计的同学，请联系fatemercis@qq.com或留下链接/截图，十分感谢
 ![截图](https://raw.githubusercontent.com/CeuiLiSA/Shaft/master/snap/Screenshot_1554187583.png)
