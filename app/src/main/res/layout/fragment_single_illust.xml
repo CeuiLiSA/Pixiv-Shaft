@@ -70,17 +70,41 @@
 
 
 
+            <android.support.v7.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_marginStart="@dimen/twelve_dp"
+                android:layout_marginEnd="@dimen/twelve_dp"
+                app:cardElevation="@dimen/four_dp"
+                android:layout_marginBottom="@dimen/eight_dp"
+                app:cardCornerRadius="@dimen/four_dp"
+                android:layout_height="200dp">
+
+
+            </android.support.v7.widget.CardView>
+
+
             <android.support.design.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_marginStart="@dimen/twelve_dp"
                 android:layout_marginEnd="@dimen/twelve_dp"
-                app:strokeColor="@color/colorAccent"
+                android:id="@+id/related_illust"
                 app:cardElevation="@dimen/four_dp"
-                app:cardPreventCornerOverlap="true"
                 android:layout_marginBottom="@dimen/sixteen_dp"
-                app:strokeWidth="@dimen/four_dp"
                 app:cardCornerRadius="@dimen/four_dp"
-                android:layout_height="200dp">
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:text="相关作品"
+                    android:layout_margin="@dimen/sixteen_dp"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_gravity="end"
+                    android:text="查看更多"
+                    android:layout_margin="@dimen/sixteen_dp"
+                    android:layout_height="wrap_content" />
 
 
             </android.support.design.card.MaterialCardView>

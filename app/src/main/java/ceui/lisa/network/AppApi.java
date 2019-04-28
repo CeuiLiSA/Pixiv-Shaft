@@ -1,13 +1,11 @@
 package ceui.lisa.network;
 
 import ceui.lisa.response.ListIllustResponse;
+import ceui.lisa.response.RecmdUserResponse;
 import ceui.lisa.response.TrendingtagResponse;
 import io.reactivex.Observable;
-import retrofit2.http.Field;
-import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
-import retrofit2.http.POST;
 import retrofit2.http.Query;
 import retrofit2.http.Url;
 
@@ -24,9 +22,6 @@ public interface AppApi {
                                            @Query("mode") String mode);
 
 
-    @GET
-    Observable<ListIllustResponse> getNextIllust(@Header("Authorization") String token,
-                                           @Url String next_url);
 
 
 
@@ -74,4 +69,56 @@ public interface AppApi {
                                                 @Query("word") String word,
                                                 @Query("sort") String sort,
                                                 @Query("search_target") String search_target);
+
+
+    @GET("/v2/illust/related?filter=for_android")
+    Observable<ListIllustResponse> relatedIllust(@Header("Authorization") String token,
+                                                @Query("illust_id") int illust_id);
+
+
+    /**
+     * 推荐用户
+     *
+     * @param token
+     * @return
+     */
+    @GET("/v1/user/recommended?filter=for_android")
+    Observable<RecmdUserResponse> getRecmdUser(@Header("Authorization") String token);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    @GET
+    Observable<RecmdUserResponse> getNext(@Header("Authorization") String token,
+                                                 @Url String next_url);
+
+
+
+    @GET
+    Observable<ListIllustResponse> getNextIllust(@Header("Authorization") String token,
+                                                 @Url String next_url);
 }

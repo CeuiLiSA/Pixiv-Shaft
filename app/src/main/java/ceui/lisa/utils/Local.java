@@ -128,27 +128,6 @@ public class Local {
 
 
 
-
-
-    /**
-     * 管道
-     *
-     * @param <Target>
-     */
-    public static class IllustPip<Target>{
-
-        private List<Target> beans = new ArrayList<>();
-
-        List<Target> getBeans() {
-            return beans;
-        }
-
-        void setBeans(List<Target> beans) {
-            this.beans = beans;
-        }
-    }
-
-
     /**
      * 主线程 同步读取本地文件
      *

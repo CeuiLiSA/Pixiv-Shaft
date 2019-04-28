@@ -2,27 +2,18 @@ package ceui.lisa.activities;
 
 import android.content.Intent;
 import android.graphics.Color;
-import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
-import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
-import android.support.v4.widget.DrawerLayout;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-
-import java.util.List;
-import java.util.Random;
 
 import ceui.lisa.R;
 import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentBlank;
 import ceui.lisa.fragments.FragmentHotTag;
-import ceui.lisa.fragments.FragmentRecmd;
-import ceui.lisa.response.IllustsBean;
+import ceui.lisa.fragments.FragmentRecmdIllust;
+import ceui.lisa.fragments.FragmentRecmdUser;
 import ceui.lisa.utils.Local;
 import ceui.lisa.response.UserModel;
 import ceui.lisa.utils.Common;
@@ -33,10 +24,10 @@ public class CoverActivity extends BaseActivity {
 
     @Override
     protected void initLayout() {
-        getWindow().setStatusBarColor(Color.TRANSPARENT);
-        getWindow().getDecorView().setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
-                        View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+//        getWindow().setStatusBarColor(Color.TRANSPARENT);
+//        getWindow().getDecorView().setSystemUiVisibility(
+//                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+//                        View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
         mLayoutID = R.layout.activity_cover;
     }
 
@@ -80,7 +71,7 @@ public class CoverActivity extends BaseActivity {
     private void initFragment(){
         BaseFragment[] baseFragments = new BaseFragment[]{
                 new FragmentHotTag(),
-                new FragmentRecmd(),
+                new FragmentRecmdUser(),
                 new FragmentBlank()
         };
         mViewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {

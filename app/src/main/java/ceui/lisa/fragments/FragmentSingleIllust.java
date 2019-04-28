@@ -1,8 +1,10 @@
 package ceui.lisa.fragments;
 
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.media.Image;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,6 +24,7 @@ import com.scwang.smartrefresh.layout.util.DensityUtil;
 import org.greenrobot.eventbus.EventBus;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.RelatedIllustActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.interfs.Callable;
@@ -34,6 +37,9 @@ import jp.wasabeef.glide.transformations.BlurTransformation;
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 import static com.bumptech.glide.request.RequestOptions.bitmapTransform;
 
+/**
+ * 插画详情
+ */
 public class FragmentSingleIllust extends BaseFragment {
 
     private IllustsBean illust;
@@ -70,6 +76,17 @@ public class FragmentSingleIllust extends BaseFragment {
         toolbar.setTitleTextAppearance(mContext, R.style.toolbarText);
 
 
+        CardView viewRelated = v.findViewById(R.id.related_illust);
+        viewRelated.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(mContext, RelatedIllustActivity.class);
+                intent.putExtra("illust id", illust.getId());
+                intent.putExtra("illust title", illust.getTitle());
+                startActivity(intent);
+            }
+        });
+
         /**
          * 设置一个空白的imageview作为头部，作为占位,
          * 这样原图就会刚好在toolbar 下方，不会被toolbar遮住
@@ -90,10 +107,7 @@ public class FragmentSingleIllust extends BaseFragment {
         originImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Channel<IllustsBean> channel = new Channel<>();
-                channel.setReceiver("FragmentRecmd");
-                channel.setObject(illust);
-                EventBus.getDefault().post(channel);
+                Common.showToast(illust.getTitle());
             }
         });
         return v;
@@ -136,5 +150,13 @@ public class FragmentSingleIllust extends BaseFragment {
 
     public void setIllust(IllustsBean illust) {
         this.illust = illust;
+    }
+
+
+
+
+
+    private void getRelatedIllust(){
+
     }
 }

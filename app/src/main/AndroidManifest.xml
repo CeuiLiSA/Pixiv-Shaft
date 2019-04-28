@@ -37,6 +37,7 @@
         <activity android:name=".activities.ViewPagerActivity" />
         <activity android:name=".activities.CoverActivity" />
         <activity android:name=".activities.SearchResultActivity" />
+        <activity android:name=".activities.RelatedIllustActivity" />
     </application>
 
 </manifest>

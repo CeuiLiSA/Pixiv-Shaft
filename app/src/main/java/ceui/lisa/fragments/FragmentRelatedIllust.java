@@ -1,37 +1,60 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import android.support.v4.view.ViewPager;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.View;
 
 import com.scwang.smartrefresh.layout.util.DensityUtil;
 
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
-
-import ceui.lisa.activities.BlankActivity;
-import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.ViewPagerActivity;
-import ceui.lisa.adapters.IllustAdapter;
 import ceui.lisa.adapters.IllustStagAdapter;
 import ceui.lisa.interfs.OnItemClickListener;
 import ceui.lisa.network.Retro;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.response.ListIllustResponse;
-import ceui.lisa.utils.Common;
-import ceui.lisa.utils.GridItemDecoration;
 import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.utils.SpacesItemDecoration;
 import io.reactivex.Observable;
 
-public class FragmentIllustList extends BaseListFragment<ListIllustResponse, IllustStagAdapter, IllustsBean> {
+/**
+ * 相关插画
+ */
+public class FragmentRelatedIllust extends BaseListFragment<ListIllustResponse, IllustStagAdapter, IllustsBean> {
+
+    private int illustID;
+    private String mTitle;
+
+    public int getIllustID() {
+        return illustID;
+    }
+
+    public void setIllustID(int illustID) {
+        this.illustID = illustID;
+    }
+
+    public String getTitle() {
+        return mTitle;
+    }
+
+    public void setTitle(String title) {
+        mTitle = title;
+    }
+
+    public static FragmentRelatedIllust newInstance(int id, String title){
+        FragmentRelatedIllust fragmentRelatedIllust = new FragmentRelatedIllust();
+        fragmentRelatedIllust.setIllustID(id);
+        fragmentRelatedIllust.setTitle(title);
+        return fragmentRelatedIllust;
+    }
+
+    @Override
+    String getToolbarTitle() {
+        return mTitle + "的相关作品";
+    }
 
     @Override
     Observable<ListIllustResponse> initApi() {
-        return Retro.getAppApi().getRank(mUserModel.getResponse().getAccess_token(), "day_male");
+        return Retro.getAppApi().relatedIllust(mUserModel.getResponse().getAccess_token(), illustID);
     }
 
     @Override

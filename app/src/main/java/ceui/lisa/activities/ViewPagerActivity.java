@@ -14,6 +14,7 @@ import ceui.lisa.R;
 import ceui.lisa.fragments.FragmentIllustList;
 import ceui.lisa.fragments.FragmentSingleIllust;
 import ceui.lisa.response.IllustsBean;
+import ceui.lisa.utils.IllustChannel;
 
 public class ViewPagerActivity extends BaseActivity{
 
@@ -30,7 +31,7 @@ public class ViewPagerActivity extends BaseActivity{
 
     @Override
     protected void initView() {
-        mIllusts.addAll(Shaft.allIllusts);
+        mIllusts.addAll(IllustChannel.getInstance().getIllustList());
         ViewPager viewPager = findViewById(R.id.view_pager);
         viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override

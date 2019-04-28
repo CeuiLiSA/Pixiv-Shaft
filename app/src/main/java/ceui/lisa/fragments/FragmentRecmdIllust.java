@@ -26,14 +26,15 @@ import ceui.lisa.response.IllustsBean;
 import ceui.lisa.response.ListIllustResponse;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.SpacesItemDecoration;
 import io.reactivex.Observable;
 
 /**
- * fragment recommend 推荐图集
+ * fragment recommend 推荐插画
  */
-public class FragmentRecmd extends BaseListFragment<ListIllustResponse, IllustStagAdapter, IllustsBean> {
+public class FragmentRecmdIllust extends BaseListFragment<ListIllustResponse, IllustStagAdapter, IllustsBean> {
 
     @Override
     void initLayout() {
@@ -51,9 +52,12 @@ public class FragmentRecmd extends BaseListFragment<ListIllustResponse, IllustSt
         mRecyclerView.addItemDecoration(new SpacesItemDecoration(DensityUtil.dp2px(4.0f)));
     }
 
+
+
     @Override
     Observable<ListIllustResponse> initApi() {
-        return Retro.getAppApi().getRecmdIllust(mUserModel.getResponse().getAccess_token(), false);
+        //return Retro.getAppApi().getRecmdIllust(mUserModel.getResponse().getAccess_token(), false);
+        return null;
     }
 
     @Override
@@ -70,8 +74,7 @@ public class FragmentRecmd extends BaseListFragment<ListIllustResponse, IllustSt
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                Shaft.allIllusts.clear();
-                Shaft.allIllusts.addAll(allItems);
+                IllustChannel.getInstance().setIllustList(allItems);
                 Intent intent = new Intent(mContext, ViewPagerActivity.class);
                 intent.putExtra("position", position);
                 startActivity(intent);

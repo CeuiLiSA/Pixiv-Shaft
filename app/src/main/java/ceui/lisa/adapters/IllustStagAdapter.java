@@ -54,8 +54,8 @@ public class IllustStagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
         if(params.height < 300){
             params.height = 300;
-        }else if(params.height > 500){
-            params.height = 500;
+        }else if(params.height > 600){
+            params.height = 600;
         }
         currentOne.illust.setLayoutParams(params);
         currentOne.title.setText(allIllust.get(position).getTitle());

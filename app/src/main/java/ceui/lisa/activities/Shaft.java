@@ -21,10 +21,6 @@ public class Shaft extends Application {
      */
     private static Context sContext = null;
 
-    /**
-     * 当前正在浏览的画集列表
-     */
-    public static List<IllustsBean> allIllusts = new ArrayList<>();
 
 
     /**

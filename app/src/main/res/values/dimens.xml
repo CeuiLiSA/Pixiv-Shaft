@@ -11,4 +11,5 @@
     <dimen name="six_dp">6dp</dimen>
     <dimen name="eight_dp">8dp</dimen>
     <dimen name="four_dp">4dp</dimen>
+    <dimen name="twelve_dip">12dp</dimen>
 </resources>

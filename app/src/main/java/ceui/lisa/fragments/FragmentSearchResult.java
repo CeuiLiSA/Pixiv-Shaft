@@ -7,22 +7,24 @@ import android.view.View;
 import com.scwang.smartrefresh.layout.util.DensityUtil;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.IllustAdapter;
-import ceui.lisa.adapters.IllustStagAdapter;
 import ceui.lisa.interfs.OnItemClickListener;
 import ceui.lisa.network.Retro;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.response.ListIllustResponse;
 import ceui.lisa.utils.GridItemDecoration;
+import ceui.lisa.utils.IllustChannel;
 import io.reactivex.Observable;
 
+/**
+ * 搜索插画结果
+ */
 public class FragmentSearchResult extends BaseListFragment<ListIllustResponse, IllustAdapter, IllustsBean> {
 
     @Override
     void initLayout() {
-        mLayoutID = R.layout.fragment_illust_list_grid;
+        mLayoutID = R.layout.fragment_illust_list;
     }
 
     private String keyWord = "";
@@ -74,8 +76,7 @@ public class FragmentSearchResult extends BaseListFragment<ListIllustResponse, I
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                Shaft.allIllusts.clear();
-                Shaft.allIllusts.addAll(allItems);
+                IllustChannel.getInstance().setIllustList(allItems);
                 Intent intent = new Intent(mContext, ViewPagerActivity.class);
                 intent.putExtra("position", position);
                 startActivity(intent);

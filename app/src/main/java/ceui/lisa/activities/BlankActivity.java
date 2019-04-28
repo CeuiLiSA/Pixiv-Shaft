@@ -3,9 +3,9 @@ package ceui.lisa.activities;
 import android.graphics.Color;
 import android.view.View;
 
-import ceui.lisa.fragments.FragmentRecmd;
+import ceui.lisa.fragments.FragmentRecmdIllust;
 
-public class BlankActivity extends FragmentActivity<FragmentRecmd> {
+public class BlankActivity extends FragmentActivity<FragmentRecmdIllust> {
 
 
     @Override
@@ -18,8 +18,8 @@ public class BlankActivity extends FragmentActivity<FragmentRecmd> {
     }
 
     @Override
-    protected FragmentRecmd createNewFragment() {
-        //return new FragmentRecmd();
+    protected FragmentRecmdIllust createNewFragment() {
+        //return new FragmentRecmdIllust();
         return null;
     }
 
