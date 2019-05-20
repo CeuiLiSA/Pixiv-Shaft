@@ -62,7 +62,7 @@ public class FragmentSearchResult extends BaseListFragment<ListIllustResponse, I
 
     @Override
     Observable<ListIllustResponse> initApi() {
-        return Retro.getAppApi().searchIllust(mUserModel.getResponse().getAccess_token(), keyWord, sort, searchTarget);
+        return Retro.getAppApi().searchIllust(mUserModel.getResponse().getAccess_token(), keyWord + "10000", sort, searchTarget);
     }
 
     @Override

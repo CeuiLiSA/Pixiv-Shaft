@@ -1,39 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    app:cardElevation="2dp"
-    app:cardCornerRadius="@dimen/four_dp"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
     android:clickable="true"
     android:foreground="?attr/selectableItemBackground"
-    android:layout_height="wrap_content">
-
-
+    app:cardCornerRadius="@dimen/four_dp"
+    app:cardElevation="2dp">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:orientation="vertical"
+        android:layout_height="wrap_content"
         android:background="@android:color/white"
-        android:layout_height="wrap_content">
+        android:orientation="vertical">
 
 
         <ImageView
-            android:layout_width="wrap_content"
             android:id="@+id/illust_image"
-            android:scaleType="centerCrop"
-            android:layout_height="wrap_content" />
-
-
-        <TextView
             android:layout_width="wrap_content"
-            android:id="@+id/title"
-            android:maxLines="1"
-            android:ellipsize="end"
-            android:layout_margin="@dimen/eight_dp"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:scaleType="centerCrop" />
 
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="match_parent"
+                android:layout_toStartOf="@+id/p_size"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/eight_dp"
+                android:layout_marginTop="@dimen/eight_dp"
+                android:layout_marginBottom="@dimen/eight_dp"
+                android:layout_marginEnd="@dimen/four_dp"
+                android:ellipsize="end"
+                android:maxLines="1" />
+
+
+            <TextView
+                android:id="@+id/p_size"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="@dimen/eight_dp"
+                android:background="@drawable/btn_follow"
+                android:paddingStart="@dimen/four_dp"
+                android:paddingTop="2dp"
+                android:paddingEnd="@dimen/four_dp"
+                android:paddingBottom="2dp"
+                android:text="4P"
+                android:textColor="@android:color/white"
+                android:textSize="12sp"/>
+
+        </RelativeLayout>
 
     </LinearLayout>
-
-
 </android.support.v7.widget.CardView>

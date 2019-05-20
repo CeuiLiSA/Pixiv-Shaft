@@ -39,7 +39,7 @@ public class MainActivity extends BaseActivity
             Intent intent = new Intent(mContext, CoverActivity.class);
             startActivity(intent);
             finish();
-        }else {
+        } else {
             Common.showToast("未登录");
             Intent intent = new Intent(mContext, LoginActivity.class);
             startActivity(intent);

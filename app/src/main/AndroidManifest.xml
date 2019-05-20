@@ -38,6 +38,7 @@
         <activity android:name=".activities.CoverActivity" />
         <activity android:name=".activities.SearchResultActivity" />
         <activity android:name=".activities.RelatedIllustActivity" />
+        <activity android:name=".activities.ShaftActivity" />
     </application>
 
 </manifest>

@@ -12,6 +12,7 @@ import ceui.lisa.R;
 import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentBlank;
 import ceui.lisa.fragments.FragmentHotTag;
+import ceui.lisa.fragments.FragmentLeft;
 import ceui.lisa.fragments.FragmentRecmdIllust;
 import ceui.lisa.fragments.FragmentRecmdUser;
 import ceui.lisa.utils.Local;
@@ -70,8 +71,8 @@ public class CoverActivity extends BaseActivity {
 
     private void initFragment(){
         BaseFragment[] baseFragments = new BaseFragment[]{
-                new FragmentHotTag(),
-                new FragmentRecmdUser(),
+                new FragmentLeft(),
+                new FragmentBlank(),
                 new FragmentBlank()
         };
         mViewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {

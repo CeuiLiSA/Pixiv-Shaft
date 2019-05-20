@@ -37,27 +37,19 @@ import io.reactivex.Observable;
 public class FragmentRecmdIllust extends BaseListFragment<ListIllustResponse, IllustStagAdapter, IllustsBean> {
 
     @Override
-    void initLayout() {
-        mLayoutID = R.layout.activity_simple_list;
-    }
-
-    @Override
-    String getToolbarTitle() {
-        return "推荐作品";
+    boolean showToolbar() {
+        return false;
     }
 
     @Override
     void initRecyclerView() {
-        mToolbar.setPadding(0, Shaft.statusHeight, 0, 0);
         mRecyclerView.addItemDecoration(new SpacesItemDecoration(DensityUtil.dp2px(4.0f)));
     }
 
 
-
     @Override
     Observable<ListIllustResponse> initApi() {
-        //return Retro.getAppApi().getRecmdIllust(mUserModel.getResponse().getAccess_token(), false);
-        return null;
+        return Retro.getAppApi().getRecmdIllust(mUserModel.getResponse().getAccess_token(), false);
     }
 
     @Override

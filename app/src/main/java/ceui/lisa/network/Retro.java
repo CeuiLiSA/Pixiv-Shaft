@@ -5,7 +5,10 @@ import android.util.Log;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import java.util.Collections;
+
 import okhttp3.OkHttpClient;
+import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
@@ -27,6 +30,7 @@ public class Retro {
         OkHttpClient okHttpClient = new OkHttpClient
                 .Builder()
                 .addInterceptor(loggingInterceptor)
+                .protocols(Collections.singletonList(Protocol.HTTP_1_1))
                 .addInterceptor(chain -> {
                     Request localRequest = chain.request().newBuilder()
                             .addHeader("User-Agent:", "PixivAndroidApp/5.0.134 (Android 6.0.1; D6653)")
@@ -53,6 +57,7 @@ public class Retro {
         OkHttpClient okHttpClient = new OkHttpClient
                 .Builder()
                 .addInterceptor(loggingInterceptor)
+                .protocols(Collections.singletonList(Protocol.HTTP_1_1))
                 .addInterceptor(chain -> {
                     Request localRequest = chain.request().newBuilder()
                             .addHeader("User-Agent:", "PixivAndroidApp/5.0.134 (Android 6.0.1; D6653)")

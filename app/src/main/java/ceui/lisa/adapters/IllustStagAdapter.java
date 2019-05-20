@@ -61,8 +61,15 @@ public class IllustStagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         currentOne.title.setText(allIllust.get(position).getTitle());
         Glide.with(mContext)
                 .load(GlideUtil.getMediumImg(allIllust.get(position)))
-                .placeholder(R.color.dark_bg)
+                .placeholder(R.color.light_bg)
                 .into(currentOne.illust);
+
+        if(allIllust.get(position).getPage_count() == 1){
+            currentOne.pSize.setVisibility(View.GONE);
+        }else {
+            currentOne.pSize.setVisibility(View.VISIBLE);
+            currentOne.pSize.setText(allIllust.get(position).getPage_count() + "P");
+        }
         if(mOnItemClickListener != null){
             holder.itemView.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 0));
         }
@@ -79,12 +86,13 @@ public class IllustStagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     public static class TagHolder extends RecyclerView.ViewHolder {
         ImageView illust;
-        TextView title;
+        TextView title, pSize;
 
         TagHolder(View itemView) {
             super(itemView);
             illust = itemView.findViewById(R.id.illust_image);
             title = itemView.findViewById(R.id.title);
+            pSize = itemView.findViewById(R.id.p_size);
         }
     }
 }
