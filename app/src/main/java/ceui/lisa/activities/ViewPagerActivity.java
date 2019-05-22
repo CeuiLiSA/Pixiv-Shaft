@@ -4,14 +4,12 @@ import android.graphics.Color;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.support.v7.widget.Toolbar;
 import android.view.View;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.fragments.FragmentIllustList;
 import ceui.lisa.fragments.FragmentSingleIllust;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.utils.IllustChannel;
@@ -31,7 +29,7 @@ public class ViewPagerActivity extends BaseActivity{
 
     @Override
     protected void initView() {
-        mIllusts.addAll(IllustChannel.getInstance().getIllustList());
+        mIllusts.addAll(IllustChannel.get().getIllustList());
         ViewPager viewPager = findViewById(R.id.view_pager);
         viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override
@@ -46,11 +44,12 @@ public class ViewPagerActivity extends BaseActivity{
         });
         int position = getIntent().getIntExtra("position", 0);
         viewPager.setCurrentItem(position);
-
     }
 
     @Override
     protected void initData() {
 
     }
+
+
 }

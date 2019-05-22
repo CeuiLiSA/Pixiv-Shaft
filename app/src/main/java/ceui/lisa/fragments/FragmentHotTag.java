@@ -1,33 +1,18 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import android.support.design.widget.AppBarLayout;
-import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.View;
-import android.widget.ImageView;
 
-import com.bumptech.glide.Glide;
 import com.scwang.smartrefresh.layout.util.DensityUtil;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.SearchResultActivity;
-import ceui.lisa.activities.Shaft;
-import ceui.lisa.activities.ViewPagerActivity;
+import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.adapters.HotTagAdapter;
-import ceui.lisa.adapters.IllustStagAdapter;
 import ceui.lisa.interfs.OnItemClickListener;
 import ceui.lisa.network.Retro;
-import ceui.lisa.response.IllustsBean;
-import ceui.lisa.response.ListIllustResponse;
-import ceui.lisa.response.TagsBean;
 import ceui.lisa.response.TrendingtagResponse;
-import ceui.lisa.utils.AppBarStateChangeListener;
-import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.GridItemDecoration;
-import ceui.lisa.utils.IllustChannel;
-import ceui.lisa.utils.SpacesItemDecoration;
 import io.reactivex.Observable;
 
 
@@ -74,8 +59,11 @@ public class FragmentHotTag extends BaseListFragment<TrendingtagResponse, HotTag
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                Intent intent = new Intent(mContext, SearchResultActivity.class);
-                intent.putExtra("key word", allItems.get(position).getTag());
+                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+                intent.putExtra(TemplateFragmentActivity.EXTRA_KEYWORD,
+                        allItems.get(position).getTag());
+                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
+                        "搜索结果");
                 startActivity(intent);
             }
         });

@@ -14,8 +14,7 @@ import ceui.lisa.utils.Local;
 import ceui.lisa.response.UserModel;
 import ceui.lisa.utils.Common;
 
-public class MainActivity extends BaseActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends BaseActivity{
 
     @Override
     protected void initLayout() {
@@ -34,28 +33,10 @@ public class MainActivity extends BaseActivity
 
     @Override
     protected void initData() {
-        UserModel userModel = Local.getUser();
-        if(userModel != null && userModel.getResponse().getUser().isIs_login()){
-            Intent intent = new Intent(mContext, CoverActivity.class);
-            startActivity(intent);
-            finish();
-        } else {
-            Common.showToast("未登录");
-            Intent intent = new Intent(mContext, LoginActivity.class);
-            startActivity(intent);
-            finish();
-        }
+
     }
 
-    @Override
-    public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
-    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -79,28 +60,5 @@ public class MainActivity extends BaseActivity
         return super.onOptionsItemSelected(item);
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
-    @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
-        int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
-        }
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
-        return true;
-    }
 }

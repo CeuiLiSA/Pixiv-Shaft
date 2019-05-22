@@ -6,17 +6,14 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
 
-import com.yalantis.contextmenu.lib.ContextMenuDialogFragment;
-import com.yalantis.contextmenu.lib.MenuGravity;
-import com.yalantis.contextmenu.lib.MenuObject;
-import com.yalantis.contextmenu.lib.MenuParams;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.CoverActivity;
 import ceui.lisa.activities.Shaft;
 
 public class FragmentLeft extends BaseFragment {
@@ -31,8 +28,15 @@ public class FragmentLeft extends BaseFragment {
     @Override
     View initView(View v) {
         Toolbar toolbar = v.findViewById(R.id.toolbar);
+        ImageView head = v.findViewById(R.id.head);
+        ViewGroup.LayoutParams headParams = head.getLayoutParams();
+        headParams.height = Shaft.statusHeight;
+        head.setLayoutParams(headParams);
+        //toolbar.setPadding(0, Shaft.statusHeight, 0, 0);
         toolbar.setNavigationOnClickListener(view -> {
-            initMenuFragment();
+            if(getActivity() instanceof CoverActivity){
+                ((CoverActivity)getActivity()).getDrawer().openDrawer(Gravity.START);
+            }
         });
         ViewPager viewPager = v.findViewById(R.id.view_pager);
         viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
@@ -68,26 +72,4 @@ public class FragmentLeft extends BaseFragment {
     void initData() {
 
     }
-
-    private void initMenuFragment() {
-        List<MenuObject> objectList = new ArrayList<>();
-        for (int i = 0; i < 5; i++) {
-            MenuObject menuObject = new MenuObject();
-            menuObject.setTitle("这是第" + i);
-            objectList.add(menuObject);
-        }
-        MenuParams menuParams = new MenuParams(
-                Shaft.toolbarHeight,
-                objectList,
-                0L,
-                175L,
-                50L,
-                false,
-                true,
-                true,
-                MenuGravity.START);
-        ContextMenuDialogFragment contextMenuDialogFragment = ContextMenuDialogFragment.newInstance(menuParams);
-        contextMenuDialogFragment.show(getChildFragmentManager(), "ContextMenuDialogFragment");
-    }
-
 }

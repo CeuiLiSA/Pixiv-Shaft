@@ -1,37 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activities.MainActivity">
+    tools:openDrawer="start">
 
-
-    <android.support.v4.view.ViewPager
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:id="@+id/view_pager"
-        android:layout_above="@+id/navigation_view"
         android:layout_height="match_parent">
 
 
+        <android.support.v4.view.ViewPager
+            android:id="@+id/view_pager"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@+id/navigation_view">
 
 
-    </android.support.v4.view.ViewPager>
+        </android.support.v4.view.ViewPager>
 
 
-
-    <android.support.design.widget.BottomNavigationView
-        android:layout_width="match_parent"
-        android:id="@+id/navigation_view"
-        android:background="@android:color/white"
-        app:menu="@menu/main_activity"
-        android:elevation="@dimen/four_dp"
-        app:elevation="@dimen/four_dp"
-        android:layout_alignParentBottom="true"
-        android:layout_height="wrap_content">
-
+        <android.support.design.widget.BottomNavigationView
+            android:id="@+id/navigation_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:background="@android:color/white"
+            android:elevation="@dimen/four_dp"
+            app:elevation="@dimen/four_dp"
+            app:menu="@menu/main_activity">
 
 
-    </android.support.design.widget.BottomNavigationView>
+        </android.support.design.widget.BottomNavigationView>
 
-</RelativeLayout>
+    </RelativeLayout>
+
+    <android.support.design.widget.NavigationView
+        android:id="@+id/nav_view"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        app:insetForeground="@android:color/transparent"
+        android:layout_gravity="start"
+        android:fitsSystemWindows="true"
+        app:headerLayout="@layout/nav_header_main"
+        app:menu="@menu/activity_main_drawer" />
+
+</android.support.v4.widget.DrawerLayout>

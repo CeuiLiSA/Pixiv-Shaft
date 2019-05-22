@@ -13,6 +13,8 @@ public abstract class BaseActivity extends AppCompatActivity {
     protected Activity mActivity;
     protected int mLayoutID;
 
+    protected String className = this.getClass().getSimpleName() + " ";
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

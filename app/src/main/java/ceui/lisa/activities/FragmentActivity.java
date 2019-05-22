@@ -1,10 +1,12 @@
 package ceui.lisa.activities;
 
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
 
 import ceui.lisa.R;
 
@@ -17,10 +19,14 @@ import ceui.lisa.R;
  * website: https://github.com/CeuiLiSA
  * created at: 2019/3/24 8:54 PM
  */
-public abstract class FragmentActivity<T extends Fragment> extends BaseActivity {
+public abstract class FragmentActivity extends BaseActivity {
 
     @Override
     protected void initLayout() {
+        getWindow().setStatusBarColor(Color.TRANSPARENT);
+        getWindow().getDecorView().setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+                        View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
         mLayoutID = R.layout.activity_fragment;
     }
 
@@ -39,7 +45,7 @@ public abstract class FragmentActivity<T extends Fragment> extends BaseActivity 
         }
     }
 
-    protected abstract T createNewFragment();
+    protected abstract Fragment createNewFragment();
 
     @Override
     protected void initData() {

@@ -68,7 +68,7 @@ public class FragmentRelatedIllust extends BaseListFragment<ListIllustResponse, 
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                IllustChannel.getInstance().setIllustList(allItems);
+                IllustChannel.get().setIllustList(allItems);
                 Intent intent = new Intent(mContext, ViewPagerActivity.class);
                 intent.putExtra("position", position);
                 startActivity(intent);

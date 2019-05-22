@@ -29,14 +29,14 @@ public class FragmentSearchResult extends BaseListFragment<ListIllustResponse, I
 
     private String keyWord = "";
     private String sort = "date_desc";
-    private String searchTarget = "exact_match_for_tags";
+    private String searchTarget = "partial_match_for_tags";
 
     public static FragmentSearchResult newInstance(String keyWord){
-        return newInstance(keyWord, "date_desc", "exact_match_for_tags");
+        return newInstance(keyWord, "date_desc", "partial_match_for_tags");
     }
 
     public static FragmentSearchResult newInstance(String keyWord, String sort){
-        return newInstance(keyWord, sort, "exact_match_for_tags");
+        return newInstance(keyWord, sort, "partial_match_for_tags");
     }
 
     public static FragmentSearchResult newInstance(String keyWord, String sort, String searchTarget){
@@ -62,7 +62,7 @@ public class FragmentSearchResult extends BaseListFragment<ListIllustResponse, I
 
     @Override
     Observable<ListIllustResponse> initApi() {
-        return Retro.getAppApi().searchIllust(mUserModel.getResponse().getAccess_token(), keyWord + "10000", sort, searchTarget);
+        return Retro.getAppApi().searchIllust(mUserModel.getResponse().getAccess_token(), keyWord + " 10000", sort, searchTarget);
     }
 
     @Override
@@ -76,7 +76,7 @@ public class FragmentSearchResult extends BaseListFragment<ListIllustResponse, I
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                IllustChannel.getInstance().setIllustList(allItems);
+                IllustChannel.get().setIllustList(allItems);
                 Intent intent = new Intent(mContext, ViewPagerActivity.class);
                 intent.putExtra("position", position);
                 startActivity(intent);

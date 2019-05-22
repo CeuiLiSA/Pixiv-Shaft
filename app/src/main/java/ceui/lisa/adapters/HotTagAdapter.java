@@ -54,7 +54,10 @@ public class HotTagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         params.width = imageSize;
         currentOne.illust.setLayoutParams(params);
         currentOne.title.setText(allIllust.get(position).getTag());
-        Glide.with(mContext).load(GlideUtil.getMediumImg(allIllust.get(position).getIllust())).into(currentOne.illust);
+        Glide.with(mContext)
+                .load(GlideUtil.getMediumImg(allIllust.get(position).getIllust()))
+                .placeholder(R.color.light_bg)
+                .into(currentOne.illust);
         if(mOnItemClickListener != null){
             holder.itemView.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 0));
         }

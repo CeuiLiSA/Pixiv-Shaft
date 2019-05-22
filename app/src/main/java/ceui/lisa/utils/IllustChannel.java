@@ -13,7 +13,7 @@ public class IllustChannel {
     private List<IllustsBean> illustList = new ArrayList<>();
     private volatile static IllustChannel instance = null;
 
-    public static IllustChannel getInstance() {
+    public static IllustChannel get() {
         if (instance == null) {
             synchronized (IllustChannel.class) {
                 if (instance == null) {

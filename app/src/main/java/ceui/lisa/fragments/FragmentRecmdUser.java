@@ -25,7 +25,6 @@ public class FragmentRecmdUser extends BaseListFragment<RecmdUserResponse, UserA
 
     @Override
     void initLayout() {
-        super.initLayout();
         mLayoutID = R.layout.fragment_illust_list;
     }
 

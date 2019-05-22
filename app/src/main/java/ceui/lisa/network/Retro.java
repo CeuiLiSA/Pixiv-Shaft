@@ -5,8 +5,12 @@ import android.util.Log;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Collections;
+import java.util.List;
 
+import okhttp3.Dns;
 import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
 import okhttp3.Request;
@@ -31,6 +35,7 @@ public class Retro {
                 .Builder()
                 .addInterceptor(loggingInterceptor)
                 .protocols(Collections.singletonList(Protocol.HTTP_1_1))
+                //.dns(HttpDns.get())
                 .addInterceptor(chain -> {
                     Request localRequest = chain.request().newBuilder()
                             .addHeader("User-Agent:", "PixivAndroidApp/5.0.134 (Android 6.0.1; D6653)")

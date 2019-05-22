@@ -19,13 +19,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".activities.BlankActivity"
-            android:label="@string/title_activity_blank"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
-        <activity
-            android:name=".activities.MainActivity"
-            android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:name=".activities.CoverActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -33,12 +27,17 @@
             </intent-filter>
         </activity>
         <activity android:name=".activities.LoginActivity" />
-        <activity android:name=".activities.IllustActivity" />
         <activity android:name=".activities.ViewPagerActivity" />
-        <activity android:name=".activities.CoverActivity" />
-        <activity android:name=".activities.SearchResultActivity" />
-        <activity android:name=".activities.RelatedIllustActivity" />
-        <activity android:name=".activities.ShaftActivity" />
+        <activity android:name=".activities.TemplateFragmentActivity" />
+
+
+        <meta-data
+            android:name="android.max_aspect"
+            android:value="2.4" />
+
+        <meta-data
+            android:name="notch.config"
+            android:value="portrait|landscape" />
     </application>
 
 </manifest>

@@ -2,7 +2,6 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
-import android.media.Image;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
@@ -10,26 +9,22 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.ScrollView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
-import com.github.ybq.android.spinkit.sprite.Sprite;
 import com.github.ybq.android.spinkit.style.CubeGrid;
+import com.google.gson.Gson;
 import com.scwang.smartrefresh.layout.util.DensityUtil;
 
-import org.greenrobot.eventbus.EventBus;
-
 import ceui.lisa.R;
-import ceui.lisa.activities.RelatedIllustActivity;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.activities.ViewPagerActivity;
-import ceui.lisa.interfs.Callable;
+import ceui.lisa.activities.TemplateFragmentActivity;
+import ceui.lisa.database.AppDatabase;
+import ceui.lisa.database.IllustEntity;
 import ceui.lisa.response.IllustsBean;
-import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import jp.wasabeef.glide.transformations.BlurTransformation;
@@ -46,7 +41,7 @@ public class FragmentSingleIllust extends BaseFragment {
     private ProgressBar mProgressBar;
     private ImageView refresh, imageView, originImage;
 
-    public static FragmentSingleIllust newInstance(IllustsBean illustsBean){
+    public static FragmentSingleIllust newInstance(IllustsBean illustsBean) {
         FragmentSingleIllust fragmentSingleIllust = new FragmentSingleIllust();
         fragmentSingleIllust.setIllust(illustsBean);
         return fragmentSingleIllust;
@@ -80,9 +75,10 @@ public class FragmentSingleIllust extends BaseFragment {
         viewRelated.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(mContext, RelatedIllustActivity.class);
-                intent.putExtra("illust id", illust.getId());
-                intent.putExtra("illust title", illust.getTitle());
+                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "相关作品");
+                intent.putExtra(TemplateFragmentActivity.EXTRA_ILLUST_ID, illust.getId());
+                intent.putExtra(TemplateFragmentActivity.EXTRA_ILLUST_TITLE, illust.getTitle());
                 startActivity(intent);
             }
         });
@@ -113,7 +109,7 @@ public class FragmentSingleIllust extends BaseFragment {
         return v;
     }
 
-    private void loadImage(){
+    private void loadImage() {
         mProgressBar.setVisibility(View.VISIBLE);
         Glide.with(mContext)
                 .load(GlideUtil.getSquare(illust))
@@ -145,18 +141,27 @@ public class FragmentSingleIllust extends BaseFragment {
     @Override
     void initData() {
         loadImage();
+        //insertViewHistory();
     }
 
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        if (isVisibleToUser) {
+            insertViewHistory();
+        }
+    }
 
     public void setIllust(IllustsBean illust) {
         this.illust = illust;
     }
 
-
-
-
-
-    private void getRelatedIllust(){
-
+    private void insertViewHistory() {
+        IllustEntity illustEntity = new IllustEntity();
+        illustEntity.setIllustID(illust.getId());
+        Gson gson = new Gson();
+        illustEntity.setIllustJson(gson.toJson(illust));
+        illustEntity.setTime(System.currentTimeMillis());
+        AppDatabase.getAppDatabase(Shaft.getContext()).trackDao().insert(illustEntity);
     }
 }

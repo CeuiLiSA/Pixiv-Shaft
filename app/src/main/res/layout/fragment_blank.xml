@@ -4,12 +4,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:fitsSystemWindows="true"
     android:layout_height="match_parent">
 
     <ImageView
         android:layout_width="match_parent"
-        android:fitsSystemWindows="true"
         android:scaleType="centerCrop"
         android:id="@+id/head_image"
         android:src="@android:color/holo_red_dark"

@@ -5,7 +5,7 @@ import android.view.View;
 
 import ceui.lisa.fragments.FragmentLogin;
 
-public class LoginActivity extends FragmentActivity<FragmentLogin> {
+public class LoginActivity extends FragmentActivity {
 
     @Override
     protected void initLayout() {

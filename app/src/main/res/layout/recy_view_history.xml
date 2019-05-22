@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="140dp"
+    android:clickable="true"
+    android:foreground="?attr/selectableItemBackground"
+    app:cardCornerRadius="@dimen/four_dp"
+    app:cardElevation="2dp">
+
+
+
+
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:background="@android:color/white"
+            android:layout_height="wrap_content">
+
+
+            <ImageView
+                android:id="@+id/illust_image"
+                android:layout_width="200dp"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop" />
+
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="match_parent"
+                android:layout_toStartOf="@+id/p_size"
+                android:layout_toEndOf="@+id/illust_image"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/eight_dp"
+                android:textSize="15sp"
+                android:layout_marginTop="@dimen/eight_dp"
+                android:textStyle="bold"
+                android:textColor="#666666"
+                android:layout_marginBottom="@dimen/eight_dp"
+                android:layout_marginEnd="@dimen/sixteen_dp"
+                android:ellipsize="end"
+                android:maxLines="2" />
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:textSize="13sp"
+                android:id="@+id/author"
+                android:textStyle="bold"
+                android:layout_below="@+id/title"
+                android:layout_toEndOf="@+id/illust_image"
+                android:layout_marginStart="@dimen/eight_dp"
+                android:layout_marginEnd="@dimen/sixteen_dp"
+                android:textColor="@color/colorPrimary"
+                android:layout_height="wrap_content" />
+
+
+            <TextView
+                android:id="@+id/time"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@+id/illust_image"
+                android:layout_marginStart="@dimen/eight_dp"
+                android:layout_marginTop="@dimen/eight_dp"
+                android:layout_marginEnd="@dimen/sixteen_dp"
+                android:layout_marginBottom="@dimen/eight_dp"
+                android:layout_toEndOf="@+id/illust_image"
+                android:ellipsize="end"
+                android:maxLines="1" />
+
+
+        </RelativeLayout>
+</android.support.v7.widget.CardView>
