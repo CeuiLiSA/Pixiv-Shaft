@@ -29,6 +29,7 @@
         <activity android:name=".activities.LoginActivity" />
         <activity android:name=".activities.ViewPagerActivity" />
         <activity android:name=".activities.TemplateFragmentActivity" />
+        <activity android:name=".activities.MultiViewPagerActivity" />
 
 
         <meta-data

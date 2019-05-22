@@ -6,26 +6,29 @@ import android.view.View;
 
 import com.scwang.smartrefresh.layout.util.DensityUtil;
 
-import org.greenrobot.eventbus.EventBus;
-
-import java.util.List;
-
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.IllustStagAdapter;
 import ceui.lisa.interfs.OnItemClickListener;
 import ceui.lisa.network.Retro;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.response.ListIllustResponse;
-import ceui.lisa.utils.Channel;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.utils.SpacesItemDecoration;
 import io.reactivex.Observable;
 
-/**
- * fragment recommend 推荐插画
- */
-public class FragmentRecmdIllust extends BaseListFragment<ListIllustResponse, IllustStagAdapter, IllustsBean> {
+
+public class FragmentRank extends BaseListFragment<ListIllustResponse, IllustStagAdapter, IllustsBean> {
+
+    private int mIndex = -1;
+    private static final String[] API_TITLES = new String[]{"day", "week",
+            "month","day_male", "day_female", "week_original", "week_rookie",
+            "day_r18"};
+
+    public static FragmentRank newInstance(int index){
+        FragmentRank fragmentRank = new FragmentRank();
+        fragmentRank.mIndex = index;
+        return fragmentRank;
+    }
 
     @Override
     boolean showToolbar() {
@@ -40,7 +43,7 @@ public class FragmentRecmdIllust extends BaseListFragment<ListIllustResponse, Il
 
     @Override
     Observable<ListIllustResponse> initApi() {
-        return Retro.getAppApi().getRecmdIllust(mUserModel.getResponse().getAccess_token(), true);
+        return Retro.getAppApi().getRank(mUserModel.getResponse().getAccess_token(), API_TITLES[mIndex]);
     }
 
     @Override
@@ -63,15 +66,5 @@ public class FragmentRecmdIllust extends BaseListFragment<ListIllustResponse, Il
                 startActivity(intent);
             }
         });
-
-        //向FragmentCenter发送数据
-        Channel<List<IllustsBean>> channel = new Channel<>();
-        channel.setReceiver("FragmentRankHorizontal");
-        channel.setObject(mResponse.getRanking_illusts());
-        EventBus.getDefault().post(channel);
-        Common.showLog("EVENTBUS 发送了消息");
-
-        Channel channel1 = new Channel();
-        EventBus.getDefault().post(channel1);
     }
 }

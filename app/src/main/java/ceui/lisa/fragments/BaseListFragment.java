@@ -100,6 +100,7 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
     protected List<ListItem> allItems = new ArrayList<>();
     protected ProgressBar mProgressBar;
     protected Toolbar mToolbar;
+    protected Response mResponse;
     protected String nextUrl = "";
 
     @Override
@@ -177,6 +178,7 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
 
                         @Override
                         public void success(Response response) {
+                            mResponse = response;
                             allItems.clear();
                             allItems.addAll(response.getList());
                             nextUrl = response.getNextUrl();

@@ -52,6 +52,7 @@ dependencies {
     implementation 'com.github.ybq:Android-SpinKit:1.2.0'
     implementation 'android.arch.persistence.room:runtime:1.1.1'
     annotationProcessor 'android.arch.persistence.room:compiler:1.1.1'
+    implementation 'org.greenrobot:eventbus:3.1.1'
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
