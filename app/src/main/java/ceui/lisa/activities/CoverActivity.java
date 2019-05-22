@@ -1,10 +1,7 @@
 package ceui.lisa.activities;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Color;
-import android.os.Build;
-import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
@@ -14,18 +11,13 @@ import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
 
 
 import ceui.lisa.R;
 import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentBlank;
-import ceui.lisa.fragments.FragmentHotTag;
+import ceui.lisa.fragments.FragmentRight;
 import ceui.lisa.fragments.FragmentLeft;
-import ceui.lisa.fragments.FragmentRecmdIllust;
-import ceui.lisa.fragments.FragmentRecmdUser;
 import ceui.lisa.utils.Local;
 import ceui.lisa.response.UserModel;
 import ceui.lisa.utils.Common;
@@ -90,7 +82,7 @@ public class CoverActivity extends BaseActivity
         BaseFragment[] baseFragments = new BaseFragment[]{
                 new FragmentLeft(),
                 new FragmentBlank(),
-                new FragmentBlank()
+                new FragmentRight()
         };
         mViewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override

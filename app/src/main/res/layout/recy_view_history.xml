@@ -35,7 +35,7 @@
                 android:layout_marginTop="@dimen/eight_dp"
                 android:textStyle="bold"
                 android:textColor="#666666"
-                android:layout_marginBottom="@dimen/eight_dp"
+                android:layout_marginBottom="@dimen/four_dp"
                 android:layout_marginEnd="@dimen/sixteen_dp"
                 android:ellipsize="end"
                 android:maxLines="2" />
@@ -45,7 +45,6 @@
                 android:layout_width="wrap_content"
                 android:textSize="13sp"
                 android:id="@+id/author"
-                android:textStyle="bold"
                 android:layout_below="@+id/title"
                 android:layout_toEndOf="@+id/illust_image"
                 android:layout_marginStart="@dimen/eight_dp"

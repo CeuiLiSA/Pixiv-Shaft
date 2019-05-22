@@ -120,8 +120,8 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
         }
         mProgressBar = v.findViewById(R.id.progress);
         mRecyclerView = v.findViewById(R.id.recyclerView);
-        initRecyclerView();
         mRefreshLayout = v.findViewById(R.id.refreshLayout);
+        initRecyclerView();
         mRefreshLayout.setRefreshHeader(new DeliveryHeader(mContext));
         mRefreshLayout.setOnRefreshListener(layout -> getFirstData());
         mRefreshLayout.setOnLoadMoreListener(layout -> getNextData());

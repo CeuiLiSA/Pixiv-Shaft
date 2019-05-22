@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_height="match_parent">
+
+
+    <android.support.design.widget.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            app:layout_scrollFlags="scroll"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:id="@+id/head"
+                android:layout_height="5dp">
+
+            </ImageView>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_below="@+id/head"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/sixteen_dp"
+                android:layout_marginBottom="@dimen/four_dp"
+                android:layout_marginTop="@dimen/twelve_dip"
+                android:text="推荐用户"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:drawablePadding="@dimen/eight_dp"
+                android:textColor="@android:color/white"
+                android:drawableStart="@drawable/ic_recmd_user"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+
+
+            <TextView
+                android:id="@+id/see_more"
+                android:layout_width="wrap_content"
+                android:layout_below="@+id/head"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/four_dp"
+                android:layout_alignParentEnd="true"
+                android:layout_marginStart="@dimen/sixteen_dp"
+                android:layout_marginTop="@dimen/twelve_dip"
+                android:layout_marginEnd="@dimen/sixteen_dp"
+                android:text="更多"
+                android:textColor="@android:color/white"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_below="@+id/see_more"
+                android:id="@+id/fragment_container"
+                android:layout_height="146dp">
+
+
+            </FrameLayout>
+        </RelativeLayout>
+
+
+
+
+    </android.support.design.widget.AppBarLayout>
+
+
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:id="@+id/fragment_recy"
+        android:layout_height="match_parent">
+
+    </FrameLayout>
+
+</android.support.design.widget.CoordinatorLayout>

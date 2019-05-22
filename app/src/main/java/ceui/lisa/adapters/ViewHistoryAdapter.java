@@ -33,7 +33,7 @@ public class ViewHistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     private List<IllustEntity> allIllust;
     private Gson mGson = new Gson();
     private int imageSize = 0;
-    private SimpleDateFormat mTime = new SimpleDateFormat("MM月dd日 HH:mm分");
+    private SimpleDateFormat mTime = new SimpleDateFormat("MM月dd日 HH: mm");
 
     public ViewHistoryAdapter(List<IllustEntity> list, Context context) {
         mContext = context;

@@ -4,22 +4,22 @@
     <item
         android:id="@+id/action_1"
         android:orderInCategory="100"
-        android:title="插画"
+        android:title="推荐"
         android:icon="@drawable/ic_gesture_black_24dp"
         app:showAsAction="always" />
 
     <item
         android:id="@+id/action_2"
         android:orderInCategory="100"
-        android:title="用户"
-        android:icon="@drawable/ic_people_black_24dp"
+        android:title="榜单"
+        android:icon="@drawable/ic_top"
         app:showAsAction="always" />
 
     <item
         android:id="@+id/action_3"
         android:orderInCategory="100"
-        android:title="其他"
-        android:icon="@drawable/ic_dashboard_black_24dp"
+        android:title="动态"
+        android:icon="@drawable/ic_user_new_illust"
         app:showAsAction="always" />
 
 </menu>

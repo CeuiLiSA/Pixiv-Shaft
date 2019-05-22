@@ -89,7 +89,8 @@ public interface AppApi {
 
 
 
-
+    @GET("/v2/illust/follow?restrict=public")
+    Observable<ListIllustResponse> getFollowUserIllust(@Header("Authorization") String token);
 
 
 
