@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.response.UserModel;
 
@@ -63,5 +64,16 @@ public abstract class BaseFragment extends Fragment {
     public void onViewCreated(@NonNull View view,
                               @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+    }
+
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+
+        if(isVisibleToUser){
+            Common.showLog("setUserVisibleHint 被看见了" + className );
+        }else {
+            Common.showLog("setUserVisibleHint 消失了" + className );
+        }
     }
 }

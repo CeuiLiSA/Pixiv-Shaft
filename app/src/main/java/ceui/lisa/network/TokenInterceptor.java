@@ -16,18 +16,25 @@ import retrofit2.Call;
  */
 public class TokenInterceptor implements Interceptor {
 
+
+    public static boolean isFetchingToken = false;
+
     @Override
     public Response intercept(Chain chain) throws IOException {
         Request request = chain.request();
         Response response = chain.proceed(request);
 
         if (isTokenExpired(response)) {
-            String newToken = getNewToken();
-            Request newRequest = chain.request()
-                    .newBuilder()
-                    .header("Authorization", newToken)
-                    .build();
-            return chain.proceed(newRequest);
+            if(isFetchingToken){
+
+            }else {
+                String newToken = getNewToken();
+                Request newRequest = chain.request()
+                        .newBuilder()
+                        .header("Authorization", newToken)
+                        .build();
+                return chain.proceed(newRequest);
+            }
         }
         return response;
     }
@@ -51,6 +58,7 @@ public class TokenInterceptor implements Interceptor {
      * @return
      */
     private String getNewToken() throws IOException {
+        isFetchingToken = true;
         UserModel userModel = Local.getUser();
         Call<UserModel> call = Retro.getAccountApi().refreshToken(
                 FragmentLogin.CLIENT_ID,
@@ -63,6 +71,7 @@ public class TokenInterceptor implements Interceptor {
         UserModel newUser = call.execute().body();
         newUser.getResponse().getUser().setPassword(userModel.getResponse().getUser().getPassword());
         Local.saveUser(newUser);
+        isFetchingToken = false;
         if(newUser != null && newUser.getResponse() != null) {
             return newUser.getResponse().getAccess_token();
         }else {

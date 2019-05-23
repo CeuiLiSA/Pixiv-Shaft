@@ -47,10 +47,14 @@ public class RankHorizontalAdapter extends RecyclerView.Adapter<RecyclerView.Vie
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         final TagHolder currentOne = (TagHolder) holder;
-
+        currentOne.title.setText(allIllust.get(position).getTitle());
+        currentOne.author.setText(allIllust.get(position).getUser().getName());
         Glide.with(mContext).load(GlideUtil.getMediumImg(allIllust.get(position)
                 .getImage_urls().getMedium()))
                 .placeholder(R.color.light_bg).into(currentOne.imageView);
+        Glide.with(mContext).load(GlideUtil.getMediumImg(allIllust.get(position)
+                .getUser().getProfile_image_urls().getMedium()))
+                .placeholder(R.color.light_bg).into(currentOne.userHead);
         if(mOnItemClickListener != null){
             holder.itemView.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 0));
         }
@@ -66,10 +70,14 @@ public class RankHorizontalAdapter extends RecyclerView.Adapter<RecyclerView.Vie
     }
 
     public static class TagHolder extends RecyclerView.ViewHolder {
-        ImageView imageView;
+        ImageView imageView, userHead;
+        TextView title, author;
         TagHolder(View itemView) {
             super(itemView);
+            userHead = itemView.findViewById(R.id.user_head);
             imageView = itemView.findViewById(R.id.illust_image);
+            title = itemView.findViewById(R.id.title);
+            author = itemView.findViewById(R.id.author);
         }
     }
 }

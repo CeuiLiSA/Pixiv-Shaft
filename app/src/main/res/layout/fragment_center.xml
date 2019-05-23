@@ -1,30 +1,87 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+
+    <android.support.design.widget.AppBarLayout
+        android:layout_width="match_parent"
+        app:elevation="0dp"
+        android:background="@android:color/transparent"
+        android:layout_height="wrap_content">
+
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_scrollFlags="scroll">
+
+            <ImageView
+                android:id="@+id/head"
+                android:layout_width="match_parent"
+                android:layout_height="5dp">
+
+            </ImageView>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/head"
+                android:layout_marginStart="@dimen/sixteen_dp"
+                android:layout_marginTop="@dimen/twelve_dip"
+                android:layout_marginBottom="@dimen/four_dp"
+                android:drawableStart="@drawable/ic_huangguan"
+                android:drawablePadding="@dimen/eight_dp"
+                android:text="排行榜"
+                android:textColor="#2c333c"
+                android:gravity="center"
+                android:id="@+id/ranking"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent" />
+
+
+            <TextView
+                android:id="@+id/see_more"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_marginStart="@dimen/sixteen_dp"
+                android:layout_alignBaseline="@+id/ranking"
+                android:layout_marginEnd="@dimen/sixteen_dp"
+                android:layout_marginBottom="@dimen/four_dp"
+                android:text="查看更多"
+                android:drawableRight="@drawable/ic_chevron_right_black_24dp"
+                android:gravity="center"
+                android:drawableTint="@color/colorPrimary"
+                android:textColor="#748c98"
+                android:textSize="13sp"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+
+            <FrameLayout
+                android:id="@+id/fragment_container"
+                android:layout_width="match_parent"
+                android:layout_height="196dp"
+                android:layout_below="@+id/see_more">
+
+
+            </FrameLayout>
+        </RelativeLayout>
+
+
+    </android.support.design.widget.AppBarLayout>
+
 
     <FrameLayout
+        android:id="@+id/fragment_pivision"
         android:layout_width="match_parent"
-        android:id="@+id/fragment_rank"
-        android:layout_height="160dp">
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/go_rank">
 
     </FrameLayout>
 
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:text="排行榜"
-        android:id="@+id/go_rank"
-        android:layout_margin="@dimen/sixteen_dp"
-        android:layout_below="@+id/fragment_rank"
-        android:layout_height="wrap_content">
-
-    </TextView>
-
-    <android.support.v7.widget.RecyclerView
-        android:layout_width="match_parent"
-        android:layout_below="@+id/go_rank"
-        android:id="@+id/recyclerView"
-        android:layout_height="match_parent" />
-
-</RelativeLayout>
+</android.support.design.widget.CoordinatorLayout>

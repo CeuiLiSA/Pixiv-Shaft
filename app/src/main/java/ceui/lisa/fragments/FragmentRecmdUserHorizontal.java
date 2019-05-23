@@ -5,6 +5,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ProgressBar;
 
+import com.github.ybq.android.spinkit.style.DoubleBounce;
 import com.scwang.smartrefresh.layout.util.DensityUtil;
 
 import java.util.ArrayList;
@@ -43,6 +44,9 @@ public class FragmentRecmdUserHorizontal extends BaseFragment {
     @Override
     View initView(View v) {
         mProgressBar = v.findViewById(R.id.progress);
+        DoubleBounce doubleBounce = new DoubleBounce();
+        doubleBounce.setColor(getResources().getColor(R.color.white));
+        mProgressBar.setIndeterminateDrawable(doubleBounce);
         mRecyclerView = v.findViewById(R.id.recyclerView);
         mRecyclerView.addItemDecoration(new LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
         LinearLayoutManager manager = new LinearLayoutManager(mContext, LinearLayoutManager.HORIZONTAL, false);

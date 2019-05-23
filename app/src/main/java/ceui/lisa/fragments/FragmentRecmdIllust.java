@@ -1,12 +1,15 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.View;
 
 import com.scwang.smartrefresh.layout.util.DensityUtil;
 
 import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.List;
 
@@ -66,12 +69,8 @@ public class FragmentRecmdIllust extends BaseListFragment<ListIllustResponse, Il
 
         //向FragmentCenter发送数据
         Channel<List<IllustsBean>> channel = new Channel<>();
-        channel.setReceiver("FragmentRankHorizontal");
         channel.setObject(mResponse.getRanking_illusts());
         EventBus.getDefault().post(channel);
-        Common.showLog("EVENTBUS 发送了消息");
-
-        Channel channel1 = new Channel();
-        EventBus.getDefault().post(channel1);
+        Common.showLog(className + "EVENTBUS 发送了消息");
     }
 }

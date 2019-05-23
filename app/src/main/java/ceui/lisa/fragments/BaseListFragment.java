@@ -217,7 +217,12 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
                         .subscribe(new ListObserver<Response>() {
                             @Override
                             public void success(Response response) {
-                                int lastSize = allItems.size();
+                                int lastSize;
+                                if(className.equals("FragmentPivision ")) {
+                                    lastSize = allItems.size() + 1;
+                                }else {
+                                    lastSize = allItems.size();
+                                }
                                 allItems.addAll(response.getList());
                                 nextUrl = response.getNextUrl();
                                 mRefreshLayout.finishLoadMore(true);
@@ -239,4 +244,7 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
             }
         }
     }
+
+
+
 }

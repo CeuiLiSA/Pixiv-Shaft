@@ -4,8 +4,10 @@ import android.content.Intent;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.View;
 
+import com.github.ybq.android.spinkit.style.DoubleBounce;
 import com.scwang.smartrefresh.layout.util.DensityUtil;
 
+import ceui.lisa.R;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.IllustStagAdapter;
 import ceui.lisa.interfs.OnItemClickListener;
@@ -28,6 +30,9 @@ public class FragmentFollowIllust extends BaseListFragment<ListIllustResponse, I
 
     @Override
     void initRecyclerView() {
+        DoubleBounce doubleBounce = new DoubleBounce();
+        doubleBounce.setColor(getResources().getColor(R.color.colorPrimary));
+        mProgressBar.setIndeterminateDrawable(doubleBounce);
         mRecyclerView.addItemDecoration(new SpacesItemDecoration(DensityUtil.dp2px(4.0f)));
     }
 

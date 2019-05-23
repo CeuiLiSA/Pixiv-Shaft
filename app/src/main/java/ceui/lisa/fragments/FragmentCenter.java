@@ -1,26 +1,26 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
-
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
-
-import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.MultiViewPagerActivity;
-import ceui.lisa.database.Channel;
-import ceui.lisa.response.IllustsBean;
+import ceui.lisa.activities.Shaft;
+import ceui.lisa.activities.TemplateFragmentActivity;
+import ceui.lisa.utils.Common;
 
 public class FragmentCenter extends BaseFragment {
 
+    private boolean isLoad = false;
     private RecyclerView mRecyclerView;
+
+    public FragmentCenter() {
+    }
 
     @Override
     void initLayout() {
@@ -29,7 +29,12 @@ public class FragmentCenter extends BaseFragment {
 
     @Override
     View initView(View v) {
-        TextView textView = v.findViewById(R.id.go_rank);
+        ImageView head = v.findViewById(R.id.head);
+        ViewGroup.LayoutParams headParams = head.getLayoutParams();
+        headParams.height = Shaft.statusHeight;
+        head.setLayoutParams(headParams);
+
+        TextView textView = v.findViewById(R.id.see_more);
         textView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -38,15 +43,39 @@ public class FragmentCenter extends BaseFragment {
             }
         });
 
-        FragmentRankHorizontal fragmentRecmdUserHorizontal = new FragmentRankHorizontal();
+        FragmentRankHorizontal fragmentRankHorizontal = new FragmentRankHorizontal();
         FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
-        transaction.add(R.id.fragment_rank, fragmentRecmdUserHorizontal).commit();
-
+        transaction.add(R.id.fragment_container, fragmentRankHorizontal).commit();
         return v;
     }
 
     @Override
     void initData() {
 
+    }
+
+
+
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+    }
+
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+
+        if(isVisibleToUser && !isLoad) {
+
+            FragmentPivision fragmentPivision = new FragmentPivision();
+            FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
+            transaction.add(R.id.fragment_pivision, fragmentPivision).commit();
+            isLoad = true;
+            Common.showLog("setUserVisibleHint 被看见了 强行加载");
+        }else {
+            Common.showLog("setUserVisibleHint 被看见了 加载过了");
+        }
     }
 }

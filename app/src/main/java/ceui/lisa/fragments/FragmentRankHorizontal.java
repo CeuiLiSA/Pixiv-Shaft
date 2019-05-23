@@ -1,5 +1,6 @@
 package ceui.lisa.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -16,19 +17,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.RankHorizontalAdapter;
-import ceui.lisa.adapters.UserHorizontalAdapter;
-import ceui.lisa.database.Channel;
-import ceui.lisa.network.Retro;
+import ceui.lisa.interfs.OnItemClickListener;
 import ceui.lisa.response.IllustsBean;
-import ceui.lisa.response.RecmdUserResponse;
-import ceui.lisa.response.UserPreviewsBean;
+import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.utils.LinearItemHorizontalDecoration;
-import io.reactivex.Observer;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
 
 /**
  * 推荐用户
@@ -64,30 +60,35 @@ public class FragmentRankHorizontal extends BaseFragment {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(Channel<List<IllustsBean>> event) {
 
-        Common.showLog("EVENTBUS 接受了消息");
+        Common.showLog(className + "EVENTBUS 接受了消息");
         allItems.clear();
         allItems.addAll(event.getObject());
         mAdapter = new RankHorizontalAdapter(allItems, mContext);
+        mAdapter.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(View v, int position, int viewType) {
+                IllustChannel.get().setIllustList(allItems);
+                Intent intent = new Intent(mContext, ViewPagerActivity.class);
+                intent.putExtra("position", position);
+                startActivity(intent);
+            }
+        });
         mRecyclerView.setAdapter(mAdapter);
         mProgressBar.setVisibility(View.INVISIBLE);
 
     }
 
-
     @Override
-    public void onStart() {
-        super.onStart();
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         EventBus.getDefault().register(this);
-        Common.showLog("EVENTBUS 注册了");
+        Common.showLog(className + "EVENTBUS 注册了");
     }
 
     @Override
-    public void onStop() {
-        super.onStop();
+    public void onDestroy() {
+        super.onDestroy();
         EventBus.getDefault().unregister(this);
-        Common.showLog("EVENTBUS 取消注册了");
+        Common.showLog(className + "EVENTBUS 取消注册了");
     }
-
-
-
 }

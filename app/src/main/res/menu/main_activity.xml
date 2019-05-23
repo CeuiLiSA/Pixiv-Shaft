@@ -11,15 +11,16 @@
     <item
         android:id="@+id/action_2"
         android:orderInCategory="100"
-        android:title="榜单"
-        android:icon="@drawable/ic_top"
+        android:title="动态"
+        android:icon="@drawable/ic_user_new_illust"
+
         app:showAsAction="always" />
 
     <item
         android:id="@+id/action_3"
         android:orderInCategory="100"
-        android:title="动态"
-        android:icon="@drawable/ic_user_new_illust"
+        android:title="发现"
+        android:icon="@drawable/ic_discover"
         app:showAsAction="always" />
 
 </menu>

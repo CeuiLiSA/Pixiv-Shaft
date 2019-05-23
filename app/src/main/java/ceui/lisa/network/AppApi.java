@@ -1,5 +1,6 @@
 package ceui.lisa.network;
 
+import ceui.lisa.response.ArticalResponse;
 import ceui.lisa.response.ListIllustResponse;
 import ceui.lisa.response.RecmdUserResponse;
 import ceui.lisa.response.TrendingtagResponse;
@@ -93,6 +94,10 @@ public interface AppApi {
     Observable<ListIllustResponse> getFollowUserIllust(@Header("Authorization") String token);
 
 
+    @GET("/v1/spotlight/articles?filter=for_android&category=all&offset=10")
+    Observable<ArticalResponse> getArticals(@Header("Authorization") String token);
+
+
 
 
 
@@ -121,5 +126,9 @@ public interface AppApi {
 
     @GET
     Observable<ListIllustResponse> getNextIllust(@Header("Authorization") String token,
+                                                 @Url String next_url);
+
+    @GET
+    Observable<ArticalResponse> getNextArticals(@Header("Authorization") String token,
                                                  @Url String next_url);
 }
