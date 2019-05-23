@@ -39,7 +39,7 @@ public class Retro {
                 .addInterceptor(chain -> {
                     Request localRequest = chain.request().newBuilder()
                             .addHeader("User-Agent:", "PixivAndroidApp/5.0.134 (Android 6.0.1; D6653)")
-                            //.addHeader("Accept-Language:", "zh_CN")
+                            .addHeader("Accept-Language", "zh_CN")
                             .build();
                     return chain.proceed(localRequest);
                 })

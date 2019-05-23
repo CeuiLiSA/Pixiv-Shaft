@@ -43,7 +43,8 @@ public class FragmentRecmdIllust extends BaseListFragment<ListIllustResponse, Il
 
     @Override
     Observable<ListIllustResponse> initApi() {
-        return Retro.getAppApi().getRecmdIllust(mUserModel.getResponse().getAccess_token(), true);
+        //return Retro.getAppApi().getRecmdIllust(mUserModel.getResponse().getAccess_token(), true);
+        return null;
     }
 
     @Override

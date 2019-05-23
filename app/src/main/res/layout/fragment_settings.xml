@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_height="match_parent">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fitsSystemWindows="true"
+        android:background="@color/loginBackground"
+        android:elevation="@dimen/six_dp"
+        app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
+        app:title="设置"
+        app:titleTextColor="@android:color/white">
+
+    </android.support.v7.widget.Toolbar>
+
+    <android.support.v4.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:orientation="vertical"
+            android:layout_height="match_parent">
+
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+
+                <TextView
+                    android:layout_margin="@dimen/sixteen_dp"
+                    android:text="移植加力燃烧器"
+                    android:textSize="15sp"
+                    android:textColor="@color/dark_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+
+
+                </TextView>
+
+
+                <Switch
+                    android:layout_width="wrap_content"
+                    android:checked="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:layout_margin="@dimen/sixteen_dp"
+                    android:layout_height="wrap_content" />
+
+
+            </RelativeLayout>
+
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+
+                <TextView
+                    android:layout_margin="@dimen/sixteen_dp"
+                    android:text="灵魂献祭"
+                    android:textSize="15sp"
+                    android:textColor="@color/dark_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+
+
+                </TextView>
+
+
+                <Switch
+                    android:layout_width="wrap_content"
+                    android:checked="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:layout_margin="@dimen/sixteen_dp"
+                    android:layout_height="wrap_content" />
+
+
+            </RelativeLayout>
+
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+
+                <TextView
+                    android:layout_margin="@dimen/sixteen_dp"
+                    android:text="开启回旋加速器"
+                    android:textSize="15sp"
+                    android:textColor="@color/dark_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+
+
+                </TextView>
+
+
+                <Switch
+                    android:layout_width="wrap_content"
+                    android:checked="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:layout_margin="@dimen/sixteen_dp"
+                    android:layout_height="wrap_content" />
+
+
+            </RelativeLayout>
+
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+
+                <TextView
+                    android:layout_margin="@dimen/sixteen_dp"
+                    android:text="X performance"
+                    android:textSize="15sp"
+                    android:textColor="@color/dark_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+
+
+                </TextView>
+
+
+                <Switch
+                    android:layout_width="wrap_content"
+                    android:checked="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:layout_margin="@dimen/sixteen_dp"
+                    android:layout_height="wrap_content" />
+
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+
+                <TextView
+                    android:layout_margin="@dimen/sixteen_dp"
+                    android:text="图片详情展示原图"
+                    android:textSize="15sp"
+                    android:textColor="@color/dark_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+
+
+                </TextView>
+
+
+                <Switch
+                    android:layout_width="wrap_content"
+                    android:checked="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:layout_margin="@dimen/sixteen_dp"
+                    android:layout_height="wrap_content" />
+
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+
+                <TextView
+                    android:layout_margin="@dimen/sixteen_dp"
+                    android:text="保存浏览历史"
+                    android:textSize="15sp"
+                    android:textColor="@color/dark_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+
+
+                </TextView>
+
+
+                <Switch
+                    android:layout_width="wrap_content"
+                    android:checked="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:layout_margin="@dimen/sixteen_dp"
+                    android:layout_height="wrap_content" />
+
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+
+                <TextView
+                    android:layout_margin="@dimen/sixteen_dp"
+                    android:text="哈雷克的火葬魔咒"
+                    android:textSize="15sp"
+                    android:textColor="@color/dark_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+
+
+                </TextView>
+
+
+                <Switch
+                    android:layout_width="wrap_content"
+                    android:checked="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:layout_margin="@dimen/sixteen_dp"
+                    android:layout_height="wrap_content" />
+
+
+            </RelativeLayout>
+
+
+
+        </LinearLayout>
+    </android.support.v4.widget.NestedScrollView>
+</LinearLayout>

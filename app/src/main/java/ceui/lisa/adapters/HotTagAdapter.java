@@ -3,6 +3,7 @@ package ceui.lisa.adapters;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,7 +37,7 @@ public class HotTagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         mLayoutInflater = LayoutInflater.from(mContext);
         allIllust = list;
         imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
-                4 * mContext.getResources().getDimensionPixelSize(R.dimen.eight_dp))/3;
+                mContext.getResources().getDimensionPixelSize(R.dimen.two_dp))/3;
     }
 
     @NonNull
@@ -49,15 +50,30 @@ public class HotTagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         final TagHolder currentOne = (TagHolder) holder;
-        ViewGroup.LayoutParams params = currentOne.illust.getLayoutParams();
-        params.height = imageSize * 13 / 10;
-        params.width = imageSize;
-        currentOne.illust.setLayoutParams(params);
-        currentOne.title.setText(allIllust.get(position).getTag());
-        Glide.with(mContext)
-                .load(GlideUtil.getMediumImg(allIllust.get(position).getIllust()))
-                .placeholder(R.color.light_bg)
-                .into(currentOne.illust);
+
+        if(position == 0){
+            ViewGroup.LayoutParams params = currentOne.illust.getLayoutParams();
+            params.height = imageSize * 2;
+            params.width = imageSize * 3;
+            currentOne.illust.setLayoutParams(params);
+            Glide.with(mContext)
+                    .load(GlideUtil.getLargeImage(allIllust.get(position).getIllust()))
+                    .placeholder(R.color.light_bg)
+                    .into(currentOne.illust);
+        }else {
+            ViewGroup.LayoutParams params = currentOne.illust.getLayoutParams();
+            params.height = imageSize;
+            params.width = imageSize;
+            currentOne.illust.setLayoutParams(params);
+            Glide.with(mContext)
+                    .load(GlideUtil.getMediumImg(allIllust.get(position).getIllust()))
+                    .placeholder(R.color.light_bg)
+                    .into(currentOne.illust);
+        }
+        currentOne.title.setText(!TextUtils.isEmpty(allIllust.get(position).getTranslated_name()) ?
+                allIllust.get(position).getTranslated_name() :
+                allIllust.get(position).getTag());
+
         if(mOnItemClickListener != null){
             holder.itemView.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 0));
         }

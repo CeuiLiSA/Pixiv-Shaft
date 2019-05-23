@@ -1,11 +1,13 @@
 package ceui.lisa.activities;
 
+import android.graphics.Color;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
+import android.view.View;
 
 import ceui.lisa.R;
 import ceui.lisa.fragments.FragmentRank;

@@ -5,7 +5,9 @@ import android.support.v4.app.Fragment;
 
 import ceui.lisa.fragments.FragmentRelatedIllust;
 import ceui.lisa.fragments.FragmentSearchResult;
+import ceui.lisa.fragments.FragmentSettings;
 import ceui.lisa.fragments.FragmentViewHistory;
+import ceui.lisa.fragments.FragmentWebView;
 
 public class TemplateFragmentActivity extends FragmentActivity {
 
@@ -29,6 +31,11 @@ public class TemplateFragmentActivity extends FragmentActivity {
                 return FragmentRelatedIllust.newInstance(id, title);
             }else if(dataType.equals("浏览记录")){
                 return new FragmentViewHistory();
+            }else if(dataType.equals("网页链接")){
+                String url = intent.getStringExtra("url");
+                return FragmentWebView.newInstance("特辑", url);
+            }else if(dataType.equals("设置")){
+                return new FragmentSettings();
             }
         }
         return null;

@@ -1,24 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    app:cardElevation="2dp"
-    app:cardCornerRadius="@dimen/four_dp"
+
+
+<RelativeLayout android:layout_width="match_parent"
     android:clickable="true"
     android:foreground="?attr/selectableItemBackground"
-    android:layout_height="wrap_content">
-
-
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:orientation="vertical"
-        android:layout_height="wrap_content">
+    android:orientation="vertical"
+    android:layout_height="wrap_content"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
 
         <ImageView
             android:layout_width="wrap_content"
             android:id="@+id/illust_image"
+            android:foreground="@drawable/side_rank_horizon"
             android:scaleType="centerCrop"
             android:layout_height="wrap_content" />
 
@@ -33,9 +27,10 @@
             android:layout_marginBottom="@dimen/four_dp"
             android:textColor="@android:color/white"
             android:shadowColor="#FF000000"
-            android:shadowDx="5"
-            android:shadowDy="5"
-            android:shadowRadius="5"
+            android:shadowDx="2"
+            android:shadowDy="2"
+            android:shadowRadius="2"
+            android:layout_centerHorizontal="true"
             android:textSize="14sp"
             android:textStyle="bold"
             android:layout_alignBottom="@+id/illust_image"
@@ -43,6 +38,3 @@
 
 
     </RelativeLayout>
-
-
-</android.support.v7.widget.CardView>

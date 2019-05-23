@@ -31,7 +31,7 @@
                 app:tabIndicatorFullWidth="false"
                 app:tabIndicatorColor="@android:color/white"
                 app:tabSelectedTextColor="@android:color/white"
-                android:layout_height="40dp">
+                android:layout_height="35dp">
 
             </android.support.design.widget.TabLayout>
 

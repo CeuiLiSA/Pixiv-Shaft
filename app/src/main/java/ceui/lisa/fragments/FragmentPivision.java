@@ -1,11 +1,15 @@
 package ceui.lisa.fragments;
 
+import android.content.Intent;
 import android.support.v7.widget.LinearLayoutManager;
+import android.view.View;
 
 import com.scwang.smartrefresh.layout.util.DensityUtil;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.adapters.ArticalAdapter;
+import ceui.lisa.interfs.OnItemClickListener;
 import ceui.lisa.network.Retro;
 import ceui.lisa.response.ArticalResponse;
 import ceui.lisa.utils.LinearItemDecoration;
@@ -45,5 +49,14 @@ public class FragmentPivision extends BaseListFragment<ArticalResponse, ArticalA
     @Override
     void initAdapter() {
         mAdapter = new ArticalAdapter(allItems, mContext);
+        mAdapter.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(View v, int position, int viewType) {
+                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "网页链接");
+                intent.putExtra("url", allItems.get(position).getArticle_url());
+                startActivity(intent);
+            }
+        });
     }
 }

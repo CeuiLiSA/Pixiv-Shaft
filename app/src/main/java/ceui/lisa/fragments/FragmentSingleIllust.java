@@ -54,6 +54,7 @@ public class FragmentSingleIllust extends BaseFragment {
 
     @Override
     View initView(View v) {
+
         imageView = v.findViewById(R.id.bg_image);
         originImage = v.findViewById(R.id.origin_image);
         mProgressBar = v.findViewById(R.id.progress);
@@ -69,7 +70,7 @@ public class FragmentSingleIllust extends BaseFragment {
         toolbar.setPadding(0, Shaft.statusHeight, 0, 0);
         toolbar.setTitle(illust.getTitle() + "  ");
         toolbar.setTitleTextAppearance(mContext, R.style.toolbarText);
-
+        toolbar.setNavigationOnClickListener(view -> getActivity().finish());
 
         CardView viewRelated = v.findViewById(R.id.related_illust);
         viewRelated.setOnClickListener(new View.OnClickListener() {

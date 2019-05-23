@@ -13,6 +13,7 @@ import ceui.lisa.interfs.OnItemClickListener;
 import ceui.lisa.network.Retro;
 import ceui.lisa.response.TrendingtagResponse;
 import ceui.lisa.utils.GridItemDecoration;
+import ceui.lisa.utils.TagItemDecoration;
 import io.reactivex.Observable;
 
 
@@ -42,10 +43,21 @@ public class FragmentHotTag extends BaseListFragment<TrendingtagResponse, HotTag
 
     @Override
     void initRecyclerView() {
-        mRecyclerView.addItemDecoration(new GridItemDecoration(3,
-                DensityUtil.dp2px(8.0f), true));
         GridLayoutManager manager = new GridLayoutManager(mContext, 3);
+        manager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+            @Override
+            public int getSpanSize(int position) {
+                if(position == 0) {
+                    return 3;
+                }
+                else {
+                    return 1;
+                }
+            }
+        });
         mRecyclerView.setLayoutManager(manager);
+        mRecyclerView.addItemDecoration(new TagItemDecoration(
+                3, DensityUtil.dp2px( 1.0f), false));
     }
 
     @Override
