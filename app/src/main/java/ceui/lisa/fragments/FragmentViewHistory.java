@@ -5,6 +5,10 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.view.animation.AnimationSet;
+import android.view.animation.DecelerateInterpolator;
+import android.view.animation.LayoutAnimationController;
+import android.view.animation.TranslateAnimation;
 import android.widget.ProgressBar;
 
 import com.google.gson.Gson;
@@ -34,6 +38,8 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
+import static android.view.animation.Animation.RELATIVE_TO_SELF;
+
 public class FragmentViewHistory extends BaseFragment {
 
     protected ViewHistoryAdapter mAdapter;
@@ -60,6 +66,17 @@ public class FragmentViewHistory extends BaseFragment {
         mRecyclerView.setLayoutManager(manager);
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.addItemDecoration(new LinearItemDecoration(DensityUtil.dp2px(8.0f)));
+
+        LayoutAnimationController controller = new LayoutAnimationController(getAnimationSetFromLeft());
+        controller.setDelay(0.1f);
+        controller.setOrder(LayoutAnimationController.ORDER_NORMAL);
+
+        mRecyclerView.setLayoutAnimation(controller);
+
+
+
+
+        //mRecyclerView.setLayoutAnimation(new LayoutAnimationController());
         mRefreshLayout = v.findViewById(R.id.refreshLayout);
         mRefreshLayout.setRefreshHeader(new DeliveryHeader(mContext));
         mRefreshLayout.setOnRefreshListener(layout -> getFirstData());
@@ -121,6 +138,9 @@ public class FragmentViewHistory extends BaseFragment {
                 mProgressBar.setVisibility(View.INVISIBLE);
                 mRecyclerView.setAdapter(mAdapter);
                 mRefreshLayout.finishRefresh(true);
+
+
+                mRecyclerView.scheduleLayoutAnimation();
             }
         });
     }
@@ -134,5 +154,34 @@ public class FragmentViewHistory extends BaseFragment {
     public void onResume() {
         super.onResume();
         getFirstData();
+    }
+
+
+    public static AnimationSet getAnimationSetFromLeft() {
+        AnimationSet animationSet = new AnimationSet(true);
+        TranslateAnimation translateX1 = new TranslateAnimation(RELATIVE_TO_SELF, 1.0f, RELATIVE_TO_SELF, -0.1f,
+                RELATIVE_TO_SELF, 0, RELATIVE_TO_SELF, 0);
+        translateX1.setDuration(300);
+        translateX1.setInterpolator(new DecelerateInterpolator());
+        translateX1.setStartOffset(0);
+
+        TranslateAnimation translateX2 = new TranslateAnimation(RELATIVE_TO_SELF, -0.1f, RELATIVE_TO_SELF, 0.1f,
+                RELATIVE_TO_SELF, 0, RELATIVE_TO_SELF, 0);
+        translateX2.setStartOffset(300);
+        translateX2.setInterpolator(new DecelerateInterpolator());
+        translateX2.setDuration(50);
+
+        TranslateAnimation translateX3 = new TranslateAnimation(RELATIVE_TO_SELF, 0.1f, RELATIVE_TO_SELF, -0f,
+                RELATIVE_TO_SELF, 0, RELATIVE_TO_SELF, 0);
+        translateX3.setStartOffset(350);
+        translateX3.setInterpolator(new DecelerateInterpolator());
+        translateX3.setDuration(50);
+
+        animationSet.addAnimation(translateX1);
+        animationSet.addAnimation(translateX2);
+        animationSet.addAnimation(translateX3);
+        animationSet.setDuration(600);
+
+        return animationSet;
     }
 }

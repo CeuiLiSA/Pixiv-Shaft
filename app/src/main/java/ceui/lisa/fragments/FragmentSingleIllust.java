@@ -5,6 +5,7 @@ import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -15,6 +16,9 @@ import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
+import com.facebook.rebound.SimpleSpringListener;
+import com.facebook.rebound.Spring;
+import com.facebook.rebound.SpringSystem;
 import com.github.ybq.android.spinkit.style.CubeGrid;
 import com.google.gson.Gson;
 import com.scwang.smartrefresh.layout.util.DensityUtil;
@@ -40,6 +44,8 @@ public class FragmentSingleIllust extends BaseFragment {
     private IllustsBean illust;
     private ProgressBar mProgressBar;
     private ImageView refresh, imageView, originImage;
+    private Spring mScaleSpring;
+    private boolean isBig = false;
 
     public static FragmentSingleIllust newInstance(IllustsBean illustsBean) {
         FragmentSingleIllust fragmentSingleIllust = new FragmentSingleIllust();
@@ -94,6 +100,40 @@ public class FragmentSingleIllust extends BaseFragment {
         head.setLayoutParams(headParams);
 
 
+        SpringSystem springSystem = SpringSystem.create();
+
+// Add a spring to the system.
+        mScaleSpring = springSystem.createSpring();
+
+// Add a listener to observe the motion of the spring.
+        mScaleSpring.addListener(new SimpleSpringListener() {
+
+            @Override
+            public void onSpringUpdate(Spring spring) {
+                // You can observe the updates in the spring
+                // state by asking its current value in onSpringUpdate.
+                float value = (float) spring.getCurrentValue();
+                float scale = 1f + (value * 0.5f);
+                originImage.setScaleX(scale);
+                originImage.setScaleY(scale);
+            }
+        });
+
+        originImage.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                if(isBig) {
+                    mScaleSpring.setEndValue(0);
+                    isBig = false;
+                }else {
+                    mScaleSpring.setEndValue(1);
+                    isBig = true;
+                }
+                return true;
+            }
+        });
+
+
         /**
          * 计算原图 宽高
          */
@@ -108,6 +148,12 @@ public class FragmentSingleIllust extends BaseFragment {
             }
         });
         return v;
+    }
+
+
+    private void showImage(){
+
+
     }
 
     private void loadImage() {

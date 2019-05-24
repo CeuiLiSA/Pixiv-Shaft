@@ -22,7 +22,8 @@ public class FragmentHotTag extends BaseListFragment<TrendingtagResponse, HotTag
 
     @Override
     Observable<TrendingtagResponse> initApi() {
-        return Retro.getAppApi().getHotTags(mUserModel.getResponse().getAccess_token());
+        //return Retro.getAppApi().getHotTags(mUserModel.getResponse().getAccess_token());
+        return null;
     }
 
     @Override
