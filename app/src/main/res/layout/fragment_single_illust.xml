@@ -78,7 +78,125 @@
                 app:cardElevation="@dimen/four_dp"
                 android:layout_marginBottom="@dimen/eight_dp"
                 app:cardCornerRadius="@dimen/four_dp"
-                android:layout_height="200dp">
+                android:layout_height="wrap_content">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:orientation="vertical"
+                    android:background="#f2f2f2"
+                    android:layout_height="wrap_content">
+
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:background="@color/white"
+                        android:layout_height="wrap_content">
+
+                        <de.hdodenhof.circleimageview.CircleImageView
+                            android:layout_width="45dp"
+                            android:layout_marginStart="@dimen/twelve_dp"
+                            android:layout_marginTop="@dimen/eight_dp"
+                            android:layout_marginBottom="@dimen/eight_dp"
+                            android:id="@+id/user_head"
+                            android:layout_height="45dp" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:id="@+id/user_name"
+                            android:layout_toStartOf="@+id/follow"
+                            android:layout_marginEnd="@dimen/eight_dp"
+                            android:textStyle="bold"
+                            android:textSize="16sp"
+                            android:layout_marginStart="@dimen/eight_dp"
+                            android:layout_toEndOf="@+id/user_head"
+                            android:textColor="@color/colorPrimary"
+                            android:layout_centerVertical="true"
+                            android:layout_height="wrap_content" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:id="@+id/follow"
+                            android:text="+ 关注"
+                            android:layout_alignParentEnd="true"
+                            android:layout_marginEnd="@dimen/sixteen_dp"
+                            android:textStyle="bold"
+                            android:textColor="@color/colorPrimary"
+                            android:layout_centerVertical="true"
+                            android:layout_height="wrap_content" />
+
+
+
+                    </RelativeLayout>
+
+
+                    <me.next.tagview.TagCloudView
+                        android:layout_marginTop="4dp"
+                        android:layout_width="match_parent"
+                        app:tcvBackground="@drawable/btn_follow"
+                        android:id="@+id/illust_tag"
+                        app:tcvItemBorderVertical="6dp"
+                        app:tcvBorder="@dimen/eight_dp"
+                        android:layout_height="match_parent">
+
+
+
+                    </me.next.tagview.TagCloudView>
+
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+
+
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:id="@+id/illust_date"
+                            android:drawablePadding="2dp"
+                            android:drawableEnd="@drawable/ic_edit_black_24dp"
+                            android:text="2019年05月28日18:47:21"
+                            android:textSize="12sp"
+                            android:drawableTint="@color/colorPrimary"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_marginBottom="10dp"
+                            android:layout_height="wrap_content" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:id="@+id/illust_view"
+                            android:textSize="12sp"
+                            android:gravity="center"
+                            android:drawablePadding="2dp"
+                            android:text="20K喜欢"
+                            android:textStyle="bold"
+                            android:drawableEnd="@drawable/ic_remove_red_eye_black_24dp"
+                            android:drawableTint="@color/colorPrimary"
+                            android:layout_marginStart="@dimen/eight_dp"
+                            android:layout_marginBottom="10dp"
+                            android:layout_height="wrap_content" />
+
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:id="@+id/illust_like"
+                            android:textSize="12sp"
+                            android:gravity="center"
+                            android:textStyle="bold"
+                            android:drawablePadding="2dp"
+                            android:text="20K喜欢"
+                            android:drawableEnd="@drawable/ic_favorite_black_24dp"
+                            android:drawableTint="@color/colorPrimary"
+                            android:layout_marginStart="@dimen/eight_dp"
+                            android:layout_marginBottom="10dp"
+                            android:layout_marginEnd="@dimen/sixteen_dp"
+                            android:layout_height="wrap_content" />
+
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+
 
 
             </android.support.v7.widget.CardView>

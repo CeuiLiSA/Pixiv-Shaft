@@ -8,20 +8,20 @@ import android.arch.persistence.room.Query;
 
 import java.util.List;
 
-//保存浏览历史记录
+//推荐页面保存列表数据，调试用
 @Dao
-public interface IllustDao {
+public interface IllustRecmdDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insert(IllustHistoryEntity userEntity);
+    void insert(IllustRecmdEntity userEntity);
 
     @Insert
-    void insertAll(List<IllustHistoryEntity> userEntities);
+    void insertAll(List<IllustRecmdEntity> userEntities);
 
     @Delete
-    void delete(IllustHistoryEntity userEntity);
+    void delete(IllustRecmdEntity userEntity);
 
 
-    @Query("SELECT * FROM illust_table ORDER BY time DESC")
-    List<IllustHistoryEntity> getAll();
+    @Query("SELECT * FROM illust_recmd_table")
+    List<IllustRecmdEntity> getAll();
 }

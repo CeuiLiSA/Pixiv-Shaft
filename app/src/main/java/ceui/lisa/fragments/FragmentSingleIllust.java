@@ -2,14 +2,17 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource;
@@ -18,20 +21,26 @@ import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
+import com.facebook.rebound.SpringConfig;
 import com.facebook.rebound.SpringSystem;
 import com.github.ybq.android.spinkit.style.CubeGrid;
 import com.google.gson.Gson;
 import com.scwang.smartrefresh.layout.util.DensityUtil;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.database.AppDatabase;
-import ceui.lisa.database.IllustEntity;
+import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
+import de.hdodenhof.circleimageview.CircleImageView;
 import jp.wasabeef.glide.transformations.BlurTransformation;
+import me.next.tagview.TagCloudView;
 
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 import static com.bumptech.glide.request.RequestOptions.bitmapTransform;
@@ -44,12 +53,14 @@ public class FragmentSingleIllust extends BaseFragment {
     private IllustsBean illust;
     private ProgressBar mProgressBar;
     private ImageView refresh, imageView, originImage;
-    private Spring mScaleSpring;
+    private Bundle mBundle;
     private boolean isBig = false;
+    private Spring spring;
 
-    public static FragmentSingleIllust newInstance(IllustsBean illustsBean) {
+    public static FragmentSingleIllust newInstance(IllustsBean illustsBean, Bundle bundle) {
         FragmentSingleIllust fragmentSingleIllust = new FragmentSingleIllust();
         fragmentSingleIllust.setIllust(illustsBean);
+        fragmentSingleIllust.mBundle = bundle;
         return fragmentSingleIllust;
     }
 
@@ -63,6 +74,21 @@ public class FragmentSingleIllust extends BaseFragment {
 
         imageView = v.findViewById(R.id.bg_image);
         originImage = v.findViewById(R.id.origin_image);
+        /**
+         * 计算原图 宽高
+         */
+        ViewGroup.LayoutParams params = originImage.getLayoutParams();
+        int width = mContext.getResources().getDisplayMetrics().widthPixels - 2 * DensityUtil.dp2px(12.0f);
+        params.height = illust.getHeight() * width / illust.getWidth();
+        originImage.setLayoutParams(params);
+        originImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Common.showToast(illust.getTitle());
+            }
+        });
+
+
         mProgressBar = v.findViewById(R.id.progress);
         CubeGrid cubeGrid = new CubeGrid();
         cubeGrid.setColor(getResources().getColor(R.color.loginBackground));
@@ -100,60 +126,26 @@ public class FragmentSingleIllust extends BaseFragment {
         head.setLayoutParams(headParams);
 
 
-        SpringSystem springSystem = SpringSystem.create();
-
-// Add a spring to the system.
-        mScaleSpring = springSystem.createSpring();
-
-// Add a listener to observe the motion of the spring.
-        mScaleSpring.addListener(new SimpleSpringListener() {
-
-            @Override
-            public void onSpringUpdate(Spring spring) {
-                // You can observe the updates in the spring
-                // state by asking its current value in onSpringUpdate.
-                float value = (float) spring.getCurrentValue();
-                float scale = 1f + (value * 0.5f);
-                originImage.setScaleX(scale);
-                originImage.setScaleY(scale);
-            }
-        });
-
-        originImage.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                if(isBig) {
-                    mScaleSpring.setEndValue(0);
-                    isBig = false;
-                }else {
-                    mScaleSpring.setEndValue(1);
-                    isBig = true;
-                }
-                return true;
-            }
-        });
-
-
-        /**
-         * 计算原图 宽高
-         */
-        ViewGroup.LayoutParams params = originImage.getLayoutParams();
-        int width = mContext.getResources().getDisplayMetrics().widthPixels - 2 * DensityUtil.dp2px(12.0f);
-        params.height = illust.getHeight() * width / illust.getWidth();
-        originImage.setLayoutParams(params);
-        originImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Common.showToast(illust.getTitle());
-            }
-        });
+        TextView userName = v.findViewById(R.id.user_name);
+        TextView follow = v.findViewById(R.id.follow);
+        CircleImageView userHead = v.findViewById(R.id.user_head);
+        Glide.with(mContext)
+                .load(GlideUtil.getMediumImg(illust.getUser().getProfile_image_urls().getMedium()))
+                .into(userHead);
+        userName.setText(illust.getUser().getName());
+        TagCloudView tagCloudView = v.findViewById(R.id.illust_tag);
+        List<String> tags = new ArrayList<>();
+        for (int i = 0; i < illust.getTags().size(); i++) {
+            tags.add(illust.getTags().get(i).getName());
+        }
+        tagCloudView.setTags(tags);
+        TextView date = v.findViewById(R.id.illust_date);
+        TextView totalView = v.findViewById(R.id.illust_view);
+        TextView like = v.findViewById(R.id.illust_like);
+        date.setText(illust.getCreate_date().substring(0, 16));
+        totalView.setText(String.valueOf(illust.getTotal_view()));
+        like.setText(String.valueOf(illust.getTotal_bookmarks()));
         return v;
-    }
-
-
-    private void showImage(){
-
-
     }
 
     private void loadImage() {
@@ -179,6 +171,7 @@ public class FragmentSingleIllust extends BaseFragment {
                     public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
                         mProgressBar.setVisibility(View.INVISIBLE);
                         refresh.setVisibility(View.INVISIBLE);
+
                         return false;
                     }
                 })
@@ -188,7 +181,6 @@ public class FragmentSingleIllust extends BaseFragment {
     @Override
     void initData() {
         loadImage();
-        //insertViewHistory();
     }
 
     @Override
@@ -204,11 +196,11 @@ public class FragmentSingleIllust extends BaseFragment {
     }
 
     private void insertViewHistory() {
-        IllustEntity illustEntity = new IllustEntity();
-        illustEntity.setIllustID(illust.getId());
+        IllustHistoryEntity illustHistoryEntity = new IllustHistoryEntity();
+        illustHistoryEntity.setIllustID(illust.getId());
         Gson gson = new Gson();
-        illustEntity.setIllustJson(gson.toJson(illust));
-        illustEntity.setTime(System.currentTimeMillis());
-        AppDatabase.getAppDatabase(Shaft.getContext()).trackDao().insert(illustEntity);
+        illustHistoryEntity.setIllustJson(gson.toJson(illust));
+        illustHistoryEntity.setTime(System.currentTimeMillis());
+        AppDatabase.getAppDatabase(Shaft.getContext()).trackDao().insert(illustHistoryEntity);
     }
 }

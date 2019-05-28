@@ -17,7 +17,6 @@ import ceui.lisa.utils.Common;
 public class FragmentCenter extends BaseFragment {
 
     private boolean isLoad = false;
-    private RecyclerView mRecyclerView;
 
     public FragmentCenter() {
     }

@@ -1,5 +1,6 @@
 package ceui.lisa.response;
 
+
 import java.io.Serializable;
 
 public class TagsBean implements Serializable {

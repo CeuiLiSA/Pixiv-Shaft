@@ -25,6 +25,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:orientation="vertical"
+            android:id="@+id/parent_linear"
             android:layout_height="match_parent">
 
 
@@ -125,7 +126,7 @@
 
                 <TextView
                     android:layout_margin="@dimen/sixteen_dp"
-                    android:text="X performance"
+                    android:text="X-performance"
                     android:textSize="15sp"
                     android:textColor="@color/dark_text"
                     android:layout_width="wrap_content"
@@ -234,6 +235,37 @@
 
 
             </RelativeLayout>
+
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+
+                <TextView
+                    android:layout_margin="@dimen/sixteen_dp"
+                    android:text="相关作品无限下滑（可能出现重复）"
+                    android:textSize="15sp"
+                    android:textColor="@color/dark_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+
+
+                </TextView>
+
+
+                <Switch
+                    android:layout_width="wrap_content"
+                    android:checked="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:layout_margin="@dimen/sixteen_dp"
+                    android:layout_height="wrap_content" />
+
+
+            </RelativeLayout>
+
 
             <RelativeLayout
                 android:layout_width="match_parent"

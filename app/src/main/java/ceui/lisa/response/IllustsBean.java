@@ -1,5 +1,8 @@
 package ceui.lisa.response;
 
+import android.os.Parcel;
+import android.view.View;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -53,6 +56,8 @@ public class IllustsBean implements Serializable {
     private List<TagsBean> tags;
     private List<?> tools;
     private List<MetaPagesBean> meta_pages;
+
+
 
     public static class MetaPagesBean implements Serializable{
         /**

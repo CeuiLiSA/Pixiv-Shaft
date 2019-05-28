@@ -5,6 +5,7 @@ import android.util.Log;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import java.lang.reflect.Modifier;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Collections;
@@ -45,7 +46,10 @@ public class Retro {
                 })
                 .addInterceptor(new TokenInterceptor())
                 .build();
-        Gson gson = new GsonBuilder().setLenient().create();
+        Gson gson = new GsonBuilder()
+                .setLenient()
+                //.excludeFieldsWithModifiers(Modifier.FINAL, Modifier.TRANSIENT, Modifier.STATIC)
+                .create();
         Retrofit retrofit = new Retrofit.Builder()
                 .client(okHttpClient)
                 .addConverterFactory(GsonConverterFactory.create(gson))

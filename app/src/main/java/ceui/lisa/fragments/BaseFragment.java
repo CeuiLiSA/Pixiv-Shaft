@@ -26,8 +26,6 @@ public abstract class BaseFragment extends Fragment {
     protected int mLayoutID;
     protected View parentView;
     protected UserModel mUserModel;
-    protected SpringSystem springSystem = SpringSystem.create();
-    protected Spring spring;
 
     protected String className = this.getClass().getSimpleName() + " ";
 
@@ -38,22 +36,6 @@ public abstract class BaseFragment extends Fragment {
     abstract void initData();
 
     public BaseFragment(){
-        spring = springSystem.createSpring();
-        spring.setSpringConfig(SpringConfig.fromOrigamiTensionAndFriction(50,25));
-        spring.addListener(new SimpleSpringListener() {
-
-            @Override
-            public void onSpringUpdate(Spring spring) {
-                // You can observe the updates in the spring
-                // state by asking its current value in onSpringUpdate.
-                float value = (float) spring.getCurrentValue();
-
-                float scale = 1.25f - value / 4;
-                Common.showLog(className + scale);
-                parentView.setScaleX(scale);
-                parentView.setScaleY(scale);
-            }
-        });
     }
 
 
@@ -64,9 +46,6 @@ public abstract class BaseFragment extends Fragment {
         mActivity = getActivity();
         mUserModel = Local.getUser();
 
-
-
-// Add a listener to observe the motion of the spring.
 
     }
 
@@ -115,9 +94,5 @@ public abstract class BaseFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-
-
-        spring.setEndValue(1);
-
     }
 }

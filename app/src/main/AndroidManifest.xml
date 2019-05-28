@@ -3,14 +3,6 @@
     xmlns:dist="http://schemas.android.com/apk/distribution"
     package="ceui.lisa">
 
-    <dist:module dist:instant="true" />
-
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
     <application
         android:name=".activities.Shaft"
         android:allowBackup="true"
@@ -19,18 +11,21 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity
-            android:name=".activities.CoverActivity">
+        <activity android:name=".activities.CoverActivity">
+
+        </activity>
+        <activity android:name=".activities.LoginActivity" />
+        <activity android:name=".activities.ViewPagerActivity" />
+        <activity android:name=".activities.TemplateFragmentActivity" />
+        <activity android:name=".activities.MultiViewPagerActivity" />
+        <activity android:name=".activities.PikaActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activities.LoginActivity" />
-        <activity android:name=".activities.ViewPagerActivity" />
-        <activity android:name=".activities.TemplateFragmentActivity" />
-        <activity android:name=".activities.MultiViewPagerActivity" />
+
 
 
         <meta-data
@@ -41,5 +36,13 @@
             android:name="notch.config"
             android:value="portrait|landscape" />
     </application>
+
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <dist:module dist:instant="true" />
 
 </manifest>

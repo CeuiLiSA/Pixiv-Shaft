@@ -10,13 +10,17 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.facebook.rebound.SimpleSpringListener;
+import com.facebook.rebound.Spring;
+import com.facebook.rebound.SpringConfig;
+import com.facebook.rebound.SpringSystem;
 import com.google.gson.Gson;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.database.IllustEntity;
+import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.interfs.OnItemClickListener;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.utils.GlideUtil;
@@ -30,12 +34,12 @@ public class ViewHistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     private Context mContext;
     private LayoutInflater mLayoutInflater;
     private OnItemClickListener mOnItemClickListener;
-    private List<IllustEntity> allIllust;
+    private List<IllustHistoryEntity> allIllust;
     private Gson mGson = new Gson();
     private int imageSize = 0;
     private SimpleDateFormat mTime = new SimpleDateFormat("MM月dd日 HH: mm");
 
-    public ViewHistoryAdapter(List<IllustEntity> list, Context context) {
+    public ViewHistoryAdapter(List<IllustHistoryEntity> list, Context context) {
         mContext = context;
         mLayoutInflater = LayoutInflater.from(mContext);
         allIllust = list;
@@ -65,6 +69,18 @@ public class ViewHistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         currentOne.title.setText(currentIllust.getTitle());
         currentOne.author.setText("by: " + currentIllust.getUser().getName());
         currentOne.time.setText(mTime.format(allIllust.get(position).getTime()));
+
+
+
+        //从-400 丝滑滑动到0
+        currentOne.spring.setCurrentValue(-400);
+        currentOne.spring.setEndValue(0);
+
+
+
+
+
+
         if(mOnItemClickListener != null){
             holder.itemView.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 0));
         }
@@ -82,12 +98,31 @@ public class ViewHistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     public static class TagHolder extends RecyclerView.ViewHolder {
         ImageView illust;
         TextView title, time, author;
+        Spring spring;
         TagHolder(View itemView) {
             super(itemView);
+
             illust = itemView.findViewById(R.id.illust_image);
             title = itemView.findViewById(R.id.title);
             time = itemView.findViewById(R.id.time);
             author = itemView.findViewById(R.id.author);
+            SpringSystem springSystem = SpringSystem.create();
+
+            // Add a spring to the system.
+            spring = springSystem.createSpring();
+
+            spring.setSpringConfig(SpringConfig.fromOrigamiTensionAndFriction(40,5));
+            spring.addListener(new SimpleSpringListener() {
+
+                @Override
+                public void onSpringUpdate(Spring spring) {
+                    // You can observe the updates in the spring
+                    // state by asking its current value in onSpringUpdate.
+                    itemView.setTranslationX((float) spring.getCurrentValue());
+                    //Common.showLog(spring.getCurrentValue());
+                }
+            });
+
         }
     }
 }

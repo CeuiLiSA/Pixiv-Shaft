@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 
 import com.google.gson.Gson;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
@@ -192,5 +193,17 @@ public class Local {
                         callback.doSomething(localIllust);
                     }
                 });
+    }
+
+    public static String getPikaImageFileName(){
+        SharedPreferences localData = Shaft.getContext().getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
+        return localData.getString("pika file name", "nopic.png");
+    }
+
+    public static void setPikaImageFile(String pikaFileName){
+        SharedPreferences localData = Shaft.getContext().getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = localData.edit();
+        editor.putString("pika file name", pikaFileName);
+        editor.apply();
     }
 }

@@ -2,6 +2,8 @@ package ceui.lisa.activities;
 
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
@@ -13,12 +15,18 @@ import android.view.MenuItem;
 import android.view.View;
 
 
+
+import org.greenrobot.eventbus.EventBus;
+
+import java.util.List;
+
 import ceui.lisa.R;
 import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentBlank;
 import ceui.lisa.fragments.FragmentCenter;
 import ceui.lisa.fragments.FragmentRight;
 import ceui.lisa.fragments.FragmentLeft;
+import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Local;
 import ceui.lisa.response.UserModel;
 import ceui.lisa.utils.Common;
@@ -28,6 +36,12 @@ public class CoverActivity extends BaseActivity
 
     private ViewPager mViewPager;
     private DrawerLayout mDrawer;
+
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
 
     @Override
     protected void initLayout() {
@@ -133,13 +147,13 @@ public class CoverActivity extends BaseActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_camera) {
-            Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "浏览记录");
-            startActivity(intent);
+
         } else if (id == R.id.nav_gallery) {
 
         } else if (id == R.id.nav_slideshow) {
-
+            Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "浏览记录");
+            startActivity(intent);
         } else if (id == R.id.nav_manage) {
             Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
             intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "设置");
@@ -152,5 +166,10 @@ public class CoverActivity extends BaseActivity
 
         mDrawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    public void onActivityReenter(int resultCode, Intent data) {
+        super.onActivityReenter(resultCode, data);
     }
 }

@@ -3,8 +3,8 @@ package ceui.lisa.database;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
 
-@Entity(tableName = "illust_table")
-public final class IllustEntity {
+@Entity(tableName = "illust_recmd_table")
+public final class IllustRecmdEntity {
 
     @PrimaryKey()
     private int illustID;
@@ -38,7 +38,7 @@ public final class IllustEntity {
 
     @Override
     public String toString() {
-        return "IllustEntity{" +
+        return "IllustHistoryEntity{" +
                 "illustID=" + illustID +
                 ", illustJson='" + illustJson + '\'' +
                 ", time=" + time +

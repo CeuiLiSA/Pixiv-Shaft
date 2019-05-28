@@ -31,12 +31,12 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar">
 
-        <android.support.v7.widget.RecyclerView
+        <ceui.lisa.adapters.SpringRecyclerView
             android:id="@+id/recyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-        </android.support.v7.widget.RecyclerView>
+        </ceui.lisa.adapters.SpringRecyclerView>
     </com.scwang.smartrefresh.layout.SmartRefreshLayout>
 
     <ProgressBar

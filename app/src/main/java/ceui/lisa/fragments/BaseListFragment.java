@@ -1,5 +1,6 @@
 package ceui.lisa.fragments;
 
+import android.content.Intent;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -11,6 +12,7 @@ import android.widget.ProgressBar;
 import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringChain;
+import com.google.gson.Gson;
 import com.scwang.smartrefresh.header.DeliveryHeader;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
 
@@ -18,13 +20,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.ViewPagerActivity;
+import ceui.lisa.adapters.ViewHistoryAdapter;
+import ceui.lisa.database.AppDatabase;
+import ceui.lisa.database.IllustHistoryEntity;
+import ceui.lisa.database.IllustRecmdEntity;
 import ceui.lisa.interfs.Callback;
 import ceui.lisa.interfs.ListShow;
+import ceui.lisa.interfs.OnItemClickListener;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.utils.ListObserver;
 import ceui.lisa.utils.Local;
 import io.reactivex.Observable;
+import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
@@ -179,7 +189,6 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
             mApi.subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ListObserver<Response>() {
-
                         @Override
                         public void success(Response response) {
                             mResponse = response;
@@ -203,6 +212,10 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
 
                         }
                     });
+        }else {
+            if(className.equals("FragmentRecmdIllust ")) {
+                showDataBase();
+            }
         }
     }
 
@@ -250,5 +263,8 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
     }
 
 
+    public void showDataBase(){
+
+    }
 
 }

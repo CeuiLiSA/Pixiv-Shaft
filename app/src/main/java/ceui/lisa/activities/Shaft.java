@@ -46,7 +46,6 @@ public class Shaft extends Application {
         //初始化context
         sContext = this;
 
-
         //计算状态栏高度并赋值
         statusHeight = 0;
         int resourceId = sContext.getResources().getIdentifier("status_bar_height", "dimen", "android");

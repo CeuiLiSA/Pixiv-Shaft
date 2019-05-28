@@ -78,6 +78,7 @@
     <FrameLayout
         android:id="@+id/fragment_pivision"
         android:layout_width="match_parent"
+        android:background="#f2f2f2"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         android:layout_height="match_parent"
         android:layout_below="@+id/go_rank">
