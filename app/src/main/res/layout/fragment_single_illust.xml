@@ -83,7 +83,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:orientation="vertical"
-                    android:background="#f2f2f2"
+                    android:background="#FAFAFA"
                     android:layout_height="wrap_content">
 
 
@@ -94,6 +94,8 @@
 
                         <de.hdodenhof.circleimageview.CircleImageView
                             android:layout_width="45dp"
+                            app:civ_border_color="#DDDDDD"
+                            app:civ_border_width="2dp"
                             android:layout_marginStart="@dimen/twelve_dp"
                             android:layout_marginTop="@dimen/eight_dp"
                             android:layout_marginBottom="@dimen/eight_dp"
@@ -202,31 +204,56 @@
             </android.support.v7.widget.CardView>
 
 
-            <android.support.design.card.MaterialCardView
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_marginStart="@dimen/twelve_dp"
-                android:layout_marginEnd="@dimen/twelve_dp"
-                android:id="@+id/related_illust"
-                app:cardElevation="@dimen/four_dp"
-                android:layout_marginBottom="@dimen/sixteen_dp"
-                app:cardCornerRadius="@dimen/four_dp"
                 android:layout_height="wrap_content">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:text="相关作品"
-                    android:layout_margin="@dimen/sixteen_dp"
-                    android:layout_height="wrap_content" />
+                <android.support.design.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:id="@+id/download_illust"
+                    app:cardElevation="@dimen/four_dp"
+                    android:layout_marginBottom="@dimen/eight_dp"
+                    android:layout_marginStart="@dimen/twelve_dp"
+                    android:layout_marginEnd="@dimen/four_dp"
+                    app:cardCornerRadius="@dimen/four_dp"
+                    android:layout_height="match_parent">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_gravity="end"
-                    android:text="查看更多"
-                    android:layout_margin="@dimen/sixteen_dp"
-                    android:layout_height="wrap_content" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:text="下载原图"
+                        android:layout_gravity="center"
+                        android:layout_height="wrap_content" />
 
 
-            </android.support.design.card.MaterialCardView>
+                </android.support.design.card.MaterialCardView>
+
+
+                <android.support.design.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="@dimen/twelve_dp"
+                    android:id="@+id/related_illust"
+                    app:cardElevation="@dimen/four_dp"
+                    android:layout_marginBottom="@dimen/eight_dp"
+                    android:layout_marginStart="@dimen/four_dp"
+                    app:cardCornerRadius="@dimen/four_dp"
+                    android:layout_height="match_parent">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:text="相关作品"
+                        android:layout_gravity="center"
+                        android:layout_margin="@dimen/sixteen_dp"
+                        android:layout_height="wrap_content" />
+
+
+                </android.support.design.card.MaterialCardView>
+
+            </LinearLayout>
+
+
+
 
         </LinearLayout>
     </ScrollView>

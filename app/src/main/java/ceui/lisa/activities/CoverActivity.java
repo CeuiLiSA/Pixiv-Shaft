@@ -13,8 +13,10 @@ import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 
 
+import com.bumptech.glide.Glide;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -27,6 +29,7 @@ import ceui.lisa.fragments.FragmentCenter;
 import ceui.lisa.fragments.FragmentRight;
 import ceui.lisa.fragments.FragmentLeft;
 import ceui.lisa.utils.Channel;
+import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Local;
 import ceui.lisa.response.UserModel;
 import ceui.lisa.utils.Common;
@@ -36,11 +39,13 @@ public class CoverActivity extends BaseActivity
 
     private ViewPager mViewPager;
     private DrawerLayout mDrawer;
-
+    private ImageView userHead;
+    private UserModel mUserModel;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mUserModel = Local.getUser();
     }
 
     @Override
@@ -58,6 +63,15 @@ public class CoverActivity extends BaseActivity
         mDrawer.setScrimColor(Color.TRANSPARENT);
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        userHead = navigationView.getHeaderView(0).findViewById(R.id.user_head);
+        userHead.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(mContext, UserDetailActivity.class);
+                intent.putExtra("user id", mUserModel.getResponse().getUser().getId());
+                startActivity(intent);
+            }
+        });
         BottomNavigationView bottomNavigationView = findViewById(R.id.navigation_view);
         bottomNavigationView.setOnNavigationItemSelectedListener(menuItem -> {
             if(menuItem.getItemId() == R.id.action_1){
@@ -171,5 +185,14 @@ public class CoverActivity extends BaseActivity
     @Override
     public void onActivityReenter(int resultCode, Intent data) {
         super.onActivityReenter(resultCode, data);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Glide.with(mContext)
+                .load(GlideUtil.getMediumImg(
+                        mUserModel.getResponse().getUser().getProfile_image_urls().getMedium()))
+                .into(userHead);
     }
 }

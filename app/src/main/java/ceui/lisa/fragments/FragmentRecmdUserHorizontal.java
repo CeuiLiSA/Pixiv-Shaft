@@ -1,5 +1,6 @@
 package ceui.lisa.fragments;
 
+import android.content.Intent;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
@@ -12,8 +13,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.adapters.UserAdapter;
 import ceui.lisa.adapters.UserHorizontalAdapter;
+import ceui.lisa.interfs.OnItemClickListener;
 import ceui.lisa.network.Retro;
 import ceui.lisa.response.RecmdUserResponse;
 import ceui.lisa.response.UserPreviewsBean;
@@ -76,6 +79,14 @@ public class FragmentRecmdUserHorizontal extends BaseFragment {
                             allItems.clear();
                             allItems.addAll(recmdUserResponse.getList());
                             mAdapter = new UserHorizontalAdapter(allItems, mContext);
+                            mAdapter.setOnItemClickListener(new OnItemClickListener() {
+                                @Override
+                                public void onItemClick(View v, int position, int viewType) {
+                                    Intent intent = new Intent(mContext, UserDetailActivity.class);
+                                    intent.putExtra("user id", allItems.get(position).getUser().getId());
+                                    startActivity(intent);
+                                }
+                            });
                             mRecyclerView.setAdapter(mAdapter);
                         }
                         mProgressBar.setVisibility(View.INVISIBLE);

@@ -128,6 +128,11 @@ public class FragmentSingleIllust extends BaseFragment {
 
         TextView userName = v.findViewById(R.id.user_name);
         TextView follow = v.findViewById(R.id.follow);
+        if(illust.getUser().isIs_followed()){
+            follow.setText("取消关注");
+        }else {
+            follow.setText("+ 关注");
+        }
         CircleImageView userHead = v.findViewById(R.id.user_head);
         Glide.with(mContext)
                 .load(GlideUtil.getMediumImg(illust.getUser().getProfile_image_urls().getMedium()))

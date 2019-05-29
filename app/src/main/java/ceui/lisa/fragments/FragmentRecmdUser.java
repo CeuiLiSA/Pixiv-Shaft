@@ -1,12 +1,16 @@
 package ceui.lisa.fragments;
 
+import android.content.Intent;
 import android.support.v7.widget.LinearLayoutManager;
+import android.view.View;
 import android.widget.LinearLayout;
 
 import com.scwang.smartrefresh.layout.util.DensityUtil;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.adapters.UserAdapter;
+import ceui.lisa.interfs.OnItemClickListener;
 import ceui.lisa.network.Retro;
 import ceui.lisa.response.RecmdUserResponse;
 import ceui.lisa.response.UserPreviewsBean;
@@ -49,5 +53,13 @@ public class FragmentRecmdUser extends BaseListFragment<RecmdUserResponse, UserA
     @Override
     void initAdapter() {
         mAdapter = new UserAdapter(allItems, mContext);
+        mAdapter.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(View v, int position, int viewType) {
+                Intent intent = new Intent(mContext, UserDetailActivity.class);
+                intent.putExtra("user id", allItems.get(position).getUser().getId());
+                startActivity(intent);
+            }
+        });
     }
 }
