@@ -88,6 +88,7 @@ public class CoverActivity extends BaseActivity
             }
         });
         mViewPager = findViewById(R.id.view_pager);
+        mViewPager.setOffscreenPageLimit(3);
         mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int i, float v, int i1) {
@@ -190,9 +191,11 @@ public class CoverActivity extends BaseActivity
     @Override
     protected void onResume() {
         super.onResume();
-        Glide.with(mContext)
-                .load(GlideUtil.getMediumImg(
-                        mUserModel.getResponse().getUser().getProfile_image_urls().getMedium()))
-                .into(userHead);
+//        if(mUserModel != null && mUserModel.getResponse() != null) {
+//            Glide.with(mContext)
+//                    .load(GlideUtil.getMediumImg(
+//                            mUserModel.getResponse().getUser().getProfile_image_urls().getMedium()))
+//                    .into(userHead);
+//        }
     }
 }

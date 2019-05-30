@@ -35,12 +35,17 @@ public class PikaDownload {
 
     public static void downloadPikaImage(IllustsBean illustsBean, Context context){
         final RxPermissions rxPermissions = new RxPermissions((FragmentActivity) context);
+        final String imageUrl;
+        if(illustsBean.getPage_count() == 1){
+            imageUrl = illustsBean.getMeta_single_page().getOriginal_image_url();
+        }else {
+            imageUrl = illustsBean.getMeta_pages().get(0).getImage_urls().getOriginal();
+        }
         rxPermissions
                 .requestEachCombined(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 .subscribe(permission -> { // will emit 1 Permission object
                     if (permission.granted) {
-                        String url = illustsBean.getMeta_single_page().getOriginal_image_url();
-                        DownloadTask.Builder builder = new DownloadTask.Builder(url, new File(FILE_PATH))
+                        DownloadTask.Builder builder = new DownloadTask.Builder(imageUrl, new File(FILE_PATH))
                                 .setFilename("pika_image_" + illustsBean.getId() + ".png")
                                 .setMinIntervalMillisCallbackProcess(30)
                                 .setPassIfAlreadyCompleted(true);

@@ -137,6 +137,7 @@
                         app:tcvBackground="@drawable/btn_follow"
                         android:id="@+id/illust_tag"
                         app:tcvItemBorderVertical="6dp"
+                        android:layout_marginEnd="@dimen/eight_dp"
                         app:tcvBorder="@dimen/eight_dp"
                         android:layout_height="match_parent">
 

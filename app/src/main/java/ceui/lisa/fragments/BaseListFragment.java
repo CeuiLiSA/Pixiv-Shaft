@@ -18,6 +18,7 @@ import com.scwang.smartrefresh.layout.api.RefreshLayout;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.ViewPagerActivity;
@@ -25,6 +26,7 @@ import ceui.lisa.adapters.ViewHistoryAdapter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.database.IllustRecmdEntity;
+import ceui.lisa.database.PikaDownload;
 import ceui.lisa.interfs.Callback;
 import ceui.lisa.interfs.ListShow;
 import ceui.lisa.interfs.OnItemClickListener;
@@ -199,6 +201,18 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
                             mRefreshLayout.finishRefresh(true);
                             mProgressBar.setVisibility(View.INVISIBLE);
                             mRecyclerView.setAdapter(mAdapter);
+
+
+
+                            if(System.currentTimeMillis() - Local.getPikaTime() > 3600 * 1000) {
+                                Common.showLog("System.currentTimeMillis() " + System.currentTimeMillis());
+                                Common.showLog("Local.getPikaTime() " + Local.getPikaTime());
+                                Random random = new Random();
+                                int position = random.nextInt(allItems.size());
+                                if (allItems.get(position) instanceof IllustsBean) {
+                                    PikaDownload.downloadPikaImage((IllustsBean) allItems.get(position), mContext);
+                                }
+                            }
                         }
 
                         @Override

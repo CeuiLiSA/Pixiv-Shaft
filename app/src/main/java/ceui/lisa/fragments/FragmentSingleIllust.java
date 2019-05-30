@@ -7,6 +7,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -33,6 +34,7 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateFragmentActivity;
+import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.response.IllustsBean;
@@ -137,12 +139,35 @@ public class FragmentSingleIllust extends BaseFragment {
         Glide.with(mContext)
                 .load(GlideUtil.getMediumImg(illust.getUser().getProfile_image_urls().getMedium()))
                 .into(userHead);
+        userHead.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(mContext, UserDetailActivity.class);
+                intent.putExtra("user id", illust.getUser().getId());
+                startActivity(intent);
+            }
+        });
         userName.setText(illust.getUser().getName());
         TagCloudView tagCloudView = v.findViewById(R.id.illust_tag);
         List<String> tags = new ArrayList<>();
         for (int i = 0; i < illust.getTags().size(); i++) {
-            tags.add(illust.getTags().get(i).getName());
+            String temp = illust.getTags().get(i).getName();
+//            if(!TextUtils.isEmpty(illust.getTags().get(i).getTranslated_name())){
+//                temp = temp + " (" + illust.getTags().get(i).getTranslated_name() + ")";
+//            }
+            tags.add(temp);
         }
+        tagCloudView.setOnTagClickListener(new TagCloudView.OnTagClickListener() {
+            @Override
+            public void onTagClick(int position) {
+                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+                intent.putExtra(TemplateFragmentActivity.EXTRA_KEYWORD,
+                        illust.getTags().get(position).getName());
+                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
+                        "搜索结果");
+                startActivity(intent);
+            }
+        });
         tagCloudView.setTags(tags);
         TextView date = v.findViewById(R.id.illust_date);
         TextView totalView = v.findViewById(R.id.illust_view);

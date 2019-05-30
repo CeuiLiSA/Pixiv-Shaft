@@ -4,6 +4,7 @@ import ceui.lisa.response.ArticalResponse;
 import ceui.lisa.response.ListIllustResponse;
 import ceui.lisa.response.RecmdUserResponse;
 import ceui.lisa.response.TrendingtagResponse;
+import ceui.lisa.response.UserDetailResponse;
 import io.reactivex.Observable;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
@@ -88,6 +89,16 @@ public interface AppApi {
 
 
 
+    // /v1/user/bookmarks/illust?user_id=24218478&restrict=public HTTP/1.1
+    @GET("/v1/user/bookmarks/illust")
+    Observable<ListIllustResponse> getUserLikeIllust(@Header("Authorization") String token,
+                                                 @Query("user_id") int user_id,
+                                                     @Query("restrict") String restrict);
+
+    @GET("/v1/user/illusts?filter=for_android")
+    Observable<ListIllustResponse> getUserSubmitIllust(@Header("Authorization") String token,
+                                                     @Query("user_id") int user_id,
+                                                     @Query("type") String type);
 
 
     @GET("/v2/illust/follow?restrict=public")
@@ -100,7 +111,10 @@ public interface AppApi {
 
 
 
-
+    ///v1/user/detail?filter=for_android&user_id=24218478
+    @GET("/v1/user/detail?filter=for_android")
+    Observable<UserDetailResponse> getUserDetail(@Header("Authorization") String token,
+                                                 @Query("user_id") int user_id);
 
 
 

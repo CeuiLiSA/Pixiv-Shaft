@@ -14,13 +14,15 @@ public class UserBean {
      */
 
     private ProfileImageUrlsBean profile_image_urls;
-    private String id;
+    private int id;
     private String name;
     private String account;
     private String password;
     private String mail_address;
     private boolean is_premium;
     private boolean is_login;
+    private String comment;
+    private boolean is_followed;
 
     public boolean isIs_followed() {
         return is_followed;
@@ -29,8 +31,6 @@ public class UserBean {
     public void setIs_followed(boolean is_followed) {
         this.is_followed = is_followed;
     }
-
-    private boolean is_followed;
 
     public long getLastTokenTime() {
         return lastTokenTime;
@@ -62,11 +62,11 @@ public class UserBean {
         this.profile_image_urls = profile_image_urls;
     }
 
-    public String getId() {
+    public int getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(int id) {
         this.id = id;
     }
 

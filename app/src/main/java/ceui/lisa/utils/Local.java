@@ -14,7 +14,9 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import ceui.lisa.activities.PikaActivity;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.database.PikaDownload;
 import ceui.lisa.interfs.Callback;
 import ceui.lisa.interfs.ListShow;
 import ceui.lisa.response.IllustsBean;
@@ -200,10 +202,21 @@ public class Local {
         return localData.getString("pika file name", "nopic.png");
     }
 
+    public static long getPikaTime(){
+        SharedPreferences localData = Shaft.getContext().getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
+        return localData.getLong("pika file time", 0L);
+    }
+
     public static void setPikaImageFile(String pikaFileName){
         SharedPreferences localData = Shaft.getContext().getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
+        String before = localData.getString("pika file name", "nopic.png");
+        File file = new File(PikaActivity.FILE_PATH, before);
+        if(file.exists()){
+            file.delete();
+        }
         SharedPreferences.Editor editor = localData.edit();
         editor.putString("pika file name", pikaFileName);
+        editor.putLong("pika file time", System.currentTimeMillis());
         editor.apply();
     }
 }

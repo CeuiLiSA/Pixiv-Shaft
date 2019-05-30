@@ -1,11 +1,18 @@
 package ceui.lisa.adapters;
 
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.content.Context;
+import android.graphics.Matrix;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.Animation;
+import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -38,6 +45,8 @@ public class ViewHistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     private Gson mGson = new Gson();
     private int imageSize = 0;
     private SimpleDateFormat mTime = new SimpleDateFormat("MM月dd日 HH: mm");
+
+
 
     public ViewHistoryAdapter(List<IllustHistoryEntity> list, Context context) {
         mContext = context;
@@ -82,7 +91,49 @@ public class ViewHistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
 
         if(mOnItemClickListener != null){
-            holder.itemView.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 0));
+
+            holder.itemView.setOnClickListener(v -> {
+//                ObjectAnimator animator = ObjectAnimator.ofFloat(currentOne.title,
+//                        "translationX", 0, 300, -100, 200, -50, 0);
+//                animator.setDuration(2000);
+//                animator.start();
+
+//                AnimatorSet animatorSet = new AnimatorSet();
+//                ObjectAnimator animator = ObjectAnimator.ofFloat(currentOne.itemView,
+//                        "rotationY", 0f, -90f, 0f);
+//
+//                ObjectAnimator animator22 = ObjectAnimator.ofFloat(currentOne.itemView,
+//                        "scaleX", 1.0f, 0.2f, 0.6f, 1.0f);
+//                //currentOne.itemView.setPivotX(-100);//设置指定旋转中心点X坐标
+//
+//                animatorSet.playTogether(animator, animator22);
+//                animatorSet.setDuration(1000);
+//                currentOne.itemView.setPivotX(0);
+//                animatorSet.start();
+
+                if(position % 2 == 0) {
+
+                    currentOne.itemView.setPivotX(-100.0f);
+                    //currentOne.itemView.setPivotY(-200.0f);
+                    ObjectAnimator animator = ObjectAnimator.ofFloat(currentOne.itemView,
+                            "rotationY", 0, -50.0f, 0.0f);
+                    animator.setDuration(1000);
+                    animator.start();
+                }else {
+                    currentOne.itemView.setPivotX(-100.0f);
+                    ObjectAnimator animator = ObjectAnimator.ofFloat(currentOne.itemView,
+                            "rotationY", 0, 30.0f, 0.0f);
+                    animator.setDuration(1000);
+                    animator.start();
+
+                    Matrix matrix = new Matrix();
+                    currentOne.itemView.isPivotSet()
+                }
+//                currentOne.itemView.setPivotX(0);
+//                currentOne.itemView.setRotationY(-30.0f);
+//                currentOne.itemView.setScaleX(0.5f);
+                //mOnItemClickListener.onItemClick(v, position, 0);
+            });
         }
     }
 
