@@ -68,7 +68,7 @@ public class FragmentCenter extends BaseFragment {
 
         if(isVisibleToUser && !isLoad) {
 
-            FragmentPivision fragmentPivision = new FragmentPivision();
+            FragmentPivisionHorizontal fragmentPivision = new FragmentPivisionHorizontal();
             FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
             transaction.add(R.id.fragment_pivision, fragmentPivision).commit();
             isLoad = true;

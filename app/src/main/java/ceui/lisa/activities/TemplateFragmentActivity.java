@@ -3,6 +3,7 @@ package ceui.lisa.activities;
 import android.content.Intent;
 import android.support.v4.app.Fragment;
 
+import ceui.lisa.fragments.FragmentPivision;
 import ceui.lisa.fragments.FragmentRelatedIllust;
 import ceui.lisa.fragments.FragmentSearchResult;
 import ceui.lisa.fragments.FragmentSettings;
@@ -36,6 +37,8 @@ public class TemplateFragmentActivity extends FragmentActivity {
                 return FragmentWebView.newInstance("特辑", url);
             }else if(dataType.equals("设置")){
                 return new FragmentSettings();
+            }else if(dataType.equals("特辑")){
+                return new FragmentPivision();
             }
         }
         return null;

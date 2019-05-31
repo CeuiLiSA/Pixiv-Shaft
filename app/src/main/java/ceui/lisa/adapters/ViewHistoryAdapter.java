@@ -126,8 +126,6 @@ public class ViewHistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                     animator.setDuration(1000);
                     animator.start();
 
-                    Matrix matrix = new Matrix();
-                    currentOne.itemView.isPivotSet()
                 }
 //                currentOne.itemView.setPivotX(0);
 //                currentOne.itemView.setRotationY(-30.0f);
