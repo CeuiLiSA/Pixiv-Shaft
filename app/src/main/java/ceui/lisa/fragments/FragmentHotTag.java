@@ -9,12 +9,14 @@ import com.scwang.smartrefresh.layout.util.DensityUtil;
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.adapters.HotTagAdapter;
-import ceui.lisa.interfs.OnItemClickListener;
 import ceui.lisa.network.Retro;
 import ceui.lisa.response.TrendingtagResponse;
-import ceui.lisa.utils.GridItemDecoration;
 import ceui.lisa.utils.TagItemDecoration;
 import io.reactivex.Observable;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 
 
 public class FragmentHotTag extends BaseListFragment<TrendingtagResponse, HotTagAdapter,
@@ -69,16 +71,57 @@ public class FragmentHotTag extends BaseListFragment<TrendingtagResponse, HotTag
     @Override
     void initAdapter() {
         mAdapter = new HotTagAdapter(allItems, mContext);
-        mAdapter.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(View v, int position, int viewType) {
-                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-                intent.putExtra(TemplateFragmentActivity.EXTRA_KEYWORD,
-                        allItems.get(position).getTag());
-                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
-                        "搜索结果");
-                startActivity(intent);
-            }
+        mAdapter.setOnItemClickListener((v, position, viewType) -> {
+            Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+            intent.putExtra(TemplateFragmentActivity.EXTRA_KEYWORD,
+                    allItems.get(position).getTag());
+            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
+                    "搜索结果");
+            startActivity(intent);
         });
+    }
+
+    @Override
+    void initData() {
+        getFirstData();
+    }
+
+    public void getFirstData() {
+        Retro.getAppApi().getHotTags(mUserModel.getResponse().getAccess_token()).subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<TrendingtagResponse>(){
+
+                    @Override
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onNext(TrendingtagResponse trendingtagResponse) {
+                        if(trendingtagResponse != null){
+                            allItems.clear();
+                            allItems.addAll(trendingtagResponse.getList());
+                            mAdapter = new HotTagAdapter(allItems, mContext);
+                            mAdapter.setOnItemClickListener((v, position, viewType) -> {
+//                                TODO START TRNDINGTAG ACTIVITY
+//                                    Intent intent = new Intent(mContext, PikaActivity.class);
+//                                    intent.putExtra("user id", allItems.get(position).getUser().getId());
+//                                    startActivity(intent);
+                            });
+                            mRecyclerView.setAdapter(mAdapter);
+                        }
+                        mProgressBar.setVisibility(View.INVISIBLE);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                } );
     }
 }
