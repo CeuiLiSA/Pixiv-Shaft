@@ -10,9 +10,10 @@ import com.rengwuxian.materialedittext.MaterialEditText;
 import ceui.lisa.R;
 import ceui.lisa.activities.CoverActivity;
 import ceui.lisa.network.Retro;
-import ceui.lisa.utils.Local;
+import ceui.lisa.response.UserBean;
 import ceui.lisa.response.UserModel;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Local;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
@@ -38,11 +39,10 @@ public class FragmentLogin extends NetworkFragment<UserModel> {
         userName = v.findViewById(R.id.user_name);
         password = v.findViewById(R.id.password);
         CardView login = v.findViewById(R.id.login);
-        login.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                login();
-            }
+        login.setOnClickListener(v1 -> {
+//                解决输入用户名密码不生效
+            initApi();
+            login();
         });
         return v;
     }
@@ -55,6 +55,7 @@ public class FragmentLogin extends NetworkFragment<UserModel> {
     @Override
     void initApi() {
         Common.showToast("初始化 api");
+        Common.showLog(password.getText().toString());
         api = Retro.getAccountApi().login(
                 CLIENT_ID,
                 CLIENT_SECRET,
@@ -80,6 +81,9 @@ public class FragmentLogin extends NetworkFragment<UserModel> {
                     @Override
                     public void onNext(UserModel userModel) {
                         if(userModel != null){
+                            UserBean.ProfileImageUrlsBean profile_image_urls = userModel.getResponse().getUser().getProfile_image_urls();
+                            profile_image_urls.setMedium(profile_image_urls.getPx_50x50());
+
                             userModel.getResponse().getUser().setPassword(password.getText().toString());
                             Local.saveUser(userModel);
                             mProgressBar.setVisibility(View.INVISIBLE);
