@@ -79,13 +79,10 @@ public class FragmentRecmdUserHorizontal extends BaseFragment {
                             allItems.clear();
                             allItems.addAll(recmdUserResponse.getList());
                             mAdapter = new UserHorizontalAdapter(allItems, mContext);
-                            mAdapter.setOnItemClickListener(new OnItemClickListener() {
-                                @Override
-                                public void onItemClick(View v, int position, int viewType) {
-                                    Intent intent = new Intent(mContext, UserDetailActivity.class);
-                                    intent.putExtra("user id", allItems.get(position).getUser().getId());
-                                    startActivity(intent);
-                                }
+                            mAdapter.setOnItemClickListener((v, position, viewType) -> {
+                                Intent intent = new Intent(mContext, UserDetailActivity.class);
+                                intent.putExtra("user id", allItems.get(position).getUser().getId());
+                                startActivity(intent);
                             });
                             mRecyclerView.setAdapter(mAdapter);
                         }

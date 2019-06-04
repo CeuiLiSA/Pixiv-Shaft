@@ -2,17 +2,14 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.support.v7.widget.GridLayoutManager;
-import android.view.View;
 
 import com.scwang.smartrefresh.layout.util.DensityUtil;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.adapters.HotTagAdapter;
-import ceui.lisa.interfs.OnItemClickListener;
 import ceui.lisa.network.Retro;
 import ceui.lisa.response.TrendingtagResponse;
-import ceui.lisa.utils.GridItemDecoration;
 import ceui.lisa.utils.TagItemDecoration;
 import io.reactivex.Observable;
 
@@ -22,8 +19,7 @@ public class FragmentHotTag extends BaseListFragment<TrendingtagResponse, HotTag
 
     @Override
     Observable<TrendingtagResponse> initApi() {
-        //return Retro.getAppApi().getHotTags(mUserModel.getResponse().getAccess_token());
-        return null;
+        return Retro.getAppApi().getHotTags(mUserModel.getResponse().getAccess_token());
     }
 
     @Override
@@ -69,16 +65,13 @@ public class FragmentHotTag extends BaseListFragment<TrendingtagResponse, HotTag
     @Override
     void initAdapter() {
         mAdapter = new HotTagAdapter(allItems, mContext);
-        mAdapter.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(View v, int position, int viewType) {
-                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-                intent.putExtra(TemplateFragmentActivity.EXTRA_KEYWORD,
-                        allItems.get(position).getTag());
-                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
-                        "搜索结果");
-                startActivity(intent);
-            }
+        mAdapter.setOnItemClickListener((v, position, viewType) -> {
+            Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+            intent.putExtra(TemplateFragmentActivity.EXTRA_KEYWORD,
+                    allItems.get(position).getTag());
+            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
+                    "搜索结果");
+            startActivity(intent);
         });
     }
 }

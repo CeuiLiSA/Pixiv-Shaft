@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.support.v4.app.Fragment;
 
 import ceui.lisa.fragments.FragmentPivision;
+import ceui.lisa.fragments.FragmentRecmdUser;
 import ceui.lisa.fragments.FragmentRelatedIllust;
 import ceui.lisa.fragments.FragmentSearchResult;
 import ceui.lisa.fragments.FragmentSettings;
@@ -39,6 +40,9 @@ public class TemplateFragmentActivity extends FragmentActivity {
                 return new FragmentSettings();
             }else if(dataType.equals("特辑")){
                 return new FragmentPivision();
+            }
+            else if(dataType.equals("推荐用户")){
+                return new FragmentRecmdUser();
             }
         }
         return null;

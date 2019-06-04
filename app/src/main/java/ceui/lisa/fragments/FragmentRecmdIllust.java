@@ -1,7 +1,6 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import android.os.Bundle;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.View;
 
@@ -18,8 +17,6 @@ import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.IllustStagAdapter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustRecmdEntity;
-import ceui.lisa.database.PikaDownload;
-import ceui.lisa.interfs.OnItemClickListener;
 import ceui.lisa.network.Retro;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.response.ListIllustResponse;
@@ -56,8 +53,7 @@ public class FragmentRecmdIllust extends BaseListFragment<ListIllustResponse,
 
     @Override
     Observable<ListIllustResponse> initApi() {
-        //return Retro.getAppApi().getRecmdIllust(mUserModel.getResponse().getAccess_token(), true);
-        return null;
+        return Retro.getAppApi().getRecmdIllust(mUserModel.getResponse().getAccess_token(), true);
     }
 
     @Override
@@ -71,14 +67,11 @@ public class FragmentRecmdIllust extends BaseListFragment<ListIllustResponse,
                 new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         mRecyclerView.setLayoutManager(layoutManager);
         mAdapter = new IllustStagAdapter(allItems, mContext);
-        mAdapter.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(View v, int position, int viewType) {
-                IllustChannel.get().setIllustList(allItems);
-                Intent intent = new Intent(mContext, ViewPagerActivity.class);
-                intent.putExtra("position", position);
-                startActivity(intent);
-            }
+        mAdapter.setOnItemClickListener((v, position, viewType) -> {
+            IllustChannel.get().setIllustList(allItems);
+            Intent intent = new Intent(mContext, ViewPagerActivity.class);
+            intent.putExtra("position", position);
+            startActivity(intent);
         });
 
 
@@ -164,14 +157,11 @@ public class FragmentRecmdIllust extends BaseListFragment<ListIllustResponse,
                                     new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
                             mRecyclerView.setLayoutManager(layoutManager);
                             mAdapter = new IllustStagAdapter(allItems, mContext);
-                            mAdapter.setOnItemClickListener(new OnItemClickListener() {
-                                @Override
-                                public void onItemClick(View v, int position, int viewType) {
-                                    IllustChannel.get().setIllustList(allItems);
-                                    Intent intent = new Intent(mContext, ViewPagerActivity.class);
-                                    intent.putExtra("position", position);
-                                    startActivity(intent);
-                                }
+                            mAdapter.setOnItemClickListener((v, position, viewType) -> {
+                                IllustChannel.get().setIllustList(allItems);
+                                Intent intent = new Intent(mContext, ViewPagerActivity.class);
+                                intent.putExtra("position", position);
+                                startActivity(intent);
                             });
                             mProgressBar.setVisibility(View.INVISIBLE);
                             mRecyclerView.setAdapter(mAdapter);
