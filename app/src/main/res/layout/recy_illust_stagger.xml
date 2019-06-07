@@ -6,7 +6,8 @@
     android:clickable="true"
     android:foreground="?attr/selectableItemBackground"
     app:cardCornerRadius="@dimen/four_dp"
-    app:cardElevation="2dp">
+    android:elevation="0dp"
+    app:cardElevation="0dp">
 
     <LinearLayout
         android:layout_width="match_parent"

@@ -46,7 +46,10 @@
                         android:layout_width="65dp"
                         android:layout_height="65dp"
                         android:layout_above="@+id/user_name"
-                        android:layout_margin="@dimen/twelve_dip"
+                        android:layout_marginStart="@dimen/sixteen_dp"
+                        android:layout_marginBottom="@dimen/twelve_dip"
+                        android:layout_marginTop="@dimen/twelve_dip"
+                        android:layout_marginEnd="@dimen/twelve_dip"
                         android:scaleType="centerCrop" />
 
 
@@ -55,8 +58,10 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_alignParentBottom="true"
-                        android:layout_margin="@dimen/twelve_dip"
-                        android:text="关注：123"
+                        android:layout_marginStart="@dimen/sixteen_dp"
+                        android:layout_marginTop="@dimen/twelve_dip"
+                        android:layout_marginBottom="@dimen/twelve_dip"
+                        android:layout_marginEnd="@dimen/twelve_dip"
                         android:textColor="@android:color/white" />
 
 
@@ -65,9 +70,11 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_alignParentBottom="true"
-                        android:layout_margin="@dimen/twelve_dip"
+                        android:layout_marginStart="@dimen/sixteen_dp"
+                        android:layout_marginBottom="@dimen/twelve_dp"
+                        android:layout_marginTop="@dimen/twelve_dp"
+                        android:layout_marginEnd="@dimen/twelve_dp"
                         android:layout_toEndOf="@+id/user_follow"
-                        android:text="粉丝：321"
                         android:textColor="@android:color/white" />
 
 
@@ -76,8 +83,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_above="@+id/user_follow"
-                        android:layout_marginStart="@dimen/twelve_dip"
-                        android:text="用户名"
+                        android:layout_marginStart="@dimen/sixteen_dp"
                         android:textColor="@android:color/white"
                         android:textSize="18sp"
                         android:textStyle="bold" />

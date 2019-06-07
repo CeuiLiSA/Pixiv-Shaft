@@ -3,6 +3,7 @@ package ceui.lisa.activities;
 import android.content.Intent;
 import android.support.v4.app.Fragment;
 
+import ceui.lisa.fragments.FragmentDrag;
 import ceui.lisa.fragments.FragmentPivision;
 import ceui.lisa.fragments.FragmentRelatedIllust;
 import ceui.lisa.fragments.FragmentSearchResult;
@@ -39,6 +40,8 @@ public class TemplateFragmentActivity extends FragmentActivity {
                 return new FragmentSettings();
             }else if(dataType.equals("特辑")){
                 return new FragmentPivision();
+            }else if(dataType.equals("拖动测试")){
+                return new FragmentDrag();
             }
         }
         return null;

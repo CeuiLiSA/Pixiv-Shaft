@@ -2,7 +2,6 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.View;
 
 import com.scwang.smartrefresh.layout.util.DensityUtil;
@@ -23,7 +22,7 @@ import io.reactivex.Observable;
 /**
  * 某人創作的插畫
  */
-public class FragmentSubmitIllust extends BaseListFragment<ListIllustResponse, IllustAdapter, IllustsBean> {
+public class FragmentSubmitIllust extends AutoClipFragment<ListIllustResponse, IllustAdapter, IllustsBean> {
 
     private int userID;
 

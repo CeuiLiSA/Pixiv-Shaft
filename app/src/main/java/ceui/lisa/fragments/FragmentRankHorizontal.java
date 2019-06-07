@@ -60,22 +60,23 @@ public class FragmentRankHorizontal extends BaseFragment {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(Channel<List<IllustsBean>> event) {
 
-        Common.showLog(className + "EVENTBUS 接受了消息");
-        allItems.clear();
-        allItems.addAll(event.getObject());
-        mAdapter = new RankHorizontalAdapter(allItems, mContext);
-        mAdapter.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(View v, int position, int viewType) {
-                IllustChannel.get().setIllustList(allItems);
-                Intent intent = new Intent(mContext, ViewPagerActivity.class);
-                intent.putExtra("position", position);
-                startActivity(intent);
-            }
-        });
-        mRecyclerView.setAdapter(mAdapter);
-        mProgressBar.setVisibility(View.INVISIBLE);
-
+        if(className.contains(event.getReceiver())) {
+            Common.showLog(className + "EVENTBUS 接受了消息");
+            allItems.clear();
+            allItems.addAll(event.getObject());
+            mAdapter = new RankHorizontalAdapter(allItems, mContext);
+            mAdapter.setOnItemClickListener(new OnItemClickListener() {
+                @Override
+                public void onItemClick(View v, int position, int viewType) {
+                    IllustChannel.get().setIllustList(allItems);
+                    Intent intent = new Intent(mContext, ViewPagerActivity.class);
+                    intent.putExtra("position", position);
+                    startActivity(intent);
+                }
+            });
+            mRecyclerView.setAdapter(mAdapter);
+            mProgressBar.setVisibility(View.INVISIBLE);
+        }
     }
 
     @Override

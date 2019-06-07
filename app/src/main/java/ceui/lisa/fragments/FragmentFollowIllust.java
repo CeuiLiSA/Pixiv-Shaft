@@ -1,7 +1,6 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.View;
 
 import com.github.ybq.android.spinkit.style.DoubleBounce;
@@ -16,12 +15,13 @@ import ceui.lisa.response.IllustsBean;
 import ceui.lisa.response.ListIllustResponse;
 import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.utils.SpacesItemDecoration;
+import ceui.lisa.utils.WrapedManager;
 import io.reactivex.Observable;
 
 /**
  * fragment recommend 推荐插画
  */
-public class FragmentFollowIllust extends BaseListFragment<ListIllustResponse, IllustStagAdapter, IllustsBean> {
+public class FragmentFollowIllust extends AutoClipFragment<ListIllustResponse, IllustStagAdapter, IllustsBean> {
 
     @Override
     boolean showToolbar() {
@@ -49,10 +49,10 @@ public class FragmentFollowIllust extends BaseListFragment<ListIllustResponse, I
 
     @Override
     void initAdapter() {
-        StaggeredGridLayoutManager layoutManager =
-                new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
+        WrapedManager layoutManager =
+                new WrapedManager(2, WrapedManager.VERTICAL);
         mRecyclerView.setLayoutManager(layoutManager);
-        mAdapter = new IllustStagAdapter(allItems, mContext);
+        mAdapter = new IllustStagAdapter(allItems, mContext, mRecyclerView, mRefreshLayout);
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {

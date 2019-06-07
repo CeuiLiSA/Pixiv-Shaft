@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -141,8 +142,10 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
         initRecyclerView();
         mRefreshLayout.setRefreshHeader(new DeliveryHeader(mContext));
         mRefreshLayout.setOnRefreshListener(layout -> getFirstData());
-        mRefreshLayout.setOnLoadMoreListener(layout -> getNextData());
-        mRefreshLayout.setEnableLoadMore(hasNext());
+        mRefreshLayout.setEnableLoadMore(false);
+        if(hasNext()) {
+            mRefreshLayout.setOnLoadMoreListener(layout -> getNextData());
+        }
         return v;
     }
 
@@ -197,6 +200,9 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
                             allItems.clear();
                             allItems.addAll(response.getList());
                             nextUrl = response.getNextUrl();
+                            if(!TextUtils.isEmpty(nextUrl)){
+                                mRefreshLayout.setEnableLoadMore(true);
+                            }
                             initAdapter();
                             mRefreshLayout.finishRefresh(true);
                             mProgressBar.setVisibility(View.INVISIBLE);
@@ -241,6 +247,7 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
         if (mApi != null) {
             if(nextUrl.length() == 0){
                 Common.showToast("next url 为空");
+                mRefreshLayout.setEnableLoadMore(false);
                 mRefreshLayout.finishLoadMore(false);
             }else {
                 mApi.subscribeOn(Schedulers.newThread())
@@ -256,6 +263,9 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
                                 }
                                 allItems.addAll(response.getList());
                                 nextUrl = response.getNextUrl();
+                                if(!TextUtils.isEmpty(nextUrl)){
+                                    mRefreshLayout.setEnableLoadMore(true);
+                                }
                                 mRefreshLayout.finishLoadMore(true);
                                 if (mAdapter != null) {
                                     mAdapter.notifyItemRangeChanged(lastSize, response.getList().size());

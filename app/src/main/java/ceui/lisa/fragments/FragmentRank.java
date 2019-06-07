@@ -1,7 +1,6 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.View;
 
 import com.scwang.smartrefresh.layout.util.DensityUtil;
@@ -14,10 +13,11 @@ import ceui.lisa.response.IllustsBean;
 import ceui.lisa.response.ListIllustResponse;
 import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.utils.SpacesItemDecoration;
+import ceui.lisa.utils.WrapedManager;
 import io.reactivex.Observable;
 
 
-public class FragmentRank extends BaseListFragment<ListIllustResponse, IllustStagAdapter, IllustsBean> {
+public class FragmentRank extends AutoClipFragment<ListIllustResponse, IllustStagAdapter, IllustsBean> {
 
     private int mIndex = -1;
     private static final String[] API_TITLES = new String[]{"day", "week",
@@ -53,10 +53,10 @@ public class FragmentRank extends BaseListFragment<ListIllustResponse, IllustSta
 
     @Override
     void initAdapter() {
-        StaggeredGridLayoutManager layoutManager =
-                new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
+        WrapedManager layoutManager =
+                new WrapedManager(2, WrapedManager.VERTICAL);
         mRecyclerView.setLayoutManager(layoutManager);
-        mAdapter = new IllustStagAdapter(allItems, mContext);
+        mAdapter = new IllustStagAdapter(allItems, mContext, mRecyclerView, mRefreshLayout);
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {

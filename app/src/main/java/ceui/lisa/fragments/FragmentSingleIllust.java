@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -22,11 +23,14 @@ import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
+import com.facebook.rebound.SpringChain;
 import com.facebook.rebound.SpringConfig;
 import com.facebook.rebound.SpringSystem;
 import com.github.ybq.android.spinkit.style.CubeGrid;
 import com.google.gson.Gson;
 import com.scwang.smartrefresh.layout.util.DensityUtil;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +42,7 @@ import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.response.IllustsBean;
+import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -55,14 +60,11 @@ public class FragmentSingleIllust extends BaseFragment {
     private IllustsBean illust;
     private ProgressBar mProgressBar;
     private ImageView refresh, imageView, originImage;
-    private Bundle mBundle;
-    private boolean isBig = false;
-    private Spring spring;
+    private TagCloudView mTagCloudView;
 
     public static FragmentSingleIllust newInstance(IllustsBean illustsBean, Bundle bundle) {
         FragmentSingleIllust fragmentSingleIllust = new FragmentSingleIllust();
         fragmentSingleIllust.setIllust(illustsBean);
-        fragmentSingleIllust.mBundle = bundle;
         return fragmentSingleIllust;
     }
 
@@ -86,6 +88,9 @@ public class FragmentSingleIllust extends BaseFragment {
         originImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Channel channel = new Channel();
+                channel.setReceiver("FragmentRecmdIllust");
+                EventBus.getDefault().post(channel);
                 Common.showToast(illust.getTitle());
             }
         });
@@ -148,7 +153,7 @@ public class FragmentSingleIllust extends BaseFragment {
             }
         });
         userName.setText(illust.getUser().getName());
-        TagCloudView tagCloudView = v.findViewById(R.id.illust_tag);
+        mTagCloudView = v.findViewById(R.id.illust_tag);
         List<String> tags = new ArrayList<>();
         for (int i = 0; i < illust.getTags().size(); i++) {
             String temp = illust.getTags().get(i).getName();
@@ -157,7 +162,7 @@ public class FragmentSingleIllust extends BaseFragment {
 //            }
             tags.add(temp);
         }
-        tagCloudView.setOnTagClickListener(new TagCloudView.OnTagClickListener() {
+        mTagCloudView.setOnTagClickListener(new TagCloudView.OnTagClickListener() {
             @Override
             public void onTagClick(int position) {
                 Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
@@ -168,7 +173,7 @@ public class FragmentSingleIllust extends BaseFragment {
                 startActivity(intent);
             }
         });
-        tagCloudView.setTags(tags);
+        mTagCloudView.setTags(tags);
         TextView date = v.findViewById(R.id.illust_date);
         TextView totalView = v.findViewById(R.id.illust_view);
         TextView like = v.findViewById(R.id.illust_like);
@@ -211,6 +216,36 @@ public class FragmentSingleIllust extends BaseFragment {
     @Override
     void initData() {
         loadImage();
+        initAnime();
+    }
+
+    private void initAnime(){
+        if(parentView != null) {
+            mTagCloudView = parentView.findViewById(R.id.illust_tag);
+            if(mTagCloudView != null) {
+                SpringChain chain = SpringChain.create(100, 8, 50, 7);
+                for (int i = 0; i < mTagCloudView.getChildCount(); i++) {
+                    final View view = mTagCloudView.getChildAt(i);
+                    chain.addSpring(new SimpleSpringListener() {
+                        @Override
+                        public void onSpringUpdate(Spring spring) {
+                            view.setTranslationX((float) spring.getCurrentValue());
+                        }
+
+                        @Override
+                        public void onSpringEndStateChange(Spring spring) {
+
+                        }
+                    });
+                }
+                List<Spring> springs = chain.getAllSprings();
+                for (int i = 0; i < springs.size(); i++) {
+                    springs.get(i).setCurrentValue(120);
+                }
+
+                chain.setControlSpringIndex(0).getControlSpring().setEndValue(0);
+            }
+        }
     }
 
     @Override

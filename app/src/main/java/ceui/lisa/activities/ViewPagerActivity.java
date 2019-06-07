@@ -9,12 +9,15 @@ import android.support.v4.view.ViewPager;
 import android.view.View;
 
 
+import org.greenrobot.eventbus.EventBus;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.fragments.FragmentSingleIllust;
 import ceui.lisa.response.IllustsBean;
+import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.IllustChannel;
 

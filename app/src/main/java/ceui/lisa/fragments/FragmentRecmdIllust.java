@@ -2,13 +2,18 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 
 import com.google.gson.Gson;
 import com.scwang.smartrefresh.layout.util.DensityUtil;
 
 import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +21,7 @@ import java.util.List;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.IllustStagAdapter;
+import ceui.lisa.adapters.RankHorizontalAdapter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustRecmdEntity;
 import ceui.lisa.database.PikaDownload;
@@ -27,6 +33,7 @@ import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.utils.SpacesItemDecoration;
+import ceui.lisa.utils.WrapedManager;
 import io.reactivex.Observable;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.Observer;
@@ -37,7 +44,7 @@ import io.reactivex.schedulers.Schedulers;
 /**
  * fragment recommend 推荐插画
  */
-public class FragmentRecmdIllust extends BaseListFragment<ListIllustResponse,
+public class FragmentRecmdIllust extends AutoClipFragment<ListIllustResponse,
         IllustStagAdapter, IllustsBean> {
 
     @Override
@@ -48,9 +55,6 @@ public class FragmentRecmdIllust extends BaseListFragment<ListIllustResponse,
     @Override
     void initRecyclerView() {
         mRecyclerView.addItemDecoration(new SpacesItemDecoration(DensityUtil.dp2px(4.0f)));
-        StaggeredGridLayoutManager layoutManager =
-                new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
-        mRecyclerView.setLayoutManager(layoutManager);
     }
 
 
@@ -67,10 +71,11 @@ public class FragmentRecmdIllust extends BaseListFragment<ListIllustResponse,
 
     @Override
     void initAdapter() {
-        StaggeredGridLayoutManager layoutManager =
-                new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
+        WrapedManager layoutManager =
+                new WrapedManager(2, WrapedManager.VERTICAL);
         mRecyclerView.setLayoutManager(layoutManager);
-        mAdapter = new IllustStagAdapter(allItems, mContext);
+        mAdapter = new IllustStagAdapter(allItems, mContext, mRecyclerView, mRefreshLayout);
+
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
@@ -160,10 +165,10 @@ public class FragmentRecmdIllust extends BaseListFragment<ListIllustResponse,
                         if (illustsBeans != null) {
                             allItems.clear();
                             allItems.addAll(illustsBeans);
-                            StaggeredGridLayoutManager layoutManager =
-                                    new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
+                            WrapedManager layoutManager =
+                                    new WrapedManager(2, WrapedManager.VERTICAL);
                             mRecyclerView.setLayoutManager(layoutManager);
-                            mAdapter = new IllustStagAdapter(allItems, mContext);
+                            mAdapter = new IllustStagAdapter(allItems, mContext, mRecyclerView, mRefreshLayout);
                             mAdapter.setOnItemClickListener(new OnItemClickListener() {
                                 @Override
                                 public void onItemClick(View v, int position, int viewType) {
@@ -192,5 +197,4 @@ public class FragmentRecmdIllust extends BaseListFragment<ListIllustResponse,
                     }
                 });
     }
-
 }

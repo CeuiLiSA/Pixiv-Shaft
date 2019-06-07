@@ -18,7 +18,6 @@ public class IllustChannel {
             synchronized (IllustChannel.class) {
                 if (instance == null) {
                     instance = new IllustChannel();
-                    Common.showToast("新建了IllustChannel实例");
                 }
             }
         }

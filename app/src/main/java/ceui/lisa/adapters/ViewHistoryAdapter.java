@@ -111,26 +111,26 @@ public class ViewHistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 //                currentOne.itemView.setPivotX(0);
 //                animatorSet.start();
 
-                if(position % 2 == 0) {
-
-                    currentOne.itemView.setPivotX(-100.0f);
-                    //currentOne.itemView.setPivotY(-200.0f);
-                    ObjectAnimator animator = ObjectAnimator.ofFloat(currentOne.itemView,
-                            "rotationY", 0, -50.0f, 0.0f);
-                    animator.setDuration(1000);
-                    animator.start();
-                }else {
-                    currentOne.itemView.setPivotX(-100.0f);
-                    ObjectAnimator animator = ObjectAnimator.ofFloat(currentOne.itemView,
-                            "rotationY", 0, 30.0f, 0.0f);
-                    animator.setDuration(1000);
-                    animator.start();
-
-                }
+//                if(position % 2 == 0) {
+//
+//                    currentOne.itemView.setPivotX(-100.0f);
+//                    //currentOne.itemView.setPivotY(-200.0f);
+//                    ObjectAnimator animator = ObjectAnimator.ofFloat(currentOne.itemView,
+//                            "rotationY", 0, -50.0f, 0.0f);
+//                    animator.setDuration(1000);
+//                    animator.start();
+//                }else {
+//                    currentOne.itemView.setPivotX(-100.0f);
+//                    ObjectAnimator animator = ObjectAnimator.ofFloat(currentOne.itemView,
+//                            "rotationY", 0, 30.0f, 0.0f);
+//                    animator.setDuration(1000);
+//                    animator.start();
+//
+//                }
 //                currentOne.itemView.setPivotX(0);
 //                currentOne.itemView.setRotationY(-30.0f);
 //                currentOne.itemView.setScaleX(0.5f);
-                //mOnItemClickListener.onItemClick(v, position, 0);
+                mOnItemClickListener.onItemClick(v, position, 0);
             });
         }
     }

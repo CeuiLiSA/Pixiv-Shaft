@@ -36,6 +36,7 @@ public abstract class BaseFragment extends Fragment {
     abstract void initData();
 
     public BaseFragment(){
+        Common.showLog(className + "生成了一个实例");
     }
 
 

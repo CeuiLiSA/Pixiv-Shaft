@@ -1,7 +1,6 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.View;
 
 import com.scwang.smartrefresh.layout.util.DensityUtil;
@@ -14,9 +13,10 @@ import ceui.lisa.response.IllustsBean;
 import ceui.lisa.response.ListIllustResponse;
 import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.utils.SpacesItemDecoration;
+import ceui.lisa.utils.WrapedManager;
 import io.reactivex.Observable;
 
-public class FragmentIllustList extends BaseListFragment<ListIllustResponse, IllustStagAdapter, IllustsBean> {
+public class FragmentIllustList extends AutoClipFragment<ListIllustResponse, IllustStagAdapter, IllustsBean> {
 
     @Override
     Observable<ListIllustResponse> initApi() {
@@ -30,7 +30,7 @@ public class FragmentIllustList extends BaseListFragment<ListIllustResponse, Ill
 
     @Override
     void initAdapter() {
-        mAdapter = new IllustStagAdapter(allItems, mContext);
+        mAdapter = new IllustStagAdapter(allItems, mContext, mRecyclerView, mRefreshLayout);
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
@@ -41,8 +41,8 @@ public class FragmentIllustList extends BaseListFragment<ListIllustResponse, Ill
             }
         });
         mRecyclerView.addItemDecoration(new SpacesItemDecoration(DensityUtil.dp2px(4.0f)));
-        StaggeredGridLayoutManager layoutManager =
-                new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
+        WrapedManager layoutManager =
+                new WrapedManager(2, WrapedManager.VERTICAL);
         mRecyclerView.setLayoutManager(layoutManager);
     }
 }
