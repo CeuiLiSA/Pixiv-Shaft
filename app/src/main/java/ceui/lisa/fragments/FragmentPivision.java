@@ -29,7 +29,12 @@ public class FragmentPivision extends BaseListFragment<ArticalResponse, ArticalA
 
     @Override
     boolean showToolbar() {
-        return false;
+        return true;
+    }
+
+    @Override
+    String getToolbarTitle() {
+        return "PixiVision特辑";
     }
 
     @Override

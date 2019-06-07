@@ -11,6 +11,8 @@
     <color name="dark_bg">#999999</color>
     <color name="light_bg">#f2f2f2</color>
 
+    <color name="follow_user_illust_divider">#ececec</color>
+
 
     <color name="white">#FFFFFF</color>
     <color name="dark_text">#333333</color>

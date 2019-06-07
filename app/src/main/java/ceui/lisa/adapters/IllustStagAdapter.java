@@ -24,7 +24,7 @@ import ceui.lisa.interfs.OnItemClickListener;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
-import ceui.lisa.utils.WrapedManager;
+import ceui.lisa.utils.ScrollChangeManager;
 
 
 /**
@@ -39,7 +39,7 @@ public class IllustStagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     private int imageSize = 0;
     private SpringSystem mSystem = SpringSystem.create();
     private Handler mHandler = new Handler();
-    private WrapedManager mManager;
+    private ScrollChangeManager mManager;
     private int state = 1; //1空闲，2正在动画中
     private RecyclerView mRecyclerView;
     private RefreshLayout mRefreshLayout;
@@ -51,7 +51,7 @@ public class IllustStagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         allIllust = list;
         mRecyclerView = recyclerView;
         mRefreshLayout = refreshLayout;
-        mManager = (WrapedManager) mRecyclerView.getLayoutManager();
+        mManager = (ScrollChangeManager) mRecyclerView.getLayoutManager();
         imageSize = (mContext.getResources().getDisplayMetrics().widthPixels) / 2;
     }
 

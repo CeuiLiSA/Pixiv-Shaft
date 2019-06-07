@@ -13,7 +13,7 @@ import ceui.lisa.response.IllustsBean;
 import ceui.lisa.response.ListIllustResponse;
 import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.utils.SpacesItemDecoration;
-import ceui.lisa.utils.WrapedManager;
+import ceui.lisa.utils.ScrollChangeManager;
 import io.reactivex.Observable;
 
 /**
@@ -52,8 +52,8 @@ public class FragmentLikeIllust extends AutoClipFragment<ListIllustResponse, Ill
 
     @Override
     void initAdapter() {
-        WrapedManager layoutManager =
-                new WrapedManager(2, WrapedManager.VERTICAL);
+        ScrollChangeManager layoutManager =
+                new ScrollChangeManager(2, ScrollChangeManager.VERTICAL);
         mRecyclerView.setLayoutManager(layoutManager);
         mAdapter = new IllustStagAdapter(allItems, mContext, mRecyclerView, mRefreshLayout);
         mAdapter.setOnItemClickListener(new OnItemClickListener() {

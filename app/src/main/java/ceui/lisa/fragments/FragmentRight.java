@@ -1,5 +1,6 @@
 package ceui.lisa.fragments;
 
+import android.content.Intent;
 import android.support.v4.app.FragmentTransaction;
 import android.view.View;
 import android.view.ViewGroup;
@@ -7,6 +8,7 @@ import android.widget.ImageView;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.utils.Common;
 
 public class FragmentRight extends BaseFragment{
@@ -25,6 +27,13 @@ public class FragmentRight extends BaseFragment{
         ViewGroup.LayoutParams headParams = head.getLayoutParams();
         headParams.height = Shaft.statusHeight;
         head.setLayoutParams(headParams);
+
+        v.findViewById(R.id.see_more).setOnClickListener(view -> {
+            Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "推荐用户");
+            startActivity(intent);
+        });
+
         return v;
     }
 

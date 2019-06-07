@@ -13,7 +13,7 @@ import ceui.lisa.response.IllustsBean;
 import ceui.lisa.response.ListIllustResponse;
 import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.utils.SpacesItemDecoration;
-import ceui.lisa.utils.WrapedManager;
+import ceui.lisa.utils.ScrollChangeManager;
 import io.reactivex.Observable;
 
 public class FragmentIllustList extends AutoClipFragment<ListIllustResponse, IllustStagAdapter, IllustsBean> {
@@ -41,8 +41,8 @@ public class FragmentIllustList extends AutoClipFragment<ListIllustResponse, Ill
             }
         });
         mRecyclerView.addItemDecoration(new SpacesItemDecoration(DensityUtil.dp2px(4.0f)));
-        WrapedManager layoutManager =
-                new WrapedManager(2, WrapedManager.VERTICAL);
+        ScrollChangeManager layoutManager =
+                new ScrollChangeManager(2, ScrollChangeManager.VERTICAL);
         mRecyclerView.setLayoutManager(layoutManager);
     }
 }

@@ -4,9 +4,10 @@ import android.content.Context;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.AttributeSet;
 
-public class WrapedManager extends StaggeredGridLayoutManager {
-
-
+/**
+ * 支持切换滚动状态的瀑布流LayoutManager
+ */
+public class ScrollChangeManager extends StaggeredGridLayoutManager {
 
     public void setCanScroll(boolean canScroll) {
         this.canScroll = canScroll;
@@ -14,11 +15,11 @@ public class WrapedManager extends StaggeredGridLayoutManager {
 
     private boolean canScroll = true;
 
-    public WrapedManager(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public ScrollChangeManager(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
 
-    public WrapedManager(int spanCount, int orientation) {
+    public ScrollChangeManager(int spanCount, int orientation) {
         super(spanCount, orientation);
     }
 

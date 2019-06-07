@@ -61,11 +61,17 @@ public class UserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             Glide.with(mContext).load(GlideUtil.getMediumImg(allIllust.get(position)
                     .getUser().getProfile_image_urls().getMedium())).into(currentOne.head);
             Glide.with(mContext).load(GlideUtil.getMediumImg(allIllust.get(position)
-                    .getIllusts().get(0))).into(currentOne.one);
+                    .getIllusts().get(0)))
+                    .placeholder(R.color.light_bg)
+                    .into(currentOne.one);
             Glide.with(mContext).load(GlideUtil.getMediumImg(allIllust.get(position)
-                    .getIllusts().get(1))).into(currentOne.two);
+                    .getIllusts().get(1)))
+                    .placeholder(R.color.light_bg)
+                    .into(currentOne.two);
             Glide.with(mContext).load(GlideUtil.getMediumImg(allIllust.get(position)
-                    .getIllusts().get(2))).into(currentOne.three);
+                    .getIllusts().get(2)))
+                    .placeholder(R.color.light_bg)
+                    .into(currentOne.three);
         }
         if(mOnItemClickListener != null){
             holder.itemView.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 0));
