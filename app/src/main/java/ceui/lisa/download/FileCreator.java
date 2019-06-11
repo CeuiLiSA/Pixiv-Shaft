@@ -1,0 +1,69 @@
+package ceui.lisa.download;
+
+import android.text.TextUtils;
+
+import java.io.File;
+import java.io.IOException;
+
+import ceui.lisa.response.IllustsBean;
+import ceui.lisa.utils.Common;
+
+public class FileCreator {
+
+    //只包含1P图片的下载路径
+    public static final String FILE_PATH_SINGLE = "/storage/emulated/0/Shaft/SingleImages";
+
+
+    //包含多P文件的下载路径
+    public static final String FILE_PATH_META = "/storage/emulated/0/Shaft/MetaImages/";
+
+    public static File createIllustFile(IllustsBean illustsBean){
+        if(illustsBean == null){
+            return null;
+        }
+
+        return new File(FILE_PATH_SINGLE,
+                    deleteSpecialWords(illustsBean.getTitle() + "_" + illustsBean.getId() + ".png"));
+    }
+
+    public static File createIllustFile(IllustsBean illustsBean, int index){
+        if(illustsBean == null){
+            return null;
+        }
+
+//        File parentFile = new File(FILE_PATH_META + illustsBean.getTitle() + "_" + illustsBean.getId());
+//        if(!parentFile.exists()){
+//            try {
+//                if(parentFile.createNewFile()) {
+//                    Common.showToast("父文件夹创建成功");
+//
+//
+//
+//
+//                    File childFile = new File(parentFile.getPath(),
+//                            deleteSpecialWords(illustsBean.getTitle() + "_" + illustsBean.getId() + ".png"))
+//                }else {
+//                    Common.showToast("父文件夹创建失败");
+//                }
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        }else {
+//
+//        }
+
+        return new File(FILE_PATH_SINGLE,
+                deleteSpecialWords(illustsBean.getTitle() + "_" + illustsBean.getId() + "_" + "p" + index + ".png"));
+    }
+
+    private static String deleteSpecialWords(String before){
+        if(!TextUtils.isEmpty(before)){
+            String temp1 = before.replace("-", "_");
+            String temp2 = temp1.replace("/", "_");
+            String temp3 = temp2.replace(",", "_");
+            return temp3;
+        }else {
+            return "untitle_" + System.currentTimeMillis() + ".png";
+        }
+    }
+}

@@ -1,6 +1,5 @@
 package ceui.lisa.activities;
 
-import android.content.Intent;
 import android.graphics.Color;
 import android.support.annotation.Nullable;
 import android.support.design.widget.AppBarLayout;
@@ -8,7 +7,6 @@ import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -22,7 +20,7 @@ import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentBlank;
 import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.fragments.FragmentSubmitIllust;
-import ceui.lisa.network.Retro;
+import ceui.lisa.http.Retro;
 import ceui.lisa.response.UserDetailResponse;
 import ceui.lisa.response.UserModel;
 import ceui.lisa.utils.AppBarStateChangeListener;

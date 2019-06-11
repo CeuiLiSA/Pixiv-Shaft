@@ -16,13 +16,8 @@ import java.util.List;
 
 import ceui.lisa.activities.PikaActivity;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.database.PikaDownload;
-import ceui.lisa.interfs.Callback;
-import ceui.lisa.interfs.ListShow;
-import ceui.lisa.response.IllustsBean;
-import ceui.lisa.response.ListIllustResponse;
+import ceui.lisa.interfaces.Callback;
 import ceui.lisa.response.UserModel;
-import ceui.lisa.utils.Empty;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;

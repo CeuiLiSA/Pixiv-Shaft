@@ -16,8 +16,8 @@ import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.IllustStagAdapter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustRecmdEntity;
-import ceui.lisa.interfs.OnItemClickListener;
-import ceui.lisa.network.Retro;
+import ceui.lisa.interfaces.OnItemClickListener;
+import ceui.lisa.http.Retro;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.response.ListIllustResponse;
 import ceui.lisa.utils.Channel;
@@ -51,8 +51,8 @@ public class FragmentRecmdIllust extends AutoClipFragment<ListIllustResponse,
 
     @Override
     Observable<ListIllustResponse> initApi() {
-        return Retro.getAppApi().getRecmdIllust(mUserModel.getResponse().getAccess_token(), true);
-        //return null;
+        //return Retro.getAppApi().getRecmdIllust(mUserModel.getResponse().getAccess_token(), true);
+        return null;
     }
 
     @Override

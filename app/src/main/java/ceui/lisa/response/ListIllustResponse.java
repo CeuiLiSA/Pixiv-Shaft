@@ -3,7 +3,7 @@ package ceui.lisa.response;
 import java.io.Serializable;
 import java.util.List;
 
-import ceui.lisa.interfs.ListShow;
+import ceui.lisa.interfaces.ListShow;
 
 public class ListIllustResponse implements ListShow<IllustsBean>, Serializable {
 

@@ -1,19 +1,11 @@
 package ceui.lisa.fragments;
 
-import android.content.Intent;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
 
-import com.facebook.rebound.SimpleSpringListener;
-import com.facebook.rebound.Spring;
-import com.facebook.rebound.SpringChain;
-import com.google.gson.Gson;
 import com.scwang.smartrefresh.header.DeliveryHeader;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
 
@@ -22,25 +14,14 @@ import java.util.List;
 import java.util.Random;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.ViewPagerActivity;
-import ceui.lisa.adapters.ViewHistoryAdapter;
-import ceui.lisa.database.AppDatabase;
-import ceui.lisa.database.IllustHistoryEntity;
-import ceui.lisa.database.IllustRecmdEntity;
 import ceui.lisa.database.PikaDownload;
-import ceui.lisa.interfs.Callback;
-import ceui.lisa.interfs.ListShow;
-import ceui.lisa.interfs.OnItemClickListener;
+import ceui.lisa.interfaces.ListShow;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.utils.ListObserver;
 import ceui.lisa.utils.Local;
 import io.reactivex.Observable;
-import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 /**

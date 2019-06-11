@@ -2,7 +2,7 @@ package ceui.lisa.response;
 
 import java.util.List;
 
-import ceui.lisa.interfs.ListShow;
+import ceui.lisa.interfaces.ListShow;
 
 public class ArticalResponse implements ListShow<ArticalResponse.SpotlightArticlesBean> {
 

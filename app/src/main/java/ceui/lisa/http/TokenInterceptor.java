@@ -1,9 +1,8 @@
-package ceui.lisa.network;
+package ceui.lisa.http;
 
 import java.io.IOException;
 
 import ceui.lisa.fragments.FragmentLogin;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.response.UserModel;
 import okhttp3.Interceptor;

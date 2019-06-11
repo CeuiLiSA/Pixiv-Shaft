@@ -33,6 +33,7 @@
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/recyclerView"
+            android:background="@color/light_bg"
             android:layout_width="match_parent"
             android:paddingStart="@dimen/four_dp"
             android:paddingEnd="@dimen/four_dp"

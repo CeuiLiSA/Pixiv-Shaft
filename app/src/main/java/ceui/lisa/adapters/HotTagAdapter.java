@@ -15,8 +15,7 @@ import com.bumptech.glide.Glide;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.interfs.OnItemClickListener;
-import ceui.lisa.response.IllustsBean;
+import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.response.TrendingtagResponse;
 import ceui.lisa.utils.GlideUtil;
 

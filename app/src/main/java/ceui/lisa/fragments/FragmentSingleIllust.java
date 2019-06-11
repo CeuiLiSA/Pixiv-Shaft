@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.CardView;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.View;
@@ -32,19 +34,26 @@ import com.scwang.smartrefresh.layout.util.DensityUtil;
 
 import org.greenrobot.eventbus.EventBus;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.ImageDetailActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.activities.UserDetailActivity;
+import ceui.lisa.adapters.IllustDetailAdapter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustHistoryEntity;
+import ceui.lisa.download.IllustDownload;
+import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
+import ceui.lisa.utils.LinearItemDecorationNoLR;
+import ceui.lisa.utils.LinearItemDecorationNoLRTB;
 import de.hdodenhof.circleimageview.CircleImageView;
 import jp.wasabeef.glide.transformations.BlurTransformation;
 import me.next.tagview.TagCloudView;
@@ -58,9 +67,9 @@ import static com.bumptech.glide.request.RequestOptions.bitmapTransform;
 public class FragmentSingleIllust extends BaseFragment {
 
     private IllustsBean illust;
-    private ProgressBar mProgressBar;
-    private ImageView refresh, imageView, originImage;
+    private ImageView imageView;
     private TagCloudView mTagCloudView;
+    private RecyclerView mRecyclerView;
 
     public static FragmentSingleIllust newInstance(IllustsBean illustsBean, Bundle bundle) {
         FragmentSingleIllust fragmentSingleIllust = new FragmentSingleIllust();
@@ -75,36 +84,7 @@ public class FragmentSingleIllust extends BaseFragment {
 
     @Override
     View initView(View v) {
-
         imageView = v.findViewById(R.id.bg_image);
-        originImage = v.findViewById(R.id.origin_image);
-        /**
-         * 计算原图 宽高
-         */
-        ViewGroup.LayoutParams params = originImage.getLayoutParams();
-        int width = mContext.getResources().getDisplayMetrics().widthPixels - 2 * DensityUtil.dp2px(12.0f);
-        params.height = illust.getHeight() * width / illust.getWidth();
-        originImage.setLayoutParams(params);
-        originImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Channel channel = new Channel();
-                channel.setReceiver("FragmentRecmdIllust");
-                EventBus.getDefault().post(channel);
-                Common.showToast(illust.getTitle());
-            }
-        });
-
-
-        mProgressBar = v.findViewById(R.id.progress);
-        CubeGrid cubeGrid = new CubeGrid();
-        cubeGrid.setColor(getResources().getColor(R.color.loginBackground));
-        mProgressBar.setIndeterminateDrawable(cubeGrid);
-        refresh = v.findViewById(R.id.refresh);
-        refresh.setOnClickListener(view -> {
-            refresh.setVisibility(View.INVISIBLE);
-            loadImage();
-        });
         Toolbar toolbar = v.findViewById(R.id.toolbar);
         toolbar.setPadding(0, Shaft.statusHeight, 0, 0);
         toolbar.setTitle(illust.getTitle() + "  ");
@@ -120,6 +100,18 @@ public class FragmentSingleIllust extends BaseFragment {
                 intent.putExtra(TemplateFragmentActivity.EXTRA_ILLUST_ID, illust.getId());
                 intent.putExtra(TemplateFragmentActivity.EXTRA_ILLUST_TITLE, illust.getTitle());
                 startActivity(intent);
+            }
+        });
+
+        CardView download = v.findViewById(R.id.download_illust);
+        download.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(illust.getPage_count() == 1){
+                    IllustDownload.downloadIllust(illust);
+                }else {
+                    IllustDownload.downloadAllIllust(illust);
+                }
             }
         });
 
@@ -180,43 +172,38 @@ public class FragmentSingleIllust extends BaseFragment {
         date.setText(illust.getCreate_date().substring(0, 16));
         totalView.setText(String.valueOf(illust.getTotal_view()));
         like.setText(String.valueOf(illust.getTotal_bookmarks()));
+
+        mRecyclerView = v.findViewById(R.id.recyclerView);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(mContext);
+        mRecyclerView.setLayoutManager(layoutManager);
+        mRecyclerView.setNestedScrollingEnabled(true);
+        mRecyclerView.addItemDecoration(new LinearItemDecorationNoLRTB(DensityUtil.dp2px(1.0f)));
         return v;
     }
 
     private void loadImage() {
-        mProgressBar.setVisibility(View.VISIBLE);
         Glide.with(mContext)
                 .load(GlideUtil.getSquare(illust))
                 .apply(bitmapTransform(new BlurTransformation(25, 3)))
                 .transition(withCrossFade())
                 .into(imageView);
-        Glide.with(mContext)
-                .load(GlideUtil.getLargeImage(illust))
-                .transition(withCrossFade())
-                .listener(new RequestListener<Drawable>() {
-                    @Override
-                    public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                        mProgressBar.setVisibility(View.INVISIBLE);
-                        refresh.setVisibility(View.VISIBLE);
-                        Common.showToast("图片加载失败");
-                        return false;
-                    }
-
-                    @Override
-                    public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                        mProgressBar.setVisibility(View.INVISIBLE);
-                        refresh.setVisibility(View.INVISIBLE);
-
-                        return false;
-                    }
-                })
-                .into(originImage);
+        IllustDetailAdapter adapter = new IllustDetailAdapter(illust, mContext);
+        adapter.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(View v, int position, int viewType) {
+                Intent intent = new Intent(mContext, ImageDetailActivity.class);
+                intent.putExtra("illust", illust);
+                intent.putExtra("index", position);
+                startActivity(intent);
+            }
+        });
+        mRecyclerView.setAdapter(adapter);
     }
 
     @Override
     void initData() {
         loadImage();
-        initAnime();
+        //initAnime();
     }
 
     private void initAnime(){

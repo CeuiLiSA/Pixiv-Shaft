@@ -19,7 +19,7 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.RankHorizontalAdapter;
-import ceui.lisa.interfs.OnItemClickListener;
+import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;

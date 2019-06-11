@@ -164,7 +164,8 @@ public class CoverActivity extends BaseActivity
         if (id == R.id.nav_camera) {
 
         } else if (id == R.id.nav_gallery) {
-
+            Intent intent = new Intent(mContext, DownloadManageActivity.class);
+            startActivity(intent);
         } else if (id == R.id.nav_slideshow) {
             Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
             intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "浏览记录");

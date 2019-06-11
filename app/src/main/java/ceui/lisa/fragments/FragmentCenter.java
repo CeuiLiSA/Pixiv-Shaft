@@ -2,16 +2,14 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.MultiViewPagerActivity;
+import ceui.lisa.activities.RankActivity;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.utils.Common;
 
 public class FragmentCenter extends BaseFragment {
@@ -37,7 +35,7 @@ public class FragmentCenter extends BaseFragment {
         textView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(mContext, MultiViewPagerActivity.class);
+                Intent intent = new Intent(mContext, RankActivity.class);
                 startActivity(intent);
             }
         });

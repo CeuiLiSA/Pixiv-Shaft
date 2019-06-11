@@ -3,4 +3,5 @@
     android:id="@+id/illust_image"
     android:scaleType="centerCrop"
     android:layout_height="wrap_content"
+    android:background="@color/white"
     xmlns:android="http://schemas.android.com/apk/res/android" />

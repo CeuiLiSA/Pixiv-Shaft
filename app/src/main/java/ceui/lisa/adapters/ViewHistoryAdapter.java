@@ -1,18 +1,11 @@
 package ceui.lisa.adapters;
 
-import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
 import android.content.Context;
-import android.graphics.Matrix;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
-import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AccelerateInterpolator;
-import android.view.animation.Animation;
-import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -28,7 +21,7 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.database.IllustHistoryEntity;
-import ceui.lisa.interfs.OnItemClickListener;
+import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.utils.GlideUtil;
 
@@ -77,6 +70,12 @@ public class ViewHistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                 .into(currentOne.illust);
         currentOne.title.setText(currentIllust.getTitle());
         currentOne.author.setText("by: " + currentIllust.getUser().getName());
+        if(currentIllust.getPage_count() == 1){
+            currentOne.pSize.setVisibility(View.GONE);
+        }else {
+            currentOne.pSize.setVisibility(View.VISIBLE);
+            currentOne.pSize.setText(currentIllust.getPage_count() + "P");
+        }
         currentOne.time.setText(mTime.format(allIllust.get(position).getTime()));
 
 
@@ -93,43 +92,6 @@ public class ViewHistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         if(mOnItemClickListener != null){
 
             holder.itemView.setOnClickListener(v -> {
-//                ObjectAnimator animator = ObjectAnimator.ofFloat(currentOne.title,
-//                        "translationX", 0, 300, -100, 200, -50, 0);
-//                animator.setDuration(2000);
-//                animator.start();
-
-//                AnimatorSet animatorSet = new AnimatorSet();
-//                ObjectAnimator animator = ObjectAnimator.ofFloat(currentOne.itemView,
-//                        "rotationY", 0f, -90f, 0f);
-//
-//                ObjectAnimator animator22 = ObjectAnimator.ofFloat(currentOne.itemView,
-//                        "scaleX", 1.0f, 0.2f, 0.6f, 1.0f);
-//                //currentOne.itemView.setPivotX(-100);//设置指定旋转中心点X坐标
-//
-//                animatorSet.playTogether(animator, animator22);
-//                animatorSet.setDuration(1000);
-//                currentOne.itemView.setPivotX(0);
-//                animatorSet.start();
-
-//                if(position % 2 == 0) {
-//
-//                    currentOne.itemView.setPivotX(-100.0f);
-//                    //currentOne.itemView.setPivotY(-200.0f);
-//                    ObjectAnimator animator = ObjectAnimator.ofFloat(currentOne.itemView,
-//                            "rotationY", 0, -50.0f, 0.0f);
-//                    animator.setDuration(1000);
-//                    animator.start();
-//                }else {
-//                    currentOne.itemView.setPivotX(-100.0f);
-//                    ObjectAnimator animator = ObjectAnimator.ofFloat(currentOne.itemView,
-//                            "rotationY", 0, 30.0f, 0.0f);
-//                    animator.setDuration(1000);
-//                    animator.start();
-//
-//                }
-//                currentOne.itemView.setPivotX(0);
-//                currentOne.itemView.setRotationY(-30.0f);
-//                currentOne.itemView.setScaleX(0.5f);
                 mOnItemClickListener.onItemClick(v, position, 0);
             });
         }
@@ -146,7 +108,7 @@ public class ViewHistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
     public static class TagHolder extends RecyclerView.ViewHolder {
         ImageView illust;
-        TextView title, time, author;
+        TextView title, time, author, pSize;
         Spring spring;
         TagHolder(View itemView) {
             super(itemView);
@@ -155,6 +117,7 @@ public class ViewHistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             title = itemView.findViewById(R.id.title);
             time = itemView.findViewById(R.id.time);
             author = itemView.findViewById(R.id.author);
+            pSize = itemView.findViewById(R.id.p_size);
             SpringSystem springSystem = SpringSystem.create();
 
             // Add a spring to the system.

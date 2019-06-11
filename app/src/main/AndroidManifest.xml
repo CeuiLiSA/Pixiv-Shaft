@@ -17,7 +17,7 @@
         <activity android:name=".activities.LoginActivity" />
         <activity android:name=".activities.ViewPagerActivity" />
         <activity android:name=".activities.TemplateFragmentActivity" />
-        <activity android:name=".activities.MultiViewPagerActivity" />
+        <activity android:name=".activities.RankActivity" />
         <activity android:name=".activities.PikaActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -26,6 +26,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".activities.UserDetailActivity" />
+        <activity android:name=".activities.DownloadManageActivity" />
+        <activity android:name=".activities.ImageDetailActivity" />
 
 
         <meta-data

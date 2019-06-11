@@ -1,4 +1,4 @@
-package ceui.lisa.interfs;
+package ceui.lisa.interfaces;
 
 import android.view.View;
 

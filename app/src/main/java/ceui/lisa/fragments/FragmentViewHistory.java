@@ -15,13 +15,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.SpringRecyclerView;
 import ceui.lisa.adapters.ViewHistoryAdapter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustHistoryEntity;
-import ceui.lisa.interfs.OnItemClickListener;
+import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.IllustChannel;
@@ -100,13 +99,9 @@ public class FragmentViewHistory extends BaseFragment {
             mAdapter.setOnItemClickListener(new OnItemClickListener() {
                 @Override
                 public void onItemClick(View v, int position, int viewType) {
-//                    IllustChannel.get().setIllustList(allIllusts);
-//                    Intent intent = new Intent(mContext, ViewPagerActivity.class);
-//                    intent.putExtra("position", position);
-//                    startActivity(intent);
-                    FragmentDrag.allItems = allIllusts;
-                    Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-                    intent.putExtra("dataType", "拖动测试");
+                    IllustChannel.get().setIllustList(allIllusts);
+                    Intent intent = new Intent(mContext, ViewPagerActivity.class);
+                    intent.putExtra("position", position);
                     startActivity(intent);
                 }
             });

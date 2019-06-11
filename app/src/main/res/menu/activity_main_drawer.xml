@@ -10,8 +10,8 @@
             android:title="Import" />
         <item
             android:id="@+id/nav_gallery"
-            android:icon="@drawable/ic_menu_gallery"
-            android:title="Gallery" />
+            android:icon="@drawable/ic_file_download_black_24dp"
+            android:title="下载管理" />
         <item
             android:id="@+id/nav_slideshow"
             android:icon="@drawable/ic_history_black_24dp"

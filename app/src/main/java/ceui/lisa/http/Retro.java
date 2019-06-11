@@ -1,17 +1,12 @@
-package ceui.lisa.network;
+package ceui.lisa.http;
 
 import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import java.lang.reflect.Modifier;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Collections;
-import java.util.List;
 
-import okhttp3.Dns;
 import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
 import okhttp3.Request;

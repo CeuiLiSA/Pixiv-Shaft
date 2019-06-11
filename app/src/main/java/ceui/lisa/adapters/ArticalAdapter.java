@@ -14,11 +14,9 @@ import com.bumptech.glide.Glide;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.interfs.OnItemClickListener;
+import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.response.ArticalResponse;
-import ceui.lisa.response.UserPreviewsBean;
 import ceui.lisa.utils.GlideUtil;
-import de.hdodenhof.circleimageview.CircleImageView;
 
 
 public class ArticalAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {

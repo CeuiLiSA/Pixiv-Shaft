@@ -27,7 +27,6 @@
             <TextView
                 android:id="@+id/title"
                 android:layout_width="match_parent"
-                android:layout_toStartOf="@+id/p_size"
                 android:layout_toEndOf="@+id/illust_image"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/eight_dp"
@@ -59,12 +58,31 @@
                 android:layout_height="wrap_content"
                 android:layout_alignBottom="@+id/illust_image"
                 android:layout_marginStart="@dimen/eight_dp"
+                android:layout_toStartOf="@+id/p_size"
                 android:layout_marginTop="@dimen/eight_dp"
-                android:layout_marginEnd="@dimen/sixteen_dp"
+                android:layout_marginEnd="@dimen/eight_dp"
                 android:layout_marginBottom="@dimen/eight_dp"
                 android:layout_toEndOf="@+id/illust_image"
                 android:ellipsize="end"
                 android:maxLines="1" />
+
+
+            <TextView
+                android:id="@+id/p_size"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@+id/illust_image"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="7dp"
+                android:layout_marginBottom="@dimen/eight_dp"
+                android:background="@drawable/btn_follow"
+                android:paddingStart="@dimen/four_dp"
+                android:paddingTop="2dp"
+                android:paddingEnd="@dimen/four_dp"
+                android:paddingBottom="2dp"
+                android:text="4P"
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
 
 
         </RelativeLayout>

@@ -9,7 +9,7 @@ import com.rengwuxian.materialedittext.MaterialEditText;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.CoverActivity;
-import ceui.lisa.network.Retro;
+import ceui.lisa.http.Retro;
 import ceui.lisa.utils.Local;
 import ceui.lisa.response.UserModel;
 import ceui.lisa.utils.Common;

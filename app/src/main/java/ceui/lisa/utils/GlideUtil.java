@@ -49,6 +49,11 @@ public class GlideUtil {
         return new GlideUrl(illustsBean.getImage_urls().getLarge(), sHeaders);
     }
 
+    public static GlideUrl getLargeImage(String url) {
+        return new GlideUrl(url, sHeaders);
+    }
+
+
     public static GlideUrl getSquare(IllustsBean illustsBean) {
         return new GlideUrl(illustsBean.getImage_urls().getSquare_medium(), sHeaders);
     }
@@ -58,6 +63,15 @@ public class GlideUtil {
             return getLargeImage(illustsBean);
         }else {
             return new GlideUrl(illustsBean.getMeta_pages().get(i).getImage_urls().getLarge(), sHeaders);
+        }
+    }
+
+
+    public static GlideUrl getOriginal(IllustsBean illustsBean, int i) {
+        if(i == 0){
+            return new GlideUrl(illustsBean.getMeta_single_page().getOriginal_image_url(), sHeaders);
+        }else {
+            return new GlideUrl(illustsBean.getMeta_pages().get(i).getImage_urls().getOriginal(), sHeaders);
         }
     }
 }

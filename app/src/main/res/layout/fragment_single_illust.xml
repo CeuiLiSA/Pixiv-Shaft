@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
@@ -15,7 +17,7 @@
 
 
 
-    <ScrollView
+    <android.support.v4.widget.NestedScrollView
         android:layout_width="match_parent"
         android:id="@+id/scrollView"
         android:layout_height="wrap_content">
@@ -34,39 +36,25 @@
                 android:id="@+id/head"
                 android:layout_height="50dp" />
 
+
             <android.support.v7.widget.CardView
                 android:layout_width="match_parent"
                 app:cardElevation="@dimen/four_dp"
-                android:id="@+id/image_card"
+                android:id="@+id/illust_list"
+                app:cardBackgroundColor="@color/white"
                 app:cardCornerRadius="@dimen/four_dp"
                 android:layout_marginStart="@dimen/twelve_dp"
                 android:layout_marginEnd="@dimen/twelve_dp"
                 android:layout_marginBottom="@dimen/eight_dp"
                 android:layout_height="wrap_content">
 
-                <ImageView
+                <android.support.v7.widget.RecyclerView
                     android:layout_width="match_parent"
-                    android:id="@+id/origin_image"
-                    android:scaleType="centerCrop"
-                    android:layout_height="300dp" />
+                    android:id="@+id/recyclerView"
+                    android:background="@color/light_bg"
+                    android:layout_height="match_parent">
 
-
-                <ImageView
-                    android:layout_width="29dp"
-                    android:id="@+id/refresh"
-                    android:tint="@color/loginBackground"
-                    android:src="@drawable/ic_refresh_black_24dp"
-                    android:layout_gravity="center"
-                    android:visibility="invisible"
-                    android:layout_height="29dp" />
-
-
-                <ProgressBar
-                    android:layout_width="wrap_content"
-                    android:id="@+id/progress"
-                    android:indeterminateTint="@color/loginBackground"
-                    android:layout_gravity="center"
-                    android:layout_height="wrap_content" />
+                </android.support.v7.widget.RecyclerView>
 
             </android.support.v7.widget.CardView>
 
@@ -258,7 +246,7 @@
 
 
         </LinearLayout>
-    </ScrollView>
+    </android.support.v4.widget.NestedScrollView>
 
 
     <android.support.v7.widget.Toolbar

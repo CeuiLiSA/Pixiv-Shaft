@@ -20,7 +20,7 @@ import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.interfs.OnItemClickListener;
+import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
@@ -109,9 +109,9 @@ public class IllustStagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                                 view.getLocationOnScreen(array);
 
                                 if (array[0] > imageSize) {
-                                    view.setPivotX(-600f);
+                                    view.setPivotX(-750f);
                                 } else {
-                                    view.setPivotX(-50f);
+                                    view.setPivotX(-200f);
                                 }
                                 view.setCameraDistance(80000f);
                                 AnimeEndRunnable animeRunnable = new AnimeEndRunnable();
@@ -130,9 +130,9 @@ public class IllustStagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                                 currentOne.itemView.getLocationOnScreen(array);
 
                                 if (array[0] > imageSize) {
-                                    currentOne.itemView.setPivotX(-600f);
+                                    currentOne.itemView.setPivotX(-750f);
                                 } else {
-                                    currentOne.itemView.setPivotX(-50f);
+                                    currentOne.itemView.setPivotX(-200f);
                                 }
                                 currentOne.itemView.setCameraDistance(80000f);
                                 AnimeEndRunnable animeRunnable = new AnimeEndRunnable();
@@ -170,7 +170,7 @@ public class IllustStagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                 @Override
                 public void onSpringUpdate(Spring spring) {
                     float temp = (float) spring.getCurrentValue();
-                    if (temp < -100f) {
+                    if (temp < -140f) {
                         mSpring.setAtRest();
                     } else {
                         mView.setRotationY(temp);

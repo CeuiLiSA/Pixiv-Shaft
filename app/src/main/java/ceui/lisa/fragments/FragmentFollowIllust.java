@@ -3,7 +3,6 @@ package ceui.lisa.fragments;
 import android.content.Intent;
 import android.support.v7.widget.LinearLayoutManager;
 import android.view.View;
-import android.widget.LinearLayout;
 
 import com.github.ybq.android.spinkit.style.DoubleBounce;
 import com.scwang.smartrefresh.layout.util.DensityUtil;
@@ -12,16 +11,12 @@ import ceui.lisa.R;
 import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.EventAdapter;
-import ceui.lisa.adapters.IllustStagAdapter;
-import ceui.lisa.interfs.OnItemClickListener;
-import ceui.lisa.network.Retro;
+import ceui.lisa.interfaces.OnItemClickListener;
+import ceui.lisa.http.Retro;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.response.ListIllustResponse;
 import ceui.lisa.utils.IllustChannel;
-import ceui.lisa.utils.LinearItemDecoration;
 import ceui.lisa.utils.LinearItemDecorationNoLR;
-import ceui.lisa.utils.SpacesItemDecoration;
-import ceui.lisa.utils.ScrollChangeManager;
 import io.reactivex.Observable;
 
 /**

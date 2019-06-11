@@ -1,4 +1,4 @@
-package ceui.lisa.network;
+package ceui.lisa.http;
 
 import ceui.lisa.response.ArticalResponse;
 import ceui.lisa.response.ListIllustResponse;

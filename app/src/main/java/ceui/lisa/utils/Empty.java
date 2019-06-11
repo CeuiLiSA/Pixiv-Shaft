@@ -1,6 +1,6 @@
 package ceui.lisa.utils;
 
-import ceui.lisa.interfs.ListShow;
+import ceui.lisa.interfaces.ListShow;
 
 public class Empty {
 

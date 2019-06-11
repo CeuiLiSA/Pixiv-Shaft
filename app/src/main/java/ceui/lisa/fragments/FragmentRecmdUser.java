@@ -3,15 +3,14 @@ package ceui.lisa.fragments;
 import android.content.Intent;
 import android.support.v7.widget.LinearLayoutManager;
 import android.view.View;
-import android.widget.LinearLayout;
 
 import com.scwang.smartrefresh.layout.util.DensityUtil;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.adapters.UserAdapter;
-import ceui.lisa.interfs.OnItemClickListener;
-import ceui.lisa.network.Retro;
+import ceui.lisa.interfaces.OnItemClickListener;
+import ceui.lisa.http.Retro;
 import ceui.lisa.response.RecmdUserResponse;
 import ceui.lisa.response.UserPreviewsBean;
 import ceui.lisa.utils.LinearItemDecoration;

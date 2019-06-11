@@ -9,14 +9,12 @@ import com.scwang.smartrefresh.layout.util.DensityUtil;
 import ceui.lisa.R;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.IllustAdapter;
-import ceui.lisa.adapters.IllustStagAdapter;
-import ceui.lisa.interfs.OnItemClickListener;
-import ceui.lisa.network.Retro;
+import ceui.lisa.interfaces.OnItemClickListener;
+import ceui.lisa.http.Retro;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.response.ListIllustResponse;
 import ceui.lisa.utils.GridItemDecoration;
 import ceui.lisa.utils.IllustChannel;
-import ceui.lisa.utils.SpacesItemDecoration;
 import io.reactivex.Observable;
 
 /**

@@ -1,4 +1,4 @@
-package ceui.lisa.network;
+package ceui.lisa.http;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;

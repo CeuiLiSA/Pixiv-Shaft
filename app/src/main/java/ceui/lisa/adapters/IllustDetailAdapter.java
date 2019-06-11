@@ -8,10 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-
 import com.bumptech.glide.Glide;
-
-import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.interfaces.OnItemClickListener;
@@ -22,20 +19,20 @@ import ceui.lisa.utils.GlideUtil;
 /**
  *
  */
-public class IllustAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private Context mContext;
     private LayoutInflater mLayoutInflater;
     private OnItemClickListener mOnItemClickListener;
-    private List<IllustsBean> allIllust;
+    private IllustsBean allIllust;
     private int imageSize = 0;
 
-    public IllustAdapter(List<IllustsBean> list, Context context) {
+    public IllustDetailAdapter(IllustsBean list, Context context) {
         mContext = context;
         mLayoutInflater = LayoutInflater.from(mContext);
         allIllust = list;
         imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
-                mContext.getResources().getDimensionPixelSize(R.dimen.four_dp))/2;
+                2 * mContext.getResources().getDimensionPixelSize(R.dimen.twelve_dp));
     }
 
     @NonNull
@@ -49,11 +46,11 @@ public class IllustAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         final TagHolder currentOne = (TagHolder) holder;
         ViewGroup.LayoutParams params = currentOne.illust.getLayoutParams();
-        params.height = imageSize;
+        params.height = imageSize * allIllust.getHeight()/allIllust.getWidth();
         params.width = imageSize;
         currentOne.illust.setLayoutParams(params);
         Glide.with(mContext)
-                .load(GlideUtil.getMediumImg(allIllust.get(position)))
+                .load(GlideUtil.getLargeImage(allIllust, position))
                 .placeholder(R.color.light_bg)
                 .into(currentOne.illust);
         if(mOnItemClickListener != null){
@@ -63,7 +60,7 @@ public class IllustAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
     @Override
     public int getItemCount() {
-        return allIllust.size();
+        return allIllust.getPage_count();
     }
 
     public void setOnItemClickListener(OnItemClickListener itemClickListener) {

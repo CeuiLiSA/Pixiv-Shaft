@@ -9,10 +9,8 @@ import com.scwang.smartrefresh.layout.util.DensityUtil;
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.adapters.HotTagAdapter;
-import ceui.lisa.interfs.OnItemClickListener;
-import ceui.lisa.network.Retro;
+import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.response.TrendingtagResponse;
-import ceui.lisa.utils.GridItemDecoration;
 import ceui.lisa.utils.TagItemDecoration;
 import io.reactivex.Observable;
 
@@ -22,8 +20,8 @@ public class FragmentHotTag extends BaseListFragment<TrendingtagResponse, HotTag
 
     @Override
     Observable<TrendingtagResponse> initApi() {
-        return Retro.getAppApi().getHotTags(mUserModel.getResponse().getAccess_token());
-        //return null;
+        //return Retro.getAppApi().getHotTags(mUserModel.getResponse().getAccess_token());
+        return null;
     }
 
     @Override

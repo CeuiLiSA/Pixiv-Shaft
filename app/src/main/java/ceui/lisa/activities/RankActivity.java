@@ -16,7 +16,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
-public class MultiViewPagerActivity extends BaseActivity {
+public class RankActivity extends BaseActivity {
 
     private static final String[] CHINESE_TITLES = new String[]{"日榜", "每周", "每月", "男性向", "女性向", "原创", "新人", "R"};
     private FragmentRank[] allPages = new FragmentRank[]{null, null, null, null, null, null, null, null};
@@ -62,5 +62,4 @@ public class MultiViewPagerActivity extends BaseActivity {
     protected void initData() {
 
     }
-
 }
