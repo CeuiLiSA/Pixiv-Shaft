@@ -214,4 +214,19 @@ public class Local {
         editor.putLong("pika file time", System.currentTimeMillis());
         editor.apply();
     }
+
+    public static void setSettings(Settings settings){
+        SharedPreferences localData = Shaft.getContext().getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
+        Gson gson = new Gson();
+        String settingsGson = gson.toJson(settings);
+        SharedPreferences.Editor editor = localData.edit();
+        editor.putString("settings", settingsGson);
+        editor.apply();
+    }
+
+    public static Settings getSettings(){
+        SharedPreferences localData = Shaft.getContext().getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
+        String settingsString = localData.getString("settings", "");
+        return new Gson().fromJson(settingsString, Settings.class);
+    }
 }

@@ -22,6 +22,6 @@ public interface IllustDao {
     void delete(IllustHistoryEntity userEntity);
 
 
-    @Query("SELECT * FROM illust_table ORDER BY time DESC")
-    List<IllustHistoryEntity> getAll();
+    @Query("SELECT * FROM illust_table ORDER BY time DESC LIMIT :limit OFFSET :offset")
+    List<IllustHistoryEntity> getAll(int limit, int offset);
 }

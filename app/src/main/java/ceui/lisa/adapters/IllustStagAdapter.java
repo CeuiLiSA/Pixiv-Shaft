@@ -80,7 +80,7 @@ public class IllustStagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         currentOne.title.setText(allIllust.get(position).getTitle());
         Glide.with(mContext)
                 .load(GlideUtil.getMediumImg(allIllust.get(position)))
-                .placeholder(R.color.light_bg)
+                .placeholder(R.color.second_light_bg)
                 .into(currentOne.illust);
 
         if (allIllust.get(position).getPage_count() == 1) {
@@ -164,13 +164,13 @@ public class IllustStagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         @Override
         public void run() {
             mSpring = mSystem.createSpring();
-            mSpring.setSpringConfig(SpringConfig.fromOrigamiTensionAndFriction(5, 5));
+            mSpring.setSpringConfig(SpringConfig.fromOrigamiTensionAndFriction(10, 5));
 
             mSpring.addListener(new SimpleSpringListener() {
                 @Override
                 public void onSpringUpdate(Spring spring) {
                     float temp = (float) spring.getCurrentValue();
-                    if (temp < -140f) {
+                    if (temp < -100f) {
                         mSpring.setAtRest();
                     } else {
                         mView.setRotationY(temp);
@@ -238,10 +238,8 @@ public class IllustStagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         for (int i = 0; i < mRecyclerView.getChildCount(); i++) {
             View view = mRecyclerView.getChildAt(i);
             if (view != null) {
-                view.setRotationY(+0.01f);
-                Common.showLog("这里在还原" + i + "个卡片");
-                Common.showLog("还原后" + i + "个卡片" + view.getRotationY());
-                view.setRotationY(+0.01f);
+                view.setRotationY(+0.001f);
+                view.setRotationY(+0.001f);
             }
         }
     }

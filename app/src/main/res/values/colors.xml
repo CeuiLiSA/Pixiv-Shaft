@@ -10,6 +10,7 @@
     <color name="background">#f2f2f2</color>
     <color name="dark_bg">#999999</color>
     <color name="light_bg">#f2f2f2</color>
+    <color name="second_light_bg">#fafafa</color>
 
     <color name="follow_user_illust_divider">#ececec</color>
 

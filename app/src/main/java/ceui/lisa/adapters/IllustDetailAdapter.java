@@ -1,14 +1,20 @@
 package ceui.lisa.adapters;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.transition.Transition;
 
 import ceui.lisa.R;
 import ceui.lisa.interfaces.OnItemClickListener;
@@ -45,14 +51,33 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         final TagHolder currentOne = (TagHolder) holder;
-        ViewGroup.LayoutParams params = currentOne.illust.getLayoutParams();
-        params.height = imageSize * allIllust.getHeight()/allIllust.getWidth();
-        params.width = imageSize;
-        currentOne.illust.setLayoutParams(params);
-        Glide.with(mContext)
-                .load(GlideUtil.getLargeImage(allIllust, position))
-                .placeholder(R.color.light_bg)
-                .into(currentOne.illust);
+
+        if(position == 0) {
+            ViewGroup.LayoutParams params = currentOne.illust.getLayoutParams();
+            params.height = imageSize * allIllust.getHeight() / allIllust.getWidth();
+            params.width = imageSize;
+            currentOne.illust.setLayoutParams(params);
+            Glide.with(mContext)
+                    .load(GlideUtil.getLargeImage(allIllust, position))
+                    .placeholder(R.color.light_bg)
+                    .into(currentOne.illust);
+        }else {
+            Glide.with(mContext)
+                    .asBitmap()
+                    .load(GlideUtil.getLargeImage(allIllust, position))
+                    .placeholder(R.color.light_bg)
+                    .into(new SimpleTarget<Bitmap>() {
+                        @Override
+                        public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                            ViewGroup.LayoutParams params = currentOne.illust.getLayoutParams();
+                            params.width = imageSize;
+                            params.height = imageSize * resource.getHeight() / resource.getWidth();
+                            currentOne.illust.setLayoutParams(params);
+                            currentOne.illust.setImageBitmap(resource);
+                        }
+                    });
+        }
+
         if(mOnItemClickListener != null){
             holder.itemView.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 0));
         }

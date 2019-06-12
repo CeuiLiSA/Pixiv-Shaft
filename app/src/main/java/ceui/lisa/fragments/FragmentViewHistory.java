@@ -32,6 +32,8 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
+import static ceui.lisa.fragments.BaseListFragment.PAGE_SIZE;
+
 public class FragmentViewHistory extends BaseFragment {
 
     protected ViewHistoryAdapter mAdapter;
@@ -41,6 +43,7 @@ public class FragmentViewHistory extends BaseFragment {
     protected List<IllustsBean> allIllusts = new ArrayList<>();
     protected ProgressBar mProgressBar;
     protected Toolbar mToolbar;
+    protected int nowIndex = 0;
 
     @Override
     void initLayout() {
@@ -58,35 +61,63 @@ public class FragmentViewHistory extends BaseFragment {
         mRecyclerView.setLayoutManager(manager);
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.addItemDecoration(new LinearItemDecoration(DensityUtil.dp2px(8.0f)));
-
-//        LayoutAnimationController controller = new LayoutAnimationController(getAnimationSetFromLeft());
-//        controller.setDelay(0.1f);
-//        controller.setOrder(LayoutAnimationController.ORDER_NORMAL);
-//
-//        mRecyclerView.setLayoutAnimation(controller);
-
-
-
-
-        //mRecyclerView.setLayoutAnimation(new LayoutAnimationController());
         mRefreshLayout = v.findViewById(R.id.refreshLayout);
         mRefreshLayout.setRefreshHeader(new DeliveryHeader(mContext));
         mRefreshLayout.setOnRefreshListener(layout -> getFirstData());
         mRefreshLayout.setOnLoadMoreListener(layout -> getNextData());
-        mRefreshLayout.setEnableLoadMore(false);
+        mRefreshLayout.setEnableLoadMore(true);
         return v;
     }
 
     private void getNextData() {
+        Observable.create((ObservableOnSubscribe<String>) emitter -> {
+            emitter.onNext("开始查询数据库");
+            List<IllustHistoryEntity> temp = AppDatabase.getAppDatabase(mContext).trackDao().getAll(PAGE_SIZE, nowIndex);
+            final int lastSize = nowIndex;
+            nowIndex += temp.size();
+            allItems.addAll(temp);
+            emitter.onNext("开始转换数据类型");
+            Thread.sleep(500);
+            Gson gson = new Gson();
+            for (int i = lastSize; i < allItems.size(); i++) {
+                allIllusts.add(gson.fromJson(allItems.get(i).getIllustJson(), IllustsBean.class));
+            }
+            mAdapter.notifyItemRangeChanged(lastSize, nowIndex);
+            emitter.onComplete();
+        }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<String>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
 
+                    }
+
+                    @Override
+                    public void onNext(String s) {
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        e.printStackTrace();
+                        Common.showToast(e.toString());
+                        mRefreshLayout.finishLoadMore(false);
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        mRefreshLayout.finishLoadMore(true);
+                    }
+                });
     }
 
     private void getFirstData() {
         mProgressBar.setVisibility(View.VISIBLE);
         allItems.clear();
+        nowIndex = 0;
         Observable.create((ObservableOnSubscribe<String>) emitter -> {
             emitter.onNext("开始查询数据库");
-            List<IllustHistoryEntity> temp = AppDatabase.getAppDatabase(mContext).trackDao().getAll();
+            List<IllustHistoryEntity> temp = AppDatabase.getAppDatabase(mContext).trackDao().getAll(PAGE_SIZE, nowIndex);
+            nowIndex += temp.size();
             allItems.addAll(temp);
             emitter.onNext("开始转换数据类型");
             Thread.sleep(500);
@@ -138,39 +169,4 @@ public class FragmentViewHistory extends BaseFragment {
     void initData() {
         getFirstData();
     }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
-    }
-
-
-//    public static AnimationSet getAnimationSetFromLeft() {
-//        AnimationSet animationSet = new AnimationSet(true);
-//        TranslateAnimation translateX1 = new TranslateAnimation(RELATIVE_TO_SELF, 1.0f, RELATIVE_TO_SELF, -0.1f,
-//                RELATIVE_TO_SELF, 0, RELATIVE_TO_SELF, 0);
-//        translateX1.setDuration(300);
-//        translateX1.setInterpolator(new DecelerateInterpolator());
-//        translateX1.setStartOffset(0);
-//
-//        TranslateAnimation translateX2 = new TranslateAnimation(RELATIVE_TO_SELF, -0.1f, RELATIVE_TO_SELF, 0.1f,
-//                RELATIVE_TO_SELF, 0, RELATIVE_TO_SELF, 0);
-//        translateX2.setStartOffset(300);
-//        translateX2.setInterpolator(new DecelerateInterpolator());
-//        translateX2.setDuration(50);
-//
-//        TranslateAnimation translateX3 = new TranslateAnimation(RELATIVE_TO_SELF, 0.1f, RELATIVE_TO_SELF, -0f,
-//                RELATIVE_TO_SELF, 0, RELATIVE_TO_SELF, 0);
-//        translateX3.setStartOffset(350);
-//        translateX3.setInterpolator(new DecelerateInterpolator());
-//        translateX3.setDuration(50);
-//
-//        animationSet.addAnimation(translateX1);
-//        animationSet.addAnimation(translateX2);
-//        animationSet.addAnimation(translateX3);
-//        animationSet.setDuration(600);
-//
-//        return animationSet;
-//    }
 }

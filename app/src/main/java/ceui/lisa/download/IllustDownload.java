@@ -13,6 +13,7 @@ import java.io.File;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.response.IllustsBean;
+import ceui.lisa.utils.Common;
 
 public class IllustDownload {
 
@@ -39,19 +40,20 @@ public class IllustDownload {
                 .setPassIfAlreadyCompleted(false);
         builder.addHeader(MAP_KEY, IMAGE_REFERER);
         DownloadTask task = builder.build();
+        TaskQueue.get().addTask(task);
 
-        task.enqueue(new DownloadListener2() {
-            @Override
-            public void taskStart(@NonNull DownloadTask downloadTask) {
-                TaskQueue.get().addTask(task);
-            }
-
-            @Override
-            public void taskEnd(@NonNull DownloadTask downloadTask, @NonNull EndCause cause, @Nullable Exception realCause) {
-                Shaft.getContext().sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(file)));
-                TaskQueue.get().removeTask(task);
-            }
-        });
+//        task.enqueue(new DownloadListener2() {
+//            @Override
+//            public void taskStart(@NonNull DownloadTask downloadTask) {
+//                TaskQueue.get().addTask(task);
+//            }
+//
+//            @Override
+//            public void taskEnd(@NonNull DownloadTask downloadTask, @NonNull EndCause cause, @Nullable Exception realCause) {
+//                Shaft.getContext().sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(file)));
+//                TaskQueue.get().removeTask(task);
+//            }
+//        });
     }
 
 
@@ -82,18 +84,19 @@ public class IllustDownload {
             TaskQueue.get().addTask(tasks[i]);
         }
 
-        DownloadTask.enqueue(tasks, new DownloadListener2() {
-            @Override
-            public void taskStart(@NonNull DownloadTask task) {
-
-            }
-
-            @Override
-            public void taskEnd(@NonNull DownloadTask task, @NonNull EndCause cause, @Nullable Exception realCause) {
-                TaskQueue.get().removeTask(task);
-                new SingleMediaScanner(Shaft.getContext(), task.getFile(), () -> {
-                });
-            }
-        });
+//        DownloadTask.enqueue(tasks, new DownloadListener2() {
+//            @Override
+//            public void taskStart(@NonNull DownloadTask task) {
+//
+//            }
+//
+//            @Override
+//            public void taskEnd(@NonNull DownloadTask task, @NonNull EndCause cause, @Nullable Exception realCause) {
+//                TaskQueue.get().removeTask(task);
+//                new SingleMediaScanner(Shaft.getContext(), task.getFile(), () -> {
+//                });
+//            }
+//        });
+        Common.showToast("加入下载队列成功");
     }
 }

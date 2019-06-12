@@ -74,6 +74,7 @@ public class FragmentSingleIllust extends BaseFragment {
     public static FragmentSingleIllust newInstance(IllustsBean illustsBean, Bundle bundle) {
         FragmentSingleIllust fragmentSingleIllust = new FragmentSingleIllust();
         fragmentSingleIllust.setIllust(illustsBean);
+
         return fragmentSingleIllust;
     }
 
@@ -84,6 +85,7 @@ public class FragmentSingleIllust extends BaseFragment {
 
     @Override
     View initView(View v) {
+        Common.showLog(className + new Gson().toJson(illust));
         imageView = v.findViewById(R.id.bg_image);
         Toolbar toolbar = v.findViewById(R.id.toolbar);
         toolbar.setPadding(0, Shaft.statusHeight, 0, 0);

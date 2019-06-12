@@ -53,7 +53,7 @@ public class FileCreator {
 //        }
 
         return new File(FILE_PATH_SINGLE,
-                deleteSpecialWords(illustsBean.getTitle() + "_" + illustsBean.getId() + "_" + "p" + index + ".png"));
+                deleteSpecialWords(illustsBean.getTitle() + "_" + illustsBean.getId() + "_" + "p" + (index + 1) + ".png"));
     }
 
     private static String deleteSpecialWords(String before){
