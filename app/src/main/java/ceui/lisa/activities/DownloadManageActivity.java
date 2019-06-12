@@ -10,12 +10,12 @@ import android.support.v7.widget.Toolbar;
 import ceui.lisa.R;
 import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentDownload;
-import ceui.lisa.fragments.FragmentDownloadFinish;
+import ceui.lisa.fragments.FragmentHasDownload;
 
 public class DownloadManageActivity extends BaseActivity {
 
     private static final String[] CHINESE_TITLES = new String[]{"正在下载", "已完成"};
-    private BaseFragment[] allPages = new BaseFragment[]{new FragmentDownload(), new FragmentDownloadFinish()};
+    private BaseFragment[] allPages = new BaseFragment[]{new FragmentDownload(), new FragmentHasDownload()};
 
     @Override
     protected void initLayout() {

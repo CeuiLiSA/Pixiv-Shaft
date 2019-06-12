@@ -1,17 +1,10 @@
 package ceui.lisa.download;
 
-import android.content.Intent;
-import android.net.Uri;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-
 import com.liulishuo.okdownload.DownloadTask;
-import com.liulishuo.okdownload.core.cause.EndCause;
-import com.liulishuo.okdownload.core.listener.DownloadListener2;
 
 import java.io.File;
 
-import ceui.lisa.activities.Shaft;
+import ceui.lisa.database.IllustTask;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.utils.Common;
 
@@ -40,8 +33,11 @@ public class IllustDownload {
                 .setPassIfAlreadyCompleted(false);
         builder.addHeader(MAP_KEY, IMAGE_REFERER);
         DownloadTask task = builder.build();
-        TaskQueue.get().addTask(task);
-
+        IllustTask illustTask = new IllustTask();
+        illustTask.setIllustsBean(illustsBean);
+        illustTask.setDownloadTask(task);
+        TaskQueue.get().addTask(illustTask);
+        task.enqueue(new QueueListener());
 //        task.enqueue(new DownloadListener2() {
 //            @Override
 //            public void taskStart(@NonNull DownloadTask downloadTask) {
@@ -81,8 +77,13 @@ public class IllustDownload {
                     .setPassIfAlreadyCompleted(false);
             builder.addHeader(MAP_KEY, IMAGE_REFERER);
             tasks[i] = builder.build();
-            TaskQueue.get().addTask(tasks[i]);
+            IllustTask illustTask = new IllustTask();
+            illustTask.setIllustsBean(illustsBean);
+            illustTask.setDownloadTask(tasks[i]);
+            TaskQueue.get().addTask(illustTask);
         }
+
+        DownloadTask.enqueue(tasks, new QueueListener());
 
 //        DownloadTask.enqueue(tasks, new DownloadListener2() {
 //            @Override

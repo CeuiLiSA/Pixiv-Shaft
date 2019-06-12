@@ -6,20 +6,18 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
-import com.liulishuo.okdownload.DownloadTask;
+import com.liulishuo.okdownload.StatusUtil;
 
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.download.TaskQueue;
+import ceui.lisa.database.IllustTask;
+import ceui.lisa.download.QueueListener;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.response.ArticalResponse;
-import ceui.lisa.utils.GlideUtil;
+import ceui.lisa.response.IllustsBean;
 
 
 public class DownloadTaskAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -27,9 +25,9 @@ public class DownloadTaskAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     private Context mContext;
     private LayoutInflater mLayoutInflater;
     private OnItemClickListener mOnItemClickListener;
-    private List<DownloadTask> allIllust;
+    private List<IllustTask> allIllust;
 
-    public DownloadTaskAdapter(List<DownloadTask> list, Context context) {
+    public DownloadTaskAdapter(List<IllustTask> list, Context context) {
         mContext = context;
         mLayoutInflater = LayoutInflater.from(mContext);
         allIllust = list;
@@ -47,9 +45,22 @@ public class DownloadTaskAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         final TagHolder currentOne = (TagHolder) holder;
 
 
-        TaskQueue.get().bind(currentOne, position);
-
-
+        ((QueueListener)allIllust.get(position).getDownloadTask().getListener()).bind(currentOne,
+                allIllust.get(position).getDownloadTask());
+        StatusUtil.Status status = StatusUtil.getStatus(allIllust.get(position).getDownloadTask());
+        if(status == StatusUtil.Status.COMPLETED) {
+            currentOne.state.setText("已完成");
+        }else if(status == StatusUtil.Status.IDLE) {
+            currentOne.state.setText("闲置中");
+        }else if(status == StatusUtil.Status.PENDING) {
+            currentOne.state.setText("等待下载");
+        }else if(status == StatusUtil.Status.RUNNING) {
+            currentOne.state.setText("下载中");
+        }else if(status == StatusUtil.Status.UNKNOWN) {
+            currentOne.state.setText("未知状态");
+        }else {
+            currentOne.state.setText("最坏的情况");
+        }
         if (mOnItemClickListener != null) {
             holder.itemView.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 0));
         }
@@ -65,12 +76,16 @@ public class DownloadTaskAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     }
 
     public static class TagHolder extends RecyclerView.ViewHolder {
+        private IllustsBean mIllustsBean;
         public ProgressBar mProgressBar;
-        public TextView title;
+        public TextView title, currentSize, fullSize, state;
         TagHolder(View itemView) {
             super(itemView);
             title = itemView.findViewById(R.id.task_name);
             mProgressBar = itemView.findViewById(R.id.progress);
+            currentSize = itemView.findViewById(R.id.current_size);
+            fullSize = itemView.findViewById(R.id.full_size);
+            state = itemView.findViewById(R.id.state);
         }
     }
 }

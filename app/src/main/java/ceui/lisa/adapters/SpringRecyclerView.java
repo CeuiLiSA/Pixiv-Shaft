@@ -26,7 +26,5 @@ public class SpringRecyclerView extends RecyclerView {
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         super.onLayout(changed, l, t, r, b);
-        Common.showLog("onLayout left: " + l + ", top: " + t + ", right: " + r + ", bottom: " + b);
     }
-
 }

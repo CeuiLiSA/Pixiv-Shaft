@@ -18,27 +18,29 @@ package ceui.lisa.download;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.util.SparseArray;
 
 import com.liulishuo.okdownload.DownloadTask;
-import com.liulishuo.okdownload.StatusUtil;
-import com.liulishuo.okdownload.core.breakpoint.BreakpointInfo;
 import com.liulishuo.okdownload.core.cause.EndCause;
 import com.liulishuo.okdownload.core.cause.ResumeFailedCause;
 import com.liulishuo.okdownload.core.listener.DownloadListener1;
 import com.liulishuo.okdownload.core.listener.assist.Listener1Assist;
 
 import ceui.lisa.adapters.DownloadTaskAdapter;
+import ceui.lisa.database.IllustTask;
 import ceui.lisa.utils.Common;
 
-class QueueListener extends DownloadListener1 {
-    private static final String TAG = "QueueListener";
+public class QueueListener extends DownloadListener1 {
 
+    private static final String TAG = "QueueListener";
     private SparseArray<DownloadTaskAdapter.TagHolder> holderMap = new SparseArray<>();
 
-    void bind(DownloadTask task, DownloadTaskAdapter.TagHolder holder) {
-        Log.i(TAG, "bind " + task.getId() + " with " + holder);
+
+    public QueueListener() {
+        Common.showLog("QueueListener 生成了一个实例 " + System.currentTimeMillis());
+    }
+
+    public void bind(DownloadTaskAdapter.TagHolder holder, DownloadTask task){
         // replace.
         final int size = holderMap.size();
         for (int i = 0; i < size; i++) {
@@ -48,62 +50,46 @@ class QueueListener extends DownloadListener1 {
             }
         }
         holderMap.put(task.getId(), holder);
-    }
-
-    void resetInfo(DownloadTask task, DownloadTaskAdapter.TagHolder holder) {
-
-        holder.title.setText(task.getFilename());
-    }
-
-    public void clearBoundHolder() {
-        holderMap.clear();
+        final String taskName = task.getFilename();
+        holder.title.setText(taskName);
     }
 
     @Override
-    public void taskStart(@NonNull DownloadTask task,
-                          @NonNull Listener1Assist.Listener1Model model) {
+    public void taskStart(@NonNull DownloadTask task, @NonNull Listener1Assist.Listener1Model model) {
 
-    }
-
-    @Override public void retry(@NonNull DownloadTask task, @NonNull ResumeFailedCause cause) {
     }
 
     @Override
-    public void connected(@NonNull DownloadTask task, int blockCount, long currentOffset,
-                          long totalLength) {
+    public void retry(@NonNull DownloadTask task, @NonNull ResumeFailedCause cause) {
+
+    }
+
+    @Override
+    public void connected(@NonNull DownloadTask task, int blockCount, long currentOffset, long totalLength) {
+
         final DownloadTaskAdapter.TagHolder holder = holderMap.get(task.getId());
-        if (holder == null) return;
-
-
-        holder.mProgressBar.setMax((int) totalLength);
-        holder.mProgressBar.setProgress((int) currentOffset);
-        Common.showLog(TAG + " connected " + currentOffset + "/" + totalLength);
+        if(holder != null){
+            holder.mProgressBar.setMax((int)totalLength);
+            holder.fullSize.setText(" / " + FileSizeUtil.formatFileSize(totalLength));
+            holder.mProgressBar.setProgress((int)currentOffset);
+        }
     }
 
     @Override
     public void progress(@NonNull DownloadTask task, long currentOffset, long totalLength) {
 
         final DownloadTaskAdapter.TagHolder holder = holderMap.get(task.getId());
-        if (holder == null) return;
-
-
-
-//        Log.i(TAG, "progress " + task.getId() + " with " + holder);
-//        ProgressUtil.updateProgressToViewWithMark(holder.mProgressBar, currentOffset, false);
-        holder.mProgressBar.setProgress((int) (currentOffset));
-        Common.showLog(TAG + " progress " + currentOffset + "/" + totalLength);
+        if(holder != null){
+            holder.mProgressBar.setMax((int)totalLength);
+            holder.mProgressBar.setProgress((int)currentOffset);
+            holder.currentSize.setText(FileSizeUtil.formatFileSize(currentOffset));
+        }
     }
 
     @Override
-    public void taskEnd(@NonNull DownloadTask task, @NonNull EndCause cause,
-                        @Nullable Exception realCause,
-                        @NonNull Listener1Assist.Listener1Model model) {
-        final String status = cause.toString();
-        final DownloadTaskAdapter.TagHolder holder = holderMap.get(task.getId());
-        if (holder == null) return;
-
-        if (cause == EndCause.COMPLETED) {
-            holder.mProgressBar.setProgress(holder.mProgressBar.getMax());
-        }
+    public void taskEnd(@NonNull DownloadTask task, @NonNull EndCause cause, @Nullable Exception realCause, @NonNull Listener1Assist.Listener1Model model) {
+        IllustTask illustTask = new IllustTask();
+        illustTask.setDownloadTask(task);
+        TaskQueue.get().removeTask(illustTask);
     }
 }

@@ -85,7 +85,10 @@ public abstract class BaseDataFragment<Adapter extends RecyclerView.Adapter<Recy
 
     public void getFirstData(){
         allItems.clear();
-        allItems.addAll(initList());
+        List<ListItem> tempList = initList();
+        if (tempList != null) {
+            allItems.addAll(tempList);
+        }
         initAdapter();
         mRefreshLayout.finishRefresh(true);
         mProgressBar.setVisibility(View.INVISIBLE);

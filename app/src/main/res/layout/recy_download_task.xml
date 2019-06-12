@@ -7,7 +7,6 @@
         android:layout_width="wrap_content"
         android:id="@+id/task_name"
         android:layout_margin="@dimen/sixteen_dp"
-        android:textSize="16sp"
         android:textColor="@color/dark_text"
         android:layout_height="wrap_content" />
 
@@ -17,11 +16,45 @@
         style="@style/Widget.AppCompat.ProgressBar.Horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:max="200"
         android:layout_below="@+id/task_name"
         android:layout_marginStart="@dimen/sixteen_dp"
-        android:progress="30"
+        android:progress="0"
+        android:layout_marginEnd="@dimen/sixteen_dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_marginStart="@dimen/sixteen_dp"
+        android:layout_marginTop="@dimen/eight_dp"
+        android:layout_marginBottom="@dimen/sixteen_dp"
+        android:textSize="12sp"
+        android:text="0.00KB"
+        android:layout_below="@+id/progress"
+        android:id="@+id/current_size"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_marginStart="@dimen/sixteen_dp"
+        android:layout_marginTop="@dimen/eight_dp"
+        android:layout_marginBottom="@dimen/sixteen_dp"
+        android:textSize="12sp"
+        android:id="@+id/full_size"
+        android:text=" / 未知大小"
+        android:layout_toEndOf="@+id/current_size"
+        android:layout_below="@+id/progress"
+        android:layout_height="wrap_content" />
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_marginStart="@dimen/sixteen_dp"
+        android:layout_marginTop="@dimen/eight_dp"
+        android:layout_marginBottom="@dimen/sixteen_dp"
+        android:textSize="12sp"
+        android:layout_alignParentEnd="true"
         android:layout_marginEnd="@dimen/sixteen_dp"
-        android:layout_marginBottom="@dimen/sixteen_dp" />
+        android:id="@+id/state"
+        android:layout_below="@+id/progress"
+        android:layout_height="wrap_content" />
 
 </RelativeLayout>
