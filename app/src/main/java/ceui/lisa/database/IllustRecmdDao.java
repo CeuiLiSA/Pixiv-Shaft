@@ -24,4 +24,6 @@ public interface IllustRecmdDao {
 
     @Query("SELECT * FROM illust_recmd_table")
     List<IllustRecmdEntity> getAll();
+
+
 }

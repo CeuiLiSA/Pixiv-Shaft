@@ -23,6 +23,7 @@ import org.greenrobot.eventbus.EventBus;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.database.AppDatabase;
 import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentBlank;
 import ceui.lisa.fragments.FragmentCenter;
@@ -162,7 +163,7 @@ public class CoverActivity extends BaseActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_camera) {
-
+            AppDatabase.getAppDatabase(mContext).downloadDao().deleteAll();
         } else if (id == R.id.nav_gallery) {
             Intent intent = new Intent(mContext, DownloadManageActivity.class);
             startActivity(intent);

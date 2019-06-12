@@ -42,10 +42,10 @@ public class TaskQueue {
             if (allTasks.get(i).getDownloadTask() == downloadTask.getDownloadTask()) {
                 Common.showLog("TaskQueue removeTask " + downloadTask.toString());
 
-                Channel channel = new Channel();
-                channel.setReceiver("FragmentDownload");
-                channel.setObject(i);
-                EventBus.getDefault().post(channel);
+                Channel deleteChannel = new Channel();
+                deleteChannel.setReceiver("FragmentDownload");
+                deleteChannel.setObject(i);
+                EventBus.getDefault().post(deleteChannel);
 
 
                 try {
@@ -54,7 +54,14 @@ public class TaskQueue {
                     Gson gson = new Gson();
                     downloadEntity.setIllustGson(gson.toJson(allTasks.get(i).getIllustsBean()));
                     downloadEntity.setDownloadTime(System.currentTimeMillis());
+                    downloadEntity.setFilePath(allTasks.get(i).getDownloadTask().getFile().getPath());
                     AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(downloadEntity);
+
+                    Channel addChannel = new Channel();
+                    addChannel.setReceiver("FragmentHasDownload");
+                    addChannel.setObject(downloadEntity);
+                    EventBus.getDefault().post(addChannel);
+
                     allTasks.remove(i);
                     break;
 
