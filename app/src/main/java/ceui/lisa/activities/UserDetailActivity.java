@@ -14,6 +14,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.model.GlideUrl;
+
+import org.reactivestreams.Subscription;
+
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import ceui.lisa.R;
 import ceui.lisa.fragments.BaseFragment;
@@ -21,6 +27,8 @@ import ceui.lisa.fragments.FragmentBlank;
 import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.fragments.FragmentSubmitIllust;
 import ceui.lisa.http.Retro;
+import ceui.lisa.response.IllustsBean;
+import ceui.lisa.response.ListIllustResponse;
 import ceui.lisa.response.UserDetailResponse;
 import ceui.lisa.response.UserModel;
 import ceui.lisa.view.AppBarStateChangeListener;
@@ -28,9 +36,11 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Local;
 import de.hdodenhof.circleimageview.CircleImageView;
+import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
 
 public class UserDetailActivity extends BaseActivity {
@@ -43,6 +53,7 @@ public class UserDetailActivity extends BaseActivity {
     private TextView userName, follow, fans, nowFollow;
     private ViewPager mViewPager;
     private UserDetailResponse mUserDetailResponse;
+    private boolean active = false;
 
 
     @Override
@@ -67,7 +78,6 @@ public class UserDetailActivity extends BaseActivity {
         nowFollow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
             }
         });
         CollapsingToolbarLayout collapsingToolbarLayout = findViewById(R.id.toolbar_layout);
@@ -78,7 +88,7 @@ public class UserDetailActivity extends BaseActivity {
                 if (state == State.EXPANDED) {
 
                 } else if (state == State.COLLAPSED) {
-                    if(mUserDetailResponse != null){
+                    if (mUserDetailResponse != null) {
                         toolbar.setTitle(mUserDetailResponse.getUser().getName());
                     }
                 } else {
@@ -142,7 +152,7 @@ public class UserDetailActivity extends BaseActivity {
 
                     @Override
                     public void onNext(UserDetailResponse userDetailResponse) {
-                        if(userDetailResponse != null){
+                        if (userDetailResponse != null) {
                             mUserDetailResponse = userDetailResponse;
                             setData(userDetailResponse);
                         }
@@ -159,23 +169,94 @@ public class UserDetailActivity extends BaseActivity {
 
                     }
                 });
+        if (userID == userModel.getResponse().getUser().getId()) {
+            Retro.getAppApi().getLoginBg(userModel.getResponse().getAccess_token())
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new Observer<ListIllustResponse>() {
+
+                        @Override
+                        public void onSubscribe(Disposable d) {
+
+                        }
+
+                        @Override
+                        public void onNext(ListIllustResponse listIllustResponse) {
+                            List<IllustsBean> list = listIllustResponse.getList();
+                            Observable.interval(0, 15, TimeUnit.SECONDS, AndroidSchedulers.mainThread())
+                                    .takeWhile(new Predicate<Long>() {
+                                        @Override
+                                        public boolean test(Long aLong) throws Exception {
+                                            return active;
+                                        }
+                                    }).subscribe(new Observer<Long>() {
+                                @Override
+                                public void onSubscribe(Disposable d) {
+
+                                }
+
+                                @Override
+                                public void onNext(Long aLong) {
+                                    int index = (int) (aLong % list.size());
+                                    Glide.with(UserDetailActivity.this)
+                                            .load(GlideUtil.getMediumImg(list.get(index)))
+                                            .into(background);
+                                    Glide.with(UserDetailActivity.this)
+                                            .load(GlideUtil.getMediumImg(list.get(++index % list.size())))
+                                            .preload();
+                                }
+
+                                @Override
+                                public void onError(Throwable e) {
+
+                                }
+
+                                @Override
+                                public void onComplete() {
+
+                                }
+                            });
+                        }
+
+                        @Override
+                        public void onError(Throwable e) {
+
+                        }
+
+                        @Override
+                        public void onComplete() {
+
+                        }
+                    });
+        }
     }
 
 
-    private void setData(UserDetailResponse userDetailResponse){
+    private void setData(UserDetailResponse userDetailResponse) {
         Glide.with(mContext)
                 .load(GlideUtil.getMediumImg(
                         userDetailResponse.getUser()
                                 .getProfile_image_urls().getMedium()))
                 .into(userHead);
         userName.setText(userDetailResponse.getUser().getName());
-        if(userDetailResponse.getUser().isIs_followed()){
+        if (userDetailResponse.getUser().isIs_followed()) {
             nowFollow.setText("取消關注");
-        }else {
+        } else {
             nowFollow.setText("+ 關注");
         }
         follow.setText("關注：" + userDetailResponse.getProfile().getTotal_mypixiv_users());
         fans.setText("粉絲：" + userDetailResponse.getProfile().getTotal_follow_users());
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        active = false;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        active = true;
+    }
 }

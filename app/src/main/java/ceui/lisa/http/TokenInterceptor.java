@@ -3,6 +3,7 @@ package ceui.lisa.http;
 import java.io.IOException;
 
 import ceui.lisa.fragments.FragmentLogin;
+import ceui.lisa.response.UserBean;
 import ceui.lisa.utils.Local;
 import ceui.lisa.response.UserModel;
 import okhttp3.Interceptor;
@@ -68,6 +69,9 @@ public class TokenInterceptor implements Interceptor {
                 true,
                 true);
         UserModel newUser = call.execute().body();
+
+        UserBean.ProfileImageUrlsBean profile_image_urls = newUser.getResponse().getUser().getProfile_image_urls();
+        profile_image_urls.setMedium(profile_image_urls.getPx_50x50());
         newUser.getResponse().getUser().setPassword(userModel.getResponse().getUser().getPassword());
         Local.saveUser(newUser);
         isFetchingToken = false;
