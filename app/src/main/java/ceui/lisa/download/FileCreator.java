@@ -17,6 +17,20 @@ public class FileCreator {
     //包含多P文件的下载路径
     public static final String FILE_PATH_META = "/storage/emulated/0/Shaft/MetaImages/";
 
+
+    public static final String FILE_GIF_PATH = "/storage/emulated/0/Shaft/gif/";
+
+
+    public static File createGifFile(IllustsBean illustsBean){
+        if(illustsBean == null){
+            return null;
+        }
+
+        return new File(FILE_GIF_PATH,
+                deleteSpecialWords(illustsBean.getTitle() + "_" + illustsBean.getId() + ".zip"));
+    }
+
+
     public static File createIllustFile(IllustsBean illustsBean){
         if(illustsBean == null){
             return null;

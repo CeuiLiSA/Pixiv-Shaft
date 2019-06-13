@@ -93,10 +93,19 @@ public class FragmentSingleIllust extends BaseFragment {
         download.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (illust.getPage_count() == 1) {
-                    IllustDownload.downloadIllust(illust);
-                } else {
-                    IllustDownload.downloadAllIllust(illust);
+
+                if(illust.getType().equals("ugoira")){
+
+
+
+                }else {
+
+
+                    if (illust.getPage_count() == 1) {
+                        IllustDownload.downloadIllust(illust);
+                    } else {
+                        IllustDownload.downloadAllIllust(illust);
+                    }
                 }
             }
         });
@@ -172,6 +181,7 @@ public class FragmentSingleIllust extends BaseFragment {
         mRecyclerView.addItemDecoration(new LinearItemDecorationNoLRTB(DensityUtil.dp2px(1.0f)));
         return v;
     }
+
 
 
     private void initCardSize(){
