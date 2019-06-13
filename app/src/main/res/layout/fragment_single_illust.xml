@@ -37,26 +37,41 @@
                 android:layout_height="50dp" />
 
 
-            <android.support.v7.widget.CardView
+            <ceui.lisa.view.ExpandCard
                 android:layout_width="match_parent"
                 app:cardElevation="@dimen/four_dp"
                 android:id="@+id/illust_list"
-                app:cardBackgroundColor="@color/white"
+                android:background="@drawable/side_rank_horizon"
                 app:cardCornerRadius="@dimen/four_dp"
                 android:layout_marginStart="@dimen/twelve_dp"
                 android:layout_marginEnd="@dimen/twelve_dp"
                 android:layout_marginBottom="@dimen/eight_dp"
                 android:layout_height="wrap_content">
 
-                <android.support.v7.widget.RecyclerView
+                <ceui.lisa.view.TouchRecyclerView
                     android:layout_width="match_parent"
                     android:id="@+id/recyclerView"
                     android:background="@color/light_bg"
                     android:layout_height="match_parent">
 
-                </android.support.v7.widget.RecyclerView>
+                </ceui.lisa.view.TouchRecyclerView>
 
-            </android.support.v7.widget.CardView>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:textSize="14sp"
+                    android:layout_margin="@dimen/twelve_dp"
+                    android:textColor="@android:color/white"
+                    android:textStyle="bold"
+                    android:shadowColor="#FF000000"
+                    android:shadowDx="1.5"
+                    android:shadowDy="1.5"
+                    android:shadowRadius="1.5"
+                    android:layout_gravity="bottom|end"
+                    android:id="@+id/see_all"
+                    android:layout_height="wrap_content" />
+
+            </ceui.lisa.view.ExpandCard>
 
 
 

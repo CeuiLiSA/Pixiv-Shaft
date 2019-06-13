@@ -1,21 +1,20 @@
-package ceui.lisa.utils;
+package ceui.lisa.view;
 
 import android.graphics.Rect;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
-public class LinearItemDecoration extends RecyclerView.ItemDecoration {
+public class LinearItemDecorationNoLR extends RecyclerView.ItemDecoration {
     private int space;
 
-    public LinearItemDecoration(int space) {
+    public LinearItemDecorationNoLR(int space) {
         this.space = space;
     }
 
     @Override
     public void getItemOffsets(Rect outRect, View view,
                                RecyclerView parent, RecyclerView.State state) {
-        outRect.left = space;
-        outRect.right = space;
+
         outRect.bottom = space;
 
         if (parent.getChildPosition(view) == 0) {

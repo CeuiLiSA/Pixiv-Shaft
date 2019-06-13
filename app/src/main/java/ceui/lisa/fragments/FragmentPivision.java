@@ -12,7 +12,7 @@ import ceui.lisa.adapters.ArticalAdapter;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.http.Retro;
 import ceui.lisa.response.ArticalResponse;
-import ceui.lisa.utils.LinearItemDecoration;
+import ceui.lisa.view.LinearItemDecoration;
 import io.reactivex.Observable;
 
 public class FragmentPivision extends BaseListFragment<ArticalResponse, ArticalAdapter, ArticalResponse.SpotlightArticlesBean> {

@@ -22,14 +22,11 @@ public class IllustDownload {
             return;
         }
 
-
         File file = FileCreator.createIllustFile(illustsBean);
         DownloadTask.Builder builder = new DownloadTask.Builder(illustsBean.getMeta_single_page().getOriginal_image_url(),
                 file.getParentFile())
                 .setFilename(file.getName())
-                // the minimal interval millisecond for callback progress
                 .setMinIntervalMillisCallbackProcess(30)
-                // do re-download even if the task has already been completed in the past.
                 .setPassIfAlreadyCompleted(false);
         builder.addHeader(MAP_KEY, IMAGE_REFERER);
         DownloadTask task = builder.build();
@@ -38,18 +35,7 @@ public class IllustDownload {
         illustTask.setDownloadTask(task);
         TaskQueue.get().addTask(illustTask);
         task.enqueue(new QueueListener());
-//        task.enqueue(new DownloadListener2() {
-//            @Override
-//            public void taskStart(@NonNull DownloadTask downloadTask) {
-//                TaskQueue.get().addTask(task);
-//            }
-//
-//            @Override
-//            public void taskEnd(@NonNull DownloadTask downloadTask, @NonNull EndCause cause, @Nullable Exception realCause) {
-//                Shaft.getContext().sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(file)));
-//                TaskQueue.get().removeTask(task);
-//            }
-//        });
+        Common.showToast("已加入下载队列");
     }
 
 
@@ -63,7 +49,6 @@ public class IllustDownload {
             return;
         }
 
-
         DownloadTask[] tasks = new DownloadTask[illustsBean.getPage_count()];
 
         for (int i = 0; i < illustsBean.getPage_count(); i++) {
@@ -71,9 +56,7 @@ public class IllustDownload {
             DownloadTask.Builder builder = new DownloadTask.Builder(illustsBean.getMeta_pages().get(i).getImage_urls().getOriginal(),
                     file.getParentFile())
                     .setFilename(file.getName())
-                    // the minimal interval millisecond for callback progress
                     .setMinIntervalMillisCallbackProcess(30)
-                    // do re-download even if the task has already been completed in the past.
                     .setPassIfAlreadyCompleted(false);
             builder.addHeader(MAP_KEY, IMAGE_REFERER);
             tasks[i] = builder.build();
@@ -84,20 +67,6 @@ public class IllustDownload {
         }
 
         DownloadTask.enqueue(tasks, new QueueListener());
-
-//        DownloadTask.enqueue(tasks, new DownloadListener2() {
-//            @Override
-//            public void taskStart(@NonNull DownloadTask task) {
-//
-//            }
-//
-//            @Override
-//            public void taskEnd(@NonNull DownloadTask task, @NonNull EndCause cause, @Nullable Exception realCause) {
-//                TaskQueue.get().removeTask(task);
-//                new SingleMediaScanner(Shaft.getContext(), task.getFile(), () -> {
-//                });
-//            }
-//        });
-        Common.showToast("加入下载队列成功");
+        Common.showToast("已加入下载队列");
     }
 }

@@ -1,4 +1,4 @@
-package ceui.lisa.utils;
+package ceui.lisa.view;
 
 import android.graphics.Rect;
 import android.support.v7.widget.RecyclerView;

@@ -11,7 +11,7 @@ import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.adapters.HotTagAdapter;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.response.TrendingtagResponse;
-import ceui.lisa.utils.TagItemDecoration;
+import ceui.lisa.view.TagItemDecoration;
 import io.reactivex.Observable;
 
 

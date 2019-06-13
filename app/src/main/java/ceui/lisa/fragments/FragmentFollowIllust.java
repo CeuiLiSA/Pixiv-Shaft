@@ -16,7 +16,7 @@ import ceui.lisa.http.Retro;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.response.ListIllustResponse;
 import ceui.lisa.utils.IllustChannel;
-import ceui.lisa.utils.LinearItemDecorationNoLR;
+import ceui.lisa.view.LinearItemDecorationNoLR;
 import io.reactivex.Observable;
 
 /**

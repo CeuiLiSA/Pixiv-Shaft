@@ -1,6 +1,5 @@
 package ceui.lisa.fragments;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.Toolbar;
@@ -20,20 +19,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.ImageDetailActivity;
-import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.DownlistAdapter;
 import ceui.lisa.adapters.SpringRecyclerView;
-import ceui.lisa.adapters.ViewHistoryAdapter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.DownloadEntity;
-import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.IllustChannel;
-import ceui.lisa.utils.LinearItemDecoration;
+import ceui.lisa.view.LinearItemDecoration;
 import io.reactivex.Observable;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.Observer;

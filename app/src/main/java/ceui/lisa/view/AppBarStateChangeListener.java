@@ -1,4 +1,4 @@
-package ceui.lisa.utils;
+package ceui.lisa.view;
 
 import android.support.design.widget.AppBarLayout;
 

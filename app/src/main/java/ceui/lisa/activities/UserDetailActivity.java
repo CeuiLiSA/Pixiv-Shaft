@@ -23,7 +23,7 @@ import ceui.lisa.fragments.FragmentSubmitIllust;
 import ceui.lisa.http.Retro;
 import ceui.lisa.response.UserDetailResponse;
 import ceui.lisa.response.UserModel;
-import ceui.lisa.utils.AppBarStateChangeListener;
+import ceui.lisa.view.AppBarStateChangeListener;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Local;

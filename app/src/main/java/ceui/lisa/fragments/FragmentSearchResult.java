@@ -14,14 +14,10 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.util.List;
-
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.IllustAdapter;
-import ceui.lisa.adapters.RankHorizontalAdapter;
-import ceui.lisa.dialogs.BaseDialog;
 import ceui.lisa.dialogs.SelectStartSizeDialog;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.http.Retro;
@@ -29,7 +25,7 @@ import ceui.lisa.response.IllustsBean;
 import ceui.lisa.response.ListIllustResponse;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.GridItemDecoration;
+import ceui.lisa.view.GridItemDecoration;
 import ceui.lisa.utils.IllustChannel;
 import io.reactivex.Observable;
 

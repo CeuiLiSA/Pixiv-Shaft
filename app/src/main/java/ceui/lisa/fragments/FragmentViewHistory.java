@@ -24,7 +24,7 @@ import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.IllustChannel;
-import ceui.lisa.utils.LinearItemDecoration;
+import ceui.lisa.view.LinearItemDecoration;
 import io.reactivex.Observable;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.Observer;

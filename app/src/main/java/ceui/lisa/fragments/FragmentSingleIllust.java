@@ -1,40 +1,23 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.DataSource;
-import com.bumptech.glide.load.engine.GlideException;
-import com.bumptech.glide.request.RequestListener;
-import com.bumptech.glide.request.target.Target;
 import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringChain;
-import com.facebook.rebound.SpringConfig;
-import com.facebook.rebound.SpringSystem;
-import com.github.ybq.android.spinkit.style.CubeGrid;
 import com.google.gson.Gson;
 import com.scwang.smartrefresh.layout.util.DensityUtil;
 
-import org.greenrobot.eventbus.EventBus;
-
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,11 +32,11 @@ import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.response.IllustsBean;
-import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
-import ceui.lisa.utils.LinearItemDecorationNoLR;
-import ceui.lisa.utils.LinearItemDecorationNoLRTB;
+import ceui.lisa.view.ExpandCard;
+import ceui.lisa.view.LinearItemDecorationNoLRTB;
+import ceui.lisa.view.TouchRecyclerView;
 import de.hdodenhof.circleimageview.CircleImageView;
 import jp.wasabeef.glide.transformations.BlurTransformation;
 import me.next.tagview.TagCloudView;
@@ -69,7 +52,8 @@ public class FragmentSingleIllust extends BaseFragment {
     private IllustsBean illust;
     private ImageView imageView;
     private TagCloudView mTagCloudView;
-    private RecyclerView mRecyclerView;
+    private TouchRecyclerView mRecyclerView;
+    private TextView seeAll;
 
     public static FragmentSingleIllust newInstance(IllustsBean illustsBean, Bundle bundle) {
         FragmentSingleIllust fragmentSingleIllust = new FragmentSingleIllust();
@@ -109,9 +93,9 @@ public class FragmentSingleIllust extends BaseFragment {
         download.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(illust.getPage_count() == 1){
+                if (illust.getPage_count() == 1) {
                     IllustDownload.downloadIllust(illust);
-                }else {
+                } else {
                     IllustDownload.downloadAllIllust(illust);
                 }
             }
@@ -127,11 +111,17 @@ public class FragmentSingleIllust extends BaseFragment {
         head.setLayoutParams(headParams);
 
 
+
+        initCardSize();
+
+
+
+
         TextView userName = v.findViewById(R.id.user_name);
         TextView follow = v.findViewById(R.id.follow);
-        if(illust.getUser().isIs_followed()){
+        if (illust.getUser().isIs_followed()) {
             follow.setText("取消关注");
-        }else {
+        } else {
             follow.setText("+ 关注");
         }
         CircleImageView userHead = v.findViewById(R.id.user_head);
@@ -183,6 +173,44 @@ public class FragmentSingleIllust extends BaseFragment {
         return v;
     }
 
+
+    private void initCardSize(){
+        if(false) {
+            int imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
+                    2 * mContext.getResources().getDimensionPixelSize(R.dimen.twelve_dp));
+            int realHeight = imageSize * illust.getHeight() / illust.getWidth();
+
+
+            final ExpandCard card = parentView.findViewById(R.id.illust_list);
+
+            final String illustSize = "全部展开 (" + illust.getPage_count() + "P)";
+            TextView seeAll = parentView.findViewById(R.id.see_all);
+            if (illust.getPage_count() == 1) {
+                seeAll.setVisibility(View.GONE);
+                card.setRealHeight(realHeight);
+                card.setAutoHeight(true);
+            } else {
+                card.setAutoHeight(false);
+                card.setRealHeight(card.getMaxHeight());
+                seeAll.setVisibility(View.VISIBLE);
+                seeAll.setText(illustSize);
+                seeAll.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (card.isExpand()) {
+                            card.setExpand(false);
+                            seeAll.setText(illustSize);
+                        } else {
+                            card.setExpand(true);
+                            seeAll.setText("全部收起");
+                        }
+                        card.invalidate();
+                    }
+                });
+            }
+        }
+    }
+
     private void loadImage() {
         Glide.with(mContext)
                 .load(GlideUtil.getSquare(illust))
@@ -208,10 +236,10 @@ public class FragmentSingleIllust extends BaseFragment {
         //initAnime();
     }
 
-    private void initAnime(){
-        if(parentView != null) {
+    private void initAnime() {
+        if (parentView != null) {
             mTagCloudView = parentView.findViewById(R.id.illust_tag);
-            if(mTagCloudView != null) {
+            if (mTagCloudView != null) {
                 SpringChain chain = SpringChain.create(100, 8, 50, 7);
                 for (int i = 0; i < mTagCloudView.getChildCount(); i++) {
                     final View view = mTagCloudView.getChildAt(i);

@@ -13,7 +13,7 @@ import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.http.Retro;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.response.ListIllustResponse;
-import ceui.lisa.utils.GridItemDecoration;
+import ceui.lisa.view.GridItemDecoration;
 import ceui.lisa.utils.IllustChannel;
 import io.reactivex.Observable;
 

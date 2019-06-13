@@ -24,7 +24,7 @@ import ceui.lisa.response.IllustsBean;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.IllustChannel;
-import ceui.lisa.utils.LinearItemHorizontalDecoration;
+import ceui.lisa.view.LinearItemHorizontalDecoration;
 
 /**
  * 推荐用户

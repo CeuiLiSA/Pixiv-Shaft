@@ -19,7 +19,7 @@ import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.http.Retro;
 import ceui.lisa.response.RecmdUserResponse;
 import ceui.lisa.response.UserPreviewsBean;
-import ceui.lisa.utils.LinearItemHorizontalDecoration;
+import ceui.lisa.view.LinearItemHorizontalDecoration;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;

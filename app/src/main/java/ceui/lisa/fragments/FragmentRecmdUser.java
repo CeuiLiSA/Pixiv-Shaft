@@ -13,7 +13,7 @@ import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.http.Retro;
 import ceui.lisa.response.RecmdUserResponse;
 import ceui.lisa.response.UserPreviewsBean;
-import ceui.lisa.utils.LinearItemDecoration;
+import ceui.lisa.view.LinearItemDecoration;
 import io.reactivex.Observable;
 
 /**

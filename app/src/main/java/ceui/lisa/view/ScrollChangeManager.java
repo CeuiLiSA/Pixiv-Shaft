@@ -1,4 +1,4 @@
-package ceui.lisa.utils;
+package ceui.lisa.view;
 
 import android.content.Context;
 import android.support.v7.widget.StaggeredGridLayoutManager;
