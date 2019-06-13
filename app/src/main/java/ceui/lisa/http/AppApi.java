@@ -118,7 +118,10 @@ public interface AppApi {
 
 
 
-
+    //  /v1/ugoira/metadata?illust_id=47297805
+    @GET("/v1/ugoira/metadata")
+    Observable<UserDetailResponse> getGifPackage(@Header("Authorization") String token,
+                                                 @Query("illust_id") int illust_id);
 
 
 
@@ -145,4 +148,8 @@ public interface AppApi {
     @GET
     Observable<ArticalResponse> getNextArticals(@Header("Authorization") String token,
                                                  @Url String next_url);
+
+
+
+
 }

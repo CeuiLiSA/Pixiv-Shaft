@@ -90,6 +90,10 @@ public class IllustStagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         }
         if (mOnItemClickListener != null) {
             holder.itemView.setOnClickListener(v -> {
+
+
+
+                //开始动画
                 if (state == 1) {
                     mRefreshLayout.setEnableLoadMore(false);
                     mManager.setCanScroll(false);
