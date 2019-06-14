@@ -176,7 +176,6 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                     while (true) {
                         if (playGif) {
                             emitter.onNext(allFiles.get(xyz % count));
-                            Common.showLog(allFiles.get(xyz % count));
                             Thread.sleep(75);
                             xyz++;
                         } else {
@@ -199,61 +198,4 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             gifHolder.playGif.setVisibility(View.VISIBLE);
         }
     }
-
-
-
-    /**
-     *
-     * 生成gif图并且播放
-     * 暂时弃用，效果还不如直接用图片做轮播
-     *
-     * Observable.create(new ObservableOnSubscribe<String>() {
-     *                         @Override
-     *                         public void subscribe(ObservableEmitter<String> emitter) throws Exception {
-     *                             Gifflen mGiffle = new Gifflen.Builder()
-     *                                     .delay(75) //每相邻两帧之间播放的时间间隔.
-     *                                     .quality(15)
-     *                                     .listener(new Gifflen.OnEncodeFinishListener() {  //创建完毕的回调
-     *                                         @Override
-     *                                         public void onEncodeFinish(String path) {
-     *                                             Common.showLog("已保存gif到" + path);
-     *                                             emitter.onNext(path);
-     *                                         }
-     *                                     })
-     *                                     .build();
-     *                             File resultParent = new File(FileCreator.FILE_GIF_RESULT_PATH);
-     *                             if (resultParent.exists()) {
-     *
-     *                             } else {
-     *                                 resultParent.mkdir();
-     *                             }
-     *
-     *                             File file = new File(FileCreator.FILE_GIF_RESULT_PATH, allIllust.getId() + ".gif");
-     *                             if (file.exists()) {
-     *
-     *                             } else {
-     *                                 file.createNewFile();
-     *                             }
-     *                             List<File> allFiles = Arrays.asList(listfile);
-     *                             Collections.sort(allFiles, new Comparator<File>() {
-     *                                 @Override
-     *                                 public int compare(File o1, File o2) {
-     *                                     if(Integer.valueOf(o1.getName().substring(0, o1.getName().length() - 4)) >
-     *                                             Integer.valueOf(o2.getName().substring(0, o2.getName().length() - 4)))
-     *                                     {
-     *                                         return 1;
-     *                                     }else{
-     *                                         return -1;
-     *                                     }
-     *                                 }
-     *                             });
-     *                             mGiffle.encode(file.getPath(), allFiles);
-     *                         }
-     *                     })
-     */
-
-
-
-
-
 }

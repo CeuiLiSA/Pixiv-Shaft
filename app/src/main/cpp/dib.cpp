@@ -15,13 +15,13 @@ void DIB::saveBMP(char *fileName, bool flip) {
 
     fopen_s(&outFile, fileName, "wb");
     char bmpHeader[] = {'B', 'M',
-                        (char) (bfSize & 0xff),  (char) (bfSize >> 8),  (char) (bfSize >> 16),
-                        (char) (bfSize >> 24),
+                        static_cast<char>(bfSize & 0xff), static_cast<char>(bfSize >> 8),
+                        static_cast<char>(bfSize >> 16), static_cast<char>(bfSize >> 24),
                         0, 0, 0, 0,
-                        (char) ((54 + 1024) & 0xff),  (char) ((54 + 1024) >> 8), 0, 0,
+                        (54 + 1024) & 0xff, (54 + 1024) >> 8, 0, 0,
                         40, 0, 0, 0,
-                        (char) (width & 0xff),  (char) (width >> 8), 0, 0,
-                        (char) (height & 0xff),  (char) (height >> 8), 0, 0,
+                        static_cast<char>(width & 0xff), static_cast<char>(width >> 8), 0, 0,
+                        static_cast<char>(height & 0xff), static_cast<char>(height >> 8), 0, 0,
                         1, 0,
                         8, 0,
                         0, 0, 0, 0,
