@@ -26,6 +26,12 @@ import com.liulishuo.okdownload.core.cause.ResumeFailedCause;
 import com.liulishuo.okdownload.core.listener.DownloadListener1;
 import com.liulishuo.okdownload.core.listener.assist.Listener1Assist;
 
+
+import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.exception.ZipException;
+
+import java.io.File;
+
 import ceui.lisa.adapters.DownloadTaskAdapter;
 import ceui.lisa.database.IllustTask;
 import ceui.lisa.utils.Common;
@@ -40,7 +46,7 @@ public class QueueListener extends DownloadListener1 {
         Common.showLog("QueueListener 生成了一个实例 " + System.currentTimeMillis());
     }
 
-    public void bind(DownloadTaskAdapter.TagHolder holder, DownloadTask task){
+    public void bind(DownloadTaskAdapter.TagHolder holder, DownloadTask task) {
         // replace.
         final int size = holderMap.size();
         for (int i = 0; i < size; i++) {
@@ -68,10 +74,10 @@ public class QueueListener extends DownloadListener1 {
     public void connected(@NonNull DownloadTask task, int blockCount, long currentOffset, long totalLength) {
 
         final DownloadTaskAdapter.TagHolder holder = holderMap.get(task.getId());
-        if(holder != null){
-            holder.mProgressBar.setMax((int)totalLength);
+        if (holder != null) {
+            holder.mProgressBar.setMax((int) totalLength);
             holder.fullSize.setText(" / " + FileSizeUtil.formatFileSize(totalLength));
-            holder.mProgressBar.setProgress((int)currentOffset);
+            holder.mProgressBar.setProgress((int) currentOffset);
         }
     }
 
@@ -79,9 +85,9 @@ public class QueueListener extends DownloadListener1 {
     public void progress(@NonNull DownloadTask task, long currentOffset, long totalLength) {
 
         final DownloadTaskAdapter.TagHolder holder = holderMap.get(task.getId());
-        if(holder != null){
-            holder.mProgressBar.setMax((int)totalLength);
-            holder.mProgressBar.setProgress((int)currentOffset);
+        if (holder != null) {
+            holder.mProgressBar.setMax((int) totalLength);
+            holder.mProgressBar.setProgress((int) currentOffset);
             holder.currentSize.setText(FileSizeUtil.formatFileSize(currentOffset));
         }
     }
@@ -90,6 +96,32 @@ public class QueueListener extends DownloadListener1 {
     public void taskEnd(@NonNull DownloadTask task, @NonNull EndCause cause, @Nullable Exception realCause, @NonNull Listener1Assist.Listener1Model model) {
         IllustTask illustTask = new IllustTask();
         illustTask.setDownloadTask(task);
+
+
+        try {
+
+            Common.showLog(task.getFile().getPath());
+            if (task.getFilename().contains(".zip")) {
+                //ZipUtil.unpack(task.getFile(), new File(FileCreator.FILE_GIF_CHILD_PATH + task.getFilename().substring(0, task.getFilename().length() - 4)));
+
+
+                try {
+                    ZipFile zipFile = new ZipFile(task.getFile().getPath());
+                    zipFile.extractAll(FileCreator.FILE_GIF_CHILD_PATH +
+                            task.getFilename().substring(0, task.getFilename().length() - 4));
+                } catch (ZipException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
         TaskQueue.get().removeTask(illustTask);
+
+
+
     }
 }

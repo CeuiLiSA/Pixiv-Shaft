@@ -20,7 +20,7 @@ public class GifDownload {
         }
 
 
-        File file = FileCreator.createIllustFile(illustsBean);
+        File file = FileCreator.createGifFile(illustsBean);
         DownloadTask.Builder builder = new DownloadTask.Builder(
                 response.getUgoira_metadata().getZip_urls().getMedium(),
                 file.getParentFile())
