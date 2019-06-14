@@ -2,11 +2,9 @@ package ceui.lisa.adapters;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,10 +14,19 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
 
+import java.io.File;
+
 import ceui.lisa.R;
+import ceui.lisa.download.FileCreator;
+import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.utils.GlideUtil;
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 
 
 /**
@@ -52,16 +59,41 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         final TagHolder currentOne = (TagHolder) holder;
 
-        if(position == 0) {
-            ViewGroup.LayoutParams params = currentOne.illust.getLayoutParams();
-            params.height = imageSize * allIllust.getHeight() / allIllust.getWidth();
-            params.width = imageSize;
-            currentOne.illust.setLayoutParams(params);
-            Glide.with(mContext)
-                    .load(GlideUtil.getLargeImage(allIllust, position))
-                    .placeholder(R.color.light_bg)
-                    .into(currentOne.illust);
-        }else {
+        if (position == 0) {
+
+            if (allIllust.getType().equals("ugoira")) {
+                File parentFile = FileCreator.createGifParentFile(allIllust);
+                if(parentFile.exists()) {
+                    final File[] listfile = parentFile.listFiles();
+
+                    Observable.create(new ObservableOnSubscribe<File>() {
+                        @Override
+                        public void subscribe(ObservableEmitter<File> emitter) throws Exception {
+                            for (File file : listfile) {
+                                emitter.onNext(file);
+                                Thread.sleep(30);
+                            }
+                        }
+                    }).subscribeOn(Schedulers.newThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new ErrorCtrl<File>() {
+                                @Override
+                                public void onNext(File file) {
+                                    Glide.with(mContext).load(file).into(currentOne.illust);
+                                }
+                            });
+                }
+            } else {
+                ViewGroup.LayoutParams params = currentOne.illust.getLayoutParams();
+                params.height = imageSize * allIllust.getHeight() / allIllust.getWidth();
+                params.width = imageSize;
+                currentOne.illust.setLayoutParams(params);
+                Glide.with(mContext)
+                        .load(GlideUtil.getLargeImage(allIllust, position))
+                        .placeholder(R.color.light_bg)
+                        .into(currentOne.illust);
+            }
+        } else {
             Glide.with(mContext)
                     .asBitmap()
                     .load(GlideUtil.getLargeImage(allIllust, position))
@@ -78,7 +110,7 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                     });
         }
 
-        if(mOnItemClickListener != null){
+        if (mOnItemClickListener != null) {
             holder.itemView.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 0));
         }
     }

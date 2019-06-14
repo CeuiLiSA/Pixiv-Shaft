@@ -183,7 +183,9 @@ public class CoverActivity extends BaseActivity
         } else if (id == R.id.nav_share) {
 
         } else if (id == R.id.nav_send) {
-
+            Intent intent = new Intent(mContext, UserDetailActivity.class);
+            intent.putExtra("user id", mUserModel.getResponse().getUser().getId());
+            startActivity(intent);
         }
 
         mDrawer.closeDrawer(GravityCompat.START);

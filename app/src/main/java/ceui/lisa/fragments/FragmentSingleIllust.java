@@ -18,6 +18,7 @@ import com.facebook.rebound.SpringChain;
 import com.google.gson.Gson;
 import com.scwang.smartrefresh.layout.util.DensityUtil;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,15 +30,23 @@ import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.adapters.IllustDetailAdapter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustHistoryEntity;
+import ceui.lisa.download.FileCreator;
+import ceui.lisa.download.GifDownload;
 import ceui.lisa.download.IllustDownload;
+import ceui.lisa.http.ErrorCtrl;
+import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
+import ceui.lisa.response.GifResponse;
 import ceui.lisa.response.IllustsBean;
+import ceui.lisa.response.UserDetailResponse;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.view.ExpandCard;
 import ceui.lisa.view.LinearItemDecorationNoLRTB;
 import ceui.lisa.view.TouchRecyclerView;
 import de.hdodenhof.circleimageview.CircleImageView;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 import jp.wasabeef.glide.transformations.BlurTransformation;
 import me.next.tagview.TagCloudView;
 
@@ -96,7 +105,7 @@ public class FragmentSingleIllust extends BaseFragment {
 
                 if(illust.getType().equals("ugoira")){
 
-
+                    getGifUrl();
 
                 }else {
 
@@ -242,8 +251,21 @@ public class FragmentSingleIllust extends BaseFragment {
 
     @Override
     void initData() {
-        loadImage();
+
+            loadImage();
         //initAnime();
+    }
+
+    public void getGifUrl(){
+        Retro.getAppApi().getGifPackage(mUserModel.getResponse().getAccess_token(), illust.getId())
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new ErrorCtrl<GifResponse>() {
+                    @Override
+                    public void onNext(GifResponse gifResponse) {
+                        GifDownload.downloadGif(gifResponse, illust);
+                    }
+                });
     }
 
     private void initAnime() {

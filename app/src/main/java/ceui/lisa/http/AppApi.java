@@ -1,6 +1,7 @@
 package ceui.lisa.http;
 
 import ceui.lisa.response.ArticalResponse;
+import ceui.lisa.response.GifResponse;
 import ceui.lisa.response.ListIllustResponse;
 import ceui.lisa.response.RecmdUserResponse;
 import ceui.lisa.response.TrendingtagResponse;
@@ -120,8 +121,8 @@ public interface AppApi {
 
     //  /v1/ugoira/metadata?illust_id=47297805
     @GET("/v1/ugoira/metadata")
-    Observable<UserDetailResponse> getGifPackage(@Header("Authorization") String token,
-                                                 @Query("illust_id") int illust_id);
+    Observable<GifResponse> getGifPackage(@Header("Authorization") String token,
+                                          @Query("illust_id") int illust_id);
 
 
 
