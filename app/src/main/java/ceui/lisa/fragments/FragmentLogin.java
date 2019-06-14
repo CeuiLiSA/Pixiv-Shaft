@@ -10,6 +10,7 @@ import com.rengwuxian.materialedittext.MaterialEditText;
 import ceui.lisa.R;
 import ceui.lisa.activities.CoverActivity;
 import ceui.lisa.http.Retro;
+import ceui.lisa.response.UserBean;
 import ceui.lisa.utils.Local;
 import ceui.lisa.response.UserModel;
 import ceui.lisa.utils.Common;
@@ -41,6 +42,8 @@ public class FragmentLogin extends NetworkFragment<UserModel> {
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+//                使输入的用户名密码生效
+                initApi();
                 login();
             }
         });
@@ -80,6 +83,9 @@ public class FragmentLogin extends NetworkFragment<UserModel> {
                     @Override
                     public void onNext(UserModel userModel) {
                         if(userModel != null){
+                            UserBean.ProfileImageUrlsBean profile_image_urls = userModel.getResponse().getUser().getProfile_image_urls();
+                            profile_image_urls.setMedium(profile_image_urls.getPx_50x50());
+
                             userModel.getResponse().getUser().setPassword(password.getText().toString());
                             Local.saveUser(userModel);
                             mProgressBar.setVisibility(View.INVISIBLE);

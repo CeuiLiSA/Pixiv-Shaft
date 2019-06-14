@@ -14,6 +14,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 
 import com.bumptech.glide.Glide;
@@ -41,6 +42,8 @@ public class CoverActivity extends BaseActivity
     private ViewPager mViewPager;
     private DrawerLayout mDrawer;
     private ImageView userHead;
+    private TextView username;
+    private TextView user_email;
     private UserModel mUserModel;
 
     @Override
@@ -65,6 +68,8 @@ public class CoverActivity extends BaseActivity
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         userHead = navigationView.getHeaderView(0).findViewById(R.id.user_head);
+        username = navigationView.getHeaderView(0).findViewById(R.id.user_name);
+        user_email = navigationView.getHeaderView(0).findViewById(R.id.user_email);
         userHead.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -193,11 +198,13 @@ public class CoverActivity extends BaseActivity
     @Override
     protected void onResume() {
         super.onResume();
-//        if(mUserModel != null && mUserModel.getResponse() != null) {
-//            Glide.with(mContext)
-//                    .load(GlideUtil.getMediumImg(
-//                            mUserModel.getResponse().getUser().getProfile_image_urls().getMedium()))
-//                    .into(userHead);
-//        }
+        if(mUserModel != null && mUserModel.getResponse() != null) {
+            Glide.with(mContext)
+                    .load(GlideUtil.getMediumImg(
+                            mUserModel.getResponse().getUser().getProfile_image_urls().getMedium()))
+                    .into(userHead);
+            username.setText(mUserModel.getResponse().getUser().getName());
+            user_email.setText(mUserModel.getResponse().getUser().getMail_address());
+        }
     }
 }
