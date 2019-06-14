@@ -6,6 +6,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -28,6 +29,7 @@ public class UserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private Context mContext;
     private LayoutInflater mLayoutInflater;
     private OnItemClickListener mOnItemClickListener;
+    private OnItemClickListener mOnPostLikeUserClickListener;
     private List<UserPreviewsBean> allIllust;
     private int imageSize = 0;
 
@@ -75,6 +77,9 @@ public class UserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         if(mOnItemClickListener != null){
             holder.itemView.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 0));
         }
+        if(mOnPostLikeUserClickListener != null){
+            currentOne.post_like_user.setOnClickListener(v -> mOnPostLikeUserClickListener.onItemClick(v, position, 0));
+        }
     }
 
     @Override
@@ -85,11 +90,16 @@ public class UserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public void setOnItemClickListener(OnItemClickListener itemClickListener) {
         mOnItemClickListener = itemClickListener;
     }
+    public void setmOnPostLikeUserClickListener(OnItemClickListener itemClickListener) {
+        mOnPostLikeUserClickListener = itemClickListener;
+    }
 
     public static class TagHolder extends RecyclerView.ViewHolder {
+        Button post_like_user;
         ImageView one, two, three;
         TextView title;
         CircleImageView head;
+
         TagHolder(View itemView) {
             super(itemView);
             head = itemView.findViewById(R.id.user_head);
@@ -97,6 +107,7 @@ public class UserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             one = itemView.findViewById(R.id.user_show_one);
             two = itemView.findViewById(R.id.user_show_two);
             three = itemView.findViewById(R.id.user_show_three);
+            post_like_user = itemView.findViewById(R.id.post_like_user);
         }
     }
 }

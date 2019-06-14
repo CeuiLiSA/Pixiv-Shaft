@@ -1,14 +1,19 @@
 package ceui.lisa.http;
 
 import ceui.lisa.response.ArticalResponse;
+import ceui.lisa.response.BookmarkAddResponse;
 import ceui.lisa.response.GifResponse;
 import ceui.lisa.response.ListIllustResponse;
 import ceui.lisa.response.RecmdUserResponse;
 import ceui.lisa.response.TrendingtagResponse;
 import ceui.lisa.response.UserDetailResponse;
 import io.reactivex.Observable;
+import okhttp3.ResponseBody;
+import retrofit2.http.Field;
+import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
+import retrofit2.http.POST;
 import retrofit2.http.Query;
 import retrofit2.http.Url;
 
@@ -151,6 +156,15 @@ public interface AppApi {
                                                  @Url String next_url);
 
 
+    @FormUrlEncoded
+    @POST("/v1/user/follow/add")
+    Observable<BookmarkAddResponse> postFollow(@Header("Authorization") String token,
+                                               @Field("user_id") int user_id,
+                                               @Field("restrict") String followType);
 
+    @FormUrlEncoded
+    @POST("/v1/user/follow/delete")
+    Observable<BookmarkAddResponse> postUnFollow(@Header("Authorization") String token,
+                                                 @Field("user_id") int user_id);
 
 }

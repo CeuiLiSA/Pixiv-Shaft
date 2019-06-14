@@ -41,6 +41,7 @@ import ceui.lisa.response.IllustsBean;
 import ceui.lisa.response.UserDetailResponse;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
+import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.view.ExpandCard;
 import ceui.lisa.view.LinearItemDecorationNoLRTB;
 import ceui.lisa.view.TouchRecyclerView;
@@ -188,6 +189,12 @@ public class FragmentSingleIllust extends BaseFragment {
         mRecyclerView.setLayoutManager(layoutManager);
         mRecyclerView.setNestedScrollingEnabled(true);
         mRecyclerView.addItemDecoration(new LinearItemDecorationNoLRTB(DensityUtil.dp2px(1.0f)));
+
+        follow = v.findViewById(R.id.follow);
+        TextView finalFollow = follow;
+        follow.setOnClickListener(v1 -> {
+            PixivOperate.followOrUnfollowClick(illust.getUser().getId(), finalFollow);
+        });
         return v;
     }
 
