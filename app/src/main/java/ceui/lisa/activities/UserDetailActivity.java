@@ -1,5 +1,6 @@
 package ceui.lisa.activities;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.support.annotation.Nullable;
 import android.support.design.widget.AppBarLayout;
@@ -18,6 +19,7 @@ import com.bumptech.glide.load.model.GlideUrl;
 
 import org.reactivestreams.Subscription;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -33,6 +35,7 @@ import ceui.lisa.response.UserBean;
 import ceui.lisa.response.UserDetailResponse;
 import ceui.lisa.response.UserModel;
 import ceui.lisa.utils.PixivOperate;
+import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.view.AppBarStateChangeListener;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
@@ -45,6 +48,8 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
 
+import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
+
 public class UserDetailActivity extends BaseActivity {
 
     private static final String[] TITLES = new String[]{"收藏", "作品", "关于"};
@@ -56,6 +61,7 @@ public class UserDetailActivity extends BaseActivity {
     private ViewPager mViewPager;
     private UserDetailResponse mUserDetailResponse;
     private boolean active = false;
+    private int nowIndex = 0;
 
 
     @Override
@@ -187,13 +193,19 @@ public class UserDetailActivity extends BaseActivity {
                         @Override
                         public void onNext(ListIllustResponse listIllustResponse) {
                             List<IllustsBean> list = listIllustResponse.getList();
-                            Observable.interval(0, 15, TimeUnit.SECONDS, AndroidSchedulers.mainThread())
-                                    .takeWhile(new Predicate<Long>() {
-                                        @Override
-                                        public boolean test(Long aLong) throws Exception {
-                                            return active;
-                                        }
-                                    }).subscribe(new Observer<Long>() {
+                            background.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    IllustChannel.get().setIllustList(list);
+                                    Intent intent = new Intent(mContext, ViewPagerActivity.class);
+                                    intent.putExtra("position", nowIndex);
+                                    startActivity(intent);
+                                }
+                            });
+                            Observable.interval(0, 15, TimeUnit.SECONDS,
+                                    AndroidSchedulers.mainThread())
+                                    .takeWhile(aLong -> active)
+                                    .subscribe(new Observer<Long>() {
                                 @Override
                                 public void onSubscribe(Disposable d) {
 
@@ -202,10 +214,14 @@ public class UserDetailActivity extends BaseActivity {
                                 @Override
                                 public void onNext(Long aLong) {
                                     int index = (int) (aLong % list.size());
-                                    Glide.with(Shaft.getContext())
-                                            .load(GlideUtil.getMediumImg(list.get(index)))
+                                    nowIndex = index;
+                                    //平滑切换背景图
+                                    Glide.with(mContext)
+                                            .load(GlideUtil.getLargeImage(list.get(index)))
+                                            .placeholder(background.getDrawable())
+                                            .transition(withCrossFade(1250))
                                             .into(background);
-                                    Glide.with(Shaft.getContext())
+                                    Glide.with(mContext)
                                             .load(GlideUtil.getMediumImg(list.get(++index % list.size())))
                                             .preload();
                                 }
