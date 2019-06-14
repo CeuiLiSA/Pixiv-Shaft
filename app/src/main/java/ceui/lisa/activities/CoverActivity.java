@@ -201,10 +201,10 @@ public class CoverActivity extends BaseActivity
     protected void onResume() {
         super.onResume();
         if(mUserModel != null && mUserModel.getResponse() != null) {
-            Glide.with(mContext)
-                    .load(GlideUtil.getMediumImg(
-                            mUserModel.getResponse().getUser().getProfile_image_urls().getMedium()))
-                    .into(userHead);
+//            Glide.with(mContext)
+//                    .load(GlideUtil.getMediumImg(
+//                            mUserModel.getResponse().getUser().getProfile_image_urls().getMedium()))
+//                    .into(userHead);
             username.setText(mUserModel.getResponse().getUser().getName());
             user_email.setText(mUserModel.getResponse().getUser().getMail_address());
         }

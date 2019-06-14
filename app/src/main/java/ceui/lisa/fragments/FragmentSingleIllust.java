@@ -18,6 +18,10 @@ import com.facebook.rebound.SpringChain;
 import com.google.gson.Gson;
 import com.scwang.smartrefresh.layout.util.DensityUtil;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +33,7 @@ import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.adapters.IllustDetailAdapter;
 import ceui.lisa.database.AppDatabase;
+import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.download.GifDownload;
@@ -39,6 +44,7 @@ import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.response.GifResponse;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.response.UserDetailResponse;
+import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.view.ExpandCard;
@@ -63,6 +69,7 @@ public class FragmentSingleIllust extends BaseFragment {
     private TagCloudView mTagCloudView;
     private TouchRecyclerView mRecyclerView;
     private TextView seeAll;
+    private IllustDetailAdapter mDetailAdapter;
 
     public static FragmentSingleIllust newInstance(IllustsBean illustsBean, Bundle bundle) {
         FragmentSingleIllust fragmentSingleIllust = new FragmentSingleIllust();
@@ -102,19 +109,10 @@ public class FragmentSingleIllust extends BaseFragment {
         download.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                if(illust.getType().equals("ugoira")){
-
-                    getGifUrl();
-
-                }else {
-
-
-                    if (illust.getPage_count() == 1) {
-                        IllustDownload.downloadIllust(illust);
-                    } else {
-                        IllustDownload.downloadAllIllust(illust);
-                    }
+                if (illust.getPage_count() == 1) {
+                    IllustDownload.downloadIllust(illust);
+                } else {
+                    IllustDownload.downloadAllIllust(illust);
                 }
             }
         });
@@ -236,27 +234,38 @@ public class FragmentSingleIllust extends BaseFragment {
                 .apply(bitmapTransform(new BlurTransformation(25, 3)))
                 .transition(withCrossFade())
                 .into(imageView);
-        IllustDetailAdapter adapter = new IllustDetailAdapter(illust, mContext);
-        adapter.setOnItemClickListener(new OnItemClickListener() {
+        mDetailAdapter = new IllustDetailAdapter(illust, mContext);
+        mDetailAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                Intent intent = new Intent(mContext, ImageDetailActivity.class);
-                intent.putExtra("illust", illust);
-                intent.putExtra("index", position);
-                startActivity(intent);
+                if(viewType == 0) {
+                    Intent intent = new Intent(mContext, ImageDetailActivity.class);
+                    intent.putExtra("illust", illust);
+                    intent.putExtra("index", position);
+                    startActivity(intent);
+                }else if(viewType == 1){
+                    getGifUrl();
+                }
             }
         });
-        mRecyclerView.setAdapter(adapter);
+        mRecyclerView.setAdapter(mDetailAdapter);
     }
 
     @Override
     void initData() {
+        loadImage();
+    }
 
-            loadImage();
-        //initAnime();
+    @Override
+    public void onPause() {
+        super.onPause();
+        if(illust.getType().equals("ugoira") && mDetailAdapter != null){
+            mDetailAdapter.setPlayGif(false);
+        }
     }
 
     public void getGifUrl(){
+        Common.showToast("获取图组ZIP地址");
         Retro.getAppApi().getGifPackage(mUserModel.getResponse().getAccess_token(), illust.getId())
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -302,6 +311,13 @@ public class FragmentSingleIllust extends BaseFragment {
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
             insertViewHistory();
+            if(illust.getType().equals("ugoira") && mDetailAdapter != null){
+                mDetailAdapter.startGif();
+            }
+        }else {
+            if(illust.getType().equals("ugoira") && mDetailAdapter != null){
+                mDetailAdapter.setPlayGif(false);
+            }
         }
     }
 
@@ -316,5 +332,26 @@ public class FragmentSingleIllust extends BaseFragment {
         illustHistoryEntity.setIllustJson(gson.toJson(illust));
         illustHistoryEntity.setTime(System.currentTimeMillis());
         AppDatabase.getAppDatabase(Shaft.getContext()).trackDao().insert(illustHistoryEntity);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(Channel event) {
+        if(className.contains(event.getReceiver())) {
+            mDetailAdapter.startGif();
+        }
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EventBus.getDefault().register(this);
+        Common.showLog(className + "EVENTBUS 注册了");
+    }
+
+    @Override
+    public void onDestroy() {
+        EventBus.getDefault().unregister(this);
+        super.onDestroy();
+        Common.showLog(className + "EVENTBUS 取消注册了");
     }
 }

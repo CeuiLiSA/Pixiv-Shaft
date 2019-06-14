@@ -75,7 +75,6 @@ public class Common {
             toast = Toast.makeText(Shaft.getContext(), String.valueOf(t), Toast.LENGTH_SHORT);
         } else {
             toast.setText(String.valueOf(t));
-            toast.setDuration(Toast.LENGTH_SHORT);
         }
         toast.show();
     }

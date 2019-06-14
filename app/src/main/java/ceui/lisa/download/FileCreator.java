@@ -22,6 +22,8 @@ public class FileCreator {
 
     public static final String FILE_GIF_CHILD_PATH = "/storage/emulated/0/Shaft/gifUnzip/";
 
+    public static final String FILE_GIF_RESULT_PATH = "/storage/emulated/0/Shaft/gifGenerate/";
+
 
     public static File createGifFile(IllustsBean illustsBean){
         if(illustsBean == null){

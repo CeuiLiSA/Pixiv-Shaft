@@ -34,6 +34,6 @@ public class GifDownload {
         illustTask.setDownloadTask(task);
         TaskQueue.get().addTask(illustTask);
         task.enqueue(new QueueListener());
-        Common.showToast("已加入下载队列");
+        Common.showToast("图组ZIP已加入下载队列");
     }
 }

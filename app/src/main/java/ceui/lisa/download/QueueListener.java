@@ -30,10 +30,13 @@ import com.liulishuo.okdownload.core.listener.assist.Listener1Assist;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 
+import org.greenrobot.eventbus.EventBus;
+
 import java.io.File;
 
 import ceui.lisa.adapters.DownloadTaskAdapter;
 import ceui.lisa.database.IllustTask;
+import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 
 public class QueueListener extends DownloadListener1 {
@@ -99,7 +102,6 @@ public class QueueListener extends DownloadListener1 {
 
 
         try {
-
             Common.showLog(task.getFile().getPath());
             if (task.getFilename().contains(".zip")) {
                 //ZipUtil.unpack(task.getFile(), new File(FileCreator.FILE_GIF_CHILD_PATH + task.getFilename().substring(0, task.getFilename().length() - 4)));
@@ -109,6 +111,17 @@ public class QueueListener extends DownloadListener1 {
                     ZipFile zipFile = new ZipFile(task.getFile().getPath());
                     zipFile.extractAll(FileCreator.FILE_GIF_CHILD_PATH +
                             task.getFilename().substring(0, task.getFilename().length() - 4));
+                    Common.showToast("图组ZIP解压完成");
+
+
+
+                    //通知FragmentSingleIllust 开始播放gif
+                    Channel channel = new Channel();
+                    channel.setReceiver("FragmentSingleIllust");
+                    EventBus.getDefault().post(channel);
+
+
+
                 } catch (ZipException e) {
                     e.printStackTrace();
                 }
