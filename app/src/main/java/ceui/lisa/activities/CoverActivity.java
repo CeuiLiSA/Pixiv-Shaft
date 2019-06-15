@@ -3,6 +3,7 @@ package ceui.lisa.activities;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.NavigationView;
@@ -19,22 +20,20 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 
-import org.greenrobot.eventbus.EventBus;
-
-import java.util.List;
+import java.io.File;
 
 import ceui.lisa.R;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.fragments.BaseFragment;
-import ceui.lisa.fragments.FragmentBlank;
 import ceui.lisa.fragments.FragmentCenter;
 import ceui.lisa.fragments.FragmentRight;
 import ceui.lisa.fragments.FragmentLeft;
-import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Local;
 import ceui.lisa.response.UserModel;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.ReverseImage;
+import okhttp3.ResponseBody;
 
 public class CoverActivity extends BaseActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -181,7 +180,17 @@ public class CoverActivity extends BaseActivity
             intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "设置");
             startActivity(intent);
         } else if (id == R.id.nav_share) {
-
+//            TODO remove
+            try{
+                ReverseImage.reverse(new File(Environment.getExternalStorageDirectory(), "test.jpg"), ReverseImage.ReverseProvider.Iqdb, new ReverseImage.Callback() {
+                    @Override
+                    public void onNext(ResponseBody responseBody) {
+                        Common.showToast(responseBody + "\nrefer log");
+                    }
+                });
+            }catch (Exception e){
+                e.printStackTrace();
+            }
         } else if (id == R.id.nav_send) {
             Intent intent = new Intent(mContext, UserDetailActivity.class);
             intent.putExtra("user id", mUserModel.getResponse().getUser().getId());

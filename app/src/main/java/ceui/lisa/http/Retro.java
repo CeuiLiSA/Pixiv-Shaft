@@ -22,10 +22,9 @@ public class Retro {
 
 
 
-
-    public static AppApi getAppApi(){
+    public static AppApi getAppApi() {
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(
-                message -> Log.i("RetrofitLog","retrofitBack = "+message));
+                message -> Log.i("RetrofitLog", "retrofitBack = " + message));
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
         OkHttpClient okHttpClient = new OkHttpClient
                 .Builder()
@@ -54,9 +53,9 @@ public class Retro {
         return retrofit.create(AppApi.class);
     }
 
-    public static AccountApi getAccountApi(){
+    public static AccountApi getAccountApi() {
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(
-                message -> Log.i("RetrofitLog","retrofitBack = "+message));
+                message -> Log.i("RetrofitLog", "retrofitBack = " + message));
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
         OkHttpClient okHttpClient = new OkHttpClient
                 .Builder()
@@ -78,5 +77,28 @@ public class Retro {
                 .baseUrl(ACCOUNT_BASE_URL)
                 .build();
         return retrofit.create(AccountApi.class);
+    }
+
+    public static <T> T create(String baseUrl,final Class<T> service) {
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(
+                message -> Log.i("RetrofitLog", "retrofitBack = " + message));
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+        OkHttpClient okHttpClient = new OkHttpClient
+                .Builder()
+                .addInterceptor(loggingInterceptor)
+                .protocols(Collections.singletonList(Protocol.HTTP_1_1))
+                .addInterceptor(chain -> {
+                    Request localRequest = chain.request().newBuilder()
+                            .addHeader("User-Agent:", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.80 Safari/537.36")
+                            .build();
+                    return chain.proceed(localRequest);
+                })
+                .build();
+        Retrofit retrofit = new Retrofit.Builder()
+                .client(okHttpClient)
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .baseUrl(baseUrl)
+                .build();
+        return retrofit.create(service);
     }
 }
