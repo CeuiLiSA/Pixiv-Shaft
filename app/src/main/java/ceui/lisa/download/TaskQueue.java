@@ -1,6 +1,7 @@
 package ceui.lisa.download;
 
 import com.google.gson.Gson;
+import com.liulishuo.okdownload.DownloadTask;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -42,29 +43,35 @@ public class TaskQueue {
             if (allTasks.get(i).getDownloadTask() == downloadTask.getDownloadTask()) {
                 Common.showLog("TaskQueue removeTask " + downloadTask.toString());
 
-                //通知FragmentDownload 删除已经下载完成的这一项
+                final IllustTask tempTask = allTasks.get(i);
+
+                allTasks.remove(i);
+
+
+                //通知FragmentNowDownload 删除已经下载完成的这一项
                 Channel deleteChannel = new Channel();
-                deleteChannel.setReceiver("FragmentDownload");
+                deleteChannel.setReceiver("FragmentNowDownload");
                 deleteChannel.setObject(i);
                 EventBus.getDefault().post(deleteChannel);
 
 
                 try {
+
                     DownloadEntity downloadEntity = new DownloadEntity();
-                    downloadEntity.setFileName(allTasks.get(i).getDownloadTask().getFilename());
+                    downloadEntity.setFileName(tempTask.getDownloadTask().getFilename());
                     Gson gson = new Gson();
-                    downloadEntity.setIllustGson(gson.toJson(allTasks.get(i).getIllustsBean()));
+                    downloadEntity.setIllustGson(gson.toJson(tempTask.getIllustsBean()));
                     downloadEntity.setDownloadTime(System.currentTimeMillis());
-                    downloadEntity.setFilePath(allTasks.get(i).getDownloadTask().getFile().getPath());
+                    downloadEntity.setFilePath(tempTask.getDownloadTask().getFile().getPath());
                     AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(downloadEntity);
 
                     //通知FragmentHasDownload 添加这一项
                     Channel addChannel = new Channel();
-                    addChannel.setReceiver("FragmentHasDownload");
+                    addChannel.setReceiver("FragmentDownloadFinish");
                     addChannel.setObject(downloadEntity);
                     EventBus.getDefault().post(addChannel);
 
-                    allTasks.remove(i);
+
                     break;
 
                 } catch (Exception e) {

@@ -64,8 +64,8 @@ public class FragmentViewHistory extends BaseFragment {
     @Override
     View initView(View v) {
         mToolbar = v.findViewById(R.id.toolbar);
-        mToolbar.setNavigationOnClickListener(view -> getActivity().finish());
         ((TemplateFragmentActivity) getActivity()).setSupportActionBar(mToolbar);
+        mToolbar.setNavigationOnClickListener(view -> getActivity().finish());
         mToolbar.setTitle("浏览记录");
         mProgressBar = v.findViewById(R.id.progress);
         mRecyclerView = v.findViewById(R.id.recyclerView);
