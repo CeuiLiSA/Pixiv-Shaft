@@ -253,19 +253,21 @@ public class UserDetailActivity extends BaseActivity {
 
 
     private void setData(UserDetailResponse userDetailResponse) {
-        Glide.with(Shaft.getContext())
-                .load(GlideUtil.getMediumImg(
-                        userDetailResponse.getUser()
-                                .getProfile_image_urls().getMedium()))
-                .into(userHead);
-        userName.setText(userDetailResponse.getUser().getName());
-        if (userDetailResponse.getUser().isIs_followed()) {
-            nowFollow.setText("取消關注");
-        } else {
-            nowFollow.setText("+ 關注");
+        if(mContext != null && !isDestroyed()) {
+            Glide.with(mContext)
+                    .load(GlideUtil.getMediumImg(
+                            userDetailResponse.getUser()
+                                    .getProfile_image_urls().getMedium()))
+                    .into(userHead);
+            userName.setText(userDetailResponse.getUser().getName());
+            if (userDetailResponse.getUser().isIs_followed()) {
+                nowFollow.setText("取消關注");
+            } else {
+                nowFollow.setText("+ 關注");
+            }
+            follow.setText("關注：" + userDetailResponse.getProfile().getTotal_mypixiv_users());
+            fans.setText("粉絲：" + userDetailResponse.getProfile().getTotal_follow_users());
         }
-        follow.setText("關注：" + userDetailResponse.getProfile().getTotal_mypixiv_users());
-        fans.setText("粉絲：" + userDetailResponse.getProfile().getTotal_follow_users());
     }
 
     @Override

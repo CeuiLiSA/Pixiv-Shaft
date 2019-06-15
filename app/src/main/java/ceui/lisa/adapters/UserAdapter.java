@@ -15,6 +15,7 @@ import com.bumptech.glide.Glide;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.interfaces.FullClickListener;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.response.UserPreviewsBean;
 import ceui.lisa.utils.GlideUtil;
@@ -28,8 +29,7 @@ public class UserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private Context mContext;
     private LayoutInflater mLayoutInflater;
-    private OnItemClickListener mOnItemClickListener;
-    private OnItemClickListener mOnPostLikeUserClickListener;
+    private FullClickListener mFullClickListener;
     private List<UserPreviewsBean> allIllust;
     private int imageSize = 0;
 
@@ -74,11 +74,24 @@ public class UserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                     .placeholder(R.color.light_bg)
                     .into(currentOne.three);
         }
-        if(mOnItemClickListener != null){
-            holder.itemView.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 0));
-        }
-        if(mOnPostLikeUserClickListener != null){
-            currentOne.post_like_user.setOnClickListener(v -> mOnPostLikeUserClickListener.onItemClick(v, position, 0));
+
+        currentOne.postLikeUser.setText(allIllust.get(position).getUser().isIs_followed() ?
+                mContext.getString(R.string.post_unfollow) : mContext.getString(R.string.post_follow));
+
+        if(mFullClickListener != null){
+            currentOne.itemView.setOnClickListener(v ->
+                    mFullClickListener.onItemClick(v, position, 0));
+
+            currentOne.postLikeUser.setOnClickListener(v ->
+                    mFullClickListener.onItemClick(currentOne.postLikeUser, position, 1));
+
+            currentOne.postLikeUser.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    mFullClickListener.onItemLongClick(currentOne.postLikeUser, position, 1);
+                    return true;
+                }
+            });
         }
     }
 
@@ -87,15 +100,12 @@ public class UserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         return allIllust.size();
     }
 
-    public void setOnItemClickListener(OnItemClickListener itemClickListener) {
-        mOnItemClickListener = itemClickListener;
-    }
-    public void setmOnPostLikeUserClickListener(OnItemClickListener itemClickListener) {
-        mOnPostLikeUserClickListener = itemClickListener;
+    public void setOnItemClickListener(FullClickListener fullClickListener) {
+        mFullClickListener = fullClickListener;
     }
 
     public static class TagHolder extends RecyclerView.ViewHolder {
-        Button post_like_user;
+        Button postLikeUser;
         ImageView one, two, three;
         TextView title;
         CircleImageView head;
@@ -107,7 +117,7 @@ public class UserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             one = itemView.findViewById(R.id.user_show_one);
             two = itemView.findViewById(R.id.user_show_two);
             three = itemView.findViewById(R.id.user_show_three);
-            post_like_user = itemView.findViewById(R.id.post_like_user);
+            postLikeUser = itemView.findViewById(R.id.post_like_user);
         }
     }
 }
