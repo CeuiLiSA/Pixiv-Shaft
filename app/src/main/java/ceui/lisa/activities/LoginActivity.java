@@ -20,4 +20,7 @@ public class LoginActivity extends FragmentActivity {
     protected FragmentLogin createNewFragment() {
         return new FragmentLogin();
     }
+
+
+
 }

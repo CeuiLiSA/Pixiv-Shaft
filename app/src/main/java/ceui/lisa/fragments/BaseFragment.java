@@ -18,6 +18,7 @@ import com.facebook.rebound.SpringSystem;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.response.UserModel;
+import ceui.lisa.utils.Settings;
 
 public abstract class BaseFragment extends Fragment {
 
@@ -26,6 +27,7 @@ public abstract class BaseFragment extends Fragment {
     protected int mLayoutID;
     protected View parentView;
     protected UserModel mUserModel;
+    protected Settings mSettings;
 
     protected String className = this.getClass().getSimpleName() + " ";
 
@@ -43,11 +45,12 @@ public abstract class BaseFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         mContext = getContext();
         mActivity = getActivity();
+
         mUserModel = Local.getUser();
-
-
+        mSettings = Local.getSettings();
     }
 
     @Nullable

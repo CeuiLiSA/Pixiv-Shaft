@@ -21,7 +21,7 @@ public abstract class ListObserver<T extends ListShow> implements Observer<T> {
                 dataError();
             }
         }else {
-            dataError();
+            netError();
         }
     }
 
@@ -37,9 +37,11 @@ public abstract class ListObserver<T extends ListShow> implements Observer<T> {
 
     public abstract void success(T t);
 
-
     public abstract void dataError();
 
-    public abstract void onComplete();
+    public abstract void netError();
 
+    public void onComplete(){
+
+    }
 }

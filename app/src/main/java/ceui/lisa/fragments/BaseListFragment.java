@@ -4,6 +4,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 
 import com.scwang.smartrefresh.header.DeliveryHeader;
@@ -100,6 +101,7 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
     protected Toolbar mToolbar;
     protected Response mResponse;
     protected String nextUrl = "";
+    protected ImageView noData;
 
     @Override
     void initLayout() {
@@ -120,6 +122,13 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
         mProgressBar = v.findViewById(R.id.progress);
         mRecyclerView = v.findViewById(R.id.recyclerView);
         mRefreshLayout = v.findViewById(R.id.refreshLayout);
+        noData = v.findViewById(R.id.no_data);
+        noData.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getFirstData();
+            }
+        });
         initRecyclerView();
         mRefreshLayout.setRefreshHeader(new DeliveryHeader(mContext));
         mRefreshLayout.setOnRefreshListener(layout -> getFirstData());
@@ -172,6 +181,7 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
         mApi = initApi();
         if (mApi != null) {
             mProgressBar.setVisibility(View.VISIBLE);
+            noData.setVisibility(View.INVISIBLE);
             mApi.subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ListObserver<Response>() {
@@ -187,9 +197,9 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
                             initAdapter();
                             mRefreshLayout.finishRefresh(true);
                             mProgressBar.setVisibility(View.INVISIBLE);
+                            mRecyclerView.setVisibility(View.VISIBLE);
+                            noData.setVisibility(View.GONE);
                             mRecyclerView.setAdapter(mAdapter);
-
-
 
                             if(System.currentTimeMillis() - Local.getPikaTime() > 3600 * 1000) {
                                 Common.showLog("System.currentTimeMillis() " + System.currentTimeMillis());
@@ -206,11 +216,16 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
                         public void dataError() {
                             mRefreshLayout.finishRefresh(false);
                             mProgressBar.setVisibility(View.INVISIBLE);
+                            mRecyclerView.setVisibility(View.INVISIBLE);
+                            noData.setVisibility(View.VISIBLE);
+                            noData.setImageResource(R.mipmap.no_data);
                         }
 
                         @Override
-                        public void onComplete() {
-
+                        public void netError() {
+                            mRecyclerView.setVisibility(View.INVISIBLE);
+                            noData.setVisibility(View.VISIBLE);
+                            noData.setImageResource(R.mipmap.load_error);
                         }
                     });
         }else {
@@ -259,9 +274,10 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
                             }
 
                             @Override
-                            public void onComplete() {
+                            public void netError() {
 
                             }
+
                         });
             }
         }

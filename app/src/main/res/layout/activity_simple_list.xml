@@ -28,12 +28,13 @@
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        android:background="@color/white"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar">
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/recyclerView"
-            android:background="@color/light_bg"
+            android:background="@color/white"
             android:layout_width="match_parent"
             android:paddingStart="@dimen/four_dp"
             android:paddingEnd="@dimen/four_dp"
@@ -50,5 +51,17 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@+id/refreshLayout"
         app:layout_constraintTop_toTopOf="@+id/refreshLayout" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:id="@+id/no_data"
+        android:src="@mipmap/no_data"
+        android:scaleType="centerCrop"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_height="wrap_content" />
 
 </android.support.constraint.ConstraintLayout>

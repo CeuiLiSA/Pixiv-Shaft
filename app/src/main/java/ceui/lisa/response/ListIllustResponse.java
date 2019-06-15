@@ -13,6 +13,23 @@ public class ListIllustResponse implements ListShow<IllustsBean>, Serializable {
      */
 
     private String next_url;
+
+    public String getNext_url() {
+        return next_url;
+    }
+
+    public void setNext_url(String next_url) {
+        this.next_url = next_url;
+    }
+
+    public List<IllustsBean> getIllusts() {
+        return illusts;
+    }
+
+    public void setIllusts(List<IllustsBean> illusts) {
+        this.illusts = illusts;
+    }
+
     private List<IllustsBean> illusts;
 
     public List<IllustsBean> getRanking_illusts() {

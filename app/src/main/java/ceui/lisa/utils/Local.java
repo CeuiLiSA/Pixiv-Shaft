@@ -17,6 +17,7 @@ import java.util.List;
 import ceui.lisa.activities.PikaActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.interfaces.Callback;
+import ceui.lisa.response.IllustsBean;
 import ceui.lisa.response.UserModel;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
@@ -202,7 +203,7 @@ public class Local {
         return localData.getLong("pika file time", 0L);
     }
 
-    public static void setPikaImageFile(String pikaFileName){
+    public static void setPikaImageFile(String pikaFileName, IllustsBean illustsBean){
         SharedPreferences localData = Shaft.getContext().getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
         String before = localData.getString("pika file name", "nopic.png");
         File file = new File(PikaActivity.FILE_PATH, before);
@@ -211,6 +212,7 @@ public class Local {
         }
         SharedPreferences.Editor editor = localData.edit();
         editor.putString("pika file name", pikaFileName);
+        editor.putString("pika illust", new Gson().toJson(illustsBean));
         editor.putLong("pika file time", System.currentTimeMillis());
         editor.apply();
     }

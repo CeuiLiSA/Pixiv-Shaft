@@ -21,4 +21,5 @@
     <string name="post_follow">+ 关注</string>
     <string name="post_unfollow">取消关注</string>
     <string name="double_click_finish">再按一次退出~</string>
+    <string name="delete_all">删除全部</string>
 </resources>
