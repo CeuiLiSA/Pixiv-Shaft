@@ -20,4 +20,5 @@
     <string name="empty_list_8">居然啥也没有</string>
     <string name="post_follow">+ 关注</string>
     <string name="post_unfollow">取消关注</string>
+    <string name="double_click_finish">再按一次退出~</string>
 </resources>

@@ -28,6 +28,7 @@ import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentBlank;
 import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.fragments.FragmentSubmitIllust;
+import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.response.ListIllustResponse;
@@ -141,11 +142,14 @@ public class UserDetailActivity extends BaseActivity {
         });
         mTabLayout.setupWithViewPager(mViewPager);
         getUserDetail();
+        //传进来的id 等于app当前用户的id,直接加载背景图。
+        if (userID == mUserModel.getResponse().getUser().getId()) {
+            getBackground();
+        }
     }
 
     private void getUserDetail() {
-        UserModel userModel = Local.getUser();
-        Retro.getAppApi().getUserDetail(userModel.getResponse().getAccess_token(), userID)
+        Retro.getAppApi().getUserDetail(mUserModel.getResponse().getAccess_token(), userID)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<UserDetailResponse>() {
@@ -173,76 +177,58 @@ public class UserDetailActivity extends BaseActivity {
 
                     }
                 });
-        if (userID == userModel.getResponse().getUser().getId()) {
-            Retro.getAppApi().getLoginBg(userModel.getResponse().getAccess_token())
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Observer<ListIllustResponse>() {
+    }
 
-                        @Override
-                        public void onSubscribe(Disposable d) {
+    private void getBackground(){
+        Retro.getAppApi().getLoginBg(mUserModel.getResponse().getAccess_token())
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new ErrorCtrl<ListIllustResponse>() {
+                    @Override
+                    public void onNext(ListIllustResponse listIllustResponse) {
+                        List<IllustsBean> list = listIllustResponse.getList();
+                        background.setOnClickListener(v -> {
+                            IllustChannel.get().setIllustList(list);
+                            Intent intent = new Intent(mContext, ViewPagerActivity.class);
+                            intent.putExtra("position", nowIndex);
+                            startActivity(intent);
+                        });
+                        Observable.interval(0, 15, TimeUnit.SECONDS,
+                                AndroidSchedulers.mainThread())
+                                .takeWhile(aLong -> active)
+                                .subscribe(new Observer<Long>() {
+                                    @Override
+                                    public void onSubscribe(Disposable d) {
 
-                        }
+                                    }
 
-                        @Override
-                        public void onNext(ListIllustResponse listIllustResponse) {
-                            List<IllustsBean> list = listIllustResponse.getList();
-                            background.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    IllustChannel.get().setIllustList(list);
-                                    Intent intent = new Intent(mContext, ViewPagerActivity.class);
-                                    intent.putExtra("position", nowIndex);
-                                    startActivity(intent);
-                                }
-                            });
-                            Observable.interval(0, 15, TimeUnit.SECONDS,
-                                    AndroidSchedulers.mainThread())
-                                    .takeWhile(aLong -> active)
-                                    .subscribe(new Observer<Long>() {
-                                @Override
-                                public void onSubscribe(Disposable d) {
+                                    @Override
+                                    public void onNext(Long aLong) {
+                                        int index = (int) (aLong % list.size());
+                                        nowIndex = index;
+                                        //平滑切换背景图
+                                        Glide.with(mContext)
+                                                .load(GlideUtil.getLargeImage(list.get(index)))
+                                                .placeholder(background.getDrawable())
+                                                .transition(withCrossFade(1250))
+                                                .into(background);
+                                        Glide.with(mContext)
+                                                .load(GlideUtil.getMediumImg(list.get(++index % list.size())))
+                                                .preload();
+                                    }
 
-                                }
+                                    @Override
+                                    public void onError(Throwable e) {
 
-                                @Override
-                                public void onNext(Long aLong) {
-                                    int index = (int) (aLong % list.size());
-                                    nowIndex = index;
-                                    //平滑切换背景图
-                                    Glide.with(mContext)
-                                            .load(GlideUtil.getLargeImage(list.get(index)))
-                                            .placeholder(background.getDrawable())
-                                            .transition(withCrossFade(1250))
-                                            .into(background);
-                                    Glide.with(mContext)
-                                            .load(GlideUtil.getMediumImg(list.get(++index % list.size())))
-                                            .preload();
-                                }
+                                    }
 
-                                @Override
-                                public void onError(Throwable e) {
+                                    @Override
+                                    public void onComplete() {
 
-                                }
-
-                                @Override
-                                public void onComplete() {
-
-                                }
-                            });
-                        }
-
-                        @Override
-                        public void onError(Throwable e) {
-
-                        }
-
-                        @Override
-                        public void onComplete() {
-
-                        }
-                    });
-        }
+                                    }
+                                });
+                    }
+                });
     }
 
 
