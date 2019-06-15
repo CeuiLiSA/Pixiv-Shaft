@@ -12,10 +12,12 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
+import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
 import com.bumptech.glide.Glide;
@@ -43,13 +45,7 @@ public class CoverActivity extends BaseActivity
     private ImageView userHead;
     private TextView username;
     private TextView user_email;
-    private UserModel mUserModel;
-
-    @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        mUserModel = Local.getUser();
-    }
+    private long mExitTime;
 
     @Override
     protected void initLayout() {
@@ -151,17 +147,6 @@ public class CoverActivity extends BaseActivity
     }
 
     @Override
-    public void onBackPressed() {
-        if (mDrawer.isDrawerOpen(GravityCompat.START)) {
-            mDrawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
-    }
-
-
-    @SuppressWarnings("StatementWithEmptyBody")
-    @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
@@ -180,17 +165,8 @@ public class CoverActivity extends BaseActivity
             intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "设置");
             startActivity(intent);
         } else if (id == R.id.nav_share) {
-//            TODO remove
-            try{
-                ReverseImage.reverse(new File(Environment.getExternalStorageDirectory(), "test.jpg"), ReverseImage.ReverseProvider.Iqdb, new ReverseImage.Callback() {
-                    @Override
-                    public void onNext(ResponseBody responseBody) {
-                        Common.showToast(responseBody + "\nrefer log");
-                    }
-                });
-            }catch (Exception e){
-                e.printStackTrace();
-            }
+            Intent intent = new Intent(mContext, LoginActivity.class);
+            startActivity(intent);
         } else if (id == R.id.nav_send) {
             Intent intent = new Intent(mContext, UserDetailActivity.class);
             intent.putExtra("user id", mUserModel.getResponse().getUser().getId());
@@ -199,11 +175,6 @@ public class CoverActivity extends BaseActivity
 
         mDrawer.closeDrawer(GravityCompat.START);
         return true;
-    }
-
-    @Override
-    public void onActivityReenter(int resultCode, Intent data) {
-        super.onActivityReenter(resultCode, data);
     }
 
     @Override
@@ -216,6 +187,29 @@ public class CoverActivity extends BaseActivity
 //                    .into(userHead);
             username.setText(mUserModel.getResponse().getUser().getName());
             user_email.setText(mUserModel.getResponse().getUser().getMail_address());
+        }
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (mDrawer.isDrawerOpen(GravityCompat.START)) {
+            mDrawer.closeDrawer(GravityCompat.START);
+            return true;
+        } else {
+            if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
+                exit();
+                return true;
+            }
+            return false;
+        }
+    }
+
+    public void exit() {
+        if ((System.currentTimeMillis() - mExitTime) > 2000) {
+            Common.showToast(getString(R.string.double_click_finish));
+            mExitTime = System.currentTimeMillis();
+        } else {
+            finish();
         }
     }
 }

@@ -28,6 +28,7 @@ import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentBlank;
 import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.fragments.FragmentSubmitIllust;
+import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.response.ListIllustResponse;
@@ -83,12 +84,6 @@ public class UserDetailActivity extends BaseActivity {
         toolbar.setNavigationOnClickListener(v -> finish());
         fans = findViewById(R.id.follow_user);
         nowFollow = findViewById(R.id.follow);
-        nowFollow.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                PixivOperate.followOrUnfollowClick(userID,nowFollow);
-            }
-        });
         CollapsingToolbarLayout collapsingToolbarLayout = findViewById(R.id.toolbar_layout);
         AppBarLayout appBarLayout = findViewById(R.id.app_bar);
         appBarLayout.addOnOffsetChangedListener(new AppBarStateChangeListener() {
@@ -147,11 +142,14 @@ public class UserDetailActivity extends BaseActivity {
         });
         mTabLayout.setupWithViewPager(mViewPager);
         getUserDetail();
+        //传进来的id 等于app当前用户的id,直接加载背景图。
+        if (userID == mUserModel.getResponse().getUser().getId()) {
+            getBackground();
+        }
     }
 
     private void getUserDetail() {
-        UserModel userModel = Local.getUser();
-        Retro.getAppApi().getUserDetail(userModel.getResponse().getAccess_token(), userID)
+        Retro.getAppApi().getUserDetail(mUserModel.getResponse().getAccess_token(), userID)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<UserDetailResponse>() {
@@ -179,93 +177,93 @@ public class UserDetailActivity extends BaseActivity {
 
                     }
                 });
-        if (userID == userModel.getResponse().getUser().getId()) {
-            Retro.getAppApi().getLoginBg(userModel.getResponse().getAccess_token())
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Observer<ListIllustResponse>() {
+    }
 
-                        @Override
-                        public void onSubscribe(Disposable d) {
+    private void getBackground(){
+        Retro.getAppApi().getLoginBg(mUserModel.getResponse().getAccess_token())
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new ErrorCtrl<ListIllustResponse>() {
+                    @Override
+                    public void onNext(ListIllustResponse listIllustResponse) {
+                        List<IllustsBean> list = listIllustResponse.getList();
+                        background.setOnClickListener(v -> {
+                            IllustChannel.get().setIllustList(list);
+                            Intent intent = new Intent(mContext, ViewPagerActivity.class);
+                            intent.putExtra("position", nowIndex);
+                            startActivity(intent);
+                        });
+                        Observable.interval(0, 15, TimeUnit.SECONDS,
+                                AndroidSchedulers.mainThread())
+                                .takeWhile(aLong -> active)
+                                .subscribe(new Observer<Long>() {
+                                    @Override
+                                    public void onSubscribe(Disposable d) {
 
-                        }
+                                    }
 
-                        @Override
-                        public void onNext(ListIllustResponse listIllustResponse) {
-                            List<IllustsBean> list = listIllustResponse.getList();
-                            background.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    IllustChannel.get().setIllustList(list);
-                                    Intent intent = new Intent(mContext, ViewPagerActivity.class);
-                                    intent.putExtra("position", nowIndex);
-                                    startActivity(intent);
-                                }
-                            });
-                            Observable.interval(0, 15, TimeUnit.SECONDS,
-                                    AndroidSchedulers.mainThread())
-                                    .takeWhile(aLong -> active)
-                                    .subscribe(new Observer<Long>() {
-                                @Override
-                                public void onSubscribe(Disposable d) {
+                                    @Override
+                                    public void onNext(Long aLong) {
+                                        int index = (int) (aLong % list.size());
+                                        nowIndex = index;
+                                        //平滑切换背景图
+                                        Glide.with(mContext)
+                                                .load(GlideUtil.getLargeImage(list.get(index)))
+                                                .placeholder(background.getDrawable())
+                                                .transition(withCrossFade(1250))
+                                                .into(background);
+                                        Glide.with(mContext)
+                                                .load(GlideUtil.getMediumImg(list.get(++index % list.size())))
+                                                .preload();
+                                    }
 
-                                }
+                                    @Override
+                                    public void onError(Throwable e) {
 
-                                @Override
-                                public void onNext(Long aLong) {
-                                    int index = (int) (aLong % list.size());
-                                    nowIndex = index;
-                                    //平滑切换背景图
-                                    Glide.with(mContext)
-                                            .load(GlideUtil.getLargeImage(list.get(index)))
-                                            .placeholder(background.getDrawable())
-                                            .transition(withCrossFade(1250))
-                                            .into(background);
-                                    Glide.with(mContext)
-                                            .load(GlideUtil.getMediumImg(list.get(++index % list.size())))
-                                            .preload();
-                                }
+                                    }
 
-                                @Override
-                                public void onError(Throwable e) {
+                                    @Override
+                                    public void onComplete() {
 
-                                }
-
-                                @Override
-                                public void onComplete() {
-
-                                }
-                            });
-                        }
-
-                        @Override
-                        public void onError(Throwable e) {
-
-                        }
-
-                        @Override
-                        public void onComplete() {
-
-                        }
-                    });
-        }
+                                    }
+                                });
+                    }
+                });
     }
 
 
     private void setData(UserDetailResponse userDetailResponse) {
-        Glide.with(Shaft.getContext())
-                .load(GlideUtil.getMediumImg(
-                        userDetailResponse.getUser()
-                                .getProfile_image_urls().getMedium()))
-                .into(userHead);
-        userName.setText(userDetailResponse.getUser().getName());
-        if (userDetailResponse.getUser().isIs_followed()) {
-            nowFollow.setText("取消關注");
-        } else {
-            nowFollow.setText("+ 關注");
+        if(mContext != null && !isDestroyed()) {
+            Glide.with(mContext)
+                    .load(GlideUtil.getMediumImg(
+                            userDetailResponse.getUser()
+                                    .getProfile_image_urls().getMedium()))
+                    .into(userHead);
+            userName.setText(userDetailResponse.getUser().getName());
+            if (userDetailResponse.getUser().isIs_followed()) {
+                nowFollow.setText("取消關注");
+                nowFollow.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        nowFollow.setText("+ 關注");
+                        PixivOperate.postUnFollowUser(userDetailResponse.getUser().getId());
+                    }
+                });
+            } else {
+                nowFollow.setText("+ 關注");
+                nowFollow.setOnClickListener(v -> {
+                    nowFollow.setText("取消關注");
+                    PixivOperate.postFollowUser(userDetailResponse.getUser().getId(), "public");
+                });
+                nowFollow.setOnLongClickListener(v -> {
+                    nowFollow.setText("取消關注");
+                    PixivOperate.postFollowUser(userDetailResponse.getUser().getId(), "private");
+                    return true;
+                });
+            }
+            follow.setText("關注：" + userDetailResponse.getProfile().getTotal_mypixiv_users());
+            fans.setText("粉絲：" + userDetailResponse.getProfile().getTotal_follow_users());
         }
-        follow.setText("關注：" + userDetailResponse.getProfile().getTotal_mypixiv_users());
-        fans.setText("粉絲：" + userDetailResponse.getProfile().getTotal_follow_users());
     }
 
     @Override

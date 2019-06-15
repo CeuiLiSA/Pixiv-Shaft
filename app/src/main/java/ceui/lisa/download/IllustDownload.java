@@ -3,6 +3,8 @@ package ceui.lisa.download;
 import com.liulishuo.okdownload.DownloadTask;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import ceui.lisa.database.IllustTask;
 import ceui.lisa.response.IllustsBean;
@@ -23,6 +25,11 @@ public class IllustDownload {
         }
 
         File file = FileCreator.createIllustFile(illustsBean);
+        if(file.exists()){
+            Common.showToast("图片已存在");
+            return;
+        }
+
         DownloadTask.Builder builder = new DownloadTask.Builder(illustsBean.getMeta_single_page().getOriginal_image_url(),
                 file.getParentFile())
                 .setFilename(file.getName())
@@ -49,24 +56,30 @@ public class IllustDownload {
             return;
         }
 
-        DownloadTask[] tasks = new DownloadTask[illustsBean.getPage_count()];
+
+        List<DownloadTask> tempList = new ArrayList<>();
 
         for (int i = 0; i < illustsBean.getPage_count(); i++) {
             File file = FileCreator.createIllustFile(illustsBean, i);
-            DownloadTask.Builder builder = new DownloadTask.Builder(illustsBean.getMeta_pages().get(i).getImage_urls().getOriginal(),
-                    file.getParentFile())
-                    .setFilename(file.getName())
-                    .setMinIntervalMillisCallbackProcess(30)
-                    .setPassIfAlreadyCompleted(false);
-            builder.addHeader(MAP_KEY, IMAGE_REFERER);
-            tasks[i] = builder.build();
-            IllustTask illustTask = new IllustTask();
-            illustTask.setIllustsBean(illustsBean);
-            illustTask.setDownloadTask(tasks[i]);
-            TaskQueue.get().addTask(illustTask);
+            if(!file.exists()){
+                DownloadTask.Builder builder = new DownloadTask.Builder(illustsBean.getMeta_pages().get(i).getImage_urls().getOriginal(),
+                        file.getParentFile())
+                        .setFilename(file.getName())
+                        .setMinIntervalMillisCallbackProcess(30)
+                        .setPassIfAlreadyCompleted(false);
+                builder.addHeader(MAP_KEY, IMAGE_REFERER);
+                final DownloadTask task = builder.build();
+                tempList.add(task);
+
+                IllustTask illustTask = new IllustTask();
+                illustTask.setIllustsBean(illustsBean);
+                illustTask.setDownloadTask(task);
+                TaskQueue.get().addTask(illustTask);
+            }
         }
 
-        DownloadTask.enqueue(tasks, new QueueListener());
+        DownloadTask[] taskArray = new DownloadTask[tempList.size()];
+        DownloadTask.enqueue(tempList.toArray(taskArray), new QueueListener());
         Common.showToast("已加入下载队列");
     }
 }

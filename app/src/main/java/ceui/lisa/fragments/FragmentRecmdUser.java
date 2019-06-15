@@ -10,6 +10,7 @@ import com.scwang.smartrefresh.layout.util.DensityUtil;
 import ceui.lisa.R;
 import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.adapters.UserAdapter;
+import ceui.lisa.interfaces.FullClickListener;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.http.Retro;
 import ceui.lisa.response.RecmdUserResponse;
@@ -54,18 +55,34 @@ public class FragmentRecmdUser extends BaseListFragment<RecmdUserResponse, UserA
     @Override
     void initAdapter() {
         mAdapter = new UserAdapter(allItems, mContext);
-        mAdapter.setOnItemClickListener(new OnItemClickListener() {
+        mAdapter.setOnItemClickListener(new FullClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                Intent intent = new Intent(mContext, UserDetailActivity.class);
-                intent.putExtra("user id", allItems.get(position).getUser().getId());
-                startActivity(intent);
+                if (viewType == 0) { //普通item
+                    Intent intent = new Intent(mContext, UserDetailActivity.class);
+                    intent.putExtra("user id", allItems.get(position).getUser().getId());
+                    startActivity(intent);
+                } else if (viewType == 1) { //关注按钮
+                    if (allItems.get(position).getUser().isIs_followed()) {
+                        PixivOperate.postUnFollowUser(allItems.get(position).getUser().getId());
+                        Button postFollow = ((Button) v);
+                        postFollow.setText(getString(R.string.post_follow));
+                    } else {
+                        PixivOperate.postFollowUser(allItems.get(position).getUser().getId(), "public");
+                        Button postFollow = ((Button) v);
+                        postFollow.setText(getString(R.string.post_unfollow));
+                    }
+                }
             }
-        });
-        mAdapter.setmOnPostLikeUserClickListener((v, position, viewType) -> {
-            int id = allItems.get(position).getUser().getId();
-            Button post_like_user = v.findViewById(R.id.post_like_user);
-            PixivOperate.followOrUnfollowClick(id,post_like_user);
+
+            @Override
+            public void onItemLongClick(View v, int position, int viewType) {
+                if(!allItems.get(position).getUser().isIs_followed()){
+                    PixivOperate.postFollowUser(allItems.get(position).getUser().getId(), "private");
+                    Button postFollow = ((Button) v);
+                    postFollow.setText(getString(R.string.post_unfollow));
+                }
+            }
         });
     }
 }

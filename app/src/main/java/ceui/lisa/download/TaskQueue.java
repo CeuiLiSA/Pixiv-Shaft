@@ -42,6 +42,7 @@ public class TaskQueue {
             if (allTasks.get(i).getDownloadTask() == downloadTask.getDownloadTask()) {
                 Common.showLog("TaskQueue removeTask " + downloadTask.toString());
 
+                //通知FragmentDownload 删除已经下载完成的这一项
                 Channel deleteChannel = new Channel();
                 deleteChannel.setReceiver("FragmentDownload");
                 deleteChannel.setObject(i);
@@ -57,6 +58,7 @@ public class TaskQueue {
                     downloadEntity.setFilePath(allTasks.get(i).getDownloadTask().getFile().getPath());
                     AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(downloadEntity);
 
+                    //通知FragmentHasDownload 添加这一项
                     Channel addChannel = new Channel();
                     addChannel.setReceiver("FragmentHasDownload");
                     addChannel.setObject(downloadEntity);
