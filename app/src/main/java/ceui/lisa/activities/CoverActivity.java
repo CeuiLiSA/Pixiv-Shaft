@@ -144,7 +144,7 @@ public class CoverActivity extends BaseActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_camera) {
-            AppDatabase.getAppDatabase(mContext).downloadDao().deleteAll();
+
         } else if (id == R.id.nav_gallery) {
             Intent intent = new Intent(mContext, DownloadManageActivity.class);
             startActivity(intent);
