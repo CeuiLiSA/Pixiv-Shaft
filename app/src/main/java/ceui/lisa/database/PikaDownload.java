@@ -51,7 +51,7 @@ public class PikaDownload {
                                 .setPassIfAlreadyCompleted(true);
                         builder.addHeader(MAP_KEY, IMAGE_REFERER);
                         DownloadTask task = builder.build();
-                        Common.showToast("开始下载");
+                        Common.showLog("开始下载 Pika启动页封面图");
                         task.enqueue(new DownloadListener1() {
                             @Override
                             public void taskStart(@NonNull DownloadTask task, @NonNull Listener1Assist.Listener1Model model) {
@@ -75,8 +75,9 @@ public class PikaDownload {
 
                             @Override
                             public void taskEnd(@NonNull DownloadTask task, @NonNull EndCause cause, @Nullable Exception realCause, @NonNull Listener1Assist.Listener1Model model) {
-                                Local.setPikaImageFile("pika_image_" + illustsBean.getId() + ".png");
-                                Common.showToast("下载完成");
+                                Local.setPikaImageFile("pika_image_" + illustsBean.getId() + ".png",
+                                        illustsBean);
+                                Common.showLog("Pika封面图下载完成");
                             }
                         });
                     } else {

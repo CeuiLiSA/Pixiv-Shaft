@@ -35,6 +35,7 @@ import io.reactivex.Observer;
 
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
+//启动页，不是软件主页
 public class PikaActivity extends BaseActivity {
 
     public static final String FILE_PATH = "/storage/emulated/0/Shaft/pikaImage";
@@ -106,7 +107,6 @@ public class PikaActivity extends BaseActivity {
             startActivity(intent);
             finish();
         }
-
     }
 
     @Override

@@ -9,6 +9,7 @@ import android.widget.ImageView;
 
 import ceui.lisa.response.UserModel;
 import ceui.lisa.utils.Local;
+import ceui.lisa.utils.Settings;
 
 public abstract class BaseActivity extends AppCompatActivity {
 
@@ -16,6 +17,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     protected Activity mActivity;
     protected int mLayoutID;
     protected UserModel mUserModel;
+    protected Settings mSettings;
     protected String className = this.getClass().getSimpleName() + " ";
 
     @Override
@@ -28,6 +30,7 @@ public abstract class BaseActivity extends AppCompatActivity {
         mActivity = this;
 
         mUserModel = Local.getUser();
+        mSettings = Local.getSettings();
 
         initView();
         initData();

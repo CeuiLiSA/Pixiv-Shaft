@@ -8,7 +8,7 @@ import android.arch.persistence.room.Query;
 
 import java.util.List;
 
-//保存浏览历史记录
+//保存下载历史记录
 @Dao
 public interface DownloadDao {
 

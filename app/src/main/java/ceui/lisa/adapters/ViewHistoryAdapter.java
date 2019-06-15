@@ -1,6 +1,7 @@
 package ceui.lisa.adapters;
 
 import android.content.Context;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -37,6 +38,7 @@ public class ViewHistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     private List<IllustHistoryEntity> allIllust;
     private Gson mGson = new Gson();
     private int imageSize = 0;
+    private Handler mHandler = new Handler();
     private SimpleDateFormat mTime = new SimpleDateFormat("MM月dd日 HH: mm");
 
 
@@ -136,5 +138,11 @@ public class ViewHistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             });
 
         }
+    }
+
+
+    public void clearAllData(){
+        allIllust.clear();
+        notifyDataSetChanged();
     }
 }

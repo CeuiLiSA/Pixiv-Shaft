@@ -33,8 +33,6 @@ import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOption
 public class ImageDetailActivity extends BaseActivity {
 
     private IllustsBean mIllustsBean;
-    private ViewPager mViewPager;
-    private int index;
 
     @Override
     protected void initLayout() {
@@ -47,14 +45,14 @@ public class ImageDetailActivity extends BaseActivity {
 
     @Override
     protected void initView() {
-        mViewPager = findViewById(R.id.view_pager);
+        ViewPager viewPager = findViewById(R.id.view_pager);
         mIllustsBean = (IllustsBean) getIntent().getSerializableExtra("illust");
-        index = getIntent().getIntExtra("index", 0);
+        int index = getIntent().getIntExtra("index", 0);
         if(mIllustsBean == null){
             return;
         }
 
-        mViewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
+        viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override
             public Fragment getItem(int i) {
                 return FragmentImageDetail.newInstance(mIllustsBean, i);
@@ -65,7 +63,7 @@ public class ImageDetailActivity extends BaseActivity {
                 return mIllustsBean.getPage_count();
             }
         });
-        mViewPager.setCurrentItem(index);
+        viewPager.setCurrentItem(index);
     }
 
     @Override
