@@ -3,6 +3,7 @@ package ceui.lisa.fragments;
 import android.content.Intent;
 import android.support.v7.widget.LinearLayoutManager;
 import android.view.View;
+import android.widget.Button;
 
 import com.scwang.smartrefresh.layout.util.DensityUtil;
 
@@ -13,6 +14,7 @@ import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.http.Retro;
 import ceui.lisa.response.RecmdUserResponse;
 import ceui.lisa.response.UserPreviewsBean;
+import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.view.LinearItemDecoration;
 import io.reactivex.Observable;
 
@@ -59,6 +61,11 @@ public class FragmentRecmdUser extends BaseListFragment<RecmdUserResponse, UserA
                 intent.putExtra("user id", allItems.get(position).getUser().getId());
                 startActivity(intent);
             }
+        });
+        mAdapter.setmOnPostLikeUserClickListener((v, position, viewType) -> {
+            int id = allItems.get(position).getUser().getId();
+            Button post_like_user = v.findViewById(R.id.post_like_user);
+            PixivOperate.followOrUnfollowClick(id,post_like_user);
         });
     }
 }

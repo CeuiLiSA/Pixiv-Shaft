@@ -31,8 +31,10 @@ import ceui.lisa.fragments.FragmentSubmitIllust;
 import ceui.lisa.http.Retro;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.response.ListIllustResponse;
+import ceui.lisa.response.UserBean;
 import ceui.lisa.response.UserDetailResponse;
 import ceui.lisa.response.UserModel;
+import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.view.AppBarStateChangeListener;
 import ceui.lisa.utils.Common;
@@ -84,6 +86,7 @@ public class UserDetailActivity extends BaseActivity {
         nowFollow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                PixivOperate.followOrUnfollowClick(userID,nowFollow);
             }
         });
         CollapsingToolbarLayout collapsingToolbarLayout = findViewById(R.id.toolbar_layout);
@@ -107,6 +110,7 @@ public class UserDetailActivity extends BaseActivity {
         follow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
             }
         });
         fans.setOnClickListener(new View.OnClickListener() {
@@ -249,7 +253,7 @@ public class UserDetailActivity extends BaseActivity {
 
 
     private void setData(UserDetailResponse userDetailResponse) {
-        Glide.with(mContext)
+        Glide.with(Shaft.getContext())
                 .load(GlideUtil.getMediumImg(
                         userDetailResponse.getUser()
                                 .getProfile_image_urls().getMedium()))
