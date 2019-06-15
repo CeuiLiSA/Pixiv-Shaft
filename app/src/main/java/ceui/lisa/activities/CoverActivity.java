@@ -75,16 +75,16 @@ public class CoverActivity extends BaseActivity
         });
         BottomNavigationView bottomNavigationView = findViewById(R.id.navigation_view);
         bottomNavigationView.setOnNavigationItemSelectedListener(menuItem -> {
-            if(menuItem.getItemId() == R.id.action_1){
+            if (menuItem.getItemId() == R.id.action_1) {
                 mViewPager.setCurrentItem(0);
                 return true;
-            }else if(menuItem.getItemId() == R.id.action_2){
+            } else if (menuItem.getItemId() == R.id.action_2) {
                 mViewPager.setCurrentItem(1);
                 return true;
-            }else if(menuItem.getItemId() == R.id.action_3){
+            } else if (menuItem.getItemId() == R.id.action_3) {
                 mViewPager.setCurrentItem(2);
                 return true;
-            }else {
+            } else {
                 return false;
             }
         });
@@ -109,7 +109,7 @@ public class CoverActivity extends BaseActivity
     }
 
 
-    private void initFragment(){
+    private void initFragment() {
         BaseFragment[] baseFragments = new BaseFragment[]{
                 new FragmentLeft(),
                 new FragmentCenter(),
@@ -132,9 +132,9 @@ public class CoverActivity extends BaseActivity
     @Override
     protected void initData() {
         UserModel userModel = Local.getUser();
-        if(userModel != null && userModel.getResponse().getUser().isIs_login()){
+        if (userModel != null && userModel.getResponse().getUser().isIs_login()) {
             initFragment();
-        }else {
+        } else {
             Common.showToast("未登录");
             Intent intent = new Intent(mContext, LoginActivity.class);
             startActivity(intent);
@@ -167,6 +167,23 @@ public class CoverActivity extends BaseActivity
         } else if (id == R.id.nav_share) {
             Intent intent = new Intent(mContext, LoginActivity.class);
             startActivity(intent);
+        } else if (id == R.id.nav_reverse) {
+//            TODO remove
+            try {
+                ReverseImage.reverse(new File(Environment.getExternalStorageDirectory(), "test.jpg"), ReverseImage.ReverseProvider.Iqdb, new ReverseImage.Callback() {
+                    @Override
+                    public void onNext(ResponseBody responseBody) {
+                        Common.showToast(responseBody + "\n refer log for detail.");
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Common.showToast(e.getMessage());
+                    }
+                });
+            }catch (Exception e){
+                e.printStackTrace();
+            }
         } else if (id == R.id.nav_send) {
             Intent intent = new Intent(mContext, UserDetailActivity.class);
             intent.putExtra("user id", mUserModel.getResponse().getUser().getId());
@@ -180,7 +197,7 @@ public class CoverActivity extends BaseActivity
     @Override
     protected void onResume() {
         super.onResume();
-        if(mUserModel != null && mUserModel.getResponse() != null) {
+        if (mUserModel != null && mUserModel.getResponse() != null) {
 //            Glide.with(mContext)
 //                    .load(GlideUtil.getMediumImg(
 //                            mUserModel.getResponse().getUser().getProfile_image_urls().getMedium()))

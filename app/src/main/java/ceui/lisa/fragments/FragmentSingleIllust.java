@@ -199,9 +199,28 @@ public class FragmentSingleIllust extends BaseFragment {
 
         follow = v.findViewById(R.id.follow);
         TextView finalFollow = follow;
-        follow.setOnClickListener(v1 -> {
-            PixivOperate.followOrUnfollowClick(illust.getUser().getId(), finalFollow);
-        });
+
+        if (illust.getUser().isIs_followed()) {
+            follow.setText("取消關注");
+            follow.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    finalFollow.setText("+ 關注");
+                    PixivOperate.postUnFollowUser(illust.getUser().getId());
+                }
+            });
+        } else {
+            follow.setText("+ 關注");
+            follow.setOnClickListener(v1 -> {
+                finalFollow.setText("取消關注");
+                PixivOperate.postFollowUser(illust.getUser().getId(), "public");
+            });
+            follow.setOnLongClickListener(v1 -> {
+                finalFollow.setText("取消關注");
+                PixivOperate.postFollowUser(illust.getUser().getId(), "private");
+                return true;
+            });
+        }
         return v;
     }
 

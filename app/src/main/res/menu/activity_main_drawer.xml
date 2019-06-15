@@ -27,6 +27,10 @@
             <item
                 android:id="@+id/nav_share"
                 android:icon="@drawable/ic_menu_share"
+                android:title="Share" />
+            <item
+                android:id="@+id/nav_reverse"
+                android:icon="@drawable/ic_menu_share"
                 android:title="Reverse /sdcard/test.jpg" />
             <item
                 android:id="@+id/nav_send"

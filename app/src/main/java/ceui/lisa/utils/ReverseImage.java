@@ -31,7 +31,7 @@ public class ReverseImage {
 
         Object o = Retro.create(reverseProvider.base_url, reverseProvider.apiClass);
 
-        //    enum不能使用枚举,Retrofit的Api Interface 不能继承,搞不了花里胡哨了
+        //    enum不能使用泛型,刚好Retrofit的Api Interface 不能继承,搞不了花里胡哨了
         Observable<ResponseBody> observable;
         System.out.println(reverseProvider.name());
         switch (reverseProvider.name()) {
@@ -64,7 +64,7 @@ public class ReverseImage {
 
                     @Override
                     public void onError(Throwable e) {
-
+                        callback.onError(e);
                     }
 
                     @Override
@@ -78,6 +78,7 @@ public class ReverseImage {
 
     public interface Callback {
         void onNext(ResponseBody responseBody);
+        void onError(Throwable e);
     }
 
 
