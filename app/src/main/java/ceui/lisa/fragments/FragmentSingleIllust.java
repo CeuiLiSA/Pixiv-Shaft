@@ -36,6 +36,7 @@ import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.download.FileCreator;
+import ceui.lisa.download.GifCreate;
 import ceui.lisa.download.GifDownload;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.http.ErrorCtrl;
@@ -107,13 +108,21 @@ public class FragmentSingleIllust extends BaseFragment {
         });
 
         CardView download = v.findViewById(R.id.download_illust);
+        TextView downloadText = v.findViewById(R.id.download_text);
+        if(illust.isGif() && illust.getPage_count() == 1){
+            downloadText.setText("保存动图");
+        }
         download.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (illust.getPage_count() == 1) {
-                    IllustDownload.downloadIllust(illust);
-                } else {
-                    IllustDownload.downloadAllIllust(illust);
+                if(illust.isGif()){
+                    GifCreate.createGif(illust);
+                }else {
+                    if (illust.getPage_count() == 1) {
+                        IllustDownload.downloadIllust(illust);
+                    } else {
+                        IllustDownload.downloadAllIllust(illust);
+                    }
                 }
             }
         });
@@ -282,35 +291,6 @@ public class FragmentSingleIllust extends BaseFragment {
                         GifDownload.downloadGif(gifResponse, illust);
                     }
                 });
-    }
-
-    private void initAnime() {
-        if (parentView != null) {
-            mTagCloudView = parentView.findViewById(R.id.illust_tag);
-            if (mTagCloudView != null) {
-                SpringChain chain = SpringChain.create(100, 8, 50, 7);
-                for (int i = 0; i < mTagCloudView.getChildCount(); i++) {
-                    final View view = mTagCloudView.getChildAt(i);
-                    chain.addSpring(new SimpleSpringListener() {
-                        @Override
-                        public void onSpringUpdate(Spring spring) {
-                            view.setTranslationX((float) spring.getCurrentValue());
-                        }
-
-                        @Override
-                        public void onSpringEndStateChange(Spring spring) {
-
-                        }
-                    });
-                }
-                List<Spring> springs = chain.getAllSprings();
-                for (int i = 0; i < springs.size(); i++) {
-                    springs.get(i).setCurrentValue(120);
-                }
-
-                chain.setControlSpringIndex(0).getControlSpring().setEndValue(0);
-            }
-        }
     }
 
     @Override

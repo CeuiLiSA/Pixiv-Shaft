@@ -95,6 +95,10 @@ public class IllustsBean implements Serializable {
         return type;
     }
 
+    public boolean isGif(){
+        return "ugoira".equals(type);
+    }
+
     public void setType(String type) {
         this.type = type;
     }

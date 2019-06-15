@@ -227,6 +227,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:text="下载原图"
+                        android:id="@+id/download_text"
                         android:layout_gravity="center"
                         android:layout_height="wrap_content" />
 

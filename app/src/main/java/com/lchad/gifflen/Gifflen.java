@@ -29,7 +29,10 @@ import android.util.Log;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.Arrays;
 import java.util.List;
+
+import ceui.lisa.utils.Common;
 
 /**
  * Created by lchad on 2017/3/24.
@@ -138,6 +141,7 @@ public class Gifflen {
             if (width < bitmap.getWidth() || height < bitmap.getHeight()) {
                 bitmap = Bitmap.createScaledBitmap(bitmap, width, height, true);
             }
+            Common.showLog("bitmap.width() " + bitmap.getWidth() + " width " + width + " height " + height);
             bitmap.getPixels(pixels, 0, width, 0, 0, width, height);
             addFrame(pixels);
             bitmap.recycle();
