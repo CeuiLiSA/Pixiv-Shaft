@@ -83,12 +83,6 @@ public class UserDetailActivity extends BaseActivity {
         toolbar.setNavigationOnClickListener(v -> finish());
         fans = findViewById(R.id.follow_user);
         nowFollow = findViewById(R.id.follow);
-        nowFollow.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                PixivOperate.followOrUnfollowClick(userID,nowFollow);
-            }
-        });
         CollapsingToolbarLayout collapsingToolbarLayout = findViewById(R.id.toolbar_layout);
         AppBarLayout appBarLayout = findViewById(R.id.app_bar);
         appBarLayout.addOnOffsetChangedListener(new AppBarStateChangeListener() {
@@ -262,8 +256,24 @@ public class UserDetailActivity extends BaseActivity {
             userName.setText(userDetailResponse.getUser().getName());
             if (userDetailResponse.getUser().isIs_followed()) {
                 nowFollow.setText("取消關注");
+                nowFollow.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        nowFollow.setText("+ 關注");
+                        PixivOperate.postUnFollowUser(userDetailResponse.getUser().getId());
+                    }
+                });
             } else {
                 nowFollow.setText("+ 關注");
+                nowFollow.setOnClickListener(v -> {
+                    nowFollow.setText("取消關注");
+                    PixivOperate.postFollowUser(userDetailResponse.getUser().getId(), "public");
+                });
+                nowFollow.setOnLongClickListener(v -> {
+                    nowFollow.setText("取消關注");
+                    PixivOperate.postFollowUser(userDetailResponse.getUser().getId(), "private");
+                    return true;
+                });
             }
             follow.setText("關注：" + userDetailResponse.getProfile().getTotal_mypixiv_users());
             fans.setText("粉絲：" + userDetailResponse.getProfile().getTotal_follow_users());
