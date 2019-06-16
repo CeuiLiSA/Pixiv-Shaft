@@ -13,13 +13,15 @@ import ceui.lisa.R;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentDownloadFinish;
+import ceui.lisa.fragments.FragmentFollowUser;
+import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.fragments.FragmentNowDownload;
 import ceui.lisa.utils.Common;
 
-public class DownloadManageActivity extends BaseActivity {
+public class CollectionActivity extends BaseActivity {
 
-    private static final String[] CHINESE_TITLES = new String[]{"正在下载", "已完成"};
-    private BaseFragment[] allPages = new BaseFragment[]{new FragmentNowDownload(), new FragmentDownloadFinish()};
+    private static final String[] CHINESE_TITLES = new String[]{"公开收藏", "私人收藏", "公开关注", "私人关注"};
+    private BaseFragment[] allPages;
     private ViewPager mViewPager;
 
     @Override
@@ -31,10 +33,15 @@ public class DownloadManageActivity extends BaseActivity {
     protected void initView() {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        toolbar.setTitle("下载管理");
+        toolbar.setTitle("收藏夹");
         toolbar.setNavigationOnClickListener(v -> finish());
         TabLayout tabLayout = findViewById(R.id.tab_layout);
         mViewPager = findViewById(R.id.view_pager);
+        allPages = new BaseFragment[]{
+                FragmentLikeIllust.newInstance(mUserModel.getResponse().getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC),
+                FragmentLikeIllust.newInstance(mUserModel.getResponse().getUser().getId(), FragmentLikeIllust.TYPE_PRIVATE),
+                FragmentFollowUser.newInstance(mUserModel.getResponse().getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC),
+                FragmentFollowUser.newInstance(mUserModel.getResponse().getUser().getId(), FragmentLikeIllust.TYPE_PRIVATE)};
         mViewPager.setAdapter(new FragmentStatePagerAdapter(getSupportFragmentManager()) {
             @Override
             public Fragment getItem(int i) {

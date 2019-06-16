@@ -70,9 +70,9 @@ public class TokenInterceptor implements Interceptor {
                 true);
         UserModel newUser = call.execute().body();
 
-        UserBean.ProfileImageUrlsBean profile_image_urls = newUser.getResponse().getUser().getProfile_image_urls();
-        profile_image_urls.setMedium(profile_image_urls.getPx_50x50());
-        newUser.getResponse().getUser().setPassword(userModel.getResponse().getUser().getPassword());
+//        UserBean.ProfileImageUrlsBean profile_image_urls = newUser.getResponse().getUser().getProfile_image_urls();
+//        profile_image_urls.setMedium(profile_image_urls.getPx_50x50());
+//        newUser.getResponse().getUser().setPassword(userModel.getResponse().getUser().getPassword());
         Local.saveUser(newUser);
         isFetchingToken = false;
         if(newUser != null && newUser.getResponse() != null) {

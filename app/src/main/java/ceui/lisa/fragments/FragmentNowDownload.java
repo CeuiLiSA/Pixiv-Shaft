@@ -30,6 +30,7 @@ public class FragmentNowDownload extends BaseAsynFragment<DownloadTaskAdapter, I
     @Override
     View initView(View v) {
         super.initView(v);
+        //正在下载页面。不允许刷新，不允许加载更多
         mRefreshLayout.setEnableLoadMore(false);
         mRefreshLayout.setEnableRefresh(false);
         return v;

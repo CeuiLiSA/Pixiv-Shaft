@@ -29,6 +29,7 @@
         <activity android:name=".activities.UserDetailActivity" />
         <activity android:name=".activities.DownloadManageActivity" />
         <activity android:name=".activities.ImageDetailActivity" />
+        <activity android:name=".activities.CollectionActivity" />
 
 
         <meta-data

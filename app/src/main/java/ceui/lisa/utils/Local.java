@@ -51,6 +51,7 @@ public class Local {
     public static UserModel getUser(){
         SharedPreferences localData = Shaft.getContext().getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
         String userString = localData.getString(USER,"");
+        Common.showLog("UserModel " + userString);
         Gson gson = new Gson();
         UserModel userModel = gson.fromJson(userString, UserModel.class);
         return userModel;

@@ -22,10 +22,14 @@ import io.reactivex.Observable;
 public class FragmentLikeIllust extends AutoClipFragment<ListIllustResponse, IllustStagAdapter, IllustsBean> {
 
     private int userID;
+    private String starType;
+    public static final String TYPE_PUBLUC = "public";
+    public static final String TYPE_PRIVATE = "private";
 
-    public static FragmentLikeIllust newInstance(int userID){
+    public static FragmentLikeIllust newInstance(int userID, String starType){
         FragmentLikeIllust fragmentRelatedIllust = new FragmentLikeIllust();
         fragmentRelatedIllust.userID = userID;
+        fragmentRelatedIllust.starType = starType;
         return fragmentRelatedIllust;
     }
 
@@ -42,7 +46,7 @@ public class FragmentLikeIllust extends AutoClipFragment<ListIllustResponse, Ill
 
     @Override
     Observable<ListIllustResponse> initApi() {
-        return Retro.getAppApi().getUserLikeIllust(mUserModel.getResponse().getAccess_token(), userID, "public");
+        return Retro.getAppApi().getUserLikeIllust(mUserModel.getResponse().getAccess_token(), userID, starType);
     }
 
     @Override
