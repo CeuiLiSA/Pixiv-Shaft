@@ -43,8 +43,8 @@ dependencies {
     implementation 'com.squareup.retrofit2:adapter-rxjava2:2.5.0'
 
     implementation "io.reactivex.rxjava2:rxjava:2.2.9"
-    implementation 'io.reactivex.rxjava2:rxandroid:2.1.0'
-    implementation 'com.squareup.okhttp3:logging-interceptor:3.10.0'
+    implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
+    implementation 'com.squareup.okhttp3:logging-interceptor:3.14.1'
     implementation 'com.scwang.smartrefresh:SmartRefreshLayout:1.1.0-alpha-14'
     implementation 'com.scwang.smartrefresh:SmartRefreshHeader:1.1.0-alpha-14'
     implementation 'com.rengwuxian.materialedittext:library:2.1.4'
@@ -59,9 +59,10 @@ dependencies {
     implementation 'android.arch.persistence.room:runtime:1.1.1'
     annotationProcessor 'android.arch.persistence.room:compiler:1.1.1'
     implementation 'org.greenrobot:eventbus:3.1.1'
-    implementation 'com.just.agentweb:agentweb:4.0.3-alpha@aar'
+    implementation 'com.just.agentweb:agentweb:4.0.3-beta@aar'
+    api 'com.just.agentweb:download:4.0.3-beta'
     implementation 'com.facebook.rebound:rebound:0.3.8'
-    implementation 'com.liulishuo.okdownload:okdownload:1.0.4'
+    implementation 'com.liulishuo.okdownload:okdownload:1.0.5'
     implementation 'com.liulishuo.okdownload:sqlite:1.0.4-SNAPSHOT'
     implementation 'com.liulishuo.okdownload:okhttp:1.0.4-SNAPSHOT'
     implementation 'com.github.tbruyelle:rxpermissions:0.10.2'

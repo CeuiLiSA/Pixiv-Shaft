@@ -8,6 +8,7 @@ import java.io.IOException;
 import okhttp3.ResponseBody;
 import retrofit2.Response;
 
+//TODO 实现ConvertFactory
 public class ReverseResult implements Parcelable {
     private String title;
     private String url;
@@ -51,7 +52,7 @@ public class ReverseResult implements Parcelable {
     public ReverseResult(Response<ResponseBody> response){
         try {
 
-            title = response.raw().request().url().host();
+            title = "Result";
             url = response.raw().request().url().toString();
             mime = response.headers().get("Content-Type");
             encoding = response.headers().get("Transfer-Encoding");

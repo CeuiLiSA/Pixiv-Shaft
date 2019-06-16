@@ -16,6 +16,8 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+
 import java.io.File;
 import ceui.lisa.R;
 import ceui.lisa.database.AppDatabase;
@@ -23,6 +25,7 @@ import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentCenter;
 import ceui.lisa.fragments.FragmentRight;
 import ceui.lisa.fragments.FragmentLeft;
+import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Local;
 import ceui.lisa.response.UserModel;
 import ceui.lisa.utils.Common;
