@@ -10,6 +10,7 @@ import android.support.v4.view.ViewPager;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource;
@@ -24,6 +25,7 @@ import com.facebook.rebound.SpringSystem;
 import java.io.File;
 
 import ceui.lisa.R;
+import ceui.lisa.download.IllustDownload;
 import ceui.lisa.fragments.FragmentImageDetail;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.utils.Local;
@@ -33,6 +35,7 @@ import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOption
 public class ImageDetailActivity extends BaseActivity {
 
     private IllustsBean mIllustsBean;
+    private TextView currentPage, downloadSingle;
 
     @Override
     protected void initLayout() {
@@ -46,12 +49,13 @@ public class ImageDetailActivity extends BaseActivity {
     @Override
     protected void initView() {
         ViewPager viewPager = findViewById(R.id.view_pager);
+        currentPage = findViewById(R.id.current_page);
+        downloadSingle = findViewById(R.id.download_this_one);
         mIllustsBean = (IllustsBean) getIntent().getSerializableExtra("illust");
         int index = getIntent().getIntExtra("index", 0);
         if(mIllustsBean == null){
             return;
         }
-
         viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override
             public Fragment getItem(int i) {
@@ -64,6 +68,29 @@ public class ImageDetailActivity extends BaseActivity {
             }
         });
         viewPager.setCurrentItem(index);
+        downloadSingle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                IllustDownload.downloadIllust(mIllustsBean, viewPager.getCurrentItem());
+            }
+        });
+        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int i, float v, int i1) {
+
+            }
+
+            @Override
+            public void onPageSelected(int i) {
+                currentPage.setText("第" + (i + 1) + "P / 共" + mIllustsBean.getPage_count() + "P");
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int i) {
+
+            }
+        });
+        currentPage.setText("第" + (index + 1) + "P / 共" + mIllustsBean.getPage_count() + "P");
     }
 
     @Override

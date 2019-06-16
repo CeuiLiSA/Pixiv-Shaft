@@ -97,7 +97,7 @@ public class UserDetailResponse {
         private Object background_image_url;
         private String twitter_account;
         private String twitter_url;
-        private Object pawoo_url;
+        private String pawoo_url;
         private boolean is_premium;
         private boolean is_using_custom_profile_image;
 
@@ -269,11 +269,11 @@ public class UserDetailResponse {
             this.twitter_url = twitter_url;
         }
 
-        public Object getPawoo_url() {
+        public String getPawoo_url() {
             return pawoo_url;
         }
 
-        public void setPawoo_url(Object pawoo_url) {
+        public void setPawoo_url(String pawoo_url) {
             this.pawoo_url = pawoo_url;
         }
 
