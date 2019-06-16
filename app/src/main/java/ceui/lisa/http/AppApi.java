@@ -200,19 +200,4 @@ public interface AppApi {
                                          @Field("comment") String comment,
                                          @Field("parent_comment_id") int parent_comment_id);
 
-
-
-    /**
-     * 获取userid 所关注的人
-     *
-     * @param token
-     * @param user_id
-     * @param restrict
-     * @return
-     */
-    @GET("/v1/user/following?filter=for_android")
-    Observable<ListUserResponse> getFollowUser(@Header("Authorization") String token,
-                                               @Query("user_id") int user_id,
-                                               @Query("restrict") String restrict);
-
 }
