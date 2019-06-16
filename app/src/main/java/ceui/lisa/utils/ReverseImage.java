@@ -1,5 +1,6 @@
 package ceui.lisa.utils;
 
+
 import java.io.File;
 
 import ceui.lisa.http.IqdbApi;
@@ -15,6 +16,7 @@ import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
+import retrofit2.Response;
 
 //TinEye会报Internal Server Error,原因暂时不明
 //没找到给出的Api,都使用了网页版
@@ -27,21 +29,24 @@ public class ReverseImage {
     public static void reverse(File file, ReverseProvider reverseProvider, Callback callback) {
 
         RequestBody requestBody = RequestBody.create(MediaType.parse("multipart/form-data"), file);
-        MultipartBody.Part formData = MultipartBody.Part.createFormData("file", file.getName(), requestBody);
+
 
         Object o = Retro.create(reverseProvider.base_url, reverseProvider.apiClass);
 
         //    enum不能使用泛型,刚好Retrofit的Api Interface 不能继承,搞不了花里胡哨了
-        Observable<ResponseBody> observable;
-        System.out.println(reverseProvider.name());
+        Observable<Response<ResponseBody>> observable;
+        MultipartBody.Part formData;
         switch (reverseProvider.name()) {
             case "Iqdb":
+                formData = MultipartBody.Part.createFormData("file", file.getName(), requestBody);
                 observable = ((IqdbApi) o).query(formData);
                 break;
             case "SauceNao":
+                formData = MultipartBody.Part.createFormData("file", file.getName(), requestBody);
                 observable = ((SauceNaoApi) o).query(formData);
                 break;
             case "TinEye":
+                formData = MultipartBody.Part.createFormData("image", file.getName(), requestBody);
                 observable = ((TinEyeApi) o).query(formData);
                 break;
             default:
@@ -51,15 +56,15 @@ public class ReverseImage {
         observable.subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<ResponseBody>() {
+                .subscribe(new Observer<Response<ResponseBody>>() {
                     @Override
                     public void onSubscribe(Disposable d) {
-
+                        callback.onSubscribe(d);
                     }
 
                     @Override
-                    public void onNext(ResponseBody responseBody) {
-                        callback.onNext(responseBody);
+                    public void onNext(Response<ResponseBody> response) {
+                        callback.onNext(response);
                     }
 
                     @Override
@@ -76,8 +81,13 @@ public class ReverseImage {
     }
 
 
+
+
     public interface Callback {
-        void onNext(ResponseBody responseBody);
+        void onSubscribe(Disposable d);
+
+        void onNext(Response<ResponseBody> response);
+
         void onError(Throwable e);
     }
 
@@ -85,8 +95,8 @@ public class ReverseImage {
     public enum ReverseProvider {
         Iqdb(IQDB_BASE_URL, IqdbApi.class), SauceNao(SAUCENAO_BASE_URL, SauceNaoApi.class), TinEye(TINEYE_BASE_URL, TinEyeApi.class);
 
-        private Class<?> apiClass;
-        private final String base_url;
+        public Class<?> apiClass;
+        public final String base_url;
 
         ReverseProvider(String baseUrl, Class<?> apiClass) {
             this.base_url = baseUrl;

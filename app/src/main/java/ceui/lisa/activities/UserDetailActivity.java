@@ -233,7 +233,7 @@ public class UserDetailActivity extends BaseActivity {
 
 
     private void setData(UserDetailResponse userDetailResponse) {
-//        TODO 猜测可能会无效,因为Glide异步操作,在Glide初始化时Activity正常.而Glide操作未完成,Activity已经Destroy仍会空指针.如果发生,try AppContext
+//      when(exception) Glide.with(Shaft.getContext())
         if(mContext != null && !isDestroyed()) {
             Glide.with(mContext)
                     .load(GlideUtil.getMediumImg(

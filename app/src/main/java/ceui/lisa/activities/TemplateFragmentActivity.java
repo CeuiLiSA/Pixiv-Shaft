@@ -11,6 +11,7 @@ import ceui.lisa.fragments.FragmentSearchResult;
 import ceui.lisa.fragments.FragmentSettings;
 import ceui.lisa.fragments.FragmentViewHistory;
 import ceui.lisa.fragments.FragmentWebView;
+import ceui.lisa.utils.ReverseResult;
 
 public class TemplateFragmentActivity extends FragmentActivity {
 
@@ -24,27 +25,30 @@ public class TemplateFragmentActivity extends FragmentActivity {
         Intent intent = getIntent();
         String dataType = intent.getStringExtra(EXTRA_FRAGMENT);
 
-        if(dataType != null){
-            if(dataType.equals("搜索结果")){
+        if (dataType != null) {
+            if (dataType.equals("搜索结果")) {
                 String keyword = intent.getStringExtra(EXTRA_KEYWORD);
                 return FragmentSearchResult.newInstance(keyword);
-            }else if(dataType.equals("相关作品")){
+            } else if (dataType.equals("相关作品")) {
                 int id = intent.getIntExtra(EXTRA_ILLUST_ID, 0);
                 String title = intent.getStringExtra(EXTRA_ILLUST_TITLE);
                 return FragmentRelatedIllust.newInstance(id, title);
-            }else if(dataType.equals("浏览记录")){
+            } else if (dataType.equals("浏览记录")) {
                 return new FragmentViewHistory();
-            }else if(dataType.equals("网页链接")){
+            } else if (dataType.equals("网页链接")) {
                 String url = intent.getStringExtra("url");
                 return FragmentWebView.newInstance("PixiVision特辑", url);
-            }else if(dataType.equals("设置")){
+            } else if (dataType.equals("设置")) {
                 return new FragmentSettings();
-            }else if(dataType.equals("推荐用户")){
+            } else if (dataType.equals("推荐用户")) {
                 return new FragmentRecmdUser();
-            }else if(dataType.equals("特辑")){
+            } else if (dataType.equals("特辑")) {
                 return new FragmentPivision();
-            }else if(dataType.equals("拖动测试")){
+            } else if (dataType.equals("拖动测试")) {
                 return new FragmentDrag();
+            } else if (dataType.equals("以图搜图")) {
+                ReverseResult result = intent.getParcelableExtra("result");
+                return FragmentWebView.newInstance(result.getTitle(),result.getUrl(),result.getResponseBody(),result.getMime(),result.getEncoding(),result.getHistory_url());
             }
         }
         return null;
