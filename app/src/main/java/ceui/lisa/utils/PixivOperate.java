@@ -1,17 +1,10 @@
 package ceui.lisa.utils;
 
 
-import android.widget.TextView;
-
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
-import ceui.lisa.response.BookmarkAddResponse;
-import ceui.lisa.response.UserBean;
-import ceui.lisa.response.UserDetailResponse;
-import ceui.lisa.response.UserModel;
-import io.reactivex.Observer;
+import ceui.lisa.response.NullResponse;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 public class PixivOperate {
@@ -62,9 +55,9 @@ public class PixivOperate {
                 Local.getUser().getResponse().getAccess_token(), userID, followType)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new ErrorCtrl<BookmarkAddResponse>() {
+                .subscribe(new ErrorCtrl<NullResponse>() {
                     @Override
-                    public void onNext(BookmarkAddResponse bookmarkAddResponse) {
+                    public void onNext(NullResponse nullResponse) {
                         if (followType.equals("public")) {
                             Common.showToast("关注成功~(公开的)");
                         } else {
@@ -79,9 +72,9 @@ public class PixivOperate {
                 Local.getUser().getResponse().getAccess_token(), userID)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new ErrorCtrl<BookmarkAddResponse>() {
+                .subscribe(new ErrorCtrl<NullResponse>() {
                     @Override
-                    public void onNext(BookmarkAddResponse bookmarkAddResponse) {
+                    public void onNext(NullResponse nullResponse) {
                         Common.showToast("取消关注~");
                     }
                 });

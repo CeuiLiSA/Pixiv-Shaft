@@ -270,7 +270,10 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
 
                             @Override
                             public void dataError() {
-                                mRefreshLayout.finishLoadMore(false);
+                                mRefreshLayout.finishLoadMore(true);
+                                if(!TextUtils.isEmpty(nextUrl)){
+                                    mRefreshLayout.setEnableLoadMore(false);
+                                }
                             }
 
                             @Override

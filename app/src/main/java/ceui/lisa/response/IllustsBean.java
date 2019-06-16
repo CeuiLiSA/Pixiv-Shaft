@@ -265,77 +265,77 @@ public class IllustsBean implements Serializable {
 
 
 
-    public static class UserBean implements Serializable{
-        /**
-         * id : 74184
-         * name : 零＠通販始めた
-         * account : sanbonzakura
-         * profile_image_urls : {"medium":"https://i.pximg.net/user-profile/img/2017/04/27/10/00/38/12474975_a0a699ea19f387df0f98bc5a9b7d26d3_170.png"}
-         * is_followed : false
-         */
-
-        private int id;
-        private String name;
-        private String account;
-        private ProfileImageUrlsBean profile_image_urls;
-        private boolean is_followed;
-
-        public int getId() {
-            return id;
-        }
-
-        public void setId(int id) {
-            this.id = id;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getAccount() {
-            return account;
-        }
-
-        public void setAccount(String account) {
-            this.account = account;
-        }
-
-        public ProfileImageUrlsBean getProfile_image_urls() {
-            return profile_image_urls;
-        }
-
-        public void setProfile_image_urls(ProfileImageUrlsBean profile_image_urls) {
-            this.profile_image_urls = profile_image_urls;
-        }
-
-        public boolean isIs_followed() {
-            return is_followed;
-        }
-
-        public void setIs_followed(boolean is_followed) {
-            this.is_followed = is_followed;
-        }
-
-        public static class ProfileImageUrlsBean implements Serializable{
-            /**
-             * medium : https://i.pximg.net/user-profile/img/2017/04/27/10/00/38/12474975_a0a699ea19f387df0f98bc5a9b7d26d3_170.png
-             */
-
-            private String medium;
-
-            public String getMedium() {
-                return medium;
-            }
-
-            public void setMedium(String medium) {
-                this.medium = medium;
-            }
-        }
-    }
+//    public static class UserBean implements Serializable{
+//        /**
+//         * id : 74184
+//         * name : 零＠通販始めた
+//         * account : sanbonzakura
+//         * profile_image_urls : {"medium":"https://i.pximg.net/user-profile/img/2017/04/27/10/00/38/12474975_a0a699ea19f387df0f98bc5a9b7d26d3_170.png"}
+//         * is_followed : false
+//         */
+//
+//        private int id;
+//        private String name;
+//        private String account;
+//        private ProfileImageUrlsBean profile_image_urls;
+//        private boolean is_followed;
+//
+//        public int getId() {
+//            return id;
+//        }
+//
+//        public void setId(int id) {
+//            this.id = id;
+//        }
+//
+//        public String getName() {
+//            return name;
+//        }
+//
+//        public void setName(String name) {
+//            this.name = name;
+//        }
+//
+//        public String getAccount() {
+//            return account;
+//        }
+//
+//        public void setAccount(String account) {
+//            this.account = account;
+//        }
+//
+//        public ProfileImageUrlsBean getProfile_image_urls() {
+//            return profile_image_urls;
+//        }
+//
+//        public void setProfile_image_urls(ProfileImageUrlsBean profile_image_urls) {
+//            this.profile_image_urls = profile_image_urls;
+//        }
+//
+//        public boolean isIs_followed() {
+//            return is_followed;
+//        }
+//
+//        public void setIs_followed(boolean is_followed) {
+//            this.is_followed = is_followed;
+//        }
+//
+//        public static class ProfileImageUrlsBean implements Serializable{
+//            /**
+//             * medium : https://i.pximg.net/user-profile/img/2017/04/27/10/00/38/12474975_a0a699ea19f387df0f98bc5a9b7d26d3_170.png
+//             */
+//
+//            private String medium;
+//
+//            public String getMedium() {
+//                return medium;
+//            }
+//
+//            public void setMedium(String medium) {
+//                this.medium = medium;
+//            }
+//        }
+//    }
 
 
     @Override

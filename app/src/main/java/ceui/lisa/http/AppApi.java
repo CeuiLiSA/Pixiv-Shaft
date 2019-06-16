@@ -1,7 +1,8 @@
 package ceui.lisa.http;
 
 import ceui.lisa.response.ArticalResponse;
-import ceui.lisa.response.BookmarkAddResponse;
+import ceui.lisa.response.IllustCommentsResponse;
+import ceui.lisa.response.NullResponse;
 import ceui.lisa.response.GifResponse;
 import ceui.lisa.response.ListIllustResponse;
 import ceui.lisa.response.ListUserResponse;
@@ -157,14 +158,48 @@ public interface AppApi {
 
     @FormUrlEncoded
     @POST("/v1/user/follow/add")
-    Observable<BookmarkAddResponse> postFollow(@Header("Authorization") String token,
-                                               @Field("user_id") int user_id,
-                                               @Field("restrict") String followType);
+    Observable<NullResponse> postFollow(@Header("Authorization") String token,
+                                        @Field("user_id") int user_id,
+                                        @Field("restrict") String followType);
 
     @FormUrlEncoded
     @POST("/v1/user/follow/delete")
-    Observable<BookmarkAddResponse> postUnFollow(@Header("Authorization") String token,
-                                                 @Field("user_id") int user_id);
+    Observable<NullResponse> postUnFollow(@Header("Authorization") String token,
+                                          @Field("user_id") int user_id);
+
+
+    /**
+     * 获取userid 所关注的人
+     *
+     * @param token
+     * @param user_id
+     * @param restrict
+     * @return
+     */
+    @GET("/v1/user/following?filter=for_android")
+    Observable<ListUserResponse> getFollowUser(@Header("Authorization") String token,
+                                               @Query("user_id") int user_id,
+                                               @Query("restrict") String restrict);
+
+
+
+    @GET("/v1/illust/comments")
+    Observable<IllustCommentsResponse> getComment(@Header("Authorization") String token,
+                                                  @Query("illust_id") int illust_id);
+
+
+    @GET
+    Observable<IllustCommentsResponse> getNextComment(@Header("Authorization") String token,
+                                                      @Url String nextUrl);
+
+
+    @FormUrlEncoded
+    @POST("v1/illust/comment/add")
+    Observable<NullResponse> postComment(@Header("Authorization") String token,
+                                         @Field("illust_id") int illust_id,
+                                         @Field("comment") String comment,
+                                         @Field("parent_comment_id") int parent_comment_id);
+
 
 
     /**

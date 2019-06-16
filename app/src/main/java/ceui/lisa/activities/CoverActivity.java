@@ -34,6 +34,8 @@ import ceui.lisa.utils.ReverseWebviewCallback;
 
 import static ceui.lisa.activities.PikaActivity.FILE_PATH;
 
+import static ceui.lisa.activities.PikaActivity.FILE_PATH;
+
 public class CoverActivity extends BaseActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 

@@ -69,8 +69,8 @@ public class IllustStagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         params.width = imageSize;
         params.height = allIllust.get(position).getHeight() * imageSize / allIllust.get(position).getWidth();
 
-        if (params.height < 300) {
-            params.height = 300;
+        if (params.height < 350) {
+            params.height = 350;
         } else if (params.height > 600) {
             params.height = 600;
         }
@@ -167,7 +167,7 @@ public class IllustStagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         @Override
         public void run() {
             mSpring = mSystem.createSpring();
-            mSpring.setSpringConfig(SpringConfig.fromOrigamiTensionAndFriction(10, 5));
+            mSpring.setSpringConfig(SpringConfig.fromOrigamiTensionAndFriction(20, 3));
 
             mSpring.addListener(new SimpleSpringListener() {
                 @Override

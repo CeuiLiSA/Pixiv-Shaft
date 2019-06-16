@@ -46,6 +46,50 @@ public class IllustDownload {
     }
 
 
+
+    public static void downloadIllust(IllustsBean illustsBean, int index){
+        if(illustsBean == null){
+            return;
+        }
+
+        File file = FileCreator.createIllustFile(illustsBean, index);
+        if(file.exists()){
+            Common.showToast("图片已存在");
+            return;
+        }
+
+        if(illustsBean.getPage_count() == 1) {
+            DownloadTask.Builder builder = new DownloadTask.Builder(illustsBean.getMeta_single_page().getOriginal_image_url(),
+                    file.getParentFile())
+                    .setFilename(file.getName())
+                    .setMinIntervalMillisCallbackProcess(30)
+                    .setPassIfAlreadyCompleted(false);
+            builder.addHeader(MAP_KEY, IMAGE_REFERER);
+            DownloadTask task = builder.build();
+            IllustTask illustTask = new IllustTask();
+            illustTask.setIllustsBean(illustsBean);
+            illustTask.setDownloadTask(task);
+            TaskQueue.get().addTask(illustTask);
+            task.enqueue(new QueueListener());
+            Common.showToast("已加入下载队列");
+        }else {
+            DownloadTask.Builder builder = new DownloadTask.Builder(illustsBean.getMeta_pages().get(index).getImage_urls().getOriginal(),
+                    file.getParentFile())
+                    .setFilename(file.getName())
+                    .setMinIntervalMillisCallbackProcess(30)
+                    .setPassIfAlreadyCompleted(false);
+            builder.addHeader(MAP_KEY, IMAGE_REFERER);
+            DownloadTask task = builder.build();
+            IllustTask illustTask = new IllustTask();
+            illustTask.setIllustsBean(illustsBean);
+            illustTask.setDownloadTask(task);
+            TaskQueue.get().addTask(illustTask);
+            task.enqueue(new QueueListener());
+            Common.showToast("已加入下载队列");
+        }
+    }
+
+
     public static void downloadAllIllust(IllustsBean illustsBean){
         if(illustsBean == null){
             return;

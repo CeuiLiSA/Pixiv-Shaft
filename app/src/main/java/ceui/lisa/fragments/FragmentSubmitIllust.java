@@ -42,7 +42,7 @@ public class FragmentSubmitIllust extends AutoClipFragment<ListIllustResponse, I
 
     @Override
     Observable<ListIllustResponse> initApi() {
-        return Retro.getAppApi().getUserSubmitIllust(mUserModel.getResponse().getAccess_token(), userID, "illust");
+        return Retro.getAppApi().getUserSubmitIllust(mUserModel.getResponse().getAccess_token(), userID, "all");
     }
 
     @Override
