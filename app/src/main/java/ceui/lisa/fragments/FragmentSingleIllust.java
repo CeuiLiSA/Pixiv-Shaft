@@ -5,18 +5,17 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.facebook.rebound.SimpleSpringListener;
-import com.facebook.rebound.Spring;
-import com.facebook.rebound.SpringChain;
 import com.google.gson.Gson;
 import com.scwang.smartrefresh.layout.util.DensityUtil;
 
@@ -25,7 +24,6 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.sufficientlysecure.htmltextview.HtmlTextView;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,11 +32,10 @@ import ceui.lisa.activities.ImageDetailActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.activities.UserDetailActivity;
+import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.IllustDetailAdapter;
 import ceui.lisa.database.AppDatabase;
-import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.database.IllustHistoryEntity;
-import ceui.lisa.download.FileCreator;
 import ceui.lisa.download.GifCreate;
 import ceui.lisa.download.GifDownload;
 import ceui.lisa.download.IllustDownload;
@@ -47,11 +44,11 @@ import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.response.GifResponse;
 import ceui.lisa.response.IllustsBean;
-import ceui.lisa.response.UserDetailResponse;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.PixivOperate;
+import ceui.lisa.utils.ShareIllust;
 import ceui.lisa.view.ExpandCard;
 import ceui.lisa.view.LinearItemDecorationNoLRTB;
 import ceui.lisa.view.TouchRecyclerView;
@@ -92,6 +89,31 @@ public class FragmentSingleIllust extends BaseFragment {
         Common.showLog(className + new Gson().toJson(illust));
         imageView = v.findViewById(R.id.bg_image);
         Toolbar toolbar = v.findViewById(R.id.toolbar);
+        toolbar.inflateMenu(R.menu.share);
+        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem menuItem) {
+                if (menuItem.getItemId() == R.id.action_share) {
+                    new ShareIllust(mContext, illust) {
+                        @Override
+                        public void onPrepare() {
+
+                        }
+
+                        @Override
+                        public void onExecuteSuccess(Void aVoid) {
+
+                        }
+
+                        @Override
+                        public void onExecuteFail(Exception e) {
+
+                        }
+                    }.execute();
+                }
+                return false;
+            }
+        });
         toolbar.setPadding(0, Shaft.statusHeight, 0, 0);
         toolbar.setTitle(illust.getTitle() + "  ");
         toolbar.setTitleTextAppearance(mContext, R.style.toolbarText);
@@ -124,6 +146,16 @@ public class FragmentSingleIllust extends BaseFragment {
             }
         });
         FloatingActionButton comment = v.findViewById(R.id.comment);
+        comment.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "相关评论");
+                intent.putExtra(TemplateFragmentActivity.EXTRA_ILLUST_ID, illust.getId());
+                intent.putExtra(TemplateFragmentActivity.EXTRA_ILLUST_TITLE, illust.getTitle());
+                startActivity(intent);
+            }
+        });
         FloatingActionButton star = v.findViewById(R.id.post_like);
 
         /**
@@ -356,6 +388,7 @@ public class FragmentSingleIllust extends BaseFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
         EventBus.getDefault().register(this);
         Common.showLog(className + "EVENTBUS 注册了");
     }

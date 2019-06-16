@@ -3,6 +3,7 @@ package ceui.lisa.activities;
 import android.content.Intent;
 import android.support.v4.app.Fragment;
 
+import ceui.lisa.fragments.FragmentComment;
 import ceui.lisa.fragments.FragmentDrag;
 import ceui.lisa.fragments.FragmentPivision;
 import ceui.lisa.fragments.FragmentRecmdUser;
@@ -49,6 +50,10 @@ public class TemplateFragmentActivity extends FragmentActivity {
             } else if (dataType.equals("以图搜图")) {
                 ReverseResult result = intent.getParcelableExtra("result");
                 return FragmentWebView.newInstance(result.getTitle(),result.getUrl(),result.getResponseBody(),result.getMime(),result.getEncoding(),result.getHistory_url());
+            }else if(dataType.equals("相关评论")){
+                int id = intent.getIntExtra(EXTRA_ILLUST_ID, 0);
+                String title = intent.getStringExtra(EXTRA_ILLUST_TITLE);
+                return FragmentComment.newInstance(id, title);
             }
         }
         return null;

@@ -1,11 +1,14 @@
 package ceui.lisa.utils;
 
+import android.text.TextUtils;
+
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.Headers;
 
 import java.util.HashMap;
 
 import ceui.lisa.response.IllustsBean;
+import ceui.lisa.response.UserBean;
 
 public class GlideUtil {
 
@@ -51,6 +54,34 @@ public class GlideUtil {
 
     public static GlideUrl getLargeImage(String url) {
         return new GlideUrl(url, sHeaders);
+    }
+
+    public static GlideUrl getHead(UserBean userBean){
+        if(userBean == null){
+            return null;
+        }
+
+        if(userBean.getProfile_image_urls() == null){
+            return null;
+        }
+
+        if (!TextUtils.isEmpty(userBean.getProfile_image_urls().getPx_170x170())) {
+            return new GlideUrl(userBean.getProfile_image_urls().getPx_170x170(), sHeaders);
+        }
+
+        if (!TextUtils.isEmpty(userBean.getProfile_image_urls().getMedium())) {
+            return new GlideUrl(userBean.getProfile_image_urls().getMedium(), sHeaders);
+        }
+
+        if (!TextUtils.isEmpty(userBean.getProfile_image_urls().getPx_50x50())) {
+            return new GlideUrl(userBean.getProfile_image_urls().getPx_50x50(), sHeaders);
+        }
+
+        if (!TextUtils.isEmpty(userBean.getProfile_image_urls().getPx_16x16())) {
+            return new GlideUrl(userBean.getProfile_image_urls().getPx_16x16(), sHeaders);
+        }
+
+        return null;
     }
 
 

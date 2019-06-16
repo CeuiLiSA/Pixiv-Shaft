@@ -11,8 +11,8 @@ import ceui.lisa.utils.Common;
 
 public class FragmentAboutUser extends BaseFragment {
 
-    private HtmlTextView desc, mainPage, twitter;
-    private TextView computer;
+    private HtmlTextView desc, mainPage, twitter, pawoo;
+    private TextView computer, monitor, app, scanner, drawBoard, mouse, printer, desktopObjects, music, desk, chair;
 
     @Override
     void initLayout() {
@@ -24,7 +24,18 @@ public class FragmentAboutUser extends BaseFragment {
         mainPage = v.findViewById(R.id.main_page);
         twitter = v.findViewById(R.id.twitter);
         desc = v.findViewById(R.id.description);
+        pawoo = v.findViewById(R.id.pawoo);
         computer = v.findViewById(R.id.computer);
+        monitor = v.findViewById(R.id.monitor);
+        app = v.findViewById(R.id.app);
+        scanner = v.findViewById(R.id.scanner);
+        drawBoard = v.findViewById(R.id.draw_board);
+        mouse = v.findViewById(R.id.mouse);
+        printer = v.findViewById(R.id.printer);
+        desktopObjects = v.findViewById(R.id.table_objects);
+        music = v.findViewById(R.id.like_music);
+        desk = v.findViewById(R.id.table);
+        chair = v.findViewById(R.id.chair);
         Common.showLog(className + "initView 结束");
         return v;
     }
@@ -33,16 +44,24 @@ public class FragmentAboutUser extends BaseFragment {
     void initData() {
     }
 
-    public void setData(UserDetailResponse response){
+    public void setData(UserDetailResponse response) {
         try {
-
-        mainPage.setHtml(response.getProfile().getWebpage());
-        twitter.setHtml(response.getProfile().getTwitter_account());
-        desc.setHtml(response.getUser().getComment());
-        computer.setText(response.getWorkspace().getDesktop());
-
-        }
-        catch (Exception e){
+            mainPage.setHtml(response.getProfile().getWebpage());
+            twitter.setHtml(response.getProfile().getTwitter_account() + " / " + response.getProfile().getTwitter_url());
+            desc.setHtml(response.getUser().getComment());
+            pawoo.setHtml(response.getProfile().getPawoo_url());
+            computer.setText(response.getWorkspace().getPc());
+            monitor.setText(response.getWorkspace().getMonitor());
+            app.setText(response.getWorkspace().getTool());
+            scanner.setText(response.getWorkspace().getScanner());
+            drawBoard.setText(response.getWorkspace().getTablet());
+            mouse.setText(response.getWorkspace().getMouse());
+            printer.setText(response.getWorkspace().getPrinter());
+            desktopObjects.setText(response.getWorkspace().getDesktop());
+            music.setText(response.getWorkspace().getMusic());
+            desk.setText(response.getWorkspace().getDesk());
+            chair.setText(response.getWorkspace().getChair());
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
