@@ -16,12 +16,21 @@ public class UserBean {
     private ProfileImageUrlsBean profile_image_urls;
     private int id;
     private String name;
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    private String comment;
     private String account;
     private String password;
     private String mail_address;
     private boolean is_premium;
     private boolean is_login;
-    private String comment;
     private boolean is_followed;
 
     public boolean isIs_followed() {

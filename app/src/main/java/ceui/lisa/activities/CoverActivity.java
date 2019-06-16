@@ -29,12 +29,14 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.ReverseImage;
 import ceui.lisa.utils.ReverseWebviewCallback;
 
+import static ceui.lisa.activities.PikaActivity.FILE_PATH;
+
 public class CoverActivity extends BaseActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private ViewPager mViewPager;
     private DrawerLayout mDrawer;
-    private ImageView userHead;
+    private ImageView userHead, pikaBackground;
     private TextView username;
     private TextView user_email;
     private long mExitTime;
@@ -57,6 +59,13 @@ public class CoverActivity extends BaseActivity
         userHead = navigationView.getHeaderView(0).findViewById(R.id.user_head);
         username = navigationView.getHeaderView(0).findViewById(R.id.user_name);
         user_email = navigationView.getHeaderView(0).findViewById(R.id.user_email);
+        pikaBackground = navigationView.getHeaderView(0).findViewById(R.id.pika_bg);
+        File file = new File(FILE_PATH, Local.getPikaImageFileName());
+        if(file.exists()){
+            Glide.with(mContext)
+                    .load(file)
+                    .into(pikaBackground);
+        }
         userHead.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -144,7 +153,8 @@ public class CoverActivity extends BaseActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_camera) {
-
+            Intent intent = new Intent(mContext, CollectionActivity.class);
+            startActivity(intent);
         } else if (id == R.id.nav_gallery) {
             Intent intent = new Intent(mContext, DownloadManageActivity.class);
             startActivity(intent);
@@ -163,9 +173,6 @@ public class CoverActivity extends BaseActivity
 //            TODO remove
             ReverseImage.reverse(new File(Environment.getExternalStorageDirectory(), "test.jpg"), ReverseImage.ReverseProvider.Iqdb, new ReverseWebviewCallback(this));
         } else if (id == R.id.nav_send) {
-            Intent intent = new Intent(mContext, UserDetailActivity.class);
-            intent.putExtra("user id", mUserModel.getResponse().getUser().getId());
-            startActivity(intent);
         }
 
         mDrawer.closeDrawer(GravityCompat.START);
@@ -176,10 +183,10 @@ public class CoverActivity extends BaseActivity
     protected void onResume() {
         super.onResume();
         if (mUserModel != null && mUserModel.getResponse() != null) {
-//            Glide.with(mContext)
-//                    .load(GlideUtil.getMediumImg(
-//                            mUserModel.getResponse().getUser().getProfile_image_urls().getMedium()))
-//                    .into(userHead);
+            Glide.with(mContext)
+                    .load(GlideUtil.getMediumImg(
+                            mUserModel.getResponse().getUser().getProfile_image_urls().getPx_170x170()))
+                    .into(userHead);
             username.setText(mUserModel.getResponse().getUser().getName());
             user_email.setText(mUserModel.getResponse().getUser().getMail_address());
         }

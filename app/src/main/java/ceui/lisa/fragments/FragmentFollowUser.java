@@ -10,32 +10,29 @@ import com.scwang.smartrefresh.layout.util.DensityUtil;
 import ceui.lisa.R;
 import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.adapters.UserAdapter;
-import ceui.lisa.interfaces.FullClickListener;
 import ceui.lisa.http.Retro;
+import ceui.lisa.interfaces.FullClickListener;
 import ceui.lisa.response.ListUserResponse;
 import ceui.lisa.response.UserPreviewsBean;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.view.LinearItemDecoration;
 import io.reactivex.Observable;
 
-/**
- * 推荐用户
- */
-public class FragmentRecmdUser extends BaseListFragment<ListUserResponse, UserAdapter, UserPreviewsBean> {
+public class FragmentFollowUser extends BaseListFragment<ListUserResponse, UserAdapter, UserPreviewsBean> {
 
-    @Override
-    Observable<ListUserResponse> initApi() {
-        return Retro.getAppApi().getRecmdUser(mUserModel.getResponse().getAccess_token());
+    private int userID;
+    private String starType;
+
+    public static FragmentFollowUser newInstance(int userID, String starType){
+        FragmentFollowUser followUser = new FragmentFollowUser();
+        followUser.userID = userID;
+        followUser.starType = starType;
+        return followUser;
     }
 
     @Override
-    void initLayout() {
-        mLayoutID = R.layout.fragment_illust_list;
-    }
-
-    @Override
-    String getToolbarTitle() {
-        return "推荐用户";
+    boolean showToolbar() {
+        return false;
     }
 
     @Override
@@ -44,6 +41,12 @@ public class FragmentRecmdUser extends BaseListFragment<ListUserResponse, UserAd
         mRecyclerView.addItemDecoration(new LinearItemDecoration(DensityUtil.dp2px(8.0f)));
         LinearLayoutManager manager = new LinearLayoutManager(mContext);
         mRecyclerView.setLayoutManager(manager);
+    }
+
+
+    @Override
+    Observable<ListUserResponse> initApi() {
+        return Retro.getAppApi().getFollowUser(mUserModel.getResponse().getAccess_token(), userID, starType);
     }
 
     @Override

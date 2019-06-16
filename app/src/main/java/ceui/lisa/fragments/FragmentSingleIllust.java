@@ -2,10 +2,12 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -21,6 +23,7 @@ import com.scwang.smartrefresh.layout.util.DensityUtil;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.sufficientlysecure.htmltextview.HtmlTextView;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -73,10 +76,9 @@ public class FragmentSingleIllust extends BaseFragment {
     private TextView seeAll;
     private IllustDetailAdapter mDetailAdapter;
 
-    public static FragmentSingleIllust newInstance(IllustsBean illustsBean, Bundle bundle) {
+    public static FragmentSingleIllust newInstance(IllustsBean illustsBean) {
         FragmentSingleIllust fragmentSingleIllust = new FragmentSingleIllust();
         fragmentSingleIllust.setIllust(illustsBean);
-
         return fragmentSingleIllust;
     }
 
@@ -95,25 +97,9 @@ public class FragmentSingleIllust extends BaseFragment {
         toolbar.setTitleTextAppearance(mContext, R.style.toolbarText);
         toolbar.setNavigationOnClickListener(view -> getActivity().finish());
 
-        CardView viewRelated = v.findViewById(R.id.related_illust);
-        viewRelated.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "相关作品");
-                intent.putExtra(TemplateFragmentActivity.EXTRA_ILLUST_ID, illust.getId());
-                intent.putExtra(TemplateFragmentActivity.EXTRA_ILLUST_TITLE, illust.getTitle());
-                startActivity(intent);
-            }
-        });
-
-        CardView download = v.findViewById(R.id.download_illust);
-        TextView downloadText = v.findViewById(R.id.download_text);
-        if(illust.isGif() && illust.getPage_count() == 1){
-            downloadText.setText("保存动图");
-        }
+        FloatingActionButton download = v.findViewById(R.id.download);
         download.setOnClickListener(new View.OnClickListener() {
-            @Override
+                        @Override
             public void onClick(View v) {
                 if(illust.isGif()){
                     GifCreate.createGif(illust);
@@ -126,6 +112,19 @@ public class FragmentSingleIllust extends BaseFragment {
                 }
             }
         });
+        FloatingActionButton related = v.findViewById(R.id.related);
+        related.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "相关作品");
+                intent.putExtra(TemplateFragmentActivity.EXTRA_ILLUST_ID, illust.getId());
+                intent.putExtra(TemplateFragmentActivity.EXTRA_ILLUST_TITLE, illust.getTitle());
+                startActivity(intent);
+            }
+        });
+        FloatingActionButton comment = v.findViewById(R.id.comment);
+        FloatingActionButton star = v.findViewById(R.id.post_like);
 
         /**
          * 设置一个空白的imageview作为头部，作为占位,
@@ -185,6 +184,13 @@ public class FragmentSingleIllust extends BaseFragment {
         });
         mTagCloudView.setTags(tags);
         TextView date = v.findViewById(R.id.illust_date);
+        HtmlTextView description = v.findViewById(R.id.description);
+        if (!TextUtils.isEmpty(illust.getCaption())) {
+            description.setVisibility(View.VISIBLE);
+            description.setHtml(illust.getCaption());
+        }else {
+            description.setVisibility(View.GONE);
+        }
         TextView totalView = v.findViewById(R.id.illust_view);
         TextView like = v.findViewById(R.id.illust_like);
         date.setText(illust.getCreate_date().substring(0, 16));

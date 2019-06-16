@@ -37,6 +37,7 @@
                     <ImageView
                         android:id="@+id/user_background"
                         android:layout_width="match_parent"
+                        android:foreground="@drawable/side_rank_horizon"
                         android:layout_height="match_parent"
                         android:scaleType="centerCrop" />
 

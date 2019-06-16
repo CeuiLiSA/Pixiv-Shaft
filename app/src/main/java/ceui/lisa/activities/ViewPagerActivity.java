@@ -42,13 +42,11 @@ public class ViewPagerActivity extends BaseActivity {
     @Override
     protected void initView() {
         mIllusts.addAll(IllustChannel.get().getIllustList());
-        Bundle bundle = getIntent().getExtras();
-        Common.showLog(bundle);
         ViewPager viewPager = findViewById(R.id.view_pager);
         viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override
             public Fragment getItem(int i) {
-                return FragmentSingleIllust.newInstance(mIllusts.get(i), bundle);
+                return FragmentSingleIllust.newInstance(mIllusts.get(i));
             }
 
             @Override

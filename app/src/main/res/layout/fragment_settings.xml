@@ -3,6 +3,7 @@
     android:layout_width="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
+    android:background="@color/white"
     android:layout_height="match_parent">
 
     <android.support.v7.widget.Toolbar
@@ -29,272 +30,361 @@
             android:layout_height="match_parent">
 
 
-            <RelativeLayout
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:orientation="vertical"
+                android:layout_height="wrap_content">
 
 
-                <TextView
-                    android:layout_margin="@dimen/sixteen_dp"
-                    android:text="移植加力燃烧器"
-                    android:textSize="15sp"
-                    android:textColor="@color/dark_text"
-                    android:layout_width="wrap_content"
+                <View
+                    android:layout_width="match_parent"
+                    android:background="@color/light_bg"
+                    android:layout_height="20dp">
+
+
+                </View>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:textSize="15sp"
+                        android:text="性能"
+                        android:layout_marginTop="@dimen/eight_dp"
+                        android:layout_marginBottom="@dimen/eight_dp"
+                        android:layout_marginStart="@dimen/sixteen_dp"
+                        android:layout_height="wrap_content" />
+                </RelativeLayout>
 
 
-                </TextView>
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
 
 
-                <Switch
-                    android:layout_width="wrap_content"
-                    android:checked="true"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:layout_margin="@dimen/sixteen_dp"
-                    android:layout_height="wrap_content" />
+                    <TextView
+                        android:layout_margin="@dimen/sixteen_dp"
+                        android:text="移植加力燃烧器"
+                        android:textSize="15sp"
+                        android:textColor="@color/dark_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
 
 
-            </RelativeLayout>
+
+                    </TextView>
 
 
-            <RelativeLayout
+                    <Switch
+                        android:layout_width="wrap_content"
+                        android:checked="true"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_margin="@dimen/sixteen_dp"
+                        android:layout_height="wrap_content" />
+
+
+                </RelativeLayout>
+
+
+                <View
+                    android:layout_width="match_parent"
+                    android:background="#e6e6e6"
+                    android:layout_marginStart="@dimen/sixteen_dp"
+                    android:layout_height="1dp">
+
+
+                </View>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+
+                    <TextView
+                        android:layout_margin="@dimen/sixteen_dp"
+                        android:text="二级助推器分离"
+                        android:textSize="15sp"
+                        android:textColor="@color/dark_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
+
+
+
+                    </TextView>
+
+
+                    <Switch
+                        android:layout_width="wrap_content"
+                        android:checked="true"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_margin="@dimen/sixteen_dp"
+                        android:layout_height="wrap_content" />
+
+
+                </RelativeLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:background="#e6e6e6"
+                    android:layout_marginStart="@dimen/sixteen_dp"
+                    android:layout_height="1dp">
+
+
+                </View>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+
+                    <TextView
+                        android:layout_margin="@dimen/sixteen_dp"
+                        android:text="开启回旋加速器"
+                        android:textSize="15sp"
+                        android:textColor="@color/dark_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
+
+
+
+                    </TextView>
+
+
+                    <Switch
+                        android:layout_width="wrap_content"
+                        android:checked="true"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_margin="@dimen/sixteen_dp"
+                        android:layout_height="wrap_content" />
+
+
+                </RelativeLayout>
+
+
+                <View
+                    android:layout_width="match_parent"
+                    android:background="#e6e6e6"
+                    android:layout_marginStart="@dimen/sixteen_dp"
+                    android:layout_height="1dp">
+
+
+                </View>
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+
+                    <TextView
+                        android:layout_margin="@dimen/sixteen_dp"
+                        android:text="X-performance"
+                        android:textSize="15sp"
+                        android:textColor="@color/dark_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
+
+
+
+                    </TextView>
+
+
+                    <Switch
+                        android:layout_width="wrap_content"
+                        android:checked="true"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_margin="@dimen/sixteen_dp"
+                        android:layout_height="wrap_content" />
+
+
+                </RelativeLayout>
+
+            </LinearLayout>
+
+
+
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:orientation="vertical"
+                android:layout_height="wrap_content">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:background="@color/light_bg"
+                    android:layout_height="20dp">
 
 
-                <TextView
-                    android:layout_margin="@dimen/sixteen_dp"
-                    android:text="二级助推器分离"
-                    android:textSize="15sp"
-                    android:textColor="@color/dark_text"
-                    android:layout_width="wrap_content"
+                </View>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:textSize="15sp"
+                        android:text="常规"
+                        android:layout_marginTop="@dimen/eight_dp"
+                        android:layout_marginBottom="@dimen/eight_dp"
+                        android:layout_marginStart="@dimen/sixteen_dp"
+                        android:layout_height="wrap_content" />
+                </RelativeLayout>
 
 
-                </TextView>
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
 
 
-                <Switch
-                    android:layout_width="wrap_content"
-                    android:checked="true"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:layout_margin="@dimen/sixteen_dp"
-                    android:layout_height="wrap_content" />
+                    <TextView
+                        android:layout_margin="@dimen/sixteen_dp"
+                        android:text="图片详情展示原图"
+                        android:textSize="15sp"
+                        android:textColor="@color/dark_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
 
 
-            </RelativeLayout>
 
+                    </TextView>
 
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
 
+                    <Switch
+                        android:layout_width="wrap_content"
+                        android:checked="true"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_margin="@dimen/sixteen_dp"
+                        android:layout_height="wrap_content" />
 
-                <TextView
-                    android:layout_margin="@dimen/sixteen_dp"
-                    android:text="开启回旋加速器"
-                    android:textSize="15sp"
-                    android:textColor="@color/dark_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
 
+                </RelativeLayout>
 
+                <View
+                    android:layout_width="match_parent"
+                    android:background="#e6e6e6"
+                    android:layout_marginStart="@dimen/sixteen_dp"
+                    android:layout_height="1dp">
 
-                </TextView>
 
+                </View>
 
-                <Switch
-                    android:layout_width="wrap_content"
-                    android:checked="true"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:layout_margin="@dimen/sixteen_dp"
-                    android:layout_height="wrap_content" />
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
 
 
-            </RelativeLayout>
+                    <TextView
+                        android:layout_margin="@dimen/sixteen_dp"
+                        android:text="图片详情长按放大"
+                        android:textSize="15sp"
+                        android:textColor="@color/dark_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
 
 
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
 
+                    </TextView>
 
-                <TextView
-                    android:layout_margin="@dimen/sixteen_dp"
-                    android:text="X-performance"
-                    android:textSize="15sp"
-                    android:textColor="@color/dark_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
 
+                    <Switch
+                        android:layout_width="wrap_content"
+                        android:checked="true"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_margin="@dimen/sixteen_dp"
+                        android:layout_height="wrap_content" />
 
 
-                </TextView>
+                </RelativeLayout>
 
+                <View
+                    android:layout_width="match_parent"
+                    android:background="#e6e6e6"
+                    android:layout_marginStart="@dimen/sixteen_dp"
+                    android:layout_height="1dp">
 
-                <Switch
-                    android:layout_width="wrap_content"
-                    android:checked="true"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:layout_margin="@dimen/sixteen_dp"
-                    android:layout_height="wrap_content" />
 
+                </View>
 
-            </RelativeLayout>
 
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
 
 
-                <TextView
-                    android:layout_margin="@dimen/sixteen_dp"
-                    android:text="图片详情展示原图"
-                    android:textSize="15sp"
-                    android:textColor="@color/dark_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
+                    <TextView
+                        android:layout_margin="@dimen/sixteen_dp"
+                        android:text="保存浏览历史"
+                        android:textSize="15sp"
+                        android:textColor="@color/dark_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
 
 
 
-                </TextView>
+                    </TextView>
 
 
-                <Switch
-                    android:layout_width="wrap_content"
-                    android:checked="true"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:layout_margin="@dimen/sixteen_dp"
-                    android:layout_height="wrap_content" />
+                    <Switch
+                        android:layout_width="wrap_content"
+                        android:checked="true"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_margin="@dimen/sixteen_dp"
+                        android:layout_height="wrap_content" />
 
 
-            </RelativeLayout>
+                </RelativeLayout>
 
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                <View
+                    android:layout_width="match_parent"
+                    android:background="#e6e6e6"
+                    android:layout_marginStart="@dimen/sixteen_dp"
+                    android:layout_height="1dp">
 
 
-                <TextView
-                    android:layout_margin="@dimen/sixteen_dp"
-                    android:text="图片详情长按放大"
-                    android:textSize="15sp"
-                    android:textColor="@color/dark_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
+                </View>
 
 
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
 
-                </TextView>
 
+                    <TextView
+                        android:layout_margin="@dimen/sixteen_dp"
+                        android:text="相关作品无限下滑（可能出现重复）"
+                        android:textSize="15sp"
+                        android:textColor="@color/dark_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
 
-                <Switch
-                    android:layout_width="wrap_content"
-                    android:checked="true"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:layout_margin="@dimen/sixteen_dp"
-                    android:layout_height="wrap_content" />
 
 
-            </RelativeLayout>
+                    </TextView>
 
 
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                    <Switch
+                        android:layout_width="wrap_content"
+                        android:checked="true"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_margin="@dimen/sixteen_dp"
+                        android:layout_height="wrap_content" />
 
 
-                <TextView
-                    android:layout_margin="@dimen/sixteen_dp"
-                    android:text="保存浏览历史"
-                    android:textSize="15sp"
-                    android:textColor="@color/dark_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
+                </RelativeLayout>
+            </LinearLayout>
 
 
 
-                </TextView>
 
 
-                <Switch
-                    android:layout_width="wrap_content"
-                    android:checked="true"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:layout_margin="@dimen/sixteen_dp"
-                    android:layout_height="wrap_content" />
-
-
-            </RelativeLayout>
-
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-
-                <TextView
-                    android:layout_margin="@dimen/sixteen_dp"
-                    android:text="相关作品无限下滑（可能出现重复）"
-                    android:textSize="15sp"
-                    android:textColor="@color/dark_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
-
-
-
-                </TextView>
-
-
-                <Switch
-                    android:layout_width="wrap_content"
-                    android:checked="true"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:layout_margin="@dimen/sixteen_dp"
-                    android:layout_height="wrap_content" />
-
-
-            </RelativeLayout>
-
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-
-                <TextView
-                    android:layout_margin="@dimen/sixteen_dp"
-                    android:text="哈雷克的火葬魔咒"
-                    android:textSize="15sp"
-                    android:textColor="@color/dark_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
-
-
-
-                </TextView>
-
-
-                <Switch
-                    android:layout_width="wrap_content"
-                    android:checked="true"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:layout_margin="@dimen/sixteen_dp"
-                    android:layout_height="wrap_content" />
-
-
-            </RelativeLayout>
 
 
 

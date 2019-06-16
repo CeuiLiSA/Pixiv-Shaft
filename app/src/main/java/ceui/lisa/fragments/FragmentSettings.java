@@ -36,7 +36,7 @@ public class FragmentSettings extends BaseFragment {
     }
 
     private void animate(LinearLayout linearLayout){
-        SpringChain springChain = SpringChain.create(80,8,60,10);
+        SpringChain springChain = SpringChain.create(40,8,60,10);
 
         int childCount = linearLayout.getChildCount();
         for (int i = 0; i < childCount; i++) {

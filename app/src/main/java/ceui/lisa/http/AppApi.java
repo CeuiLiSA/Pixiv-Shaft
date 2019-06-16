@@ -4,11 +4,10 @@ import ceui.lisa.response.ArticalResponse;
 import ceui.lisa.response.BookmarkAddResponse;
 import ceui.lisa.response.GifResponse;
 import ceui.lisa.response.ListIllustResponse;
-import ceui.lisa.response.RecmdUserResponse;
+import ceui.lisa.response.ListUserResponse;
 import ceui.lisa.response.TrendingtagResponse;
 import ceui.lisa.response.UserDetailResponse;
 import io.reactivex.Observable;
-import okhttp3.ResponseBody;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
@@ -91,7 +90,7 @@ public interface AppApi {
      * @return
      */
     @GET("/v1/user/recommended?filter=for_android")
-    Observable<RecmdUserResponse> getRecmdUser(@Header("Authorization") String token);
+    Observable<ListUserResponse> getRecmdUser(@Header("Authorization") String token);
 
 
 
@@ -142,8 +141,8 @@ public interface AppApi {
 
 
     @GET
-    Observable<RecmdUserResponse> getNext(@Header("Authorization") String token,
-                                                 @Url String next_url);
+    Observable<ListUserResponse> getNextUser(@Header("Authorization") String token,
+                                             @Url String next_url);
 
 
 
@@ -166,5 +165,19 @@ public interface AppApi {
     @POST("/v1/user/follow/delete")
     Observable<BookmarkAddResponse> postUnFollow(@Header("Authorization") String token,
                                                  @Field("user_id") int user_id);
+
+
+    /**
+     * 获取userid 所关注的人
+     *
+     * @param token
+     * @param user_id
+     * @param restrict
+     * @return
+     */
+    @GET("/v1/user/following?filter=for_android")
+    Observable<ListUserResponse> getFollowUser(@Header("Authorization") String token,
+                                               @Query("user_id") int user_id,
+                                               @Query("restrict") String restrict);
 
 }
