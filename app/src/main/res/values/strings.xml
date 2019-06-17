@@ -24,4 +24,11 @@
     <string name="delete_all">删除全部</string>
     <string name="share_illust">%1$s | %2$s #Pixiv %3$s</string>
     <string name="share">分享</string>
+    <string name="webview_handler_open_in_browser">Open in browser</string>
+    <string name="webview_handler_copy_link_addr">Copy link address</string>
+    <string name="webview_handler_copy_link_text">Copy link text</string>
+    <string name="webview_handler_download_link">Download link</string>
+    <string name="webview_handler_share">Share link</string>
+    <string name="webview_handler_open_image">Open image</string>
+    <string name="webview_handler_search_with_ggl">Search Google for this image</string>
 </resources>
