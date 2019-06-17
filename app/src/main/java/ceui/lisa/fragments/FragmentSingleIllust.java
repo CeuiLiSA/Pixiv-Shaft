@@ -158,6 +158,23 @@ public class FragmentSingleIllust extends BaseFragment {
         });
         FloatingActionButton star = v.findViewById(R.id.post_like);
 
+        if(illust.isIs_bookmarked()){
+            star.setImageResource(R.drawable.ic_favorite_accent_24dp);
+        }else {
+            star.setImageResource(R.drawable.ic_favorite_black_24dp);
+        }
+        star.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(illust.isIs_bookmarked()){
+                    star.setImageResource(R.drawable.ic_favorite_black_24dp);
+                }else {
+                    star.setImageResource(R.drawable.ic_favorite_accent_24dp);
+                }
+                PixivOperate.postLike(illust, mUserModel, FragmentLikeIllust.TYPE_PUBLUC);
+            }
+        });
+
         /**
          * 设置一个空白的imageview作为头部，作为占位,
          * 这样原图就会刚好在toolbar 下方，不会被toolbar遮住

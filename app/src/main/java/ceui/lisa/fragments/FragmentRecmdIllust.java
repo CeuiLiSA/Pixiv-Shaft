@@ -81,6 +81,7 @@ public class FragmentRecmdIllust extends AutoClipFragment<ListIllustResponse,
 
         //向FragmentCenter发送数据
         Channel<List<IllustsBean>> channel = new Channel<>();
+        channel.setReceiver("FragmentRankHorizontal");
         channel.setObject(mResponse.getRanking_illusts());
         EventBus.getDefault().post(channel);
         Common.showLog(className + "EVENTBUS 发送了消息");

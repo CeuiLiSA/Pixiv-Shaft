@@ -11,11 +11,13 @@ import ceui.lisa.R;
 import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.EventAdapter;
+import ceui.lisa.download.IllustDownload;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.http.Retro;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.response.ListIllustResponse;
 import ceui.lisa.utils.IllustChannel;
+import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.view.LinearItemDecorationNoLR;
 import io.reactivex.Observable;
 
@@ -58,19 +60,6 @@ public class FragmentFollowIllust extends AutoClipFragment<ListIllustResponse, E
 
     @Override
     void initAdapter() {
-//        ScrollChangeManager layoutManager =
-//                new ScrollChangeManager(2, ScrollChangeManager.VERTICAL);
-//        mRecyclerView.setLayoutManager(layoutManager);
-//        mAdapter = new IllustStagAdapter(allItems, mContext, mRecyclerView, mRefreshLayout);
-//        mAdapter.setOnItemClickListener(new OnItemClickListener() {
-//            @Override
-//            public void onItemClick(View v, int position, int viewType) {
-//                IllustChannel.get().setIllustList(allItems);
-//                Intent intent = new Intent(mContext, ViewPagerActivity.class);
-//                intent.putExtra("position", position);
-//                startActivity(intent);
-//            }
-//        });
         mAdapter = new EventAdapter(allItems, mContext);
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
@@ -84,6 +73,14 @@ public class FragmentFollowIllust extends AutoClipFragment<ListIllustResponse, E
                     Intent intent = new Intent(mContext, UserDetailActivity.class);
                     intent.putExtra("user id", allItems.get(position).getUser().getId());
                     startActivity(intent);
+                }else if(viewType == 2){
+                    if (allItems.get(position).getPage_count() == 1) {
+                        IllustDownload.downloadIllust(allItems.get(position));
+                    } else {
+                        IllustDownload.downloadAllIllust(allItems.get(position));
+                    }
+                }else if(viewType == 3){
+                    PixivOperate.postLike(allItems.get(position), mUserModel, FragmentLikeIllust.TYPE_PUBLUC);
                 }
             }
         });

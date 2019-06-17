@@ -200,4 +200,16 @@ public interface AppApi {
                                          @Field("comment") String comment,
                                          @Field("parent_comment_id") int parent_comment_id);
 
+    @FormUrlEncoded
+    @POST("v2/illust/bookmark/add")
+    Observable<NullResponse> postLike(@Header("Authorization") String token,
+                                         @Field("illust_id") int illust_id,
+                                         @Field("restrict") String restrict);
+
+    @FormUrlEncoded
+    @POST("v1/illust/bookmark/delete")
+    Observable<NullResponse> postDislike(@Header("Authorization") String token,
+                                      @Field("illust_id") int illust_id);
+
+
 }

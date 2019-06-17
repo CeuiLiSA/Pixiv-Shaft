@@ -8,7 +8,7 @@ import android.arch.persistence.room.Query;
 
 import java.util.List;
 
-//推荐页面保存列表数据，调试用
+//推荐页面保存列表数据，调试用,免得每次都去请求接口，慢的一比
 @Dao
 public interface IllustRecmdDao {
 

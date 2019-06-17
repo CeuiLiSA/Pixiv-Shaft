@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:layout_width="match_parent">
 
-    <RelativeLayout
+    <LinearLayout
         android:orientation="vertical"
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -15,6 +15,9 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:id="@+id/rela_1"
+            android:background="@color/colorPrimary"
+            android:focusableInTouchMode="true"
+            android:focusable="true"
             android:layout_height="wrap_content"
             app:layout_scrollFlags="scroll">
 
@@ -25,10 +28,33 @@
 
             </ImageView>
 
+
+            <com.mancj.materialsearchbar.MaterialSearchBar
+                style="@style/MaterialSearchBarLight"
+                android:layout_below="@+id/head"
+                app:mt_hint="输你想输的"
+                app:mt_maxSuggestionsCount="10"
+                app:mt_placeholder="标签搜作品"
+                android:layout_marginTop="@dimen/eight_dp"
+                android:layout_marginStart="@dimen/sixteen_dp"
+                android:layout_marginEnd="@dimen/sixteen_dp"
+                android:layout_marginBottom="@dimen/sixteen_dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/searchBar" />
+
+
+        </RelativeLayout>
+
+
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/head"
                 android:layout_marginStart="@dimen/sixteen_dp"
                 android:layout_marginTop="@dimen/twelve_dip"
                 android:layout_marginBottom="@dimen/four_dp"
@@ -69,7 +95,11 @@
 
 
             </FrameLayout>
+
         </RelativeLayout>
+
+
+
 
 
 
@@ -78,12 +108,11 @@
             android:id="@+id/fragment_pivision"
             android:layout_width="match_parent"
             android:layout_below="@+id/rela_1"
-            android:background="#f2f2f2"
-            android:layout_height="match_parent">
+            android:layout_height="220dp">
 
         </FrameLayout>
 
-    </RelativeLayout>
+    </LinearLayout>
 
 </android.support.v4.widget.NestedScrollView>
 

@@ -3,7 +3,10 @@ package ceui.lisa.utils;
 
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
+import ceui.lisa.interfaces.Callback;
+import ceui.lisa.response.IllustsBean;
 import ceui.lisa.response.NullResponse;
+import ceui.lisa.response.UserModel;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
@@ -78,5 +81,36 @@ public class PixivOperate {
                         Common.showToast("取消关注~");
                     }
                 });
+    }
+
+
+    public static void postLike(IllustsBean illustsBean, UserModel userModel, String starType){
+        if(illustsBean == null){
+            return;
+        }
+
+        if(illustsBean.isIs_bookmarked()){ //已收藏
+            illustsBean.setIs_bookmarked(false);
+            Retro.getAppApi().postDislike(userModel.getResponse().getAccess_token(), illustsBean.getId())
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new ErrorCtrl<NullResponse>() {
+                        @Override
+                        public void onNext(NullResponse nullResponse) {
+                            Common.showToast("取消收藏");
+                        }
+                    });
+        }else { //没有收藏
+            illustsBean.setIs_bookmarked(true);
+            Retro.getAppApi().postLike(userModel.getResponse().getAccess_token(), illustsBean.getId(), starType)
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new ErrorCtrl<NullResponse>() {
+                        @Override
+                        public void onNext(NullResponse nullResponse) {
+                            Common.showToast("收藏成功");
+                        }
+                    });
+        }
     }
 }

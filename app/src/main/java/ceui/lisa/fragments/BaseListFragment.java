@@ -207,7 +207,7 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
                                 Random random = new Random();
                                 int position = random.nextInt(allItems.size());
                                 if (allItems.get(position) instanceof IllustsBean) {
-                                    PikaDownload.downloadPikaImage((IllustsBean) allItems.get(position), mContext);
+                                    //PikaDownload.downloadPikaImage((IllustsBean) allItems.get(position), mContext);
                                 }
                             }
                         }

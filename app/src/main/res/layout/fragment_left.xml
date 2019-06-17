@@ -29,7 +29,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:layout_scrollFlags="scroll|enterAlways"
-                app:navigationIcon="@drawable/ic_menu_black_24dp"
+                app:navigationIcon="@drawable/ic_menu_white"
                 app:title="Shaft"
                 app:titleTextColor="@android:color/white">
 
