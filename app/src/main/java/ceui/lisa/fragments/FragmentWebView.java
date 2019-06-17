@@ -7,6 +7,7 @@ import android.webkit.WebView;
 import android.widget.RelativeLayout;
 
 import com.just.agentweb.AgentWeb;
+import com.just.agentweb.IUrlLoader;
 import com.just.agentweb.WebViewClient;
 
 import ceui.lisa.R;
@@ -16,6 +17,10 @@ public class FragmentWebView extends BaseFragment {
 
     private String title;
     private String url;
+    private String response = null;
+    private String mime = null;
+    private String encoding = null;
+    private String history_url = null;
     private AgentWeb mAgentWeb;
     private RelativeLayout webViewParent;
 
@@ -23,6 +28,26 @@ public class FragmentWebView extends BaseFragment {
         FragmentWebView fragmentWebView = new FragmentWebView();
         fragmentWebView.title = title;
         fragmentWebView.url = url;
+        return fragmentWebView;
+    }
+
+    /**
+     * Loads with local html source
+     *
+     * @param title
+     * @param url
+     * @param response
+     * @param mime
+     * @param encoding
+     * @param history_url
+     * @return
+     */
+    public static FragmentWebView newInstance(String title, String url, String response, String mime, String encoding, String history_url) {
+        FragmentWebView fragmentWebView = newInstance(title, url);
+        fragmentWebView.response = response;
+        fragmentWebView.mime = mime;
+        fragmentWebView.encoding = encoding;
+        fragmentWebView.history_url = history_url;
         return fragmentWebView;
     }
 
@@ -42,7 +67,7 @@ public class FragmentWebView extends BaseFragment {
 
     @Override
     void initData() {
-        mAgentWeb = AgentWeb.with(this)
+        AgentWeb.PreAgentWeb ready = AgentWeb.with(this)
                 .setAgentWebParent(webViewParent, new RelativeLayout.LayoutParams(-1, -1))
                 .useDefaultIndicator()
                 .setWebViewClient(new WebViewClient() {
@@ -54,8 +79,14 @@ public class FragmentWebView extends BaseFragment {
                     }
                 })
                 .createAgentWeb()
-                .ready()
-                .go(url);
+                .ready();
+
+        if (response == null) {
+            mAgentWeb = ready.go(url);
+        } else {
+            mAgentWeb = ready.get();
+            mAgentWeb.getUrlLoader().loadDataWithBaseURL(url, response, mime, encoding, history_url);
+        }
     }
 
     @Override

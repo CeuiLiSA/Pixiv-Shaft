@@ -9,7 +9,6 @@ import ceui.lisa.response.ListUserResponse;
 import ceui.lisa.response.TrendingtagResponse;
 import ceui.lisa.response.UserDetailResponse;
 import io.reactivex.Observable;
-import okhttp3.ResponseBody;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
@@ -200,6 +199,5 @@ public interface AppApi {
                                          @Field("illust_id") int illust_id,
                                          @Field("comment") String comment,
                                          @Field("parent_comment_id") int parent_comment_id);
-
 
 }

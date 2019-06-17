@@ -56,6 +56,7 @@ public class ImageDetailActivity extends BaseActivity {
         if(mIllustsBean == null){
             return;
         }
+
         viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override
             public Fragment getItem(int i) {

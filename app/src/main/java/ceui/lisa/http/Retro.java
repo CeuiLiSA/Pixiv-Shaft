@@ -90,6 +90,8 @@ public class Retro {
                 .addInterceptor(chain -> {
                     Request localRequest = chain.request().newBuilder()
                             .addHeader("User-Agent:", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.80 Safari/537.36")
+                            .addHeader("Accept-Encoding:","gzip, deflate")
+                            .addHeader("Accept:","text/html")
                             .build();
                     return chain.proceed(localRequest);
                 })
