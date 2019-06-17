@@ -8,7 +8,7 @@ import java.io.IOException;
 import okhttp3.ResponseBody;
 import retrofit2.Response;
 
-//TODO 实现ConvertFactory
+//TODO 实现ConverterFactory
 public class ReverseResult implements Parcelable {
     private String title;
     private String url;

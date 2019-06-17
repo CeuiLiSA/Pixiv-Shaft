@@ -31,4 +31,5 @@
     <string name="webview_handler_share">Share link</string>
     <string name="webview_handler_open_image">Open image</string>
     <string name="webview_handler_search_with_ggl">Search Google for this image</string>
+    <string name="copy_to_clipboard">copyed</string>
 </resources>

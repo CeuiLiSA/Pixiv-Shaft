@@ -60,7 +60,6 @@ dependencies {
     annotationProcessor 'android.arch.persistence.room:compiler:1.1.1'
     implementation 'org.greenrobot:eventbus:3.1.1'
     implementation 'com.just.agentweb:agentweb:4.0.3-beta@aar'
-    api 'com.just.agentweb:download:4.0.3-beta'
     implementation 'com.facebook.rebound:rebound:0.3.8'
     implementation 'com.liulishuo.okdownload:okdownload:1.0.5'
     implementation 'com.liulishuo.okdownload:sqlite:1.0.4-SNAPSHOT'
