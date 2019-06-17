@@ -27,7 +27,7 @@ import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
 
 /**
- * 推荐用户
+ * 榜单
  */
 public class FragmentRankHorizontal extends BaseFragment {
 
