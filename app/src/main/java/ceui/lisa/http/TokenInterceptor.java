@@ -26,6 +26,7 @@ public class TokenInterceptor implements Interceptor {
 
         if (isTokenExpired(response)) {
             if (!isFetchingToken) {
+                response.close();
                 String newToken = getNewToken();
                 Request newRequest = chain.request()
                         .newBuilder()

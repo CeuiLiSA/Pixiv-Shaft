@@ -7,6 +7,7 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -57,6 +58,12 @@ public class EventAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             currentOne.publistDate.setText(allIllust.get(position).getCreate_date().substring(0, 16));
         }
 
+        if(allIllust.get(position).isIs_bookmarked()){
+            currentOne.star.setText("取消收藏");
+        }else {
+            currentOne.star.setText("收藏");
+        }
+
         Glide.with(mContext).load(GlideUtil.getMediumImg(allIllust.get(position)
                 .getUser().getProfile_image_urls().getMedium())).into(currentOne.head);
         Glide.with(mContext).load(GlideUtil.getLargeImage(allIllust.get(position)))
@@ -65,6 +72,15 @@ public class EventAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         if(mOnItemClickListener != null){
             currentOne.itemView.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 0));
             currentOne.head.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 1));
+            currentOne.download.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 2));
+            currentOne.star.setOnClickListener(v -> {
+                if(allIllust.get(position).isIs_bookmarked()){
+                    currentOne.star.setText("收藏");
+                }else {
+                    currentOne.star.setText("取消收藏");
+                }
+                mOnItemClickListener.onItemClick(v, position, 3);
+            });
         }
     }
 
@@ -81,12 +97,15 @@ public class EventAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         ImageView illust;
         TextView userName, publistDate;
         CircleImageView head;
+        Button download, star;
         TagHolder(View itemView) {
             super(itemView);
             head = itemView.findViewById(R.id.user_head);
             illust = itemView.findViewById(R.id.illust_image);
             userName = itemView.findViewById(R.id.user_name);
             publistDate = itemView.findViewById(R.id.illust_date);
+            download = itemView.findViewById(R.id.download);
+            star = itemView.findViewById(R.id.star);
         }
     }
 }

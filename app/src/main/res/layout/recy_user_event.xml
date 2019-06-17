@@ -87,7 +87,7 @@
 
         <Button
             style="@android:style/Widget.Material.Button.Borderless.Small"
-            android:layout_width="65dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:scaleType="centerCrop"
             android:text="收藏"
