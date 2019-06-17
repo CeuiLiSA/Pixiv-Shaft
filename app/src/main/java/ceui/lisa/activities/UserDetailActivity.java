@@ -236,7 +236,7 @@ public class UserDetailActivity extends BaseActivity {
 
 
     private void setData(UserDetailResponse userDetailResponse) {
-//      when(exception) Glide.with(Shaft.getContext())
+//      when(exception.message){ "You can not start a load for a destroyed activity" -> Glide.with(Shaft.getContext())}
         if(mContext != null && !isDestroyed()) {
             Glide.with(mContext)
                     .load(GlideUtil.getMediumImg(
