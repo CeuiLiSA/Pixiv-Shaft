@@ -24,6 +24,8 @@ public class FileCreator {
 
     public static final String FILE_GIF_RESULT_PATH = "/storage/emulated/0/Shaft/gifGenerate/";
 
+    public static final String WEB_DOWNLOAD_PATH = "/storage/emulated/0/Shaft/Web";
+
 
     public static File createGifFile(IllustsBean illustsBean){
         if(illustsBean == null){
@@ -92,5 +94,14 @@ public class FileCreator {
         }else {
             return "untitle_" + System.currentTimeMillis() + ".png";
         }
+    }
+
+
+    public static File createWebFile(String name){
+        File parent = new File(WEB_DOWNLOAD_PATH);
+        if(!parent.exists()){
+            parent.mkdir();
+        }
+        return new File(parent, deleteSpecialWords(name));
     }
 }

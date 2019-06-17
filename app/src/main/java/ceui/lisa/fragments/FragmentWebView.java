@@ -1,17 +1,36 @@
 package ceui.lisa.fragments;
 
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Environment;
+import android.support.design.widget.Snackbar;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.ContextMenu;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.RelativeLayout;
 
 import com.just.agentweb.AgentWeb;
-import com.just.agentweb.IUrlLoader;
 import com.just.agentweb.WebViewClient;
+import com.liulishuo.okdownload.DownloadTask;
+import com.tbruyelle.rxpermissions2.RxPermissions;
+
+import java.io.File;
+import java.util.Objects;
 
 import ceui.lisa.R;
+import ceui.lisa.download.FileCreator;
+import ceui.lisa.download.QueueListener;
+import ceui.lisa.download.WebDownload;
+import ceui.lisa.utils.ClipBoardUtils;
 import ceui.lisa.utils.Common;
+import ceui.lisa.view.ContextMenuTitleView;
 
 public class FragmentWebView extends BaseFragment {
 
@@ -22,7 +41,10 @@ public class FragmentWebView extends BaseFragment {
     private String encoding = null;
     private String history_url = null;
     private AgentWeb mAgentWeb;
+    private WebView mWebView;
     private RelativeLayout webViewParent;
+    private String mIntentUrl;
+    private WebViewClickHandler handler = new WebViewClickHandler();
 
     public static FragmentWebView newInstance(String title, String url) {
         FragmentWebView fragmentWebView = new FragmentWebView();
@@ -77,6 +99,12 @@ public class FragmentWebView extends BaseFragment {
                         Common.showLog(className + destiny);
                         return super.shouldOverrideUrlLoading(view, request);
                     }
+
+                    @Override
+                    public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                        Log.i("WebView", String.format("requesting %s", request.getUrl()));
+                        return super.shouldInterceptRequest(view, request);
+                    }
                 })
                 .createAgentWeb()
                 .ready();
@@ -87,6 +115,13 @@ public class FragmentWebView extends BaseFragment {
             mAgentWeb = ready.get();
             mAgentWeb.getUrlLoader().loadDataWithBaseURL(url, response, mime, encoding, history_url);
         }
+
+        mWebView = mAgentWeb.getWebCreator().getWebView();
+        WebSettings settings = mWebView.getSettings();
+        settings.setBuiltInZoomControls(true);
+        settings.setDisplayZoomControls(false);
+        settings.setUseWideViewPort(true);
+        registerForContextMenu(mWebView);
     }
 
     @Override
@@ -105,5 +140,86 @@ public class FragmentWebView extends BaseFragment {
     public void onResume() {
         mAgentWeb.getWebLifeCycle().onResume();
         super.onResume();
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        WebView.HitTestResult result = mWebView.getHitTestResult();
+        mIntentUrl = result.getExtra();
+        menu.setHeaderView(new ContextMenuTitleView(getContext(), mIntentUrl));
+
+        if (result.getType() == WebView.HitTestResult.SRC_ANCHOR_TYPE) {
+            mIntentUrl = result.getExtra();
+            //menu.setHeaderTitle(mIntentUrl);
+            menu.add(Menu.NONE, WebViewClickHandler.OPEN_IN_BROWSER, 0, R.string.webview_handler_open_in_browser).setOnMenuItemClickListener(handler);
+            menu.add(Menu.NONE, WebViewClickHandler.COPY_LINK_ADDRESS, 1, R.string.webview_handler_copy_link_addr).setOnMenuItemClickListener(handler);
+            menu.add(Menu.NONE, WebViewClickHandler.COPY_LINK_TEXT, 1, R.string.webview_handler_copy_link_text).setOnMenuItemClickListener(handler);
+            menu.add(Menu.NONE, WebViewClickHandler.DOWNLOAD_LINK, 1, R.string.webview_handler_download_link).setOnMenuItemClickListener(handler);
+            menu.add(Menu.NONE, WebViewClickHandler.SHARE_LINK, 1, R.string.webview_handler_share).setOnMenuItemClickListener(handler);
+        }
+
+        if (result.getType() == WebView.HitTestResult.IMAGE_TYPE ||
+                result.getType() == WebView.HitTestResult.SRC_IMAGE_ANCHOR_TYPE) {
+
+            mIntentUrl = result.getExtra();
+            //menu.setHeaderTitle(mIntentUrl);
+            menu.add(Menu.NONE, WebViewClickHandler.OPEN_IN_BROWSER, 0, R.string.webview_handler_open_in_browser).setOnMenuItemClickListener(handler);
+            menu.add(Menu.NONE, WebViewClickHandler.OPEN_IMAGE, 1, R.string.webview_handler_open_image).setOnMenuItemClickListener(handler);
+            menu.add(Menu.NONE, WebViewClickHandler.DOWNLOAD_LINK, 2, R.string.webview_handler_download_link).setOnMenuItemClickListener(handler);
+            menu.add(Menu.NONE, WebViewClickHandler.SEARCH_GOOGLE, 2, R.string.webview_handler_search_with_ggl).setOnMenuItemClickListener(handler);
+            menu.add(Menu.NONE, WebViewClickHandler.SHARE_LINK, 2, R.string.webview_handler_share).setOnMenuItemClickListener(handler);
+
+        }
+    }
+
+    public class WebViewClickHandler implements MenuItem.OnMenuItemClickListener {
+        static final int OPEN_IN_BROWSER = 0x0;
+        static final int OPEN_IMAGE = 0x1;
+        static final int COPY_LINK_ADDRESS = 0x2;
+        static final int COPY_LINK_TEXT = 0x3;
+        static final int DOWNLOAD_LINK = 0x4;
+        static final int SEARCH_GOOGLE = 0x5;
+        static final int SHARE_LINK = 0x6;
+
+        public boolean onMenuItemClick(MenuItem item) {
+            switch (item.getItemId()) {
+
+                case OPEN_IN_BROWSER: {
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(mIntentUrl));
+                    Objects.requireNonNull(getActivity()).startActivity(intent);
+                    break;
+                }
+                case OPEN_IMAGE: {
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                    intent.setDataAndType(Uri.parse(mIntentUrl), "image/*");
+                    Objects.requireNonNull(getActivity()).startActivity(intent);
+                    break;
+                }
+                case COPY_LINK_ADDRESS: {
+                    ClipBoardUtils.putTextIntoClipboard(mContext, mIntentUrl);
+                    Snackbar.make(parentView, R.string.copy_to_clipboard, Snackbar.LENGTH_SHORT).show();
+                    break;
+                }
+                case COPY_LINK_TEXT: {
+                    Common.showToast("不会");
+                    break;
+                }
+                case DOWNLOAD_LINK: {
+                    WebDownload.download(mIntentUrl);
+                    break;
+                }
+                case SEARCH_GOOGLE: {
+                    mWebView.loadUrl("https://www.google.com/searchbyimage?image_url=" + mIntentUrl);
+                    break;
+                }
+                case SHARE_LINK: {
+                    Intent intent = new Intent(Intent.ACTION_SEND, Uri.parse(mIntentUrl));
+                    Objects.requireNonNull(getActivity()).startActivity(intent);
+                    break;
+                }
+            }
+
+            return true;
+        }
     }
 }
