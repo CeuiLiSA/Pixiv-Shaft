@@ -1,8 +1,10 @@
 package ceui.lisa.fragments;
 
+import android.content.Intent;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
@@ -11,6 +13,8 @@ import com.facebook.rebound.SpringChain;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.LoginActivity;
+import ceui.lisa.activities.LoginAlphaActivity;
 import ceui.lisa.utils.Common;
 
 public class FragmentSettings extends BaseFragment {
@@ -27,6 +31,15 @@ public class FragmentSettings extends BaseFragment {
         LinearLayout linearLayout = v.findViewById(R.id.parent_linear);
         animate(linearLayout);
 
+        TextView loginOut = v.findViewById(R.id.login_out);
+        loginOut.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(mContext, LoginAlphaActivity.class);
+                startActivity(intent);
+                getActivity().finish();
+            }
+        });
         return v;
     }
 
@@ -59,6 +72,6 @@ public class FragmentSettings extends BaseFragment {
         for (int i = 0; i < springs.size(); i++) {
             springs.get(i).setCurrentValue(400);
         }
-        springChain.setControlSpringIndex(springs.size() >= 3 ? 2 : springs.size() / 2).getControlSpring().setEndValue(0);
+        springChain.setControlSpringIndex(0).getControlSpring().setEndValue(0);
     }
 }

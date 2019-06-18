@@ -89,6 +89,7 @@ public class QueueListener extends DownloadListener1 {
 
         final DownloadTaskAdapter.TagHolder holder = holderMap.get(task.getId());
         if (holder != null) {
+            Common.showLog("totalLength : " + totalLength + " currentOffset " + currentOffset);
             holder.mProgressBar.setMax((int) totalLength);
             holder.mProgressBar.setProgress((int) currentOffset);
             holder.currentSize.setText(FileSizeUtil.formatFileSize(currentOffset));
@@ -100,6 +101,7 @@ public class QueueListener extends DownloadListener1 {
         IllustTask illustTask = new IllustTask();
         illustTask.setDownloadTask(task);
 
+        Common.showLog("taskEnd " + task.getFilename());
 
         try {
             Common.showLog(task.getFile().getPath());

@@ -6,8 +6,16 @@
     android:background="@color/loginBackground">
 
 
+
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:id="@+id/fragment_login"
+        android:layout_height="match_parent"
+        android:background="@color/loginBackground">
+
+
+
     <android.support.v7.widget.CardView
-        android:id="@+id/cardView"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:clickable="true"
@@ -116,14 +124,131 @@
     </android.support.v7.widget.CardView>
 
 
+    </android.support.constraint.ConstraintLayout>
+
+
+
+    <android.support.constraint.ConstraintLayout
+        android:visibility="invisible"
+        android:id="@+id/fragment_sign"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/loginBackground">
+
+
+    <android.support.v7.widget.CardView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clickable="true"
+        android:foreground="?attr/selectableItemBackground"
+        app:cardBackgroundColor="@android:color/white"
+        app:cardCornerRadius="@dimen/six_dp"
+        app:cardElevation="@dimen/twelve_dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_percent="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintWidth_percent="0.7">
+
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/sign_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:gravity="center"
+                android:padding="@dimen/sixteen_dp"
+                android:text="Shaft"
+                android:textColor="@color/loginBackground"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_above="@+id/sign"
+                android:gravity="center_vertical"
+                android:layout_below="@+id/sign_title"
+                android:orientation="vertical">
+
+
+                <com.rengwuxian.materialedittext.MaterialEditText
+                    android:id="@+id/sign_user_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/tweenty_four_dp"
+                    android:layout_marginTop="@dimen/sixteen_dp"
+                    android:layout_marginEnd="@dimen/tweenty_four_dp"
+                    android:hint="用户名（可随时变更）"
+                    android:text="mercisbv"
+                    app:met_floatingLabel="highlight"
+                    app:met_primaryColor="@color/loginBackground"
+                    app:met_singleLineEllipsis="true" />
+
+
+            </LinearLayout>
+
+
+            <android.support.v7.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:id="@+id/sign"
+                android:layout_above="@+id/go_to_login"
+                android:clickable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:layout_marginStart="@dimen/tweenty_four_dp"
+                android:layout_marginEnd="@dimen/tweenty_four_dp"
+                android:layout_marginBottom="@dimen/sixteen_dp"
+                app:cardBackgroundColor="@color/loginBackground">
+
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="@string/now_sign"
+                    android:textColor="@android:color/white"
+                    android:textSize="13sp" />
+
+            </android.support.v7.widget.CardView>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_alignParentBottom="true"
+                android:background="#f6f6f6"
+                android:gravity="center"
+                android:id="@+id/go_to_login"
+                android:text="@string/go_to_login"
+                android:textColor="@color/loginBackground"
+                android:textSize="12sp" />
+
+
+        </RelativeLayout>
+    </android.support.v7.widget.CardView>
+
+
+    </android.support.constraint.ConstraintLayout>
+
+
     <ProgressBar
         android:layout_width="wrap_content"
         android:id="@+id/progress"
         android:visibility="invisible"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="48dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/cardView" />
+        app:layout_constraintStart_toStartOf="parent" />
+
+
+
+
 
 </android.support.constraint.ConstraintLayout>

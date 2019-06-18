@@ -6,6 +6,7 @@ import android.net.Uri;
 import java.io.File;
 
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.utils.Common;
 
 public abstract class ImageSaver {
 
@@ -19,13 +20,13 @@ public abstract class ImageSaver {
 
         String[] path = new String[1];
         String[] mime = new String[1];
+        Common.showLog("ImageSaver before " + file.getPath());
         path[0] = file.getPath();
         mime[0] = "image/png";
         MediaScannerConnection.scanFile(Shaft.getContext()
                 , path, mime, new MediaScannerConnection.OnScanCompletedListener() {
                     @Override
                     public void onScanCompleted(String path, Uri uri) {
-
                     }
                 });
     }

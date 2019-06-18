@@ -42,7 +42,9 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_above="@+id/login"
+                android:gravity="center_vertical"
                 android:layout_below="@+id/title"
                 android:orientation="vertical">
 
@@ -61,44 +63,43 @@
                     app:met_singleLineEllipsis="true" />
 
 
-                <com.rengwuxian.materialedittext.MaterialEditText
-                    android:id="@+id/password"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@+id/user_name"
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:text="用户名可随时变更"
                     android:layout_marginStart="@dimen/tweenty_four_dp"
-                    android:layout_marginEnd="@dimen/tweenty_four_dp"
-                    android:hint="密码"
-                    android:inputType="textPassword"
-                    android:text="ceuilisa"
-                    app:met_floatingLabel="highlight"
-                    app:met_primaryColor="@color/loginBackground"
-                    app:met_singleLineEllipsis="true" />
+                    android:textColor="@color/colorPrimary"
+                    android:textSize="12sp"
+                    android:layout_height="wrap_content" />
 
 
-                <android.support.v7.widget.CardView
-                    android:layout_width="match_parent"
-                    android:layout_height="40dp"
-                    android:id="@+id/login"
-                    android:clickable="true"
-                    android:foreground="?attr/selectableItemBackground"
-                    android:layout_marginStart="@dimen/tweenty_four_dp"
-                    android:layout_marginEnd="@dimen/tweenty_four_dp"
-                    android:layout_marginBottom="@dimen/sixteen_dp"
-                    app:cardBackgroundColor="@color/loginBackground">
 
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:text="@string/now_login"
-                        android:textColor="@android:color/white"
-                        android:textSize="13sp" />
-
-                </android.support.v7.widget.CardView>
 
             </LinearLayout>
+
+
+            <android.support.v7.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:id="@+id/login"
+                android:layout_above="@+id/go_to_login"
+                android:clickable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:layout_marginStart="@dimen/tweenty_four_dp"
+                android:layout_marginEnd="@dimen/tweenty_four_dp"
+                android:layout_marginBottom="@dimen/sixteen_dp"
+                app:cardBackgroundColor="@color/loginBackground">
+
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="@string/now_sign"
+                    android:textColor="@android:color/white"
+                    android:textSize="13sp" />
+
+            </android.support.v7.widget.CardView>
 
             <TextView
                 android:layout_width="match_parent"
@@ -106,8 +107,8 @@
                 android:layout_alignParentBottom="true"
                 android:background="#f6f6f6"
                 android:gravity="center"
-                android:id="@+id/has_no_account"
-                android:text="@string/has_no_account"
+                android:id="@+id/go_to_login"
+                android:text="@string/go_to_login"
                 android:textColor="@color/loginBackground"
                 android:textSize="12sp" />
 

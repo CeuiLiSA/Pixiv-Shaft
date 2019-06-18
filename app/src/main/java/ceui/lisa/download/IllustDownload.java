@@ -61,19 +61,7 @@ public class IllustDownload {
         }
 
         if(illustsBean.getPage_count() == 1) {
-            DownloadTask.Builder builder = new DownloadTask.Builder(illustsBean.getMeta_single_page().getOriginal_image_url(),
-                    file.getParentFile())
-                    .setFilename(file.getName())
-                    .setMinIntervalMillisCallbackProcess(30)
-                    .setPassIfAlreadyCompleted(false);
-            builder.addHeader(MAP_KEY, IMAGE_REFERER);
-            DownloadTask task = builder.build();
-            IllustTask illustTask = new IllustTask();
-            illustTask.setIllustsBean(illustsBean);
-            illustTask.setDownloadTask(task);
-            TaskQueue.get().addTask(illustTask);
-            task.enqueue(new QueueListener());
-            Common.showToast("已加入下载队列");
+            downloadIllust(illustsBean);
         }else {
             DownloadTask.Builder builder = new DownloadTask.Builder(illustsBean.getMeta_pages().get(index).getImage_urls().getOriginal(),
                     file.getParentFile())

@@ -10,8 +10,8 @@ public abstract class NetworkFragment<Response> extends BaseFragment {
 
     @Override
     void initData() {
-        initApi();
+        api = initApi();
     }
 
-    abstract void initApi();
+    abstract Observable<Response> initApi();
 }

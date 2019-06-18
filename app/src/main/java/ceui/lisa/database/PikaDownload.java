@@ -23,6 +23,7 @@ import ceui.lisa.activities.PikaActivity;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
+import io.reactivex.disposables.Disposable;
 
 import static ceui.lisa.activities.PikaActivity.FILE_NAME;
 import static ceui.lisa.activities.PikaActivity.FILE_PATH;
@@ -41,7 +42,7 @@ public class PikaDownload {
         }else {
             imageUrl = illustsBean.getMeta_pages().get(0).getImage_urls().getOriginal();
         }
-        rxPermissions
+        Disposable disposable = rxPermissions
                 .requestEachCombined(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 .subscribe(permission -> { // will emit 1 Permission object
                     if (permission.granted) {

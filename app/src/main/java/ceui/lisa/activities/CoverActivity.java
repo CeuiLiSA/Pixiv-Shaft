@@ -1,11 +1,15 @@
 package ceui.lisa.activities;
 
+import android.Manifest;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Environment;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
@@ -17,6 +21,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.liulishuo.okdownload.DownloadTask;
+import com.liulishuo.okdownload.core.cause.EndCause;
+import com.liulishuo.okdownload.core.cause.ResumeFailedCause;
+import com.liulishuo.okdownload.core.listener.DownloadListener1;
+import com.liulishuo.okdownload.core.listener.assist.Listener1Assist;
+import com.tbruyelle.rxpermissions2.RxPermissions;
 
 import java.io.File;
 import ceui.lisa.R;
@@ -25,12 +35,14 @@ import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentCenter;
 import ceui.lisa.fragments.FragmentRight;
 import ceui.lisa.fragments.FragmentLeft;
+import ceui.lisa.interfaces.Callback;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Local;
 import ceui.lisa.response.UserModel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.ReverseImage;
 import ceui.lisa.utils.ReverseWebviewCallback;
+import io.reactivex.disposables.Disposable;
 
 import static ceui.lisa.activities.PikaActivity.FILE_PATH;
 
@@ -55,8 +67,23 @@ public class CoverActivity extends BaseActivity
         mLayoutID = R.layout.activity_cover;
     }
 
-    @Override
-    protected void initView() {
+
+    public void checkPermission(Callback<Object> callback){
+        final RxPermissions rxPermissions = new RxPermissions((FragmentActivity) mActivity);
+        Disposable disposable = rxPermissions
+                .requestEachCombined(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                .subscribe(permission -> { // will emit 1 Permission object
+                    if (permission.granted) {
+                        callback.doSomething(null);
+                    } else {
+                        // At least one denied permission with ask never again
+                        // Need to go to the settings
+                        Common.showToast("请给与足够的权限");
+                    }
+                });
+    }
+
+    private void initContent(){
         mDrawer = findViewById(R.id.drawer_layout);
         mDrawer.setScrimColor(Color.TRANSPARENT);
         NavigationView navigationView = findViewById(R.id.nav_view);
@@ -114,6 +141,11 @@ public class CoverActivity extends BaseActivity
         });
     }
 
+    @Override
+    protected void initView() {
+        checkPermission(t -> initContent());
+    }
+
 
     private void initFragment() {
         BaseFragment[] baseFragments = new BaseFragment[]{
@@ -142,7 +174,7 @@ public class CoverActivity extends BaseActivity
             initFragment();
         } else {
             Common.showToast("未登录");
-            Intent intent = new Intent(mContext, LoginActivity.class);
+            Intent intent = new Intent(mContext, LoginAlphaActivity.class);
             startActivity(intent);
             finish();
         }
@@ -172,7 +204,7 @@ public class CoverActivity extends BaseActivity
             intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "设置");
             startActivity(intent);
         } else if (id == R.id.nav_share) {
-            Intent intent = new Intent(mContext, LoginActivity.class);
+            Intent intent = new Intent(mContext, LoginAlphaActivity.class);
             startActivity(intent);
         } else if (id == R.id.nav_reverse) {
 //            TODO remove
