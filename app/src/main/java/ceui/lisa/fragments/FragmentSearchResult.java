@@ -19,15 +19,22 @@ import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.IllustAdapter;
 import ceui.lisa.dialogs.SelectStartSizeDialog;
+import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.http.Retro;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.response.ListIllustResponse;
+import ceui.lisa.response.NullResponse;
+import ceui.lisa.response.RankTokenResponse;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.view.GridItemDecoration;
 import ceui.lisa.utils.IllustChannel;
 import io.reactivex.Observable;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 
 /**
  * 搜索插画结果
@@ -39,6 +46,7 @@ public class FragmentSearchResult extends BaseListFragment<ListIllustResponse, I
         mLayoutID = R.layout.fragment_illust_list;
     }
 
+    private String token = "";
     private String keyWord = "";
     private String starSize = " 10000";
     private String sort = "date_desc";
@@ -65,6 +73,7 @@ public class FragmentSearchResult extends BaseListFragment<ListIllustResponse, I
         super.initView(v);
         ((TemplateFragmentActivity)getActivity()).setSupportActionBar(mToolbar);
         mToolbar.setTitle(getToolbarTitle());
+        token = mUserModel.getResponse().getAccess_token();
         return v;
     }
 
@@ -83,12 +92,12 @@ public class FragmentSearchResult extends BaseListFragment<ListIllustResponse, I
 
     @Override
     Observable<ListIllustResponse> initApi() {
-        return Retro.getAppApi().searchIllust(mUserModel.getResponse().getAccess_token(), keyWord + starSize, sort, searchTarget);
+        return Retro.getAppApi().searchIllust(token, keyWord + starSize, sort, searchTarget);
     }
 
     @Override
     Observable<ListIllustResponse> initNextApi() {
-        return Retro.getAppApi().getNextIllust(mUserModel.getResponse().getAccess_token(), nextUrl);
+        return Retro.getAppApi().getNextIllust(token, nextUrl);
     }
 
     @Override
@@ -123,8 +132,29 @@ public class FragmentSearchResult extends BaseListFragment<ListIllustResponse, I
         if (item.getItemId() == R.id.action_filter) {
             SelectStartSizeDialog dialog = new SelectStartSizeDialog();
             dialog.show(getChildFragmentManager(), "SelectStartSizeDialog");
+        }else if(item.getItemId() == R.id.action_rank){
+            getRankToken();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void getRankToken(){
+        if(mUserModel.getResponse().getUser().isIs_premium()){
+            getFirstData();
+        }else {
+            Retro.getRankApi().getRankToken(mUserModel.getResponse().getUser().getId())
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new ErrorCtrl<RankTokenResponse>() {
+                        @Override
+                        public void onNext(RankTokenResponse rankTokenResponse) {
+                            if (rankTokenResponse != null) {
+                                token = rankTokenResponse.getAuth();
+                                getFirstData();
+                            }
+                        }
+                    });
+        }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

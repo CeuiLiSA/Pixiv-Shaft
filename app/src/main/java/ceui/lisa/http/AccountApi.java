@@ -56,4 +56,5 @@ public interface AccountApi {
                                  @Field("device_token") String device_token,
                                  @Field("get_secure_url") boolean get_secure_url,
                                  @Field("include_policy") boolean include_policy);
+
 }

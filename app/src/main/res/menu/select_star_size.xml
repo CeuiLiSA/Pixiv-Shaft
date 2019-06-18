@@ -4,7 +4,13 @@
     <item
         android:id="@+id/action_filter"
         android:orderInCategory="100"
-        android:icon="@drawable/ic_touch_app_black_24dp"
-        android:title="筛选"
-        app:showAsAction="always" />
+        android:title="收藏量筛选"
+        app:showAsAction="never" />
+
+
+    <item
+        android:id="@+id/action_rank"
+        android:orderInCategory="100"
+        android:title="热度排序"
+        app:showAsAction="never" />
 </menu>
