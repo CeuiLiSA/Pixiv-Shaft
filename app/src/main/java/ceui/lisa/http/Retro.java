@@ -17,8 +17,17 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class Retro {
 
-    private static final String ACCOUNT_BASE_URL = "https://oauth.secure.pixiv.net";
+    //用作登录，刷新token
+    private static final String ACCOUNT_BASE_URL = "https://oauth.secure.pixiv.net/";
+
+    //用作各个页面请求数据
     private static final String API_BASE_URL = "https://app-api.pixiv.net/";
+
+    //用作获取会员token
+    private static final String RANK_TOKEN_BASE_URL = "https://http://yxgtest.bangjia.me/";
+
+    //用作注册账号
+    private static final String SIGN_API = "https://accounts.pixiv.net/";
 
 
 
@@ -53,6 +62,38 @@ public class Retro {
         return retrofit.create(AppApi.class);
     }
 
+
+    public static SignApi getSignApi() {
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(
+                message -> Log.i("RetrofitLog", "retrofitBack = " + message));
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+        OkHttpClient okHttpClient = new OkHttpClient
+                .Builder()
+                .addInterceptor(loggingInterceptor)
+                .protocols(Collections.singletonList(Protocol.HTTP_1_1))
+                //.dns(HttpDns.get())
+                .addInterceptor(chain -> {
+                    Request localRequest = chain.request().newBuilder()
+                            .addHeader("User-Agent:", "PixivAndroidApp/5.0.134 (Android 6.0.1; D6653)")
+                            .addHeader("Accept-Language", "zh_CN")
+                            .build();
+                    return chain.proceed(localRequest);
+                })
+                .addInterceptor(new TokenInterceptor())
+                .build();
+        Gson gson = new GsonBuilder()
+                .setLenient()
+                //.excludeFieldsWithModifiers(Modifier.FINAL, Modifier.TRANSIENT, Modifier.STATIC)
+                .create();
+        Retrofit retrofit = new Retrofit.Builder()
+                .client(okHttpClient)
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .baseUrl(SIGN_API)
+                .build();
+        return retrofit.create(SignApi.class);
+    }
+
     public static AccountApi getAccountApi() {
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(
                 message -> Log.i("RetrofitLog", "retrofitBack = " + message));
@@ -77,6 +118,33 @@ public class Retro {
                 .baseUrl(ACCOUNT_BASE_URL)
                 .build();
         return retrofit.create(AccountApi.class);
+    }
+
+
+    public static RankTokenApi getRankApi() {
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(
+                message -> Log.i("RetrofitLog", "retrofitBack = " + message));
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+        OkHttpClient okHttpClient = new OkHttpClient
+                .Builder()
+                .addInterceptor(loggingInterceptor)
+                .protocols(Collections.singletonList(Protocol.HTTP_1_1))
+                .addInterceptor(chain -> {
+                    Request localRequest = chain.request().newBuilder()
+                            .addHeader("User-Agent:", "PixivAndroidApp/5.0.134 (Android 6.0.1; D6653)")
+                            //.addHeader("Accept-Language:", "zh_CN")
+                            .build();
+                    return chain.proceed(localRequest);
+                })
+                .build();
+        Gson gson = new GsonBuilder().setLenient().create();
+        Retrofit retrofit = new Retrofit.Builder()
+                .client(okHttpClient)
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .baseUrl(RANK_TOKEN_BASE_URL)
+                .build();
+        return retrofit.create(RankTokenApi.class);
     }
 
     public static <T> T create(String baseUrl,final Class<T> service) {

@@ -21,7 +21,6 @@ public interface DownloadDao {
     @Delete
     void delete(DownloadEntity userEntity);
 
-
     @Query("SELECT * FROM illust_download_table ORDER BY downloadTime DESC LIMIT :limit OFFSET :offset")
     List<DownloadEntity> getAll(int limit, int offset);
 

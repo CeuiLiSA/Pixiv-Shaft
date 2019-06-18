@@ -15,6 +15,7 @@ import com.facebook.rebound.SpringSystem;
 import ceui.lisa.R;
 import ceui.lisa.fragments.FragmentLogin;
 import ceui.lisa.fragments.FragmentSign;
+import ceui.lisa.http.Retro;
 
 public class LoginAlphaActivity extends BaseActivity {
 
@@ -95,5 +96,9 @@ public class LoginAlphaActivity extends BaseActivity {
             }
         });
         rotate.setEndValue(360.0f);
+    }
+
+    private void startSign(){
+        //Retro.getSignApi()
     }
 }
