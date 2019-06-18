@@ -2,6 +2,7 @@ package ceui.lisa.http;
 
 import ceui.lisa.response.ArticalResponse;
 import ceui.lisa.response.IllustCommentsResponse;
+import ceui.lisa.response.IllustSearchResponse;
 import ceui.lisa.response.NullResponse;
 import ceui.lisa.response.GifResponse;
 import ceui.lisa.response.ListIllustResponse;
@@ -210,6 +211,16 @@ public interface AppApi {
     @POST("v1/illust/bookmark/delete")
     Observable<NullResponse> postDislike(@Header("Authorization") String token,
                                       @Field("illust_id") int illust_id);
+
+
+    @GET("v1/illust/detail?filter=for_android")
+    Observable<IllustSearchResponse> getIllustByID(@Header("Authorization") String token,
+                                                   @Query("illust_id") int illust_id);
+
+
+    @GET("/v1/search/user?filter=for_android")
+    Observable<ListUserResponse> searchUser(@Header("Authorization") String token,
+                                            @Query("word") String word);
 
 
 }

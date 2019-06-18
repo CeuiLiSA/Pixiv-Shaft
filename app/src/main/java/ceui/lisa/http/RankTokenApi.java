@@ -21,7 +21,6 @@ import retrofit2.http.Url;
 public interface RankTokenApi {
 
 
-    @FormUrlEncoded
     @GET("Api/Yx/getAuth")
     Observable<RankTokenResponse> getRankToken(@Query("userid") int userid);
 

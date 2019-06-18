@@ -149,7 +149,8 @@ public class FragmentSearchResult extends BaseListFragment<ListIllustResponse, I
                         @Override
                         public void onNext(RankTokenResponse rankTokenResponse) {
                             if (rankTokenResponse != null) {
-                                token = rankTokenResponse.getAuth();
+                                token = "Bearer " + rankTokenResponse.getAuth();
+                                sort = "popular_desc";
                                 getFirstData();
                             }
                         }

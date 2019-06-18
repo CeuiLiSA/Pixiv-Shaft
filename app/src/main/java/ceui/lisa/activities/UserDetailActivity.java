@@ -265,7 +265,7 @@ public class UserDetailActivity extends BaseActivity {
                     return true;
                 });
             }
-            fans.setText("粉絲：" + userDetailResponse.getProfile().getTotal_mypixiv_users());
+            fans.setText("好P友：" + userDetailResponse.getProfile().getTotal_mypixiv_users());
             follow.setText("關注：" + userDetailResponse.getProfile().getTotal_follow_users());
             ((FragmentAboutUser)baseFragments[2]).setData(userDetailResponse);
         }

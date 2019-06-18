@@ -1,9 +1,17 @@
 package ceui.lisa.utils;
 
 
+import android.content.Context;
+import android.content.Intent;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.Callback;
+import ceui.lisa.response.IllustSearchResponse;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.response.NullResponse;
 import ceui.lisa.response.UserModel;
@@ -112,5 +120,30 @@ public class PixivOperate {
                         }
                     });
         }
+    }
+
+    public static void getIllustByID(UserModel userModel, int illustID, Context context){
+        Retro.getAppApi().getIllustByID(userModel.getResponse().getAccess_token(), illustID)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new ErrorCtrl<IllustSearchResponse>() {
+                    @Override
+                    public void onNext(IllustSearchResponse illustSearchResponse) {
+                        if(illustSearchResponse != null){
+                            if(illustSearchResponse.getIllust() != null){
+                                List<IllustsBean> tempList = new ArrayList<>();
+                                tempList.add(illustSearchResponse.getIllust());
+                                IllustChannel.get().setIllustList(tempList);
+                                Intent intent = new Intent(context, ViewPagerActivity.class);
+                                intent.putExtra("position", 0);
+                                context.startActivity(intent);
+                            }else {
+                                Common.showToast("illustSearchResponse.getIllust() 为空");
+                            }
+                        }else {
+                            Common.showToast("illustSearchResponse 为空");
+                        }
+                    }
+                });
     }
 }

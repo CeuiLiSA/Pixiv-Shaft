@@ -24,7 +24,7 @@ public class Retro {
     private static final String API_BASE_URL = "https://app-api.pixiv.net/";
 
     //用作获取会员token
-    private static final String RANK_TOKEN_BASE_URL = "https://http://yxgtest.bangjia.me/";
+    private static final String RANK_TOKEN_BASE_URL = "http://yxgtest.bangjia.me/";
 
     //用作注册账号
     private static final String SIGN_API = "https://accounts.pixiv.net/";

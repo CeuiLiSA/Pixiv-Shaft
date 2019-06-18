@@ -16,8 +16,9 @@ public interface SignApi {
 
 
     @FormUrlEncoded
-    @POST("api/provisional-accounts/create?ref=pixiv_android_app_provisional_account")
-    Observable<SignResponse> nowSign(@Field("user_name") String userName);
+    @POST("api/provisional-accounts/create")
+    Observable<SignResponse> nowSign(@Field("user_name") String userName,
+                                     @Field("ref") String ref);
 
 
 }

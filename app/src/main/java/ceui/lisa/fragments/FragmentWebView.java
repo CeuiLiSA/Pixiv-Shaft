@@ -7,6 +7,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.ContextMenu;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -25,11 +26,13 @@ import java.io.File;
 import java.util.Objects;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.download.QueueListener;
 import ceui.lisa.download.WebDownload;
 import ceui.lisa.utils.ClipBoardUtils;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.view.ContextMenuTitleView;
 
 public class FragmentWebView extends BaseFragment {
@@ -45,6 +48,8 @@ public class FragmentWebView extends BaseFragment {
     private RelativeLayout webViewParent;
     private String mIntentUrl;
     private WebViewClickHandler handler = new WebViewClickHandler();
+    private static final String ILLUST_HEAD = "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=";
+    private static final String USER_HEAD = "https://www.pixiv.net/member.php?id=";
 
     public static FragmentWebView newInstance(String title, String url) {
         FragmentWebView fragmentWebView = new FragmentWebView();
@@ -95,8 +100,25 @@ public class FragmentWebView extends BaseFragment {
                 .setWebViewClient(new WebViewClient() {
                     @Override
                     public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+
+                        //点击画作 https://www.pixiv.net/member_illust.php?mode=medium&illust_id=70374965
                         String destiny = request.getUrl().toString();
                         Common.showLog(className + destiny);
+                        if(destiny.contains(ILLUST_HEAD)){
+                            Common.showLog("点击了ILLUST， 拦截调回APP");
+                            PixivOperate.getIllustByID(mUserModel,
+                                    Integer.valueOf(destiny.substring(ILLUST_HEAD.length())), mContext);
+                            return true;
+                        }
+
+                        if(destiny.contains(USER_HEAD)){
+                            Common.showLog("点击了USER， 拦截调回APP");
+                            Intent intent = new Intent(mContext, UserDetailActivity.class);
+                            intent.putExtra("user id", Integer.valueOf(destiny.substring(USER_HEAD.length())));
+                            startActivity(intent);
+                            return true;
+                        }
+
                         return super.shouldOverrideUrlLoading(view, request);
                     }
 
@@ -221,5 +243,13 @@ public class FragmentWebView extends BaseFragment {
 
             return true;
         }
+    }
+
+    public AgentWeb getAgentWeb() {
+        return mAgentWeb;
+    }
+
+    public void setAgentWeb(AgentWeb agentWeb) {
+        mAgentWeb = agentWeb;
     }
 }

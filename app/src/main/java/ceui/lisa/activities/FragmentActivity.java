@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
 import ceui.lisa.R;
+import ceui.lisa.fragments.BaseFragment;
 
 /**
  * class name: FragmentActivity.class
@@ -20,6 +21,8 @@ import ceui.lisa.R;
  * created at: 2019/3/24 8:54 PM
  */
 public abstract class FragmentActivity extends BaseActivity {
+
+    protected Fragment childFragment;
 
     @Override
     protected void initLayout() {
@@ -42,6 +45,7 @@ public abstract class FragmentActivity extends BaseActivity {
                         .add(R.id.fragment_container, fragment)
                         .commit();
             }
+            childFragment = fragment;
         }
     }
 

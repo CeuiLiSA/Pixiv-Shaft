@@ -204,7 +204,7 @@ public class CoverActivity extends BaseActivity
             intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "设置");
             startActivity(intent);
         } else if (id == R.id.nav_share) {
-            Intent intent = new Intent(mContext, LoginAlphaActivity.class);
+            Intent intent = new Intent(mContext, LoginActivity.class);
             startActivity(intent);
         } else if (id == R.id.nav_reverse) {
 //            TODO remove
