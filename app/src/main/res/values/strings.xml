@@ -32,4 +32,8 @@
     <string name="webview_handler_open_image">Open image</string>
     <string name="webview_handler_search_with_ggl">Search Google for this image</string>
     <string name="copy_to_clipboard">copyed</string>
+    <string name="now_login">登录</string>
+    <string name="has_no_account">没有账号?</string>
+    <string name="go_to_login">我要登录</string>
+    <string name="now_sign">注册账号</string>
 </resources>

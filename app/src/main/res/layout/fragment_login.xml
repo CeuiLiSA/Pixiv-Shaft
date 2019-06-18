@@ -92,7 +92,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
-                        android:text="LOGIN"
+                        android:text="@string/now_login"
                         android:textColor="@android:color/white"
                         android:textSize="13sp" />
 
@@ -106,7 +106,8 @@
                 android:layout_alignParentBottom="true"
                 android:background="#f6f6f6"
                 android:gravity="center"
-                android:text="Forgot Password?"
+                android:id="@+id/has_no_account"
+                android:text="@string/has_no_account"
                 android:textColor="@color/loginBackground"
                 android:textSize="12sp" />
 

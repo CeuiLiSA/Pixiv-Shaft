@@ -32,6 +32,7 @@
         <activity android:name=".activities.DownloadManageActivity" />
         <activity android:name=".activities.ImageDetailActivity" />
         <activity android:name=".activities.CollectionActivity" />
+        <activity android:name=".activities.LoginAlphaActivity" />
 
 
         <meta-data

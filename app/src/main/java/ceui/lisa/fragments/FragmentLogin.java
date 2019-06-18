@@ -4,16 +4,19 @@ import android.content.Intent;
 import android.support.v7.widget.CardView;
 import android.view.View;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.rengwuxian.materialedittext.MaterialEditText;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.CoverActivity;
+import ceui.lisa.activities.LoginActivity;
 import ceui.lisa.http.Retro;
 import ceui.lisa.response.UserBean;
 import ceui.lisa.utils.Local;
 import ceui.lisa.response.UserModel;
 import ceui.lisa.utils.Common;
+import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
@@ -42,9 +45,15 @@ public class FragmentLogin extends NetworkFragment<UserModel> {
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                使输入的用户名密码生效
-                initApi();
+                api = initApi();
                 login();
+            }
+        });
+        TextView noAccount = v.findViewById(R.id.has_no_account);
+        noAccount.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ((LoginActivity) getActivity()).showSignFragment();
             }
         });
         return v;
@@ -52,11 +61,11 @@ public class FragmentLogin extends NetworkFragment<UserModel> {
 
     @Override
     void initData() {
-        super.initData();
+        // do nothing here
     }
 
     @Override
-    void initApi() {
+    Observable<UserModel> initApi() {
         Common.showToast("初始化 api");
         api = Retro.getAccountApi().login(
                 CLIENT_ID,
@@ -67,6 +76,7 @@ public class FragmentLogin extends NetworkFragment<UserModel> {
                 true,
                 password.getText().toString(),
                 userName.getText().toString());
+        return api;
     }
 
     private void login(){
