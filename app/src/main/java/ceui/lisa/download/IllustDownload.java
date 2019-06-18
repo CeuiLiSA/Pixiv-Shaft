@@ -30,6 +30,8 @@ public class IllustDownload {
             return;
         }
 
+
+        Common.showLog("Task url " + illustsBean.getMeta_single_page().getOriginal_image_url());
         DownloadTask.Builder builder = new DownloadTask.Builder(illustsBean.getMeta_single_page().getOriginal_image_url(),
                 file.getParentFile())
                 .setFilename(file.getName())

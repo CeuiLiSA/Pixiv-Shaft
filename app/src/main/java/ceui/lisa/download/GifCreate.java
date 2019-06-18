@@ -5,8 +5,6 @@ import android.graphics.BitmapFactory;
 import android.hardware.camera2.CameraManager;
 
 import com.lchad.gifflen.Gifflen;
-import com.squareup.gifencoder.GifEncoder;
-import com.squareup.gifencoder.ImageOptions;
 
 import java.io.BufferedReader;
 import java.io.File;

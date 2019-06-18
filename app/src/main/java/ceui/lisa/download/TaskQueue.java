@@ -5,6 +5,7 @@ import com.liulishuo.okdownload.DownloadTask;
 
 import org.greenrobot.eventbus.EventBus;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import ceui.lisa.activities.Shaft;
@@ -71,6 +72,12 @@ public class TaskQueue {
                     addChannel.setObject(downloadEntity);
                     EventBus.getDefault().post(addChannel);
 
+                    new ImageSaver(){
+                        @Override
+                        File whichFile() {
+                            return tempTask.getDownloadTask().getFile();
+                        }
+                    }.execute();
 
                     break;
 
