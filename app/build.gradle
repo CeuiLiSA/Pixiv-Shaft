@@ -62,6 +62,8 @@ dependencies {
     implementation 'com.just.agentweb:agentweb:4.0.3-beta@aar'
     implementation 'com.facebook.rebound:rebound:0.3.8'
     implementation 'com.liulishuo.okdownload:okdownload:1.0.5'
+    implementation 'com.liulishuo.okdownload:sqlite:1.0.5-SNAPSHOT'
+    implementation 'com.liulishuo.okdownload:okhttp:1.0.5-SNAPSHOT'
     implementation 'com.github.tbruyelle:rxpermissions:0.10.2'
     implementation 'com.github.kingideayou:tagcloudview:1.0.2'
     implementation 'com.github.chrisbanes:PhotoView:2.1.3'
