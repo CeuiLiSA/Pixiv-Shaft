@@ -392,7 +392,7 @@ public class FragmentSingleIllust extends BaseFragment {
         Gson gson = new Gson();
         illustHistoryEntity.setIllustJson(gson.toJson(illust));
         illustHistoryEntity.setTime(System.currentTimeMillis());
-        AppDatabase.getAppDatabase(Shaft.getContext()).trackDao().insert(illustHistoryEntity);
+        AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(illustHistoryEntity);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

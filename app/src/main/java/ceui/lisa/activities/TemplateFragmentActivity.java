@@ -6,6 +6,7 @@ import android.view.KeyEvent;
 
 import ceui.lisa.fragments.FragmentComment;
 import ceui.lisa.fragments.FragmentDrag;
+import ceui.lisa.fragments.FragmentLocalUsers;
 import ceui.lisa.fragments.FragmentPivision;
 import ceui.lisa.fragments.FragmentRecmdUser;
 import ceui.lisa.fragments.FragmentRelatedIllust;
@@ -60,6 +61,8 @@ public class TemplateFragmentActivity extends FragmentActivity {
                 int id = intent.getIntExtra(EXTRA_ILLUST_ID, 0);
                 String title = intent.getStringExtra(EXTRA_ILLUST_TITLE);
                 return FragmentComment.newInstance(id, title);
+            }else if (dataType.equals("账号管理")) {
+                return new FragmentLocalUsers();
             }
         }
         return null;
