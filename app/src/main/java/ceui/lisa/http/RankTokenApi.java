@@ -5,6 +5,7 @@ import ceui.lisa.response.GifResponse;
 import ceui.lisa.response.IllustCommentsResponse;
 import ceui.lisa.response.ListIllustResponse;
 import ceui.lisa.response.ListUserResponse;
+import ceui.lisa.response.LoginResponse;
 import ceui.lisa.response.NullResponse;
 import ceui.lisa.response.RankTokenResponse;
 import ceui.lisa.response.TrendingtagResponse;
@@ -21,9 +22,8 @@ import retrofit2.http.Url;
 public interface RankTokenApi {
 
 
-    @FormUrlEncoded
-    @GET("Api/Yx/getAuth")
-    Observable<RankTokenResponse> getRankToken(@Query("userid") int userid);
+    @GET("/")
+    Observable<LoginResponse> getRankToken();
 
 
 }

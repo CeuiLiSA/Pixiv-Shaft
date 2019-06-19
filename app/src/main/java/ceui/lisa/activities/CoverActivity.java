@@ -143,7 +143,7 @@ public class CoverActivity extends BaseActivity
 
     @Override
     protected void initView() {
-        checkPermission(t -> initContent());
+        initContent();
     }
 
 
@@ -171,7 +171,7 @@ public class CoverActivity extends BaseActivity
     protected void initData() {
         UserModel userModel = Local.getUser();
         if (userModel != null && userModel.getResponse().getUser().isIs_login()) {
-            initFragment();
+            checkPermission(t -> initFragment());
         } else {
             Common.showToast("未登录");
             Intent intent = new Intent(mContext, LoginAlphaActivity.class);
@@ -204,7 +204,7 @@ public class CoverActivity extends BaseActivity
             intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "设置");
             startActivity(intent);
         } else if (id == R.id.nav_share) {
-            Intent intent = new Intent(mContext, LoginAlphaActivity.class);
+            Intent intent = new Intent(mContext, LoginActivity.class);
             startActivity(intent);
         } else if (id == R.id.nav_reverse) {
 //            TODO remove

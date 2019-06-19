@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:background="@color/white"
+    android:layout_height="wrap_content">
+
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:layout_width="50dp"
+        android:id="@+id/user_head"
+        android:scaleType="centerCrop"
+        android:layout_margin="@dimen/sixteen_dp"
+        android:layout_height="50dp" />
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_alignTop="@+id/user_head"
+        android:layout_toEndOf="@+id/user_head"
+        android:textColor="@color/dark_text"
+        android:id="@+id/user_name"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_alignBottom="@+id/user_head"
+        android:textSize="12sp"
+        android:layout_toEndOf="@+id/user_head"
+        android:id="@+id/login_time"
+        android:layout_height="wrap_content" />
+
+
+
+    <ImageView
+        android:layout_width="26dp"
+        android:id="@+id/current_user"
+        android:scaleType="centerCrop"
+        android:src="@drawable/ic_check_circle_black_24dp"
+        android:layout_toStartOf="@+id/delete_user"
+        android:layout_centerVertical="true"
+        android:layout_marginEnd="@dimen/sixteen_dp"
+        android:layout_height="26dp" />
+
+    <ImageView
+        android:layout_width="26dp"
+        android:id="@+id/delete_user"
+        android:scaleType="centerCrop"
+        android:src="@drawable/ic_remove_circle_outline_black_24dp"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:layout_marginEnd="@dimen/sixteen_dp"
+        android:layout_height="26dp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_marginStart="@dimen/sixteen_dp"
+        android:layout_marginEnd="@dimen/sixteen_dp"
+        android:layout_below="@+id/user_head"
+        android:background="@color/light_bg"
+        android:layout_height="1dp" />
+
+</RelativeLayout>

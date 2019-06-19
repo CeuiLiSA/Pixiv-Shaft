@@ -12,21 +12,78 @@ import java.util.List;
 @Dao
 public interface DownloadDao {
 
+    /**
+     * 添加一个下载记录
+     * @param illustTask
+     */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insert(DownloadEntity illustTask);
 
-    @Insert
-    void insertAll(List<DownloadEntity> userEntities);
 
+    /**
+     * 删除一条下载记录
+     * @param userEntity
+     */
     @Delete
     void delete(DownloadEntity userEntity);
 
+    /**
+     * 获取全部下载记录
+     * @param limit
+     * @param offset
+     * @return
+     */
     @Query("SELECT * FROM illust_download_table ORDER BY downloadTime DESC LIMIT :limit OFFSET :offset")
     List<DownloadEntity> getAll(int limit, int offset);
 
-    @Query("SELECT * FROM illust_download_table ORDER BY downloadTime")
-    List<DownloadEntity> getAll();
-
+    /**
+     *
+     */
     @Query("DELETE FROM illust_download_table")
     void deleteAll();
+
+
+    /**
+     * 新增一个浏览历史
+     * @param userEntity
+     */
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insert(IllustHistoryEntity userEntity);
+
+
+    /**
+     * 删除一个浏览历史
+     * @param userEntity
+     */
+    @Delete
+    void delete(IllustHistoryEntity userEntity);
+
+
+    /**
+     * 查询所有浏览历史
+     * @param limit
+     * @param offset
+     * @return
+     */
+    @Query("SELECT * FROM illust_table ORDER BY time DESC LIMIT :limit OFFSET :offset")
+    List<IllustHistoryEntity> getAllViewHistory(int limit, int offset);
+
+
+    /**
+     * 新增一个用户
+     * @param userEntity
+     */
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insertUser(UserEntity userEntity);
+
+
+    /**
+     * 删除一个用户
+     * @param userEntity
+     */
+    @Delete
+    void deleteUser(UserEntity userEntity);
+
+    @Query("SELECT * FROM user_table ORDER BY loginTime DESC")
+    List<UserEntity> getAllUser();
 }

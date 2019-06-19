@@ -60,6 +60,7 @@
 
 
                 <RelativeLayout
+                    android:id="@+id/user_manage"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
 
@@ -121,6 +122,7 @@
 
 
                 <RelativeLayout
+                    android:id="@+id/login_out"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
 
@@ -128,7 +130,6 @@
                     <TextView
                         android:layout_margin="@dimen/sixteen_dp"
                         android:text="退出登录"
-                        android:id="@+id/login_out"
                         android:textSize="15sp"
                         android:textColor="@color/dark_text"
                         android:layout_width="wrap_content"

@@ -93,10 +93,4 @@ public abstract class BaseFragment extends Fragment {
             Common.showLog("setUserVisibleHint 消失了" + className );
         }
     }
-
-
-    @Override
-    public void onResume() {
-        super.onResume();
-    }
 }

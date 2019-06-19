@@ -91,7 +91,8 @@ public class FragmentViewHistory extends BaseFragment {
     private void getNextData() {
         Observable.create((ObservableOnSubscribe<String>) emitter -> {
             emitter.onNext("开始查询数据库");
-            List<IllustHistoryEntity> temp = AppDatabase.getAppDatabase(mContext).trackDao().getAll(PAGE_SIZE, nowIndex);
+            List<IllustHistoryEntity> temp = AppDatabase.getAppDatabase(mContext)
+                    .downloadDao().getAllViewHistory(PAGE_SIZE, nowIndex);
             final int lastSize = nowIndex;
             nowIndex += temp.size();
             allItems.addAll(temp);
@@ -136,7 +137,8 @@ public class FragmentViewHistory extends BaseFragment {
         nowIndex = 0;
         Observable.create((ObservableOnSubscribe<List<IllustHistoryEntity>>) emitter -> {
             Common.showLog(className + "11111");
-            List<IllustHistoryEntity> temp = AppDatabase.getAppDatabase(mContext).trackDao().getAll(PAGE_SIZE, nowIndex);
+            List<IllustHistoryEntity> temp = AppDatabase.getAppDatabase(mContext)
+                    .downloadDao().getAllViewHistory(PAGE_SIZE, nowIndex);
             nowIndex += temp.size();
             allItems.addAll(temp);
             Common.showLog(className + "222222 allItems " + allItems.size());
@@ -147,14 +149,11 @@ public class FragmentViewHistory extends BaseFragment {
                     public ListIllustResponse apply(List<IllustHistoryEntity> illustHistoryEntities) throws Exception {
                         Thread.sleep(500);
                         Gson gson = new Gson();
-                        Common.showLog(className + "333333 allItems " + allItems.size());
 
                         allIllusts = new ArrayList<>();
                         for (int i = 0; i < allItems.size(); i++) {
                             allIllusts.add(gson.fromJson(allItems.get(i).getIllustJson(), IllustsBean.class));
                         }
-
-                        Common.showLog(className + "444444 allIllusts " + allIllusts.size());
 
                         ListIllustResponse response = new ListIllustResponse();
                         response.setIllusts(allIllusts);
@@ -165,9 +164,6 @@ public class FragmentViewHistory extends BaseFragment {
                 .subscribe(new ListObserver<ListIllustResponse>() {
                     @Override
                     public void success(ListIllustResponse listIllustResponse) {
-                        Common.showLog(className + "555555 allItems " + allItems.size());
-                        Common.showLog(className + "666666 allIllusts " + allIllusts.size());
-
                         mAdapter = new ViewHistoryAdapter(allItems, mContext);
                         mAdapter.setOnItemClickListener(new OnItemClickListener() {
                             @Override
@@ -187,8 +183,6 @@ public class FragmentViewHistory extends BaseFragment {
 
                     @Override
                     public void dataError() {
-                        Common.showLog(className + " 777777 allIllusts " + allIllusts.size());
-
                         mRefreshLayout.finishRefresh(false);
                         mProgressBar.setVisibility(View.INVISIBLE);
                         mRecyclerView.setVisibility(View.INVISIBLE);
@@ -198,8 +192,6 @@ public class FragmentViewHistory extends BaseFragment {
 
                     @Override
                     public void netError() {
-                        Common.showLog(className + " 888888 allIllusts " + allIllusts.size());
-
                         mRecyclerView.setVisibility(View.INVISIBLE);
                         noData.setVisibility(View.VISIBLE);
                         noData.setImageResource(R.mipmap.load_error);
@@ -232,7 +224,7 @@ public class FragmentViewHistory extends BaseFragment {
                 Common.showToast("没有浏览历史");
             }else {
                 for (int i = 0; i < allItems.size(); i++) {
-                    AppDatabase.getAppDatabase(mContext).trackDao().delete(allItems.get(i));
+                    AppDatabase.getAppDatabase(mContext).downloadDao().delete(allItems.get(i));
                 }
 
                 Common.showToast("删除成功");

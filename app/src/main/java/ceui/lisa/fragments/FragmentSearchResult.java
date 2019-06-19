@@ -24,6 +24,7 @@ import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.http.Retro;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.response.ListIllustResponse;
+import ceui.lisa.response.LoginResponse;
 import ceui.lisa.response.NullResponse;
 import ceui.lisa.response.RankTokenResponse;
 import ceui.lisa.utils.Channel;
@@ -73,6 +74,12 @@ public class FragmentSearchResult extends BaseListFragment<ListIllustResponse, I
         super.initView(v);
         ((TemplateFragmentActivity)getActivity()).setSupportActionBar(mToolbar);
         mToolbar.setTitle(getToolbarTitle());
+        mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getActivity().finish();
+            }
+        });
         token = mUserModel.getResponse().getAccess_token();
         return v;
     }
@@ -134,6 +141,16 @@ public class FragmentSearchResult extends BaseListFragment<ListIllustResponse, I
             dialog.show(getChildFragmentManager(), "SelectStartSizeDialog");
         }else if(item.getItemId() == R.id.action_rank){
             getRankToken();
+        }else if(item.getItemId() == R.id.action_new){
+            sort = "date_desc";
+            starSize = "";
+            token = mUserModel.getResponse().getAccess_token();
+            getFirstData();
+        }else if(item.getItemId() == R.id.action_old){
+            sort = "date_asc";
+            starSize = "";
+            token = mUserModel.getResponse().getAccess_token();
+            getFirstData();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -142,14 +159,16 @@ public class FragmentSearchResult extends BaseListFragment<ListIllustResponse, I
         if(mUserModel.getResponse().getUser().isIs_premium()){
             getFirstData();
         }else {
-            Retro.getRankApi().getRankToken(mUserModel.getResponse().getUser().getId())
+            Retro.getRankApi().getRankToken()
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new ErrorCtrl<RankTokenResponse>() {
+                    .subscribe(new ErrorCtrl<LoginResponse>() {
                         @Override
-                        public void onNext(RankTokenResponse rankTokenResponse) {
-                            if (rankTokenResponse != null) {
-                                token = rankTokenResponse.getAuth();
+                        public void onNext(LoginResponse loginResponse) {
+                            if (loginResponse != null) {
+                                token = "Bearer " + loginResponse.getResponse().getAccess_token();
+                                sort = "popular_desc";
+                                starSize = "";
                                 getFirstData();
                             }
                         }
@@ -162,6 +181,8 @@ public class FragmentSearchResult extends BaseListFragment<ListIllustResponse, I
         if(className.contains(event.getReceiver())) {
             Common.showLog(className + "EVENTBUS 接受了消息");
             starSize = (String) event.getObject();
+            sort = "date_desc";
+            token = mUserModel.getResponse().getAccess_token();
             getFirstData();
         }
     }

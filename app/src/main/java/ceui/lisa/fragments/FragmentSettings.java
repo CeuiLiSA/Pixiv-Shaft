@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.facebook.rebound.SimpleSpringListener;
@@ -15,6 +16,7 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.activities.LoginActivity;
 import ceui.lisa.activities.LoginAlphaActivity;
+import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.utils.Common;
 
 public class FragmentSettings extends BaseFragment {
@@ -31,11 +33,22 @@ public class FragmentSettings extends BaseFragment {
         LinearLayout linearLayout = v.findViewById(R.id.parent_linear);
         animate(linearLayout);
 
-        TextView loginOut = v.findViewById(R.id.login_out);
+        RelativeLayout loginOut = v.findViewById(R.id.login_out);
         loginOut.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, LoginAlphaActivity.class);
+                startActivity(intent);
+                getActivity().finish();
+            }
+        });
+
+        RelativeLayout userManage = v.findViewById(R.id.user_manage);
+        userManage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "账号管理");
                 startActivity(intent);
                 getActivity().finish();
             }

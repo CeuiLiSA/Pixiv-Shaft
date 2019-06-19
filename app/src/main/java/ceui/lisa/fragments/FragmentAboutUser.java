@@ -1,5 +1,6 @@
 package ceui.lisa.fragments;
 
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.TextView;
 
@@ -46,21 +47,36 @@ public class FragmentAboutUser extends BaseFragment {
 
     public void setData(UserDetailResponse response) {
         try {
-            mainPage.setHtml(response.getProfile().getWebpage());
-            twitter.setHtml(response.getProfile().getTwitter_account() + " / " + response.getProfile().getTwitter_url());
-            desc.setHtml(response.getUser().getComment());
-            pawoo.setHtml(response.getProfile().getPawoo_url());
-            computer.setText(response.getWorkspace().getPc());
-            monitor.setText(response.getWorkspace().getMonitor());
-            app.setText(response.getWorkspace().getTool());
-            scanner.setText(response.getWorkspace().getScanner());
-            drawBoard.setText(response.getWorkspace().getTablet());
-            mouse.setText(response.getWorkspace().getMouse());
-            printer.setText(response.getWorkspace().getPrinter());
-            desktopObjects.setText(response.getWorkspace().getDesktop());
-            music.setText(response.getWorkspace().getMusic());
-            desk.setText(response.getWorkspace().getDesk());
-            chair.setText(response.getWorkspace().getChair());
+            mainPage.setHtml(TextUtils.isEmpty(response.getProfile().getWebpage()) ?
+                    "" : response.getProfile().getWebpage());
+            twitter.setHtml(TextUtils.isEmpty(response.getProfile().getTwitter_url()) ?
+                    "" : response.getProfile().getTwitter_url());
+            desc.setHtml(TextUtils.isEmpty(response.getUser().getComment()) ?
+                    "" : response.getUser().getComment());
+            pawoo.setHtml(TextUtils.isEmpty(response.getProfile().getPawoo_url()) ?
+                    "" : response.getProfile().getPawoo_url());
+            computer.setText(TextUtils.isEmpty(response.getWorkspace().getPc()) ?
+                    "" : response.getWorkspace().getPc());
+            monitor.setText(TextUtils.isEmpty(response.getWorkspace().getMonitor()) ?
+                    "" : response.getWorkspace().getMonitor());
+            app.setText(TextUtils.isEmpty(response.getWorkspace().getTool()) ?
+                    "" : response.getWorkspace().getTool());
+            scanner.setText(TextUtils.isEmpty(response.getWorkspace().getScanner()) ?
+                    "" : response.getWorkspace().getScanner());
+            drawBoard.setText(TextUtils.isEmpty(response.getWorkspace().getTablet()) ?
+                    "" : response.getWorkspace().getTablet());
+            mouse.setText(TextUtils.isEmpty(response.getWorkspace().getMouse()) ?
+                    "" : response.getWorkspace().getMouse());
+            printer.setText(TextUtils.isEmpty(response.getWorkspace().getPrinter()) ?
+                    "" : response.getWorkspace().getPrinter());
+            desktopObjects.setText(TextUtils.isEmpty(response.getWorkspace().getDesktop()) ?
+                    "" : response.getWorkspace().getDesktop());
+            music.setText(TextUtils.isEmpty(response.getWorkspace().getMusic()) ?
+                    "" : response.getWorkspace().getMusic());
+            desk.setText(TextUtils.isEmpty(response.getWorkspace().getDesk()) ?
+                    "" : response.getWorkspace().getDesk());
+            chair.setText(TextUtils.isEmpty(response.getWorkspace().getChair()) ?
+                    "" : response.getWorkspace().getChair());
         } catch (Exception e) {
             e.printStackTrace();
         }
