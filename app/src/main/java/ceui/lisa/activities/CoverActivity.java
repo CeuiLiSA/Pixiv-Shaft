@@ -143,7 +143,7 @@ public class CoverActivity extends BaseActivity
 
     @Override
     protected void initView() {
-        checkPermission(t -> initContent());
+        initContent();
     }
 
 
@@ -171,7 +171,7 @@ public class CoverActivity extends BaseActivity
     protected void initData() {
         UserModel userModel = Local.getUser();
         if (userModel != null && userModel.getResponse().getUser().isIs_login()) {
-            initFragment();
+            checkPermission(t -> initFragment());
         } else {
             Common.showToast("未登录");
             Intent intent = new Intent(mContext, LoginAlphaActivity.class);

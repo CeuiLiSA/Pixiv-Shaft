@@ -165,6 +165,7 @@ public class LoginAlphaActivity extends BaseActivity {
                             mProgressBar.setVisibility(View.INVISIBLE);
                             Intent intent = new Intent(mContext, CoverActivity.class);
                             startActivity(intent);
+                            finish();
                         }
                     }
 
