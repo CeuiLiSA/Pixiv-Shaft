@@ -8,6 +8,7 @@ import ceui.lisa.response.ListUserResponse;
 import ceui.lisa.response.LoginResponse;
 import ceui.lisa.response.NullResponse;
 import ceui.lisa.response.RankTokenResponse;
+import ceui.lisa.response.TempTokenResponse;
 import ceui.lisa.response.TrendingtagResponse;
 import ceui.lisa.response.UserDetailResponse;
 import io.reactivex.Observable;
@@ -23,7 +24,7 @@ public interface RankTokenApi {
 
 
     @GET("/")
-    Observable<LoginResponse> getRankToken();
+    Observable<TempTokenResponse> getRankToken();
 
 
 }
