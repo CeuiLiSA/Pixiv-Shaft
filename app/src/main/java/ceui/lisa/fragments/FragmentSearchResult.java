@@ -27,6 +27,7 @@ import ceui.lisa.response.ListIllustResponse;
 import ceui.lisa.response.LoginResponse;
 import ceui.lisa.response.NullResponse;
 import ceui.lisa.response.RankTokenResponse;
+import ceui.lisa.response.TempTokenResponse;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.view.GridItemDecoration;
@@ -157,16 +158,18 @@ public class FragmentSearchResult extends BaseListFragment<ListIllustResponse, I
 
     private void getRankToken(){
         if(mUserModel.getResponse().getUser().isIs_premium()){
+            sort = "popular_desc";
+            starSize = "";
             getFirstData();
         }else {
             Retro.getRankApi().getRankToken()
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new ErrorCtrl<LoginResponse>() {
+                    .subscribe(new ErrorCtrl<TempTokenResponse>() {
                         @Override
-                        public void onNext(LoginResponse loginResponse) {
-                            if (loginResponse != null) {
-                                token = "Bearer " + loginResponse.getResponse().getAccess_token();
+                        public void onNext(TempTokenResponse tempTokenResponse) {
+                            if (tempTokenResponse != null) {
+                                token = "Bearer " + tempTokenResponse.getToken();
                                 sort = "popular_desc";
                                 starSize = "";
                                 getFirstData();
