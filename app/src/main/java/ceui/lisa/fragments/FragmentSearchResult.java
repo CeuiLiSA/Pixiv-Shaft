@@ -1,7 +1,9 @@
 package ceui.lisa.fragments;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.GridLayoutManager;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -38,6 +40,8 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
+import static ceui.lisa.activities.Shaft.mUserModel;
+
 /**
  * 搜索插画结果
  */
@@ -53,6 +57,8 @@ public class FragmentSearchResult extends BaseListFragment<ListIllustResponse, I
     private String starSize = " 10000";
     private String sort = "date_desc";
     private String searchTarget = "partial_match_for_tags";
+    private static final String[] ALL_SIZE = new String[]{" 500", " 1000", " 2500",
+            " 5000", " 7500", " 10000", " 25000", " 50000"};
 
     public static FragmentSearchResult newInstance(String keyWord){
         return newInstance(keyWord, "date_desc", "partial_match_for_tags");
@@ -126,7 +132,6 @@ public class FragmentSearchResult extends BaseListFragment<ListIllustResponse, I
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        EventBus.getDefault().register(this);
     }
 
     @Override
@@ -138,8 +143,19 @@ public class FragmentSearchResult extends BaseListFragment<ListIllustResponse, I
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_filter) {
-            SelectStartSizeDialog dialog = new SelectStartSizeDialog();
-            dialog.show(getChildFragmentManager(), "SelectStartSizeDialog");
+            AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+            builder.setTitle("被收藏数");
+            builder.setItems(ALL_SIZE, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    starSize = ALL_SIZE[which];
+                    sort = "date_desc";
+                    token = mUserModel.getResponse().getAccess_token();
+                    getFirstData();
+                }
+            });
+            AlertDialog alertDialog = builder.create();
+            alertDialog.show();
         }else if(item.getItemId() == R.id.action_rank){
             getRankToken();
         }else if(item.getItemId() == R.id.action_new){
@@ -177,24 +193,6 @@ public class FragmentSearchResult extends BaseListFragment<ListIllustResponse, I
                         }
                     });
         }
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(Channel event) {
-        if(className.contains(event.getReceiver())) {
-            Common.showLog(className + "EVENTBUS 接受了消息");
-            starSize = (String) event.getObject();
-            sort = "date_desc";
-            token = mUserModel.getResponse().getAccess_token();
-            getFirstData();
-        }
-    }
-
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        EventBus.getDefault().unregister(this);
     }
 
     public String getKeyWord() {

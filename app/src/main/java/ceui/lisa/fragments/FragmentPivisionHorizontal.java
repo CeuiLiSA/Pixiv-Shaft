@@ -23,6 +23,8 @@ import ceui.lisa.view.LinearItemHorizontalDecoration;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
+import static ceui.lisa.activities.Shaft.mUserModel;
+
 /**
  * Pivision 文章
  */

@@ -18,6 +18,8 @@ import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.fragments.FragmentNowDownload;
 import ceui.lisa.utils.Common;
 
+import static ceui.lisa.activities.Shaft.mUserModel;
+
 public class CollectionActivity extends BaseActivity {
 
     private static final String[] CHINESE_TITLES = new String[]{"公开收藏", "私人收藏", "公开关注", "私人关注"};
@@ -87,27 +89,11 @@ public class CollectionActivity extends BaseActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        if(mViewPager != null){
-            if(mViewPager.getCurrentItem() == 0){
-                return false;
-            }else {
-                getMenuInflater().inflate(R.menu.delete_all, menu);
-                return true;
-            }
-        }else {
-            return false;
-        }
+        return super.onCreateOptionsMenu(menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if(item.getItemId() == R.id.action_delete){
-            AppDatabase.getAppDatabase(mContext).downloadDao().deleteAll();
-            Common.showToast("下载记录清除成功");
-            if(allPages[1] instanceof FragmentDownloadFinish) {
-                ((FragmentDownloadFinish) allPages[1]).getFirstData();
-            }
-        }
         return super.onOptionsItemSelected(item);
     }
 }

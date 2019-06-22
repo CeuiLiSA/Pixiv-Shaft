@@ -18,6 +18,8 @@ import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.view.LinearItemDecoration;
 import io.reactivex.Observable;
 
+import static ceui.lisa.activities.Shaft.mUserModel;
+
 /**
  * 推荐用户
  */

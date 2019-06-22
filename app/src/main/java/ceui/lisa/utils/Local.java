@@ -44,6 +44,7 @@ public class Local {
             SharedPreferences.Editor editor = localData.edit();
             editor.putString(USER, userString);
             editor.apply();
+            Shaft.mUserModel = userModel;
             Common.showLog("444444");
         }
     }

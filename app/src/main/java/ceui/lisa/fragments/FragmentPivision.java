@@ -15,6 +15,8 @@ import ceui.lisa.response.ArticalResponse;
 import ceui.lisa.view.LinearItemDecoration;
 import io.reactivex.Observable;
 
+import static ceui.lisa.activities.Shaft.mUserModel;
+
 public class FragmentPivision extends BaseListFragment<ArticalResponse, ArticalAdapter, ArticalResponse.SpotlightArticlesBean> {
 
     @Override

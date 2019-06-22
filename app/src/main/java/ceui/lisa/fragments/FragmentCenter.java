@@ -18,6 +18,8 @@ import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.PixivOperate;
 
+import static ceui.lisa.activities.Shaft.mUserModel;
+
 public class FragmentCenter extends BaseFragment {
 
     private boolean isLoad = false;

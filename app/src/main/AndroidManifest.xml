@@ -28,12 +28,39 @@
             </intent-filter>
 
 
+            <intent-filter>
+                <data android:host="www.pixiv.net"
+                    android:scheme="https"/>
+
+
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+            </intent-filter>
+
         </activity>
         <activity android:name=".activities.UserDetailActivity" />
         <activity android:name=".activities.DownloadManageActivity" />
         <activity android:name=".activities.ImageDetailActivity" />
         <activity android:name=".activities.CollectionActivity" />
         <activity android:name=".activities.LoginAlphaActivity" />
+        <activity android:name=".activities.OutWakeActivity" >
+
+            <intent-filter>
+                <data android:host="www.pixiv.net"
+                    android:path="/member_illust.php"
+                    android:scheme="https"/>
+
+                <data android:host="www.pixiv.net"
+                    android:path="/member.php"
+                    android:scheme="https"/>
+
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+            </intent-filter>
+
+        </activity>
 
 
         <meta-data

@@ -21,6 +21,8 @@ import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.view.LinearItemDecorationNoLR;
 import io.reactivex.Observable;
 
+import static ceui.lisa.activities.Shaft.mUserModel;
+
 /**
  *
  */
@@ -55,7 +57,7 @@ public class FragmentFollowIllust extends AutoClipFragment<ListIllustResponse, E
 
     @Override
     Observable<ListIllustResponse> initNextApi() {
-        return Retro.getAppApi().getNextIllust("Bearer " + mUserModel.getResponse().getAccess_token(), nextUrl);
+        return Retro.getAppApi().getNextIllust(mUserModel.getResponse().getAccess_token(), nextUrl);
     }
 
     @Override

@@ -47,6 +47,7 @@ import io.reactivex.disposables.Disposable;
 import static ceui.lisa.activities.PikaActivity.FILE_PATH;
 
 import static ceui.lisa.activities.PikaActivity.FILE_PATH;
+import static ceui.lisa.activities.Shaft.mUserModel;
 
 public class CoverActivity extends BaseActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -204,8 +205,7 @@ public class CoverActivity extends BaseActivity
             intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "设置");
             startActivity(intent);
         } else if (id == R.id.nav_share) {
-            Intent intent = new Intent(mContext, LoginActivity.class);
-            startActivity(intent);
+            Common.showToast(mUserModel.getResponse().getUser().getName());
         } else if (id == R.id.nav_reverse) {
 //            TODO remove
             ReverseImage.reverse(new File(Environment.getExternalStorageDirectory(), "test.jpg"), ReverseImage.ReverseProvider.Iqdb, new ReverseWebviewCallback(this));

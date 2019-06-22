@@ -92,8 +92,11 @@ public class DownlistAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
         if(mOnItemClickListener != null){
 
-            holder.itemView.setOnClickListener(v -> {
+            currentOne.itemView.setOnClickListener(v -> {
                 mOnItemClickListener.onItemClick(v, position, 0);
+            });
+            currentOne.author.setOnClickListener(v -> {
+                mOnItemClickListener.onItemClick(v, position, 1);
             });
         }
     }

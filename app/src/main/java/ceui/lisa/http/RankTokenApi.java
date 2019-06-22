@@ -23,7 +23,7 @@ import retrofit2.http.Url;
 public interface RankTokenApi {
 
 
-    @GET("/")
+    @GET("/token")
     Observable<TempTokenResponse> getRankToken();
 
 

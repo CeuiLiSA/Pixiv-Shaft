@@ -8,15 +8,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.activities.ViewPagerActivity;
+import ceui.lisa.fragments.FragmentLogin;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
-import ceui.lisa.interfaces.Callback;
 import ceui.lisa.response.IllustSearchResponse;
 import ceui.lisa.response.IllustsBean;
 import ceui.lisa.response.NullResponse;
 import ceui.lisa.response.UserModel;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
+import retrofit2.Call;
+import retrofit2.Callback;
 
 public class PixivOperate {
 
@@ -60,6 +62,18 @@ public class PixivOperate {
 //                    }
 //                });
 //    }
+
+    public static void changeUser(UserModel userModel, Callback<UserModel> callback){
+        Call<UserModel> call = Retro.getAccountApi().refreshToken(
+                FragmentLogin.CLIENT_ID,
+                FragmentLogin.CLIENT_SECRET,
+                "refresh_token",
+                userModel.getResponse().getRefresh_token(),
+                userModel.getResponse().getDevice_token(),
+                true,
+                true);
+        call.enqueue(callback);
+    }
 
     public static void postFollowUser(int userID, String followType) {
         Retro.getAppApi().postFollow(
@@ -137,6 +151,36 @@ public class PixivOperate {
                                 Intent intent = new Intent(context, ViewPagerActivity.class);
                                 intent.putExtra("position", 0);
                                 context.startActivity(intent);
+                            }else {
+                                Common.showToast("illustSearchResponse.getIllust() 为空");
+                            }
+                        }else {
+                            Common.showToast("illustSearchResponse 为空");
+                        }
+                    }
+                });
+    }
+
+
+    public static void getIllustByID(UserModel userModel, int illustID, Context context,
+                                     ceui.lisa.interfaces.Callback<Void> callback){
+        Retro.getAppApi().getIllustByID(userModel.getResponse().getAccess_token(), illustID)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new ErrorCtrl<IllustSearchResponse>() {
+                    @Override
+                    public void onNext(IllustSearchResponse illustSearchResponse) {
+                        if(illustSearchResponse != null){
+                            if(illustSearchResponse.getIllust() != null){
+                                List<IllustsBean> tempList = new ArrayList<>();
+                                tempList.add(illustSearchResponse.getIllust());
+                                IllustChannel.get().setIllustList(tempList);
+                                Intent intent = new Intent(context, ViewPagerActivity.class);
+                                intent.putExtra("position", 0);
+                                context.startActivity(intent);
+                                if(callback != null){
+                                    callback.doSomething(null);
+                                }
                             }else {
                                 Common.showToast("illustSearchResponse.getIllust() 为空");
                             }

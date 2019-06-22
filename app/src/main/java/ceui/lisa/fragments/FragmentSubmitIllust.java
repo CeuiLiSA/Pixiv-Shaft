@@ -17,6 +17,8 @@ import ceui.lisa.view.GridItemDecoration;
 import ceui.lisa.utils.IllustChannel;
 import io.reactivex.Observable;
 
+import static ceui.lisa.activities.Shaft.mUserModel;
+
 /**
  * 某人創作的插畫
  */

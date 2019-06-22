@@ -16,6 +16,8 @@ import ceui.lisa.view.SpacesItemDecoration;
 import ceui.lisa.view.ScrollChangeManager;
 import io.reactivex.Observable;
 
+import static ceui.lisa.activities.Shaft.mUserModel;
+
 
 public class FragmentRank extends AutoClipFragment<ListIllustResponse, IllustStagAdapter, IllustsBean> {
 

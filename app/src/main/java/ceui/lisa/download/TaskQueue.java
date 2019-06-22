@@ -26,13 +26,14 @@ public class TaskQueue {
         private static TaskQueue instance = new TaskQueue();
     }
 
+    public static TaskQueue get() {
+        return SingletonHolder.instance;
+    }
+
     public ArrayList<IllustTask> getTasks() {
         return allTasks;
     }
 
-    public static TaskQueue get() {
-        return SingletonHolder.instance;
-    }
 
     public void addTask(IllustTask downloadTask) {
         Common.showLog("TaskQueue addTask " + downloadTask.toString());

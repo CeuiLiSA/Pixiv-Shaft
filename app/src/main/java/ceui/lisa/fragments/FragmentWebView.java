@@ -35,6 +35,8 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.view.ContextMenuTitleView;
 
+import static ceui.lisa.activities.Shaft.mUserModel;
+
 public class FragmentWebView extends BaseFragment {
 
     private String title;

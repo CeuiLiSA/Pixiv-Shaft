@@ -75,20 +75,16 @@ public class Retro {
                 //.dns(HttpDns.get())
                 .addInterceptor(chain -> {
                     Request localRequest = chain.request().newBuilder()
-                            .addHeader("User-Agent:", "PixivAndroidApp/5.0.134 (Android 6.0.1; D6653)")
+                            .addHeader("User-Agent", "PixivAndroidApp/5.0.144 (Android 6.0.1; D6653)")
                             .addHeader("Accept-Language", "zh_CN")
+                            .addHeader("Accept-Encoding", "gzip")
                             .build();
                     return chain.proceed(localRequest);
                 })
-                .addInterceptor(new TokenInterceptor())
                 .build();
-        Gson gson = new GsonBuilder()
-                .setLenient()
-                //.excludeFieldsWithModifiers(Modifier.FINAL, Modifier.TRANSIENT, Modifier.STATIC)
-                .create();
         Retrofit retrofit = new Retrofit.Builder()
                 .client(okHttpClient)
-                .addConverterFactory(GsonConverterFactory.create(gson))
+                .addConverterFactory(GsonConverterFactory.create(new Gson()))
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .baseUrl(SIGN_API)
                 .build();

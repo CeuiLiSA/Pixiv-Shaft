@@ -40,7 +40,7 @@ public interface DownloadDao {
      *
      */
     @Query("DELETE FROM illust_download_table")
-    void deleteAll();
+    void deleteAllDownload();
 
 
     /**
@@ -57,6 +57,13 @@ public interface DownloadDao {
      */
     @Delete
     void delete(IllustHistoryEntity userEntity);
+
+
+    /**
+     *
+     */
+    @Query("DELETE FROM illust_table")
+    void deleteAllHistory();
 
 
     /**

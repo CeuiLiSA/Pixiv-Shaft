@@ -1,6 +1,7 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.GridLayoutManager;
 import android.view.View;
 
@@ -15,9 +16,13 @@ import ceui.lisa.response.TrendingtagResponse;
 import ceui.lisa.view.TagItemDecoration;
 import io.reactivex.Observable;
 
+import static ceui.lisa.activities.Shaft.mUserModel;
+
 
 public class FragmentHotTag extends BaseListFragment<TrendingtagResponse, HotTagAdapter,
         TrendingtagResponse.TrendTagsBean> {
+
+    private boolean isLoad = false;
 
     @Override
     Observable<TrendingtagResponse> initApi() {
@@ -29,6 +34,11 @@ public class FragmentHotTag extends BaseListFragment<TrendingtagResponse, HotTag
     Observable<TrendingtagResponse> initNextApi() {
         //热门标签没有下一页
         return null;
+    }
+
+    @Override
+    void initData() {
+        //啥事也不干
     }
 
     @Override
@@ -79,5 +89,15 @@ public class FragmentHotTag extends BaseListFragment<TrendingtagResponse, HotTag
                 startActivity(intent);
             }
         });
+    }
+
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+
+        if (isVisibleToUser && !isLoad) {
+            getFirstData();
+            isLoad = true;
+        }
     }
 }

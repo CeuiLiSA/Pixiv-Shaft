@@ -1,10 +1,12 @@
 package ceui.lisa.activities;
 
+import android.content.DialogInterface;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -95,11 +97,23 @@ public class DownloadManageActivity extends BaseActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if(item.getItemId() == R.id.action_delete){
-            AppDatabase.getAppDatabase(mContext).downloadDao().deleteAll();
-            Common.showToast("下载记录清除成功");
-            if(allPages[1] instanceof FragmentDownloadFinish) {
-                ((FragmentDownloadFinish) allPages[1]).getFirstData();
-            }
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+            builder.setTitle("Shaft 提示");
+            builder.setMessage("这将会删除所有的下载记录，但是已下载的文件不会被删除");
+            builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    AppDatabase.getAppDatabase(mContext).downloadDao().deleteAllDownload();
+                    Common.showToast("下载记录清除成功");
+                    if(allPages[1] instanceof FragmentDownloadFinish) {
+                        ((FragmentDownloadFinish) allPages[1]).getFirstData();
+                    }
+                }
+            });
+            builder.setNegativeButton("取消", null);
+            AlertDialog alertDialog = builder.create();
+            alertDialog.show();
         }
         return super.onOptionsItemSelected(item);
     }

@@ -58,6 +58,7 @@ import io.reactivex.schedulers.Schedulers;
 import jp.wasabeef.glide.transformations.BlurTransformation;
 import me.next.tagview.TagCloudView;
 
+import static ceui.lisa.activities.Shaft.mUserModel;
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 import static com.bumptech.glide.request.RequestOptions.bitmapTransform;
 
@@ -331,6 +332,7 @@ public class FragmentSingleIllust extends BaseFragment {
                 if(viewType == 0) {
                     Intent intent = new Intent(mContext, ImageDetailActivity.class);
                     intent.putExtra("illust", illust);
+                    intent.putExtra("dataType", "二级详情");
                     intent.putExtra("index", position);
                     startActivity(intent);
                 }else if(viewType == 1){

@@ -3,8 +3,8 @@ package ceui.lisa.activities;
 import android.content.Intent;
 import android.graphics.Color;
 import android.support.constraint.ConstraintLayout;
-import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.CardView;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -19,9 +19,9 @@ import com.rengwuxian.materialedittext.MaterialEditText;
 import ceui.lisa.R;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
-import ceui.lisa.fragments.FragmentLogin;
-import ceui.lisa.fragments.FragmentSign;
+import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
+import ceui.lisa.response.SignResponse;
 import ceui.lisa.response.UserBean;
 import ceui.lisa.response.UserModel;
 import ceui.lisa.utils.Common;
@@ -43,6 +43,9 @@ public class LoginAlphaActivity extends BaseActivity {
     private CardView login, sign;
     private MaterialEditText userName, password, signName;
     private ProgressBar mProgressBar;
+    //private static final String SIGN_TOKEN = "Bearer l-f9qZ0ZyqSwRyZs8-MymbtWBbSxmCu1pmbOlyisou8";
+    private static final String SIGN_TOKEN = "pixiv";
+    private static final String SIGN_REF = "pixiv_android_app_provisional_account";
 
 
     @Override
@@ -57,6 +60,7 @@ public class LoginAlphaActivity extends BaseActivity {
     @Override
     protected void initView() {
         mProgressBar = findViewById(R.id.progress);
+        signName = findViewById(R.id.sign_user_name);
         password = findViewById(R.id.password);
         userName = findViewById(R.id.user_name);
         cardLogin = findViewById(R.id.fragment_login);
@@ -65,10 +69,31 @@ public class LoginAlphaActivity extends BaseActivity {
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                login();
+                if(userName.getText().toString().length() != 0) {
+                    if(password.getText().toString().length() != 0) {
+                        login(userName.getText().toString(), password.getText().toString());
+                    }else {
+                        Common.showToast("请输入密码");
+                    }
+                }else {
+                    Common.showToast("请输入用户名");
+                }
             }
         });
         sign = findViewById(R.id.sign);
+        sign.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                Common.showToast("暂不支持注册。。");
+
+//                if(signName.getText().toString().length() != 0) {
+//                    sign();
+//                }else {
+//                    Common.showToast("请输入用户名");
+//                }
+            }
+        });
         TextView showSign = findViewById(R.id.has_no_account);
         showSign.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -130,7 +155,33 @@ public class LoginAlphaActivity extends BaseActivity {
         rotate.setEndValue(360.0f);
     }
 
-    private void login(){
+    private void sign(){
+        Common.hideKeyboard(mActivity);
+        mProgressBar.setVisibility(View.VISIBLE);
+        Retro.getSignApi().nowSign(SIGN_TOKEN,
+                signName.getText().toString(), SIGN_REF)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new ErrorCtrl<SignResponse>() {
+                    @Override
+                    public void onNext(SignResponse signResponse) {
+                        if(signResponse != null){
+                            if(signResponse.isError()){
+                                if (!TextUtils.isEmpty(signResponse.getMessage())) {
+                                    Common.showToast(signResponse.getMessage());
+                                }else {
+                                    Common.showToast("未知错误");
+                                }
+                                mProgressBar.setVisibility(View.INVISIBLE);
+                            }else {
+                                login(signResponse.getBody().getUser_account(), signResponse.getBody().getPassword());
+                            }
+                        }
+                    }
+                });
+    }
+
+    private void login(String username, String pwd){
         Common.hideKeyboard(mActivity);
         mProgressBar.setVisibility(View.VISIBLE);
         Retro.getAccountApi().login(
@@ -140,8 +191,8 @@ public class LoginAlphaActivity extends BaseActivity {
                 true,
                 "password",
                 true,
-                password.getText().toString(),
-                userName.getText().toString()).subscribeOn(Schedulers.newThread())
+                pwd,
+                username).subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<UserModel>() {
                     @Override

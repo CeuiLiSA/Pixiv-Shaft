@@ -12,6 +12,8 @@ import ceui.lisa.response.IllustCommentsResponse;
 import ceui.lisa.view.LinearItemDecoration;
 import io.reactivex.Observable;
 
+import static ceui.lisa.activities.Shaft.mUserModel;
+
 public class FragmentComment extends BaseListFragment<IllustCommentsResponse, CommentAdapter, CommentsBean> {
 
     private int illustID;

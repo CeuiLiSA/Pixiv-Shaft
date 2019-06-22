@@ -50,6 +50,7 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
 
+import static ceui.lisa.activities.Shaft.mUserModel;
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
 public class UserDetailActivity extends BaseActivity {

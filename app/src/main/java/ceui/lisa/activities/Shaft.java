@@ -13,6 +13,8 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.response.IllustsBean;
+import ceui.lisa.response.UserModel;
+import ceui.lisa.utils.Local;
 
 public class Shaft extends Application {
 
@@ -20,7 +22,7 @@ public class Shaft extends Application {
      * 全局context
      */
     private static Context sContext = null;
-
+    public static UserModel mUserModel;
 
 
     /**
@@ -45,7 +47,7 @@ public class Shaft extends Application {
 
         //初始化context
         sContext = this;
-
+        mUserModel = Local.getUser();
         //计算状态栏高度并赋值
         statusHeight = 0;
         int resourceId = sContext.getResources().getIdentifier("status_bar_height", "dimen", "android");
