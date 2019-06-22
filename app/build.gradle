@@ -6,8 +6,8 @@ android {
         applicationId "ceui.lisa"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 9
-        versionName "1.0.8"
+        versionCode 13
+        versionName "1.0.13"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
