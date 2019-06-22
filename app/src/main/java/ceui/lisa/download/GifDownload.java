@@ -5,8 +5,8 @@ import com.liulishuo.okdownload.DownloadTask;
 import java.io.File;
 
 import ceui.lisa.database.IllustTask;
-import ceui.lisa.response.GifResponse;
-import ceui.lisa.response.IllustsBean;
+import ceui.lisa.model.GifResponse;
+import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.Common;
 
 public class GifDownload {

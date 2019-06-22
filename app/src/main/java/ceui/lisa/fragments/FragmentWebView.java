@@ -2,12 +2,10 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Environment;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.ContextMenu;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,23 +17,18 @@ import android.widget.RelativeLayout;
 
 import com.just.agentweb.AgentWeb;
 import com.just.agentweb.WebViewClient;
-import com.liulishuo.okdownload.DownloadTask;
-import com.tbruyelle.rxpermissions2.RxPermissions;
 
-import java.io.File;
 import java.util.Objects;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.UserDetailActivity;
-import ceui.lisa.download.FileCreator;
-import ceui.lisa.download.QueueListener;
 import ceui.lisa.download.WebDownload;
 import ceui.lisa.utils.ClipBoardUtils;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.view.ContextMenuTitleView;
 
-import static ceui.lisa.activities.Shaft.mUserModel;
+import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class FragmentWebView extends BaseFragment {
 
@@ -108,7 +101,7 @@ public class FragmentWebView extends BaseFragment {
                         Common.showLog(className + destiny);
                         if(destiny.contains(ILLUST_HEAD)){
                             Common.showLog("点击了ILLUST， 拦截调回APP");
-                            PixivOperate.getIllustByID(mUserModel,
+                            PixivOperate.getIllustByID(sUserModel,
                                     Integer.valueOf(destiny.substring(ILLUST_HEAD.length())), mContext);
                             return true;
                         }

@@ -1,14 +1,12 @@
 package ceui.lisa.fragments;
 
-import android.media.Image;
 import android.view.View;
-import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
 import com.github.chrisbanes.photoview.PhotoView;
 
 import ceui.lisa.R;
-import ceui.lisa.response.IllustsBean;
+import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.GlideUtil;
 
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;

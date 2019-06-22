@@ -1,25 +1,18 @@
 package ceui.lisa.download;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.hardware.camera2.CameraManager;
-
 import com.lchad.gifflen.Gifflen;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 import ceui.lisa.http.ErrorCtrl;
-import ceui.lisa.response.IllustsBean;
+import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.Common;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;

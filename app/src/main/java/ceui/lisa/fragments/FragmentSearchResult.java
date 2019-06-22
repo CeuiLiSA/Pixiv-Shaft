@@ -12,40 +12,29 @@ import android.view.View;
 
 import com.scwang.smartrefresh.layout.util.DensityUtil;
 
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
-
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.IllustAdapter;
-import ceui.lisa.dialogs.SelectStartSizeDialog;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.http.Retro;
-import ceui.lisa.response.IllustsBean;
-import ceui.lisa.response.ListIllustResponse;
-import ceui.lisa.response.LoginResponse;
-import ceui.lisa.response.NullResponse;
-import ceui.lisa.response.RankTokenResponse;
-import ceui.lisa.response.TempTokenResponse;
-import ceui.lisa.utils.Channel;
-import ceui.lisa.utils.Common;
+import ceui.lisa.model.IllustsBean;
+import ceui.lisa.model.ListIllustResponse;
+import ceui.lisa.model.TempTokenResponse;
 import ceui.lisa.view.GridItemDecoration;
 import ceui.lisa.utils.IllustChannel;
+import ceui.lisa.view.GridScrollChangeManager;
 import io.reactivex.Observable;
-import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
-import static ceui.lisa.activities.Shaft.mUserModel;
+import static ceui.lisa.activities.Shaft.sUserModel;
 
 /**
  * 搜索插画结果
  */
-public class FragmentSearchResult extends BaseListFragment<ListIllustResponse, IllustAdapter, IllustsBean> {
+public class FragmentSearchResult extends AutoClipFragment<ListIllustResponse, IllustAdapter, IllustsBean> {
 
     @Override
     void initLayout() {
@@ -87,14 +76,14 @@ public class FragmentSearchResult extends BaseListFragment<ListIllustResponse, I
                 getActivity().finish();
             }
         });
-        token = mUserModel.getResponse().getAccess_token();
+        token = sUserModel.getResponse().getAccess_token();
         return v;
     }
 
     @Override
     void initRecyclerView() {
         super.initRecyclerView();
-        GridLayoutManager manager = new GridLayoutManager(mContext, 2);
+        GridScrollChangeManager manager = new GridScrollChangeManager(mContext, 2);
         mRecyclerView.setLayoutManager(manager);
         mRecyclerView.addItemDecoration(new GridItemDecoration(2, DensityUtil.dp2px(4.0f), false));
     }
@@ -116,7 +105,7 @@ public class FragmentSearchResult extends BaseListFragment<ListIllustResponse, I
 
     @Override
     void initAdapter() {
-        mAdapter = new IllustAdapter(allItems, mContext);
+        mAdapter = new IllustAdapter(allItems, mContext, mRecyclerView, mRefreshLayout);
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
@@ -150,7 +139,7 @@ public class FragmentSearchResult extends BaseListFragment<ListIllustResponse, I
                 public void onClick(DialogInterface dialog, int which) {
                     starSize = ALL_SIZE[which];
                     sort = "date_desc";
-                    token = mUserModel.getResponse().getAccess_token();
+                    token = sUserModel.getResponse().getAccess_token();
                     getFirstData();
                 }
             });
@@ -161,19 +150,19 @@ public class FragmentSearchResult extends BaseListFragment<ListIllustResponse, I
         }else if(item.getItemId() == R.id.action_new){
             sort = "date_desc";
             starSize = "";
-            token = mUserModel.getResponse().getAccess_token();
+            token = sUserModel.getResponse().getAccess_token();
             getFirstData();
         }else if(item.getItemId() == R.id.action_old){
             sort = "date_asc";
             starSize = "";
-            token = mUserModel.getResponse().getAccess_token();
+            token = sUserModel.getResponse().getAccess_token();
             getFirstData();
         }
         return super.onOptionsItemSelected(item);
     }
 
     private void getRankToken(){
-        if(mUserModel.getResponse().getUser().isIs_premium()){
+        if(sUserModel.getResponse().getUser().isIs_premium()){
             sort = "popular_desc";
             starSize = "";
             getFirstData();

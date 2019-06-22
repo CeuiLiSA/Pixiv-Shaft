@@ -1,8 +1,6 @@
 package ceui.lisa.fragments;
 
-import android.content.Intent;
 import android.support.v7.widget.CardView;
-import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -10,18 +8,9 @@ import android.widget.TextView;
 import com.rengwuxian.materialedittext.MaterialEditText;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.CoverActivity;
 import ceui.lisa.activities.LoginActivity;
-import ceui.lisa.http.Retro;
-import ceui.lisa.response.UserBean;
-import ceui.lisa.response.UserModel;
-import ceui.lisa.utils.Common;
-import ceui.lisa.utils.Local;
+import ceui.lisa.model.UserModel;
 import io.reactivex.Observable;
-import io.reactivex.Observer;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
 
 public class FragmentSign extends NetworkFragment<UserModel> {
 

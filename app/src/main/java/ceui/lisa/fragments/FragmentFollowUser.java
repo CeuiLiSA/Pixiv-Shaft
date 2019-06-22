@@ -12,13 +12,13 @@ import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.adapters.UserAdapter;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.FullClickListener;
-import ceui.lisa.response.ListUserResponse;
-import ceui.lisa.response.UserPreviewsBean;
+import ceui.lisa.model.ListUserResponse;
+import ceui.lisa.model.UserPreviewsBean;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.view.LinearItemDecoration;
 import io.reactivex.Observable;
 
-import static ceui.lisa.activities.Shaft.mUserModel;
+import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class FragmentFollowUser extends BaseListFragment<ListUserResponse, UserAdapter, UserPreviewsBean> {
 
@@ -48,12 +48,12 @@ public class FragmentFollowUser extends BaseListFragment<ListUserResponse, UserA
 
     @Override
     Observable<ListUserResponse> initApi() {
-        return Retro.getAppApi().getFollowUser(mUserModel.getResponse().getAccess_token(), userID, starType);
+        return Retro.getAppApi().getFollowUser(sUserModel.getResponse().getAccess_token(), userID, starType);
     }
 
     @Override
     Observable<ListUserResponse> initNextApi() {
-        return Retro.getAppApi().getNextUser(mUserModel.getResponse().getAccess_token(), nextUrl);
+        return Retro.getAppApi().getNextUser(sUserModel.getResponse().getAccess_token(), nextUrl);
     }
 
     @Override

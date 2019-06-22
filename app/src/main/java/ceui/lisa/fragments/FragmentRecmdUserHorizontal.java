@@ -17,15 +17,15 @@ import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.adapters.UserHorizontalAdapter;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.http.Retro;
-import ceui.lisa.response.ListUserResponse;
-import ceui.lisa.response.UserPreviewsBean;
+import ceui.lisa.model.ListUserResponse;
+import ceui.lisa.model.UserPreviewsBean;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
-import static ceui.lisa.activities.Shaft.mUserModel;
+import static ceui.lisa.activities.Shaft.sUserModel;
 
 /**
  * 推荐用户
@@ -62,7 +62,7 @@ public class FragmentRecmdUserHorizontal extends BaseFragment {
     }
 
     private void getFirstData(){
-        Retro.getAppApi().getRecmdUser(mUserModel.getResponse().getAccess_token())
+        Retro.getAppApi().getRecmdUser(sUserModel.getResponse().getAccess_token())
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<ListUserResponse>() {

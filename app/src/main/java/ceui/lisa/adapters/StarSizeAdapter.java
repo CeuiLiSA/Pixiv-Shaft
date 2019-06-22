@@ -7,18 +7,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
-import android.widget.ImageView;
-import android.widget.TextView;
-
-import com.bumptech.glide.Glide;
-
-import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.response.UserPreviewsBean;
-import ceui.lisa.utils.GlideUtil;
-import de.hdodenhof.circleimageview.CircleImageView;
 
 
 /**

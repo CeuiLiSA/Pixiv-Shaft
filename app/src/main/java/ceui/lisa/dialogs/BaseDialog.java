@@ -10,12 +10,9 @@ import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 
-import ceui.lisa.R;
-import ceui.lisa.response.UserModel;
-import ceui.lisa.utils.Common;
+import ceui.lisa.model.UserModel;
 import ceui.lisa.utils.Local;
 
 public abstract class BaseDialog extends DialogFragment {

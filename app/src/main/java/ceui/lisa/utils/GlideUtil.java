@@ -7,8 +7,8 @@ import com.bumptech.glide.load.model.Headers;
 
 import java.util.HashMap;
 
-import ceui.lisa.response.IllustsBean;
-import ceui.lisa.response.UserBean;
+import ceui.lisa.model.IllustsBean;
+import ceui.lisa.model.UserBean;
 
 public class GlideUtil {
 

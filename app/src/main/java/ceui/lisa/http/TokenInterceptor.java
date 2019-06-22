@@ -3,7 +3,7 @@ package ceui.lisa.http;
 import java.io.IOException;
 
 import ceui.lisa.fragments.FragmentLogin;
-import ceui.lisa.response.UserModel;
+import ceui.lisa.model.UserModel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import okhttp3.Interceptor;

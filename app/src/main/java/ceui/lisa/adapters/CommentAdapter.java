@@ -10,25 +10,16 @@ import android.text.style.ForegroundColorSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.facebook.rebound.SimpleSpringListener;
-import com.facebook.rebound.Spring;
-import com.facebook.rebound.SpringConfig;
-import com.facebook.rebound.SpringSystem;
-import com.google.gson.Gson;
 
-import java.text.SimpleDateFormat;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.response.CommentsBean;
-import ceui.lisa.response.IllustsBean;
+import ceui.lisa.model.CommentsBean;
 import ceui.lisa.utils.GlideUtil;
 import de.hdodenhof.circleimageview.CircleImageView;
 

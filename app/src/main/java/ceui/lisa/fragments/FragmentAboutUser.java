@@ -7,7 +7,7 @@ import android.widget.TextView;
 import org.sufficientlysecure.htmltextview.HtmlTextView;
 
 import ceui.lisa.R;
-import ceui.lisa.response.UserDetailResponse;
+import ceui.lisa.model.UserDetailResponse;
 import ceui.lisa.utils.Common;
 
 public class FragmentAboutUser extends BaseFragment {

@@ -137,7 +137,6 @@
 
 
                     <org.sufficientlysecure.htmltextview.HtmlTextView
-                        android:textStyle="bold"
                         android:id="@+id/description"
                         android:layout_marginStart="@dimen/twelve_dp"
                         android:layout_marginEnd="@dimen/twelve_dp"

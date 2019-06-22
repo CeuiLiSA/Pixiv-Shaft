@@ -15,42 +15,33 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.model.GlideUrl;
 
-import org.reactivestreams.Subscription;
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import ceui.lisa.R;
 import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentAboutUser;
-import ceui.lisa.fragments.FragmentBlank;
 import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.fragments.FragmentSubmitIllust;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
-import ceui.lisa.response.IllustsBean;
-import ceui.lisa.response.ListIllustResponse;
-import ceui.lisa.response.UserBean;
-import ceui.lisa.response.UserDetailResponse;
-import ceui.lisa.response.UserModel;
+import ceui.lisa.model.IllustsBean;
+import ceui.lisa.model.ListIllustResponse;
+import ceui.lisa.model.UserDetailResponse;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.view.AppBarStateChangeListener;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
-import ceui.lisa.utils.Local;
 import de.hdodenhof.circleimageview.CircleImageView;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
 
-import static ceui.lisa.activities.Shaft.mUserModel;
+import static ceui.lisa.activities.Shaft.sUserModel;
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
 public class UserDetailActivity extends BaseActivity {
@@ -147,13 +138,13 @@ public class UserDetailActivity extends BaseActivity {
         mTabLayout.setupWithViewPager(mViewPager);
         getUserDetail();
         //传进来的id 等于app当前用户的id,直接加载背景图。
-        if (userID == mUserModel.getResponse().getUser().getId()) {
+        if (userID == sUserModel.getResponse().getUser().getId()) {
             getBackground();
         }
     }
 
     private void getUserDetail() {
-        Retro.getAppApi().getUserDetail(mUserModel.getResponse().getAccess_token(), userID)
+        Retro.getAppApi().getUserDetail(sUserModel.getResponse().getAccess_token(), userID)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<UserDetailResponse>() {
@@ -184,7 +175,7 @@ public class UserDetailActivity extends BaseActivity {
     }
 
     private void getBackground(){
-        Retro.getAppApi().getLoginBg(mUserModel.getResponse().getAccess_token())
+        Retro.getAppApi().getLoginBg(sUserModel.getResponse().getAccess_token())
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ErrorCtrl<ListIllustResponse>() {

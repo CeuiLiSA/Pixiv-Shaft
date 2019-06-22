@@ -12,13 +12,13 @@ import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.adapters.UserAdapter;
 import ceui.lisa.interfaces.FullClickListener;
 import ceui.lisa.http.Retro;
-import ceui.lisa.response.ListUserResponse;
-import ceui.lisa.response.UserPreviewsBean;
+import ceui.lisa.model.ListUserResponse;
+import ceui.lisa.model.UserPreviewsBean;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.view.LinearItemDecoration;
 import io.reactivex.Observable;
 
-import static ceui.lisa.activities.Shaft.mUserModel;
+import static ceui.lisa.activities.Shaft.sUserModel;
 
 /**
  * 推荐用户
@@ -27,7 +27,7 @@ public class FragmentRecmdUser extends BaseListFragment<ListUserResponse, UserAd
 
     @Override
     Observable<ListUserResponse> initApi() {
-        return Retro.getAppApi().getRecmdUser(mUserModel.getResponse().getAccess_token());
+        return Retro.getAppApi().getRecmdUser(sUserModel.getResponse().getAccess_token());
     }
 
     @Override
@@ -50,7 +50,7 @@ public class FragmentRecmdUser extends BaseListFragment<ListUserResponse, UserAd
 
     @Override
     Observable<ListUserResponse> initNextApi() {
-        return Retro.getAppApi().getNextUser(mUserModel.getResponse().getAccess_token(), nextUrl);
+        return Retro.getAppApi().getNextUser(sUserModel.getResponse().getAccess_token(), nextUrl);
     }
 
     @Override

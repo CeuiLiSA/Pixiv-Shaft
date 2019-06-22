@@ -4,10 +4,6 @@ import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.NonNull;
 
-import com.liulishuo.okdownload.DownloadTask;
-
-import ceui.lisa.response.IllustsBean;
-
 @Entity(tableName = "illust_download_table")
 public final class DownloadEntity {
 

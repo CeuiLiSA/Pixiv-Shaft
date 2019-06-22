@@ -17,7 +17,7 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.response.IllustsBean;
+import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.GlideUtil;
 import de.hdodenhof.circleimageview.CircleImageView;
 

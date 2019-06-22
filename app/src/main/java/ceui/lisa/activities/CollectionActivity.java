@@ -10,15 +10,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import ceui.lisa.R;
-import ceui.lisa.database.AppDatabase;
 import ceui.lisa.fragments.BaseFragment;
-import ceui.lisa.fragments.FragmentDownloadFinish;
 import ceui.lisa.fragments.FragmentFollowUser;
 import ceui.lisa.fragments.FragmentLikeIllust;
-import ceui.lisa.fragments.FragmentNowDownload;
-import ceui.lisa.utils.Common;
 
-import static ceui.lisa.activities.Shaft.mUserModel;
+import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class CollectionActivity extends BaseActivity {
 
@@ -40,10 +36,10 @@ public class CollectionActivity extends BaseActivity {
         TabLayout tabLayout = findViewById(R.id.tab_layout);
         mViewPager = findViewById(R.id.view_pager);
         allPages = new BaseFragment[]{
-                FragmentLikeIllust.newInstance(mUserModel.getResponse().getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC),
-                FragmentLikeIllust.newInstance(mUserModel.getResponse().getUser().getId(), FragmentLikeIllust.TYPE_PRIVATE),
-                FragmentFollowUser.newInstance(mUserModel.getResponse().getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC),
-                FragmentFollowUser.newInstance(mUserModel.getResponse().getUser().getId(), FragmentLikeIllust.TYPE_PRIVATE)};
+                FragmentLikeIllust.newInstance(sUserModel.getResponse().getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC),
+                FragmentLikeIllust.newInstance(sUserModel.getResponse().getUser().getId(), FragmentLikeIllust.TYPE_PRIVATE),
+                FragmentFollowUser.newInstance(sUserModel.getResponse().getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC),
+                FragmentFollowUser.newInstance(sUserModel.getResponse().getUser().getId(), FragmentLikeIllust.TYPE_PRIVATE)};
         mViewPager.setAdapter(new FragmentStatePagerAdapter(getSupportFragmentManager()) {
             @Override
             public Fragment getItem(int i) {

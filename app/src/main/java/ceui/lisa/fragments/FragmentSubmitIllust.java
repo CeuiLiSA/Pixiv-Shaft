@@ -11,13 +11,14 @@ import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.IllustAdapter;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.http.Retro;
-import ceui.lisa.response.IllustsBean;
-import ceui.lisa.response.ListIllustResponse;
+import ceui.lisa.model.IllustsBean;
+import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.view.GridItemDecoration;
 import ceui.lisa.utils.IllustChannel;
+import ceui.lisa.view.GridScrollChangeManager;
 import io.reactivex.Observable;
 
-import static ceui.lisa.activities.Shaft.mUserModel;
+import static ceui.lisa.activities.Shaft.sUserModel;
 
 /**
  * 某人創作的插畫
@@ -44,25 +45,25 @@ public class FragmentSubmitIllust extends AutoClipFragment<ListIllustResponse, I
 
     @Override
     Observable<ListIllustResponse> initApi() {
-        return Retro.getAppApi().getUserSubmitIllust(mUserModel.getResponse().getAccess_token(), userID, "illust");
+        return Retro.getAppApi().getUserSubmitIllust(sUserModel.getResponse().getAccess_token(), userID, "illust");
     }
 
     @Override
     Observable<ListIllustResponse> initNextApi() {
-        return Retro.getAppApi().getNextIllust(mUserModel.getResponse().getAccess_token(), nextUrl);
+        return Retro.getAppApi().getNextIllust(sUserModel.getResponse().getAccess_token(), nextUrl);
     }
 
     @Override
     void initRecyclerView() {
         super.initRecyclerView();
-        GridLayoutManager manager = new GridLayoutManager(mContext, 2);
+        GridScrollChangeManager manager = new GridScrollChangeManager(mContext, 2);
         mRecyclerView.setLayoutManager(manager);
         mRecyclerView.addItemDecoration(new GridItemDecoration(2, DensityUtil.dp2px(4.0f), false));
     }
 
     @Override
     void initAdapter() {
-        mAdapter = new IllustAdapter(allItems, mContext);
+        mAdapter = new IllustAdapter(allItems, mContext, mRecyclerView, mRefreshLayout);
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {

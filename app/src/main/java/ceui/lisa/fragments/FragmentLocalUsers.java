@@ -1,7 +1,6 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,13 +18,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.LoginAlphaActivity;
-import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
 import ceui.lisa.http.ErrorCtrl;
-import ceui.lisa.response.UserModel;
+import ceui.lisa.model.UserModel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Local;
@@ -40,7 +37,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-import static ceui.lisa.activities.Shaft.mUserModel;
+import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class FragmentLocalUsers extends BaseFragment{
 
@@ -133,7 +130,7 @@ public class FragmentLocalUsers extends BaseFragment{
         loginTime.setText(userModel.getResponse().getUser().getMail_address());
         Glide.with(mContext).load(GlideUtil.getHead(userModel.getResponse().getUser())).into(userHead);
         current.setVisibility(userModel.getResponse().getUser().getId() ==
-                mUserModel.getResponse().getUser().getId() ? View.VISIBLE : View.GONE);
+                sUserModel.getResponse().getUser().getId() ? View.VISIBLE : View.GONE);
         delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

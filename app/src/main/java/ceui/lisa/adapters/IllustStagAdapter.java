@@ -20,8 +20,9 @@ import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.response.IllustsBean;
+import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.view.ScrollChangeManager;
 
@@ -90,74 +91,74 @@ public class IllustStagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         }
         if (mOnItemClickListener != null) {
             holder.itemView.setOnClickListener(v -> {
+                if(Shaft.sSettings.isStaggerAnime()){
+                    if (state == 1) {
+                        mRefreshLayout.setEnableLoadMore(false);
+                        mManager.setCanScroll(false);
+                        state = 2;
+                        long delay = 80L;
+                        for (int i = 0; i < mRecyclerView.getChildCount(); i++) {
+                            View view = mRecyclerView.getChildAt(i);
+                            if (view != null) {
+                                if (view == currentOne.itemView) {
+                                    //如果是被点击的view，先不做任何事
 
-
-
-                //开始动画
-                if (state == 1) {
-                    mRefreshLayout.setEnableLoadMore(false);
-                    mManager.setCanScroll(false);
-                    state = 2;
-                    long delay = 80L;
-                    for (int i = 0; i < mRecyclerView.getChildCount(); i++) {
-                        View view = mRecyclerView.getChildAt(i);
-                        if (view != null) {
-                            if (view == currentOne.itemView) {
-                                //如果是被点击的view，先不做任何事
-
-                            } else {
-                                //被点击的view不动，其他的view开始依次翻转
-                                int[] array = new int[2];
-
-                                view.getLocationOnScreen(array);
-
-                                if (array[0] > imageSize) {
-                                    view.setPivotX(-750f);
                                 } else {
-                                    view.setPivotX(-200f);
-                                }
-                                view.setCameraDistance(80000f);
-                                AnimeEndRunnable animeRunnable = new AnimeEndRunnable();
-                                animeRunnable.setRorateY(-180);
-                                animeRunnable.setView(view);
-                                mHandler.postDelayed(animeRunnable, delay);
-                                delay = delay + 90L;
-                            }
+                                    //被点击的view不动，其他的view开始依次翻转
+                                    int[] array = new int[2];
 
+                                    view.getLocationOnScreen(array);
 
-
-                            //最后翻转被点击的view， 并设置动画结束的回调
-                            if (i == mRecyclerView.getChildCount() - 1) {
-                                int[] array = new int[2];
-
-                                currentOne.itemView.getLocationOnScreen(array);
-
-                                if (array[0] > imageSize) {
-                                    currentOne.itemView.setPivotX(-750f);
-                                } else {
-                                    currentOne.itemView.setPivotX(-200f);
-                                }
-                                currentOne.itemView.setCameraDistance(80000f);
-                                AnimeEndRunnable animeRunnable = new AnimeEndRunnable();
-                                animeRunnable.setOnAnimeEnd(new OnAnimeEnd() {
-                                    @Override
-                                    public void onAnimeEndPerform() {
-                                        mOnItemClickListener.onItemClick(currentOne.illust, position, 0);
+                                    if (array[0] > imageSize) {
+                                        view.setPivotX(-750f);
+                                    } else {
+                                        view.setPivotX(-200f);
                                     }
-                                });
-                                animeRunnable.setView(currentOne.itemView);
-                                animeRunnable.setRorateY(-180);
-                                mHandler.postDelayed(animeRunnable, delay + 50L);
+                                    view.setCameraDistance(80000f);
+                                    AnimeEndRunnable animeRunnable = new AnimeEndRunnable();
+                                    animeRunnable.setRorateY(-180);
+                                    animeRunnable.setView(view);
+                                    mHandler.postDelayed(animeRunnable, delay);
+                                    delay = delay + 90L;
+                                }
+
+
+
+                                //最后翻转被点击的view， 并设置动画结束的回调
+                                if (i == mRecyclerView.getChildCount() - 1) {
+                                    int[] array = new int[2];
+
+                                    currentOne.itemView.getLocationOnScreen(array);
+
+                                    if (array[0] > imageSize) {
+                                        currentOne.itemView.setPivotX(-750f);
+                                    } else {
+                                        currentOne.itemView.setPivotX(-200f);
+                                    }
+                                    currentOne.itemView.setCameraDistance(80000f);
+                                    AnimeEndRunnable animeRunnable = new AnimeEndRunnable();
+                                    animeRunnable.setOnAnimeEnd(new OnAnimeEnd() {
+                                        @Override
+                                        public void onAnimeEndPerform() {
+                                            mOnItemClickListener.onItemClick(currentOne.illust, position, 0);
+                                        }
+                                    });
+                                    animeRunnable.setView(currentOne.itemView);
+                                    animeRunnable.setRorateY(-180);
+                                    mHandler.postDelayed(animeRunnable, delay + 50L);
+                                }
                             }
                         }
                     }
+                }else {
+                    mOnItemClickListener.onItemClick(currentOne.illust, position, 0);
                 }
             });
         }
     }
 
 
-    class AnimeEndRunnable implements Runnable {
+    public class AnimeEndRunnable implements Runnable {
 
         private int rotateY;
         private Spring mSpring;

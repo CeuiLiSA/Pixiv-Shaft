@@ -1,7 +1,6 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.GridLayoutManager;
 import android.view.View;
 
@@ -12,11 +11,11 @@ import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.adapters.HotTagAdapter;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.response.TrendingtagResponse;
+import ceui.lisa.model.TrendingtagResponse;
 import ceui.lisa.view.TagItemDecoration;
 import io.reactivex.Observable;
 
-import static ceui.lisa.activities.Shaft.mUserModel;
+import static ceui.lisa.activities.Shaft.sUserModel;
 
 
 public class FragmentHotTag extends BaseListFragment<TrendingtagResponse, HotTagAdapter,
@@ -26,7 +25,7 @@ public class FragmentHotTag extends BaseListFragment<TrendingtagResponse, HotTag
 
     @Override
     Observable<TrendingtagResponse> initApi() {
-        return Retro.getAppApi().getHotTags(mUserModel.getResponse().getAccess_token());
+        return Retro.getAppApi().getHotTags(sUserModel.getResponse().getAccess_token());
         //return null;
     }
 

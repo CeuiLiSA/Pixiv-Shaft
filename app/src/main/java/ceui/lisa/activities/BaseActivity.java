@@ -6,8 +6,6 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 
-import ceui.lisa.response.UserModel;
-import ceui.lisa.activities.Shaft;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Settings;
 
@@ -16,7 +14,6 @@ public abstract class BaseActivity extends AppCompatActivity {
     protected Context mContext;
     protected Activity mActivity;
     protected int mLayoutID;
-    protected Settings mSettings;
     protected String className = this.getClass().getSimpleName() + " ";
 
     @Override
@@ -28,7 +25,6 @@ public abstract class BaseActivity extends AppCompatActivity {
         mContext = this;
         mActivity = this;
 
-        mSettings = Local.getSettings();
 
         initView();
         initData();

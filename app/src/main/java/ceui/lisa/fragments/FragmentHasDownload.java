@@ -25,7 +25,7 @@
 //import ceui.lisa.database.AppDatabase;
 //import ceui.lisa.database.DownloadEntity;
 //import ceui.lisa.interfaces.OnItemClickListener;
-//import ceui.lisa.response.IllustsBean;
+//import ceui.lisa.model.IllustsBean;
 //import ceui.lisa.utils.Channel;
 //import ceui.lisa.utils.Common;
 //import ceui.lisa.view.LinearItemDecoration;

@@ -14,11 +14,6 @@ import android.widget.ProgressBar;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
-import com.lchad.gifflen.Gifflen;
-
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.File;
 import java.util.Arrays;
@@ -30,8 +25,7 @@ import ceui.lisa.R;
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.response.IllustsBean;
-import ceui.lisa.utils.Channel;
+import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import io.reactivex.Observable;
@@ -42,7 +36,7 @@ import io.reactivex.schedulers.Schedulers;
 
 
 /**
- *
+ * 作品详情页竖向多P列表
  */
 public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
@@ -80,7 +74,6 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             currentOne.illust.setLayoutParams(params);
             Glide.with(mContext)
                     .load(GlideUtil.getLargeImage(allIllust, position))
-                    .placeholder(R.color.light_bg)
                     .into(currentOne.illust);
 
             Common.showLog("height " + params.height + "width " + params.width);
@@ -95,7 +88,6 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             Glide.with(mContext)
                     .asBitmap()
                     .load(GlideUtil.getLargeImage(allIllust, position))
-                    .placeholder(R.color.light_bg)
                     .into(new SimpleTarget<Bitmap>() {
                         @Override
                         public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {

@@ -3,8 +3,10 @@ package ceui.lisa.fragments;
 import android.content.Intent;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import com.facebook.rebound.SimpleSpringListener;
@@ -16,8 +18,10 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.activities.LoginActivity;
 import ceui.lisa.activities.LoginAlphaActivity;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Local;
 
 public class FragmentSettings extends BaseFragment {
 
@@ -53,6 +57,64 @@ public class FragmentSettings extends BaseFragment {
                 getActivity().finish();
             }
         });
+
+        Switch staggerAnime = v.findViewById(R.id.stagger_animate);
+        staggerAnime.setChecked(Shaft.sSettings.isStaggerAnime());
+        staggerAnime.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+                    Shaft.sSettings.setStaggerAnime(true);
+                }else {
+                    Shaft.sSettings.setStaggerAnime(false);
+                }
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+
+        Switch gridAnime = v.findViewById(R.id.grid_animate);
+        gridAnime.setChecked(Shaft.sSettings.isGridAnime());
+        gridAnime.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+                    Shaft.sSettings.setGridAnime(true);
+                }else {
+                    Shaft.sSettings.setGridAnime(false);
+                }
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+
+
+        Switch saveHistory = v.findViewById(R.id.save_history);
+        saveHistory.setChecked(Shaft.sSettings.isSaveViewHistory());
+        saveHistory.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+                    Shaft.sSettings.setSaveViewHistory(true);
+                }else {
+                    Shaft.sSettings.setSaveViewHistory(false);
+                }
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+
+        Switch relatedNoLimit = v.findViewById(R.id.related_no_limit);
+        relatedNoLimit.setChecked(Shaft.sSettings.isRelatedIllustNoLimit());
+        relatedNoLimit.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+                    Shaft.sSettings.setRelatedIllustNoLimit(true);
+                }else {
+                    Shaft.sSettings.setRelatedIllustNoLimit(false);
+                }
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+
         return v;
     }
 

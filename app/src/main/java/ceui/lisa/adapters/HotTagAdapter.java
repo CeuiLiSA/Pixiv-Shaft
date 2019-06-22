@@ -16,7 +16,7 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.response.TrendingtagResponse;
+import ceui.lisa.model.TrendingtagResponse;
 import ceui.lisa.utils.GlideUtil;
 
 

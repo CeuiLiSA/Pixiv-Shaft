@@ -21,10 +21,8 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.database.DownloadEntity;
-import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.response.IllustsBean;
-import ceui.lisa.utils.GlideUtil;
+import ceui.lisa.model.IllustsBean;
 
 
 /**

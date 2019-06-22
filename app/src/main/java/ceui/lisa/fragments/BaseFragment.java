@@ -10,10 +10,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import ceui.lisa.activities.Shaft;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
-import ceui.lisa.response.UserModel;
 import ceui.lisa.utils.Settings;
 
 public abstract class BaseFragment extends Fragment {
@@ -22,7 +20,6 @@ public abstract class BaseFragment extends Fragment {
     protected Activity mActivity;
     protected int mLayoutID;
     protected View parentView;
-    protected Settings mSettings;
 
     protected String className = this.getClass().getSimpleName() + " ";
 
@@ -44,7 +41,6 @@ public abstract class BaseFragment extends Fragment {
         mContext = getContext();
         mActivity = getActivity();
 
-        mSettings = Local.getSettings();
     }
 
     @Nullable

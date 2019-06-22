@@ -20,7 +20,7 @@ import ceui.lisa.adapters.DownlistAdapter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.response.IllustsBean;
+import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import io.reactivex.Observable;
@@ -29,8 +29,6 @@ import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
-
-import static ceui.lisa.fragments.BaseListFragment.PAGE_SIZE;
 
 public class FragmentDownloadFinish extends BaseAsynFragment<DownlistAdapter, DownloadEntity> {
 

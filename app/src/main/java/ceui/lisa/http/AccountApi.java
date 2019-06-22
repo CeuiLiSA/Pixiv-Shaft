@@ -1,6 +1,6 @@
 package ceui.lisa.http;
 
-import ceui.lisa.response.UserModel;
+import ceui.lisa.model.UserModel;
 import io.reactivex.Observable;
 import retrofit2.Call;
 import retrofit2.http.Field;
