@@ -3,7 +3,7 @@ package ceui.lisa.utils;
 import java.util.ArrayList;
 import java.util.List;
 
-import ceui.lisa.response.IllustsBean;
+import ceui.lisa.model.IllustsBean;
 
 public class IllustChannel {
 

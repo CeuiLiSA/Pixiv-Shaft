@@ -14,12 +14,14 @@ import ceui.lisa.adapters.EventAdapter;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.http.Retro;
-import ceui.lisa.response.IllustsBean;
-import ceui.lisa.response.ListIllustResponse;
+import ceui.lisa.model.IllustsBean;
+import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.view.LinearItemDecorationNoLR;
 import io.reactivex.Observable;
+
+import static ceui.lisa.activities.Shaft.sUserModel;
 
 /**
  *
@@ -50,12 +52,12 @@ public class FragmentFollowIllust extends AutoClipFragment<ListIllustResponse, E
 
     @Override
     Observable<ListIllustResponse> initApi() {
-        return Retro.getAppApi().getFollowUserIllust(mUserModel.getResponse().getAccess_token());
+        return Retro.getAppApi().getFollowUserIllust(sUserModel.getResponse().getAccess_token());
     }
 
     @Override
     Observable<ListIllustResponse> initNextApi() {
-        return Retro.getAppApi().getNextIllust("Bearer " + mUserModel.getResponse().getAccess_token(), nextUrl);
+        return Retro.getAppApi().getNextIllust(sUserModel.getResponse().getAccess_token(), nextUrl);
     }
 
     @Override
@@ -80,7 +82,7 @@ public class FragmentFollowIllust extends AutoClipFragment<ListIllustResponse, E
                         IllustDownload.downloadAllIllust(allItems.get(position));
                     }
                 }else if(viewType == 3){
-                    PixivOperate.postLike(allItems.get(position), mUserModel, FragmentLikeIllust.TYPE_PUBLUC);
+                    PixivOperate.postLike(allItems.get(position), sUserModel, FragmentLikeIllust.TYPE_PUBLUC);
                 }
             }
         });

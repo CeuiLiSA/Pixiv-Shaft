@@ -9,12 +9,14 @@ import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.IllustStagAdapter;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.http.Retro;
-import ceui.lisa.response.IllustsBean;
-import ceui.lisa.response.ListIllustResponse;
+import ceui.lisa.model.IllustsBean;
+import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.view.SpacesItemDecoration;
 import ceui.lisa.view.ScrollChangeManager;
 import io.reactivex.Observable;
+
+import static ceui.lisa.activities.Shaft.sUserModel;
 
 /**
  * 某人收藏的插畫
@@ -46,12 +48,12 @@ public class FragmentLikeIllust extends AutoClipFragment<ListIllustResponse, Ill
 
     @Override
     Observable<ListIllustResponse> initApi() {
-        return Retro.getAppApi().getUserLikeIllust(mUserModel.getResponse().getAccess_token(), userID, starType);
+        return Retro.getAppApi().getUserLikeIllust(sUserModel.getResponse().getAccess_token(), userID, starType);
     }
 
     @Override
     Observable<ListIllustResponse> initNextApi() {
-        return Retro.getAppApi().getNextIllust(mUserModel.getResponse().getAccess_token(), nextUrl);
+        return Retro.getAppApi().getNextIllust(sUserModel.getResponse().getAccess_token(), nextUrl);
     }
 
     @Override

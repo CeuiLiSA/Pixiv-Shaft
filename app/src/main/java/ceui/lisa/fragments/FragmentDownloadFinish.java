@@ -1,5 +1,6 @@
 package ceui.lisa.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
@@ -9,14 +10,17 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import ceui.lisa.activities.ImageDetailActivity;
+import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.adapters.DownlistAdapter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.response.IllustsBean;
+import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import io.reactivex.Observable;
@@ -26,12 +30,11 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
-import static ceui.lisa.fragments.BaseListFragment.PAGE_SIZE;
-
 public class FragmentDownloadFinish extends BaseAsynFragment<DownlistAdapter, DownloadEntity> {
 
     protected int nowIndex = 0;
     private List<IllustsBean> allIllusts = new ArrayList<>();
+    private List<String> filePaths = new ArrayList<>();
 
     @Override
     public void getFirstData() {
@@ -48,6 +51,7 @@ public class FragmentDownloadFinish extends BaseAsynFragment<DownlistAdapter, Do
             allIllusts = new ArrayList<>();
             for (int i = 0; i < allItems.size(); i++) {
                 allIllusts.add(gson.fromJson(allItems.get(i).getIllustGson(), IllustsBean.class));
+                filePaths.add(allItems.get(i).getFilePath());
             }
             emitter.onComplete();
         }).subscribeOn(Schedulers.io())
@@ -82,6 +86,17 @@ public class FragmentDownloadFinish extends BaseAsynFragment<DownlistAdapter, Do
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
+                if(viewType == 0) {
+                    Intent intent = new Intent(mContext, ImageDetailActivity.class);
+                    intent.putExtra("illust", (Serializable) filePaths);
+                    intent.putExtra("dataType", "下载详情");
+                    intent.putExtra("index", position);
+                    startActivity(intent);
+                }else if(viewType == 1){
+                    Intent intent = new Intent(mContext, UserDetailActivity.class);
+                    intent.putExtra("user id", allIllusts.get(position).getUser().getId());
+                    startActivity(intent);
+                }
             }
         });
     }
@@ -104,6 +119,7 @@ public class FragmentDownloadFinish extends BaseAsynFragment<DownlistAdapter, Do
             Gson gson = new Gson();
             for (int i = lastSize; i < allItems.size(); i++) {
                 allIllusts.add(gson.fromJson(allItems.get(i).getIllustGson(), IllustsBean.class));
+                filePaths.add(allItems.get(i).getFilePath());
             }
             mAdapter.notifyItemRangeChanged(lastSize, nowIndex);
             emitter.onComplete();
@@ -149,6 +165,7 @@ public class FragmentDownloadFinish extends BaseAsynFragment<DownlistAdapter, Do
             DownloadEntity entity = (DownloadEntity) event.getObject();
             allItems.add(0, entity);
             allIllusts.add(new Gson().fromJson(entity.getIllustGson(), IllustsBean.class));
+            filePaths.add(entity.getFilePath());
             mAdapter.notifyItemInserted(0);
             mRecyclerView.scrollToPosition(0);
             mAdapter.notifyItemRangeChanged(0, allItems.size());

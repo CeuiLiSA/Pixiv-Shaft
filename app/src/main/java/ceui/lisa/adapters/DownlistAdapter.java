@@ -21,10 +21,8 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.database.DownloadEntity;
-import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.response.IllustsBean;
-import ceui.lisa.utils.GlideUtil;
+import ceui.lisa.model.IllustsBean;
 
 
 /**
@@ -92,8 +90,11 @@ public class DownlistAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
         if(mOnItemClickListener != null){
 
-            holder.itemView.setOnClickListener(v -> {
+            currentOne.itemView.setOnClickListener(v -> {
                 mOnItemClickListener.onItemClick(v, position, 0);
+            });
+            currentOne.author.setOnClickListener(v -> {
+                mOnItemClickListener.onItemClick(v, position, 1);
             });
         }
     }

@@ -18,8 +18,8 @@ import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustRecmdEntity;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.http.Retro;
-import ceui.lisa.response.IllustsBean;
-import ceui.lisa.response.ListIllustResponse;
+import ceui.lisa.model.IllustsBean;
+import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.IllustChannel;
@@ -31,6 +31,8 @@ import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
+
+import static ceui.lisa.activities.Shaft.sUserModel;
 
 /**
  * fragment recommend 推荐插画
@@ -51,13 +53,13 @@ public class FragmentRecmdIllust extends AutoClipFragment<ListIllustResponse,
 
     @Override
     Observable<ListIllustResponse> initApi() {
-        return Retro.getAppApi().getRecmdIllust(mUserModel.getResponse().getAccess_token(), true);
+        return Retro.getAppApi().getRecmdIllust(sUserModel.getResponse().getAccess_token(), true);
         //return null;
     }
 
     @Override
     Observable<ListIllustResponse> initNextApi() {
-        return Retro.getAppApi().getNextIllust("Bearer " + mUserModel.getResponse().getAccess_token(), nextUrl);
+        return Retro.getAppApi().getNextIllust("Bearer " + sUserModel.getResponse().getAccess_token(), nextUrl);
     }
 
     @Override

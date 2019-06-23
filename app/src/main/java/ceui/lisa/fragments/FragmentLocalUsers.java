@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -14,38 +15,34 @@ import com.google.gson.Gson;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.LoginAlphaActivity;
-import ceui.lisa.activities.ViewPagerActivity;
-import ceui.lisa.adapters.ViewHistoryAdapter;
 import ceui.lisa.database.AppDatabase;
-import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.database.UserEntity;
 import ceui.lisa.http.ErrorCtrl;
-import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.response.IllustsBean;
-import ceui.lisa.response.ListIllustResponse;
-import ceui.lisa.response.UserModel;
+import ceui.lisa.model.UserModel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
-import ceui.lisa.utils.IllustChannel;
-import ceui.lisa.utils.ListObserver;
 import ceui.lisa.utils.Local;
+import ceui.lisa.utils.PixivOperate;
 import de.hdodenhof.circleimageview.CircleImageView;
 import io.reactivex.Observable;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
-import static ceui.lisa.fragments.BaseListFragment.PAGE_SIZE;
+import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class FragmentLocalUsers extends BaseFragment{
 
     private LinearLayout userList;
+    private ProgressBar mProgressBar;
     private SimpleDateFormat formatter = new SimpleDateFormat("MM月dd日 HH:mm:ss");
     private List<UserModel> allItems = new ArrayList<>();
 
@@ -57,6 +54,7 @@ public class FragmentLocalUsers extends BaseFragment{
     @Override
     View initView(View v) {
         Toolbar toolbar = v.findViewById(R.id.toolbar);
+        mProgressBar = v.findViewById(R.id.progress);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -132,7 +130,7 @@ public class FragmentLocalUsers extends BaseFragment{
         loginTime.setText(userModel.getResponse().getUser().getMail_address());
         Glide.with(mContext).load(GlideUtil.getHead(userModel.getResponse().getUser())).into(userHead);
         current.setVisibility(userModel.getResponse().getUser().getId() ==
-                mUserModel.getResponse().getUser().getId() ? View.VISIBLE : View.GONE);
+                sUserModel.getResponse().getUser().getId() ? View.VISIBLE : View.GONE);
         delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -143,8 +141,23 @@ public class FragmentLocalUsers extends BaseFragment{
         v.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Local.saveUser(userModel);
-                getActivity().finish();
+                mProgressBar.setVisibility(View.VISIBLE);
+                PixivOperate.changeUser(userModel, new Callback<UserModel>() {
+                    @Override
+                    public void onResponse(Call<UserModel> call, Response<UserModel> response) {
+                        if(response != null){
+                            Local.saveUser(response.body());
+                            mProgressBar.setVisibility(View.INVISIBLE);
+                            getActivity().finish();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<UserModel> call, Throwable t) {
+                        Common.showToast(t.toString());
+                        mProgressBar.setVisibility(View.INVISIBLE);
+                    }
+                });
             }
         });
     }

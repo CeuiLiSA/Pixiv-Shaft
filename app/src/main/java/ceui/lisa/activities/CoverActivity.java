@@ -4,8 +4,6 @@ import android.Manifest;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Environment;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
@@ -21,16 +19,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.liulishuo.okdownload.DownloadTask;
-import com.liulishuo.okdownload.core.cause.EndCause;
-import com.liulishuo.okdownload.core.cause.ResumeFailedCause;
-import com.liulishuo.okdownload.core.listener.DownloadListener1;
-import com.liulishuo.okdownload.core.listener.assist.Listener1Assist;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 
 import java.io.File;
 import ceui.lisa.R;
-import ceui.lisa.database.AppDatabase;
 import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentCenter;
 import ceui.lisa.fragments.FragmentRight;
@@ -38,7 +30,7 @@ import ceui.lisa.fragments.FragmentLeft;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Local;
-import ceui.lisa.response.UserModel;
+import ceui.lisa.model.UserModel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.ReverseImage;
 import ceui.lisa.utils.ReverseWebviewCallback;
@@ -46,7 +38,7 @@ import io.reactivex.disposables.Disposable;
 
 import static ceui.lisa.activities.PikaActivity.FILE_PATH;
 
-import static ceui.lisa.activities.PikaActivity.FILE_PATH;
+import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class CoverActivity extends BaseActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -102,7 +94,7 @@ public class CoverActivity extends BaseActivity
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, UserDetailActivity.class);
-                intent.putExtra("user id", mUserModel.getResponse().getUser().getId());
+                intent.putExtra("user id", sUserModel.getResponse().getUser().getId());
                 startActivity(intent);
             }
         });
@@ -204,8 +196,7 @@ public class CoverActivity extends BaseActivity
             intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "设置");
             startActivity(intent);
         } else if (id == R.id.nav_share) {
-            Intent intent = new Intent(mContext, LoginActivity.class);
-            startActivity(intent);
+            Common.showToast(sUserModel.getResponse().getUser().getName());
         } else if (id == R.id.nav_reverse) {
 //            TODO remove
             ReverseImage.reverse(new File(Environment.getExternalStorageDirectory(), "test.jpg"), ReverseImage.ReverseProvider.Iqdb, new ReverseWebviewCallback(this));
@@ -219,13 +210,13 @@ public class CoverActivity extends BaseActivity
     @Override
     protected void onResume() {
         super.onResume();
-        if (mUserModel != null && mUserModel.getResponse() != null) {
+        if (sUserModel != null && sUserModel.getResponse() != null) {
             Glide.with(mContext)
                     .load(GlideUtil.getMediumImg(
-                            mUserModel.getResponse().getUser().getProfile_image_urls().getPx_170x170()))
+                            sUserModel.getResponse().getUser().getProfile_image_urls().getPx_170x170()))
                     .into(userHead);
-            username.setText(mUserModel.getResponse().getUser().getName());
-            user_email.setText(mUserModel.getResponse().getUser().getMail_address());
+            username.setText(sUserModel.getResponse().getUser().getName());
+            user_email.setText(sUserModel.getResponse().getUser().getMail_address());
         }
     }
 

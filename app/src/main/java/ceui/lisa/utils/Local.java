@@ -17,8 +17,8 @@ import java.util.List;
 import ceui.lisa.activities.PikaActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.interfaces.Callback;
-import ceui.lisa.response.IllustsBean;
-import ceui.lisa.response.UserModel;
+import ceui.lisa.model.IllustsBean;
+import ceui.lisa.model.UserModel;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
@@ -44,6 +44,7 @@ public class Local {
             SharedPreferences.Editor editor = localData.edit();
             editor.putString(USER, userString);
             editor.apply();
+            Shaft.sUserModel = userModel;
             Common.showLog("444444");
         }
     }
@@ -225,11 +226,13 @@ public class Local {
         SharedPreferences.Editor editor = localData.edit();
         editor.putString("settings", settingsGson);
         editor.apply();
+        Shaft.sSettings = settings;
     }
 
     public static Settings getSettings(){
         SharedPreferences localData = Shaft.getContext().getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
         String settingsString = localData.getString("settings", "");
-        return new Gson().fromJson(settingsString, Settings.class);
+        Settings settings = new Gson().fromJson(settingsString, Settings.class);
+        return settings == null ? new Settings() : settings;
     }
 }

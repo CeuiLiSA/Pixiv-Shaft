@@ -11,9 +11,11 @@ import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.adapters.ArticalAdapter;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.http.Retro;
-import ceui.lisa.response.ArticalResponse;
+import ceui.lisa.model.ArticalResponse;
 import ceui.lisa.view.LinearItemDecoration;
 import io.reactivex.Observable;
+
+import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class FragmentPivision extends BaseListFragment<ArticalResponse, ArticalAdapter, ArticalResponse.SpotlightArticlesBean> {
 
@@ -24,7 +26,7 @@ public class FragmentPivision extends BaseListFragment<ArticalResponse, ArticalA
 
     @Override
     Observable<ArticalResponse> initApi() {
-        return Retro.getAppApi().getArticals(mUserModel.getResponse().getAccess_token());
+        return Retro.getAppApi().getArticals(sUserModel.getResponse().getAccess_token());
     }
 
     @Override
@@ -48,7 +50,7 @@ public class FragmentPivision extends BaseListFragment<ArticalResponse, ArticalA
 
     @Override
     Observable<ArticalResponse> initNextApi() {
-        return Retro.getAppApi().getNextArticals(mUserModel.getResponse().getAccess_token(), nextUrl);
+        return Retro.getAppApi().getNextArticals(sUserModel.getResponse().getAccess_token(), nextUrl);
     }
 
     @Override

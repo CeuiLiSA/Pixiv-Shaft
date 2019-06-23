@@ -8,11 +8,10 @@ import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 import com.scwang.smartrefresh.layout.header.ClassicsHeader;
 import com.scwang.smartrefresh.layout.util.DensityUtil;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import ceui.lisa.R;
-import ceui.lisa.response.IllustsBean;
+import ceui.lisa.model.UserModel;
+import ceui.lisa.utils.Local;
+import ceui.lisa.utils.Settings;
 
 public class Shaft extends Application {
 
@@ -20,6 +19,8 @@ public class Shaft extends Application {
      * 全局context
      */
     private static Context sContext = null;
+    public static UserModel sUserModel;
+    public static Settings sSettings;
 
 
 
@@ -45,7 +46,8 @@ public class Shaft extends Application {
 
         //初始化context
         sContext = this;
-
+        sUserModel = Local.getUser();
+        sSettings = Local.getSettings();
         //计算状态栏高度并赋值
         statusHeight = 0;
         int resourceId = sContext.getResources().getIdentifier("status_bar_height", "dimen", "android");

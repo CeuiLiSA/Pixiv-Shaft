@@ -10,14 +10,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.facebook.rebound.SimpleSpringListener;
-import com.facebook.rebound.Spring;
-import com.facebook.rebound.SpringConfig;
-import com.facebook.rebound.SpringSystem;
-
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
-import ceui.lisa.response.UserModel;
 import ceui.lisa.utils.Settings;
 
 public abstract class BaseFragment extends Fragment {
@@ -26,8 +20,6 @@ public abstract class BaseFragment extends Fragment {
     protected Activity mActivity;
     protected int mLayoutID;
     protected View parentView;
-    protected UserModel mUserModel;
-    protected Settings mSettings;
 
     protected String className = this.getClass().getSimpleName() + " ";
 
@@ -49,8 +41,6 @@ public abstract class BaseFragment extends Fragment {
         mContext = getContext();
         mActivity = getActivity();
 
-        mUserModel = Local.getUser();
-        mSettings = Local.getSettings();
     }
 
     @Nullable

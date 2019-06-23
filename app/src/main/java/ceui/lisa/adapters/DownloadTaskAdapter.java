@@ -17,7 +17,7 @@ import ceui.lisa.R;
 import ceui.lisa.database.IllustTask;
 import ceui.lisa.download.QueueListener;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.response.IllustsBean;
+import ceui.lisa.model.IllustsBean;
 
 
 public class DownloadTaskAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {

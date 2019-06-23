@@ -1,7 +1,9 @@
 package ceui.lisa.fragments;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -23,13 +25,12 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.activities.ViewPagerActivity;
-import ceui.lisa.adapters.SpringRecyclerView;
 import ceui.lisa.adapters.ViewHistoryAdapter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.response.IllustsBean;
-import ceui.lisa.response.ListIllustResponse;
+import ceui.lisa.model.IllustsBean;
+import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.utils.ListObserver;
@@ -220,15 +221,25 @@ public class FragmentViewHistory extends BaseFragment {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_delete) {
-            if(allItems.size() == 0){
+            if (allItems.size() == 0) {
                 Common.showToast("没有浏览历史");
-            }else {
-                for (int i = 0; i < allItems.size(); i++) {
-                    AppDatabase.getAppDatabase(mContext).downloadDao().delete(allItems.get(i));
-                }
+            } else {
 
-                Common.showToast("删除成功");
-                getFirstData();
+                AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+                builder.setTitle("Shaft提示");
+                builder.setMessage("这将会删除所有的本地浏览历史");
+                builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        AppDatabase.getAppDatabase(mContext).downloadDao().deleteAllHistory();
+                        Common.showToast("删除成功");
+                        getFirstData();
+                    }
+                });
+                builder.setNegativeButton("取消", null);
+                AlertDialog alertDialog = builder.create();
+                alertDialog.show();
+
             }
         }
         return super.onOptionsItemSelected(item);

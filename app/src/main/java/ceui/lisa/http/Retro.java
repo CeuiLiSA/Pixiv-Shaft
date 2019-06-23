@@ -7,6 +7,7 @@ import com.google.gson.GsonBuilder;
 
 import java.util.Collections;
 
+import ceui.lisa.activities.Shaft;
 import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
 import okhttp3.Request;
@@ -36,11 +37,24 @@ public class Retro {
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(
                 message -> Log.i("RetrofitLog", "retrofitBack = " + message));
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-        OkHttpClient okHttpClient = new OkHttpClient
-                .Builder()
-                .addInterceptor(loggingInterceptor)
+//        OkHttpClient okHttpClient = new OkHttpClient
+//                .Builder()
+//                .addInterceptor(loggingInterceptor)
+//                .protocols(Collections.singletonList(Protocol.HTTP_1_1))
+//                //.dns(HttpDns.get())
+//                .addInterceptor(chain -> {
+//                    Request localRequest = chain.request().newBuilder()
+//                            .addHeader("User-Agent:", "PixivAndroidApp/5.0.134 (Android 6.0.1; D6653)")
+//                            .addHeader("Accept-Language", "zh_CN")
+//                            .build();
+//                    return chain.proceed(localRequest);
+//                })
+//                .dns(new FuckChinaDns())
+//                .addInterceptor(new TokenInterceptor())
+//                .build();
+        OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        builder.addInterceptor(loggingInterceptor)
                 .protocols(Collections.singletonList(Protocol.HTTP_1_1))
-                //.dns(HttpDns.get())
                 .addInterceptor(chain -> {
                     Request localRequest = chain.request().newBuilder()
                             .addHeader("User-Agent:", "PixivAndroidApp/5.0.134 (Android 6.0.1; D6653)")
@@ -50,12 +64,17 @@ public class Retro {
                 })
                 .addInterceptor(new TokenInterceptor())
                 .build();
+
+        if(Shaft.sSettings.isAutoFuckChina()){
+            builder.dns(new FuckChinaDns());
+        }
+        OkHttpClient client = builder.build();
         Gson gson = new GsonBuilder()
                 .setLenient()
                 //.excludeFieldsWithModifiers(Modifier.FINAL, Modifier.TRANSIENT, Modifier.STATIC)
                 .create();
         Retrofit retrofit = new Retrofit.Builder()
-                .client(okHttpClient)
+                .client(client)
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .baseUrl(API_BASE_URL)
@@ -75,20 +94,16 @@ public class Retro {
                 //.dns(HttpDns.get())
                 .addInterceptor(chain -> {
                     Request localRequest = chain.request().newBuilder()
-                            .addHeader("User-Agent:", "PixivAndroidApp/5.0.134 (Android 6.0.1; D6653)")
+                            .addHeader("User-Agent", "PixivAndroidApp/5.0.144 (Android 6.0.1; D6653)")
                             .addHeader("Accept-Language", "zh_CN")
+                            .addHeader("Accept-Encoding", "gzip")
                             .build();
                     return chain.proceed(localRequest);
                 })
-                .addInterceptor(new TokenInterceptor())
                 .build();
-        Gson gson = new GsonBuilder()
-                .setLenient()
-                //.excludeFieldsWithModifiers(Modifier.FINAL, Modifier.TRANSIENT, Modifier.STATIC)
-                .create();
         Retrofit retrofit = new Retrofit.Builder()
                 .client(okHttpClient)
-                .addConverterFactory(GsonConverterFactory.create(gson))
+                .addConverterFactory(GsonConverterFactory.create(new Gson()))
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .baseUrl(SIGN_API)
                 .build();
@@ -99,9 +114,21 @@ public class Retro {
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(
                 message -> Log.i("RetrofitLog", "retrofitBack = " + message));
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-        OkHttpClient okHttpClient = new OkHttpClient
-                .Builder()
-                .addInterceptor(loggingInterceptor)
+//        OkHttpClient okHttpClient = new OkHttpClient
+//                .Builder()
+//                .addInterceptor(loggingInterceptor)
+//                .protocols(Collections.singletonList(Protocol.HTTP_1_1))
+//                .addInterceptor(chain -> {
+//                    Request localRequest = chain.request().newBuilder()
+//                            .addHeader("User-Agent:", "PixivAndroidApp/5.0.134 (Android 6.0.1; D6653)")
+//                            //.addHeader("Accept-Language:", "zh_CN")
+//                            .build();
+//                    return chain.proceed(localRequest);
+//                })
+//                .dns(new FuckChinaDns())
+//                .build();
+        OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        builder.addInterceptor(loggingInterceptor)
                 .protocols(Collections.singletonList(Protocol.HTTP_1_1))
                 .addInterceptor(chain -> {
                     Request localRequest = chain.request().newBuilder()
@@ -111,9 +138,13 @@ public class Retro {
                     return chain.proceed(localRequest);
                 })
                 .build();
+        if(Shaft.sSettings.isAutoFuckChina()){
+            builder.dns(new FuckChinaDns());
+        }
+        OkHttpClient client = builder.build();
         Gson gson = new GsonBuilder().setLenient().create();
         Retrofit retrofit = new Retrofit.Builder()
-                .client(okHttpClient)
+                .client(client)
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .baseUrl(ACCOUNT_BASE_URL)

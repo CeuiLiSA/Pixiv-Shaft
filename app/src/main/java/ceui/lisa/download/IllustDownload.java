@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.database.IllustTask;
-import ceui.lisa.response.IllustsBean;
+import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.Common;
 
 public class IllustDownload {

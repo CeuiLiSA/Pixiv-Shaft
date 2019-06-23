@@ -4,9 +4,8 @@ import android.content.Context;
 import android.content.Intent;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.Shaft;
 import ceui.lisa.interfaces.IExecutor;
-import ceui.lisa.response.IllustsBean;
+import ceui.lisa.model.IllustsBean;
 
 /**
  * 分享

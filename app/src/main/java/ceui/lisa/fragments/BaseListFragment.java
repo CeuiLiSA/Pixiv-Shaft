@@ -15,9 +15,10 @@ import java.util.List;
 import java.util.Random;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.PikaDownload;
 import ceui.lisa.interfaces.ListShow;
-import ceui.lisa.response.IllustsBean;
+import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.ListObserver;
 import ceui.lisa.utils.Local;
@@ -192,7 +193,13 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
                             allItems.addAll(response.getList());
                             nextUrl = response.getNextUrl();
                             if(!TextUtils.isEmpty(nextUrl)){
-                                mRefreshLayout.setEnableLoadMore(true);
+                                if(className.contains("FragmentRelatedIllust")){
+                                    mRefreshLayout.setEnableLoadMore(Shaft.sSettings.isRelatedIllustNoLimit());
+                                }else {
+                                    mRefreshLayout.setEnableLoadMore(true);
+                                }
+                            }else {
+                                mRefreshLayout.setEnableLoadMore(false);
                             }
                             initAdapter();
                             mRefreshLayout.finishRefresh(true);
@@ -260,7 +267,13 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
                                 allItems.addAll(response.getList());
                                 nextUrl = response.getNextUrl();
                                 if(!TextUtils.isEmpty(nextUrl)){
-                                    mRefreshLayout.setEnableLoadMore(true);
+                                    if(className.contains("FragmentRelatedIllust")){
+                                        mRefreshLayout.setEnableLoadMore(Shaft.sSettings.isRelatedIllustNoLimit());
+                                    }else {
+                                        mRefreshLayout.setEnableLoadMore(true);
+                                    }
+                                }else {
+                                    mRefreshLayout.setEnableLoadMore(false);
                                 }
                                 mRefreshLayout.finishLoadMore(true);
                                 if (mAdapter != null) {

@@ -2,6 +2,8 @@ package ceui.lisa.fragments;
 
 import android.support.v7.widget.RecyclerView;
 
+import ceui.lisa.activities.Shaft;
+import ceui.lisa.adapters.IllustAdapter;
 import ceui.lisa.adapters.IllustStagAdapter;
 import ceui.lisa.interfaces.ListShow;
 
@@ -12,8 +14,12 @@ public abstract class AutoClipFragment<N extends ListShow<R>,
     @Override
     public void onResume() {
         super.onResume();
-        if(mAdapter instanceof IllustStagAdapter){
+        if(mAdapter instanceof IllustStagAdapter && Shaft.sSettings.isStaggerAnime()){
             ((IllustStagAdapter) mAdapter).flipToOrigin();
+        }
+
+        if(mAdapter instanceof IllustAdapter && Shaft.sSettings.isGridAnime()){
+            ((IllustAdapter) mAdapter).flipToOrigin();
         }
     }
 }

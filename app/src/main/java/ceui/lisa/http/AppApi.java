@@ -1,14 +1,14 @@
 package ceui.lisa.http;
 
-import ceui.lisa.response.ArticalResponse;
-import ceui.lisa.response.IllustCommentsResponse;
-import ceui.lisa.response.IllustSearchResponse;
-import ceui.lisa.response.NullResponse;
-import ceui.lisa.response.GifResponse;
-import ceui.lisa.response.ListIllustResponse;
-import ceui.lisa.response.ListUserResponse;
-import ceui.lisa.response.TrendingtagResponse;
-import ceui.lisa.response.UserDetailResponse;
+import ceui.lisa.model.ArticalResponse;
+import ceui.lisa.model.IllustCommentsResponse;
+import ceui.lisa.model.IllustSearchResponse;
+import ceui.lisa.model.NullResponse;
+import ceui.lisa.model.GifResponse;
+import ceui.lisa.model.ListIllustResponse;
+import ceui.lisa.model.ListUserResponse;
+import ceui.lisa.model.TrendingtagResponse;
+import ceui.lisa.model.UserDetailResponse;
 import io.reactivex.Observable;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;

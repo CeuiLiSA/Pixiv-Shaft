@@ -3,9 +3,9 @@ package ceui.lisa.http;
 import java.io.IOException;
 
 import ceui.lisa.fragments.FragmentLogin;
-import ceui.lisa.response.UserBean;
+import ceui.lisa.model.UserModel;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
-import ceui.lisa.response.UserModel;
 import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -25,27 +25,38 @@ public class TokenInterceptor implements Interceptor {
         Response response = chain.proceed(request);
 
         if (isTokenExpired(response)) {
+
             //isTokenNew = false
+//            response.close();
+//            Common.showLog("有一个请求被拦截");
+//
+//            if (isTokenNew) {
+//                Request newRequest = chain.request()
+//                        .newBuilder()
+//                        .header("Authorization", Local.getUser().getResponse().getAccess_token())
+//                        .build();
+//                return chain.proceed(newRequest);
+//            } else {
+//                String newToken = getNewToken();
+//                Request newRequest = chain.request()
+//                        .newBuilder()
+//                        .header("Authorization", newToken)
+//                        .build();
+//                return chain.proceed(newRequest);
+//            }
+
             response.close();
-            synchronized (this) {
-                if(isTokenNew) {
-                    Request newRequest = chain.request()
-                            .newBuilder()
-                            .header("Authorization", Local.getUser().getResponse().getAccess_token())
-                            .build();
-                    return chain.proceed(newRequest);
-                }else {
-                    String newToken = getNewToken();
-                    Request newRequest = chain.request()
-                            .newBuilder()
-                            .header("Authorization", newToken)
-                            .build();
-                    return chain.proceed(newRequest);
-                }
-            }
+            String newToken = getNewToken();
+            Request newRequest = chain.request()
+                    .newBuilder()
+                    .header("Authorization", newToken)
+                    .build();
+            return chain.proceed(newRequest);
         }
         return response;
     }
+
+
 
     /**
      * 根据Response，判断Token是否失效
@@ -68,6 +79,7 @@ public class TokenInterceptor implements Interceptor {
      * @return
      */
     private String getNewToken() throws IOException {
+        Common.showLog("synchronized getNewToken111");
         UserModel userModel = Local.getUser();
         Call<UserModel> call = Retro.getAccountApi().refreshToken(
                 FragmentLogin.CLIENT_ID,
@@ -84,9 +96,11 @@ public class TokenInterceptor implements Interceptor {
 //        newUser.getResponse().getUser().setPassword(userModel.getResponse().getUser().getPassword());
         Local.saveUser(newUser);
         isTokenNew = true;
-        if(newUser != null && newUser.getResponse() != null) {
+        Common.showLog("synchronized getNewToken222");
+
+        if (newUser != null && newUser.getResponse() != null) {
             return newUser.getResponse().getAccess_token();
-        }else {
+        } else {
             return "ERROR ON GET TOKEN";
         }
     }

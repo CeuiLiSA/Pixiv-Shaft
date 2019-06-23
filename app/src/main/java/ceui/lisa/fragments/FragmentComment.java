@@ -2,15 +2,14 @@ package ceui.lisa.fragments;
 
 import android.support.v7.widget.LinearLayoutManager;
 
-import com.scwang.smartrefresh.layout.util.DensityUtil;
-
 import ceui.lisa.R;
 import ceui.lisa.adapters.CommentAdapter;
 import ceui.lisa.http.Retro;
-import ceui.lisa.response.CommentsBean;
-import ceui.lisa.response.IllustCommentsResponse;
-import ceui.lisa.view.LinearItemDecoration;
+import ceui.lisa.model.CommentsBean;
+import ceui.lisa.model.IllustCommentsResponse;
 import io.reactivex.Observable;
+
+import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class FragmentComment extends BaseListFragment<IllustCommentsResponse, CommentAdapter, CommentsBean> {
 
@@ -43,12 +42,12 @@ public class FragmentComment extends BaseListFragment<IllustCommentsResponse, Co
 
     @Override
     Observable<IllustCommentsResponse> initApi() {
-        return Retro.getAppApi().getComment(mUserModel.getResponse().getAccess_token(), illustID);
+        return Retro.getAppApi().getComment(sUserModel.getResponse().getAccess_token(), illustID);
     }
 
     @Override
     Observable<IllustCommentsResponse> initNextApi() {
-        return Retro.getAppApi().getNextComment(mUserModel.getResponse().getAccess_token(), nextUrl);
+        return Retro.getAppApi().getNextComment(sUserModel.getResponse().getAccess_token(), nextUrl);
     }
 
     @Override

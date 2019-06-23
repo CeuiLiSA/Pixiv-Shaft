@@ -5,7 +5,6 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 import android.view.View;
-import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
@@ -14,24 +13,15 @@ import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
-import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringConfig;
 import com.facebook.rebound.SpringListener;
 import com.facebook.rebound.SpringSystem;
-import com.google.gson.Gson;
 
 import java.io.File;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import ceui.lisa.R;
-import ceui.lisa.database.AppDatabase;
-import ceui.lisa.database.IllustHistoryEntity;
-import ceui.lisa.response.IllustsBean;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
-import io.reactivex.Observer;
 
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 

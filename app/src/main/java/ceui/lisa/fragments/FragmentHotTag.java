@@ -11,17 +11,21 @@ import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.adapters.HotTagAdapter;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.response.TrendingtagResponse;
+import ceui.lisa.model.TrendingtagResponse;
 import ceui.lisa.view.TagItemDecoration;
 import io.reactivex.Observable;
+
+import static ceui.lisa.activities.Shaft.sUserModel;
 
 
 public class FragmentHotTag extends BaseListFragment<TrendingtagResponse, HotTagAdapter,
         TrendingtagResponse.TrendTagsBean> {
 
+    private boolean isLoad = false;
+
     @Override
     Observable<TrendingtagResponse> initApi() {
-        return Retro.getAppApi().getHotTags(mUserModel.getResponse().getAccess_token());
+        return Retro.getAppApi().getHotTags(sUserModel.getResponse().getAccess_token());
         //return null;
     }
 
@@ -29,6 +33,11 @@ public class FragmentHotTag extends BaseListFragment<TrendingtagResponse, HotTag
     Observable<TrendingtagResponse> initNextApi() {
         //热门标签没有下一页
         return null;
+    }
+
+    @Override
+    void initData() {
+        //啥事也不干
     }
 
     @Override
@@ -79,5 +88,15 @@ public class FragmentHotTag extends BaseListFragment<TrendingtagResponse, HotTag
                 startActivity(intent);
             }
         });
+    }
+
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+
+        if (isVisibleToUser && !isLoad) {
+            getFirstData();
+            isLoad = true;
+        }
     }
 }

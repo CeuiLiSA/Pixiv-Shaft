@@ -18,6 +18,8 @@ import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.PixivOperate;
 
+import static ceui.lisa.activities.Shaft.sUserModel;
+
 public class FragmentCenter extends BaseFragment {
 
     private boolean isLoad = false;
@@ -91,7 +93,7 @@ public class FragmentCenter extends BaseFragment {
                         startActivity(intent);
                     } else if (searchType == 1) {
                         if(isNumeric(keyWord)){
-                            PixivOperate.getIllustByID(mUserModel, Integer.valueOf(keyWord), mContext);
+                            PixivOperate.getIllustByID(sUserModel, Integer.valueOf(keyWord), mContext);
                         }else {
                             Common.showToast("ID必须为全数字");
                         }

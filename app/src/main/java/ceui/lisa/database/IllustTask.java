@@ -2,7 +2,7 @@ package ceui.lisa.database;
 
 import com.liulishuo.okdownload.DownloadTask;
 
-import ceui.lisa.response.IllustsBean;
+import ceui.lisa.model.IllustsBean;
 
 public class IllustTask {
 

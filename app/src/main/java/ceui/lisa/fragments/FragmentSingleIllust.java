@@ -3,12 +3,10 @@ package ceui.lisa.fragments;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
-import android.view.Menu;
-import android.view.MenuInflater;
+import android.text.method.LinkMovementMethod;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,7 +30,6 @@ import ceui.lisa.activities.ImageDetailActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.activities.UserDetailActivity;
-import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.IllustDetailAdapter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustHistoryEntity;
@@ -42,8 +39,8 @@ import ceui.lisa.download.IllustDownload;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.response.GifResponse;
-import ceui.lisa.response.IllustsBean;
+import ceui.lisa.model.GifResponse;
+import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
@@ -52,12 +49,14 @@ import ceui.lisa.utils.ShareIllust;
 import ceui.lisa.view.ExpandCard;
 import ceui.lisa.view.LinearItemDecorationNoLRTB;
 import ceui.lisa.view.TouchRecyclerView;
+import ceui.lisa.view.WebSiteSpan;
 import de.hdodenhof.circleimageview.CircleImageView;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 import jp.wasabeef.glide.transformations.BlurTransformation;
 import me.next.tagview.TagCloudView;
 
+import static ceui.lisa.activities.Shaft.sUserModel;
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 import static com.bumptech.glide.request.RequestOptions.bitmapTransform;
 
@@ -171,7 +170,7 @@ public class FragmentSingleIllust extends BaseFragment {
                 }else {
                     star.setImageResource(R.drawable.ic_favorite_accent_24dp);
                 }
-                PixivOperate.postLike(illust, mUserModel, FragmentLikeIllust.TYPE_PUBLUC);
+                PixivOperate.postLike(illust, sUserModel, FragmentLikeIllust.TYPE_PUBLUC);
             }
         });
 
@@ -185,8 +184,6 @@ public class FragmentSingleIllust extends BaseFragment {
         head.setLayoutParams(headParams);
 
 
-
-        initCardSize();
 
 
 
@@ -237,6 +234,8 @@ public class FragmentSingleIllust extends BaseFragment {
         if (!TextUtils.isEmpty(illust.getCaption())) {
             description.setVisibility(View.VISIBLE);
             description.setHtml(illust.getCaption());
+            //description.setClickableTableSpan(new WebSiteSpan());
+            //description.setMovementMethod(LinkMovementMethod.getInstance());
         }else {
             description.setVisibility(View.GONE);
         }
@@ -281,42 +280,6 @@ public class FragmentSingleIllust extends BaseFragment {
 
 
 
-    private void initCardSize(){
-        if(false) {
-            int imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
-                    2 * mContext.getResources().getDimensionPixelSize(R.dimen.twelve_dp));
-            int realHeight = imageSize * illust.getHeight() / illust.getWidth();
-
-
-            final ExpandCard card = parentView.findViewById(R.id.illust_list);
-
-            final String illustSize = "全部展开 (" + illust.getPage_count() + "P)";
-            TextView seeAll = parentView.findViewById(R.id.see_all);
-            if (illust.getPage_count() == 1) {
-                seeAll.setVisibility(View.GONE);
-                card.setRealHeight(realHeight);
-                card.setAutoHeight(true);
-            } else {
-                card.setAutoHeight(false);
-                card.setRealHeight(card.getMaxHeight());
-                seeAll.setVisibility(View.VISIBLE);
-                seeAll.setText(illustSize);
-                seeAll.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if (card.isExpand()) {
-                            card.setExpand(false);
-                            seeAll.setText(illustSize);
-                        } else {
-                            card.setExpand(true);
-                            seeAll.setText("全部收起");
-                        }
-                        card.invalidate();
-                    }
-                });
-            }
-        }
-    }
 
     private void loadImage() {
         Glide.with(mContext)
@@ -331,6 +294,7 @@ public class FragmentSingleIllust extends BaseFragment {
                 if(viewType == 0) {
                     Intent intent = new Intent(mContext, ImageDetailActivity.class);
                     intent.putExtra("illust", illust);
+                    intent.putExtra("dataType", "二级详情");
                     intent.putExtra("index", position);
                     startActivity(intent);
                 }else if(viewType == 1){
@@ -356,7 +320,7 @@ public class FragmentSingleIllust extends BaseFragment {
 
     public void getGifUrl(){
         Common.showToast("获取图组ZIP地址");
-        Retro.getAppApi().getGifPackage(mUserModel.getResponse().getAccess_token(), illust.getId())
+        Retro.getAppApi().getGifPackage(sUserModel.getResponse().getAccess_token(), illust.getId())
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ErrorCtrl<GifResponse>() {
@@ -371,7 +335,9 @@ public class FragmentSingleIllust extends BaseFragment {
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
-            insertViewHistory();
+            if(Shaft.sSettings.isSaveViewHistory()) {
+                insertViewHistory();
+            }
             if(illust.getType().equals("ugoira") && mDetailAdapter != null){
                 mDetailAdapter.startGif();
             }

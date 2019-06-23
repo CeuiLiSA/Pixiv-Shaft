@@ -1,31 +1,25 @@
 package ceui.lisa.database;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 
-import com.liulishuo.okdownload.DownloadListener;
 import com.liulishuo.okdownload.DownloadTask;
 import com.liulishuo.okdownload.core.cause.EndCause;
 import com.liulishuo.okdownload.core.cause.ResumeFailedCause;
 import com.liulishuo.okdownload.core.listener.DownloadListener1;
-import com.liulishuo.okdownload.core.listener.DownloadListener2;
 import com.liulishuo.okdownload.core.listener.assist.Listener1Assist;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 
 import java.io.File;
 
-import ceui.lisa.activities.PikaActivity;
-import ceui.lisa.response.IllustsBean;
+import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import io.reactivex.disposables.Disposable;
 
-import static ceui.lisa.activities.PikaActivity.FILE_NAME;
 import static ceui.lisa.activities.PikaActivity.FILE_PATH;
 
 public class PikaDownload {

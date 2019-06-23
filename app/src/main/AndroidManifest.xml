@@ -28,12 +28,66 @@
             </intent-filter>
 
 
+            <intent-filter
+                android:autoVerify="true">
+                <data android:host="www.pixiv.net"
+                    android:path="/"
+                    android:scheme="https"/>
+
+                <data android:host="www.pixiv.net"
+                    android:path="/"
+                    android:scheme="http"/>
+
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+            </intent-filter>
+
         </activity>
         <activity android:name=".activities.UserDetailActivity" />
         <activity android:name=".activities.DownloadManageActivity" />
         <activity android:name=".activities.ImageDetailActivity" />
         <activity android:name=".activities.CollectionActivity" />
         <activity android:name=".activities.LoginAlphaActivity" />
+        <activity android:name=".activities.OutWakeActivity" >
+
+            <intent-filter
+                android:autoVerify="true">
+                <data android:host="www.pixiv.net"
+                    android:path="/member_illust.php"
+                    android:scheme="https"/>
+
+                <data android:host="www.pixiv.net"
+                    android:path="/member_illust.php"
+                    android:scheme="http"/>
+
+                <data android:host="www.pixiv.net"
+                    android:path="/member.php"
+                    android:scheme="https"/>
+
+                <data android:host="www.pixiv.net"
+                    android:path="/member.php"
+                    android:scheme="http"/>
+
+                <data android:host="www.pixiv.net"
+                    android:path="/member.php"
+                    android:scheme="https"/>
+
+                <data android:host="users"
+                    android:pathPattern=".*"
+                    android:scheme="pixiv"/>
+
+
+                <data android:host="illusts"
+                    android:pathPattern=".*"
+                    android:scheme="pixiv"/>
+
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+            </intent-filter>
+
+        </activity>
 
 
         <meta-data

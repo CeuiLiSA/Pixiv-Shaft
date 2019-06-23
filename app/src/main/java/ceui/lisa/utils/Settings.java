@@ -11,6 +11,28 @@ public class Settings {
     //设置页面进场动画
     private boolean settingsAnimate = true;
 
+    public boolean isAutoFuckChina() {
+        return autoFuckChina;
+    }
+
+    public void setAutoFuckChina(boolean autoFuckChina) {
+        this.autoFuckChina = autoFuckChina;
+    }
+
+    //是否自动添加DNS，true开启直连  false自行代理
+    private boolean autoFuckChina = true;
+
+    public boolean isRelatedIllustNoLimit() {
+        return relatedIllustNoLimit;
+    }
+
+    public void setRelatedIllustNoLimit(boolean relatedIllustNoLimit) {
+        this.relatedIllustNoLimit = relatedIllustNoLimit;
+    }
+
+    private boolean relatedIllustNoLimit = true;
+
+
     //一级详情FragmentSingleIllust 图片显示原图
     private boolean firstImageSize = false;
 
@@ -19,6 +41,36 @@ public class Settings {
 
     //直接下载单个作品所有P
     private boolean directDownloadAllImage = true;
+
+    public boolean isSaveViewHistory() {
+        return saveViewHistory;
+    }
+
+    public void setSaveViewHistory(boolean saveViewHistory) {
+        this.saveViewHistory = saveViewHistory;
+    }
+
+    private boolean saveViewHistory = true;
+
+    public boolean isStaggerAnime() {
+        return staggerAnime;
+    }
+
+    public void setStaggerAnime(boolean staggerAnime) {
+        this.staggerAnime = staggerAnime;
+    }
+
+    private boolean staggerAnime = true;
+
+    public boolean isGridAnime() {
+        return gridAnime;
+    }
+
+    public void setGridAnime(boolean gridAnime) {
+        this.gridAnime = gridAnime;
+    }
+
+    private boolean gridAnime = true;
 
     public Settings() {
     }

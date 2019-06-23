@@ -3,10 +3,8 @@ package ceui.lisa.download;
 import android.text.TextUtils;
 
 import java.io.File;
-import java.io.IOException;
 
-import ceui.lisa.response.IllustsBean;
-import ceui.lisa.utils.Common;
+import ceui.lisa.model.IllustsBean;
 
 public class FileCreator {
 

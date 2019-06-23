@@ -18,10 +18,12 @@ import ceui.lisa.adapters.PivisionHorizontalAdapter;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
-import ceui.lisa.response.ArticalResponse;
+import ceui.lisa.model.ArticalResponse;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
+
+import static ceui.lisa.activities.Shaft.sUserModel;
 
 /**
  * Pivision 文章
@@ -66,7 +68,7 @@ public class FragmentPivisionHorizontal extends BaseFragment {
     }
 
     private void getFirstData(){
-        Retro.getAppApi().getArticals(mUserModel.getResponse().getAccess_token())
+        Retro.getAppApi().getArticals(sUserModel.getResponse().getAccess_token())
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ErrorCtrl<ArticalResponse>() {
