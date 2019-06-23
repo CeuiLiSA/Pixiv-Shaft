@@ -11,6 +11,17 @@ public class Settings {
     //设置页面进场动画
     private boolean settingsAnimate = true;
 
+    public boolean isAutoFuckChina() {
+        return autoFuckChina;
+    }
+
+    public void setAutoFuckChina(boolean autoFuckChina) {
+        this.autoFuckChina = autoFuckChina;
+    }
+
+    //是否自动添加DNS，true开启直连  false自行代理
+    private boolean autoFuckChina = true;
+
     public boolean isRelatedIllustNoLimit() {
         return relatedIllustNoLimit;
     }

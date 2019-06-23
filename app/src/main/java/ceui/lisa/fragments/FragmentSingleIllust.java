@@ -6,6 +6,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
+import android.text.method.LinkMovementMethod;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -234,6 +235,7 @@ public class FragmentSingleIllust extends BaseFragment {
             description.setVisibility(View.VISIBLE);
             description.setHtml(illust.getCaption());
             //description.setClickableTableSpan(new WebSiteSpan());
+            //description.setMovementMethod(LinkMovementMethod.getInstance());
         }else {
             description.setVisibility(View.GONE);
         }

@@ -115,6 +115,21 @@ public class FragmentSettings extends BaseFragment {
             }
         });
 
+
+        Switch autoDns = v.findViewById(R.id.auto_dns);
+        autoDns.setChecked(Shaft.sSettings.isAutoFuckChina());
+        autoDns.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+                    Shaft.sSettings.setAutoFuckChina(true);
+                }else {
+                    Shaft.sSettings.setAutoFuckChina(false);
+                }
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+
         return v;
     }
 
