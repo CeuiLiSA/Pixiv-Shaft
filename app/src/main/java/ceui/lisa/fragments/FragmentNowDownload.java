@@ -14,7 +14,7 @@ import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 
-public class FragmentNowDownload extends BaseAsynFragment<DownloadTaskAdapter, IllustTask> {
+public class FragmentNowDownload extends BaseAsyncFragment<DownloadTaskAdapter, IllustTask> {
 
     @Override
     public void getFirstData() {

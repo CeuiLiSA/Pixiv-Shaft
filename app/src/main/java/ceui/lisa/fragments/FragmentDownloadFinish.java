@@ -30,7 +30,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
-public class FragmentDownloadFinish extends BaseAsynFragment<DownlistAdapter, DownloadEntity> {
+public class FragmentDownloadFinish extends BaseAsyncFragment<DownlistAdapter, DownloadEntity> {
 
     protected int nowIndex = 0;
     private List<IllustsBean> allIllusts = new ArrayList<>();

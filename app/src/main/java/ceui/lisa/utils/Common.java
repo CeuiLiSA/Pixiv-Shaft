@@ -8,7 +8,10 @@ import android.net.Uri;
 import android.provider.MediaStore;
 import android.provider.SearchRecentSuggestions;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.text.ParseException;
@@ -16,6 +19,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 
 public class Common {
@@ -77,6 +81,10 @@ public class Common {
             toast.cancel();
             toast = Toast.makeText(Shaft.getContext(), String.valueOf(t), Toast.LENGTH_SHORT);
         }
+        View view = LayoutInflater.from(Shaft.getContext()).inflate(R.layout.toast_item, null);
+        TextView textView = view.findViewById(R.id.toast_text);
+        textView.setText(String.valueOf(t));
+        toast.setView(view);
         toast.show();
     }
 

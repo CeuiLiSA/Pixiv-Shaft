@@ -2,24 +2,36 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 28
+
     defaultConfig {
         applicationId "ceui.lisa"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 15
-        versionName "1.0.15"
+        versionCode 17
+        versionName "1.0.17"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+        manifestPlaceholders = [
+                //AY1W99A3DTAF 属于应用"Shaft"独有的 Android AppKey, 用于配置SDK
+                MTA_APPKEY : "AY1W99A3DTAF",
+                //标注应用推广渠道用以区分新用户来源，可填写如应用宝，豌豆荚等
+                MTA_CHANNEL: "google play"
+        ]
     }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
     compileOptions {
         sourceCompatibility = '1.8'
         targetCompatibility = '1.8'
     }
+
+
     sourceSets {
         main {
             //jni库的调用会到资源文件夹下libs里面找so文件
@@ -70,6 +82,9 @@ dependencies {
     implementation 'com.github.mancj:MaterialSearchBar:0.8.2'
     implementation("com.squareup.okhttp3:okhttp:3.14.2")
     implementation 'com.qiniu:happy-dns:0.2.13'
+    implementation 'com.qq.mta:mta:3.4.2'
+    //MID基础包
+    implementation 'com.tencent.mid:mid:3.73-release'
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'

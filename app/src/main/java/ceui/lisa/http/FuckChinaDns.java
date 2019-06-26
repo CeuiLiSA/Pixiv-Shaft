@@ -26,6 +26,7 @@ public class FuckChinaDns implements Dns {
         try {
             IResolver[] resolvers = new IResolver[2];
             resolvers[0] = new Resolver(getByName("111.230.37.44"));
+            //resolvers[0] = new Resolver(getByName("210.140.131.224"));
             resolvers[1] = new Resolver(getByName("123.207.22.79"));
 
             dnsManager = new DnsManager(NetworkInfo.normal, resolvers);

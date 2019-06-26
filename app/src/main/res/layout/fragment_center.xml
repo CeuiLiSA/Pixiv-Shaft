@@ -107,8 +107,7 @@
         <FrameLayout
             android:id="@+id/fragment_pivision"
             android:layout_width="match_parent"
-            android:layout_below="@+id/rela_1"
-            android:layout_height="220dp">
+            android:layout_height="225dp">
 
         </FrameLayout>
 

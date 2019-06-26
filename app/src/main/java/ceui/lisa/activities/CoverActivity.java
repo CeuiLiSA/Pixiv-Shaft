@@ -1,6 +1,7 @@
 package ceui.lisa.activities;
 
 import android.Manifest;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Environment;
@@ -12,6 +13,7 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.AlertDialog;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
@@ -23,6 +25,8 @@ import com.tbruyelle.rxpermissions2.RxPermissions;
 
 import java.io.File;
 import ceui.lisa.R;
+import ceui.lisa.database.AppDatabase;
+import ceui.lisa.download.TaskQueue;
 import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentCenter;
 import ceui.lisa.fragments.FragmentRight;
@@ -165,7 +169,6 @@ public class CoverActivity extends BaseActivity
         if (userModel != null && userModel.getResponse().getUser().isIs_login()) {
             checkPermission(t -> initFragment());
         } else {
-            Common.showToast("未登录");
             Intent intent = new Intent(mContext, LoginAlphaActivity.class);
             startActivity(intent);
             finish();
@@ -236,8 +239,31 @@ public class CoverActivity extends BaseActivity
 
     public void exit() {
         if ((System.currentTimeMillis() - mExitTime) > 2000) {
-            Common.showToast(getString(R.string.double_click_finish));
-            mExitTime = System.currentTimeMillis();
+
+            if(TaskQueue.get().getTasks().size() != 0) {
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+                builder.setTitle("Shaft 提示");
+                builder.setMessage("你还有未下载完成的任务，确定退出吗？");
+                builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        finish();
+                    }
+                });
+                builder.setNegativeButton("取消", null);
+                builder.setNeutralButton(getString(R.string.see_download_task), (dialog, which) -> {
+                    Intent intent = new Intent(mContext, DownloadManageActivity.class);
+                    startActivity(intent);
+                });
+                AlertDialog alertDialog = builder.create();
+                alertDialog.show();
+            } else {
+                Common.showToast(getString(R.string.double_click_finish));
+                mExitTime = System.currentTimeMillis();
+            }
+
+
         } else {
             finish();
         }
