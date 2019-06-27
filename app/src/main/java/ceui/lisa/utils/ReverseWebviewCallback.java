@@ -18,7 +18,6 @@ public class ReverseWebviewCallback implements ReverseImage.Callback {
 
     @Override
     public void onSubscribe(Disposable d) {
-//        TODO 使用Notification
         Common.showToast("Loading");
     }
 

@@ -5,7 +5,7 @@
     <string name="nav_header_title">Android Studio</string>
     <string name="nav_header_subtitle">android.studio@android.com</string>
     <string name="nav_header_desc">Navigation header</string>
-    <string name="action_settings">Settings</string>
+    <string name="action_settings">设置</string>
     <string name="title_activity_blank">BlankActivity</string>
 
 
@@ -41,4 +41,6 @@
     <string name="website_users">users</string>
     <string name="website_illust">illusts</string>
     <string name="see_download_task">查看任务</string>
+    <string name="the_others">其他</string>
+    <string name="search_image_origin">以图搜源</string>
 </resources>

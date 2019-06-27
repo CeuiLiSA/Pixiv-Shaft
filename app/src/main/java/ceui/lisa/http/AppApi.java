@@ -28,7 +28,8 @@ public interface AppApi {
      */
     @GET("/v1/illust/ranking?filter=for_android")
     Observable<ListIllustResponse> getRank(@Header("Authorization") String token,
-                                           @Query("mode") String mode);
+                                           @Query("mode") String mode,
+                                           @Query("date") String date);
 
 
 

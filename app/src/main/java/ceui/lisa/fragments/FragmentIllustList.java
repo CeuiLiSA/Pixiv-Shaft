@@ -22,7 +22,7 @@ public class FragmentIllustList extends AutoClipFragment<ListIllustResponse, Ill
 
     @Override
     Observable<ListIllustResponse> initApi() {
-        return Retro.getAppApi().getRank(sUserModel.getResponse().getAccess_token(), "day_male");
+        return Retro.getAppApi().getRank(sUserModel.getResponse().getAccess_token(), "day_male", null);
     }
 
     @Override

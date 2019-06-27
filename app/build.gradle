@@ -85,8 +85,15 @@ dependencies {
     implementation 'com.qq.mta:mta:3.4.2'
     //MID基础包
     implementation 'com.tencent.mid:mid:3.73-release'
+    implementation 'com.wdullaer:materialdatetimepicker:3.5.0'
+    implementation 'com.zhihu.android:matisse:0.5.2-beta4'
+    implementation 'com.squareup.picasso:picasso:2.5.2'
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+
+    configurations {
+        all*.exclude group: 'com.android.support', module: 'support-v13'
+    }
 }

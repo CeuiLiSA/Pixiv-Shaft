@@ -1,9 +1,12 @@
 package ceui.lisa.activities;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Environment;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.NavigationView;
@@ -22,10 +25,17 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.tbruyelle.rxpermissions2.RxPermissions;
+import com.zhihu.matisse.Matisse;
+import com.zhihu.matisse.MimeType;
+import com.zhihu.matisse.engine.impl.GlideEngine;
+import com.zhihu.matisse.engine.impl.PicassoEngine;
 
 import java.io.File;
+import java.util.List;
+
 import ceui.lisa.R;
 import ceui.lisa.database.AppDatabase;
+import ceui.lisa.download.FileCreator;
 import ceui.lisa.download.TaskQueue;
 import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentCenter;
@@ -47,6 +57,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 public class CoverActivity extends BaseActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
+    private static final int REQUEST_CODE_CHOOSE = 10086;
     private ViewPager mViewPager;
     private DrawerLayout mDrawer;
     private ImageView userHead, pikaBackground;
@@ -199,15 +210,35 @@ public class CoverActivity extends BaseActivity
             intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "设置");
             startActivity(intent);
         } else if (id == R.id.nav_share) {
-            Common.showToast(sUserModel.getResponse().getUser().getName());
         } else if (id == R.id.nav_reverse) {
 //            TODO remove
-            ReverseImage.reverse(new File(Environment.getExternalStorageDirectory(), "test.jpg"), ReverseImage.ReverseProvider.Iqdb, new ReverseWebviewCallback(this));
+
+            Matisse.from((Activity) mContext)
+                    .choose(MimeType.ofAll())// 选择 mime 的类型
+                    .countable(true)
+                    .maxSelectable(1) // 图片选择的最多数量
+                    .restrictOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED)
+                    .thumbnailScale(1.0f) // 缩略图的比例
+                    .imageEngine(new PicassoEngine()) // 使用的图片加载引擎
+                    .forResult(REQUEST_CODE_CHOOSE);
+
         } else if (id == R.id.nav_send) {
         }
 
         mDrawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_CHOOSE && resultCode == RESULT_OK) {
+            List<Uri> result = Matisse.obtainResult(data);
+            if(result != null && result.size() != 0){
+                ReverseImage.reverse(new File(Common.getRealFilePath(mContext, result.get(0))),
+                        ReverseImage.ReverseProvider.SauceNao, new ReverseWebviewCallback(this));
+            }
+        }
     }
 
     @Override
