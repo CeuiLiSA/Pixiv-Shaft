@@ -31,6 +31,9 @@ public class Retro {
     //用作注册账号
     private static final String SIGN_API = "https://accounts.pixiv.net/";
 
+    //腾讯统计API
+    public static final String TENCENT_API = "https://openapi.mta.qq.com/";
+
 
 
     public static AppApi getAppApi() {
@@ -196,11 +199,18 @@ public class Retro {
                     return chain.proceed(localRequest);
                 })
                 .build();
+        Gson gson = new GsonBuilder().setLenient().create();
         Retrofit retrofit = new Retrofit.Builder()
                 .client(okHttpClient)
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create(gson))
                 .baseUrl(baseUrl)
                 .build();
         return retrofit.create(service);
     }
+
+
+
+
+
 }

@@ -73,14 +73,28 @@
                     android:path="/member.php"
                     android:scheme="https"/>
 
-                <data android:host="users"
-                    android:pathPattern=".*"
-                    android:scheme="pixiv"/>
+<!--                <data android:host="@string/website_users"-->
+<!--                    android:pathPattern="[0-9]*"-->
+<!--                    android:scheme="pixiv"/>-->
 
 
-                <data android:host="illusts"
-                    android:pathPattern=".*"
-                    android:scheme="pixiv"/>
+<!--                <data android:host="@string/website_illust"-->
+<!--                    android:pathPattern="[0-9]*"-->
+<!--                    android:scheme="pixiv"/>-->
+
+
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+            </intent-filter>
+
+
+            <intent-filter
+                android:autoVerify="true">
+
+
+                <data android:scheme="pixiv"/>
+
 
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>

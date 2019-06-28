@@ -33,7 +33,7 @@
                 style="@style/MaterialSearchBarLight"
                 android:layout_below="@+id/head"
                 app:mt_hint="输你想输的"
-                app:mt_maxSuggestionsCount="10"
+                app:mt_maxSuggestionsCount="5"
                 app:mt_placeholder="标签搜作品"
                 android:layout_marginTop="@dimen/eight_dp"
                 android:layout_marginStart="@dimen/sixteen_dp"
@@ -107,8 +107,7 @@
         <FrameLayout
             android:id="@+id/fragment_pivision"
             android:layout_width="match_parent"
-            android:layout_below="@+id/rela_1"
-            android:layout_height="220dp">
+            android:layout_height="225dp">
 
         </FrameLayout>
 

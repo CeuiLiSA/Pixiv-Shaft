@@ -7,6 +7,9 @@
 
 
 
+
+
+
     <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
         android:id="@+id/fragment_login"
@@ -245,7 +248,18 @@
         app:layout_constraintStart_toStartOf="parent" />
 
 
+    <android.support.v7.widget.Toolbar
+        android:layout_width="match_parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:title=" "
+        android:theme="@style/AppTheme.AppBarOverlay"
+        app:popupTheme="@style/AppTheme.PopupOverlay"
+        android:id="@+id/toolbar"
+        android:background="@color/colorPrimary"
+        android:layout_height="wrap_content">
 
+
+    </android.support.v7.widget.Toolbar>
 
 
 </android.support.constraint.ConstraintLayout>

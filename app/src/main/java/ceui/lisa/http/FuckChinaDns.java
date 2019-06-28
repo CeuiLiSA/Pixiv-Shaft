@@ -26,6 +26,7 @@ public class FuckChinaDns implements Dns {
         try {
             IResolver[] resolvers = new IResolver[2];
             resolvers[0] = new Resolver(getByName("111.230.37.44"));
+            //resolvers[0] = new Resolver(getByName("210.140.131.224"));
             resolvers[1] = new Resolver(getByName("123.207.22.79"));
 
             dnsManager = new DnsManager(NetworkInfo.normal, resolvers);
@@ -49,9 +50,9 @@ public class FuckChinaDns implements Dns {
             for (String ip : ips) {  //将ip地址数组转换成所需要的对象列表
                 result.addAll(Arrays.asList(getAllByName(ip)));
             }
-            result.add(InetAddress.getByName("210.129.120.49"));
-            result.add(InetAddress.getByName("210.129.120.56"));
-            result.add(InetAddress.getByName("210.129.120.45"));
+//            result.add(InetAddress.getByName("210.129.120.49"));
+//            result.add(InetAddress.getByName("210.129.120.56"));
+//            result.add(InetAddress.getByName("210.129.120.45"));
             //在返回result之前，我们可以添加一些其他自己知道的IP
             return result;
         } catch (IOException e) {

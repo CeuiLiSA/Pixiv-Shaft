@@ -1,10 +1,15 @@
 package ceui.lisa.activities;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.support.constraint.ConstraintLayout;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.CardView;
+import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -19,6 +24,7 @@ import com.rengwuxian.materialedittext.MaterialEditText;
 import ceui.lisa.R;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
+import ceui.lisa.fragments.FragmentDownloadFinish;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.SignResponse;
@@ -46,6 +52,7 @@ public class LoginAlphaActivity extends BaseActivity {
     //private static final String SIGN_TOKEN = "Bearer l-f9qZ0ZyqSwRyZs8-MymbtWBbSxmCu1pmbOlyisou8";
     private static final String SIGN_TOKEN = "pixiv";
     private static final String SIGN_REF = "pixiv_android_app_provisional_account";
+    private Toolbar mToolbar;
 
 
     @Override
@@ -59,10 +66,17 @@ public class LoginAlphaActivity extends BaseActivity {
 
     @Override
     protected void initView() {
+        mToolbar = findViewById(R.id.toolbar);
+        mToolbar.setPadding(0, Shaft.statusHeight, 0, 0);
+        setSupportActionBar(mToolbar);
         mProgressBar = findViewById(R.id.progress);
         signName = findViewById(R.id.sign_user_name);
         password = findViewById(R.id.password);
         userName = findViewById(R.id.user_name);
+        if(Shaft.sUserModel != null) {
+            userName.setText(Shaft.sUserModel.getResponse().getUser().getAccount());
+            password.requestFocus();
+        }
         cardLogin = findViewById(R.id.fragment_login);
         cardSign = findViewById(R.id.fragment_sign);
         login = findViewById(R.id.login);
@@ -230,5 +244,23 @@ public class LoginAlphaActivity extends BaseActivity {
 
                     }
                 });
+    }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if(item.getItemId() == R.id.action_settings){
+            Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "设置");
+            startActivity(intent);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

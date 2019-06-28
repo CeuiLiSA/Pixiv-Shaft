@@ -7,6 +7,8 @@ import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 import com.scwang.smartrefresh.layout.header.ClassicsHeader;
 import com.scwang.smartrefresh.layout.util.DensityUtil;
+import com.tencent.stat.StatConfig;
+import com.tencent.stat.StatService;
 
 import ceui.lisa.R;
 import ceui.lisa.model.UserModel;
@@ -48,6 +50,12 @@ public class Shaft extends Application {
         sContext = this;
         sUserModel = Local.getUser();
         sSettings = Local.getSettings();
+
+        // 腾讯统计API
+        StatConfig.setDebugEnable(true);
+        StatService.registerActivityLifecycleCallbacks(this);
+
+
         //计算状态栏高度并赋值
         statusHeight = 0;
         int resourceId = sContext.getResources().getIdentifier("status_bar_height", "dimen", "android");

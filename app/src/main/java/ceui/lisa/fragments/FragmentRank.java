@@ -22,13 +22,15 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 public class FragmentRank extends AutoClipFragment<ListIllustResponse, IllustStagAdapter, IllustsBean> {
 
     private int mIndex = -1;
+    private String queryDate = "";
     private static final String[] API_TITLES = new String[]{"day", "week",
             "month","day_male", "day_female", "week_original", "week_rookie",
             "day_r18"};
 
-    public static FragmentRank newInstance(int index){
+    public static FragmentRank newInstance(int index, String date){
         FragmentRank fragmentRank = new FragmentRank();
         fragmentRank.mIndex = index;
+        fragmentRank.queryDate = date;
         return fragmentRank;
     }
 
@@ -45,7 +47,7 @@ public class FragmentRank extends AutoClipFragment<ListIllustResponse, IllustSta
 
     @Override
     Observable<ListIllustResponse> initApi() {
-        return Retro.getAppApi().getRank(sUserModel.getResponse().getAccess_token(), API_TITLES[mIndex]);
+        return Retro.getAppApi().getRank(sUserModel.getResponse().getAccess_token(), API_TITLES[mIndex], queryDate);
     }
 
     @Override

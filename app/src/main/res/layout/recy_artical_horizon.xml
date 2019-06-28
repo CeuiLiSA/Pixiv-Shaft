@@ -12,7 +12,7 @@
         <RelativeLayout
             android:id="@+id/user_follow_linear"
             android:layout_width="220dp"
-            android:layout_height="180dp"
+            android:layout_height="188dp"
             android:background="@android:color/white"
             android:orientation="vertical">
 
