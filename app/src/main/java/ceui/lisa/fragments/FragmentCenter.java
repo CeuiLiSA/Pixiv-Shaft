@@ -1,22 +1,45 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
+import android.nfc.Tag;
+import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.mancj.materialsearchbar.MaterialSearchBar;
+import com.mancj.materialsearchbar.adapter.SuggestionsAdapter;
+
+import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.RankActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.activities.UserDetailActivity;
+import ceui.lisa.adapters.HotTagAdapter;
+import ceui.lisa.http.ErrorCtrl;
+import ceui.lisa.http.Retro;
+import ceui.lisa.model.TagsBean;
+import ceui.lisa.model.TrendingtagResponse;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.PixivOperate;
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Cancellable;
+import io.reactivex.schedulers.Schedulers;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
@@ -25,6 +48,9 @@ public class FragmentCenter extends BaseFragment {
     private boolean isLoad = false;
     private MaterialSearchBar mSearchBar;
     private int searchType = 0;
+    private ObservableEmitter<String> fuck = null;
+    private SuggestionsAdapter<TrendingtagResponse.TrendTagsBean, TagHolder> mAdapter = null;
+
 
     public FragmentCenter() {
     }
@@ -77,7 +103,6 @@ public class FragmentCenter extends BaseFragment {
         mSearchBar.setOnSearchActionListener(new MaterialSearchBar.OnSearchActionListener() {
             @Override
             public void onSearchStateChanged(boolean enabled) {
-
             }
 
             @Override
@@ -140,7 +165,122 @@ public class FragmentCenter extends BaseFragment {
 
     @Override
     void initData() {
+        Observable.create(new ObservableOnSubscribe<String>() {
+            @Override
+            public void subscribe(ObservableEmitter<String> emitter) throws Exception {
+                fuck = emitter;
+            }
+        }).subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .debounce(1000, TimeUnit.MILLISECONDS)
+                .subscribe(new Observer<String>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
 
+                    }
+
+                    @Override
+                    public void onNext(String s) {
+                        completeWord(String.valueOf(s));
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
+        mSearchBar.getSearchEditText().addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if(searchType == 0) {
+                    String key = String.valueOf(s);
+                    if (key.length() != 0) {
+                        fuck.onNext(key);
+                    }else {
+                        mSearchBar.hideSuggestionsList();
+                    }
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+    }
+
+    private void completeWord(String key){
+        Retro.getAppApi().searchCompleteWord(sUserModel.getResponse().getAccess_token(), key)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new ErrorCtrl<TrendingtagResponse>() {
+                    @Override
+                    public void onNext(TrendingtagResponse trendingtagResponse) {
+                        if(trendingtagResponse != null){
+                            if(trendingtagResponse.getTags() != null && trendingtagResponse.getTags().size() != 0){
+
+                                mAdapter = new SuggestionsAdapter<TrendingtagResponse.TrendTagsBean, TagHolder>(LayoutInflater.from(mContext)) {
+                                    @Override
+                                    public void onBindSuggestionHolder(TrendingtagResponse.TrendTagsBean suggestion, TagHolder holder, int position) {
+                                        holder.tag.setText(suggestion.getTranslated_name() == null ?
+                                                suggestion.getTag() : suggestion.getTranslated_name());
+                                        Common.showLog("onBindSuggestionHolder " + position);
+                                        holder.itemView.setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View v) {
+                                                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+                                                intent.putExtra(TemplateFragmentActivity.EXTRA_KEYWORD, suggestion.getTag());
+                                                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
+                                                        "搜索结果");
+                                                startActivity(intent);
+                                            }
+                                        });
+                                    }
+
+                                    @Override
+                                    public int getSingleViewHeight() {
+                                        return 55;
+                                    }
+
+                                    @NonNull
+                                    @Override
+                                    public TagHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
+                                        View view = this.getLayoutInflater().inflate(R.layout.recy_tag_item, viewGroup, false);
+                                        return new TagHolder(view);
+                                    }
+                                };
+                                mAdapter.setSuggestions(trendingtagResponse.getTags());
+                                mSearchBar.setCustomSuggestionAdapter(mAdapter);
+                                mSearchBar.showSuggestionsList();
+                            }else {
+                                Common.showLog("无自动填充列表");
+                            }
+                        }else {
+                            Common.showToast("解析返回值错误");
+                        }
+                    }
+                });
+    }
+
+    private static class TagHolder extends RecyclerView.ViewHolder{
+
+        private TextView tag;
+
+
+        public TagHolder(@NonNull View itemView) {
+            super(itemView);
+            tag = itemView.findViewById(R.id.tag);
+        }
     }
 
 

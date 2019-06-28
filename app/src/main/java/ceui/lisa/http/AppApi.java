@@ -1,5 +1,8 @@
 package ceui.lisa.http;
 
+import java.util.List;
+
+import ceui.lisa.adapters.HotTagAdapter;
 import ceui.lisa.model.ArticalResponse;
 import ceui.lisa.model.IllustCommentsResponse;
 import ceui.lisa.model.IllustSearchResponse;
@@ -7,6 +10,7 @@ import ceui.lisa.model.NullResponse;
 import ceui.lisa.model.GifResponse;
 import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.model.ListUserResponse;
+import ceui.lisa.model.TagsBean;
 import ceui.lisa.model.TrendingtagResponse;
 import ceui.lisa.model.UserDetailResponse;
 import io.reactivex.Observable;
@@ -225,5 +229,9 @@ public interface AppApi {
 
 
 
+    // v2/search/autocomplete?merge_plain_keyword_results=true&word=%E5%A5%B3%E4%BD%93 HTTP/1.1
+    @GET("/v2/search/autocomplete?merge_plain_keyword_results=true")
+    Observable<TrendingtagResponse> searchCompleteWord(@Header("Authorization") String token,
+                                                 @Query("word") String word);
 
 }

@@ -1,11 +1,24 @@
 package ceui.lisa.model;
 
+import android.text.TextUtils;
+
+import java.io.Serializable;
 import java.util.List;
 
 import ceui.lisa.interfaces.ListShow;
 
-public class TrendingtagResponse implements ListShow<TrendingtagResponse.TrendTagsBean> {
+public class TrendingtagResponse implements ListShow<TrendingtagResponse.TrendTagsBean>, Serializable{
     private List<TrendTagsBean> trend_tags;
+
+    public List<TrendTagsBean> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<TrendTagsBean> tags) {
+        this.tags = tags;
+    }
+
+    private List<TrendTagsBean> tags;
 
     public List<TrendTagsBean> getTrend_tags() {
         return this.trend_tags;
@@ -17,7 +30,11 @@ public class TrendingtagResponse implements ListShow<TrendingtagResponse.TrendTa
 
     @Override
     public List<TrendTagsBean> getList() {
-        return trend_tags;
+        if(trend_tags != null && trend_tags.size() != 0) {
+            return trend_tags;
+        }else {
+            return tags;
+        }
     }
 
     @Override
@@ -25,7 +42,7 @@ public class TrendingtagResponse implements ListShow<TrendingtagResponse.TrendTa
         return null;
     }
 
-    public static class TrendTagsBean {
+    public static class TrendTagsBean implements Serializable {
         /**
          * tag : ポケモン
          * translated_name : 精灵宝可梦
@@ -33,11 +50,29 @@ public class TrendingtagResponse implements ListShow<TrendingtagResponse.TrendTa
          */
 
         private String tag;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        private String name;
         private String translated_name;
         private IllustsBean illust;
 
         public String getTag() {
-            return tag;
+            if(!TextUtils.isEmpty(tag)) {
+                return tag;
+            }
+
+            if(!TextUtils.isEmpty(name)) {
+                return name;
+            }
+
+            return "";
         }
 
         public void setTag(String tag) {
