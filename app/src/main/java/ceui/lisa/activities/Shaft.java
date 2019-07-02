@@ -54,6 +54,8 @@ public class Shaft extends Application {
         sUserModel = Local.getUser();
         sSettings = Local.getSettings();
 
+
+
         // 腾讯统计API
         StatConfig.setDebugEnable(true);
         StatService.registerActivityLifecycleCallbacks(this);
