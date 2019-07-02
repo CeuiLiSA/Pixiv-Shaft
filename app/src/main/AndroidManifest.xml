@@ -13,9 +13,12 @@
         android:roundIcon="@mipmap/logo_final_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activities.CoverActivity">
-
-        </activity>
+        <activity
+            android:name=".activities.FullscreenActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_fullscreen"
+            android:theme="@style/FullscreenTheme"></activity>
+        <activity android:name=".activities.CoverActivity"></activity>
         <activity android:name=".activities.LoginActivity" />
         <activity android:name=".activities.ViewPagerActivity" />
         <activity android:name=".activities.TemplateFragmentActivity" />
@@ -26,97 +29,86 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
 
+                <category android:name="android.intent.category.BROWSABLE" />
 
-            <intent-filter
-                android:autoVerify="true">
-                <data android:host="www.pixiv.net"
+                <data
+                    android:host="www.pixiv.net"
                     android:path="/"
-                    android:scheme="https"/>
-
-                <data android:host="www.pixiv.net"
+                    android:scheme="http" />
+                <data
+                    android:host="www.pixiv.net"
                     android:path="/"
-                    android:scheme="http"/>
-
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
+                    android:scheme="https" />
             </intent-filter>
-
         </activity>
         <activity android:name=".activities.UserDetailActivity" />
         <activity android:name=".activities.DownloadManageActivity" />
         <activity android:name=".activities.ImageDetailActivity" />
         <activity android:name=".activities.CollectionActivity" />
         <activity android:name=".activities.LoginAlphaActivity" />
-        <activity android:name=".activities.OutWakeActivity" >
+        <activity android:name=".activities.OutWakeActivity">
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:host="www.pixiv.net"
+                    android:path="/member.php"
+                    android:scheme="http" />
+                <data
+                    android:host="www.pixiv.net"
+                    android:path="/member.php"
+                    android:scheme="https" />
 
-            <intent-filter
-                android:autoVerify="true">
-                <data android:host="www.pixiv.net"
+                <!-- <data android:host="@string/website_users" -->
+                <!-- android:pathPattern="[0-9]*" -->
+                <!-- android:scheme="pixiv"/> -->
+
+
+                <!-- <data android:host="@string/website_illust" -->
+                <!-- android:pathPattern="[0-9]*" -->
+                <!-- android:scheme="pixiv"/> -->
+
+                <data
+                    android:host="www.pixiv.net"
                     android:path="/member_illust.php"
-                    android:scheme="https"/>
+                    android:scheme="https" />
 
-                <data android:host="www.pixiv.net"
+                <data
+                    android:host="www.pixiv.net"
                     android:path="/member_illust.php"
-                    android:scheme="http"/>
-
-                <data android:host="www.pixiv.net"
+                    android:scheme="http" />
+                <data
+                    android:host="www.pixiv.net"
                     android:path="/member.php"
-                    android:scheme="https"/>
-
-                <data android:host="www.pixiv.net"
-                    android:path="/member.php"
-                    android:scheme="http"/>
-
-                <data android:host="www.pixiv.net"
-                    android:path="/member.php"
-                    android:scheme="https"/>
-
-<!--                <data android:host="@string/website_users"-->
-<!--                    android:pathPattern="[0-9]*"-->
-<!--                    android:scheme="pixiv"/>-->
-
-
-<!--                <data android:host="@string/website_illust"-->
-<!--                    android:pathPattern="[0-9]*"-->
-<!--                    android:scheme="pixiv"/>-->
-
-
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
+                    android:scheme="https" />
             </intent-filter>
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
 
+                <category android:name="android.intent.category.DEFAULT" />
 
-            <intent-filter
-                android:autoVerify="true">
-
-
-                <data android:scheme="pixiv"/>
-
-
-                <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="pixiv" />
             </intent-filter>
-
         </activity>
-
 
         <meta-data
             android:name="android.max_aspect"
             android:value="2.4" />
-
         <meta-data
             android:name="notch.config"
             android:value="portrait|landscape" />
     </application>
-
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <dist:module dist:instant="true" />
 

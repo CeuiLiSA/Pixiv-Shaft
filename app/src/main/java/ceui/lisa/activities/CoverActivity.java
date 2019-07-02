@@ -50,6 +50,7 @@ import ceui.lisa.utils.ReverseImage;
 import ceui.lisa.utils.ReverseWebviewCallback;
 import io.reactivex.disposables.Disposable;
 
+import static android.Manifest.permission.READ_PHONE_STATE;
 import static ceui.lisa.activities.PikaActivity.FILE_PATH;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
@@ -78,7 +79,11 @@ public class CoverActivity extends BaseActivity
     public void checkPermission(Callback<Object> callback){
         final RxPermissions rxPermissions = new RxPermissions((FragmentActivity) mActivity);
         Disposable disposable = rxPermissions
-                .requestEachCombined(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                .requestEachCombined(Manifest.permission.WRITE_EXTERNAL_STORAGE
+//                        , Manifest.permission.ACCESS_COARSE_LOCATION,
+//                        Manifest.permission.ACCESS_FINE_LOCATION,
+//                        Manifest.permission.READ_PHONE_STATE
+                )
                 .subscribe(permission -> { // will emit 1 Permission object
                     if (permission.granted) {
                         callback.doSomething(null);
@@ -210,6 +215,8 @@ public class CoverActivity extends BaseActivity
             intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "设置");
             startActivity(intent);
         } else if (id == R.id.nav_share) {
+
+
         } else if (id == R.id.nav_reverse) {
 //            TODO remove
 
@@ -223,6 +230,9 @@ public class CoverActivity extends BaseActivity
                     .forResult(REQUEST_CODE_CHOOSE);
 
         } else if (id == R.id.nav_send) {
+
+            Intent intent = new Intent(mContext, FullscreenActivity.class);
+            startActivity(intent);
         }
 
         mDrawer.closeDrawer(GravityCompat.START);

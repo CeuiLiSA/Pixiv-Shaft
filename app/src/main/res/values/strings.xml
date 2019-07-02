@@ -9,7 +9,6 @@
     <string name="title_activity_blank">BlankActivity</string>
 
 
-
     <string name="empty_list_1">居然啥也没有</string>
     <string name="empty_list_2">居然啥也没有</string>
     <string name="empty_list_3">居然啥也没有</string>
@@ -43,4 +42,8 @@
     <string name="see_download_task">查看任务</string>
     <string name="the_others">其他</string>
     <string name="search_image_origin">以图搜源</string>
+
+    <string name="title_activity_fullscreen">FullscreenActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">全屏测试</string>
 </resources>

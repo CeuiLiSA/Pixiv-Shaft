@@ -7,6 +7,7 @@ import android.view.KeyEvent;
 import ceui.lisa.fragments.FragmentComment;
 import ceui.lisa.fragments.FragmentDrag;
 import ceui.lisa.fragments.FragmentLocalUsers;
+import ceui.lisa.fragments.FragmentMetro;
 import ceui.lisa.fragments.FragmentPivision;
 import ceui.lisa.fragments.FragmentRecmdUser;
 import ceui.lisa.fragments.FragmentRelatedIllust;
@@ -63,6 +64,8 @@ public class TemplateFragmentActivity extends FragmentActivity {
                 return FragmentComment.newInstance(id, title);
             }else if (dataType.equals("账号管理")) {
                 return new FragmentLocalUsers();
+            }else if (dataType.equals("地铁表白器")) {
+                return new FragmentMetro();
             }
         }
         return null;

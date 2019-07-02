@@ -248,7 +248,7 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
     public void getNextData() {
         mApi = initNextApi();
         if (mApi != null) {
-            if(nextUrl.length() == 0){
+            if(TextUtils.isEmpty(nextUrl)){
                 Common.showToast("next url 为空");
                 mRefreshLayout.setEnableLoadMore(false);
                 mRefreshLayout.finishLoadMore(false);
