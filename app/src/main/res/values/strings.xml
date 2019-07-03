@@ -21,6 +21,7 @@
     <string name="post_unfollow">取消关注</string>
     <string name="double_click_finish">再按一次退出~</string>
     <string name="delete_all">删除全部</string>
+    <string name="illust_filter">筛选</string>
     <string name="share_illust">%1$s | %2$s #Pixiv %3$s</string>
     <string name="share">分享</string>
     <string name="webview_handler_open_in_browser">Open in browser</string>

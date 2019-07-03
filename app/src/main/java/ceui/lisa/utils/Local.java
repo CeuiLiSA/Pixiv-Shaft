@@ -6,6 +6,8 @@ import android.content.SharedPreferences;
 
 import com.google.gson.Gson;
 
+import org.greenrobot.eventbus.EventBus;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -207,16 +209,31 @@ public class Local {
 
     public static void setPikaImageFile(String pikaFileName, IllustsBean illustsBean){
         SharedPreferences localData = Shaft.getContext().getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
-        String before = localData.getString("pika file name", "nopic.png");
-        File file = new File(PikaActivity.FILE_PATH, before);
-        if(file.exists()){
-            file.delete();
+        File file = new File(PikaActivity.FILE_PATH);
+
+        //删除其他封面图
+        File[] childFile = file.listFiles();
+        for (File temp : childFile) {
+            if (!temp.getName().equals(pikaFileName)) {
+                temp.delete();
+            }
         }
         SharedPreferences.Editor editor = localData.edit();
         editor.putString("pika file name", pikaFileName);
         editor.putString("pika illust", new Gson().toJson(illustsBean));
         editor.putLong("pika file time", System.currentTimeMillis());
         editor.apply();
+
+        Channel channel = new Channel();
+        channel.setReceiver("CoverActivity");
+        EventBus.getDefault().post(channel);
+    }
+
+    public static IllustsBean getPikaIllust(){
+        SharedPreferences localData = Shaft.getContext().getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
+        String illustJson = localData.getString("pika illust", "");
+        IllustsBean illustsBean = new Gson().fromJson(illustJson, IllustsBean.class);
+        return illustsBean;
     }
 
     public static void setSettings(Settings settings){

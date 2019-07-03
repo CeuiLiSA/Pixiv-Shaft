@@ -10,6 +10,7 @@ import com.liulishuo.okdownload.DownloadTask;
 import com.liulishuo.okdownload.core.cause.EndCause;
 import com.liulishuo.okdownload.core.cause.ResumeFailedCause;
 import com.liulishuo.okdownload.core.listener.DownloadListener1;
+import com.liulishuo.okdownload.core.listener.DownloadListener3;
 import com.liulishuo.okdownload.core.listener.assist.Listener1Assist;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 
@@ -31,10 +32,12 @@ public class PikaDownload {
     private static boolean isDownloading = false;
 
 
+
+
     public static void downloadPikaImage(IllustsBean illustsBean, Context context){
         if(isDownloading){
 
-        }else {
+        } else {
             isDownloading = true;
             final RxPermissions rxPermissions = new RxPermissions((FragmentActivity) context);
             final String imageUrl;

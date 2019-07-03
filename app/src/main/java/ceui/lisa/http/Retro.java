@@ -168,9 +168,9 @@ public class Retro {
                     }
                 })
                 .build();
-        if(Shaft.sSettings.isAutoFuckChina()){
-            builder.dns(new FuckChinaDns());
-        }
+//        if(Shaft.sSettings.isAutoFuckChina()){
+//            builder.dns(new FuckChinaDns());
+//        }
         OkHttpClient client = builder.build();
         Gson gson = new GsonBuilder().setLenient().create();
         Retrofit retrofit = new Retrofit.Builder()

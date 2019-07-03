@@ -226,7 +226,7 @@ public class FragmentViewHistory extends BaseFragment {
             } else {
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                builder.setTitle("Shaft提示");
+                builder.setTitle("Shaft 提示");
                 builder.setMessage("这将会删除所有的本地浏览历史");
                 builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
                     @Override

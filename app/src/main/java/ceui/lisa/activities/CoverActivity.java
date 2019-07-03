@@ -7,7 +7,9 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Environment;
+import android.support.annotation.Nullable;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
@@ -30,7 +32,12 @@ import com.zhihu.matisse.MimeType;
 import com.zhihu.matisse.engine.impl.GlideEngine;
 import com.zhihu.matisse.engine.impl.PicassoEngine;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 
 import ceui.lisa.R;
@@ -42,7 +49,9 @@ import ceui.lisa.fragments.FragmentCenter;
 import ceui.lisa.fragments.FragmentRight;
 import ceui.lisa.fragments.FragmentLeft;
 import ceui.lisa.interfaces.Callback;
+import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.GlideUtil;
+import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.utils.Local;
 import ceui.lisa.model.UserModel;
 import ceui.lisa.utils.Common;
@@ -54,6 +63,7 @@ import static android.Manifest.permission.READ_PHONE_STATE;
 import static ceui.lisa.activities.PikaActivity.FILE_PATH;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
+import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
 public class CoverActivity extends BaseActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -104,12 +114,7 @@ public class CoverActivity extends BaseActivity
         username = navigationView.getHeaderView(0).findViewById(R.id.user_name);
         user_email = navigationView.getHeaderView(0).findViewById(R.id.user_email);
         pikaBackground = navigationView.getHeaderView(0).findViewById(R.id.pika_bg);
-        File file = new File(FILE_PATH, Local.getPikaImageFileName());
-        if(file.exists()){
-            Glide.with(mContext)
-                    .load(file)
-                    .into(pikaBackground);
-        }
+        initDrawerHeader();
         userHead.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -237,6 +242,46 @@ public class CoverActivity extends BaseActivity
 
         mDrawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(Channel event) {
+        if(className.contains(event.getReceiver())) {
+            initDrawerHeader();
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    protected void onStop() {
+        EventBus.getDefault().unregister(this);
+        super.onStop();
+    }
+
+    private void initDrawerHeader(){
+        File file = new File(FILE_PATH, Local.getPikaImageFileName());
+        if(file.exists()){
+            Glide.with(mContext)
+                    .load(file)
+                    .placeholder(pikaBackground.getDrawable())
+                    .transition(withCrossFade())
+                    .into(pikaBackground);
+            pikaBackground.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(mContext, ViewPagerActivity.class);
+                    intent.putExtra("position", 0);
+                    IllustChannel.get().setIllustList(Arrays.asList(Local.getPikaIllust()));
+                    startActivity(intent);
+                }
+            });
+        }
     }
 
     @Override

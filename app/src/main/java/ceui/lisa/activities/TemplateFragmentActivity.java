@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.support.v4.app.Fragment;
 import android.view.KeyEvent;
 
+import ceui.lisa.fragments.BookTagFragment;
 import ceui.lisa.fragments.FragmentComment;
 import ceui.lisa.fragments.FragmentDrag;
 import ceui.lisa.fragments.FragmentLocalUsers;
@@ -66,7 +67,12 @@ public class TemplateFragmentActivity extends FragmentActivity {
                 return new FragmentLocalUsers();
             }else if (dataType.equals("地铁表白器")) {
                 return new FragmentMetro();
+            }else if (dataType.equals("按标签筛选")) {
+                String keyword = intent.getStringExtra(EXTRA_KEYWORD);
+                return BookTagFragment.newInstance(keyword);
             }
+
+
         }
         return null;
     }

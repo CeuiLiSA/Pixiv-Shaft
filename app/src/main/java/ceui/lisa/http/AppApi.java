@@ -4,6 +4,7 @@ import java.util.List;
 
 import ceui.lisa.adapters.HotTagAdapter;
 import ceui.lisa.model.ArticalResponse;
+import ceui.lisa.model.BookmarkTags;
 import ceui.lisa.model.IllustCommentsResponse;
 import ceui.lisa.model.IllustSearchResponse;
 import ceui.lisa.model.NullResponse;
@@ -105,7 +106,8 @@ public interface AppApi {
     @GET("/v1/user/bookmarks/illust")
     Observable<ListIllustResponse> getUserLikeIllust(@Header("Authorization") String token,
                                                  @Query("user_id") int user_id,
-                                                     @Query("restrict") String restrict);
+                                                     @Query("restrict") String restrict,
+                                                     @Query("tag") String tag);
 
     @GET("/v1/user/illusts?filter=for_android")
     Observable<ListIllustResponse> getUserSubmitIllust(@Header("Authorization") String token,
@@ -234,4 +236,18 @@ public interface AppApi {
     Observable<TrendingtagResponse> searchCompleteWord(@Header("Authorization") String token,
                                                  @Query("word") String word);
 
+
+    /**
+     * 获取收藏的标签
+     */
+    //GET v1/user/bookmark-tags/illust?user_id=41531382&restrict=public HTTP/1.1
+    @GET("/v1/user/bookmark-tags/illust")
+    Observable<BookmarkTags> getBookmarkTags(@Header("Authorization") String token,
+                                             @Query("user_id") int user_id,
+                                             @Query("restrict") String restrict);
+
+
+    @GET
+    Observable<BookmarkTags> getNextTags(@Header("Authorization") String token,
+                                             @Url String nextUrl);
 }
