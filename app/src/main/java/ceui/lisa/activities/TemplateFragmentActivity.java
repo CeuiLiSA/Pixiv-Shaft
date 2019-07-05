@@ -4,11 +4,11 @@ import android.content.Intent;
 import android.support.v4.app.Fragment;
 import android.view.KeyEvent;
 
+import ceui.lisa.fragments.FragmentAbout;
 import ceui.lisa.fragments.FragmentBookTag;
 import ceui.lisa.fragments.FragmentComment;
 import ceui.lisa.fragments.FragmentDrag;
 import ceui.lisa.fragments.FragmentLocalUsers;
-import ceui.lisa.fragments.FragmentMessage;
 import ceui.lisa.fragments.FragmentMetro;
 import ceui.lisa.fragments.FragmentPivision;
 import ceui.lisa.fragments.FragmentRecmdUser;
@@ -45,7 +45,8 @@ public class TemplateFragmentActivity extends FragmentActivity {
                 return new FragmentViewHistory();
             } else if (dataType.equals("网页链接")) {
                 String url = intent.getStringExtra("url");
-                return FragmentWebView.newInstance("PixiVision特辑", url);
+                String title = intent.getStringExtra("title");
+                return FragmentWebView.newInstance(title, url);
             } else if (dataType.equals("设置")) {
                 return new FragmentSettings();
             } else if (dataType.equals("推荐用户")) {
@@ -75,8 +76,12 @@ public class TemplateFragmentActivity extends FragmentActivity {
                 int id = intent.getIntExtra(EXTRA_ILLUST_ID, 0);
                 return FragmentSelectBookTag.newInstance(id);
             }else if (dataType.equals("消息测试")) {
-                return new FragmentMessage();
+                return new FragmentMetro();
+            }else if (dataType.equals("关于软件")) {
+                return new FragmentAbout();
             }
+
+
 
 
 

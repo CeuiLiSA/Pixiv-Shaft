@@ -47,4 +47,10 @@
     <string name="title_activity_fullscreen">FullscreenActivity</string>
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">全屏测试</string>
+    <string name="pixiv_use_detail">服务条款</string>
+    <string name="privacy">隐私政策</string>
+    <string name="about_app">关于</string>
+    <string name="pixiv_special">PixiVision特辑</string>
+    <string name="pixiv_problem">常见问题</string>
+    <string name="project_license">License</string>
 </resources>

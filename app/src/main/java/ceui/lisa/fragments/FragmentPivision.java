@@ -62,6 +62,7 @@ public class FragmentPivision extends BaseListFragment<ArticalResponse, ArticalA
                 Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
                 intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "网页链接");
                 intent.putExtra("url", allItems.get(position).getArticle_url());
+                intent.putExtra("title", getString(R.string.pixiv_special));
                 startActivity(intent);
             }
         });

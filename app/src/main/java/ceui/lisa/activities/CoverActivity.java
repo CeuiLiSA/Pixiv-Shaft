@@ -219,7 +219,7 @@ public class CoverActivity extends BaseActivity
             startActivity(intent);
         } else if (id == R.id.nav_share) {
             Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "消息测试");
+            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "关于软件");
             startActivity(intent);
 
         } else if (id == R.id.nav_reverse) {
