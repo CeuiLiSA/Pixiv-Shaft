@@ -4,7 +4,7 @@ import java.util.List;
 
 import ceui.lisa.interfaces.ListShow;
 
-public class BookmarkTags implements ListShow<BookmarkTags.BookmarkTagsBean> {
+public class BookmarkTags implements ListShow<BookmarkTagsBean> {
 
     /**
      * bookmark_tags : [{"name":"procreate","count":1},{"name":"らくがき","count":1},{"name":"習作","count":1}]
@@ -40,29 +40,4 @@ public class BookmarkTags implements ListShow<BookmarkTags.BookmarkTagsBean> {
         return next_url;
     }
 
-    public static class BookmarkTagsBean {
-        /**
-         * name : procreate
-         * count : 1
-         */
-
-        private String name;
-        private int count;
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public int getCount() {
-            return count;
-        }
-
-        public void setCount(int count) {
-            this.count = count;
-        }
-    }
 }

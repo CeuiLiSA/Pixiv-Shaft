@@ -16,10 +16,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.adapters.SelectTagAdapter;
+import ceui.lisa.adapters.BookTagAdapter;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.BookmarkTags;
+import ceui.lisa.model.BookmarkTagsBean;
 import ceui.lisa.view.LinearItemDecoration;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
@@ -29,8 +30,8 @@ public class TagSelectDialog extends BaseDialog{
     private ProgressBar mProgressBar;
     private RecyclerView mRecyclerView;
     private RefreshLayout mRefreshLayout;
-    private List<BookmarkTags.BookmarkTagsBean> allItems = new ArrayList<>();
-    private SelectTagAdapter mAdapter;
+    private List<BookmarkTagsBean> allItems = new ArrayList<>();
+    private BookTagAdapter mAdapter;
     private String nextUrl = "";
     private String bookType = "";
 
@@ -94,7 +95,7 @@ public class TagSelectDialog extends BaseDialog{
                             }
 
                             allItems.addAll(bookmarkTags.getBookmark_tags());
-                            mAdapter = new SelectTagAdapter(allItems, mContext);
+                            mAdapter = new BookTagAdapter(allItems, mContext);
                             mRecyclerView.setAdapter(mAdapter);
                             mRefreshLayout.finishRefresh(true);
                         }else {

@@ -46,7 +46,7 @@ public class FragmentSearchResult extends AutoClipFragment<ListIllustResponse, I
     private String starSize = " 10000";
     private String sort = "date_desc";
     private String searchTarget = "partial_match_for_tags";
-    private static final String[] ALL_SIZE = new String[]{" 500", " 1000", " 2500",
+    private static final String[] ALL_SIZE = new String[]{" 无限制", " 500", " 1000", " 2500",
             " 5000", " 7500", " 10000", " 25000", " 50000"};
 
     public static FragmentSearchResult newInstance(String keyWord){
@@ -137,7 +137,7 @@ public class FragmentSearchResult extends AutoClipFragment<ListIllustResponse, I
             builder.setItems(ALL_SIZE, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    starSize = ALL_SIZE[which];
+                    starSize = ALL_SIZE[which].contains("无限制") ? "" : ALL_SIZE[which];
                     sort = "date_desc";
                     token = sUserModel.getResponse().getAccess_token();
                     getFirstData();

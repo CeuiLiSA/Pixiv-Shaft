@@ -53,7 +53,7 @@ public class HotTagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         if(position == 0){
             ViewGroup.LayoutParams params = currentOne.illust.getLayoutParams();
             params.height = imageSize * 2;
-            params.width = imageSize * 3;
+            params.width = mContext.getResources().getDisplayMetrics().widthPixels;
             currentOne.illust.setLayoutParams(params);
             Glide.with(mContext)
                     .load(GlideUtil.getLargeImage(allIllust.get(position).getIllust()))

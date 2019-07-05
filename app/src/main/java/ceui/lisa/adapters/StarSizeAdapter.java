@@ -31,7 +31,7 @@ public class StarSizeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = mLayoutInflater.inflate(R.layout.recy_star_size, parent, false);
+        View view = mLayoutInflater.inflate(R.layout.recy_book_tag, parent, false);
         return new TagHolder(view);
     }
 

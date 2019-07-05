@@ -47,21 +47,6 @@ public class Retro {
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(
                 message -> Log.i("RetrofitLog", "retrofitBack = " + message));
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-//        OkHttpClient okHttpClient = new OkHttpClient
-//                .Builder()
-//                .addInterceptor(loggingInterceptor)
-//                .protocols(Collections.singletonList(Protocol.HTTP_1_1))
-//                //.dns(HttpDns.get())
-//                .addInterceptor(chain -> {
-//                    Request localRequest = chain.request().newBuilder()
-//                            .addHeader("User-Agent:", "PixivAndroidApp/5.0.134 (Android 6.0.1; D6653)")
-//                            .addHeader("Accept-Language", "zh_CN")
-//                            .build();
-//                    return chain.proceed(localRequest);
-//                })
-//                .dns(new FuckChinaDns())
-//                .addInterceptor(new TokenInterceptor())
-//                .build();
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
         try {
             builder.addInterceptor(loggingInterceptor)
@@ -74,14 +59,14 @@ public class Retro {
                         return chain.proceed(localRequest);
                     })
                     .addInterceptor(new TokenInterceptor())
-                    .proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(8088)))
-                    .sslSocketFactory(SSLSocketClient.getSSLSocketFactory())
-                    .hostnameVerifier(new HostnameVerifier() {
-                        @Override
-                        public boolean verify(String hostname, SSLSession session) {
-                            return true;
-                        }
-                    })
+//                    .proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(8088)))
+//                    .sslSocketFactory(SSLSocketClient.getSSLSocketFactory())
+//                    .hostnameVerifier(new HostnameVerifier() {
+//                        @Override
+//                        public boolean verify(String hostname, SSLSession session) {
+//                            return true;
+//                        }
+//                    })
                     .build();
         }catch (Exception e){
             e.printStackTrace();
@@ -159,14 +144,14 @@ public class Retro {
                             .build();
                     return chain.proceed(localRequest);
                 })
-                .proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(8088)))
-                .sslSocketFactory(SSLSocketClient.getSSLSocketFactory())
-                .hostnameVerifier(new HostnameVerifier() {
-                    @Override
-                    public boolean verify(String hostname, SSLSession session) {
-                        return true;
-                    }
-                })
+//                .proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(8088)))
+//                .sslSocketFactory(SSLSocketClient.getSSLSocketFactory())
+//                .hostnameVerifier(new HostnameVerifier() {
+//                    @Override
+//                    public boolean verify(String hostname, SSLSession session) {
+//                        return true;
+//                    }
+//                })
                 .build();
 //        if(Shaft.sSettings.isAutoFuckChina()){
 //            builder.dns(new FuckChinaDns());

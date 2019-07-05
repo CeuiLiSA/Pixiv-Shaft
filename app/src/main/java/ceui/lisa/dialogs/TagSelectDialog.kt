@@ -7,7 +7,7 @@
 //import android.view.View
 //import android.widget.ProgressBar
 //import ceui.lisa.R
-//import ceui.lisa.adapters.SelectTagAdapter
+//import ceui.lisa.adapters.BookTagAdapter
 //import ceui.lisa.fragments.FragmentLikeIllust
 //import ceui.lisa.http.ErrorCtrl
 //import ceui.lisa.http.Retro
@@ -30,7 +30,7 @@
 //
 //    var restrict : String = ""
 //    var allItems : MutableList<BookmarkTags.BookmarkTagsBean> = ArrayList()
-//    var adapter: SelectTagAdapter? = null
+//    var adapter: BookTagAdapter? = null
 //    var mRecyclerView: RecyclerView? = null
 //    var mProgressBar: ProgressBar? = null
 //    var mRefreshLayout: RefreshLayout? = null
@@ -53,7 +53,7 @@
 //                .subscribe(object : ErrorCtrl<BookmarkTags>(){
 //                    override fun onNext(t: BookmarkTags) {
 //                        allItems.addAll(t.bookmark_tags)
-//                        adapter = SelectTagAdapter(allItems, mContext)
+//                        adapter = BookTagAdapter(allItems, mContext)
 //                        adapter?.setOnItemClickListener(object : OnItemClickListener{
 //                            override fun onItemClick(v: View?, position: Int, viewType: Int) {
 //                                val channel = Channel<Any>()

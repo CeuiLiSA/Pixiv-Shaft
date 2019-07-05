@@ -2,6 +2,7 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 
 import com.scwang.smartrefresh.layout.util.DensityUtil;
@@ -55,7 +56,11 @@ public class FragmentLikeIllust extends AutoClipFragment<ListIllustResponse, Ill
 
     @Override
     Observable<ListIllustResponse> initApi() {
-        return Retro.getAppApi().getUserLikeIllust(sUserModel.getResponse().getAccess_token(), userID, starType, tag);
+        if(TextUtils.isEmpty(tag)){
+            return Retro.getAppApi().getUserLikeIllust(sUserModel.getResponse().getAccess_token(), userID, starType);
+        }else {
+            return Retro.getAppApi().getUserLikeIllust(sUserModel.getResponse().getAccess_token(), userID, starType, tag);
+        }
     }
 
     @Override
@@ -93,7 +98,6 @@ public class FragmentLikeIllust extends AutoClipFragment<ListIllustResponse, Ill
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
         EventBus.getDefault().register(this);
         Common.showLog(className + "EVENTBUS 注册了");
     }
