@@ -4,6 +4,8 @@ import java.util.List;
 
 import ceui.lisa.adapters.HotTagAdapter;
 import ceui.lisa.model.ArticalResponse;
+import ceui.lisa.model.BookmarkTags;
+import ceui.lisa.model.IllustBookmarkTags;
 import ceui.lisa.model.IllustCommentsResponse;
 import ceui.lisa.model.IllustSearchResponse;
 import ceui.lisa.model.NullResponse;
@@ -105,6 +107,12 @@ public interface AppApi {
     @GET("/v1/user/bookmarks/illust")
     Observable<ListIllustResponse> getUserLikeIllust(@Header("Authorization") String token,
                                                  @Query("user_id") int user_id,
+                                                     @Query("restrict") String restrict,
+                                                     @Query("tag") String tag);
+
+    @GET("/v1/user/bookmarks/illust")
+    Observable<ListIllustResponse> getUserLikeIllust(@Header("Authorization") String token,
+                                                     @Query("user_id") int user_id,
                                                      @Query("restrict") String restrict);
 
     @GET("/v1/user/illusts?filter=for_android")
@@ -213,6 +221,13 @@ public interface AppApi {
                                          @Field("restrict") String restrict);
 
     @FormUrlEncoded
+    @POST("v2/illust/bookmark/add")
+    Observable<NullResponse> postLike(@Header("Authorization") String token,
+                                      @Field("illust_id") int illust_id,
+                                      @Field("restrict") String restrict,
+                                      @Field("tags[]") String... tags);
+
+    @FormUrlEncoded
     @POST("v1/illust/bookmark/delete")
     Observable<NullResponse> postDislike(@Header("Authorization") String token,
                                       @Field("illust_id") int illust_id);
@@ -234,4 +249,26 @@ public interface AppApi {
     Observable<TrendingtagResponse> searchCompleteWord(@Header("Authorization") String token,
                                                  @Query("word") String word);
 
+
+    /**
+     * 获取收藏的标签
+     */
+    //GET v1/user/bookmark-tags/illust?user_id=41531382&restrict=public HTTP/1.1
+    @GET("/v1/user/bookmark-tags/illust")
+    Observable<BookmarkTags> getBookmarkTags(@Header("Authorization") String token,
+                                             @Query("user_id") int user_id,
+                                             @Query("restrict") String restrict);
+
+
+    @GET
+    Observable<BookmarkTags> getNextTags(@Header("Authorization") String token,
+                                             @Url String nextUrl);
+
+
+    // GET v2/illust/bookmark/detail?illust_id=72878894 HTTP/1.1
+
+
+    @GET("/v2/illust/bookmark/detail")
+    Observable<IllustBookmarkTags> getIllustBookmarkTags(@Header("Authorization") String token,
+                                                         @Query("illust_id") int illust_id);
 }

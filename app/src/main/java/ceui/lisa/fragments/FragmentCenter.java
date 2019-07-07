@@ -68,6 +68,7 @@ public class FragmentCenter extends BaseFragment {
         head.setLayoutParams(headParams);
 
         mSearchBar = v.findViewById(R.id.searchBar);
+        mSearchBar.setMaxSuggestionCount(5);
         mSearchBar.inflateMenu(R.menu.search_menu);
         mSearchBar.getMenu().setOnMenuItemClickListener(item -> {
             switch (item.getItemId()) {
@@ -259,9 +260,13 @@ public class FragmentCenter extends BaseFragment {
                                         return new TagHolder(view);
                                     }
                                 };
+                                mSearchBar.setMaxSuggestionCount(5);
                                 mAdapter.setSuggestions(trendingtagResponse.getTags());
+                                mSearchBar.setMaxSuggestionCount(5);
                                 mSearchBar.setCustomSuggestionAdapter(mAdapter);
+                                mSearchBar.setMaxSuggestionCount(5);
                                 mSearchBar.showSuggestionsList();
+                                mSearchBar.setMaxSuggestionCount(5);
                             }else {
                                 Common.showLog("无自动填充列表");
                             }

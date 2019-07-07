@@ -4,18 +4,21 @@ import android.content.Intent;
 import android.support.v4.app.Fragment;
 import android.view.KeyEvent;
 
+import ceui.lisa.fragments.FragmentAbout;
+import ceui.lisa.fragments.FragmentBookTag;
 import ceui.lisa.fragments.FragmentComment;
 import ceui.lisa.fragments.FragmentDrag;
 import ceui.lisa.fragments.FragmentLocalUsers;
+import ceui.lisa.fragments.FragmentMetro;
 import ceui.lisa.fragments.FragmentPivision;
 import ceui.lisa.fragments.FragmentRecmdUser;
 import ceui.lisa.fragments.FragmentRelatedIllust;
 import ceui.lisa.fragments.FragmentSearchResult;
 import ceui.lisa.fragments.FragmentSearchUser;
+import ceui.lisa.fragments.FragmentSelectBookTag;
 import ceui.lisa.fragments.FragmentSettings;
 import ceui.lisa.fragments.FragmentViewHistory;
 import ceui.lisa.fragments.FragmentWebView;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.ReverseResult;
 
 public class TemplateFragmentActivity extends FragmentActivity {
@@ -42,7 +45,8 @@ public class TemplateFragmentActivity extends FragmentActivity {
                 return new FragmentViewHistory();
             } else if (dataType.equals("网页链接")) {
                 String url = intent.getStringExtra("url");
-                return FragmentWebView.newInstance("PixiVision特辑", url);
+                String title = intent.getStringExtra("title");
+                return FragmentWebView.newInstance(title, url);
             } else if (dataType.equals("设置")) {
                 return new FragmentSettings();
             } else if (dataType.equals("推荐用户")) {
@@ -63,7 +67,26 @@ public class TemplateFragmentActivity extends FragmentActivity {
                 return FragmentComment.newInstance(id, title);
             }else if (dataType.equals("账号管理")) {
                 return new FragmentLocalUsers();
+            }else if (dataType.equals("地铁表白器")) {
+                return new FragmentMetro();
+            }else if (dataType.equals("按标签筛选")) {
+                String keyword = intent.getStringExtra(EXTRA_KEYWORD);
+                return FragmentBookTag.newInstance(keyword);
+            }else if (dataType.equals("按标签收藏")) {
+                int id = intent.getIntExtra(EXTRA_ILLUST_ID, 0);
+                return FragmentSelectBookTag.newInstance(id);
+            }else if (dataType.equals("消息测试")) {
+                return new FragmentMetro();
+            }else if (dataType.equals("关于软件")) {
+                return new FragmentAbout();
             }
+
+
+
+
+
+
+
         }
         return null;
     }

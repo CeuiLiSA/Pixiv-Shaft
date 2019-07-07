@@ -9,7 +9,6 @@
     <string name="title_activity_blank">BlankActivity</string>
 
 
-
     <string name="empty_list_1">居然啥也没有</string>
     <string name="empty_list_2">居然啥也没有</string>
     <string name="empty_list_3">居然啥也没有</string>
@@ -22,6 +21,7 @@
     <string name="post_unfollow">取消关注</string>
     <string name="double_click_finish">再按一次退出~</string>
     <string name="delete_all">删除全部</string>
+    <string name="illust_filter">筛选</string>
     <string name="share_illust">%1$s | %2$s #Pixiv %3$s</string>
     <string name="share">分享</string>
     <string name="webview_handler_open_in_browser">Open in browser</string>
@@ -43,4 +43,14 @@
     <string name="see_download_task">查看任务</string>
     <string name="the_others">其他</string>
     <string name="search_image_origin">以图搜源</string>
+
+    <string name="title_activity_fullscreen">FullscreenActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">全屏测试</string>
+    <string name="pixiv_use_detail">服务条款</string>
+    <string name="privacy">隐私政策</string>
+    <string name="about_app">关于</string>
+    <string name="pixiv_special">PixiVision特辑</string>
+    <string name="pixiv_problem">常见问题</string>
+    <string name="project_license">License</string>
 </resources>

@@ -1,7 +1,9 @@
 package ceui.lisa.activities;
 
 import android.app.Application;
+import android.app.Service;
 import android.content.Context;
+import android.os.Vibrator;
 
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
@@ -10,6 +12,7 @@ import com.scwang.smartrefresh.layout.util.DensityUtil;
 import com.tencent.stat.StatConfig;
 import com.tencent.stat.StatService;
 
+import Spray.Spray;
 import ceui.lisa.R;
 import ceui.lisa.model.UserModel;
 import ceui.lisa.utils.Local;
@@ -51,6 +54,8 @@ public class Shaft extends Application {
         sUserModel = Local.getUser();
         sSettings = Local.getSettings();
 
+
+
         // 腾讯统计API
         StatConfig.setDebugEnable(true);
         StatService.registerActivityLifecycleCallbacks(this);
@@ -63,6 +68,9 @@ public class Shaft extends Application {
             statusHeight = sContext.getResources().getDimensionPixelSize(resourceId);
         }
         toolbarHeight = DensityUtil.dp2px(56.0f);
+
+
+        //Spray.startServer("8088");
     }
 
     public static Context getContext() {

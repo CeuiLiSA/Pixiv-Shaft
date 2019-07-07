@@ -1,9 +1,15 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
+import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 
 import com.scwang.smartrefresh.layout.util.DensityUtil;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.IllustStagAdapter;
@@ -11,6 +17,8 @@ import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
+import ceui.lisa.utils.Channel;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.view.SpacesItemDecoration;
 import ceui.lisa.view.ScrollChangeManager;
@@ -24,7 +32,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 public class FragmentLikeIllust extends AutoClipFragment<ListIllustResponse, IllustStagAdapter, IllustsBean> {
 
     private int userID;
-    private String starType;
+    private String starType, tag = "";
     public static final String TYPE_PUBLUC = "public";
     public static final String TYPE_PRIVATE = "private";
 
@@ -48,7 +56,11 @@ public class FragmentLikeIllust extends AutoClipFragment<ListIllustResponse, Ill
 
     @Override
     Observable<ListIllustResponse> initApi() {
-        return Retro.getAppApi().getUserLikeIllust(sUserModel.getResponse().getAccess_token(), userID, starType);
+        if(TextUtils.isEmpty(tag)){
+            return Retro.getAppApi().getUserLikeIllust(sUserModel.getResponse().getAccess_token(), userID, starType);
+        }else {
+            return Retro.getAppApi().getUserLikeIllust(sUserModel.getResponse().getAccess_token(), userID, starType, tag);
+        }
     }
 
     @Override
@@ -71,5 +83,29 @@ public class FragmentLikeIllust extends AutoClipFragment<ListIllustResponse, Ill
                 startActivity(intent);
             }
         });
+    }
+
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(Channel event) {
+        if(event.getReceiver().contains(starType)) {
+            tag = (String) event.getObject();
+            getFirstData();
+        }
+    }
+
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EventBus.getDefault().register(this);
+        Common.showLog(className + "EVENTBUS 注册了");
+    }
+
+    @Override
+    public void onDestroy() {
+        EventBus.getDefault().unregister(this);
+        super.onDestroy();
+        Common.showLog(className + "EVENTBUS 取消注册了");
     }
 }

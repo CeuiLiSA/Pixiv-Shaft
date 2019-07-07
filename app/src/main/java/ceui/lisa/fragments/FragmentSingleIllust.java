@@ -174,6 +174,21 @@ public class FragmentSingleIllust extends BaseFragment {
             }
         });
 
+        star.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                if(illust.isIs_bookmarked()){
+
+                }else {
+                    Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+                    intent.putExtra(TemplateFragmentActivity.EXTRA_ILLUST_ID, illust.getId());
+                    intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "按标签收藏");
+                    startActivity(intent);
+                }
+                return true;
+            }
+        });
+
         /**
          * 设置一个空白的imageview作为头部，作为占位,
          * 这样原图就会刚好在toolbar 下方，不会被toolbar遮住
@@ -365,6 +380,13 @@ public class FragmentSingleIllust extends BaseFragment {
     public void onMessageEvent(Channel event) {
         if(className.contains(event.getReceiver())) {
             mDetailAdapter.startGif();
+            return;
+        }
+
+        if(event.getReceiver().contains("FragmentSingleIllust starIllust")) {
+            illust.setIs_bookmarked(true);
+            ((FloatingActionButton)parentView.findViewById(R.id.post_like))
+                    .setImageResource(R.drawable.ic_favorite_accent_24dp);
         }
     }
 

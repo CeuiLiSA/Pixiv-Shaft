@@ -5,7 +5,14 @@ import android.util.Log;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.util.Collections;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocketFactory;
 
 import ceui.lisa.activities.Shaft;
 import okhttp3.OkHttpClient;
@@ -40,37 +47,34 @@ public class Retro {
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(
                 message -> Log.i("RetrofitLog", "retrofitBack = " + message));
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-//        OkHttpClient okHttpClient = new OkHttpClient
-//                .Builder()
-//                .addInterceptor(loggingInterceptor)
-//                .protocols(Collections.singletonList(Protocol.HTTP_1_1))
-//                //.dns(HttpDns.get())
-//                .addInterceptor(chain -> {
-//                    Request localRequest = chain.request().newBuilder()
-//                            .addHeader("User-Agent:", "PixivAndroidApp/5.0.134 (Android 6.0.1; D6653)")
-//                            .addHeader("Accept-Language", "zh_CN")
-//                            .build();
-//                    return chain.proceed(localRequest);
-//                })
-//                .dns(new FuckChinaDns())
-//                .addInterceptor(new TokenInterceptor())
-//                .build();
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
-        builder.addInterceptor(loggingInterceptor)
-                .protocols(Collections.singletonList(Protocol.HTTP_1_1))
-                .addInterceptor(chain -> {
-                    Request localRequest = chain.request().newBuilder()
-                            .addHeader("User-Agent:", "PixivAndroidApp/5.0.134 (Android 6.0.1; D6653)")
-                            .addHeader("Accept-Language", "zh_CN")
-                            .build();
-                    return chain.proceed(localRequest);
-                })
-                .addInterceptor(new TokenInterceptor())
-                .build();
-
-        if(Shaft.sSettings.isAutoFuckChina()){
-            builder.dns(new FuckChinaDns());
+        try {
+            builder.addInterceptor(loggingInterceptor)
+                    .protocols(Collections.singletonList(Protocol.HTTP_1_1))
+                    .addInterceptor(chain -> {
+                        Request localRequest = chain.request().newBuilder()
+                                .addHeader("User-Agent:", "PixivAndroidApp/5.0.134 (Android 6.0.1; D6653)")
+                                .addHeader("Accept-Language", "zh_CN")
+                                .build();
+                        return chain.proceed(localRequest);
+                    })
+                    .addInterceptor(new TokenInterceptor())
+//                    .proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(8088)))
+//                    .sslSocketFactory(SSLSocketClient.getSSLSocketFactory())
+//                    .hostnameVerifier(new HostnameVerifier() {
+//                        @Override
+//                        public boolean verify(String hostname, SSLSession session) {
+//                            return true;
+//                        }
+//                    })
+                    .build();
+        }catch (Exception e){
+            e.printStackTrace();
         }
+
+//        if(Shaft.sSettings.isAutoFuckChina()){
+//            builder.dns(new FuckChinaDns());
+//        }
         OkHttpClient client = builder.build();
         Gson gson = new GsonBuilder()
                 .setLenient()
@@ -136,14 +140,22 @@ public class Retro {
                 .addInterceptor(chain -> {
                     Request localRequest = chain.request().newBuilder()
                             .addHeader("User-Agent:", "PixivAndroidApp/5.0.134 (Android 6.0.1; D6653)")
-                            //.addHeader("Accept-Language:", "zh_CN")
+                            .addHeader("Accept-Language:", "zh_CN")
                             .build();
                     return chain.proceed(localRequest);
                 })
+//                .proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(8088)))
+//                .sslSocketFactory(SSLSocketClient.getSSLSocketFactory())
+//                .hostnameVerifier(new HostnameVerifier() {
+//                    @Override
+//                    public boolean verify(String hostname, SSLSession session) {
+//                        return true;
+//                    }
+//                })
                 .build();
-        if(Shaft.sSettings.isAutoFuckChina()){
-            builder.dns(new FuckChinaDns());
-        }
+//        if(Shaft.sSettings.isAutoFuckChina()){
+//            builder.dns(new FuckChinaDns());
+//        }
         OkHttpClient client = builder.build();
         Gson gson = new GsonBuilder().setLenient().create();
         Retrofit retrofit = new Retrofit.Builder()
