@@ -223,8 +223,6 @@ public class CoverActivity extends BaseActivity
             startActivity(intent);
 
         } else if (id == R.id.nav_reverse) {
-//            TODO remove
-
             Matisse.from((Activity) mContext)
                     .choose(MimeType.ofAll())// 选择 mime 的类型
                     .countable(true)
@@ -237,6 +235,10 @@ public class CoverActivity extends BaseActivity
         } else if (id == R.id.nav_send) {
 
             Intent intent = new Intent(mContext, FullscreenActivity.class);
+            startActivity(intent);
+        }else if (id == R.id.web_test) {
+            Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "跟随动画");
             startActivity(intent);
         }
 

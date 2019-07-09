@@ -53,4 +53,5 @@
     <string name="pixiv_special">PixiVision特辑</string>
     <string name="pixiv_problem">常见问题</string>
     <string name="project_license">License</string>
+    <string name="select_inner_storage">请选择本机内置存储</string>
 </resources>

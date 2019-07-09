@@ -11,8 +11,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.model.IllustsBean;
+import ceui.lisa.utils.Argument;
 import ceui.lisa.utils.Common;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
@@ -26,7 +28,7 @@ public class GifCreate {
 
         File parentFile = FileCreator.createGifParentFile(illustsBean);
         if (parentFile.exists()) {
-            File realGifFile = new File(FileCreator.FILE_GIF_RESULT_PATH, illustsBean.getId() + ".gif");
+            File realGifFile = new File(Shaft.sSettings.getGifResultPath(), illustsBean.getId() + ".gif");
             if (realGifFile.exists()) {
                 Common.showToast("gif已存在");
             } else {
@@ -53,7 +55,7 @@ public class GifCreate {
                                     })
                                     .build();
 
-                            File resultParent = new File(FileCreator.FILE_GIF_RESULT_PATH);
+                            File resultParent = new File(Shaft.sSettings.getGifResultPath());
                             if (!resultParent.exists()) {
                                 resultParent.mkdir();
                             }
