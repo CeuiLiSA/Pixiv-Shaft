@@ -4,33 +4,18 @@ import android.text.TextUtils;
 
 import java.io.File;
 
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.model.IllustsBean;
 
+
 public class FileCreator {
-
-    //只包含1P图片的下载路径
-    public static final String FILE_PATH_SINGLE = "/storage/emulated/0/Shaft/SingleImages";
-
-
-    //包含多P文件的下载路径
-    public static final String FILE_PATH_META = "/storage/emulated/0/Shaft/MetaImages/";
-
-
-    public static final String FILE_GIF_PATH = "/storage/emulated/0/Shaft/gif/";
-
-    public static final String FILE_GIF_CHILD_PATH = "/storage/emulated/0/Shaft/gifUnzip/";
-
-    public static final String FILE_GIF_RESULT_PATH = "/storage/emulated/0/Shaft/gifGenerate/";
-
-    public static final String WEB_DOWNLOAD_PATH = "/storage/emulated/0/Shaft/Web";
-
 
     public static File createGifFile(IllustsBean illustsBean){
         if(illustsBean == null){
             return null;
         }
 
-        return new File(FILE_GIF_PATH,
+        return new File(Shaft.sSettings.getGifZipPath(),
                 deleteSpecialWords(illustsBean.getTitle() + "_" + illustsBean.getId() + ".zip"));
     }
 
@@ -40,7 +25,7 @@ public class FileCreator {
             return null;
         }
 
-        return new File(FILE_GIF_CHILD_PATH + deleteSpecialWords(illustsBean.getTitle() + "_" + illustsBean.getId()));
+        return new File(Shaft.sSettings.getGifUnzipPath() + deleteSpecialWords(illustsBean.getTitle() + "_" + illustsBean.getId()));
     }
 
 
@@ -49,7 +34,7 @@ public class FileCreator {
             return null;
         }
 
-        return new File(FILE_PATH_SINGLE,
+        return new File(Shaft.sSettings.getIllustPath(),
                     deleteSpecialWords(illustsBean.getTitle() + "_" + illustsBean.getId() + ".png"));
     }
 
@@ -79,7 +64,7 @@ public class FileCreator {
 //
 //        }
 
-        return new File(FILE_PATH_SINGLE,
+        return new File(Shaft.sSettings.getIllustPath(),
                 deleteSpecialWords(illustsBean.getTitle() + "_" + illustsBean.getId() + "_" + "p" + (index + 1) + ".png"));
     }
 
@@ -96,7 +81,7 @@ public class FileCreator {
 
 
     public static File createWebFile(String name){
-        File parent = new File(WEB_DOWNLOAD_PATH);
+        File parent = new File(Shaft.sSettings.getIllustPath());
         if(!parent.exists()){
             parent.mkdir();
         }

@@ -26,7 +26,7 @@ public class GifDownload {
                 file.getParentFile())
                 .setFilename(file.getName())
                 .setMinIntervalMillisCallbackProcess(30)
-                .setPassIfAlreadyCompleted(false);
+                .setPassIfAlreadyCompleted(true);
         builder.addHeader(MAP_KEY, IMAGE_REFERER);
         DownloadTask task = builder.build();
         IllustTask illustTask = new IllustTask();

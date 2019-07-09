@@ -20,4 +20,14 @@ public interface SignApi {
                                      @Field("ref") String ref);
 
 
+    @FormUrlEncoded
+    @POST("index.php/user/index/provisionalAccounts")
+    Observable<SignResponse> liteSign(@Field("user_name") String userName,
+                                     @Field("agent") String agent,
+                                     @Field("x-client-time") String time,
+                                     @Field("x-client-hash") String hash);
+
+
+
+
 }

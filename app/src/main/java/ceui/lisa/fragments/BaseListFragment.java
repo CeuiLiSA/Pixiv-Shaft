@@ -195,7 +195,7 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
                             if(!TextUtils.isEmpty(nextUrl)){
                                 if(className.contains("FragmentRelatedIllust")){
                                     mRefreshLayout.setEnableLoadMore(Shaft.sSettings.isRelatedIllustNoLimit());
-                                }else {
+                                } else {
                                     mRefreshLayout.setEnableLoadMore(true);
                                 }
                             }else {

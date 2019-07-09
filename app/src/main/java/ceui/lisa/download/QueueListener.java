@@ -34,8 +34,10 @@ import org.greenrobot.eventbus.EventBus;
 
 import java.io.File;
 
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.DownloadTaskAdapter;
 import ceui.lisa.database.IllustTask;
+import ceui.lisa.utils.Argument;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 
@@ -111,7 +113,7 @@ public class QueueListener extends DownloadListener1 {
 
                 try {
                     ZipFile zipFile = new ZipFile(task.getFile().getPath());
-                    zipFile.extractAll(FileCreator.FILE_GIF_CHILD_PATH +
+                    zipFile.extractAll(Shaft.sSettings.getGifUnzipPath() +
                             task.getFilename().substring(0, task.getFilename().length() - 4));
                     Common.showToast("图组ZIP解压完成");
 

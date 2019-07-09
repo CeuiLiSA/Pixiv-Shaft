@@ -15,8 +15,8 @@ public class LoadJNI {
         Object androidCtx = null;
         try {
             // TODO(hyangah): check proguard rule.
-            //Application appl = (Application)Class.forName("android.app.AppGlobals").getMethod("getInitialApplication").invoke(null);
-            //androidCtx = appl.getApplicationContext();
+            Application appl = (Application)Class.forName("android.app.AppGlobals").getMethod("getInitialApplication").invoke(null);
+            androidCtx = appl.getApplicationContext();
         } catch (Exception e) {
             log.warning("Global context not found: " + e);
         } finally {

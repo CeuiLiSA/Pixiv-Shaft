@@ -1,6 +1,9 @@
 package ceui.lisa.fragments;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
+import android.os.Environment;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.CompoundButton;
@@ -12,7 +15,10 @@ import android.widget.TextView;
 import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringChain;
+import com.nononsenseapps.filepicker.FilePickerActivity;
+import com.nononsenseapps.filepicker.Utils;
 
+import java.io.File;
 import java.util.List;
 
 import ceui.lisa.R;
@@ -24,6 +30,13 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 
 public class FragmentSettings extends BaseFragment {
+
+    private static final int illustPath_CODE = 10086;
+    private static final int gifResultPath_CODE = 10087;
+    private static final int gifZipPath_CODE = 10088;
+    private static final int gifUnzipPath_CODE = 10089;
+
+    private TextView illustPath, gifResultPath, gifZipPath, gifUnzipPath;
 
     @Override
     void initLayout() {
@@ -130,6 +143,71 @@ public class FragmentSettings extends BaseFragment {
             }
         });
 
+        illustPath = v.findViewById(R.id.illust_path);
+        illustPath.setText(Shaft.sSettings.getIllustPath());
+        illustPath.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(mContext, FilePickerActivity.class);
+                // This works if you defined the intent filter
+                // Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+
+                // Set these depending on your use case. These are the defaults.
+                i.putExtra(FilePickerActivity.EXTRA_ALLOW_MULTIPLE, false);
+                i.putExtra(FilePickerActivity.EXTRA_ALLOW_CREATE_DIR, true);
+                i.putExtra(FilePickerActivity.EXTRA_MODE, FilePickerActivity.MODE_DIR);
+
+                // Configure initial directory by specifying a String.
+                // You could specify a String like "/storage/emulated/0/", but that can
+                // dangerous. Always use Android's API calls to get paths to the SD-card or
+                // internal memory.
+                i.putExtra(FilePickerActivity.EXTRA_START_PATH, Environment.getExternalStorageDirectory().getPath());
+
+                startActivityForResult(i, illustPath_CODE);
+            }
+        });
+
+        gifResultPath = v.findViewById(R.id.gif_result);
+        gifResultPath.setText(Shaft.sSettings.getGifResultPath());
+        gifResultPath.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(mContext, FilePickerActivity.class);
+                // This works if you defined the intent filter
+                // Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+
+                // Set these depending on your use case. These are the defaults.
+                i.putExtra(FilePickerActivity.EXTRA_ALLOW_MULTIPLE, false);
+                i.putExtra(FilePickerActivity.EXTRA_ALLOW_CREATE_DIR, true);
+                i.putExtra(FilePickerActivity.EXTRA_MODE, FilePickerActivity.MODE_DIR);
+
+                // Configure initial directory by specifying a String.
+                // You could specify a String like "/storage/emulated/0/", but that can
+                // dangerous. Always use Android's API calls to get paths to the SD-card or
+                // internal memory.
+                i.putExtra(FilePickerActivity.EXTRA_START_PATH, Environment.getExternalStorageDirectory().getPath());
+
+                startActivityForResult(i, gifResultPath_CODE);
+            }
+        });
+
+        gifZipPath = v.findViewById(R.id.gif_zip);
+        gifZipPath.setText(Shaft.sSettings.getGifZipPath());
+        gifZipPath.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Common.showToast("暂不支持修改");
+            }
+        });
+
+        gifUnzipPath = v.findViewById(R.id.gif_unzip);
+        gifUnzipPath.setText(Shaft.sSettings.getGifUnzipPath());
+        gifUnzipPath.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Common.showToast("暂不支持修改");
+            }
+        });
         return v;
     }
 
@@ -163,5 +241,45 @@ public class FragmentSettings extends BaseFragment {
             springs.get(i).setCurrentValue(400);
         }
         springChain.setControlSpringIndex(0).getControlSpring().setEndValue(0);
+    }
+
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == illustPath_CODE && resultCode == Activity.RESULT_OK) {
+            // Use the provided utility method to parse the result
+            List<Uri> files = Utils.getSelectedFilesFromResult(data);
+            for (Uri uri: files) {
+                File file = Utils.getFileForUri(uri);
+                String path = file.getPath();
+                if(path.startsWith("/storage/emulated/0/")){
+                    Shaft.sSettings.setIllustPath(path);
+                    Local.setSettings(Shaft.sSettings);
+                    illustPath.setText(path);
+                } else {
+                    Common.showToast(getString(R.string.select_inner_storage));
+                }
+            }
+            return;
+        }
+
+
+        if (requestCode == gifResultPath_CODE && resultCode == Activity.RESULT_OK) {
+            // Use the provided utility method to parse the result
+            List<Uri> files = Utils.getSelectedFilesFromResult(data);
+            for (Uri uri: files) {
+                File file = Utils.getFileForUri(uri);
+                String path = file.getPath();
+                if(path.startsWith("/storage/emulated/0/")){
+                    Shaft.sSettings.setGifResultPath(path);
+                    Local.setSettings(Shaft.sSettings);
+                    gifResultPath.setText(path);
+                } else {
+                    Common.showToast(getString(R.string.select_inner_storage));
+                }
+            }
+            return;
+        }
     }
 }

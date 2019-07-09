@@ -8,6 +8,7 @@ import ceui.lisa.fragments.FragmentAbout;
 import ceui.lisa.fragments.FragmentBookTag;
 import ceui.lisa.fragments.FragmentComment;
 import ceui.lisa.fragments.FragmentDrag;
+import ceui.lisa.fragments.FragmentFollowAnime;
 import ceui.lisa.fragments.FragmentLocalUsers;
 import ceui.lisa.fragments.FragmentMetro;
 import ceui.lisa.fragments.FragmentPivision;
@@ -79,14 +80,9 @@ public class TemplateFragmentActivity extends FragmentActivity {
                 return new FragmentMetro();
             }else if (dataType.equals("关于软件")) {
                 return new FragmentAbout();
+            }else if (dataType.equals("跟随动画")) {
+                return new FragmentFollowAnime();
             }
-
-
-
-
-
-
-
         }
         return null;
     }

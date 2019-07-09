@@ -11,15 +11,15 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.model.IllustsBean;
+import ceui.lisa.utils.Argument;
 import ceui.lisa.utils.Common;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 public class GifCreate {
@@ -28,7 +28,7 @@ public class GifCreate {
 
         File parentFile = FileCreator.createGifParentFile(illustsBean);
         if (parentFile.exists()) {
-            File realGifFile = new File(FileCreator.FILE_GIF_RESULT_PATH, illustsBean.getId() + ".gif");
+            File realGifFile = new File(Shaft.sSettings.getGifResultPath(), illustsBean.getId() + ".gif");
             if (realGifFile.exists()) {
                 Common.showToast("gif已存在");
             } else {
@@ -37,43 +37,60 @@ public class GifCreate {
                 Observable.create(new ObservableOnSubscribe<String>() {
                     @Override
                     public void subscribe(ObservableEmitter<String> emitter) throws Exception {
-                        Gifflen mGiffle = new Gifflen.Builder()
-                                .delay(75) //每相邻两帧之间播放的时间间隔.
-                                .listener(new Gifflen.OnEncodeFinishListener() {  //创建完毕的回调
-                                    @Override
-                                    public void onEncodeFinish(String path) {
-                                        Common.showToast("已保存gif到" + path);
-                                        emitter.onNext(path);
-                                    }
-                                })
-                                .build();
-                        File resultParent = new File(FileCreator.FILE_GIF_RESULT_PATH);
-                        if (!resultParent.exists()) {
-                            resultParent.mkdir();
-                        }
+                        try {
+                            Gifflen mGiffle = new Gifflen.Builder()
+                                    .delay(85) //每相邻两帧之间播放的时间间隔.
+                                    .listener(new Gifflen.OnEncodeFinishListener() {  //创建完毕的回调
+                                        @Override
+                                        public void onEncodeFinish(String path) {
+                                            new ImageSaver() {
+                                                @Override
+                                                File whichFile() {
+                                                    return realGifFile;
+                                                }
+                                            }.execute();
+                                            Common.showToast("已保存gif到" + path);
+                                            emitter.onNext(path);
+                                        }
+                                    })
+                                    .build();
 
-                        realGifFile.createNewFile();
-
-                        List<File> allFiles = Arrays.asList(listfile);
-                        Collections.sort(allFiles, new Comparator<File>() {
-                            @Override
-                            public int compare(File o1, File o2) {
-                                if (Integer.valueOf(o1.getName().substring(0, o1.getName().length() - 4)) >
-                                        Integer.valueOf(o2.getName().substring(0, o2.getName().length() - 4))) {
-                                    return 1;
-                                } else {
-                                    return -1;
-                                }
+                            File resultParent = new File(Shaft.sSettings.getGifResultPath());
+                            if (!resultParent.exists()) {
+                                resultParent.mkdir();
                             }
-                        });
+
+                            realGifFile.createNewFile();
+
+                            List<File> allFiles = Arrays.asList(listfile);
+                            Collections.sort(allFiles, new Comparator<File>() {
+                                @Override
+                                public int compare(File o1, File o2) {
+                                    if (Integer.valueOf(o1.getName().substring(0, o1.getName().length() - 4)) >
+                                            Integer.valueOf(o2.getName().substring(0, o2.getName().length() - 4))) {
+                                        return 1;
+                                    } else {
+                                        return -1;
+                                    }
+                                }
+                            });
 
 
-                        if(illustsBean.getWidth() < illustsBean.getHeight()){
-                            mGiffle.encode(450 * illustsBean.getWidth() / illustsBean.getHeight(),
-                                    450, realGifFile.getPath(), allFiles);
-                        }else {
-                            mGiffle.encode(450, 450 * illustsBean.getHeight() / illustsBean.getWidth(),
-                                    realGifFile.getPath(), allFiles);
+                            if(illustsBean.getWidth() > 450 && illustsBean.getHeight() > 450) {
+
+                                if (illustsBean.getWidth() < illustsBean.getHeight()) {
+                                    mGiffle.encode(450 * illustsBean.getWidth() / illustsBean.getHeight(),
+                                            450, realGifFile.getPath(), allFiles);
+                                } else {
+                                    mGiffle.encode(450, 450 * illustsBean.getHeight() / illustsBean.getWidth(),
+                                            realGifFile.getPath(), allFiles);
+                                }
+                            }else {
+                                mGiffle.encode(illustsBean.getWidth(), illustsBean.getHeight(), realGifFile.getPath(), allFiles);
+                            }
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
 
                     }
@@ -90,8 +107,6 @@ public class GifCreate {
             Common.showToast("请先播放后保存");
         }
     }
-
-
 
 
 //    public static void createGifWithOutCpp(IllustsBean illustsBean) {
@@ -159,26 +174,26 @@ public class GifCreate {
 //    }
 
 
-    public static int[][] txtString(FileReader file){
+    public static int[][] txtString(FileReader file) {
         BufferedReader br = new BufferedReader(file);//读取文件
         try {
             String line = br.readLine();//读取一行数据
             int lines = Integer.parseInt(line);//将数据转化为int类型
             System.out.println(lines);
 
-            String []sp = null;
-            String [][]c = new String[lines][lines];
-            int [][]cc = new int[lines][lines];
-            int count=0;
-            while((line=br.readLine())!=null) {//按行读取
+            String[] sp = null;
+            String[][] c = new String[lines][lines];
+            int[][] cc = new int[lines][lines];
+            int count = 0;
+            while ((line = br.readLine()) != null) {//按行读取
                 sp = line.split(" ");//按空格进行分割
-                for(int i=0;i<sp.length;i++){
+                for (int i = 0; i < sp.length; i++) {
                     c[count][i] = sp[i];
                 }
                 count++;
             }
-            for(int i=0;i<lines;i++){
-                for(int j=0;j<lines;j++){
+            for (int i = 0; i < lines; i++) {
+                for (int j = 0; j < lines; j++) {
                     cc[i][j] = Integer.parseInt(c[i][j]);
                     System.out.print(cc[i][j]);
                 }

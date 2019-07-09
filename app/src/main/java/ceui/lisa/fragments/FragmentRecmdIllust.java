@@ -51,6 +51,7 @@ public class FragmentRecmdIllust extends AutoClipFragment<ListIllustResponse,
     }
 
 
+
     @Override
     Observable<ListIllustResponse> initApi() {
         return Retro.getAppApi().getRecmdIllust(sUserModel.getResponse().getAccess_token(), true);

@@ -8,6 +8,7 @@ import ceui.lisa.model.BookmarkTags;
 import ceui.lisa.model.IllustBookmarkTags;
 import ceui.lisa.model.IllustCommentsResponse;
 import ceui.lisa.model.IllustSearchResponse;
+import ceui.lisa.model.MutedHistory;
 import ceui.lisa.model.NullResponse;
 import ceui.lisa.model.GifResponse;
 import ceui.lisa.model.ListIllustResponse;
@@ -271,4 +272,22 @@ public interface AppApi {
     @GET("/v2/illust/bookmark/detail")
     Observable<IllustBookmarkTags> getIllustBookmarkTags(@Header("Authorization") String token,
                                                          @Query("illust_id") int illust_id);
+
+
+    /**
+     * 获取已屏蔽的标签/用户
+     *
+     * 这功能感觉做了没啥卵用，因为未开会员的用户只能屏蔽一个标签/用户，
+     *
+     * 你屏蔽了一个用户，就不能再屏蔽标签，屏蔽了标签，就不能屏蔽用户，而且都只能屏蔽一个，擦
+     *
+     * @param token
+     * @return
+     */
+    @GET("/v1/mute/list")
+    Observable<MutedHistory> getMutedHistory(@Header("Authorization") String token);
+
+
+
+
 }

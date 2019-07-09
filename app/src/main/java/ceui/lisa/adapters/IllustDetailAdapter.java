@@ -168,7 +168,7 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                     while (true) {
                         if (playGif) {
                             emitter.onNext(allFiles.get(xyz % count));
-                            Thread.sleep(75);
+                            Thread.sleep(85);
                             xyz++;
                         } else {
                             break;
