@@ -8,11 +8,13 @@ import com.google.gson.GsonBuilder;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
+import java.security.cert.X509Certificate;
 import java.util.Collections;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.X509TrustManager;
 
 import ceui.lisa.activities.Shaft;
 import okhttp3.OkHttpClient;
@@ -42,7 +44,13 @@ public class Retro {
     //腾讯统计API
     public static final String TENCENT_API = "https://openapi.mta.qq.com/";
 
+    static class pixivOkHttpClient implements X509TrustManager {
+        public void checkClientTrusted(X509Certificate[] param1ArrayOfX509Certificate, String param1String) {}
 
+        public void checkServerTrusted(X509Certificate[] param1ArrayOfX509Certificate, String param1String) {}
+
+        public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[0]; }
+    }
 
     public static AppApi getAppApi() {
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(
@@ -73,9 +81,12 @@ public class Retro {
             e.printStackTrace();
         }
 
-//        if(Shaft.sSettings.isAutoFuckChina()){
-//            builder.dns(new FuckChinaDns());
-//        }
+
+
+        if(Shaft.sSettings.isAutoFuckChina()){
+            builder.sslSocketFactory(new RubySSLSocketFactory(), new pixivOkHttpClient());
+            builder.dns(HttpDns.getInstance());
+        }
         OkHttpClient client = builder.build();
         Gson gson = new GsonBuilder()
                 .setLenient()
@@ -154,9 +165,10 @@ public class Retro {
 //                    }
 //                })
                 .build();
-//        if(Shaft.sSettings.isAutoFuckChina()){
-//            builder.dns(new FuckChinaDns());
-//        }
+        if(Shaft.sSettings.isAutoFuckChina()){
+            builder.sslSocketFactory(new RubySSLSocketFactory(), new pixivOkHttpClient());
+            builder.dns(HttpDns.getInstance());
+        }
         OkHttpClient client = builder.build();
         Gson gson = new GsonBuilder().setLenient().create();
         Retrofit retrofit = new Retrofit.Builder()

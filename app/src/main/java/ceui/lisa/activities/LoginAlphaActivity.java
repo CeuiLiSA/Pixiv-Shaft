@@ -175,7 +175,7 @@ public class LoginAlphaActivity extends BaseActivity {
         Common.hideKeyboard(mActivity);
         mProgressBar.setVisibility(View.VISIBLE);
         //固定参数写死就完事，借用了pixivlite的注册接口
-        Retro.getSignApi().liteSign(
+        Retro.getSignApi().pixivLiteSign(
                 signName.getText().toString(),
                 "PixivAndroidApp/5.0.118 (Android 6.0.1; D6653)",
                 "2019-07-09T11:15:19+08:00",

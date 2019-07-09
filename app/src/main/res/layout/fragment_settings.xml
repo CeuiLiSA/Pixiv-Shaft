@@ -425,19 +425,17 @@
 
 
                 <RelativeLayout
-                    android:visibility="gone"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
 
 
                     <TextView
                         android:layout_margin="@dimen/sixteen_dp"
-                        android:text="开启直连（自行代理的话请关闭）"
+                        android:text="开启直连（自行代理或在墙外，可以关闭）"
                         android:textSize="15sp"
                         android:textColor="@color/dark_text"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content">
-
 
 
                     </TextView>
