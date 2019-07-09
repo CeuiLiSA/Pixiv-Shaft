@@ -15,14 +15,14 @@ public interface SignApi {
 
     @FormUrlEncoded
     @POST("api/provisional-accounts/create")
-    Observable<SignResponse> nowSign(@Header("Authorization") String token,
+    Observable<SignResponse> pixivSign(@Header("Authorization") String token,
                                      @Field("user_name") String userName,
                                      @Field("ref") String ref);
 
 
     @FormUrlEncoded
     @POST("index.php/user/index/provisionalAccounts")
-    Observable<SignResponse> liteSign(@Field("user_name") String userName,
+    Observable<SignResponse> pixivLiteSign(@Field("user_name") String userName,
                                      @Field("agent") String agent,
                                      @Field("x-client-time") String time,
                                      @Field("x-client-hash") String hash);

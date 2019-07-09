@@ -19,6 +19,7 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AlertDialog;
+import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
@@ -307,7 +308,8 @@ public class CoverActivity extends BaseActivity
                             sUserModel.getResponse().getUser().getProfile_image_urls().getPx_170x170()))
                     .into(userHead);
             username.setText(sUserModel.getResponse().getUser().getName());
-            user_email.setText(sUserModel.getResponse().getUser().getMail_address());
+            user_email.setText(TextUtils.isEmpty(sUserModel.getResponse().getUser().getMail_address()) ?
+                    "未绑定邮箱" : sUserModel.getResponse().getUser().getMail_address());
         }
     }
 
