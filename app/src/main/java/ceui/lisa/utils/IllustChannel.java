@@ -11,6 +11,9 @@ public class IllustChannel {
     }
 
     private List<IllustsBean> illustList = new ArrayList<>();
+
+    private List<IllustsBean> downloadList = new ArrayList<>();
+
     private volatile static IllustChannel instance = null;
 
     public static IllustChannel get() {
@@ -31,5 +34,13 @@ public class IllustChannel {
 
     public void setIllustList(List<IllustsBean> illustList) {
         this.illustList = illustList;
+    }
+
+    public List<IllustsBean> getDownloadList() {
+        return downloadList;
+    }
+
+    public void setDownloadList(List<IllustsBean> illustList) {
+        this.downloadList = illustList;
     }
 }

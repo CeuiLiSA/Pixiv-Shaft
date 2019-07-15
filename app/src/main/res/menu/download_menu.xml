@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_1"
+        android:orderInCategory="100"
+        android:title="全部选择"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_2"
+        android:orderInCategory="100"
+        android:title="取消全选"
+        app:showAsAction="never" />
+
+
+</menu>

@@ -22,7 +22,9 @@ public class Settings {
     //WEB下载
     public static final String WEB_DOWNLOAD_PATH = "/storage/emulated/0/Shaft/Web";
 
-
+    //收藏量筛选
+    public static final String[] ALL_SIZE = new String[]{" 无限制", " 500", " 1000", " 2000",
+            " 5000", " 7500", " 10000", " 20000", " 50000"};
 
 
     //瀑布流List点击动画
@@ -64,6 +66,9 @@ public class Settings {
 
     private String webDownloadPath = "";
 
+    //收藏量筛选搜索结果
+    private String searchFilter = "";
+
     public Settings() {
     }
 
@@ -81,6 +86,14 @@ public class Settings {
 
     public void setSaveViewHistory(boolean saveViewHistory) {
         this.saveViewHistory = saveViewHistory;
+    }
+
+    public String getSearchFilter() {
+        return TextUtils.isEmpty(searchFilter) ? " 无限制" : searchFilter;
+    }
+
+    public void setSearchFilter(String searchFilter) {
+        this.searchFilter = searchFilter;
     }
 
     public boolean isRelatedIllustNoLimit() {

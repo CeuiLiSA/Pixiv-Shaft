@@ -36,6 +36,7 @@ public class IllustsBean implements Serializable {
     private ImageUrlsBean image_urls;
     private String caption;
     private int restrict;
+    private boolean isChecked = false;
     private UserBean user;
     private String create_date;
     private int page_count;
@@ -260,7 +261,13 @@ public class IllustsBean implements Serializable {
         this.meta_pages = meta_pages;
     }
 
+    public boolean isChecked() {
+        return isChecked;
+    }
 
+    public void setChecked(boolean checked) {
+        isChecked = checked;
+    }
 
 //    public static class UserBean implements Serializable{
 //        /**

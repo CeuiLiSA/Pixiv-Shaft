@@ -16,7 +16,6 @@ import android.widget.TextView;
 import com.mancj.materialsearchbar.MaterialSearchBar;
 import com.mancj.materialsearchbar.adapter.SuggestionsAdapter;
 
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import ceui.lisa.R;
@@ -26,12 +25,9 @@ import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
-import ceui.lisa.model.TrendingtagResponse;
+import ceui.lisa.model.PartCompleteWords;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.PixivOperate;
-import ceui.lisa.utils.optional.Consumer;
-import ceui.lisa.utils.optional.Function;
-import ceui.lisa.utils.optional.Optional;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
@@ -42,16 +38,16 @@ import io.reactivex.schedulers.Schedulers;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-public class FragmentCenter extends BaseFragment {
+public class FragmentCenter222 extends BaseFragment {
 
     private boolean isLoad = false;
     private MaterialSearchBar mSearchBar;
     private int searchType = 0;
     private ObservableEmitter<String> fuck = null;
-    private SuggestionsAdapter<TrendingtagResponse.TrendTagsBean, TagHolder> mAdapter = null;
+    private SuggestionsAdapter<String, TagHolder> mAdapter = null;
 
 
-    public FragmentCenter() {
+    public FragmentCenter222() {
     }
 
     @Override
@@ -114,12 +110,12 @@ public class FragmentCenter extends BaseFragment {
                         Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
                         intent.putExtra(TemplateFragmentActivity.EXTRA_KEYWORD, keyWord);
                         intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
-                                "搜索结果");
+                                "搜索配件");
                         startActivity(intent);
                     } else if (searchType == 1) {
-                        if (isNumeric(keyWord)) {
+                        if(isNumeric(keyWord)){
                             PixivOperate.getIllustByID(sUserModel, Integer.valueOf(keyWord), mContext);
-                        } else {
+                        }else {
                             Common.showToast("ID必须为全数字");
                         }
                     } else if (searchType == 2) {
@@ -130,11 +126,11 @@ public class FragmentCenter extends BaseFragment {
                                 "搜索用户");
                         startActivity(intent);
                     } else if (searchType == 3) {
-                        if (isNumeric(keyWord)) {
+                        if(isNumeric(keyWord)){
                             Intent intent = new Intent(mContext, UserDetailActivity.class);
                             intent.putExtra("user id", Integer.valueOf(keyWord));
                             startActivity(intent);
-                        } else {
+                        }else {
                             Common.showToast("ID必须为全数字");
                         }
                     }
@@ -172,7 +168,7 @@ public class FragmentCenter extends BaseFragment {
             }
         }).subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .debounce(1000, TimeUnit.MILLISECONDS)
+                .debounce(2000, TimeUnit.MILLISECONDS)
                 .subscribe(new Observer<String>() {
                     @Override
                     public void onSubscribe(Disposable d) {
@@ -202,11 +198,11 @@ public class FragmentCenter extends BaseFragment {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (searchType == 0) {
+                if(searchType == 0) {
                     String key = String.valueOf(s);
                     if (key.length() != 0) {
                         fuck.onNext(key);
-                    } else {
+                    }else {
                         mSearchBar.hideSuggestionsList();
                     }
                 }
@@ -219,60 +215,65 @@ public class FragmentCenter extends BaseFragment {
         });
     }
 
-    private void completeWord(String key) {
-        Retro.getAppApi().searchCompleteWord(sUserModel.getResponse().getAccess_token(), key)
+    private void completeWord(String key){
+        Retro.getPartApi().inputHelp(key)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new ErrorCtrl<TrendingtagResponse>() {
+                .subscribe(new ErrorCtrl<PartCompleteWords>() {
                     @Override
-                    public void onNext(TrendingtagResponse trendingtagResponse) {
-                        Optional.ofNullable(trendingtagResponse)
-                                .map(TrendingtagResponse::getList)
-                                .ifPresent(new Consumer<List<TrendingtagResponse.TrendTagsBean>>() {
+                    public void onNext(PartCompleteWords trendingtagResponse) {
+                        if(trendingtagResponse != null){
+                            if(trendingtagResponse.getList() != null && trendingtagResponse.getList().size() != 0){
+
+                                mAdapter = new SuggestionsAdapter<String, TagHolder>(LayoutInflater.from(mContext)) {
+
                                     @Override
-                                    public void accept(List<TrendingtagResponse.TrendTagsBean> trendTagsBeans) {
-                                        if(trendTagsBeans.size() != 0){
-                                            mAdapter = new SuggestionsAdapter<TrendingtagResponse.TrendTagsBean, TagHolder>(LayoutInflater.from(mContext)) {
-                                                @Override
-                                                public void onBindSuggestionHolder(TrendingtagResponse.TrendTagsBean suggestion, TagHolder holder, int position) {
-                                                    holder.tag.setText(suggestion.getTranslated_name() == null ?
-                                                            suggestion.getTag() : suggestion.getTranslated_name());
-                                                    Common.showLog("onBindSuggestionHolder " + position);
-                                                    holder.itemView.setOnClickListener(new View.OnClickListener() {
-                                                        @Override
-                                                        public void onClick(View v) {
-                                                            Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-                                                            intent.putExtra(TemplateFragmentActivity.EXTRA_KEYWORD, suggestion.getTag());
-                                                            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
-                                                                    "搜索结果");
-                                                            startActivity(intent);
-                                                        }
-                                                    });
-                                                }
-
-                                                @Override
-                                                public int getSingleViewHeight() {
-                                                    return 55;
-                                                }
-
-                                                @NonNull
-                                                @Override
-                                                public TagHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-                                                    View view = this.getLayoutInflater().inflate(R.layout.recy_tag_item, viewGroup, false);
-                                                    return new TagHolder(view);
-                                                }
-                                            };
-                                            mAdapter.setSuggestions(trendingtagResponse.getTags());
-                                            mSearchBar.setCustomSuggestionAdapter(mAdapter);
-                                            mSearchBar.showSuggestionsList();
-                                        }
+                                    public void onBindSuggestionHolder(String suggestion, TagHolder holder, int position) {
+                                        holder.tag.setText(TextUtils.isEmpty(suggestion) ?
+                                                " " : suggestion);
+                                        Common.showLog("onBindSuggestionHolder " + position);
+                                        holder.itemView.setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View v) {
+                                                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+                                                intent.putExtra(TemplateFragmentActivity.EXTRA_KEYWORD, suggestion);
+                                                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
+                                                        "搜索配件");
+                                                startActivity(intent);
+                                            }
+                                        });
                                     }
-                                });
+
+                                    @Override
+                                    public int getSingleViewHeight() {
+                                        return 55;
+                                    }
+
+                                    @NonNull
+                                    @Override
+                                    public TagHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
+                                        View view = this.getLayoutInflater().inflate(R.layout.recy_tag_item, viewGroup, false);
+                                        return new TagHolder(view);
+                                    }
+                                };
+                                mSearchBar.setMaxSuggestionCount(5);
+                                mAdapter.setSuggestions(trendingtagResponse.getList());
+                                mSearchBar.setMaxSuggestionCount(5);
+                                mSearchBar.setCustomSuggestionAdapter(mAdapter);
+                                mSearchBar.setMaxSuggestionCount(5);
+                                mSearchBar.showSuggestionsList();
+                                mSearchBar.setMaxSuggestionCount(5);
+                            }else {
+                                Common.showLog("无自动填充列表");
+                            }
+                        }else {
+                            Common.showToast("解析返回值错误");
+                        }
                     }
                 });
     }
 
-    private static class TagHolder extends RecyclerView.ViewHolder {
+    private static class TagHolder extends RecyclerView.ViewHolder{
 
         private TextView tag;
 

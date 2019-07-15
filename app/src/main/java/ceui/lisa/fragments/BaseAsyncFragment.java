@@ -38,15 +38,6 @@ public abstract class BaseAsyncFragment<Adapter extends RecyclerView.Adapter<Rec
     @Override
     View initView(View v) {
         mToolbar = v.findViewById(R.id.toolbar);
-        if(showToolbar()){
-            mToolbar.setNavigationOnClickListener(view -> getActivity().finish());
-            mToolbar.setTitle(getToolbarTitle());
-        } else {
-            if(mToolbar != null) {
-                mToolbar.setVisibility(View.GONE);
-            }
-        }
-
         mProgressBar = v.findViewById(R.id.progress);
         noData = v.findViewById(R.id.no_data);
         noData.setOnClickListener(new View.OnClickListener() {
@@ -57,10 +48,7 @@ public abstract class BaseAsyncFragment<Adapter extends RecyclerView.Adapter<Rec
             }
         });
         mRecyclerView = v.findViewById(R.id.recyclerView);
-        LinearLayoutManager manager = new LinearLayoutManager(mContext);
-        mRecyclerView.setLayoutManager(manager);
-        mRecyclerView.setHasFixedSize(true);
-        mRecyclerView.addItemDecoration(new LinearItemDecoration(DensityUtil.dp2px(8.0f)));
+        initRecyclerView();
         mRefreshLayout = v.findViewById(R.id.refreshLayout);
         mRefreshLayout.setRefreshHeader(new DeliveryHeader(mContext));
         mRefreshLayout.setOnRefreshListener(layout -> getFirstData());
@@ -69,6 +57,13 @@ public abstract class BaseAsyncFragment<Adapter extends RecyclerView.Adapter<Rec
             mRefreshLayout.setOnLoadMoreListener(layout -> getNextData());
         }
         return v;
+    }
+
+    protected void initRecyclerView(){
+        LinearLayoutManager manager = new LinearLayoutManager(mContext);
+        mRecyclerView.setLayoutManager(manager);
+        mRecyclerView.setHasFixedSize(true);
+        mRecyclerView.addItemDecoration(new LinearItemDecoration(DensityUtil.dp2px(8.0f)));
     }
 
     @Override
@@ -83,6 +78,14 @@ public abstract class BaseAsyncFragment<Adapter extends RecyclerView.Adapter<Rec
     public abstract void getFirstData();
 
     public void showFirstData(){
+        if(showToolbar()){
+            mToolbar.setNavigationOnClickListener(view -> getActivity().finish());
+            mToolbar.setTitle(getToolbarTitle());
+        } else {
+            if(mToolbar != null) {
+                mToolbar.setVisibility(View.GONE);
+            }
+        }
         initAdapter();
         mRecyclerView.setAdapter(mAdapter);
         if(allItems.size() == 0){

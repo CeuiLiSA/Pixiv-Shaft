@@ -21,8 +21,10 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.interfaces.MultiDownload;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.view.ScrollChangeManager;
 
@@ -30,7 +32,7 @@ import ceui.lisa.view.ScrollChangeManager;
 /**
  * 飘逸灵动的瀑布流适配器
  */
-public class IllustStagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public class IllustStagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements MultiDownload {
 
     private Context mContext;
     private LayoutInflater mLayoutInflater;
@@ -91,7 +93,7 @@ public class IllustStagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         }
         if (mOnItemClickListener != null) {
             holder.itemView.setOnClickListener(v -> {
-                if(Shaft.sSettings.isStaggerAnime()){
+                if (Shaft.sSettings.isStaggerAnime()) {
                     if (state == 1) {
                         mRefreshLayout.setEnableLoadMore(false);
                         mManager.setCanScroll(false);
@@ -123,7 +125,6 @@ public class IllustStagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                                 }
 
 
-
                                 //最后翻转被点击的view， 并设置动画结束的回调
                                 if (i == mRecyclerView.getChildCount() - 1) {
                                     int[] array = new int[2];
@@ -150,11 +151,43 @@ public class IllustStagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                             }
                         }
                     }
-                }else {
+                } else {
                     mOnItemClickListener.onItemClick(currentOne.illust, position, 0);
                 }
             });
+
+
+            holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+//                    mRecyclerView.setCameraDistance(80000f);
+//                    mRecyclerView.setPivotX(-100f);
+//                    LeftOutRunnable animeRunnable = new LeftOutRunnable();
+//                    animeRunnable.setOnAnimeEnd(new OnAnimeEnd() {
+//                        @Override
+//                        public void onAnimeEndPerform() {
+//                            startDownload();
+//                        }
+//                    });
+//                    animeRunnable.setView(mRecyclerView);
+//                    animeRunnable.setRorateY(-180);
+//                    mHandler.post(animeRunnable);
+
+                    startDownload();
+                    return true;
+                }
+            });
         }
+    }
+
+    @Override
+    public List<IllustsBean> getIllustList() {
+        return allIllust;
+    }
+
+    @Override
+    public Context getContext() {
+        return mContext;
     }
 
 
@@ -210,6 +243,57 @@ public class IllustStagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     }
 
 
+    public class LeftOutRunnable implements Runnable {
+
+        private int rotateY;
+        private Spring mSpring;
+        private View mView;
+        private OnAnimeEnd mOnAnimeEnd;
+
+        @Override
+        public void run() {
+            mSpring = mSystem.createSpring();
+            mSpring.setSpringConfig(SpringConfig.fromOrigamiTensionAndFriction(20, 3));
+
+            mSpring.addListener(new SimpleSpringListener() {
+                @Override
+                public void onSpringUpdate(Spring spring) {
+                    float temp = (float) spring.getCurrentValue();
+                    if (temp < -100f) {
+                        mSpring.setAtRest();
+                    } else {
+                        mView.setRotationY(temp);
+                    }
+                }
+
+                @Override
+                public void onSpringAtRest(Spring spring) {
+                    super.onSpringAtRest(spring);
+                    if (mOnAnimeEnd != null) {
+                        state = 1;
+                        mManager.setCanScroll(true);
+                        mRefreshLayout.setEnableLoadMore(true);
+                        mOnAnimeEnd.onAnimeEndPerform();
+                    }
+                }
+            });
+            mSpring.setCurrentValue(0);
+            mSpring.setEndValue(rotateY);
+        }
+
+        void setRorateY(int rotateY) {
+            this.rotateY = rotateY;
+        }
+
+        void setView(View view) {
+            mView = view;
+        }
+
+        void setOnAnimeEnd(OnAnimeEnd onAnimeEnd) {
+            mOnAnimeEnd = onAnimeEnd;
+        }
+    }
+
     public interface OnAnimeEnd {
         void onAnimeEndPerform();
     }
@@ -242,8 +326,8 @@ public class IllustStagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         for (int i = 0; i < mRecyclerView.getChildCount(); i++) {
             View view = mRecyclerView.getChildAt(i);
             if (view != null) {
-                view.setRotationY(+0.001f);
-                view.setRotationY(+0.001f);
+                view.setRotationY(0f);
+                view.setRotationY(0f);
             }
         }
     }

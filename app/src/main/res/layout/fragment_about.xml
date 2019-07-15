@@ -142,15 +142,6 @@
 
                 </RelativeLayout>
 
-                <View
-                    android:layout_width="match_parent"
-                    android:background="#e6e6e6"
-                    android:layout_marginStart="@dimen/sixteen_dp"
-                    android:layout_height="1dp">
-
-
-                </View>
-
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:visibility="gone"
@@ -266,14 +257,6 @@
 
                 </RelativeLayout>
 
-                <View
-                    android:layout_width="match_parent"
-                    android:background="#e6e6e6"
-                    android:layout_marginStart="@dimen/sixteen_dp"
-                    android:layout_height="1dp">
-
-
-                </View>
 
             </LinearLayout>
 

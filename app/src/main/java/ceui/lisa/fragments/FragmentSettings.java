@@ -1,9 +1,11 @@
 package ceui.lisa.fragments;
 
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Environment;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.CompoundButton;
@@ -28,6 +30,9 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
+
+import static ceui.lisa.activities.Shaft.sUserModel;
+import static ceui.lisa.utils.Settings.ALL_SIZE;
 
 public class FragmentSettings extends BaseFragment {
 
@@ -208,6 +213,41 @@ public class FragmentSettings extends BaseFragment {
                 Common.showToast("暂不支持修改");
             }
         });
+
+
+        TextView fuckChina = v.findViewById(R.id.fuck_china);
+        fuckChina.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "网页链接");
+                intent.putExtra("url", "https://github.com/Notsfsssf/Pix-EzViewer");
+                intent.putExtra("title", "PxEz项目主页");
+                startActivity(intent);
+            }
+        });
+
+        TextView searchFilter = v.findViewById(R.id.search_filter);
+        searchFilter.setText(Shaft.sSettings.getSearchFilter());
+        searchFilter.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+                builder.setTitle("被收藏数");
+                builder.setItems(ALL_SIZE, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Shaft.sSettings.setSearchFilter(ALL_SIZE[which]);
+                        Local.setSettings(Shaft.sSettings);
+                        searchFilter.setText(ALL_SIZE[which]);
+                    }
+                });
+                AlertDialog alertDialog = builder.create();
+                alertDialog.show();
+            }
+        });
+
+
         return v;
     }
 

@@ -165,7 +165,7 @@ public class FragmentDownloadFinish extends BaseAsyncFragment<DownlistAdapter, D
             DownloadEntity entity = (DownloadEntity) event.getObject();
             allItems.add(0, entity);
             allIllusts.add(new Gson().fromJson(entity.getIllustGson(), IllustsBean.class));
-            filePaths.add(entity.getFilePath());
+            filePaths.add(0, entity.getFilePath());
             mAdapter.notifyItemInserted(0);
             mRecyclerView.scrollToPosition(0);
             mAdapter.notifyItemRangeChanged(0, allItems.size());

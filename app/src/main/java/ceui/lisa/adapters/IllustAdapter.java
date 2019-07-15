@@ -21,8 +21,10 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.interfaces.MultiDownload;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.view.GridScrollChangeManager;
 import ceui.lisa.view.ScrollChangeManager;
@@ -31,7 +33,7 @@ import ceui.lisa.view.ScrollChangeManager;
 /**
  * 网格Grid 列表适配器
  */
-public class IllustAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public class IllustAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements MultiDownload {
 
     private Context mContext;
     private LayoutInflater mLayoutInflater;
@@ -76,6 +78,13 @@ public class IllustAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                 .placeholder(R.color.light_bg)
                 .into(currentOne.illust);
         if(mOnItemClickListener != null){
+            holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    startDownload();
+                    return true;
+                }
+            });
 
             holder.itemView.setOnClickListener(v -> {
                 if(Shaft.sSettings.isGridAnime()){
@@ -144,6 +153,15 @@ public class IllustAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         }
     }
 
+    @Override
+    public List<IllustsBean> getIllustList() {
+        return allIllust;
+    }
+
+    @Override
+    public Context getContext() {
+        return mContext;
+    }
 
     public class AnimeEndRunnable implements Runnable {
 
@@ -215,8 +233,8 @@ public class IllustAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         for (int i = 0; i < mRecyclerView.getChildCount(); i++) {
             View view = mRecyclerView.getChildAt(i);
             if (view != null) {
-                view.setRotationY(+0.001f);
-                view.setRotationY(+0.001f);
+                view.setRotationY(0f);
+                view.setRotationY(0f);
             }
         }
     }

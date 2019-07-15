@@ -430,15 +430,32 @@
 
 
                     <TextView
-                        android:layout_margin="@dimen/sixteen_dp"
+                        android:layout_marginStart="@dimen/sixteen_dp"
+                        android:layout_marginTop="@dimen/sixteen_dp"
+                        android:layout_marginBottom="@dimen/six_dp"
                         android:text="开启直连（自行代理或在墙外，可以关闭）"
                         android:textSize="15sp"
+                        android:id="@+id/fuck_china_s"
                         android:textColor="@color/dark_text"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content">
 
 
                     </TextView>
+
+
+                    <TextView
+                        android:layout_marginStart="@dimen/sixteen_dp"
+                        android:layout_marginBottom="@dimen/sixteen_dp"
+                        android:text="详见 Notsfsssf/Pix-EzViewer"
+                        android:layout_below="@+id/fuck_china_s"
+                        android:textSize="13sp"
+                        android:textColor="@color/colorPrimary"
+                        android:singleLine="true"
+                        android:ellipsize="start"
+                        android:id="@+id/fuck_china"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
 
 
                     <Switch
@@ -455,7 +472,6 @@
 
                 <View
                     android:layout_width="match_parent"
-                    android:visibility="gone"
                     android:background="#e6e6e6"
                     android:layout_marginStart="@dimen/sixteen_dp"
                     android:layout_height="1dp"/>
@@ -464,6 +480,7 @@
 
                 <RelativeLayout
                     android:layout_width="match_parent"
+                    android:visibility="gone"
                     android:layout_height="match_parent">
 
 
@@ -494,6 +511,7 @@
                 <View
                     android:layout_width="match_parent"
                     android:background="#e6e6e6"
+                    android:visibility="gone"
                     android:layout_marginStart="@dimen/sixteen_dp"
                     android:layout_height="1dp">
 
@@ -674,7 +692,7 @@
                         android:layout_width="wrap_content"
                         android:textSize="13sp"
                         android:textColor="@color/colorPrimary"
-                        android:text="性能"
+                        android:text="其他"
                         android:layout_marginTop="@dimen/eight_dp"
                         android:layout_marginBottom="@dimen/eight_dp"
                         android:layout_marginStart="@dimen/sixteen_dp"
@@ -689,8 +707,9 @@
 
                     <TextView
                         android:layout_margin="@dimen/sixteen_dp"
-                        android:text="移植加力燃烧器"
+                        android:text="搜索结果收藏量筛选"
                         android:textSize="15sp"
+                        android:id="@+id/search_filter_s"
                         android:textColor="@color/dark_text"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content">
@@ -700,13 +719,19 @@
                     </TextView>
 
 
-                    <Switch
-                        android:layout_width="wrap_content"
-                        android:checked="true"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
+                    <TextView
                         android:layout_margin="@dimen/sixteen_dp"
-                        android:layout_height="wrap_content" />
+                        android:text="10000"
+                        android:textSize="14sp"
+                        android:id="@+id/search_filter"
+                        android:layout_alignParentEnd="true"
+                        android:textColor="@color/colorPrimary"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
+
+
+
+                    </TextView>
 
 
                 </RelativeLayout>

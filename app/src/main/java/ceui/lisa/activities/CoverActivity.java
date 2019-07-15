@@ -7,9 +7,6 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.net.Uri;
-import android.os.Bundle;
-import android.os.Environment;
-import android.support.annotation.Nullable;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
@@ -30,7 +27,6 @@ import com.bumptech.glide.Glide;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.zhihu.matisse.Matisse;
 import com.zhihu.matisse.MimeType;
-import com.zhihu.matisse.engine.impl.GlideEngine;
 import com.zhihu.matisse.engine.impl.PicassoEngine;
 
 import org.greenrobot.eventbus.EventBus;
@@ -42,11 +38,10 @@ import java.util.Arrays;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.database.AppDatabase;
-import ceui.lisa.download.FileCreator;
 import ceui.lisa.download.TaskQueue;
 import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentCenter;
+import ceui.lisa.fragments.FragmentCenter222;
 import ceui.lisa.fragments.FragmentRight;
 import ceui.lisa.fragments.FragmentLeft;
 import ceui.lisa.interfaces.Callback;
@@ -235,12 +230,14 @@ public class CoverActivity extends BaseActivity
 
         } else if (id == R.id.nav_send) {
 
-            Intent intent = new Intent(mContext, FullscreenActivity.class);
+            Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "画廊");
             startActivity(intent);
         }else if (id == R.id.web_test) {
             Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
             intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "跟随动画");
             startActivity(intent);
+
         }
 
         mDrawer.closeDrawer(GravityCompat.START);

@@ -33,6 +33,9 @@ public class Retro {
     //用作各个页面请求数据
     private static final String API_BASE_URL = "https://app-api.pixiv.net/";
 
+
+    private static final String PART_API_BASE_URL = "http://114.55.168.6/";
+
     //用作获取会员token
     //private static final String RANK_TOKEN_BASE_URL = "http://jh.aragaki.fun/";
     private static final String RANK_TOKEN_BASE_URL = "http://202.182.113.0/";
@@ -234,8 +237,35 @@ public class Retro {
         return retrofit.create(service);
     }
 
-
-
+    /**
+     * 工作项目DEMO
+     * @return
+     */
+    public static PartApi getPartApi() {
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(
+                message -> Log.i("RetrofitLog", "retrofitBack = " + message));
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+        OkHttpClient okHttpClient = new OkHttpClient
+                .Builder()
+                .addInterceptor(loggingInterceptor)
+                .protocols(Collections.singletonList(Protocol.HTTP_1_1))
+                .addInterceptor(chain -> {
+                    Request localRequest = chain.request().newBuilder()
+                            .addHeader("User-Agent:", "PixivAndroidApp/5.0.134 (Android 6.0.1; D6653)")
+                            //.addHeader("Accept-Language:", "zh_CN")
+                            .build();
+                    return chain.proceed(localRequest);
+                })
+                .build();
+        Gson gson = new GsonBuilder().setLenient().create();
+        Retrofit retrofit = new Retrofit.Builder()
+                .client(okHttpClient)
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .baseUrl(PART_API_BASE_URL)
+                .build();
+        return retrofit.create(PartApi.class);
+    }
 
 
 }

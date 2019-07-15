@@ -50,8 +50,6 @@ public class FragmentRecmdIllust extends AutoClipFragment<ListIllustResponse,
         mRecyclerView.addItemDecoration(new SpacesItemDecoration(DensityUtil.dp2px(4.0f)));
     }
 
-
-
     @Override
     Observable<ListIllustResponse> initApi() {
         return Retro.getAppApi().getRecmdIllust(sUserModel.getResponse().getAccess_token(), true);

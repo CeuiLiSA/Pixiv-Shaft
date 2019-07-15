@@ -23,7 +23,7 @@ import ceui.lisa.R;
 import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentAboutUser;
 import ceui.lisa.fragments.FragmentLikeIllust;
-import ceui.lisa.fragments.FragmentSubmitIllust;
+import ceui.lisa.fragments.FragmentUserIllust;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.IllustsBean;
@@ -115,7 +115,7 @@ public class UserDetailActivity extends BaseActivity {
         userID = getIntent().getIntExtra("user id", 0);
         baseFragments = new BaseFragment[]{
                 FragmentLikeIllust.newInstance(userID, FragmentLikeIllust.TYPE_PUBLUC),
-                FragmentSubmitIllust.newInstance(userID),
+                FragmentUserIllust.newInstance(userID),
                 new FragmentAboutUser()};
         mViewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override

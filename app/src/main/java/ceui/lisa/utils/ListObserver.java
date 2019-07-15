@@ -33,8 +33,6 @@ public abstract class ListObserver<T extends ListShow> implements Observer<T> {
     }
 
 
-
-
     public abstract void success(T t);
 
     public abstract void dataError();

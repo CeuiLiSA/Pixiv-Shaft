@@ -13,6 +13,7 @@ import android.view.View;
 import com.scwang.smartrefresh.layout.util.DensityUtil;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.IllustAdapter;
@@ -30,6 +31,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
+import static ceui.lisa.utils.Settings.ALL_SIZE;
 
 /**
  * 搜索插画结果
@@ -43,11 +45,9 @@ public class FragmentSearchResult extends AutoClipFragment<ListIllustResponse, I
 
     private String token = "";
     private String keyWord = "";
-    private String starSize = " 10000";
+    private String starSize = "";
     private String sort = "date_desc";
     private String searchTarget = "partial_match_for_tags";
-    private static final String[] ALL_SIZE = new String[]{" 无限制", " 500", " 1000", " 2500",
-            " 5000", " 7500", " 10000", " 25000", " 50000"};
 
     public static FragmentSearchResult newInstance(String keyWord){
         return newInstance(keyWord, "date_desc", "partial_match_for_tags");
@@ -62,6 +62,8 @@ public class FragmentSearchResult extends AutoClipFragment<ListIllustResponse, I
         fragmentSearchResult.setKeyWord(keyWord);
         fragmentSearchResult.setSort(sort);
         fragmentSearchResult.setSearchTarget(searchTarget);
+        fragmentSearchResult.starSize = Shaft.sSettings.getSearchFilter().contains("无限制") ?
+                "" : (Shaft.sSettings.getSearchFilter() + "user") ;
         return fragmentSearchResult;
     }
 

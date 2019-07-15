@@ -62,4 +62,10 @@
         <item name="colorAccent">@color/colorPrimary</item>
     </style>
 
+
+    <style name="My_CheckBox" parent="@android:style/Widget.Material.CompoundButton.CheckBox">
+        <item name="android:colorControlActivated">@color/colorPrimary</item>
+        <item name="android:colorControlNormal">@color/white</item>
+    </style>
+
 </resources>
