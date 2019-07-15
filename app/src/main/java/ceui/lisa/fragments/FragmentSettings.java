@@ -24,14 +24,12 @@ import java.io.File;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.LoginActivity;
 import ceui.lisa.activities.LoginAlphaActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 
-import static ceui.lisa.activities.Shaft.sUserModel;
 import static ceui.lisa.utils.Settings.ALL_SIZE;
 
 public class FragmentSettings extends BaseFragment {

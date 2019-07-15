@@ -36,16 +36,6 @@ public class OutWakeActivity extends BaseActivity{
     @Override
     protected void initData() {
         Intent intent = getIntent();
-
-
-
-
-
-
-
-
-
-
         if(intent != null){
             Uri uri = intent.getData();
             if(uri != null){

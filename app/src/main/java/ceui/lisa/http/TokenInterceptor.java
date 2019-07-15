@@ -2,7 +2,7 @@ package ceui.lisa.http;
 
 import java.io.IOException;
 
-import ceui.lisa.fragments.FragmentLogin;
+import ceui.lisa.activities.LoginAlphaActivity;
 import ceui.lisa.model.UserModel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
@@ -82,8 +82,8 @@ public class TokenInterceptor implements Interceptor {
         Common.showLog("synchronized getNewToken111");
         UserModel userModel = Local.getUser();
         Call<UserModel> call = Retro.getAccountApi().refreshToken(
-                FragmentLogin.CLIENT_ID,
-                FragmentLogin.CLIENT_SECRET,
+                LoginAlphaActivity.CLIENT_ID,
+                LoginAlphaActivity.CLIENT_SECRET,
                 "refresh_token",
                 userModel.getResponse().getRefresh_token(),
                 userModel.getResponse().getDevice_token(),

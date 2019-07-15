@@ -39,9 +39,6 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
-import static ceui.lisa.fragments.FragmentLogin.CLIENT_ID;
-import static ceui.lisa.fragments.FragmentLogin.CLIENT_SECRET;
-import static ceui.lisa.fragments.FragmentLogin.DEVICE_TOKEN;
 
 public class LoginAlphaActivity extends BaseActivity {
 
@@ -55,6 +52,9 @@ public class LoginAlphaActivity extends BaseActivity {
     private static final String SIGN_TOKEN = "pixiv";
     private static final String SIGN_REF = "pixiv_android_app_provisional_account";
     private Toolbar mToolbar;
+    public static final String CLIENT_ID = "MOBrBDS8blbauoSck0ZfDbtuzpyT";
+    public static final String CLIENT_SECRET = "lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj";
+    public static final String DEVICE_TOKEN = "pixiv";
 
 
     @Override

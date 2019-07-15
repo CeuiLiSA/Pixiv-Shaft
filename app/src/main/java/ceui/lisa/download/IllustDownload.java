@@ -184,7 +184,6 @@ public class IllustDownload {
         }
 
         if(tempList.size() == 0){
-            Common.showToast("你好像什么也没选");
             return;
         }
 
