@@ -136,34 +136,15 @@ public class IllustDownload {
         List<DownloadTask> tempList = new ArrayList<>();
 
         for (int i = 0; i < beans.size(); i++) {
-            final IllustsBean currentIllust = beans.get(i);
+            if(beans.get(i).isChecked()) {
+                final IllustsBean currentIllust = beans.get(i);
 
-            if(currentIllust.getPage_count() == 1){
+                if (currentIllust.getPage_count() == 1) {
 
-                File file = FileCreator.createIllustFile(currentIllust);
-                if (!file.exists()) {
-                    DownloadTask.Builder builder = new DownloadTask.Builder(
-                            currentIllust.getMeta_single_page().getOriginal_image_url(),
-                            file.getParentFile())
-                            .setFilename(file.getName())
-                            .setMinIntervalMillisCallbackProcess(30)
-                            .setPassIfAlreadyCompleted(false);
-                    builder.addHeader(MAP_KEY, IMAGE_REFERER);
-                    final DownloadTask task = builder.build();
-                    tempList.add(task);
-
-                    IllustTask illustTask = new IllustTask();
-                    illustTask.setIllustsBean(currentIllust);
-                    illustTask.setDownloadTask(task);
-                    TaskQueue.get().addTask(illustTask);
-                }
-            }else {
-                for (int j = 0; j < currentIllust.getPage_count(); j++) {
-
-                    File file = FileCreator.createIllustFile(currentIllust, j);
+                    File file = FileCreator.createIllustFile(currentIllust);
                     if (!file.exists()) {
                         DownloadTask.Builder builder = new DownloadTask.Builder(
-                                currentIllust.getMeta_pages().get(j).getImage_urls().getOriginal(),
+                                currentIllust.getMeta_single_page().getOriginal_image_url(),
                                 file.getParentFile())
                                 .setFilename(file.getName())
                                 .setMinIntervalMillisCallbackProcess(30)
@@ -177,8 +158,34 @@ public class IllustDownload {
                         illustTask.setDownloadTask(task);
                         TaskQueue.get().addTask(illustTask);
                     }
+                } else {
+                    for (int j = 0; j < currentIllust.getPage_count(); j++) {
+
+                        File file = FileCreator.createIllustFile(currentIllust, j);
+                        if (!file.exists()) {
+                            DownloadTask.Builder builder = new DownloadTask.Builder(
+                                    currentIllust.getMeta_pages().get(j).getImage_urls().getOriginal(),
+                                    file.getParentFile())
+                                    .setFilename(file.getName())
+                                    .setMinIntervalMillisCallbackProcess(30)
+                                    .setPassIfAlreadyCompleted(false);
+                            builder.addHeader(MAP_KEY, IMAGE_REFERER);
+                            final DownloadTask task = builder.build();
+                            tempList.add(task);
+
+                            IllustTask illustTask = new IllustTask();
+                            illustTask.setIllustsBean(currentIllust);
+                            illustTask.setDownloadTask(task);
+                            TaskQueue.get().addTask(illustTask);
+                        }
+                    }
                 }
             }
+        }
+
+        if(tempList.size() == 0){
+            Common.showToast("你好像什么也没选");
+            return;
         }
 
         DownloadTask[] taskArray = new DownloadTask[tempList.size()];

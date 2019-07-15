@@ -13,7 +13,6 @@ public interface MultiDownload {
 
     Context getContext();
 
-
     List<IllustsBean> getIllustList();
 
     default void startDownload(){
