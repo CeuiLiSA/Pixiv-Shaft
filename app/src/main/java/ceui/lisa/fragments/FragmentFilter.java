@@ -19,18 +19,18 @@ import static ceui.lisa.utils.Settings.ALL_SIZE;
 
 public class FragmentFilter extends BaseFragment {
 
-    public static final String[] TAG_MATCH = new String[]{"标签 部分匹配", "标签 完全匹配", "标题/简介 匹配"};
+    public static final String[] TAG_MATCH = new String[]{"标签 部分匹配(建议)", "标签 完全匹配", "标题/简介 匹配"};
     public static final String[] TAG_MATCH_VALUE = new String[]{"partial_match_for_tags",
             "exact_match_for_tags", "title_and_caption"};
 
 
     public static final String[] ALL_SIZE = new String[]{" 无限制", " 500人收藏", " 1000人收藏", " 2000人收藏",
-            " 5000人收藏", " 7500人收藏", " 10000人收藏", " 20000人收藏", " 50000人收藏"};
+            " 5000人收藏(建议)", " 7500人收藏", " 10000人收藏", " 20000人收藏", " 50000人收藏"};
     public static final String[] ALL_SIZE_VALUE = new String[]{"", " 500", " 1000", " 2000",
             " 5000", " 7500", " 10000", " 20000", " 50000"};
 
 
-    public static final String[] DATE_SORT = new String[]{"最新作品", "由旧到新"};
+    public static final String[] DATE_SORT = new String[]{"最新作品(建议)", "由旧到新"};
     public static final String[] DATE_SORT_VALUE = new String[]{"date_desc", "date_asc"};
 
     public SearchFilter mSearchFilter;
