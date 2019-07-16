@@ -234,8 +234,7 @@ public class CoverActivity extends BaseActivity
             intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "画廊");
             startActivity(intent);
         }else if (id == R.id.web_test) {
-            Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "跟随动画");
+            Intent intent = new Intent(mContext, TActivity.class);
             startActivity(intent);
 
         }

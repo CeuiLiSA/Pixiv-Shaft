@@ -87,23 +87,4 @@ public class Common {
         toast.setView(view);
         toast.show();
     }
-
-    public static String timeStamp2Date(String time) {
-        if (time == null) {
-            return null;
-        }
-        if (time.length() != 13 && time.length() != 12) {
-            return "没有日期数据";
-        }
-        Long timeLong = Long.parseLong(time);
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy年MM月dd日 HH:mm");//要转换的时间格式
-        Date date;
-        try {
-            date = sdf.parse(sdf.format(timeLong));
-            return sdf.format(date);
-        } catch (ParseException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
 }

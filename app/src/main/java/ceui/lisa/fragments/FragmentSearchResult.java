@@ -3,6 +3,7 @@ package ceui.lisa.fragments;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.GridLayoutManager;
 import android.view.Menu;
@@ -10,6 +11,9 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.mxn.soul.flowingdrawer_core.ElasticDrawer;
+import com.mxn.soul.flowingdrawer_core.FlowingDrawer;
+import com.mxn.soul.flowingdrawer_core.FlowingMenuLayout;
 import com.scwang.smartrefresh.layout.util.DensityUtil;
 
 import ceui.lisa.R;
@@ -23,13 +27,13 @@ import ceui.lisa.http.Retro;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.model.TempTokenResponse;
+import ceui.lisa.utils.Common;
 import ceui.lisa.view.GridItemDecoration;
 import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.view.GridScrollChangeManager;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
-
 import static ceui.lisa.activities.Shaft.sUserModel;
 import static ceui.lisa.utils.Settings.ALL_SIZE;
 
@@ -40,7 +44,7 @@ public class FragmentSearchResult extends AutoClipFragment<ListIllustResponse, I
 
     @Override
     void initLayout() {
-        mLayoutID = R.layout.fragment_illust_list;
+        mLayoutID = R.layout.fragment_search_result;
     }
 
     private String token = "";
@@ -48,6 +52,10 @@ public class FragmentSearchResult extends AutoClipFragment<ListIllustResponse, I
     private String starSize = "";
     private String sort = "date_desc";
     private String searchTarget = "partial_match_for_tags";
+    private FlowingDrawer mDrawer;
+    private boolean isPopular = false;
+    private FlowingMenuLayout mFlowingMenuLayout;
+    private FragmentFilter mFragmentFilter;
 
     public static FragmentSearchResult newInstance(String keyWord){
         return newInstance(keyWord, "date_desc", "partial_match_for_tags");
@@ -78,7 +86,55 @@ public class FragmentSearchResult extends AutoClipFragment<ListIllustResponse, I
                 getActivity().finish();
             }
         });
+        mDrawer = v.findViewById(R.id.drawerlayout);
+        mFlowingMenuLayout = v.findViewById(R.id.menulayout);
+        mDrawer.setTouchMode(ElasticDrawer.TOUCH_MODE_BEZEL);
         token = sUserModel.getResponse().getAccess_token();
+        mFragmentFilter = FragmentFilter.newInstance(new FragmentFilter.SearchFilter() {
+            @Override
+            public void onTagMatchChanged(String tagMatch) {
+                searchTarget = tagMatch;
+            }
+
+            @Override
+            public void onDateSortChanged(String dateSort) {
+                sort = dateSort;
+            }
+
+            @Override
+            public void onStarSizeChanged(String starSize) {
+                FragmentSearchResult.this.starSize = starSize;
+            }
+
+            @Override
+            public void onPopularChanged(boolean isPopular) {
+                FragmentSearchResult.this.isPopular = isPopular;
+            }
+
+            @Override
+            public void startSearch() {
+                if (isPopular) {
+                    getRankToken();
+                } else {
+                    getFirstData();
+                }
+            }
+
+            @Override
+            void closeDrawer() {
+                mDrawer.closeMenu(true);
+            }
+        });
+        FragmentManager fragmentManager = getChildFragmentManager();
+        if(!mFragmentFilter.isAdded()) {
+            fragmentManager.beginTransaction()
+                    .add(R.id.id_container_menu, mFragmentFilter)
+                    .commit();
+        }else {
+            fragmentManager.beginTransaction()
+                    .show(mFragmentFilter)
+                    .commit();
+        }
         return v;
     }
 
@@ -128,38 +184,46 @@ public class FragmentSearchResult extends AutoClipFragment<ListIllustResponse, I
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.select_star_size, menu);
+        //inflater.inflate(R.menu.select_star_size, menu);
+        inflater.inflate(R.menu.illust_filter, menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_filter) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-            builder.setTitle("被收藏数");
-            builder.setItems(ALL_SIZE, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    starSize = ALL_SIZE[which].contains("无限制") ? "" : ALL_SIZE[which];
-                    sort = "date_desc";
-                    token = sUserModel.getResponse().getAccess_token();
-                    getFirstData();
-                }
-            });
-            AlertDialog alertDialog = builder.create();
-            alertDialog.show();
-        }else if(item.getItemId() == R.id.action_rank){
-            getRankToken();
-        }else if(item.getItemId() == R.id.action_new){
-            sort = "date_desc";
-            starSize = "";
-            token = sUserModel.getResponse().getAccess_token();
-            getFirstData();
-        }else if(item.getItemId() == R.id.action_old){
-            sort = "date_asc";
-            starSize = "";
-            token = sUserModel.getResponse().getAccess_token();
-            getFirstData();
+            if(mDrawer.isMenuVisible()){
+                mDrawer.closeMenu(true);
+            }else {
+                mDrawer.openMenu(true);
+            }
         }
+//        if (item.getItemId() == R.id.action_filter) {
+//            AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+//            builder.setTitle("被收藏数");
+//            builder.setItems(ALL_SIZE, new DialogInterface.OnClickListener() {
+//                @Override
+//                public void onClick(DialogInterface dialog, int which) {
+//                    starSize = ALL_SIZE[which].contains("无限制") ? "" : ALL_SIZE[which];
+//                    sort = "date_desc";
+//                    token = sUserModel.getResponse().getAccess_token();
+//                    getFirstData();
+//                }
+//            });
+//            AlertDialog alertDialog = builder.create();
+//            alertDialog.show();
+//        }else if(item.getItemId() == R.id.action_rank){
+//            getRankToken();
+//        }else if(item.getItemId() == R.id.action_new){
+//            sort = "date_desc";
+//            starSize = "";
+//            token = sUserModel.getResponse().getAccess_token();
+//            getFirstData();
+//        }else if(item.getItemId() == R.id.action_old){
+//            sort = "date_asc";
+//            starSize = "";
+//            token = sUserModel.getResponse().getAccess_token();
+//            getFirstData();
+//        }
         return super.onOptionsItemSelected(item);
     }
 
