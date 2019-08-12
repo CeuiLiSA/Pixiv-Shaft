@@ -39,60 +39,67 @@ public class TemplateFragmentActivity extends FragmentActivity {
         String dataType = intent.getStringExtra(EXTRA_FRAGMENT);
 
         if (dataType != null) {
-            if (dataType.equals("搜索结果")) {
-                String keyword = intent.getStringExtra(EXTRA_KEYWORD);
-                return FragmentSearchResult.newInstance(keyword);
-            } else if (dataType.equals("相关作品")) {
-                int id = intent.getIntExtra(EXTRA_ILLUST_ID, 0);
-                String title = intent.getStringExtra(EXTRA_ILLUST_TITLE);
-                return FragmentRelatedIllust.newInstance(id, title);
-            } else if (dataType.equals("浏览记录")) {
-                return new FragmentViewHistory();
-            } else if (dataType.equals("网页链接")) {
-                String url = intent.getStringExtra("url");
-                String title = intent.getStringExtra("title");
-                return FragmentWebView.newInstance(title, url);
-            } else if (dataType.equals("设置")) {
-                return new FragmentSettings();
-            } else if (dataType.equals("推荐用户")) {
-                return new FragmentRecmdUser();
-            } else if (dataType.equals("特辑")) {
-                return new FragmentPivision();
-            } else if (dataType.equals("拖动测试")) {
-                return new FragmentDrag();
-            } else if (dataType.equals("搜索用户")) {
-                String keyword = intent.getStringExtra(EXTRA_KEYWORD);
-                return FragmentSearchUser.newInstance(keyword);
-            }else if (dataType.equals("以图搜图")) {
-                ReverseResult result = intent.getParcelableExtra("result");
-                return FragmentWebView.newInstance(result.getTitle(),result.getUrl(),result.getResponseBody(),result.getMime(),result.getEncoding(),result.getHistory_url());
-            }else if(dataType.equals("相关评论")){
-                int id = intent.getIntExtra(EXTRA_ILLUST_ID, 0);
-                String title = intent.getStringExtra(EXTRA_ILLUST_TITLE);
-                return FragmentComment.newInstance(id, title);
-            }else if (dataType.equals("账号管理")) {
-                return new FragmentLocalUsers();
-            }else if (dataType.equals("地铁表白器")) {
-                return new FragmentMetro();
-            }else if (dataType.equals("按标签筛选")) {
-                String keyword = intent.getStringExtra(EXTRA_KEYWORD);
-                return FragmentBookTag.newInstance(keyword);
-            }else if (dataType.equals("按标签收藏")) {
-                int id = intent.getIntExtra(EXTRA_ILLUST_ID, 0);
-                return FragmentSelectBookTag.newInstance(id);
-            }else if (dataType.equals("消息测试")) {
-                return new FragmentMetro();
-            }else if (dataType.equals("关于软件")) {
-                return new FragmentAbout();
-            }else if (dataType.equals("跟随动画")) {
-                return new FragmentFollowAnime();
-            }else if (dataType.equals("搜索配件")) {
-                String keyword = intent.getStringExtra(EXTRA_KEYWORD);
-                return FragmentPart.newInstance(keyword);
-            }else if (dataType.equals("批量下载")) {
-                return new FragmentMultiDownload();
-            }else if (dataType.equals("画廊")) {
-                return new FragmentWalkThrough();
+            switch (dataType) {
+                case "搜索结果": {
+                    String keyword = intent.getStringExtra(EXTRA_KEYWORD);
+                    return FragmentSearchResult.newInstance(keyword);
+                }
+                case "相关作品": {
+                    int id = intent.getIntExtra(EXTRA_ILLUST_ID, 0);
+                    String title = intent.getStringExtra(EXTRA_ILLUST_TITLE);
+                    return FragmentRelatedIllust.newInstance(id, title);
+                }
+                case "浏览记录":
+                    return new FragmentViewHistory();
+                case "网页链接": {
+                    String url = intent.getStringExtra("url");
+                    String title = intent.getStringExtra("title");
+                    return FragmentWebView.newInstance(title, url);
+                }
+                case "设置":
+                    return new FragmentSettings();
+                case "推荐用户":
+                    return new FragmentRecmdUser();
+                case "特辑":
+                    return new FragmentPivision();
+                case "拖动测试":
+                    return new FragmentDrag();
+                case "搜索用户": {
+                    String keyword = intent.getStringExtra(EXTRA_KEYWORD);
+                    return FragmentSearchUser.newInstance(keyword);
+                }
+                case "以图搜图":
+                    ReverseResult result = intent.getParcelableExtra("result");
+                    return FragmentWebView.newInstance(result.getTitle(), result.getUrl(), result.getResponseBody(), result.getMime(), result.getEncoding(), result.getHistory_url());
+                case "相关评论": {
+                    int id = intent.getIntExtra(EXTRA_ILLUST_ID, 0);
+                    String title = intent.getStringExtra(EXTRA_ILLUST_TITLE);
+                    return FragmentComment.newInstance(id, title);
+                }
+                case "账号管理":
+                    return new FragmentLocalUsers();
+                case "地铁表白器":
+                    return new FragmentMetro();
+                case "按标签筛选": {
+                    String keyword = intent.getStringExtra(EXTRA_KEYWORD);
+                    return FragmentBookTag.newInstance(keyword);
+                }
+                case "按标签收藏": {
+                    int id = intent.getIntExtra(EXTRA_ILLUST_ID, 0);
+                    return FragmentSelectBookTag.newInstance(id);
+                }
+                case "关于软件":
+                    return new FragmentAbout();
+                case "跟随动画":
+                    return new FragmentFollowAnime();
+                case "搜索配件": {
+                    String keyword = intent.getStringExtra(EXTRA_KEYWORD);
+                    return FragmentPart.newInstance(keyword);
+                }
+                case "批量下载":
+                    return new FragmentMultiDownload();
+                case "画廊":
+                    return new FragmentWalkThrough();
             }
         }
         return null;

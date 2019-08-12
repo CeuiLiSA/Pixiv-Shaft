@@ -225,6 +225,9 @@ public class FragmentSingleIllust extends BaseFragment {
         userName.setText(illust.getUser().getName());
         mTagCloudView = v.findViewById(R.id.illust_tag);
         List<String> tags = new ArrayList<>();
+        String illustSize = "尺寸： width " + illust.getWidth() + "px * height " + illust.getHeight() + "px";
+        TextView illustPx = v.findViewById(R.id.illust_px);
+        illustPx.setText(illustSize);
         for (int i = 0; i < illust.getTags().size(); i++) {
             String temp = illust.getTags().get(i).getName();
 //            if(!TextUtils.isEmpty(illust.getTags().get(i).getTranslated_name())){

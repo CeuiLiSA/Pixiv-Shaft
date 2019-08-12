@@ -12,7 +12,6 @@ import com.scwang.smartrefresh.layout.util.DensityUtil;
 import com.tencent.stat.StatConfig;
 import com.tencent.stat.StatService;
 
-import Spray.Spray;
 import ceui.lisa.R;
 import ceui.lisa.model.UserModel;
 import ceui.lisa.utils.Local;

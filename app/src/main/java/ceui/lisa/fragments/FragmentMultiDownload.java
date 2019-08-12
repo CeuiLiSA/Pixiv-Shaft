@@ -30,7 +30,6 @@ import ceui.lisa.view.TagItemDecoration;
 import io.reactivex.ObservableEmitter;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
-import static ceui.lisa.utils.Settings.ALL_SIZE;
 
 public class FragmentMultiDownload extends BaseAsyncFragment<MultiDownloadAdapter, IllustsBean> {
 

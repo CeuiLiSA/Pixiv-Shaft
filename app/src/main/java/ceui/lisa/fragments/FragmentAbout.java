@@ -5,8 +5,12 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.RelativeLayout;
 
+import com.blankj.utilcode.util.DeviceUtils;
+import com.blankj.utilcode.util.RomUtils;
+
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateFragmentActivity;
+import ceui.lisa.utils.Common;
 
 public class FragmentAbout extends BaseFragment {
 
@@ -78,6 +82,13 @@ public class FragmentAbout extends BaseFragment {
 
     @Override
     void initData() {
-
+        Common.showLog(className + "判断设备是否 rooted " + DeviceUtils.isDeviceRooted());
+        Common.showLog(className + "获取设备系统版本号 " + DeviceUtils.getSDKVersionName());
+        Common.showLog(className + "获取设备系统版本码 " + DeviceUtils.getSDKVersionCode());
+        Common.showLog(className + "获取设备厂商 " + DeviceUtils.getManufacturer());
+        Common.showLog(className + "获取设备型号 " + DeviceUtils.getModel());
+        Common.showLog(className + "获取设备型号 " + DeviceUtils.getModel());
+        Common.showLog(className + "判断是否是平板 " + DeviceUtils.isTablet());
+        Common.showLog(className + "获取 ROM 信息 " + RomUtils.getRomInfo());
     }
 }

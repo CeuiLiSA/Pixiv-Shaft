@@ -10,6 +10,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 
 import com.mxn.soul.flowingdrawer_core.ElasticDrawer;
 import com.mxn.soul.flowingdrawer_core.FlowingDrawer;
@@ -35,7 +36,6 @@ import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 import static ceui.lisa.activities.Shaft.sUserModel;
-import static ceui.lisa.utils.Settings.ALL_SIZE;
 
 /**
  * 搜索插画结果
@@ -56,6 +56,7 @@ public class FragmentSearchResult extends AutoClipFragment<ListIllustResponse, I
     private boolean isPopular = false;
     private FlowingMenuLayout mFlowingMenuLayout;
     private FragmentFilter mFragmentFilter;
+    private EditText mEditText;
 
     public static FragmentSearchResult newInstance(String keyWord){
         return newInstance(keyWord, "date_desc", "partial_match_for_tags");
@@ -87,6 +88,7 @@ public class FragmentSearchResult extends AutoClipFragment<ListIllustResponse, I
             }
         });
         mDrawer = v.findViewById(R.id.drawerlayout);
+        mEditText = v.findViewById(R.id.search_box);
         mFlowingMenuLayout = v.findViewById(R.id.menulayout);
         mDrawer.setTouchMode(ElasticDrawer.TOUCH_MODE_BEZEL);
         token = sUserModel.getResponse().getAccess_token();
@@ -153,7 +155,10 @@ public class FragmentSearchResult extends AutoClipFragment<ListIllustResponse, I
 
     @Override
     Observable<ListIllustResponse> initApi() {
-        return Retro.getAppApi().searchIllust(token, keyWord + starSize, sort, searchTarget);
+        mEditText.setText(keyWord.contains("users入り") ? keyWord : keyWord + starSize);
+        mEditText.setSelection(mEditText.getText().length());
+        return Retro.getAppApi().searchIllust(token, keyWord.contains("users入り") ? keyWord :
+                keyWord + starSize, sort, searchTarget);
     }
 
     @Override
@@ -191,6 +196,7 @@ public class FragmentSearchResult extends AutoClipFragment<ListIllustResponse, I
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_filter) {
+            Common.hideKeyboard(mActivity);
             if(mDrawer.isMenuVisible()){
                 mDrawer.closeMenu(true);
             }else {

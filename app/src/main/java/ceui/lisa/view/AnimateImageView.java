@@ -13,6 +13,17 @@ import de.hdodenhof.circleimageview.CircleImageView;
 public class AnimateImageView extends CircleImageView {
     private Spring springX, springY;
 
+    public AnimateImageView getNext() {
+        return next;
+    }
+
+    public void setNext(AnimateImageView next) {
+        this.next = next;
+    }
+
+    private AnimateImageView next;
+    // 此为跟踪的回调，当前面一个view移动的时候，此为后面的view，需要更新endValue
+
     public AnimateImageView(Context context) {
         this(context, null);
     }
@@ -45,20 +56,38 @@ public class AnimateImageView extends CircleImageView {
             }
         });
 
-
     }
 
     private void setScreenX(int screenX) {
-        this.offsetLeftAndRight(screenX - getLeft());
+        int temp = screenX - getLeft();
+        if (next != null) {
+            Common.showLog("offsetLeftAndRight " + temp);
+        }
+        offsetLeftAndRight(temp);
     }
 
     private void setScreenY(int screenY) {
-        this.offsetTopAndBottom(screenY - getTop());
+        int temp = screenY - getTop();
+        if (next != null) {
+            Common.showLog("offsetTopAndBottom " + temp);
+        }
+        offsetTopAndBottom(temp);
     }
 
     public void animTo(int xPos, int yPos) {
         springX.setEndValue(xPos);
         springY.setEndValue(yPos);
+        if (next != null) {
+            next.animTo(xPos, yPos);
+        }
+    }
+
+    public void goTo(int xPos, int yPos) {
+        setScreenX(xPos);
+        setScreenY(yPos);
+        if (next != null) {
+            next.animTo(xPos, yPos);
+        }
     }
 
     /**

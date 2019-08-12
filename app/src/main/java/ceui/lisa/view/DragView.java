@@ -31,7 +31,7 @@ public class DragView extends RelativeLayout {
 
     ViewDragHelper mViewDragHelper;
     private int originX, originY;
-    private AnimateImageView mImageView;
+    private AnimateImageView mImageView, follower;
 
 
     public DragView(Context context) {
@@ -51,9 +51,19 @@ public class DragView extends RelativeLayout {
 
 
                 mImageView = (AnimateImageView) getChildAt(0);
+                follower = (AnimateImageView) getChildAt(1);
 
 
-                mImageView.setCurrentSpringPos(originX, originY);
+                mImageView.setCurrentSpringPos(mImageView.getLeft(), mImageView.getTop());
+                follower.setCurrentSpringPos(follower.getLeft(), follower.getTop());
+
+                follower.setNext(mImageView);
+                //mImageView.getNext().getSpringX().addListener(mImageView.getFollowerListenerX());
+                //mImageView.getNext().getSpringX().addListener(mImageView.getFollowerListenerY());
+
+                //follower.getSpringX().addListener(mImageView.getFollowerListenerX());
+                //follower.getSpringY().addListener(mImageView.getFollowerListenerY());
+
 
                 getViewTreeObserver()
                         .removeOnGlobalLayoutListener(this);
@@ -85,8 +95,9 @@ public class DragView extends RelativeLayout {
             //child 表示想要滑动的view
             //pointerId 表示触摸点的id, 比如多点按压的那个id
             //返回值表示,是否可以capture,也就是是否可以滑动.可以根据不同的child决定是否可以滑动
-            if(child.getId() == mImageView.getId()){
-                Common.showLog("DragView 点击了父亲");
+            if(child.getId() == follower.getId()){
+                Common.showLog("DragView 点击了儿子");
+
                 return true;
             }
             return false;
@@ -120,14 +131,15 @@ public class DragView extends RelativeLayout {
             super.onViewReleased(releasedChild, xvel, yvel);
 
 
-            mImageView.onRelease(originX, originY);
+            follower.onRelease(originX, originY);
         }
 
         @Override
         public void onViewPositionChanged(@NonNull View changedView, int left, int top, int dx, int dy) {
 
-            Common.showLog(left + " " + top);
-            mImageView.animTo(left, top);
+            //Common.showLog("onViewPositionChanged " + left + " " + top);
+            //Common.showLog("onViewPositionChanged get" + mImageView.getLeft() + " " + mImageView.getTop());
+            follower.goTo(left, top);
         }
     }
 

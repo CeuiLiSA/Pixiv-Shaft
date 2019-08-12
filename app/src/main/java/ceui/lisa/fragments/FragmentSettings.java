@@ -30,7 +30,9 @@ import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 
-import static ceui.lisa.utils.Settings.ALL_SIZE;
+import static ceui.lisa.fragments.FragmentFilter.ALL_SIZE;
+import static ceui.lisa.fragments.FragmentFilter.ALL_SIZE_VALUE;
+
 
 public class FragmentSettings extends BaseFragment {
 
@@ -235,7 +237,7 @@ public class FragmentSettings extends BaseFragment {
                 builder.setItems(ALL_SIZE, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        Shaft.sSettings.setSearchFilter(ALL_SIZE[which]);
+                        Shaft.sSettings.setSearchFilter(ALL_SIZE_VALUE[which]);
                         Local.setSettings(Shaft.sSettings);
                         searchFilter.setText(ALL_SIZE[which]);
                     }

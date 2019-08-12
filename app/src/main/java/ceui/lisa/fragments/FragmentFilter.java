@@ -15,7 +15,6 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Settings;
 
-import static ceui.lisa.utils.Settings.ALL_SIZE;
 
 public class FragmentFilter extends BaseFragment {
 
@@ -26,8 +25,8 @@ public class FragmentFilter extends BaseFragment {
 
     public static final String[] ALL_SIZE = new String[]{" 无限制", " 500人收藏", " 1000人收藏", " 2000人收藏",
             " 5000人收藏(建议)", " 7500人收藏", " 10000人收藏", " 20000人收藏", " 50000人收藏"};
-    public static final String[] ALL_SIZE_VALUE = new String[]{"", " 500", " 1000", " 2000",
-            " 5000", " 7500", " 10000", " 20000", " 50000"};
+    public static final String[] ALL_SIZE_VALUE = new String[]{"", "500users入り", "1000users入り", "2000users入り",
+            "5000users入り", "7500users入り", "10000users入り", "20000users入り", "50000users入り"};
 
 
     public static final String[] DATE_SORT = new String[]{"最新作品(建议)", "由旧到新"};
@@ -124,7 +123,7 @@ public class FragmentFilter extends BaseFragment {
             }
         });
 
-        return null;
+        return v;
     }
 
     @Override

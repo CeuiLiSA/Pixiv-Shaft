@@ -15,5 +15,14 @@
         android:layout_height="110dp" />
 
 
+    <ceui.lisa.view.AnimateImageView
+        android:layout_width="110dp"
+        android:id="@+id/child"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="40dp"
+        android:src="@color/colorPrimary"
+        android:layout_height="110dp" />
+
+
 
 </ceui.lisa.view.DragView>

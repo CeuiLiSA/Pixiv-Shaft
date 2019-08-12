@@ -24,6 +24,25 @@
             app:title=" "
             app:titleTextColor="@android:color/white">
 
+
+            <EditText
+                android:layout_width="match_parent"
+                android:id="@+id/search_box"
+                android:imeOptions="actionSearch"
+                android:singleLine="true"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:textColor="@color/dark_text"
+                android:background="@drawable/stroke"
+                android:paddingStart="@dimen/eight_dp"
+                android:paddingEnd="@dimen/sixteen_dp"
+                android:paddingTop="@dimen/eight_dp"
+                android:paddingBottom="@dimen/eight_dp"
+                android:layout_height="wrap_content">
+
+
+            </EditText>
+
         </android.support.v7.widget.Toolbar>
 
 
