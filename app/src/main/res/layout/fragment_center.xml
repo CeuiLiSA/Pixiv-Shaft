@@ -1,16 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_height="match_parent"
     android:layout_width="match_parent">
 
-    <LinearLayout
-        android:orientation="vertical"
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -47,56 +42,72 @@
         </RelativeLayout>
 
 
+    <com.scwang.smartrefresh.layout.SmartRefreshLayout
+        android:layout_width="match_parent"
+        android:layout_below="@+id/rela_1"
+        android:id="@+id/refreshLayout"
+        android:layout_height="match_parent">
 
-        <RelativeLayout
+
+        <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/sixteen_dp"
-                android:layout_marginTop="@dimen/twelve_dip"
-                android:layout_marginBottom="@dimen/four_dp"
-                android:drawableStart="@drawable/ic_huangguan"
-                android:drawablePadding="@dimen/eight_dp"
-                android:text="排行榜"
-                android:textColor="#2c333c"
-                android:gravity="center"
-                android:id="@+id/ranking"
-                android:textSize="15sp"
-                android:textStyle="bold"
-                app:layout_constraintStart_toStartOf="parent" />
+            android:layout_height="match_parent">
 
 
-            <TextView
-                android:id="@+id/see_more"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_marginStart="@dimen/sixteen_dp"
-                android:layout_alignBaseline="@+id/ranking"
-                android:layout_marginEnd="@dimen/sixteen_dp"
-                android:layout_marginBottom="@dimen/four_dp"
-                android:text="查看更多"
-                android:drawableRight="@drawable/ic_chevron_right_black_24dp"
-                android:gravity="center"
-                android:drawableTint="@color/colorPrimary"
-                android:textColor="#748c98"
-                android:textSize="13sp"
-                app:layout_constraintEnd_toEndOf="parent" />
-
-
-            <FrameLayout
-                android:id="@+id/fragment_container"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="196dp"
-                android:layout_below="@+id/see_more">
+                android:orientation="vertical"
+                android:layout_height="match_parent">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/sixteen_dp"
+                        android:layout_marginTop="@dimen/twelve_dip"
+                        android:layout_marginBottom="@dimen/four_dp"
+                        android:drawableStart="@drawable/ic_huangguan"
+                        android:drawablePadding="@dimen/eight_dp"
+                        android:text="排行榜"
+                        android:textColor="#2c333c"
+                        android:gravity="center"
+                        android:id="@+id/ranking"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        app:layout_constraintStart_toStartOf="parent" />
 
 
-            </FrameLayout>
+                    <TextView
+                        android:id="@+id/see_more"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_marginStart="@dimen/sixteen_dp"
+                        android:layout_alignBaseline="@+id/ranking"
+                        android:layout_marginEnd="@dimen/sixteen_dp"
+                        android:layout_marginBottom="@dimen/four_dp"
+                        android:text="查看更多"
+                        android:drawableRight="@drawable/ic_chevron_right_black_24dp"
+                        android:gravity="center"
+                        android:drawableTint="@color/colorPrimary"
+                        android:textColor="#748c98"
+                        android:textSize="13sp"
+                        app:layout_constraintEnd_toEndOf="parent" />
 
-        </RelativeLayout>
+
+                    <FrameLayout
+                        android:id="@+id/fragment_container"
+                        android:layout_width="match_parent"
+                        android:layout_height="196dp"
+                        android:layout_below="@+id/see_more">
+
+
+                    </FrameLayout>
+
+                </RelativeLayout>
 
 
 
@@ -104,14 +115,18 @@
 
 
 
-        <FrameLayout
-            android:id="@+id/fragment_pivision"
-            android:layout_width="match_parent"
-            android:layout_height="225dp">
+                <FrameLayout
+                    android:id="@+id/fragment_pivision"
+                    android:layout_width="match_parent"
+                    android:layout_height="225dp">
 
-        </FrameLayout>
+                </FrameLayout>
 
-    </LinearLayout>
+            </LinearLayout>
 
-</androidx.core.widget.NestedScrollView>
+        </androidx.core.widget.NestedScrollView>
+
+
+    </com.scwang.smartrefresh.layout.SmartRefreshLayout>
+</RelativeLayout>
 

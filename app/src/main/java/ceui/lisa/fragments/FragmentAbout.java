@@ -1,17 +1,11 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import androidx.appcompat.widget.Toolbar;
 import android.view.View;
-import android.widget.RelativeLayout;
-
-import com.blankj.utilcode.util.DeviceUtils;
-import com.blankj.utilcode.util.RomUtils;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.databinding.FragmentAboutBinding;
-import ceui.lisa.utils.Common;
 
 public class FragmentAbout extends BaseBindFragment<FragmentAboutBinding> {
 

@@ -15,6 +15,9 @@ import android.widget.TextView;
 
 import com.mancj.materialsearchbar.MaterialSearchBar;
 import com.mancj.materialsearchbar.adapter.SuggestionsAdapter;
+import com.scwang.smartrefresh.layout.api.RefreshLayout;
+import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
+import com.scwang.smartrefresh.layout.header.FalsifyHeader;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -73,6 +76,10 @@ public class FragmentCenter extends BaseFragment {
         ViewGroup.LayoutParams headParams = head.getLayoutParams();
         headParams.height = Shaft.statusHeight;
         head.setLayoutParams(headParams);
+
+        RefreshLayout refreshLayout = v.findViewById(R.id.refreshLayout);
+        refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));
+        refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
 
         mSearchBar = v.findViewById(R.id.searchBar);
         mSearchBar.setMaxSuggestionCount(5);

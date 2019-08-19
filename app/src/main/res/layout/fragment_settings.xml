@@ -1,861 +1,859 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
-    android:background="@color/white"
-    android:layout_height="match_parent">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar"
+    <data>
+
+    </data>
+
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:fitsSystemWindows="true"
-        android:background="@color/loginBackground"
-        android:elevation="@dimen/six_dp"
-        app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
-        app:title="设置"
-        app:titleTextColor="@android:color/white">
-
-    </androidx.appcompat.widget.Toolbar>
-
-    <androidx.core.widget.NestedScrollView
-        android:layout_width="match_parent"
+        android:orientation="vertical"
+        android:background="@color/light_bg"
         android:layout_height="match_parent">
 
-        <LinearLayout
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:orientation="vertical"
-            android:id="@+id/parent_linear"
+            android:layout_height="wrap_content"
+            android:fitsSystemWindows="true"
+            android:background="@color/loginBackground"
+            android:elevation="@dimen/six_dp"
+            app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
+            app:title="设置"
+            app:titleTextColor="@android:color/white">
+
+        </androidx.appcompat.widget.Toolbar>
+
+        <com.scwang.smartrefresh.layout.SmartRefreshLayout
+            android:layout_width="match_parent"
+            android:id="@+id/refreshLayout"
             android:layout_height="match_parent">
 
-
-            <LinearLayout
+            <androidx.core.widget.NestedScrollView
                 android:layout_width="match_parent"
-                android:orientation="vertical"
-                android:layout_height="wrap_content">
+                android:layout_height="match_parent">
 
-                <View
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:background="@color/light_bg"
-                    android:layout_height="20dp">
-
-
-                </View>
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:text="账号"
-                        android:textSize="13sp"
-                        android:textColor="@color/colorPrimary"
-                        android:layout_marginTop="@dimen/eight_dp"
-                        android:layout_marginBottom="@dimen/eight_dp"
-                        android:layout_marginStart="@dimen/sixteen_dp"
-                        android:layout_height="wrap_content" />
-                </RelativeLayout>
-
-
-                <RelativeLayout
-                    android:id="@+id/user_manage"
-                    android:layout_width="match_parent"
+                    android:orientation="vertical"
+                    android:id="@+id/parent_linear"
+                    android:background="@color/white"
                     android:layout_height="match_parent">
 
 
-                    <TextView
-                        android:layout_margin="@dimen/sixteen_dp"
-                        android:text="账号管理"
-                        android:textSize="15sp"
-                        android:textColor="@color/dark_text"
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:orientation="vertical"
+                        android:layout_height="wrap_content">
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="@color/light_bg"
+                            android:layout_height="20dp">
+
+
+                        </View>
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:text="账号"
+                                android:textSize="13sp"
+                                android:textColor="@color/colorPrimary"
+                                android:layout_marginTop="@dimen/eight_dp"
+                                android:layout_marginBottom="@dimen/eight_dp"
+                                android:layout_marginStart="@dimen/sixteen_dp"
+                                android:layout_height="wrap_content" />
+                        </RelativeLayout>
+
+
+                        <RelativeLayout
+                            android:id="@+id/user_manage"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+
+                            <TextView
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="账号管理"
+                                android:textSize="15sp"
+                                android:textColor="@color/dark_text"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+
+                            </TextView>
+
+
+                        </RelativeLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="#e6e6e6"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_height="1dp">
+
+
+                        </View>
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:visibility="gone"
+                            android:layout_height="match_parent">
+
+
+                            <TextView
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="用户信息"
+                                android:textSize="15sp"
+                                android:textColor="@color/dark_text"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+
+                            </TextView>
+
+
+                        </RelativeLayout>
+
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:visibility="gone"
+                            android:background="#e6e6e6"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_height="1dp">
+
+
+                        </View>
+
+
+                        <RelativeLayout
+                            android:id="@+id/login_out"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+
+                            <TextView
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="退出登录"
+                                android:textSize="15sp"
+                                android:textColor="@color/dark_text"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+
+                            </TextView>
+
+
+                        </RelativeLayout>
+
+                    </LinearLayout>
+
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:orientation="vertical"
+                        android:layout_height="wrap_content">
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="@color/light_bg"
+                            android:layout_height="20dp">
+
+
+                        </View>
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:text="下载路径"
+                                android:textSize="13sp"
+                                android:textColor="@color/colorPrimary"
+                                android:layout_marginTop="@dimen/eight_dp"
+                                android:layout_marginBottom="@dimen/eight_dp"
+                                android:layout_marginStart="@dimen/sixteen_dp"
+                                android:layout_height="wrap_content" />
+                        </RelativeLayout>
+
+
+                        <RelativeLayout
+                            android:id="@+id/single_illust_path"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+
+                            <TextView
+                                android:layout_marginStart="@dimen/sixteen_dp"
+                                android:layout_marginTop="@dimen/sixteen_dp"
+                                android:layout_marginBottom="@dimen/six_dp"
+                                android:text="图片下载路径"
+                                android:textSize="15sp"
+                                android:id="@+id/illust_path_s"
+                                android:textColor="@color/dark_text"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+
+                            </TextView>
+
+
+                            <TextView
+                                android:layout_marginStart="@dimen/sixteen_dp"
+                                android:layout_marginBottom="@dimen/sixteen_dp"
+                                android:text="/storage/emulated/0/Shaft/SingleImages"
+                                android:layout_below="@+id/illust_path_s"
+                                android:textSize="13sp"
+                                android:textColor="@color/colorPrimary"
+                                android:singleLine="true"
+                                android:ellipsize="start"
+                                android:id="@+id/illust_path"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+
+                            </TextView>
+
+                        </RelativeLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="#e6e6e6"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_height="1dp">
+
+
+                        </View>
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:visibility="gone"
+                            android:layout_height="match_parent">
+
+
+                            <TextView
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="用户信息"
+                                android:textSize="15sp"
+                                android:textColor="@color/dark_text"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+
+                            </TextView>
+
+
+                        </RelativeLayout>
+
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:visibility="gone"
+                            android:background="#e6e6e6"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_height="1dp">
+
+
+                        </View>
+
+
+                        <RelativeLayout
+                            android:id="@+id/gif_result_path"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+
+                            <TextView
+                                android:layout_marginStart="@dimen/sixteen_dp"
+                                android:layout_marginTop="@dimen/sixteen_dp"
+                                android:layout_marginBottom="@dimen/six_dp"
+                                android:text="GIF生成路径"
+                                android:textSize="15sp"
+                                android:id="@+id/gif_result_s"
+                                android:textColor="@color/dark_text"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+
+                            </TextView>
+
+
+                            <TextView
+                                android:layout_marginStart="@dimen/sixteen_dp"
+                                android:layout_marginBottom="@dimen/sixteen_dp"
+                                android:text="/storage/emulated/0/Shaft/SingleImages"
+                                android:layout_below="@+id/gif_result_s"
+                                android:textSize="13sp"
+                                android:textColor="@color/colorPrimary"
+                                android:singleLine="true"
+                                android:ellipsize="start"
+                                android:id="@+id/gif_result"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content" />
+
+
+                        </RelativeLayout>
+
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="#e6e6e6"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_height="1dp">
+
+
+                        </View>
+
+
+                        <RelativeLayout
+                            android:id="@+id/gif_zip_path"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+
+                            <TextView
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="GIF压缩包存放路径"
+                                android:textSize="15sp"
+                                android:id="@+id/gif_zip_s"
+                                android:textColor="@color/dark_text"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+
+                            </TextView>
+
+                            <TextView
+                                android:layout_marginStart="@dimen/sixteen_dp"
+                                android:layout_marginBottom="@dimen/sixteen_dp"
+                                android:text="/storage/emulated/0/Shaft/SingleImages"
+                                android:layout_below="@+id/gif_zip_s"
+                                android:textSize="13sp"
+                                android:textColor="@color/colorPrimary"
+                                android:singleLine="true"
+                                android:ellipsize="start"
+                                android:id="@+id/gif_zip"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content" />
+
+
+                        </RelativeLayout>
+
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="#e6e6e6"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_height="1dp">
+
+
+                        </View>
+
+
+                        <RelativeLayout
+                            android:id="@+id/gif_unzip_path"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+
+                            <TextView
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="GIF压缩包解压路径"
+                                android:textSize="15sp"
+                                android:id="@+id/gif_unzip_s"
+                                android:textColor="@color/dark_text"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+
+                            </TextView>
+
+                            <TextView
+                                android:layout_marginStart="@dimen/sixteen_dp"
+                                android:layout_marginBottom="@dimen/sixteen_dp"
+                                android:text="/storage/emulated/0/Shaft/SingleImages"
+                                android:layout_below="@+id/gif_unzip_s"
+                                android:textSize="13sp"
+                                android:textColor="@color/colorPrimary"
+                                android:singleLine="true"
+                                android:ellipsize="start"
+                                android:id="@+id/gif_unzip"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content" />
+
+                        </RelativeLayout>
+
+                    </LinearLayout>
+
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:orientation="vertical"
+                        android:layout_height="wrap_content">
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="@color/light_bg"
+                            android:layout_height="20dp">
+
+
+                        </View>
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:textSize="13sp"
+                                android:textColor="@color/colorPrimary"
+                                android:text="常规"
+                                android:layout_marginTop="@dimen/eight_dp"
+                                android:layout_marginBottom="@dimen/eight_dp"
+                                android:layout_marginStart="@dimen/sixteen_dp"
+                                android:layout_height="wrap_content" />
+                        </RelativeLayout>
+
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+
+                            <TextView
+                                android:layout_marginStart="@dimen/sixteen_dp"
+                                android:layout_marginTop="@dimen/sixteen_dp"
+                                android:layout_marginBottom="@dimen/six_dp"
+                                android:text="开启直连（自行代理或在墙外，可以关闭）"
+                                android:textSize="15sp"
+                                android:id="@+id/fuck_china_s"
+                                android:textColor="@color/dark_text"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+
+                            </TextView>
+
+
+                            <TextView
+                                android:layout_marginStart="@dimen/sixteen_dp"
+                                android:layout_marginBottom="@dimen/sixteen_dp"
+                                android:text="详见 Notsfsssf/Pix-EzViewer"
+                                android:layout_below="@+id/fuck_china_s"
+                                android:textSize="13sp"
+                                android:textColor="@color/colorPrimary"
+                                android:singleLine="true"
+                                android:ellipsize="start"
+                                android:id="@+id/fuck_china"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content" />
+
+
+                            <Switch
+                                android:layout_width="wrap_content"
+                                android:checked="true"
+                                android:id="@+id/auto_dns"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:layout_height="wrap_content" />
+
+
+                        </RelativeLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="#e6e6e6"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_height="1dp" />
+
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:visibility="gone"
+                            android:layout_height="match_parent">
+
+
+                            <TextView
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="图片详情展示原图"
+                                android:textSize="15sp"
+                                android:textColor="@color/dark_text"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+
+                            </TextView>
+
+
+                            <Switch
+                                android:layout_width="wrap_content"
+                                android:checked="true"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:layout_height="wrap_content" />
+
+
+                        </RelativeLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="#e6e6e6"
+                            android:visibility="gone"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_height="1dp">
+
+
+                        </View>
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+
+                            <TextView
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="瀑布流列表点击动画"
+                                android:textSize="15sp"
+                                android:textColor="@color/dark_text"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+
+                            </TextView>
+
+
+                            <Switch
+                                android:layout_width="wrap_content"
+                                android:checked="true"
+                                android:id="@+id/stagger_animate"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:layout_height="wrap_content" />
+
+
+                        </RelativeLayout>
+
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="#e6e6e6"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_height="1dp" />
+
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+
+                            <TextView
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="网格列表点击动画"
+                                android:textSize="15sp"
+                                android:textColor="@color/dark_text"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+
+                            </TextView>
+
+
+                            <Switch
+                                android:layout_width="wrap_content"
+                                android:checked="true"
+                                android:id="@+id/grid_animate"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:layout_height="wrap_content" />
+
+
+                        </RelativeLayout>
+
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="#e6e6e6"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_height="1dp">
+
+
+                        </View>
+
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+
+                            <TextView
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="保存浏览历史"
+                                android:textSize="15sp"
+                                android:textColor="@color/dark_text"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+
+                            </TextView>
+
+
+                            <Switch
+                                android:layout_width="wrap_content"
+                                android:checked="true"
+                                android:id="@+id/save_history"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:layout_height="wrap_content" />
+
+
+                        </RelativeLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="#e6e6e6"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_height="1dp">
+
+
+                        </View>
+
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+
+                            <TextView
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="相关作品无限下滑（可能出现重复）"
+                                android:textSize="15sp"
+                                android:textColor="@color/dark_text"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+
+                            </TextView>
+
+
+                            <Switch
+                                android:layout_width="wrap_content"
+                                android:checked="true"
+                                android:id="@+id/related_no_limit"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:layout_height="wrap_content" />
+
+
+                        </RelativeLayout>
+                    </LinearLayout>
+
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:orientation="vertical"
                         android:layout_height="wrap_content">
 
 
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="@color/light_bg"
+                            android:layout_height="20dp">
 
-                    </TextView>
 
+                        </View>
 
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
 
-                </RelativeLayout>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:textSize="13sp"
+                                android:textColor="@color/colorPrimary"
+                                android:text="其他"
+                                android:layout_marginTop="@dimen/eight_dp"
+                                android:layout_marginBottom="@dimen/eight_dp"
+                                android:layout_marginStart="@dimen/sixteen_dp"
+                                android:layout_height="wrap_content" />
+                        </RelativeLayout>
 
-                <View
-                    android:layout_width="match_parent"
-                    android:background="#e6e6e6"
-                    android:layout_marginStart="@dimen/sixteen_dp"
-                    android:layout_height="1dp">
 
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
 
-                </View>
 
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:visibility="gone"
-                    android:layout_height="match_parent">
+                            <TextView
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="搜索结果收藏量筛选"
+                                android:textSize="15sp"
+                                android:id="@+id/search_filter_s"
+                                android:textColor="@color/dark_text"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
 
 
-                    <TextView
-                        android:layout_margin="@dimen/sixteen_dp"
-                        android:text="用户信息"
-                        android:textSize="15sp"
-                        android:textColor="@color/dark_text"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content">
+                            </TextView>
 
 
+                            <TextView
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="10000"
+                                android:textSize="14sp"
+                                android:id="@+id/search_filter"
+                                android:layout_alignParentEnd="true"
+                                android:textColor="@color/colorPrimary"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
 
-                    </TextView>
 
+                            </TextView>
 
-                </RelativeLayout>
 
+                        </RelativeLayout>
 
-                <View
-                    android:layout_width="match_parent"
-                    android:visibility="gone"
-                    android:background="#e6e6e6"
-                    android:layout_marginStart="@dimen/sixteen_dp"
-                    android:layout_height="1dp">
 
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="#e6e6e6"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_height="1dp">
 
-                </View>
 
+                        </View>
 
-                <RelativeLayout
-                    android:id="@+id/login_out"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
 
 
-                    <TextView
-                        android:layout_margin="@dimen/sixteen_dp"
-                        android:text="退出登录"
-                        android:textSize="15sp"
-                        android:textColor="@color/dark_text"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content">
+                            <TextView
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="二级助推器分离"
+                                android:textSize="15sp"
+                                android:textColor="@color/dark_text"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
 
 
+                            </TextView>
 
-                    </TextView>
 
+                            <Switch
+                                android:layout_width="wrap_content"
+                                android:checked="true"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:layout_height="wrap_content" />
 
-                </RelativeLayout>
 
-            </LinearLayout>
+                        </RelativeLayout>
 
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="#e6e6e6"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_height="1dp">
 
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:orientation="vertical"
-                android:layout_height="wrap_content">
+                        </View>
 
-                <View
-                    android:layout_width="match_parent"
-                    android:background="@color/light_bg"
-                    android:layout_height="20dp">
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
 
 
-                </View>
+                            <TextView
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="开启回旋加速器"
+                                android:textSize="15sp"
+                                android:textColor="@color/dark_text"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
 
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:text="下载路径"
-                        android:textSize="13sp"
-                        android:textColor="@color/colorPrimary"
-                        android:layout_marginTop="@dimen/eight_dp"
-                        android:layout_marginBottom="@dimen/eight_dp"
-                        android:layout_marginStart="@dimen/sixteen_dp"
-                        android:layout_height="wrap_content" />
-                </RelativeLayout>
+                            </TextView>
 
 
-                <RelativeLayout
-                    android:id="@+id/single_illust_path"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
+                            <Switch
+                                android:layout_width="wrap_content"
+                                android:checked="true"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:layout_height="wrap_content" />
 
 
-                    <TextView
-                        android:layout_marginStart="@dimen/sixteen_dp"
-                        android:layout_marginTop="@dimen/sixteen_dp"
-                        android:layout_marginBottom="@dimen/six_dp"
-                        android:text="图片下载路径"
-                        android:textSize="15sp"
-                        android:id="@+id/illust_path_s"
-                        android:textColor="@color/dark_text"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content">
+                        </RelativeLayout>
 
 
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="#e6e6e6"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_height="1dp">
 
-                    </TextView>
 
+                        </View>
 
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
 
-                    <TextView
-                        android:layout_marginStart="@dimen/sixteen_dp"
-                        android:layout_marginBottom="@dimen/sixteen_dp"
-                        android:text="/storage/emulated/0/Shaft/SingleImages"
-                        android:layout_below="@+id/illust_path_s"
-                        android:textSize="13sp"
-                        android:textColor="@color/colorPrimary"
-                        android:singleLine="true"
-                        android:ellipsize="start"
-                        android:id="@+id/illust_path"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content">
 
+                            <TextView
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="X-performance"
+                                android:textSize="15sp"
+                                android:textColor="@color/dark_text"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
 
 
-                    </TextView>
+                            </TextView>
 
-                </RelativeLayout>
 
-                <View
-                    android:layout_width="match_parent"
-                    android:background="#e6e6e6"
-                    android:layout_marginStart="@dimen/sixteen_dp"
-                    android:layout_height="1dp">
+                            <Switch
+                                android:layout_width="wrap_content"
+                                android:checked="true"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:layout_height="wrap_content" />
 
 
-                </View>
+                        </RelativeLayout>
 
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:visibility="gone"
-                    android:layout_height="match_parent">
 
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="@color/light_bg"
+                            android:layout_height="20dp">
 
-                    <TextView
-                        android:layout_margin="@dimen/sixteen_dp"
-                        android:text="用户信息"
-                        android:textSize="15sp"
-                        android:textColor="@color/dark_text"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content">
 
+                        </View>
 
+                    </LinearLayout>
 
-                    </TextView>
 
+                </LinearLayout>
+            </androidx.core.widget.NestedScrollView>
 
-                </RelativeLayout>
+        </com.scwang.smartrefresh.layout.SmartRefreshLayout>
 
-
-                <View
-                    android:layout_width="match_parent"
-                    android:visibility="gone"
-                    android:background="#e6e6e6"
-                    android:layout_marginStart="@dimen/sixteen_dp"
-                    android:layout_height="1dp">
-
-
-                </View>
-
-
-                <RelativeLayout
-                    android:id="@+id/gif_result_path"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-
-
-                    <TextView
-                        android:layout_marginStart="@dimen/sixteen_dp"
-                        android:layout_marginTop="@dimen/sixteen_dp"
-                        android:layout_marginBottom="@dimen/six_dp"
-                        android:text="GIF生成路径"
-                        android:textSize="15sp"
-                        android:id="@+id/gif_result_s"
-                        android:textColor="@color/dark_text"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content">
-
-
-
-                    </TextView>
-
-
-                    <TextView
-                        android:layout_marginStart="@dimen/sixteen_dp"
-                        android:layout_marginBottom="@dimen/sixteen_dp"
-                        android:text="/storage/emulated/0/Shaft/SingleImages"
-                        android:layout_below="@+id/gif_result_s"
-                        android:textSize="13sp"
-                        android:textColor="@color/colorPrimary"
-                        android:singleLine="true"
-                        android:ellipsize="start"
-                        android:id="@+id/gif_result"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>
-
-
-                </RelativeLayout>
-
-
-
-                <View
-                    android:layout_width="match_parent"
-                    android:background="#e6e6e6"
-                    android:layout_marginStart="@dimen/sixteen_dp"
-                    android:layout_height="1dp">
-
-
-                </View>
-
-
-                <RelativeLayout
-                    android:id="@+id/gif_zip_path"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-
-
-                    <TextView
-                        android:layout_margin="@dimen/sixteen_dp"
-                        android:text="GIF压缩包存放路径"
-                        android:textSize="15sp"
-                        android:id="@+id/gif_zip_s"
-                        android:textColor="@color/dark_text"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content">
-
-
-
-                    </TextView>
-
-                    <TextView
-                        android:layout_marginStart="@dimen/sixteen_dp"
-                        android:layout_marginBottom="@dimen/sixteen_dp"
-                        android:text="/storage/emulated/0/Shaft/SingleImages"
-                        android:layout_below="@+id/gif_zip_s"
-                        android:textSize="13sp"
-                        android:textColor="@color/colorPrimary"
-                        android:singleLine="true"
-                        android:ellipsize="start"
-                        android:id="@+id/gif_zip"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>
-
-
-                </RelativeLayout>
-
-
-                <View
-                    android:layout_width="match_parent"
-                    android:background="#e6e6e6"
-                    android:layout_marginStart="@dimen/sixteen_dp"
-                    android:layout_height="1dp">
-
-
-                </View>
-
-
-                <RelativeLayout
-                    android:id="@+id/gif_unzip_path"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-
-
-                    <TextView
-                        android:layout_margin="@dimen/sixteen_dp"
-                        android:text="GIF压缩包解压路径"
-                        android:textSize="15sp"
-                        android:id="@+id/gif_unzip_s"
-                        android:textColor="@color/dark_text"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content">
-
-
-
-                    </TextView>
-
-                    <TextView
-                        android:layout_marginStart="@dimen/sixteen_dp"
-                        android:layout_marginBottom="@dimen/sixteen_dp"
-                        android:text="/storage/emulated/0/Shaft/SingleImages"
-                        android:layout_below="@+id/gif_unzip_s"
-                        android:textSize="13sp"
-                        android:textColor="@color/colorPrimary"
-                        android:singleLine="true"
-                        android:ellipsize="start"
-                        android:id="@+id/gif_unzip"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>
-
-                </RelativeLayout>
-
-            </LinearLayout>
-
-
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:orientation="vertical"
-                android:layout_height="wrap_content">
-
-                <View
-                    android:layout_width="match_parent"
-                    android:background="@color/light_bg"
-                    android:layout_height="20dp">
-
-
-                </View>
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:textSize="13sp"
-                        android:textColor="@color/colorPrimary"
-                        android:text="常规"
-                        android:layout_marginTop="@dimen/eight_dp"
-                        android:layout_marginBottom="@dimen/eight_dp"
-                        android:layout_marginStart="@dimen/sixteen_dp"
-                        android:layout_height="wrap_content" />
-                </RelativeLayout>
-
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-
-
-                    <TextView
-                        android:layout_marginStart="@dimen/sixteen_dp"
-                        android:layout_marginTop="@dimen/sixteen_dp"
-                        android:layout_marginBottom="@dimen/six_dp"
-                        android:text="开启直连（自行代理或在墙外，可以关闭）"
-                        android:textSize="15sp"
-                        android:id="@+id/fuck_china_s"
-                        android:textColor="@color/dark_text"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content">
-
-
-                    </TextView>
-
-
-                    <TextView
-                        android:layout_marginStart="@dimen/sixteen_dp"
-                        android:layout_marginBottom="@dimen/sixteen_dp"
-                        android:text="详见 Notsfsssf/Pix-EzViewer"
-                        android:layout_below="@+id/fuck_china_s"
-                        android:textSize="13sp"
-                        android:textColor="@color/colorPrimary"
-                        android:singleLine="true"
-                        android:ellipsize="start"
-                        android:id="@+id/fuck_china"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>
-
-
-                    <Switch
-                        android:layout_width="wrap_content"
-                        android:checked="true"
-                        android:id="@+id/auto_dns"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:layout_margin="@dimen/sixteen_dp"
-                        android:layout_height="wrap_content" />
-
-
-                </RelativeLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:background="#e6e6e6"
-                    android:layout_marginStart="@dimen/sixteen_dp"
-                    android:layout_height="1dp"/>
-
-
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:visibility="gone"
-                    android:layout_height="match_parent">
-
-
-                    <TextView
-                        android:layout_margin="@dimen/sixteen_dp"
-                        android:text="图片详情展示原图"
-                        android:textSize="15sp"
-                        android:textColor="@color/dark_text"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content">
-
-
-
-                    </TextView>
-
-
-                    <Switch
-                        android:layout_width="wrap_content"
-                        android:checked="true"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:layout_margin="@dimen/sixteen_dp"
-                        android:layout_height="wrap_content" />
-
-
-                </RelativeLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:background="#e6e6e6"
-                    android:visibility="gone"
-                    android:layout_marginStart="@dimen/sixteen_dp"
-                    android:layout_height="1dp">
-
-
-                </View>
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-
-
-                    <TextView
-                        android:layout_margin="@dimen/sixteen_dp"
-                        android:text="瀑布流列表点击动画"
-                        android:textSize="15sp"
-                        android:textColor="@color/dark_text"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content">
-
-
-
-                    </TextView>
-
-
-                    <Switch
-                        android:layout_width="wrap_content"
-                        android:checked="true"
-                        android:id="@+id/stagger_animate"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:layout_margin="@dimen/sixteen_dp"
-                        android:layout_height="wrap_content" />
-
-
-                </RelativeLayout>
-
-
-                <View
-                    android:layout_width="match_parent"
-                    android:background="#e6e6e6"
-                    android:layout_marginStart="@dimen/sixteen_dp"
-                    android:layout_height="1dp"/>
-
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-
-
-                    <TextView
-                        android:layout_margin="@dimen/sixteen_dp"
-                        android:text="网格列表点击动画"
-                        android:textSize="15sp"
-                        android:textColor="@color/dark_text"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content">
-
-
-
-                    </TextView>
-
-
-                    <Switch
-                        android:layout_width="wrap_content"
-                        android:checked="true"
-                        android:id="@+id/grid_animate"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:layout_margin="@dimen/sixteen_dp"
-                        android:layout_height="wrap_content" />
-
-
-                </RelativeLayout>
-
-
-                <View
-                    android:layout_width="match_parent"
-                    android:background="#e6e6e6"
-                    android:layout_marginStart="@dimen/sixteen_dp"
-                    android:layout_height="1dp">
-
-
-                </View>
-
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-
-
-                    <TextView
-                        android:layout_margin="@dimen/sixteen_dp"
-                        android:text="保存浏览历史"
-                        android:textSize="15sp"
-                        android:textColor="@color/dark_text"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content">
-
-
-
-                    </TextView>
-
-
-                    <Switch
-                        android:layout_width="wrap_content"
-                        android:checked="true"
-                        android:id="@+id/save_history"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:layout_margin="@dimen/sixteen_dp"
-                        android:layout_height="wrap_content" />
-
-
-                </RelativeLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:background="#e6e6e6"
-                    android:layout_marginStart="@dimen/sixteen_dp"
-                    android:layout_height="1dp">
-
-
-                </View>
-
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-
-
-                    <TextView
-                        android:layout_margin="@dimen/sixteen_dp"
-                        android:text="相关作品无限下滑（可能出现重复）"
-                        android:textSize="15sp"
-                        android:textColor="@color/dark_text"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content">
-
-
-
-                    </TextView>
-
-
-                    <Switch
-                        android:layout_width="wrap_content"
-                        android:checked="true"
-                        android:id="@+id/related_no_limit"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:layout_margin="@dimen/sixteen_dp"
-                        android:layout_height="wrap_content" />
-
-
-                </RelativeLayout>
-            </LinearLayout>
-
-
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:orientation="vertical"
-                android:layout_height="wrap_content">
-
-
-                <View
-                    android:layout_width="match_parent"
-                    android:background="@color/light_bg"
-                    android:layout_height="20dp">
-
-
-                </View>
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:textSize="13sp"
-                        android:textColor="@color/colorPrimary"
-                        android:text="其他"
-                        android:layout_marginTop="@dimen/eight_dp"
-                        android:layout_marginBottom="@dimen/eight_dp"
-                        android:layout_marginStart="@dimen/sixteen_dp"
-                        android:layout_height="wrap_content" />
-                </RelativeLayout>
-
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-
-
-                    <TextView
-                        android:layout_margin="@dimen/sixteen_dp"
-                        android:text="搜索结果收藏量筛选"
-                        android:textSize="15sp"
-                        android:id="@+id/search_filter_s"
-                        android:textColor="@color/dark_text"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content">
-
-
-
-                    </TextView>
-
-
-                    <TextView
-                        android:layout_margin="@dimen/sixteen_dp"
-                        android:text="10000"
-                        android:textSize="14sp"
-                        android:id="@+id/search_filter"
-                        android:layout_alignParentEnd="true"
-                        android:textColor="@color/colorPrimary"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content">
-
-
-
-                    </TextView>
-
-
-                </RelativeLayout>
-
-
-                <View
-                    android:layout_width="match_parent"
-                    android:background="#e6e6e6"
-                    android:layout_marginStart="@dimen/sixteen_dp"
-                    android:layout_height="1dp">
-
-
-                </View>
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-
-
-                    <TextView
-                        android:layout_margin="@dimen/sixteen_dp"
-                        android:text="二级助推器分离"
-                        android:textSize="15sp"
-                        android:textColor="@color/dark_text"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content">
-
-
-
-                    </TextView>
-
-
-                    <Switch
-                        android:layout_width="wrap_content"
-                        android:checked="true"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:layout_margin="@dimen/sixteen_dp"
-                        android:layout_height="wrap_content" />
-
-
-                </RelativeLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:background="#e6e6e6"
-                    android:layout_marginStart="@dimen/sixteen_dp"
-                    android:layout_height="1dp">
-
-
-                </View>
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-
-
-                    <TextView
-                        android:layout_margin="@dimen/sixteen_dp"
-                        android:text="开启回旋加速器"
-                        android:textSize="15sp"
-                        android:textColor="@color/dark_text"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content">
-
-
-
-                    </TextView>
-
-
-                    <Switch
-                        android:layout_width="wrap_content"
-                        android:checked="true"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:layout_margin="@dimen/sixteen_dp"
-                        android:layout_height="wrap_content" />
-
-
-                </RelativeLayout>
-
-
-                <View
-                    android:layout_width="match_parent"
-                    android:background="#e6e6e6"
-                    android:layout_marginStart="@dimen/sixteen_dp"
-                    android:layout_height="1dp">
-
-
-                </View>
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-
-
-                    <TextView
-                        android:layout_margin="@dimen/sixteen_dp"
-                        android:text="X-performance"
-                        android:textSize="15sp"
-                        android:textColor="@color/dark_text"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content">
-
-
-
-                    </TextView>
-
-
-                    <Switch
-                        android:layout_width="wrap_content"
-                        android:checked="true"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:layout_margin="@dimen/sixteen_dp"
-                        android:layout_height="wrap_content" />
-
-
-                </RelativeLayout>
-
-            </LinearLayout>
-
-
-
-
-        </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
-</LinearLayout>
+    </LinearLayout>
+</layout>
