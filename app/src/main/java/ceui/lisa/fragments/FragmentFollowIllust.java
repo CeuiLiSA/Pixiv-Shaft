@@ -3,6 +3,8 @@ package ceui.lisa.fragments;
 import android.content.Intent;
 import android.view.View;
 
+import androidx.recyclerview.widget.LinearLayoutManager;
+
 import com.github.ybq.android.spinkit.style.DoubleBounce;
 
 import ceui.lisa.R;
@@ -17,7 +19,6 @@ import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.utils.PixivOperate;
-import ceui.lisa.view.LayoutManagerScaleFirst;
 import ceui.lisa.view.LinearItemDecorationNoLR;
 import io.reactivex.Observable;
 
@@ -45,8 +46,9 @@ public class FragmentFollowIllust extends AutoClipFragment<ListIllustResponse, E
         doubleBounce.setColor(getResources().getColor(R.color.colorPrimary));
         mProgressBar.setIndeterminateDrawable(doubleBounce);
         mRecyclerView.addItemDecoration(new LinearItemDecorationNoLR(DensityUtil.dp2px(12.0f)));
-        //LinearLayoutManager manager = new LinearLayoutManager(mContext);
-        mRecyclerView.setLayoutManager(new LayoutManagerScaleFirst(mContext));
+        LinearLayoutManager manager = new LinearLayoutManager(mContext);
+        //mRecyclerView.setLayoutManager(new LayoutManagerScaleFirst(mContext));
+        mRecyclerView.setLayoutManager(manager);
     }
 
 

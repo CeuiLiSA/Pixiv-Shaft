@@ -1,9 +1,9 @@
 package ceui.lisa.activities;
 
 import android.graphics.Color;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.viewpager.widget.ViewPager;
 import android.view.View;
 import android.widget.TextView;
 
@@ -22,7 +22,7 @@ public class ImageDetailActivity extends BaseActivity {
 
     private IllustsBean mIllustsBean;
     private List<String> localIllust = new ArrayList<>();
-    private TextView currentPage, downloadSingle;
+    private TextView currentPage, downloadSingle, currentSize;
     private String dataType = "";
 
     @Override
@@ -39,6 +39,7 @@ public class ImageDetailActivity extends BaseActivity {
         dataType = getIntent().getStringExtra("dataType");
         ViewPager viewPager = findViewById(R.id.view_pager);
         if(dataType.equals("二级详情")) {
+            currentSize = findViewById(R.id.current_size);
             currentPage = findViewById(R.id.current_page);
             downloadSingle = findViewById(R.id.download_this_one);
             mIllustsBean = (IllustsBean) getIntent().getSerializableExtra("illust");
@@ -81,6 +82,9 @@ public class ImageDetailActivity extends BaseActivity {
 
                 }
             });
+//            if(mIllustsBean.getPage_count() == 1){
+//                currentSize.setText(mIllustsBean.getSize());
+//            }
             currentPage.setText("第" + (index + 1) + "P / 共" + mIllustsBean.getPage_count() + "P");
 
         }else if(dataType.equals("下载详情")){

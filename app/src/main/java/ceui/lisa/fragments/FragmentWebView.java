@@ -2,8 +2,8 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.net.Uri;
-import android.support.design.widget.Snackbar;
-import android.support.v7.widget.Toolbar;
+import com.google.android.material.snackbar.Snackbar;
+import androidx.appcompat.widget.Toolbar;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;

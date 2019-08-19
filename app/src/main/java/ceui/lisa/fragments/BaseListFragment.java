@@ -1,7 +1,7 @@
 package ceui.lisa.fragments;
 
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.appcompat.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.ImageView;
@@ -9,6 +9,8 @@ import android.widget.ProgressBar;
 
 import com.scwang.smartrefresh.header.DeliveryHeader;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
+import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
+import com.scwang.smartrefresh.layout.header.ClassicsHeader;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -104,6 +106,10 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
     protected String nextUrl = "";
     protected ImageView noData;
 
+    public BaseListFragment(){
+        Common.showLog(className + "new instance !!");
+    }
+
     @Override
     void initLayout() {
         mLayoutID = R.layout.activity_simple_list;
@@ -131,7 +137,11 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
             }
         });
         initRecyclerView();
-        mRefreshLayout.setRefreshHeader(new DeliveryHeader(mContext));
+        if (className.equals("FragmentRecmdIllust ")) {
+            mRefreshLayout.setRefreshHeader(new ClassicsHeader(mContext));
+        }else {
+            mRefreshLayout.setRefreshHeader(new DeliveryHeader(mContext));
+        }
         mRefreshLayout.setOnRefreshListener(layout -> getFirstData());
         mRefreshLayout.setEnableLoadMore(false);
         if (hasNext()) {
@@ -251,6 +261,7 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
                 Common.showToast("next url 为空");
                 mRefreshLayout.setEnableLoadMore(false);
                 mRefreshLayout.finishLoadMore(false);
+                mRefreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
             } else {
                 mApi.subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())

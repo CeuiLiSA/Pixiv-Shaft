@@ -1,9 +1,7 @@
 package ceui.lisa.view;
 
-import android.graphics.Color;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.text.TextPaint;
-import android.text.style.ClickableSpan;
 import android.view.View;
 
 import org.sufficientlysecure.htmltextview.ClickableTableSpan;

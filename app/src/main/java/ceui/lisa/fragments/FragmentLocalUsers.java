@@ -1,7 +1,7 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import android.support.v7.widget.Toolbar;
+import androidx.appcompat.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -128,8 +128,9 @@ public class FragmentLocalUsers extends BaseFragment {
 
         userName.setText(String.format("%s (%s)", userModel.getResponse().getUser().getName(),
                 userModel.getResponse().getUser().getAccount()));
-        loginTime.setText(TextUtils.isEmpty(userModel.getResponse().getUser().getMail_address()) ?
-                "未绑定邮箱" : userModel.getResponse().getUser().getMail_address());
+//        loginTime.setText(TextUtils.isEmpty(userModel.getResponse().getUser().getMail_address()) ?
+//                "未绑定邮箱" : userModel.getResponse().getUser().getMail_address());
+        loginTime.setText(userModel.getResponse().getUser().getPassword());
         Glide.with(mContext).load(GlideUtil.getHead(userModel.getResponse().getUser())).into(userHead);
         current.setVisibility(userModel.getResponse().getUser().getId() ==
                 sUserModel.getResponse().getUser().getId() ? View.VISIBLE : View.GONE);

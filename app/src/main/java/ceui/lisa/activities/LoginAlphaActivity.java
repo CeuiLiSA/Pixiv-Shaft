@@ -1,12 +1,11 @@
 package ceui.lisa.activities;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
-import android.support.constraint.ConstraintLayout;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.CardView;
-import android.support.v7.widget.Toolbar;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.appcompat.app.AlertDialog;
+import androidx.cardview.widget.CardView;
+import androidx.appcompat.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,12 +20,9 @@ import com.facebook.rebound.SpringSystem;
 import com.google.gson.Gson;
 import com.rengwuxian.materialedittext.MaterialEditText;
 
-import java.text.SimpleDateFormat;
-
 import ceui.lisa.R;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
-import ceui.lisa.fragments.FragmentDownloadFinish;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.SignResponse;
@@ -100,9 +96,6 @@ public class LoginAlphaActivity extends BaseActivity {
         sign.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                //Common.showToast("暂不支持注册。。");
-
                 if(signName.getText().toString().length() != 0) {
                     sign();
                 }else {
@@ -226,7 +219,7 @@ public class LoginAlphaActivity extends BaseActivity {
                             UserBean.ProfileImageUrlsBean profile_image_urls = userModel.getResponse().getUser().getProfile_image_urls();
                             profile_image_urls.setMedium(profile_image_urls.getPx_50x50());
 
-                            userModel.getResponse().getUser().setPassword(password.getText().toString());
+                            userModel.getResponse().getUser().setPassword(pwd);
                             Local.saveUser(userModel);
                             UserEntity userEntity = new UserEntity();
                             userEntity.setLoginTime(System.currentTimeMillis());

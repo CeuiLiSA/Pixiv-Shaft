@@ -2,8 +2,10 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v7.widget.GridLayoutManager;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
+
+import androidx.recyclerview.widget.GridLayoutManager;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -84,6 +86,7 @@ public class FragmentMultiDownload extends BaseAsyncFragment<MultiDownloadAdapte
                 mToolbar.setTitle(getToolbarTitle());
             }
         });
+        mRefreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
     }
 
     @Override

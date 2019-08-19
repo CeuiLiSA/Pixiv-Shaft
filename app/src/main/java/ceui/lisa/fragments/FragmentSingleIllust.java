@@ -2,9 +2,9 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.Toolbar;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.appcompat.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
@@ -14,12 +14,16 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
+import com.scwang.smartrefresh.layout.api.RefreshLayout;
+import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
+import com.scwang.smartrefresh.layout.header.FalsifyHeader;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.sufficientlysecure.htmltextview.HtmlTextView;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,6 +35,7 @@ import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.adapters.IllustDetailAdapter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustHistoryEntity;
+import ceui.lisa.download.FileCreator;
 import ceui.lisa.download.GifCreate;
 import ceui.lisa.download.GifDownload;
 import ceui.lisa.download.IllustDownload;
@@ -83,6 +88,10 @@ public class FragmentSingleIllust extends BaseFragment {
     @Override
     View initView(View v) {
         Common.showLog(className + new Gson().toJson(illust));
+        RefreshLayout refreshLayout = v.findViewById(R.id.refreshLayout);
+        refreshLayout.setEnableLoadMore(true);
+        refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));
+        refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
         imageView = v.findViewById(R.id.bg_image);
         Toolbar toolbar = v.findViewById(R.id.toolbar);
         toolbar.inflateMenu(R.menu.share);
@@ -130,6 +139,11 @@ public class FragmentSingleIllust extends BaseFragment {
                 }
             }
         });
+        File file = FileCreator.createIllustFile(illust);
+        if (file.exists()) {
+            download.setImageResource(R.drawable.ic_has_download);
+        }
+
         FloatingActionButton related = v.findViewById(R.id.related);
         related.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -218,7 +232,7 @@ public class FragmentSingleIllust extends BaseFragment {
         userName.setText(illust.getUser().getName());
         mTagCloudView = v.findViewById(R.id.illust_tag);
         List<String> tags = new ArrayList<>();
-        String illustSize = "尺寸： width " + illust.getWidth() + "px * height " + illust.getHeight() + "px";
+        String illustSize = "尺寸：" + illust.getSize();
         TextView illustPx = v.findViewById(R.id.illust_px);
         illustPx.setText(illustSize);
         for (int i = 0; i < illust.getTags().size(); i++) {
@@ -389,13 +403,11 @@ public class FragmentSingleIllust extends BaseFragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         EventBus.getDefault().register(this);
-        Common.showLog(className + "EVENTBUS 注册了");
     }
 
     @Override
     public void onDestroy() {
         EventBus.getDefault().unregister(this);
         super.onDestroy();
-        Common.showLog(className + "EVENTBUS 取消注册了");
     }
 }

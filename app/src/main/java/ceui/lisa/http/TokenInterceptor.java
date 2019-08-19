@@ -3,6 +3,7 @@ package ceui.lisa.http;
 import java.io.IOException;
 
 import ceui.lisa.activities.LoginAlphaActivity;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.model.UserModel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
@@ -90,7 +91,9 @@ public class TokenInterceptor implements Interceptor {
                 true,
                 true);
         UserModel newUser = call.execute().body();
-
+        if(newUser != null) {
+            newUser.getResponse().setUser(Shaft.sUserModel.getResponse().getUser());
+        }
 //        UserBean.ProfileImageUrlsBean profile_image_urls = newUser.getResponse().getUser().getProfile_image_urls();
 //        profile_image_urls.setMedium(profile_image_urls.getPx_50x50());
 //        newUser.getResponse().getUser().setPassword(userModel.getResponse().getUser().getPassword());

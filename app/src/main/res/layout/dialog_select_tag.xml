@@ -24,13 +24,13 @@
 
 
 
-    <android.support.v7.widget.RecyclerView
+    <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"
         android:id="@+id/recyclerView"
         android:layout_marginBottom="@dimen/sixteen_dp"
         android:layout_height="280dp">
 
-    </android.support.v7.widget.RecyclerView>
+    </androidx.recyclerview.widget.RecyclerView>
 
 
     </com.scwang.smartrefresh.layout.SmartRefreshLayout>

@@ -4,8 +4,6 @@ import android.view.View;
 
 import java.util.List;
 
-import ceui.lisa.view.AnimateImageView;
-
 public class ViewTrackController {
     private List<AnimateImageView> imageViewList;
     private AnimateImageView topView;

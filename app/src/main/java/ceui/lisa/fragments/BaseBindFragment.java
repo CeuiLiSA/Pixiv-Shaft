@@ -13,8 +13,9 @@ import androidx.databinding.ViewDataBinding;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
-import ceui.lisa.pluto.interf.Binding;
-import ceui.lisa.pluto.util.Common;
+import ceui.lisa.interfaces.Binding;
+import ceui.lisa.utils.Common;
+
 
 public abstract class BaseBindFragment<T extends ViewDataBinding> extends Fragment implements Binding<T> {
 

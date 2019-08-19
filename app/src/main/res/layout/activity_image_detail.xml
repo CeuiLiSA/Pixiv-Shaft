@@ -5,13 +5,13 @@
     android:layout_height="match_parent">
 
 
-    <android.support.v4.view.ViewPager
+    <androidx.viewpager.widget.ViewPager
         android:layout_width="match_parent"
         android:id="@+id/view_pager"
         android:layout_height="match_parent">
 
 
-    </android.support.v4.view.ViewPager>
+    </androidx.viewpager.widget.ViewPager>
 
 
     <RelativeLayout
@@ -20,7 +20,18 @@
         android:id="@+id/bottom_rela"
         android:layout_height="wrap_content">
 
-
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_toStartOf="@+id/download_this_one"
+            android:textColor="@android:color/white"
+            android:layout_centerVertical="true"
+            android:gravity="start"
+            android:layout_marginEnd="@dimen/eight_dp"
+            android:layout_marginStart="@dimen/sixteen_dp"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:id="@+id/current_size"
+            android:layout_height="wrap_content" />
 
         <TextView
             android:textColor="@android:color/white"

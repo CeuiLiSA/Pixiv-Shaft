@@ -14,14 +14,14 @@
         android:layout_height="wrap_content" />
 
 
-    <android.support.v7.widget.RecyclerView
+    <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"
         android:id="@+id/recyclerView"
         android:layout_marginStart="@dimen/sixteen_dp"
         android:layout_marginEnd="@dimen/sixteen_dp"
         android:layout_height="240dp">
 
-    </android.support.v7.widget.RecyclerView>
+    </androidx.recyclerview.widget.RecyclerView>
 
     <RelativeLayout
         android:layout_width="match_parent"

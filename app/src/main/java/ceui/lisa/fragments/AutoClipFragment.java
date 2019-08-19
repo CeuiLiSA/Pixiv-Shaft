@@ -1,6 +1,6 @@
 package ceui.lisa.fragments;
 
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.IllustAdapter;

@@ -1,8 +1,11 @@
 package ceui.lisa.activities;
 
 import android.content.Intent;
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.Fragment;
 import android.view.KeyEvent;
+
+import com.mikepenz.aboutlibraries.Libs;
+import com.mikepenz.aboutlibraries.LibsBuilder;
 
 import ceui.lisa.fragments.FragmentAbout;
 import ceui.lisa.fragments.FragmentBlank;
@@ -10,6 +13,7 @@ import ceui.lisa.fragments.FragmentBookTag;
 import ceui.lisa.fragments.FragmentComment;
 import ceui.lisa.fragments.FragmentDrag;
 import ceui.lisa.fragments.FragmentFollowAnime;
+import ceui.lisa.fragments.FragmentLicense;
 import ceui.lisa.fragments.FragmentLocalUsers;
 import ceui.lisa.fragments.FragmentMetro;
 import ceui.lisa.fragments.FragmentMultiDownload;
@@ -101,7 +105,7 @@ public class TemplateFragmentActivity extends FragmentActivity {
                 case "画廊":
                     return new FragmentWalkThrough();
                 case "License":
-                    return new FragmentWalkThrough();
+                    return new FragmentLicense();
                 default:
                     return new FragmentBlank();
             }

@@ -7,15 +7,15 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.net.Uri;
-import android.support.design.widget.BottomNavigationView;
-import android.support.design.widget.NavigationView;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.view.ViewPager;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.AlertDialog;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.navigation.NavigationView;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.core.view.GravityCompat;
+import androidx.viewpager.widget.ViewPager;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.appcompat.app.AlertDialog;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.MenuItem;
@@ -41,7 +41,6 @@ import ceui.lisa.R;
 import ceui.lisa.download.TaskQueue;
 import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentCenter;
-import ceui.lisa.fragments.FragmentCenter222;
 import ceui.lisa.fragments.FragmentRight;
 import ceui.lisa.fragments.FragmentLeft;
 import ceui.lisa.interfaces.Callback;
@@ -326,9 +325,7 @@ public class CoverActivity extends BaseActivity
 
     public void exit() {
         if ((System.currentTimeMillis() - mExitTime) > 2000) {
-
             if(TaskQueue.get().getTasks().size() != 0) {
-
                 AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
                 builder.setTitle("Shaft 提示");
                 builder.setMessage("你还有未下载完成的任务，确定退出吗？");
@@ -349,8 +346,6 @@ public class CoverActivity extends BaseActivity
                 Common.showToast(getString(R.string.double_click_finish));
                 mExitTime = System.currentTimeMillis();
             }
-
-
         } else {
             finish();
         }

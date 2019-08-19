@@ -269,6 +269,10 @@ public class IllustsBean implements Serializable {
         isChecked = checked;
     }
 
+    public String getSize(){
+        return getWidth() + "px * " + getHeight() + "px";
+    }
+
 //    public static class UserBean implements Serializable{
 //        /**
 //         * id : 74184

@@ -1,6 +1,6 @@
 package ceui.lisa.fragments;
 
-import android.support.v7.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import ceui.lisa.R;
 import ceui.lisa.adapters.CommentAdapter;

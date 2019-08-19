@@ -26,7 +26,7 @@
             android:layout_height="wrap_content" />
 
 
-        <android.support.v7.widget.AppCompatSpinner
+        <androidx.appcompat.widget.AppCompatSpinner
             android:layout_width="wrap_content"
             android:id="@+id/tag_spinner"
             android:layout_below="@+id/tag_s"
@@ -36,7 +36,7 @@
             android:layout_height="wrap_content">
 
 
-        </android.support.v7.widget.AppCompatSpinner>
+        </androidx.appcompat.widget.AppCompatSpinner>
 
     </RelativeLayout>
 
@@ -66,7 +66,7 @@
             android:layout_height="wrap_content" />
 
 
-        <android.support.v7.widget.AppCompatSpinner
+        <androidx.appcompat.widget.AppCompatSpinner
             android:layout_width="wrap_content"
             android:id="@+id/star_size_spinner"
             android:layout_below="@+id/star_s"
@@ -76,7 +76,7 @@
             android:layout_height="wrap_content">
 
 
-        </android.support.v7.widget.AppCompatSpinner>
+        </androidx.appcompat.widget.AppCompatSpinner>
 
     </RelativeLayout>
 
@@ -106,7 +106,7 @@
             android:layout_height="wrap_content" />
 
 
-        <android.support.v7.widget.AppCompatSpinner
+        <androidx.appcompat.widget.AppCompatSpinner
             android:layout_width="wrap_content"
             android:id="@+id/date_spinner"
             android:layout_below="@+id/date_s"
@@ -116,7 +116,7 @@
             android:layout_height="wrap_content">
 
 
-        </android.support.v7.widget.AppCompatSpinner>
+        </androidx.appcompat.widget.AppCompatSpinner>
 
     </RelativeLayout>
 

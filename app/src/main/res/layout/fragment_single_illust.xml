@@ -14,347 +14,356 @@
         android:layout_height="match_parent" />
 
 
+    <com.scwang.smartrefresh.layout.SmartRefreshLayout
+        android:layout_width="match_parent"
+        android:id="@+id/refreshLayout"
+        android:layout_height="match_parent">
 
 
-
-    <android.support.v4.widget.NestedScrollView
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:id="@+id/scrollView"
         android:layout_height="wrap_content">
 
 
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:orientation="vertical"
-            android:id="@+id/parent_view"
-            android:layout_height="wrap_content">
 
-
-            <ImageView
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:id="@+id/head"
-                android:layout_height="50dp" />
-
-
-            <ceui.lisa.view.ExpandCard
-                android:layout_width="match_parent"
-                app:cardElevation="@dimen/four_dp"
-                android:id="@+id/illust_list"
-                android:background="@drawable/side_rank_horizon"
-                app:cardCornerRadius="@dimen/four_dp"
-                android:layout_marginStart="@dimen/twelve_dp"
-                android:layout_marginEnd="@dimen/twelve_dp"
-                android:layout_marginBottom="@dimen/eight_dp"
+                android:orientation="vertical"
+                android:id="@+id/parent_view"
                 android:layout_height="wrap_content">
 
-                <ceui.lisa.view.TouchRecyclerView
+
+                <ImageView
                     android:layout_width="match_parent"
-                    android:id="@+id/recyclerView"
-                    android:background="@color/light_bg"
-                    android:layout_height="match_parent">
-
-                </ceui.lisa.view.TouchRecyclerView>
+                    android:id="@+id/head"
+                    android:layout_height="50dp" />
 
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:textSize="14sp"
-                    android:layout_margin="@dimen/twelve_dp"
-                    android:textColor="@android:color/white"
-                    android:textStyle="bold"
-                    android:shadowColor="#FF000000"
-                    android:shadowDx="1.5"
-                    android:shadowDy="1.5"
-                    android:shadowRadius="1.5"
-                    android:layout_gravity="bottom|end"
-                    android:id="@+id/see_all"
-                    android:layout_height="wrap_content" />
-
-            </ceui.lisa.view.ExpandCard>
-
-
-
-            <android.support.v7.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_marginStart="@dimen/twelve_dp"
-                android:layout_marginEnd="@dimen/twelve_dp"
-                app:cardElevation="@dimen/four_dp"
-                android:layout_marginBottom="@dimen/eight_dp"
-                app:cardCornerRadius="@dimen/four_dp"
-                android:layout_height="wrap_content">
-
-                <LinearLayout
+                <ceui.lisa.view.ExpandCard
                     android:layout_width="match_parent"
-                    android:orientation="vertical"
-                    android:background="#FAFAFA"
+                    app:cardElevation="@dimen/four_dp"
+                    android:id="@+id/illust_list"
+                    android:background="@drawable/side_rank_horizon"
+                    app:cardCornerRadius="@dimen/four_dp"
+                    android:layout_marginStart="@dimen/twelve_dp"
+                    android:layout_marginEnd="@dimen/twelve_dp"
+                    android:layout_marginBottom="@dimen/eight_dp"
                     android:layout_height="wrap_content">
 
-
-                    <RelativeLayout
+                    <ceui.lisa.view.TouchRecyclerView
                         android:layout_width="match_parent"
-                        android:background="@color/white"
+                        android:id="@+id/recyclerView"
+                        android:background="@color/light_bg"
+                        android:layout_height="match_parent">
+
+                    </ceui.lisa.view.TouchRecyclerView>
+
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:textSize="14sp"
+                        android:layout_margin="@dimen/twelve_dp"
+                        android:textColor="@android:color/white"
+                        android:textStyle="bold"
+                        android:shadowColor="#FF000000"
+                        android:shadowDx="1.5"
+                        android:shadowDy="1.5"
+                        android:shadowRadius="1.5"
+                        android:layout_gravity="bottom|end"
+                        android:id="@+id/see_all"
+                        android:layout_height="wrap_content" />
+
+                </ceui.lisa.view.ExpandCard>
+
+
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_marginStart="@dimen/twelve_dp"
+                    android:layout_marginEnd="@dimen/twelve_dp"
+                    app:cardElevation="@dimen/four_dp"
+                    android:layout_marginBottom="@dimen/eight_dp"
+                    app:cardCornerRadius="@dimen/four_dp"
+                    android:layout_height="wrap_content">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:orientation="vertical"
+                        android:background="#FAFAFA"
                         android:layout_height="wrap_content">
 
-                        <de.hdodenhof.circleimageview.CircleImageView
-                            android:layout_width="45dp"
-                            app:civ_border_color="#DDDDDD"
-                            app:civ_border_width="2dp"
-                            android:layout_marginStart="@dimen/twelve_dp"
-                            android:layout_marginTop="@dimen/eight_dp"
-                            android:layout_marginBottom="@dimen/eight_dp"
-                            android:id="@+id/user_head"
-                            android:layout_height="45dp" />
 
-                        <TextView
+                        <RelativeLayout
                             android:layout_width="match_parent"
-                            android:id="@+id/user_name"
-                            android:layout_toStartOf="@+id/follow"
-                            android:layout_marginEnd="@dimen/eight_dp"
-                            android:textStyle="bold"
-                            android:textSize="16sp"
-                            android:layout_marginStart="@dimen/eight_dp"
-                            android:layout_toEndOf="@+id/user_head"
-                            android:textColor="@color/colorPrimary"
-                            android:layout_centerVertical="true"
+                            android:background="@color/white"
+                            android:layout_height="wrap_content">
+
+                            <de.hdodenhof.circleimageview.CircleImageView
+                                android:layout_width="45dp"
+                                app:civ_border_color="#DDDDDD"
+                                app:civ_border_width="2dp"
+                                android:layout_marginStart="@dimen/twelve_dp"
+                                android:layout_marginTop="@dimen/eight_dp"
+                                android:layout_marginBottom="@dimen/eight_dp"
+                                android:id="@+id/user_head"
+                                android:layout_height="45dp" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:id="@+id/user_name"
+                                android:layout_toStartOf="@+id/follow"
+                                android:layout_marginEnd="@dimen/eight_dp"
+                                android:textStyle="bold"
+                                android:textSize="16sp"
+                                android:layout_marginStart="@dimen/eight_dp"
+                                android:layout_toEndOf="@+id/user_head"
+                                android:textColor="@color/colorPrimary"
+                                android:layout_centerVertical="true"
+                                android:layout_height="wrap_content" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:id="@+id/follow"
+                                android:text="+ 关注"
+                                android:layout_alignParentEnd="true"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
+                                android:textStyle="bold"
+                                android:textColor="@color/colorPrimary"
+                                android:layout_centerVertical="true"
+                                android:layout_height="wrap_content" />
+
+
+
+                        </RelativeLayout>
+
+
+
+                        <org.sufficientlysecure.htmltextview.HtmlTextView
+                            android:id="@+id/description"
+                            android:layout_marginStart="@dimen/twelve_dp"
+                            android:layout_marginEnd="@dimen/twelve_dp"
+                            android:layout_marginTop="@dimen/twelve_dp"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content" />
 
                         <TextView
                             android:layout_width="wrap_content"
-                            android:id="@+id/follow"
-                            android:text="+ 关注"
-                            android:layout_alignParentEnd="true"
-                            android:layout_marginEnd="@dimen/sixteen_dp"
-                            android:textStyle="bold"
-                            android:textColor="@color/colorPrimary"
-                            android:layout_centerVertical="true"
-                            android:layout_height="wrap_content" />
+                            android:textSize="13sp"
+                            android:layout_marginStart="@dimen/twelve_dip"
+                            android:layout_marginTop="@dimen/eight_dp"
+                            android:id="@+id/illust_px"
+                            android:layout_height="wrap_content">
+
+                        </TextView>
 
 
 
-                    </RelativeLayout>
+                        <me.next.tagview.TagCloudView
+                            android:layout_marginTop="4dp"
+                            android:layout_width="match_parent"
+                            app:tcvBackground="@drawable/btn_follow"
+                            android:id="@+id/illust_tag"
+                            app:tcvItemBorderVertical="6dp"
+                            android:layout_marginEnd="@dimen/eight_dp"
+                            app:tcvBorder="@dimen/eight_dp"
+                            android:layout_height="match_parent">
 
 
 
-                    <org.sufficientlysecure.htmltextview.HtmlTextView
-                        android:id="@+id/description"
-                        android:layout_marginStart="@dimen/twelve_dp"
-                        android:layout_marginEnd="@dimen/twelve_dp"
-                        android:layout_marginTop="@dimen/twelve_dp"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
+                        </me.next.tagview.TagCloudView>
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:textSize="13sp"
-                        android:layout_marginStart="@dimen/twelve_dip"
-                        android:layout_marginTop="@dimen/eight_dp"
-                        android:id="@+id/illust_px"
-                        android:layout_height="wrap_content">
 
-                    </TextView>
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
 
 
 
-                    <me.next.tagview.TagCloudView
-                        android:layout_marginTop="4dp"
-                        android:layout_width="match_parent"
-                        app:tcvBackground="@drawable/btn_follow"
-                        android:id="@+id/illust_tag"
-                        app:tcvItemBorderVertical="6dp"
-                        android:layout_marginEnd="@dimen/eight_dp"
-                        app:tcvBorder="@dimen/eight_dp"
-                        android:layout_height="match_parent">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:id="@+id/illust_date"
+                                android:drawablePadding="2dp"
+                                android:drawableEnd="@drawable/ic_edit_black_24dp"
+                                android:text="2019年05月28日18:47:21"
+                                android:textSize="12sp"
+                                android:drawableTint="@color/colorPrimary"
+                                android:layout_marginStart="@dimen/sixteen_dp"
+                                android:layout_marginBottom="10dp"
+                                android:layout_height="wrap_content" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:id="@+id/illust_view"
+                                android:textSize="12sp"
+                                android:gravity="center"
+                                android:drawablePadding="2dp"
+                                android:text="20K喜欢"
+                                android:textStyle="bold"
+                                android:drawableEnd="@drawable/ic_remove_red_eye_black_24dp"
+                                android:drawableTint="@color/colorPrimary"
+                                android:layout_marginStart="@dimen/eight_dp"
+                                android:layout_marginBottom="10dp"
+                                android:layout_height="wrap_content" />
+
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:id="@+id/illust_like"
+                                android:textSize="12sp"
+                                android:gravity="center"
+                                android:textStyle="bold"
+                                android:drawablePadding="2dp"
+                                android:text="20K喜欢"
+                                android:drawableEnd="@drawable/ic_favorite_black_24dp"
+                                android:drawableTint="@color/colorPrimary"
+                                android:layout_marginStart="@dimen/eight_dp"
+                                android:layout_marginBottom="10dp"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
+                                android:layout_height="wrap_content" />
+
+
+                        </LinearLayout>
+
+                    </LinearLayout>
 
 
 
-                    </me.next.tagview.TagCloudView>
+
+                </androidx.cardview.widget.CardView>
+
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_marginStart="@dimen/twelve_dp"
+                    android:layout_marginEnd="@dimen/twelve_dp"
+                    app:cardElevation="0dp"
+                    android:layout_marginBottom="@dimen/eight_dp"
+                    app:cardBackgroundColor="#33FFFFFF"
+                    app:cardCornerRadius="@dimen/four_dp"
+                    android:layout_height="wrap_content">
+
+
+
 
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent">
+                        android:gravity="center_horizontal"
+                        android:layout_height="wrap_content">
+
+                        <!--                <android.support.design.card.MaterialCardView-->
+                        <!--                    android:layout_width="0dp"-->
+                        <!--                    android:layout_weight="1"-->
+                        <!--                    android:id="@+id/download_illust"-->
+                        <!--                    app:cardElevation="@dimen/four_dp"-->
+                        <!--                    android:layout_marginBottom="@dimen/eight_dp"-->
+                        <!--                    android:layout_marginStart="@dimen/twelve_dp"-->
+                        <!--                    android:layout_marginEnd="@dimen/four_dp"-->
+                        <!--                    app:cardCornerRadius="@dimen/four_dp"-->
+                        <!--                    android:layout_height="match_parent">-->
+
+                        <!--                    <TextView-->
+                        <!--                        android:layout_width="wrap_content"-->
+                        <!--                        android:text="下载原图"-->
+                        <!--                        android:id="@+id/download_text"-->
+                        <!--                        android:layout_gravity="center"-->
+                        <!--                        android:layout_height="wrap_content" />-->
 
 
+                        <!--                </android.support.design.card.MaterialCardView>-->
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:id="@+id/illust_date"
-                            android:drawablePadding="2dp"
-                            android:drawableEnd="@drawable/ic_edit_black_24dp"
-                            android:text="2019年05月28日18:47:21"
-                            android:textSize="12sp"
-                            android:drawableTint="@color/colorPrimary"
-                            android:layout_marginStart="@dimen/sixteen_dp"
-                            android:layout_marginBottom="10dp"
+
+                        <!--                <android.support.design.card.MaterialCardView-->
+                        <!--                    android:layout_width="0dp"-->
+                        <!--                    android:layout_weight="1"-->
+                        <!--                    android:layout_marginEnd="@dimen/twelve_dp"-->
+                        <!--                    android:id="@+id/related_illust"-->
+                        <!--                    app:cardElevation="@dimen/four_dp"-->
+                        <!--                    android:layout_marginBottom="@dimen/eight_dp"-->
+                        <!--                    android:layout_marginStart="@dimen/four_dp"-->
+                        <!--                    app:cardCornerRadius="@dimen/four_dp"-->
+                        <!--                    android:layout_height="match_parent">-->
+
+                        <!--                    <TextView-->
+                        <!--                        android:layout_width="wrap_content"-->
+                        <!--                        android:text="相关作品"-->
+                        <!--                        android:layout_gravity="center"-->
+                        <!--                        android:layout_margin="@dimen/sixteen_dp"-->
+                        <!--                        android:layout_height="wrap_content" />-->
+
+
+                        <!--                </android.support.design.card.MaterialCardView>-->
+
+
+                        <com.google.android.material.floatingactionbutton.FloatingActionButton
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:id="@+id/download"
+                            app:backgroundTint="@color/colorPrimary"
+                            android:src="@drawable/ic_file_download_black_24dp"
+                            android:layout_alignParentBottom="true"
+                            android:layout_alignParentEnd="true"
+                            android:layout_marginTop="@dimen/eight_dp"
+                            android:layout_marginBottom="@dimen/eight_dp"
+                            android:layout_marginStart="@dimen/twelve_dp"
+                            android:layout_marginEnd="@dimen/twelve_dp"
                             android:layout_height="wrap_content" />
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:id="@+id/illust_view"
-                            android:textSize="12sp"
-                            android:gravity="center"
-                            android:drawablePadding="2dp"
-                            android:text="20K喜欢"
-                            android:textStyle="bold"
-                            android:drawableEnd="@drawable/ic_remove_red_eye_black_24dp"
-                            android:drawableTint="@color/colorPrimary"
-                            android:layout_marginStart="@dimen/eight_dp"
-                            android:layout_marginBottom="10dp"
+                        <com.google.android.material.floatingactionbutton.FloatingActionButton
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:id="@+id/related"
+                            app:backgroundTint="@color/colorPrimary"
+                            android:src="@drawable/ic_equalizer_black_24dp"
+                            android:layout_marginTop="@dimen/eight_dp"
+                            android:layout_marginBottom="@dimen/eight_dp"
+                            android:layout_marginStart="@dimen/twelve_dp"
+                            android:layout_marginEnd="@dimen/twelve_dp"
                             android:layout_height="wrap_content" />
 
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:id="@+id/illust_like"
-                            android:textSize="12sp"
-                            android:gravity="center"
-                            android:textStyle="bold"
-                            android:drawablePadding="2dp"
-                            android:text="20K喜欢"
-                            android:drawableEnd="@drawable/ic_favorite_black_24dp"
-                            android:drawableTint="@color/colorPrimary"
-                            android:layout_marginStart="@dimen/eight_dp"
-                            android:layout_marginBottom="10dp"
-                            android:layout_marginEnd="@dimen/sixteen_dp"
+                        <com.google.android.material.floatingactionbutton.FloatingActionButton
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:id="@+id/comment"
+                            app:backgroundTint="@color/colorPrimary"
+                            android:src="@drawable/ic_chat_black_24dp"
+                            android:layout_marginTop="@dimen/eight_dp"
+                            android:layout_marginBottom="@dimen/eight_dp"
+                            android:layout_marginStart="@dimen/twelve_dp"
+                            android:layout_marginEnd="@dimen/twelve_dp"
                             android:layout_height="wrap_content" />
 
+                        <com.google.android.material.floatingactionbutton.FloatingActionButton
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:id="@+id/post_like"
+                            app:backgroundTint="@color/colorPrimary"
+                            android:src="@drawable/ic_favorite_black_24dp"
+                            android:layout_marginTop="@dimen/eight_dp"
+                            android:layout_marginBottom="@dimen/eight_dp"
+                            android:layout_marginStart="@dimen/twelve_dp"
+                            android:layout_marginEnd="@dimen/twelve_dp"
+                            android:layout_height="wrap_content" />
 
                     </LinearLayout>
 
-                </LinearLayout>
+                </androidx.cardview.widget.CardView>
 
 
 
-
-            </android.support.v7.widget.CardView>
-
-
-            <android.support.v7.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_marginStart="@dimen/twelve_dp"
-                android:layout_marginEnd="@dimen/twelve_dp"
-                app:cardElevation="0dp"
-                android:layout_marginBottom="@dimen/eight_dp"
-                app:cardBackgroundColor="#33FFFFFF"
-                app:cardCornerRadius="@dimen/four_dp"
-                android:layout_height="wrap_content">
-
-
-
-
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:gravity="center_horizontal"
-                android:layout_height="wrap_content">
-
-<!--                <android.support.design.card.MaterialCardView-->
-<!--                    android:layout_width="0dp"-->
-<!--                    android:layout_weight="1"-->
-<!--                    android:id="@+id/download_illust"-->
-<!--                    app:cardElevation="@dimen/four_dp"-->
-<!--                    android:layout_marginBottom="@dimen/eight_dp"-->
-<!--                    android:layout_marginStart="@dimen/twelve_dp"-->
-<!--                    android:layout_marginEnd="@dimen/four_dp"-->
-<!--                    app:cardCornerRadius="@dimen/four_dp"-->
-<!--                    android:layout_height="match_parent">-->
-
-<!--                    <TextView-->
-<!--                        android:layout_width="wrap_content"-->
-<!--                        android:text="下载原图"-->
-<!--                        android:id="@+id/download_text"-->
-<!--                        android:layout_gravity="center"-->
-<!--                        android:layout_height="wrap_content" />-->
-
-
-<!--                </android.support.design.card.MaterialCardView>-->
-
-
-<!--                <android.support.design.card.MaterialCardView-->
-<!--                    android:layout_width="0dp"-->
-<!--                    android:layout_weight="1"-->
-<!--                    android:layout_marginEnd="@dimen/twelve_dp"-->
-<!--                    android:id="@+id/related_illust"-->
-<!--                    app:cardElevation="@dimen/four_dp"-->
-<!--                    android:layout_marginBottom="@dimen/eight_dp"-->
-<!--                    android:layout_marginStart="@dimen/four_dp"-->
-<!--                    app:cardCornerRadius="@dimen/four_dp"-->
-<!--                    android:layout_height="match_parent">-->
-
-<!--                    <TextView-->
-<!--                        android:layout_width="wrap_content"-->
-<!--                        android:text="相关作品"-->
-<!--                        android:layout_gravity="center"-->
-<!--                        android:layout_margin="@dimen/sixteen_dp"-->
-<!--                        android:layout_height="wrap_content" />-->
-
-
-<!--                </android.support.design.card.MaterialCardView>-->
-
-
-                <android.support.design.widget.FloatingActionButton
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:id="@+id/download"
-                    app:backgroundTint="@color/colorPrimary"
-                    android:src="@drawable/ic_file_download_black_24dp"
-                    android:layout_alignParentBottom="true"
-                    android:layout_alignParentEnd="true"
-                    android:layout_marginTop="@dimen/eight_dp"
-                    android:layout_marginBottom="@dimen/eight_dp"
-                    android:layout_marginStart="@dimen/twelve_dp"
-                    android:layout_marginEnd="@dimen/twelve_dp"
-                    android:layout_height="wrap_content" />
-
-                <android.support.design.widget.FloatingActionButton
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:id="@+id/related"
-                    app:backgroundTint="@color/colorPrimary"
-                    android:src="@drawable/ic_equalizer_black_24dp"
-                    android:layout_marginTop="@dimen/eight_dp"
-                    android:layout_marginBottom="@dimen/eight_dp"
-                    android:layout_marginStart="@dimen/twelve_dp"
-                    android:layout_marginEnd="@dimen/twelve_dp"
-                    android:layout_height="wrap_content" />
-
-                <android.support.design.widget.FloatingActionButton
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:id="@+id/comment"
-                    app:backgroundTint="@color/colorPrimary"
-                    android:src="@drawable/ic_chat_black_24dp"
-                    android:layout_marginTop="@dimen/eight_dp"
-                    android:layout_marginBottom="@dimen/eight_dp"
-                    android:layout_marginStart="@dimen/twelve_dp"
-                    android:layout_marginEnd="@dimen/twelve_dp"
-                    android:layout_height="wrap_content" />
-
-                <android.support.design.widget.FloatingActionButton
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:id="@+id/post_like"
-                    app:backgroundTint="@color/colorPrimary"
-                    android:src="@drawable/ic_favorite_black_24dp"
-                    android:layout_marginTop="@dimen/eight_dp"
-                    android:layout_marginBottom="@dimen/eight_dp"
-                    android:layout_marginStart="@dimen/twelve_dp"
-                    android:layout_marginEnd="@dimen/twelve_dp"
-                    android:layout_height="wrap_content" />
 
             </LinearLayout>
 
-            </android.support.v7.widget.CardView>
 
 
 
+    </androidx.core.widget.NestedScrollView>
 
-        </LinearLayout>
-    </android.support.v4.widget.NestedScrollView>
+    </com.scwang.smartrefresh.layout.SmartRefreshLayout>
 
-
-    <android.support.v7.widget.Toolbar
+    <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -365,7 +374,7 @@
         app:title=" "
         app:titleTextColor="@android:color/white">
 
-    </android.support.v7.widget.Toolbar>
+    </androidx.appcompat.widget.Toolbar>
 
 
 

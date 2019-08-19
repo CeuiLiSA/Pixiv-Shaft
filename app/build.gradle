@@ -1,6 +1,5 @@
 apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
+
 
 android {
     compileSdkVersion 28
@@ -11,7 +10,7 @@ android {
         targetSdkVersion 28
         versionCode 27
         versionName "1.0.27"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         manifestPlaceholders = [
                 //AY1W99A3DTAF 属于应用"Shaft"独有的 Android AppKey, 用于配置SDK
@@ -41,20 +40,26 @@ android {
         }
     }
 
+    dataBinding {
+        enabled = true
+    }
+
+    packagingOptions {
+        exclude 'META-INF/library-core_release.kotlin_module'
+    }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.android.support:appcompat-v7:28.0.0'
-    implementation 'com.android.support:support-v4:28.0.0'
-    implementation 'com.android.support:design:28.0.0'
-    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+    implementation 'androidx.appcompat:appcompat:1.0.2'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation 'com.google.android.material:material:1.0.0'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
 
 
     implementation 'com.squareup.retrofit2:retrofit:2.6.1'
     implementation 'com.squareup.retrofit2:converter-gson:2.6.1'
     implementation 'com.squareup.retrofit2:adapter-rxjava2:2.6.1'
-
     implementation "io.reactivex.rxjava2:rxjava:2.2.9"
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
     implementation 'com.squareup.okhttp3:logging-interceptor:3.14.1'
@@ -62,50 +67,46 @@ dependencies {
     implementation 'com.scwang.smartrefresh:SmartRefreshHeader:1.1.0'
     implementation 'com.rengwuxian.materialedittext:library:2.1.4'
     implementation 'com.github.bumptech.glide:glide:4.9.0'
-    annotationProcessor 'com.github.bumptech.glide:compiler:4.9.0'
     implementation 'org.greenrobot:eventbus:3.1.1'
     implementation 'jp.wasabeef:glide-transformations:4.0.1'
     implementation 'jp.co.cyberagent.android:gpuimage:2.0.3'
     implementation 'com.sackcentury:shinebutton:0.2.0'
     implementation 'de.hdodenhof:circleimageview:3.0.0'
     implementation 'com.github.ybq:Android-SpinKit:1.2.0'
-    implementation 'android.arch.persistence.room:runtime:1.1.1'
-    annotationProcessor 'android.arch.persistence.room:compiler:1.1.1'
+    implementation 'androidx.room:room-runtime:2.1.0'
     implementation 'org.greenrobot:eventbus:3.1.1'
     implementation 'com.just.agentweb:agentweb:4.0.3-beta@aar'
     implementation 'com.facebook.rebound:rebound:0.3.8'
     implementation 'com.liulishuo.okdownload:okdownload:1.0.5'
     implementation 'com.github.tbruyelle:rxpermissions:0.10.2'
     implementation 'com.github.kingideayou:tagcloudview:1.0.2'
-    implementation 'com.github.chrisbanes:PhotoView:2.1.3'
-    implementation group: 'net.lingala.zip4j', name: 'zip4j', version: '1.3.3'
+    implementation 'com.github.chrisbanes:PhotoView:2.3.0'
     implementation 'org.sufficientlysecure:html-textview:3.6'
     implementation 'com.github.mancj:MaterialSearchBar:0.8.2'
-    implementation("com.squareup.okhttp3:okhttp:3.14.2")
+    implementation "com.squareup.okhttp3:okhttp:3.14.2"
     implementation 'com.qiniu:happy-dns:0.2.13'
     implementation 'com.qq.mta:mta:3.4.2'
-    //MID基础包
     implementation 'com.tencent.mid:mid:3.73-release'
     implementation 'com.wdullaer:materialdatetimepicker:3.5.0'
     implementation 'com.zhihu.android:matisse:0.5.2-beta4'
     implementation 'com.squareup.picasso:picasso:2.5.2'
     implementation 'com.nononsenseapps:filepicker:4.1.0'
     implementation 'com.qmuiteam:qmui:1.4.0'
-
+    implementation "com.mikepenz:aboutlibraries:7.0.2"
     implementation 'com.mxn.soul:flowingdrawer-core:2.1.0'
     implementation 'com.nineoldandroids:library:2.4.0'
-
     implementation 'com.stone.vega.library:VegaLayoutManager:1.0.6'
-
     implementation 'com.blankj:utilcode:1.25.0'
 
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.9.0'
+    annotationProcessor 'androidx.room:room-compiler:2.1.0'
+    implementation group: 'net.lingala.zip4j', name: 'zip4j', version: '1.3.3'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'androidx.test:runner:1.2.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
     configurations {
         all*.exclude group: 'com.android.support', module: 'support-v13'
     }
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
 
