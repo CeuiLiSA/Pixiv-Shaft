@@ -1,7 +1,5 @@
 package ceui.lisa.fragments;
 
-import android.view.View;
-
 import io.reactivex.Observable;
 
 public abstract class NetworkFragment<Response> extends BaseFragment {

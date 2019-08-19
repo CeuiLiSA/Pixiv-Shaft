@@ -2,15 +2,11 @@ package ceui.lisa.fragments;
 
 import android.support.v7.widget.LinearLayoutManager;
 
-import com.scwang.smartrefresh.layout.util.DensityUtil;
 
-import ceui.lisa.R;
-import ceui.lisa.adapters.IllustStagAdapter;
 import ceui.lisa.adapters.PartAdapter;
 import ceui.lisa.http.Retro;
-import ceui.lisa.model.IllustsBean;
-import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.model.PartResponse;
+import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
 import io.reactivex.Observable;
 
@@ -21,7 +17,7 @@ public class FragmentPart extends BaseListFragment<PartResponse, PartAdapter, Pa
 
     private String key = "";
 
-    public static FragmentPart newInstance(String word){
+    public static FragmentPart newInstance(String word) {
         FragmentPart fragmentPart = new FragmentPart();
         fragmentPart.key = word;
         return fragmentPart;

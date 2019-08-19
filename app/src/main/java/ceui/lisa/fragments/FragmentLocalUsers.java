@@ -40,7 +40,7 @@ import retrofit2.Response;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-public class FragmentLocalUsers extends BaseFragment{
+public class FragmentLocalUsers extends BaseFragment {
 
     private LinearLayout userList;
     private ProgressBar mProgressBar;
@@ -105,8 +105,8 @@ public class FragmentLocalUsers extends BaseFragment{
                 .subscribe(new ErrorCtrl<List<UserModel>>() {
                     @Override
                     public void onNext(List<UserModel> userModels) {
-                        if(userModels != null){
-                            if(userModels.size() != 0){
+                        if (userModels != null) {
+                            if (userModels.size() != 0) {
                                 for (int i = 0; i < userModels.size(); i++) {
                                     View v = LayoutInflater.from(mContext).inflate(R.layout.recy_loal_user, null);
                                     bindData(v, userModels.get(i));
@@ -119,7 +119,7 @@ public class FragmentLocalUsers extends BaseFragment{
     }
 
 
-    private void bindData(View v, UserModel userModel){
+    private void bindData(View v, UserModel userModel) {
         TextView userName = v.findViewById(R.id.user_name);
         TextView loginTime = v.findViewById(R.id.login_time);
         CircleImageView userHead = v.findViewById(R.id.user_head);
@@ -147,7 +147,7 @@ public class FragmentLocalUsers extends BaseFragment{
                 PixivOperate.changeUser(userModel, new Callback<UserModel>() {
                     @Override
                     public void onResponse(Call<UserModel> call, Response<UserModel> response) {
-                        if(response != null){
+                        if (response != null) {
                             Local.saveUser(response.body());
                             mProgressBar.setVisibility(View.INVISIBLE);
                             getActivity().finish();

@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.view.View;
 
 import com.google.gson.Gson;
-import com.scwang.smartrefresh.layout.util.DensityUtil;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -16,15 +15,16 @@ import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.IllustStagAdapter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustRecmdEntity;
-import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.http.Retro;
+import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.IllustChannel;
-import ceui.lisa.view.SpacesItemDecoration;
 import ceui.lisa.view.ScrollChangeManager;
+import ceui.lisa.view.SpacesItemDecoration;
 import io.reactivex.Observable;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.Observer;
@@ -52,8 +52,8 @@ public class FragmentRecmdIllust extends AutoClipFragment<ListIllustResponse,
 
     @Override
     Observable<ListIllustResponse> initApi() {
-        //return Retro.getAppApi().getRecmdIllust(sUserModel.getResponse().getAccess_token(), true);
-        return null;
+        return Retro.getAppApi().getRecmdIllust(sUserModel.getResponse().getAccess_token(), true);
+        //return null;
     }
 
     @Override
@@ -77,7 +77,6 @@ public class FragmentRecmdIllust extends AutoClipFragment<ListIllustResponse,
                 startActivity(intent);
             }
         });
-
 
 
         //向FragmentCenter发送数据

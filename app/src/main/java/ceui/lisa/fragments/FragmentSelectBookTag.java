@@ -1,8 +1,6 @@
 package ceui.lisa.fragments;
 
-import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -11,7 +9,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Switch;
 
-import com.scwang.smartrefresh.layout.util.DensityUtil;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -21,20 +18,17 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateFragmentActivity;
-import ceui.lisa.adapters.BookTagAdapter;
 import ceui.lisa.adapters.SelectTagAdapter;
-import ceui.lisa.database.AppDatabase;
 import ceui.lisa.dialogs.AddTagDialog;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.model.BookmarkTags;
 import ceui.lisa.model.BookmarkTagsBean;
 import ceui.lisa.model.IllustBookmarkTags;
 import ceui.lisa.model.NullResponse;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.IllustChannel;
+import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -44,6 +38,13 @@ public class FragmentSelectBookTag extends BaseListFragment<IllustBookmarkTags, 
 
     private int illustID;
     private Switch mSwitch;
+    private String bookType = "";
+
+    public static FragmentSelectBookTag newInstance(int illustID) {
+        FragmentSelectBookTag fragment = new FragmentSelectBookTag();
+        fragment.illustID = illustID;
+        return fragment;
+    }
 
     @Override
     String getToolbarTitle() {
@@ -73,17 +74,15 @@ public class FragmentSelectBookTag extends BaseListFragment<IllustBookmarkTags, 
         return v;
     }
 
-
-
-    private void submitStar(){
+    private void submitStar() {
         List<String> tempList = new ArrayList<>();
         for (int i = 0; i < allItems.size(); i++) {
-            if(allItems.get(i).isSelected()){
+            if (allItems.get(i).isSelected()) {
                 tempList.add(allItems.get(i).getName());
             }
         }
 
-        if(tempList.size() == 0){
+        if (tempList.size() == 0) {
             Retro.getAppApi().postLike(Shaft.sUserModel.getResponse().getAccess_token(), illustID,
                     mSwitch.isChecked() ? FragmentLikeIllust.TYPE_PRIVATE : FragmentLikeIllust.TYPE_PUBLUC)
                     .subscribeOn(Schedulers.newThread())
@@ -127,14 +126,6 @@ public class FragmentSelectBookTag extends BaseListFragment<IllustBookmarkTags, 
         setHasOptionsMenu(true);
     }
 
-    private String bookType = "";
-
-    public static FragmentSelectBookTag newInstance(int illustID){
-        FragmentSelectBookTag fragment = new FragmentSelectBookTag();
-        fragment.illustID = illustID;
-        return fragment;
-    }
-
     @Override
     Observable<IllustBookmarkTags> initApi() {
         return Retro.getAppApi().getIllustBookmarkTags(Shaft.sUserModel.getResponse().getAccess_token(), illustID);
@@ -156,16 +147,16 @@ public class FragmentSelectBookTag extends BaseListFragment<IllustBookmarkTags, 
         });
     }
 
-    public void addTag(String tag){
+    public void addTag(String tag) {
         boolean isExist = false;
         for (int i = 0; i < allItems.size(); i++) {
-            if(allItems.get(i).getName().equals(tag)){
+            if (allItems.get(i).getName().equals(tag)) {
                 isExist = true;
                 break;
             }
         }
 
-        if(isExist){
+        if (isExist) {
             Common.showToast("该标签已存在");
             return;
         }

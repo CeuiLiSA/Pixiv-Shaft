@@ -100,6 +100,10 @@ public class TemplateFragmentActivity extends FragmentActivity {
                     return new FragmentMultiDownload();
                 case "画廊":
                     return new FragmentWalkThrough();
+                case "License":
+                    return new FragmentWalkThrough();
+                default:
+                    return new FragmentBlank();
             }
         }
         return null;
@@ -108,10 +112,10 @@ public class TemplateFragmentActivity extends FragmentActivity {
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if(childFragment instanceof FragmentWebView){
+        if (childFragment instanceof FragmentWebView) {
             if (((FragmentWebView) childFragment).getAgentWeb().handleKeyEvent(keyCode, event)) {
                 return true;
-            }else {
+            } else {
                 return super.onKeyDown(keyCode, event);
             }
         }

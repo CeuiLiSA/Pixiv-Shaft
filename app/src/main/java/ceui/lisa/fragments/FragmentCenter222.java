@@ -50,6 +50,15 @@ public class FragmentCenter222 extends BaseFragment {
     public FragmentCenter222() {
     }
 
+    public static boolean isNumeric(String str) {
+        for (int i = str.length(); --i >= 0; ) {
+            if (!Character.isDigit(str.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     @Override
     void initLayout() {
         mLayoutID = R.layout.fragment_center;
@@ -113,9 +122,9 @@ public class FragmentCenter222 extends BaseFragment {
                                 "搜索配件");
                         startActivity(intent);
                     } else if (searchType == 1) {
-                        if(isNumeric(keyWord)){
+                        if (isNumeric(keyWord)) {
                             PixivOperate.getIllustByID(sUserModel, Integer.valueOf(keyWord), mContext);
-                        }else {
+                        } else {
                             Common.showToast("ID必须为全数字");
                         }
                     } else if (searchType == 2) {
@@ -126,11 +135,11 @@ public class FragmentCenter222 extends BaseFragment {
                                 "搜索用户");
                         startActivity(intent);
                     } else if (searchType == 3) {
-                        if(isNumeric(keyWord)){
+                        if (isNumeric(keyWord)) {
                             Intent intent = new Intent(mContext, UserDetailActivity.class);
                             intent.putExtra("user id", Integer.valueOf(keyWord));
                             startActivity(intent);
-                        }else {
+                        } else {
                             Common.showToast("ID必须为全数字");
                         }
                     }
@@ -198,11 +207,11 @@ public class FragmentCenter222 extends BaseFragment {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if(searchType == 0) {
+                if (searchType == 0) {
                     String key = String.valueOf(s);
                     if (key.length() != 0) {
                         fuck.onNext(key);
-                    }else {
+                    } else {
                         mSearchBar.hideSuggestionsList();
                     }
                 }
@@ -215,15 +224,15 @@ public class FragmentCenter222 extends BaseFragment {
         });
     }
 
-    private void completeWord(String key){
+    private void completeWord(String key) {
         Retro.getPartApi().inputHelp(key)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ErrorCtrl<PartCompleteWords>() {
                     @Override
                     public void onNext(PartCompleteWords trendingtagResponse) {
-                        if(trendingtagResponse != null){
-                            if(trendingtagResponse.getList() != null && trendingtagResponse.getList().size() != 0){
+                        if (trendingtagResponse != null) {
+                            if (trendingtagResponse.getList() != null && trendingtagResponse.getList().size() != 0) {
 
                                 mAdapter = new SuggestionsAdapter<String, TagHolder>(LayoutInflater.from(mContext)) {
 
@@ -263,37 +272,15 @@ public class FragmentCenter222 extends BaseFragment {
                                 mSearchBar.setMaxSuggestionCount(5);
                                 mSearchBar.showSuggestionsList();
                                 mSearchBar.setMaxSuggestionCount(5);
-                            }else {
+                            } else {
                                 Common.showLog("无自动填充列表");
                             }
-                        }else {
+                        } else {
                             Common.showToast("解析返回值错误");
                         }
                     }
                 });
     }
-
-    private static class TagHolder extends RecyclerView.ViewHolder{
-
-        private TextView tag;
-
-
-        public TagHolder(@NonNull View itemView) {
-            super(itemView);
-            tag = itemView.findViewById(R.id.tag);
-        }
-    }
-
-
-    public static boolean isNumeric(String str) {
-        for (int i = str.length(); --i >= 0; ) {
-            if (!Character.isDigit(str.charAt(i))) {
-                return false;
-            }
-        }
-        return true;
-    }
-
 
     @Override
     public void onStop() {
@@ -310,6 +297,17 @@ public class FragmentCenter222 extends BaseFragment {
             FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
             transaction.add(R.id.fragment_pivision, fragmentPivision).commit();
             isLoad = true;
+        }
+    }
+
+    private static class TagHolder extends RecyclerView.ViewHolder {
+
+        private TextView tag;
+
+
+        public TagHolder(@NonNull View itemView) {
+            super(itemView);
+            tag = itemView.findViewById(R.id.tag);
         }
     }
 }

@@ -2,18 +2,15 @@ package ceui.lisa.fragments;
 
 import android.support.v7.widget.AppCompatSpinner;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
-import android.widget.ImageView;
 import android.widget.Switch;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.utils.Local;
-import ceui.lisa.utils.Settings;
 
 
 public class FragmentFilter extends BaseFragment {
@@ -34,7 +31,7 @@ public class FragmentFilter extends BaseFragment {
 
     public SearchFilter mSearchFilter;
 
-    public static FragmentFilter newInstance(SearchFilter filter){
+    public static FragmentFilter newInstance(SearchFilter filter) {
         FragmentFilter fragmentFilter = new FragmentFilter();
         fragmentFilter.mSearchFilter = filter;
         return fragmentFilter;
@@ -77,7 +74,7 @@ public class FragmentFilter extends BaseFragment {
                 R.layout.support_simple_spinner_dropdown_item, ALL_SIZE);
         starSpinner.setAdapter(starAdapter);
         for (int i = 0; i < ALL_SIZE_VALUE.length; i++) {
-            if(ALL_SIZE_VALUE[i].equals(Shaft.sSettings.getSearchFilter())){
+            if (ALL_SIZE_VALUE[i].equals(Shaft.sSettings.getSearchFilter())) {
                 starSpinner.setSelection(i);
                 break;
             }
@@ -95,7 +92,6 @@ public class FragmentFilter extends BaseFragment {
 
             }
         });
-
 
 
         AppCompatSpinner dateSpinner = v.findViewById(R.id.date_spinner);
@@ -132,7 +128,7 @@ public class FragmentFilter extends BaseFragment {
     }
 
 
-    static abstract class SearchFilter{
+    static abstract class SearchFilter {
 
         abstract void onTagMatchChanged(String tagMatch);
 

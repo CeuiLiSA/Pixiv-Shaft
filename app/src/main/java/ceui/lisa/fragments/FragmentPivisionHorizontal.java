@@ -7,7 +7,6 @@ import android.view.View;
 import android.widget.ProgressBar;
 
 import com.github.ybq.android.spinkit.style.DoubleBounce;
-import com.scwang.smartrefresh.layout.util.DensityUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,10 +14,11 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.adapters.PivisionHorizontalAdapter;
-import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
+import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ArticalResponse;
+import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
@@ -67,14 +67,14 @@ public class FragmentPivisionHorizontal extends BaseFragment {
         getFirstData();
     }
 
-    private void getFirstData(){
+    private void getFirstData() {
         Retro.getAppApi().getArticals(sUserModel.getResponse().getAccess_token())
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ErrorCtrl<ArticalResponse>() {
                     @Override
                     public void onNext(ArticalResponse articalResponse) {
-                        if(articalResponse != null){
+                        if (articalResponse != null) {
                             allItems.clear();
                             allItems.addAll(articalResponse.getList());
                             mAdapter = new PivisionHorizontalAdapter(allItems, mContext);

@@ -9,21 +9,21 @@ import android.widget.ProgressBar;
 
 import com.scwang.smartrefresh.header.DeliveryHeader;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
-import com.scwang.smartrefresh.layout.util.DensityUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
 
 public abstract class BaseAsyncFragment<Adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>,
-        ListItem>  extends BaseFragment {
+        ListItem> extends BaseFragment {
 
+    public static final int PAGE_SIZE = 20;
     protected Adapter mAdapter;
     protected List<ListItem> allItems = new ArrayList<>();
-    public static final int PAGE_SIZE = 20;
     protected RecyclerView mRecyclerView;
     protected RefreshLayout mRefreshLayout;
     protected ProgressBar mProgressBar;
@@ -53,13 +53,13 @@ public abstract class BaseAsyncFragment<Adapter extends RecyclerView.Adapter<Rec
         mRefreshLayout.setRefreshHeader(new DeliveryHeader(mContext));
         mRefreshLayout.setOnRefreshListener(layout -> getFirstData());
         mRefreshLayout.setEnableLoadMore(hasNext());
-        if(hasNext()) {
+        if (hasNext()) {
             mRefreshLayout.setOnLoadMoreListener(layout -> getNextData());
         }
         return v;
     }
 
-    protected void initRecyclerView(){
+    protected void initRecyclerView() {
         LinearLayoutManager manager = new LinearLayoutManager(mContext);
         mRecyclerView.setLayoutManager(manager);
         mRecyclerView.setHasFixedSize(true);
@@ -71,27 +71,27 @@ public abstract class BaseAsyncFragment<Adapter extends RecyclerView.Adapter<Rec
         getFirstData();
     }
 
-    public void getNextData(){
+    public void getNextData() {
 
     }
 
     public abstract void getFirstData();
 
-    public void showFirstData(){
-        if(showToolbar()){
+    public void showFirstData() {
+        if (showToolbar()) {
             mToolbar.setNavigationOnClickListener(view -> getActivity().finish());
             mToolbar.setTitle(getToolbarTitle());
         } else {
-            if(mToolbar != null) {
+            if (mToolbar != null) {
                 mToolbar.setVisibility(View.GONE);
             }
         }
         initAdapter();
         mRecyclerView.setAdapter(mAdapter);
-        if(allItems.size() == 0){
+        if (allItems.size() == 0) {
             noData.setVisibility(View.VISIBLE);
             mRecyclerView.setVisibility(View.INVISIBLE);
-        }else {
+        } else {
             mRecyclerView.setVisibility(View.VISIBLE);
             noData.setVisibility(View.INVISIBLE);
         }
@@ -101,7 +101,7 @@ public abstract class BaseAsyncFragment<Adapter extends RecyclerView.Adapter<Rec
 
     public abstract void initAdapter();
 
-    String getToolbarTitle(){
+    String getToolbarTitle() {
         return " ";
     }
 

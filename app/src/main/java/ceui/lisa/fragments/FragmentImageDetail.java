@@ -17,7 +17,7 @@ public class FragmentImageDetail extends BaseFragment {
     private int index;
     private PhotoView mImageView;
 
-    public static FragmentImageDetail newInstance(IllustsBean illustsBean, int index){
+    public static FragmentImageDetail newInstance(IllustsBean illustsBean, int index) {
         FragmentImageDetail fragmentImageDetail = new FragmentImageDetail();
         fragmentImageDetail.mIllustsBean = illustsBean;
         fragmentImageDetail.index = index;

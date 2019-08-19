@@ -3,17 +3,17 @@ package ceui.lisa.fragments;
 import android.content.Intent;
 import android.view.View;
 
-import com.scwang.smartrefresh.layout.util.DensityUtil;
 
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.IllustStagAdapter;
-import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.http.Retro;
+import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
+import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.IllustChannel;
-import ceui.lisa.view.SpacesItemDecoration;
 import ceui.lisa.view.ScrollChangeManager;
+import ceui.lisa.view.SpacesItemDecoration;
 import io.reactivex.Observable;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
@@ -25,6 +25,13 @@ public class FragmentRelatedIllust extends AutoClipFragment<ListIllustResponse, 
 
     private int illustID;
     private String mTitle;
+
+    public static FragmentRelatedIllust newInstance(int id, String title) {
+        FragmentRelatedIllust fragmentRelatedIllust = new FragmentRelatedIllust();
+        fragmentRelatedIllust.setIllustID(id);
+        fragmentRelatedIllust.setTitle(title);
+        return fragmentRelatedIllust;
+    }
 
     public int getIllustID() {
         return illustID;
@@ -40,13 +47,6 @@ public class FragmentRelatedIllust extends AutoClipFragment<ListIllustResponse, 
 
     public void setTitle(String title) {
         mTitle = title;
-    }
-
-    public static FragmentRelatedIllust newInstance(int id, String title){
-        FragmentRelatedIllust fragmentRelatedIllust = new FragmentRelatedIllust();
-        fragmentRelatedIllust.setIllustID(id);
-        fragmentRelatedIllust.setTitle(title);
-        return fragmentRelatedIllust;
     }
 
     @Override

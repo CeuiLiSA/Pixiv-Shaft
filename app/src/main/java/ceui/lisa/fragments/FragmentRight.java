@@ -9,9 +9,8 @@ import android.widget.ImageView;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateFragmentActivity;
-import ceui.lisa.utils.Common;
 
-public class FragmentRight extends BaseFragment{
+public class FragmentRight extends BaseFragment {
 
     private boolean isLoad = false;
 
@@ -47,7 +46,7 @@ public class FragmentRight extends BaseFragment{
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
 
-        if(isVisibleToUser && !isLoad && isAdded()) {
+        if (isVisibleToUser && !isLoad && isAdded()) {
             FragmentRecmdUserHorizontal recmdUser = new FragmentRecmdUserHorizontal();
             FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
             transaction.add(R.id.fragment_container, recmdUser).commit();

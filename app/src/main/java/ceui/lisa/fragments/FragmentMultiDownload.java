@@ -1,35 +1,26 @@
 package ceui.lisa.fragments;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.GridLayoutManager;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.scwang.smartrefresh.layout.util.DensityUtil;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.activities.ViewPagerActivity;
-import ceui.lisa.adapters.IllustAdapter;
 import ceui.lisa.adapters.MultiDownloadAdapter;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
+import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.view.DownloadItemDecoration;
-import ceui.lisa.view.GridItemDecoration;
-import ceui.lisa.view.GridScrollChangeManager;
-import ceui.lisa.view.TagItemDecoration;
-import io.reactivex.ObservableEmitter;
-
-import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class FragmentMultiDownload extends BaseAsyncFragment<MultiDownloadAdapter, IllustsBean> {
 
@@ -43,7 +34,7 @@ public class FragmentMultiDownload extends BaseAsyncFragment<MultiDownloadAdapte
     @Override
     View initView(View v) {
         super.initView(v);
-        ((TemplateFragmentActivity)getActivity()).setSupportActionBar(mToolbar);
+        ((TemplateFragmentActivity) getActivity()).setSupportActionBar(mToolbar);
         download = v.findViewById(R.id.start_download);
         download.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -68,7 +59,7 @@ public class FragmentMultiDownload extends BaseAsyncFragment<MultiDownloadAdapte
     String getToolbarTitle() {
         int selectCount = 0;
         for (int i = 0; i < allItems.size(); i++) {
-            if(allItems.get(i).isChecked()){
+            if (allItems.get(i).isChecked()) {
                 selectCount++;
             }
         }
@@ -119,14 +110,14 @@ public class FragmentMultiDownload extends BaseAsyncFragment<MultiDownloadAdapte
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_1) {
             for (int i = 0; i < allItems.size(); i++) {
-                if(!allItems.get(i).isChecked()){
+                if (!allItems.get(i).isChecked()) {
                     allItems.get(i).setChecked(true);
                 }
             }
             mAdapter.notifyDataSetChanged();
-        }else if(item.getItemId() == R.id.action_2){
+        } else if (item.getItemId() == R.id.action_2) {
             for (int i = 0; i < allItems.size(); i++) {
-                if(allItems.get(i).isChecked()){
+                if (allItems.get(i).isChecked()) {
                     allItems.get(i).setChecked(false);
                 }
             }

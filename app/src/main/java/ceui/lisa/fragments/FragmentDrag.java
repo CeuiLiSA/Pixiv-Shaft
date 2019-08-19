@@ -19,7 +19,7 @@ import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 
-public class FragmentDrag extends BaseFragment{
+public class FragmentDrag extends BaseFragment {
 
     public static List<IllustsBean> allItems = new ArrayList<>();
     private List<ImageView> mImageViewList = new ArrayList<>();
@@ -91,109 +91,7 @@ public class FragmentDrag extends BaseFragment{
 
     }
 
-
-
-    class AnimeRunnable implements Runnable{
-
-        private int index;
-        private int startX;
-        private int startY;
-        private int endX;
-
-        public Spring getSpring() {
-            return mSpring;
-        }
-
-        public void setSpring(Spring spring) {
-            mSpring = spring;
-        }
-
-        private Spring mSpring, mSpringYY;
-
-        public View getView() {
-            return mView;
-        }
-
-        public void setView(View view) {
-            mView = view;
-        }
-
-        private View mView;
-
-
-
-        public int getIndex() {
-            return index;
-        }
-
-        public void setIndex(int index) {
-            this.index = index;
-        }
-
-        public int getStartX() {
-            return startX;
-        }
-
-        public void setStartX(int startX) {
-            this.startX = startX;
-        }
-
-        public int getStartY() {
-            return startY;
-        }
-
-        public void setStartY(int startY) {
-            this.startY = startY;
-        }
-
-        public int getEndX() {
-            return endX;
-        }
-
-        public void setEndX(int endX) {
-            this.endX = endX;
-        }
-
-        public int getEndY() {
-            return endY;
-        }
-
-        public void setEndY(int endY) {
-            this.endY = endY;
-        }
-
-        private int endY;
-
-        @Override
-        public void run() {
-            mSpring = mSystem.createSpring();
-            mSpring.setSpringConfig(SpringConfig.fromOrigamiTensionAndFriction(40, 15));
-
-            mSpring.addListener(new SimpleSpringListener(){
-                @Override
-                public void onSpringUpdate(Spring spring) {
-                    mView.setTranslationX((float) spring.getCurrentValue());
-                }
-            });
-            mSpring.setCurrentValue(startX);
-            mSpring.setEndValue(endX);
-
-
-
-            mSpringYY = mSystem.createSpring();
-            mSpringYY.setSpringConfig(SpringConfig.fromOrigamiTensionAndFriction(40, 12));
-            mSpringYY.addListener(new SimpleSpringListener(){
-                @Override
-                public void onSpringUpdate(Spring spring) {
-                    mView.setTranslationY((float) spring.getCurrentValue());
-                }
-            });
-            mSpringYY.setCurrentValue(startY);
-            mSpringYY.setEndValue(endY);
-        }
-    }
-
-    private void start(){
+    private void start() {
 //        SpringChain springChain = SpringChain.create(40,100,50,100);
 //
 //        int childCount = mImageViewList.size();
@@ -379,7 +277,7 @@ public class FragmentDrag extends BaseFragment{
 
 
         for (int i = 0; i < 4; i++) {
-            if(i == 0){
+            if (i == 0) {
                 AnimeRunnable animeRunnable = new AnimeRunnable();
                 animeRunnable.setStartX(0);
                 animeRunnable.setEndX(-800);
@@ -387,7 +285,7 @@ public class FragmentDrag extends BaseFragment{
                 animeRunnable.setEndY(-1300);
                 animeRunnable.setView(mImageViewList.get(i));
                 mHandler.postDelayed(animeRunnable, 200L);
-            }else if(i == 1){
+            } else if (i == 1) {
                 AnimeRunnable animeRunnable = new AnimeRunnable();
                 animeRunnable.setStartX(0);
                 animeRunnable.setEndX(-600);
@@ -395,7 +293,7 @@ public class FragmentDrag extends BaseFragment{
                 animeRunnable.setEndY(-1300);
                 animeRunnable.setView(mImageViewList.get(i));
                 mHandler.postDelayed(animeRunnable, 400L);
-            }else if(i == 2){
+            } else if (i == 2) {
                 AnimeRunnable animeRunnable = new AnimeRunnable();
                 animeRunnable.setStartX(0);
                 animeRunnable.setEndX(-400);
@@ -403,7 +301,7 @@ public class FragmentDrag extends BaseFragment{
                 animeRunnable.setEndY(-1300);
                 animeRunnable.setView(mImageViewList.get(i));
                 mHandler.postDelayed(animeRunnable, 600L);
-            }else if(i == 3){
+            } else if (i == 3) {
                 AnimeRunnable animeRunnable = new AnimeRunnable();
                 animeRunnable.setStartX(0);
                 animeRunnable.setEndX(-200);
@@ -415,5 +313,99 @@ public class FragmentDrag extends BaseFragment{
         }
 
 
+    }
+
+    class AnimeRunnable implements Runnable {
+
+        private int index;
+        private int startX;
+        private int startY;
+        private int endX;
+        private Spring mSpring, mSpringYY;
+        private View mView;
+        private int endY;
+
+        public Spring getSpring() {
+            return mSpring;
+        }
+
+        public void setSpring(Spring spring) {
+            mSpring = spring;
+        }
+
+        public View getView() {
+            return mView;
+        }
+
+        public void setView(View view) {
+            mView = view;
+        }
+
+        public int getIndex() {
+            return index;
+        }
+
+        public void setIndex(int index) {
+            this.index = index;
+        }
+
+        public int getStartX() {
+            return startX;
+        }
+
+        public void setStartX(int startX) {
+            this.startX = startX;
+        }
+
+        public int getStartY() {
+            return startY;
+        }
+
+        public void setStartY(int startY) {
+            this.startY = startY;
+        }
+
+        public int getEndX() {
+            return endX;
+        }
+
+        public void setEndX(int endX) {
+            this.endX = endX;
+        }
+
+        public int getEndY() {
+            return endY;
+        }
+
+        public void setEndY(int endY) {
+            this.endY = endY;
+        }
+
+        @Override
+        public void run() {
+            mSpring = mSystem.createSpring();
+            mSpring.setSpringConfig(SpringConfig.fromOrigamiTensionAndFriction(40, 15));
+
+            mSpring.addListener(new SimpleSpringListener() {
+                @Override
+                public void onSpringUpdate(Spring spring) {
+                    mView.setTranslationX((float) spring.getCurrentValue());
+                }
+            });
+            mSpring.setCurrentValue(startX);
+            mSpring.setEndValue(endX);
+
+
+            mSpringYY = mSystem.createSpring();
+            mSpringYY.setSpringConfig(SpringConfig.fromOrigamiTensionAndFriction(40, 12));
+            mSpringYY.addListener(new SimpleSpringListener() {
+                @Override
+                public void onSpringUpdate(Spring spring) {
+                    mView.setTranslationY((float) spring.getCurrentValue());
+                }
+            });
+            mSpringYY.setCurrentValue(startY);
+            mSpringYY.setEndValue(endY);
+        }
     }
 }

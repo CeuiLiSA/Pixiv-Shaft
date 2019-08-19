@@ -86,13 +86,13 @@ public class FragmentDownloadFinish extends BaseAsyncFragment<DownlistAdapter, D
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                if(viewType == 0) {
+                if (viewType == 0) {
                     Intent intent = new Intent(mContext, ImageDetailActivity.class);
                     intent.putExtra("illust", (Serializable) filePaths);
                     intent.putExtra("dataType", "下载详情");
                     intent.putExtra("index", position);
                     startActivity(intent);
-                }else if(viewType == 1){
+                } else if (viewType == 1) {
                     Intent intent = new Intent(mContext, UserDetailActivity.class);
                     intent.putExtra("user id", allIllusts.get(position).getUser().getId());
                     startActivity(intent);
@@ -157,7 +157,7 @@ public class FragmentDownloadFinish extends BaseAsyncFragment<DownlistAdapter, D
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(Channel event) {
-        if(className.contains(event.getReceiver())) {
+        if (className.contains(event.getReceiver())) {
 
             nowIndex++;
             mRecyclerView.setVisibility(View.VISIBLE);

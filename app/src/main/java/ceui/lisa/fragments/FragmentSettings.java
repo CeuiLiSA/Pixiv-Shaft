@@ -81,9 +81,9 @@ public class FragmentSettings extends BaseFragment {
         staggerAnime.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked){
+                if (isChecked) {
                     Shaft.sSettings.setStaggerAnime(true);
-                }else {
+                } else {
                     Shaft.sSettings.setStaggerAnime(false);
                 }
                 Local.setSettings(Shaft.sSettings);
@@ -95,9 +95,9 @@ public class FragmentSettings extends BaseFragment {
         gridAnime.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked){
+                if (isChecked) {
                     Shaft.sSettings.setGridAnime(true);
-                }else {
+                } else {
                     Shaft.sSettings.setGridAnime(false);
                 }
                 Local.setSettings(Shaft.sSettings);
@@ -110,9 +110,9 @@ public class FragmentSettings extends BaseFragment {
         saveHistory.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked){
+                if (isChecked) {
                     Shaft.sSettings.setSaveViewHistory(true);
-                }else {
+                } else {
                     Shaft.sSettings.setSaveViewHistory(false);
                 }
                 Local.setSettings(Shaft.sSettings);
@@ -124,9 +124,9 @@ public class FragmentSettings extends BaseFragment {
         relatedNoLimit.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked){
+                if (isChecked) {
                     Shaft.sSettings.setRelatedIllustNoLimit(true);
-                }else {
+                } else {
                     Shaft.sSettings.setRelatedIllustNoLimit(false);
                 }
                 Local.setSettings(Shaft.sSettings);
@@ -139,9 +139,9 @@ public class FragmentSettings extends BaseFragment {
         autoDns.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked){
+                if (isChecked) {
                     Shaft.sSettings.setAutoFuckChina(true);
-                }else {
+                } else {
                     Shaft.sSettings.setAutoFuckChina(false);
                 }
                 Local.setSettings(Shaft.sSettings);
@@ -256,8 +256,8 @@ public class FragmentSettings extends BaseFragment {
 
     }
 
-    private void animate(LinearLayout linearLayout){
-        SpringChain springChain = SpringChain.create(40,8,60,10);
+    private void animate(LinearLayout linearLayout) {
+        SpringChain springChain = SpringChain.create(40, 8, 60, 10);
 
         int childCount = linearLayout.getChildCount();
         for (int i = 0; i < childCount; i++) {
@@ -269,7 +269,7 @@ public class FragmentSettings extends BaseFragment {
                 public void onSpringUpdate(Spring spring) {
                     view.setTranslationX((float) spring.getCurrentValue());
                     //view.setAlpha((float) ((400 - spring.getCurrentValue()) / 400 ) );
-                    if(position == 0){
+                    if (position == 0) {
                         Common.showLog(className + (float) spring.getCurrentValue());
                     }
                 }
@@ -290,10 +290,10 @@ public class FragmentSettings extends BaseFragment {
         if (requestCode == illustPath_CODE && resultCode == Activity.RESULT_OK) {
             // Use the provided utility method to parse the result
             List<Uri> files = Utils.getSelectedFilesFromResult(data);
-            for (Uri uri: files) {
+            for (Uri uri : files) {
                 File file = Utils.getFileForUri(uri);
                 String path = file.getPath();
-                if(path.startsWith("/storage/emulated/0/")){
+                if (path.startsWith("/storage/emulated/0/")) {
                     Shaft.sSettings.setIllustPath(path);
                     Local.setSettings(Shaft.sSettings);
                     illustPath.setText(path);
@@ -308,10 +308,10 @@ public class FragmentSettings extends BaseFragment {
         if (requestCode == gifResultPath_CODE && resultCode == Activity.RESULT_OK) {
             // Use the provided utility method to parse the result
             List<Uri> files = Utils.getSelectedFilesFromResult(data);
-            for (Uri uri: files) {
+            for (Uri uri : files) {
                 File file = Utils.getFileForUri(uri);
                 String path = file.getPath();
-                if(path.startsWith("/storage/emulated/0/")){
+                if (path.startsWith("/storage/emulated/0/")) {
                     Shaft.sSettings.setGifResultPath(path);
                     Local.setSettings(Shaft.sSettings);
                     gifResultPath.setText(path);

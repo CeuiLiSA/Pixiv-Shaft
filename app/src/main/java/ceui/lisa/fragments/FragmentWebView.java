@@ -32,6 +32,8 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class FragmentWebView extends BaseFragment {
 
+    private static final String ILLUST_HEAD = "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=";
+    private static final String USER_HEAD = "https://www.pixiv.net/member.php?id=";
     private String title;
     private String url;
     private String response = null;
@@ -43,8 +45,6 @@ public class FragmentWebView extends BaseFragment {
     private RelativeLayout webViewParent;
     private String mIntentUrl;
     private WebViewClickHandler handler = new WebViewClickHandler();
-    private static final String ILLUST_HEAD = "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=";
-    private static final String USER_HEAD = "https://www.pixiv.net/member.php?id=";
 
     public static FragmentWebView newInstance(String title, String url) {
         FragmentWebView fragmentWebView = new FragmentWebView();
@@ -99,14 +99,14 @@ public class FragmentWebView extends BaseFragment {
                         //点击画作 https://www.pixiv.net/member_illust.php?mode=medium&illust_id=70374965
                         String destiny = request.getUrl().toString();
                         Common.showLog(className + destiny);
-                        if(destiny.contains(ILLUST_HEAD)){
+                        if (destiny.contains(ILLUST_HEAD)) {
                             Common.showLog("点击了ILLUST， 拦截调回APP");
                             PixivOperate.getIllustByID(sUserModel,
                                     Integer.valueOf(destiny.substring(ILLUST_HEAD.length())), mContext);
                             return true;
                         }
 
-                        if(destiny.contains(USER_HEAD)){
+                        if (destiny.contains(USER_HEAD)) {
                             Common.showLog("点击了USER， 拦截调回APP");
                             Intent intent = new Intent(mContext, UserDetailActivity.class);
                             intent.putExtra("user id", Integer.valueOf(destiny.substring(USER_HEAD.length())));
@@ -189,6 +189,14 @@ public class FragmentWebView extends BaseFragment {
         }
     }
 
+    public AgentWeb getAgentWeb() {
+        return mAgentWeb;
+    }
+
+    public void setAgentWeb(AgentWeb agentWeb) {
+        mAgentWeb = agentWeb;
+    }
+
     public class WebViewClickHandler implements MenuItem.OnMenuItemClickListener {
         static final int OPEN_IN_BROWSER = 0x0;
         static final int OPEN_IMAGE = 0x1;
@@ -238,13 +246,5 @@ public class FragmentWebView extends BaseFragment {
 
             return true;
         }
-    }
-
-    public AgentWeb getAgentWeb() {
-        return mAgentWeb;
-    }
-
-    public void setAgentWeb(AgentWeb agentWeb) {
-        mAgentWeb = agentWeb;
     }
 }

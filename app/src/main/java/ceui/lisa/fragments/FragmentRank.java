@@ -3,17 +3,17 @@ package ceui.lisa.fragments;
 import android.content.Intent;
 import android.view.View;
 
-import com.scwang.smartrefresh.layout.util.DensityUtil;
 
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.IllustStagAdapter;
-import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.http.Retro;
+import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
+import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.IllustChannel;
-import ceui.lisa.view.SpacesItemDecoration;
 import ceui.lisa.view.ScrollChangeManager;
+import ceui.lisa.view.SpacesItemDecoration;
 import io.reactivex.Observable;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
@@ -21,13 +21,13 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class FragmentRank extends AutoClipFragment<ListIllustResponse, IllustStagAdapter, IllustsBean> {
 
+    private static final String[] API_TITLES = new String[]{"day", "week",
+            "month", "day_male", "day_female", "week_original", "week_rookie",
+            "day_r18"};
     private int mIndex = -1;
     private String queryDate = "";
-    private static final String[] API_TITLES = new String[]{"day", "week",
-            "month","day_male", "day_female", "week_original", "week_rookie",
-            "day_r18"};
 
-    public static FragmentRank newInstance(int index, String date){
+    public static FragmentRank newInstance(int index, String date) {
         FragmentRank fragmentRank = new FragmentRank();
         fragmentRank.mIndex = index;
         fragmentRank.queryDate = date;

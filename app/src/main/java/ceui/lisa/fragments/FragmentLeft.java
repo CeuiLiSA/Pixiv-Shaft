@@ -11,7 +11,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-
 import ceui.lisa.R;
 import ceui.lisa.activities.CoverActivity;
 import ceui.lisa.activities.Shaft;
@@ -34,19 +33,19 @@ public class FragmentLeft extends BaseFragment {
         head.setLayoutParams(headParams);
         //toolbar.setPadding(0, Shaft.statusHeight, 0, 0);
         toolbar.setNavigationOnClickListener(view -> {
-            if(getActivity() instanceof CoverActivity){
-                ((CoverActivity)getActivity()).getDrawer().openDrawer(Gravity.START);
+            if (getActivity() instanceof CoverActivity) {
+                ((CoverActivity) getActivity()).getDrawer().openDrawer(Gravity.START);
             }
         });
         ViewPager viewPager = v.findViewById(R.id.view_pager);
         viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
             @Override
             public Fragment getItem(int i) {
-                if(i == 0) {
+                if (i == 0) {
                     return new FragmentRecmdIllust();
-                }else if(i == 1){
+                } else if (i == 1) {
                     return new FragmentHotTag();
-                }else {
+                } else {
                     //只有左右两页，所以这个else应该不会触发
                     return new FragmentBlank();
                 }

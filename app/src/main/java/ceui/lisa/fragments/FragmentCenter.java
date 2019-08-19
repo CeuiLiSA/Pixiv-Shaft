@@ -30,7 +30,6 @@ import ceui.lisa.model.TrendingtagResponse;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.optional.Consumer;
-import ceui.lisa.utils.optional.Function;
 import ceui.lisa.utils.optional.Optional;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
@@ -52,6 +51,15 @@ public class FragmentCenter extends BaseFragment {
 
 
     public FragmentCenter() {
+    }
+
+    public static boolean isNumeric(String str) {
+        for (int i = str.length(); --i >= 0; ) {
+            if (!Character.isDigit(str.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
@@ -231,7 +239,7 @@ public class FragmentCenter extends BaseFragment {
                                 .ifPresent(new Consumer<List<TrendingtagResponse.TrendTagsBean>>() {
                                     @Override
                                     public void accept(List<TrendingtagResponse.TrendTagsBean> trendTagsBeans) {
-                                        if(trendTagsBeans.size() != 0){
+                                        if (trendTagsBeans.size() != 0) {
                                             mAdapter = new SuggestionsAdapter<TrendingtagResponse.TrendTagsBean, TagHolder>(LayoutInflater.from(mContext)) {
                                                 @Override
                                                 public void onBindSuggestionHolder(TrendingtagResponse.TrendTagsBean suggestion, TagHolder holder, int position) {
@@ -272,28 +280,6 @@ public class FragmentCenter extends BaseFragment {
                 });
     }
 
-    private static class TagHolder extends RecyclerView.ViewHolder {
-
-        private TextView tag;
-
-
-        public TagHolder(@NonNull View itemView) {
-            super(itemView);
-            tag = itemView.findViewById(R.id.tag);
-        }
-    }
-
-
-    public static boolean isNumeric(String str) {
-        for (int i = str.length(); --i >= 0; ) {
-            if (!Character.isDigit(str.charAt(i))) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-
     @Override
     public void onStop() {
         super.onStop();
@@ -309,6 +295,17 @@ public class FragmentCenter extends BaseFragment {
             FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
             transaction.add(R.id.fragment_pivision, fragmentPivision).commit();
             isLoad = true;
+        }
+    }
+
+    private static class TagHolder extends RecyclerView.ViewHolder {
+
+        private TextView tag;
+
+
+        public TagHolder(@NonNull View itemView) {
+            super(itemView);
+            tag = itemView.findViewById(R.id.tag);
         }
     }
 }

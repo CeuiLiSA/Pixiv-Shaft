@@ -14,7 +14,7 @@ public class FragmentLocalImageDetail extends BaseFragment {
     private String filePath;
     private PhotoView mImageView;
 
-    public static FragmentLocalImageDetail newInstance(String filePath){
+    public static FragmentLocalImageDetail newInstance(String filePath) {
         FragmentLocalImageDetail fragmentImageDetail = new FragmentLocalImageDetail();
         fragmentImageDetail.filePath = filePath;
         return fragmentImageDetail;

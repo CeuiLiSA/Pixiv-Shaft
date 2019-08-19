@@ -3,7 +3,6 @@ package ceui.lisa.fragments;
 import android.content.Intent;
 import android.view.View;
 
-import com.scwang.smartrefresh.layout.util.DensityUtil;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.ViewPagerActivity;
@@ -12,6 +11,7 @@ import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
+import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.view.GridItemDecoration;
 import ceui.lisa.view.GridScrollChangeManager;
@@ -19,7 +19,7 @@ import io.reactivex.Observable;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-public class FragmentWalkThrough extends BaseListFragment<ListIllustResponse, IllustAdapter, IllustsBean> {
+public class FragmentWalkThrough extends AutoClipFragment<ListIllustResponse, IllustAdapter, IllustsBean> {
 
     @Override
     void initLayout() {

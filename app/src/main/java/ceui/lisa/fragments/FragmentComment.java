@@ -16,7 +16,7 @@ public class FragmentComment extends BaseListFragment<IllustCommentsResponse, Co
     private int illustID;
     private String title;
 
-    public static FragmentComment newInstance(int id, String title){
+    public static FragmentComment newInstance(int id, String title) {
         FragmentComment comment = new FragmentComment();
         comment.illustID = id;
         comment.title = title;

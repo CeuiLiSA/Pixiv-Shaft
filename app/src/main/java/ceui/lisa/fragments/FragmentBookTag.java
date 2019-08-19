@@ -3,7 +3,6 @@ package ceui.lisa.fragments;
 import android.support.v7.widget.LinearLayoutManager;
 import android.view.View;
 
-import com.scwang.smartrefresh.layout.util.DensityUtil;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -15,10 +14,19 @@ import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.BookmarkTags;
 import ceui.lisa.model.BookmarkTagsBean;
 import ceui.lisa.utils.Channel;
+import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
 import io.reactivex.Observable;
 
 public class FragmentBookTag extends BaseListFragment<BookmarkTags, BookTagAdapter, BookmarkTagsBean> {
+
+    private String bookType = "";
+
+    public static FragmentBookTag newInstance(String bookType) {
+        FragmentBookTag fragment = new FragmentBookTag();
+        fragment.bookType = bookType;
+        return fragment;
+    }
 
     @Override
     String getToolbarTitle() {
@@ -34,14 +42,6 @@ public class FragmentBookTag extends BaseListFragment<BookmarkTags, BookTagAdapt
     void initRecyclerView() {
         mRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
         mRecyclerView.addItemDecoration(new LinearItemDecoration(DensityUtil.dp2px(16.0f)));
-    }
-
-    private String bookType = "";
-
-    public static FragmentBookTag newInstance(String bookType){
-        FragmentBookTag fragment = new FragmentBookTag();
-        fragment.bookType = bookType;
-        return fragment;
     }
 
     @Override

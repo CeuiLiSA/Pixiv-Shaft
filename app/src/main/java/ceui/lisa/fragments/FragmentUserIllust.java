@@ -3,17 +3,17 @@ package ceui.lisa.fragments;
 import android.content.Intent;
 import android.view.View;
 
-import com.scwang.smartrefresh.layout.util.DensityUtil;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.IllustAdapter;
-import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.http.Retro;
+import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
-import ceui.lisa.view.GridItemDecoration;
+import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.IllustChannel;
+import ceui.lisa.view.GridItemDecoration;
 import ceui.lisa.view.GridScrollChangeManager;
 import io.reactivex.Observable;
 
@@ -26,7 +26,7 @@ public class FragmentUserIllust extends AutoClipFragment<ListIllustResponse, Ill
 
     private int userID;
 
-    public static FragmentUserIllust newInstance(int userID){
+    public static FragmentUserIllust newInstance(int userID) {
         FragmentUserIllust fragmentRelatedIllust = new FragmentUserIllust();
         fragmentRelatedIllust.userID = userID;
         return fragmentRelatedIllust;

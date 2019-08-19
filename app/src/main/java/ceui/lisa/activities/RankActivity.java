@@ -61,7 +61,9 @@ public class RankActivity extends BaseActivity implements DatePickerDialog.OnDat
         });
         tabLayout.setupWithViewPager(mViewPager);
         //如果指定了跳转到某一个排行，就显示该页排行
-        mViewPager.setCurrentItem(getIntent().getIntExtra("index", 0));
+        if(getIntent().getIntExtra("index", 0) >= 0) {
+            mViewPager.setCurrentItem(getIntent().getIntExtra("index", 0));
+        }
     }
 
     @Override

@@ -74,9 +74,6 @@ public class FragmentAbout extends BaseFragment {
         });
 
 
-
-
-
         return v;
     }
 
