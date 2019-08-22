@@ -2,6 +2,10 @@ package ceui.lisa.activities;
 
 import android.content.Intent;
 import androidx.annotation.Nullable;
+
+import com.ToxicBakery.viewpager.transforms.CubeOutTransformer;
+import com.ToxicBakery.viewpager.transforms.DrawerTransformer;
+import com.ToxicBakery.viewpager.transforms.FlipHorizontalTransformer;
 import com.google.android.material.tabs.TabLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentStatePagerAdapter;
@@ -37,6 +41,8 @@ public class RankActivity extends BaseActivity implements DatePickerDialog.OnDat
         TabLayout tabLayout = findViewById(R.id.tab_layout);
         mViewPager = findViewById(R.id.view_pager);
         String queryDate = getIntent().getStringExtra("date");
+        mViewPager.setPageTransformer(true, new DrawerTransformer());
+
         mViewPager.setAdapter(new FragmentStatePagerAdapter(getSupportFragmentManager()) {
             @Override
             public Fragment getItem(int i) {

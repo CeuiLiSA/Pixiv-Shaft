@@ -235,7 +235,10 @@ public class LoginAlphaActivity extends BaseActivity {
 
                     @Override
                     public void onError(Throwable e) {
+                        Common.showToast(e.toString());
                         e.printStackTrace();
+                        mProgressBar.setVisibility(View.INVISIBLE);
+
                     }
 
                     @Override

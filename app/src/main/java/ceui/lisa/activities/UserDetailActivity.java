@@ -3,6 +3,8 @@ package ceui.lisa.activities;
 import android.content.Intent;
 import android.graphics.Color;
 import androidx.annotation.Nullable;
+
+import com.ToxicBakery.viewpager.transforms.DrawerTransformer;
 import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.appbar.CollapsingToolbarLayout;
 import com.google.android.material.tabs.TabLayout;
@@ -95,6 +97,7 @@ public class UserDetailActivity extends BaseActivity {
             }
         });
         mViewPager = findViewById(R.id.view_pager);
+        mViewPager.setPageTransformer(true, new DrawerTransformer());
         mTabLayout = findViewById(R.id.tab);
         follow.setOnClickListener(new View.OnClickListener() {
             @Override

@@ -2,6 +2,8 @@ package ceui.lisa.activities;
 
 import android.content.DialogInterface;
 import androidx.annotation.Nullable;
+
+import com.ToxicBakery.viewpager.transforms.DrawerTransformer;
 import com.google.android.material.tabs.TabLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentStatePagerAdapter;
@@ -37,6 +39,7 @@ public class DownloadManageActivity extends BaseActivity {
         toolbar.setNavigationOnClickListener(v -> finish());
         TabLayout tabLayout = findViewById(R.id.tab_layout);
         mViewPager = findViewById(R.id.view_pager);
+        mViewPager.setPageTransformer(true, new DrawerTransformer());
         mViewPager.setAdapter(new FragmentStatePagerAdapter(getSupportFragmentManager()) {
             @Override
             public Fragment getItem(int i) {

@@ -44,7 +44,7 @@ public class FragmentLocalUsers extends BaseFragment {
 
     private LinearLayout userList;
     private ProgressBar mProgressBar;
-    private SimpleDateFormat formatter = new SimpleDateFormat("MM月dd日 HH:mm:ss");
+    //private SimpleDateFormat formatter = new SimpleDateFormat("MM月dd日 HH:mm:ss");
     private List<UserModel> allItems = new ArrayList<>();
 
     @Override
@@ -122,6 +122,7 @@ public class FragmentLocalUsers extends BaseFragment {
     private void bindData(View v, UserModel userModel) {
         TextView userName = v.findViewById(R.id.user_name);
         TextView loginTime = v.findViewById(R.id.login_time);
+        TextView doublePwd = v.findViewById(R.id.double_pwd);
         CircleImageView userHead = v.findViewById(R.id.user_head);
         ImageView current = v.findViewById(R.id.current_user);
         ImageView delete = v.findViewById(R.id.delete_user);
@@ -131,6 +132,12 @@ public class FragmentLocalUsers extends BaseFragment {
 //        loginTime.setText(TextUtils.isEmpty(userModel.getResponse().getUser().getMail_address()) ?
 //                "未绑定邮箱" : userModel.getResponse().getUser().getMail_address());
         loginTime.setText(userModel.getResponse().getUser().getPassword());
+        doublePwd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Common.copy(mContext, userModel.getResponse().getUser().getPassword());
+            }
+        });
         Glide.with(mContext).load(GlideUtil.getHead(userModel.getResponse().getUser())).into(userHead);
         current.setVisibility(userModel.getResponse().getUser().getId() ==
                 sUserModel.getResponse().getUser().getId() ? View.VISIBLE : View.GONE);

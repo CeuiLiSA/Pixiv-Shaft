@@ -7,6 +7,9 @@ import androidx.viewpager.widget.ViewPager;
 import android.view.View;
 import android.widget.TextView;
 
+import com.ToxicBakery.viewpager.transforms.CubeOutTransformer;
+import com.ToxicBakery.viewpager.transforms.RotateUpTransformer;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,7 +50,7 @@ public class ImageDetailActivity extends BaseActivity {
             if (mIllustsBean == null) {
                 return;
             }
-
+            viewPager.setPageTransformer(true, new CubeOutTransformer());
             viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
                 @Override
                 public Fragment getItem(int i) {

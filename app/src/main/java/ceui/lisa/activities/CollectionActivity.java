@@ -2,6 +2,9 @@ package ceui.lisa.activities;
 
 import android.content.Intent;
 import androidx.annotation.Nullable;
+
+import com.ToxicBakery.viewpager.transforms.DrawerTransformer;
+import com.ToxicBakery.viewpager.transforms.FlipHorizontalTransformer;
 import com.google.android.material.tabs.TabLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentStatePagerAdapter;
@@ -36,6 +39,7 @@ public class CollectionActivity extends BaseActivity {
         toolbar.setNavigationOnClickListener(v -> finish());
         TabLayout tabLayout = findViewById(R.id.tab_layout);
         mViewPager = findViewById(R.id.view_pager);
+        mViewPager.setPageTransformer(true, new DrawerTransformer());
         allPages = new BaseFragment[]{
                 FragmentLikeIllust.newInstance(sUserModel.getResponse().getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC),
                 FragmentLikeIllust.newInstance(sUserModel.getResponse().getUser().getId(), FragmentLikeIllust.TYPE_PRIVATE),

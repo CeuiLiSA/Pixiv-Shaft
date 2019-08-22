@@ -25,11 +25,20 @@
         android:layout_width="wrap_content"
         android:layout_alignBottom="@+id/user_head"
         android:textSize="12sp"
+        android:layout_marginEnd="@dimen/eight_dp"
         android:layout_toEndOf="@+id/user_head"
         android:id="@+id/login_time"
         android:layout_height="wrap_content" />
 
-
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_alignBottom="@+id/user_head"
+        android:textSize="13sp"
+        android:textColor="@color/colorPrimary"
+        android:text="复制"
+        android:layout_toEndOf="@+id/login_time"
+        android:id="@+id/double_pwd"
+        android:layout_height="wrap_content" />
 
     <ImageView
         android:layout_width="26dp"

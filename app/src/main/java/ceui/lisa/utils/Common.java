@@ -1,6 +1,8 @@
 package ceui.lisa.utils;
 
 import android.app.Activity;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
@@ -86,5 +88,12 @@ public class Common {
         textView.setText(String.valueOf(t));
         toast.setView(view);
         toast.show();
+    }
+
+    public static void copy(Context context, String s){
+        ClipboardManager cm = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData mClipData = ClipData.newPlainText("Label", s);
+        cm.setPrimaryClip(mClipData);
+        showToast(s + "已复制到剪切板");
     }
 }
