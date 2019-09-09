@@ -48,11 +48,15 @@ public class Retro {
     public static final String TENCENT_API = "https://openapi.mta.qq.com/";
 
     static class pixivOkHttpClient implements X509TrustManager {
-        public void checkClientTrusted(X509Certificate[] param1ArrayOfX509Certificate, String param1String) {}
+        public void checkClientTrusted(X509Certificate[] param1ArrayOfX509Certificate, String param1String) {
+        }
 
-        public void checkServerTrusted(X509Certificate[] param1ArrayOfX509Certificate, String param1String) {}
+        public void checkServerTrusted(X509Certificate[] param1ArrayOfX509Certificate, String param1String) {
+        }
 
-        public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[0]; }
+        public X509Certificate[] getAcceptedIssuers() {
+            return new X509Certificate[0];
+        }
     }
 
     public static AppApi getAppApi() {
@@ -80,13 +84,12 @@ public class Retro {
 //                        }
 //                    })
                     .build();
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
 
-
-        if(Shaft.sSettings.isAutoFuckChina()){
+        if (Shaft.sSettings.isAutoFuckChina()) {
             builder.sslSocketFactory(new RubySSLSocketFactory(), new pixivOkHttpClient());
             builder.dns(HttpDns.getInstance());
         }
@@ -115,6 +118,7 @@ public class Retro {
                 .protocols(Collections.singletonList(Protocol.HTTP_1_1))
                 //.dns(HttpDns.get())
                 .addInterceptor(chain -> {
+
                     Request localRequest = chain.request().newBuilder()
                             .addHeader("User-Agent", "PixivAndroidApp/5.0.144 (Android 6.0.1; D6653)")
                             .addHeader("Accept-Language", "zh_CN")
@@ -153,9 +157,17 @@ public class Retro {
         builder.addInterceptor(loggingInterceptor)
                 .protocols(Collections.singletonList(Protocol.HTTP_1_1))
                 .addInterceptor(chain -> {
+
+                    PixivHeaders pixivHeaders = new PixivHeaders();
+                    String xClientTime = pixivHeaders.getXClientTime();
+                    String xClientHash = pixivHeaders.getXClientHash();
+
                     Request localRequest = chain.request().newBuilder()
                             .addHeader("User-Agent:", "PixivAndroidApp/5.0.134 (Android 6.0.1; D6653)")
                             .addHeader("Accept-Language:", "zh_CN")
+
+                            .addHeader("X-Client-Time", xClientTime)
+                            .addHeader("X-Client-Hash", xClientHash)
                             .build();
                     return chain.proceed(localRequest);
                 })
@@ -168,7 +180,7 @@ public class Retro {
 //                    }
 //                })
                 .build();
-        if(Shaft.sSettings.isAutoFuckChina()){
+        if (Shaft.sSettings.isAutoFuckChina()) {
             builder.sslSocketFactory(new RubySSLSocketFactory(), new pixivOkHttpClient());
             builder.dns(HttpDns.getInstance());
         }
@@ -210,7 +222,7 @@ public class Retro {
         return retrofit.create(RankTokenApi.class);
     }
 
-    public static <T> T create(String baseUrl,final Class<T> service) {
+    public static <T> T create(String baseUrl, final Class<T> service) {
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(
                 message -> Log.i("RetrofitLog", "retrofitBack = " + message));
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
@@ -221,8 +233,8 @@ public class Retro {
                 .addInterceptor(chain -> {
                     Request localRequest = chain.request().newBuilder()
                             .addHeader("User-Agent:", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.80 Safari/537.36")
-                            .addHeader("Accept-Encoding:","gzip, deflate")
-                            .addHeader("Accept:","text/html")
+                            .addHeader("Accept-Encoding:", "gzip, deflate")
+                            .addHeader("Accept:", "text/html")
                             .build();
                     return chain.proceed(localRequest);
                 })
@@ -239,6 +251,7 @@ public class Retro {
 
     /**
      * 工作项目DEMO
+     *
      * @return
      */
     public static PartApi getPartApi() {
