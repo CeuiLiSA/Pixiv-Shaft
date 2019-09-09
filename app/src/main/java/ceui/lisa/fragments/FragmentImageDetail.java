@@ -6,6 +6,7 @@ import com.bumptech.glide.Glide;
 import com.github.chrisbanes.photoview.PhotoView;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.GlideUtil;
 
@@ -32,11 +33,19 @@ public class FragmentImageDetail extends BaseFragment {
     @Override
     View initView(View v) {
         mImageView = v.findViewById(R.id.illust_image);
-        Glide.with(mContext)
-                //.load(GlideUtil.getOriginal(mIllustsBean, index))
-                .load(GlideUtil.getLargeImage(mIllustsBean, index))
-                .transition(withCrossFade())
-                .into(mImageView);
+        if(Shaft.sSettings.isFirstImageSize()){
+            Glide.with(mContext)
+                    //.load(GlideUtil.getOriginal(mIllustsBean, index))
+                    .load(GlideUtil.getOriginal(mIllustsBean, index))
+                    .transition(withCrossFade())
+                    .into(mImageView);
+        }else {
+            Glide.with(mContext)
+                    //.load(GlideUtil.getOriginal(mIllustsBean, index))
+                    .load(GlideUtil.getLargeImage(mIllustsBean, index))
+                    .transition(withCrossFade())
+                    .into(mImageView);
+        }
         return v;
     }
 

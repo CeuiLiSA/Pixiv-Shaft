@@ -258,7 +258,7 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
         mApi = initNextApi();
         if (mApi != null) {
             if (TextUtils.isEmpty(nextUrl)) {
-                Common.showToast("next url 为空");
+                Common.showLog("next url 为空");
                 mRefreshLayout.setEnableLoadMore(false);
                 mRefreshLayout.finishLoadMore(false);
                 mRefreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
@@ -306,6 +306,10 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
 
                         });
             }
+        }else {
+            mRefreshLayout.setEnableLoadMore(false);
+            mRefreshLayout.finishLoadMore(false);
+            mRefreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
         }
     }
 

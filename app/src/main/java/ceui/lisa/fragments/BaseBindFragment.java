@@ -69,7 +69,6 @@ public abstract class BaseBindFragment<T extends ViewDataBinding> extends Fragme
 
     @Override
     public T getBind(LayoutInflater inflater, ViewGroup container) {
-        return DataBindingUtil.inflate(inflater, mLayoutID,
-                container, false);
+        return DataBindingUtil.inflate(inflater, mLayoutID, container, false);
     }
 }

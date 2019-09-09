@@ -140,6 +140,19 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
             }
         });
 
+        baseBind.firstDetailOrigin.setChecked(Shaft.sSettings.isFirstImageSize());
+        baseBind.firstDetailOrigin.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    Shaft.sSettings.setFirstImageSize(true);
+                } else {
+                    Shaft.sSettings.setFirstImageSize(false);
+                }
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+
         baseBind.illustPath.setText(Shaft.sSettings.getIllustPath());
         baseBind.illustPath.setOnClickListener(new View.OnClickListener() {
             @Override

@@ -26,11 +26,7 @@ import ceui.lisa.activities.Shaft;
 
 public class Common {
 
-    public static <T> void showLog(T t) {
-            Log.d("a line of my log", String.valueOf(t));
-    }
 
-    private static Toast toast = null;
 
 
     public static void hideKeyboard(Activity activity) {
@@ -66,15 +62,14 @@ public class Common {
         return data;
     }
 
-    public static <T> void showToast(Context context, T t) {
-        if (toast == null) {
-            toast = Toast.makeText(context, String.valueOf(t), Toast.LENGTH_SHORT);
-        } else {
-            toast.setText(String.valueOf(t));
-            toast.setDuration(Toast.LENGTH_SHORT);
-        }
-        toast.show();
+
+    public static <T> void showLog(T t) {
+        Log.d("a line of my log", String.valueOf(t));
     }
+
+    private static Toast toast = null;
+
+
 
     public static <T> void showToast(T t) {
         if (toast == null) {
@@ -87,6 +82,17 @@ public class Common {
         TextView textView = view.findViewById(R.id.toast_text);
         textView.setText(String.valueOf(t));
         toast.setView(view);
+        toast.show();
+    }
+
+
+    public static <T> void showToast(Context context, T t) {
+        if (toast == null) {
+            toast = Toast.makeText(context, String.valueOf(t), Toast.LENGTH_SHORT);
+        } else {
+            toast.setText(String.valueOf(t));
+            toast.setDuration(Toast.LENGTH_SHORT);
+        }
         toast.show();
     }
 

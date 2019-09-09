@@ -13,6 +13,7 @@ import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 import androidx.appcompat.widget.Toolbar;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -75,6 +76,14 @@ public class UserDetailActivity extends BaseActivity {
         userHead = findViewById(R.id.user_head);
         userName = findViewById(R.id.user_name);
         fans = findViewById(R.id.user_follow);
+
+
+        ImageView head = findViewById(R.id.header_item_id);
+        ViewGroup.LayoutParams headParams = head.getLayoutParams();
+        headParams.height = Shaft.statusHeight;
+        head.setLayoutParams(headParams);
+
+
         Toolbar toolbar = findViewById(R.id.toolbar_help);
         toolbar.setPadding(0, Shaft.statusHeight, 0, 0);
         toolbar.setNavigationOnClickListener(v -> finish());

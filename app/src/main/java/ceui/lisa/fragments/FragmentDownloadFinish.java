@@ -49,6 +49,7 @@ public class FragmentDownloadFinish extends BaseAsyncFragment<DownlistAdapter, D
             Thread.sleep(500);
             Gson gson = new Gson();
             allIllusts = new ArrayList<>();
+            filePaths = new ArrayList<>();
             for (int i = 0; i < allItems.size(); i++) {
                 allIllusts.add(gson.fromJson(allItems.get(i).getIllustGson(), IllustsBean.class));
                 filePaths.add(allItems.get(i).getFilePath());

@@ -91,6 +91,7 @@ public class FragmentSingleIllust extends BaseFragment {
     private TouchRecyclerView mRecyclerView;
     private TextView seeAll;
     private IllustDetailAdapter mDetailAdapter;
+    private FloatingActionButton download;
 
     public static FragmentSingleIllust newInstance(IllustsBean illustsBean) {
         FragmentSingleIllust fragmentSingleIllust = new FragmentSingleIllust();
@@ -143,7 +144,7 @@ public class FragmentSingleIllust extends BaseFragment {
         toolbar.setTitleTextAppearance(mContext, R.style.toolbarText);
         toolbar.setNavigationOnClickListener(view -> getActivity().finish());
 
-        FloatingActionButton download = v.findViewById(R.id.download);
+        download = v.findViewById(R.id.download);
         download.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -414,6 +415,13 @@ public class FragmentSingleIllust extends BaseFragment {
             illust.setIs_bookmarked(true);
             ((FloatingActionButton) parentView.findViewById(R.id.post_like))
                     .setImageResource(R.drawable.ic_favorite_accent_24dp);
+        }
+
+
+        if(event.getReceiver().equals("FragmentSingleIllust option2")){
+            if((int) event.getObject() == illust.getId()) {
+                download.setImageResource(R.drawable.ic_has_download);
+            }
         }
     }
 

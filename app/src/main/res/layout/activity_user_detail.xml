@@ -118,7 +118,15 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:orientation="vertical"
                     app:layout_collapseMode="pin">
+
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:id="@+id/header_item_id"
+                        android:layout_height="1dp">
+
+                    </ImageView>
 
                     <androidx.appcompat.widget.Toolbar
                         android:id="@+id/toolbar_help"

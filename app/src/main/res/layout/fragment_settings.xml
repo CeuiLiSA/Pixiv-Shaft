@@ -477,7 +477,6 @@
 
                         <RelativeLayout
                             android:layout_width="match_parent"
-                            android:visibility="gone"
                             android:layout_height="match_parent">
 
 
@@ -496,6 +495,7 @@
                             <Switch
                                 android:layout_width="wrap_content"
                                 android:checked="true"
+                                android:id="@+id/first_detail_origin"
                                 android:layout_alignParentEnd="true"
                                 android:layout_centerVertical="true"
                                 android:layout_margin="@dimen/sixteen_dp"
@@ -507,7 +507,6 @@
                         <View
                             android:layout_width="match_parent"
                             android:background="#e6e6e6"
-                            android:visibility="gone"
                             android:layout_marginStart="@dimen/sixteen_dp"
                             android:layout_height="1dp">
 

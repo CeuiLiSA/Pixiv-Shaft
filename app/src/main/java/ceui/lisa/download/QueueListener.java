@@ -127,7 +127,6 @@ public class QueueListener extends DownloadListener1 {
                     e.printStackTrace();
                 }
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }

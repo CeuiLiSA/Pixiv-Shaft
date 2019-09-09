@@ -7,6 +7,9 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.net.Uri;
+
+import com.blankj.utilcode.util.BarUtils;
+import com.blankj.utilcode.util.ColorUtils;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 import androidx.fragment.app.Fragment;
@@ -88,8 +91,6 @@ public class CoverActivity extends BaseActivity
                     if (permission.granted) {
                         callback.doSomething(null);
                     } else {
-                        // At least one denied permission with ask never again
-                        // Need to go to the settings
                         Common.showToast("请给与足够的权限");
                     }
                 });

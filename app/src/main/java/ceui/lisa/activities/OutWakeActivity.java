@@ -89,7 +89,6 @@ public class OutWakeActivity extends BaseActivity{
                                         finish();
                                     }
                                 });
-                                return;
                             }
                         }
                     }
