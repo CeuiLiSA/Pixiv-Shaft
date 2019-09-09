@@ -3,7 +3,7 @@ package ceui.lisa.activities;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;

@@ -13,20 +13,20 @@ import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOption
 
 public class FragmentBlank extends BaseFragment {
 
+    private IllustsBean mIllustsBean;
+
+    public static FragmentBlank newInstance(IllustsBean illustsBean) {
+        FragmentBlank fragmentBlank = new FragmentBlank();
+        fragmentBlank.setIllustsBean(illustsBean);
+        return fragmentBlank;
+    }
+
     public IllustsBean getIllustsBean() {
         return mIllustsBean;
     }
 
     public void setIllustsBean(IllustsBean illustsBean) {
         mIllustsBean = illustsBean;
-    }
-
-    private IllustsBean mIllustsBean;
-
-    public static FragmentBlank newInstance(IllustsBean illustsBean){
-        FragmentBlank fragmentBlank = new FragmentBlank();
-        fragmentBlank.setIllustsBean(illustsBean);
-        return fragmentBlank;
     }
 
     @Override
@@ -37,7 +37,7 @@ public class FragmentBlank extends BaseFragment {
     @Override
     View initView(View v) {
         ImageView imageView = v.findViewById(R.id.head_image);
-        if(mIllustsBean != null) {
+        if (mIllustsBean != null) {
             Glide.with(mContext).
                     load(GlideUtil.getLargeImage(mIllustsBean))
                     .transition(withCrossFade())

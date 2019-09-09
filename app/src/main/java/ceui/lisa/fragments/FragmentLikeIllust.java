@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 
-import com.scwang.smartrefresh.layout.util.DensityUtil;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -13,15 +12,16 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.IllustStagAdapter;
-import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.http.Retro;
+import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.IllustChannel;
-import ceui.lisa.view.SpacesItemDecoration;
 import ceui.lisa.view.ScrollChangeManager;
+import ceui.lisa.view.SpacesItemDecoration;
 import io.reactivex.Observable;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
@@ -31,12 +31,12 @@ import static ceui.lisa.activities.Shaft.sUserModel;
  */
 public class FragmentLikeIllust extends AutoClipFragment<ListIllustResponse, IllustStagAdapter, IllustsBean> {
 
-    private int userID;
-    private String starType, tag = "";
     public static final String TYPE_PUBLUC = "public";
     public static final String TYPE_PRIVATE = "private";
+    private int userID;
+    private String starType, tag = "";
 
-    public static FragmentLikeIllust newInstance(int userID, String starType){
+    public static FragmentLikeIllust newInstance(int userID, String starType) {
         FragmentLikeIllust fragmentRelatedIllust = new FragmentLikeIllust();
         fragmentRelatedIllust.userID = userID;
         fragmentRelatedIllust.starType = starType;
@@ -56,9 +56,9 @@ public class FragmentLikeIllust extends AutoClipFragment<ListIllustResponse, Ill
 
     @Override
     Observable<ListIllustResponse> initApi() {
-        if(TextUtils.isEmpty(tag)){
+        if (TextUtils.isEmpty(tag)) {
             return Retro.getAppApi().getUserLikeIllust(sUserModel.getResponse().getAccess_token(), userID, starType);
-        }else {
+        } else {
             return Retro.getAppApi().getUserLikeIllust(sUserModel.getResponse().getAccess_token(), userID, starType, tag);
         }
     }
@@ -88,7 +88,7 @@ public class FragmentLikeIllust extends AutoClipFragment<ListIllustResponse, Ill
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(Channel event) {
-        if(event.getReceiver().contains(starType)) {
+        if (event.getReceiver().contains(starType)) {
             tag = (String) event.getObject();
             getFirstData();
         }

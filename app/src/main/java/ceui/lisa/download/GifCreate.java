@@ -14,7 +14,6 @@ import java.util.List;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.model.IllustsBean;
-import ceui.lisa.utils.Argument;
 import ceui.lisa.utils.Common;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;

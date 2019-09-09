@@ -73,6 +73,12 @@ public class TaskQueue {
                     addChannel.setObject(downloadEntity);
                     EventBus.getDefault().post(addChannel);
 
+
+                    Channel channel22 = new Channel();
+                    channel22.setReceiver("FragmentSingleIllust option2");
+                    channel22.setObject(tempTask.getIllustsBean().getId());
+                    EventBus.getDefault().post(channel22);
+
                     new ImageSaver(){
                         @Override
                         File whichFile() {

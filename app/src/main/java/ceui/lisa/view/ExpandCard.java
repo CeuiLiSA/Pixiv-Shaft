@@ -1,9 +1,9 @@
 package ceui.lisa.view;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v7.widget.CardView;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.cardview.widget.CardView;
 import android.util.AttributeSet;
 
 import ceui.lisa.utils.Common;

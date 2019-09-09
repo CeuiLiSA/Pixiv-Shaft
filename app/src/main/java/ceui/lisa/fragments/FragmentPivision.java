@@ -1,17 +1,17 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import android.support.v7.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import android.view.View;
 
-import com.scwang.smartrefresh.layout.util.DensityUtil;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.adapters.ArticalAdapter;
-import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.http.Retro;
+import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ArticalResponse;
+import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
 import io.reactivex.Observable;
 

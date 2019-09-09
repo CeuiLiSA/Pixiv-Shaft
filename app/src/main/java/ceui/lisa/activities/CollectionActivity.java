@@ -1,17 +1,19 @@
 package ceui.lisa.activities;
 
 import android.content.Intent;
-import android.support.annotation.Nullable;
-import android.support.design.widget.TabLayout;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.view.ViewPager;
-import android.support.v7.widget.Toolbar;
+import androidx.annotation.Nullable;
+
+import com.ToxicBakery.viewpager.transforms.DrawerTransformer;
+import com.ToxicBakery.viewpager.transforms.FlipHorizontalTransformer;
+import com.google.android.material.tabs.TabLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentStatePagerAdapter;
+import androidx.viewpager.widget.ViewPager;
+import androidx.appcompat.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import ceui.lisa.R;
-import ceui.lisa.dialogs.TagSelectDialog;
 import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentFollowUser;
 import ceui.lisa.fragments.FragmentLikeIllust;
@@ -37,6 +39,7 @@ public class CollectionActivity extends BaseActivity {
         toolbar.setNavigationOnClickListener(v -> finish());
         TabLayout tabLayout = findViewById(R.id.tab_layout);
         mViewPager = findViewById(R.id.view_pager);
+        mViewPager.setPageTransformer(true, new DrawerTransformer());
         allPages = new BaseFragment[]{
                 FragmentLikeIllust.newInstance(sUserModel.getResponse().getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC),
                 FragmentLikeIllust.newInstance(sUserModel.getResponse().getUser().getId(), FragmentLikeIllust.TYPE_PRIVATE),

@@ -1,13 +1,12 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.View;
 import android.widget.ProgressBar;
 
 import com.github.ybq.android.spinkit.style.DoubleBounce;
-import com.scwang.smartrefresh.layout.util.DensityUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,10 +14,11 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.adapters.UserHorizontalAdapter;
-import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.http.Retro;
+import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListUserResponse;
 import ceui.lisa.model.UserPreviewsBean;
+import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -61,7 +61,7 @@ public class FragmentRecmdUserHorizontal extends BaseFragment {
         getFirstData();
     }
 
-    private void getFirstData(){
+    private void getFirstData() {
         Retro.getAppApi().getRecmdUser(sUserModel.getResponse().getAccess_token())
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -73,7 +73,7 @@ public class FragmentRecmdUserHorizontal extends BaseFragment {
 
                     @Override
                     public void onNext(ListUserResponse listUserResponse) {
-                        if(listUserResponse != null){
+                        if (listUserResponse != null) {
                             allItems.clear();
                             allItems.addAll(listUserResponse.getList());
                             mAdapter = new UserHorizontalAdapter(allItems, mContext);

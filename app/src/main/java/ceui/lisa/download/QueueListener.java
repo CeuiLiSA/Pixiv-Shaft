@@ -16,8 +16,8 @@
 
 package ceui.lisa.download;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.util.SparseArray;
 
 import com.liulishuo.okdownload.DownloadTask;
@@ -32,12 +32,9 @@ import net.lingala.zip4j.exception.ZipException;
 
 import org.greenrobot.eventbus.EventBus;
 
-import java.io.File;
-
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.DownloadTaskAdapter;
 import ceui.lisa.database.IllustTask;
-import ceui.lisa.utils.Argument;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 
@@ -130,7 +127,6 @@ public class QueueListener extends DownloadListener1 {
                     e.printStackTrace();
                 }
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }

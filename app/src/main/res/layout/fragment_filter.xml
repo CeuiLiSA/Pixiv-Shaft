@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:background="@color/white"
+    android:orientation="vertical"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:id="@+id/head_image"
+        android:src="@android:color/transparent"
+        android:layout_height="wrap_content" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:text="关键字匹配"
+            android:textSize="14sp"
+            android:id="@+id/tag_s"
+            android:textColor="@color/colorPrimary"
+            android:layout_margin="@dimen/sixteen_dp"
+            android:layout_height="wrap_content" />
+
+
+        <androidx.appcompat.widget.AppCompatSpinner
+            android:layout_width="wrap_content"
+            android:id="@+id/tag_spinner"
+            android:layout_below="@+id/tag_s"
+            android:layout_marginEnd="@dimen/sixteen_dp"
+            android:layout_marginStart="@dimen/sixteen_dp"
+            android:layout_marginBottom="@dimen/sixteen_dp"
+            android:layout_height="wrap_content">
+
+
+        </androidx.appcompat.widget.AppCompatSpinner>
+
+    </RelativeLayout>
+
+
+    <View
+        android:layout_width="match_parent"
+        android:background="@color/light_bg"
+        android:layout_marginStart="@dimen/sixteen_dp"
+        android:layout_marginEnd="@dimen/sixteen_dp"
+        android:layout_height="1dp">
+
+
+    </View>
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:text="收藏数筛选"
+            android:textSize="13sp"
+            android:id="@+id/star_s"
+            android:textColor="@color/colorPrimary"
+            android:layout_margin="@dimen/sixteen_dp"
+            android:layout_height="wrap_content" />
+
+
+        <androidx.appcompat.widget.AppCompatSpinner
+            android:layout_width="wrap_content"
+            android:id="@+id/star_size_spinner"
+            android:layout_below="@+id/star_s"
+            android:layout_marginEnd="@dimen/sixteen_dp"
+            android:layout_marginStart="@dimen/sixteen_dp"
+            android:layout_marginBottom="@dimen/sixteen_dp"
+            android:layout_height="wrap_content">
+
+
+        </androidx.appcompat.widget.AppCompatSpinner>
+
+    </RelativeLayout>
+
+
+    <View
+        android:layout_width="match_parent"
+        android:background="@color/light_bg"
+        android:layout_marginStart="@dimen/sixteen_dp"
+        android:layout_marginEnd="@dimen/sixteen_dp"
+        android:layout_height="1dp">
+
+
+    </View>
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:text="日期排序"
+            android:textSize="13sp"
+            android:textColor="@color/colorPrimary"
+            android:id="@+id/date_s"
+            android:layout_margin="@dimen/sixteen_dp"
+            android:layout_height="wrap_content" />
+
+
+        <androidx.appcompat.widget.AppCompatSpinner
+            android:layout_width="wrap_content"
+            android:id="@+id/date_spinner"
+            android:layout_below="@+id/date_s"
+            android:layout_marginStart="@dimen/sixteen_dp"
+            android:layout_marginEnd="@dimen/sixteen_dp"
+            android:layout_marginBottom="@dimen/sixteen_dp"
+            android:layout_height="wrap_content">
+
+
+        </androidx.appcompat.widget.AppCompatSpinner>
+
+    </RelativeLayout>
+
+
+    <View
+        android:layout_width="match_parent"
+        android:background="@color/light_bg"
+        android:layout_marginStart="@dimen/sixteen_dp"
+        android:layout_marginEnd="@dimen/sixteen_dp"
+        android:layout_height="1dp">
+
+
+    </View>
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:text="热度排序"
+            android:textSize="16sp"
+            android:textColor="@color/colorPrimary"
+            android:layout_margin="@dimen/sixteen_dp"
+            android:layout_height="wrap_content" />
+
+
+        <Switch
+            android:layout_width="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:id="@+id/pop_switch"
+            android:layout_marginEnd="@dimen/sixteen_dp"
+            android:layout_height="wrap_content">
+
+
+        </Switch>
+
+    </RelativeLayout>
+
+
+    <View
+        android:layout_width="match_parent"
+        android:background="@color/light_bg"
+        android:layout_marginStart="@dimen/sixteen_dp"
+        android:layout_marginEnd="@dimen/sixteen_dp"
+        android:layout_height="1dp">
+
+
+    </View>
+
+    <Button
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/submit"
+        android:layout_gravity="end"
+        android:layout_marginTop="@dimen/sixteen_dp"
+        android:text="查找结果" />
+
+</LinearLayout>

@@ -1,12 +1,11 @@
 package ceui.lisa.activities;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
-import android.support.constraint.ConstraintLayout;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.CardView;
-import android.support.v7.widget.Toolbar;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.appcompat.app.AlertDialog;
+import androidx.cardview.widget.CardView;
+import androidx.appcompat.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,12 +20,9 @@ import com.facebook.rebound.SpringSystem;
 import com.google.gson.Gson;
 import com.rengwuxian.materialedittext.MaterialEditText;
 
-import java.text.SimpleDateFormat;
-
 import ceui.lisa.R;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
-import ceui.lisa.fragments.FragmentDownloadFinish;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.SignResponse;
@@ -39,9 +35,6 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
-import static ceui.lisa.fragments.FragmentLogin.CLIENT_ID;
-import static ceui.lisa.fragments.FragmentLogin.CLIENT_SECRET;
-import static ceui.lisa.fragments.FragmentLogin.DEVICE_TOKEN;
 
 public class LoginAlphaActivity extends BaseActivity {
 
@@ -55,6 +48,9 @@ public class LoginAlphaActivity extends BaseActivity {
     private static final String SIGN_TOKEN = "pixiv";
     private static final String SIGN_REF = "pixiv_android_app_provisional_account";
     private Toolbar mToolbar;
+    public static final String CLIENT_ID = "MOBrBDS8blbauoSck0ZfDbtuzpyT";
+    public static final String CLIENT_SECRET = "lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj";
+    public static final String DEVICE_TOKEN = "pixiv";
 
 
     @Override
@@ -100,9 +96,6 @@ public class LoginAlphaActivity extends BaseActivity {
         sign.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                //Common.showToast("暂不支持注册。。");
-
                 if(signName.getText().toString().length() != 0) {
                     sign();
                 }else {
@@ -226,7 +219,7 @@ public class LoginAlphaActivity extends BaseActivity {
                             UserBean.ProfileImageUrlsBean profile_image_urls = userModel.getResponse().getUser().getProfile_image_urls();
                             profile_image_urls.setMedium(profile_image_urls.getPx_50x50());
 
-                            userModel.getResponse().getUser().setPassword(password.getText().toString());
+                            userModel.getResponse().getUser().setPassword(pwd);
                             Local.saveUser(userModel);
                             UserEntity userEntity = new UserEntity();
                             userEntity.setLoginTime(System.currentTimeMillis());
@@ -242,7 +235,10 @@ public class LoginAlphaActivity extends BaseActivity {
 
                     @Override
                     public void onError(Throwable e) {
+                        Common.showToast(e.toString());
                         e.printStackTrace();
+                        mProgressBar.setVisibility(View.INVISIBLE);
+
                     }
 
                     @Override

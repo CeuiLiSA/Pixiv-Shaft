@@ -1,8 +1,8 @@
 package ceui.lisa.view;
 
 import android.content.Context;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.StaggeredGridLayoutManager;
+import androidx.recyclerview.widget.GridLayoutManager;
+
 import android.util.AttributeSet;
 
 /**

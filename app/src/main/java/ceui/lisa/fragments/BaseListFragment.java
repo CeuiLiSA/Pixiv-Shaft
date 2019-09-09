@@ -1,7 +1,7 @@
 package ceui.lisa.fragments;
 
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.appcompat.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.ImageView;
@@ -9,6 +9,8 @@ import android.widget.ProgressBar;
 
 import com.scwang.smartrefresh.header.DeliveryHeader;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
+import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
+import com.scwang.smartrefresh.layout.header.ClassicsHeader;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -86,7 +88,7 @@ import io.reactivex.schedulers.Schedulers;
  *
  * @param <Response> json解析累
  * @param <Adapter>  列表适配器
- * @param <ListItem>     列表数据元素
+ * @param <ListItem> 列表数据元素
  */
 public abstract class BaseListFragment<Response extends ListShow<ListItem>,
         Adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>,
@@ -104,6 +106,10 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
     protected String nextUrl = "";
     protected ImageView noData;
 
+    public BaseListFragment(){
+        Common.showLog(className + "new instance !!");
+    }
+
     @Override
     void initLayout() {
         mLayoutID = R.layout.activity_simple_list;
@@ -112,11 +118,11 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
     @Override
     View initView(View v) {
         mToolbar = v.findViewById(R.id.toolbar);
-        if(showToolbar()){
+        if (showToolbar()) {
             mToolbar.setNavigationOnClickListener(view -> getActivity().finish());
             mToolbar.setTitle(getToolbarTitle());
-        }else {
-            if(mToolbar != null) {
+        } else {
+            if (mToolbar != null) {
                 mToolbar.setVisibility(View.GONE);
             }
         }
@@ -131,16 +137,20 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
             }
         });
         initRecyclerView();
-        mRefreshLayout.setRefreshHeader(new DeliveryHeader(mContext));
+        if (className.equals("FragmentRecmdIllust ")) {
+            mRefreshLayout.setRefreshHeader(new ClassicsHeader(mContext));
+        }else {
+            mRefreshLayout.setRefreshHeader(new DeliveryHeader(mContext));
+        }
         mRefreshLayout.setOnRefreshListener(layout -> getFirstData());
         mRefreshLayout.setEnableLoadMore(false);
-        if(hasNext()) {
+        if (hasNext()) {
             mRefreshLayout.setOnLoadMoreListener(layout -> getNextData());
         }
         return v;
     }
 
-    String getToolbarTitle(){
+    String getToolbarTitle() {
         return " ";
     }
 
@@ -165,13 +175,12 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
 
     abstract Observable<Response> initNextApi();
 
-    void initRecyclerView(){
+    void initRecyclerView() {
 
     }
 
     /**
      * the callback after getting the first page of datan
-     *
      */
     abstract void initAdapter();
 
@@ -192,13 +201,13 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
                             allItems.clear();
                             allItems.addAll(response.getList());
                             nextUrl = response.getNextUrl();
-                            if(!TextUtils.isEmpty(nextUrl)){
-                                if(className.contains("FragmentRelatedIllust")){
+                            if (!TextUtils.isEmpty(nextUrl)) {
+                                if (className.contains("FragmentRelatedIllust")) {
                                     mRefreshLayout.setEnableLoadMore(Shaft.sSettings.isRelatedIllustNoLimit());
                                 } else {
                                     mRefreshLayout.setEnableLoadMore(true);
                                 }
-                            }else {
+                            } else {
                                 mRefreshLayout.setEnableLoadMore(false);
                             }
                             initAdapter();
@@ -208,7 +217,7 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
                             noData.setVisibility(View.GONE);
                             mRecyclerView.setAdapter(mAdapter);
 
-                            if(System.currentTimeMillis() - Local.getPikaTime() > 3600 * 1000) {
+                            if (System.currentTimeMillis() - Local.getPikaTime() > 3600 * 1000) {
                                 Common.showLog("System.currentTimeMillis() " + System.currentTimeMillis());
                                 Common.showLog("Local.getPikaTime() " + Local.getPikaTime());
                                 Random random = new Random();
@@ -235,8 +244,8 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
                             noData.setImageResource(R.mipmap.load_error);
                         }
                     });
-        }else {
-            if(className.equals("FragmentRecmdIllust ")) {
+        } else {
+            if (className.equals("FragmentRecmdIllust ")) {
                 showDataBase();
             }
         }
@@ -248,31 +257,32 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
     public void getNextData() {
         mApi = initNextApi();
         if (mApi != null) {
-            if(TextUtils.isEmpty(nextUrl)){
-                Common.showToast("next url 为空");
+            if (TextUtils.isEmpty(nextUrl)) {
+                Common.showLog("next url 为空");
                 mRefreshLayout.setEnableLoadMore(false);
                 mRefreshLayout.finishLoadMore(false);
-            }else {
+                mRefreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
+            } else {
                 mApi.subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(new ListObserver<Response>() {
                             @Override
                             public void success(Response response) {
                                 int lastSize;
-                                if(className.equals("FragmentPivision ")) {
+                                if (className.equals("FragmentPivision ")) {
                                     lastSize = allItems.size() + 1;
-                                }else {
+                                } else {
                                     lastSize = allItems.size();
                                 }
                                 allItems.addAll(response.getList());
                                 nextUrl = response.getNextUrl();
-                                if(!TextUtils.isEmpty(nextUrl)){
-                                    if(className.contains("FragmentRelatedIllust")){
+                                if (!TextUtils.isEmpty(nextUrl)) {
+                                    if (className.contains("FragmentRelatedIllust")) {
                                         mRefreshLayout.setEnableLoadMore(Shaft.sSettings.isRelatedIllustNoLimit());
-                                    }else {
+                                    } else {
                                         mRefreshLayout.setEnableLoadMore(true);
                                     }
-                                }else {
+                                } else {
                                     mRefreshLayout.setEnableLoadMore(false);
                                 }
                                 mRefreshLayout.finishLoadMore(true);
@@ -284,7 +294,7 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
                             @Override
                             public void dataError() {
                                 mRefreshLayout.finishLoadMore(true);
-                                if(!TextUtils.isEmpty(nextUrl)){
+                                if (!TextUtils.isEmpty(nextUrl)) {
                                     mRefreshLayout.setEnableLoadMore(false);
                                 }
                             }
@@ -296,11 +306,15 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
 
                         });
             }
+        }else {
+            mRefreshLayout.setEnableLoadMore(false);
+            mRefreshLayout.finishLoadMore(false);
+            mRefreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
         }
     }
 
 
-    public void showDataBase(){
+    public void showDataBase() {
 
     }
 

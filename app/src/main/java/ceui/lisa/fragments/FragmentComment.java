@@ -1,6 +1,6 @@
 package ceui.lisa.fragments;
 
-import android.support.v7.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import ceui.lisa.R;
 import ceui.lisa.adapters.CommentAdapter;
@@ -16,7 +16,7 @@ public class FragmentComment extends BaseListFragment<IllustCommentsResponse, Co
     private int illustID;
     private String title;
 
-    public static FragmentComment newInstance(int id, String title){
+    public static FragmentComment newInstance(int id, String title) {
         FragmentComment comment = new FragmentComment();
         comment.illustID = id;
         comment.title = title;

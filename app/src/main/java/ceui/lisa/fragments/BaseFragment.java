@@ -3,16 +3,14 @@ package ceui.lisa.fragments;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.Local;
-import ceui.lisa.utils.Settings;
 
 public abstract class BaseFragment extends Fragment {
 
@@ -23,16 +21,15 @@ public abstract class BaseFragment extends Fragment {
 
     protected String className = this.getClass().getSimpleName() + " ";
 
+    public BaseFragment() {
+        Common.showLog(className + "生成了一个实例");
+    }
+
     abstract void initLayout();
 
     abstract View initView(View v);
 
     abstract void initData();
-
-    public BaseFragment(){
-        Common.showLog(className + "生成了一个实例");
-    }
-
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -65,7 +62,6 @@ public abstract class BaseFragment extends Fragment {
     }
 
 
-
     @Override
     public void onViewCreated(@NonNull View view,
                               @Nullable Bundle savedInstanceState) {
@@ -76,11 +72,11 @@ public abstract class BaseFragment extends Fragment {
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
 
-        if(isVisibleToUser){
+        if (isVisibleToUser) {
 
-            Common.showLog("setUserVisibleHint 被看见了" + className );
-        }else {
-            Common.showLog("setUserVisibleHint 消失了" + className );
+            Common.showLog("setUserVisibleHint 被看见了" + className);
+        } else {
+            Common.showLog("setUserVisibleHint 消失了" + className);
         }
     }
 }

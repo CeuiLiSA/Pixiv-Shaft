@@ -7,18 +7,18 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.net.Uri;
-import android.os.Bundle;
-import android.os.Environment;
-import android.support.annotation.Nullable;
-import android.support.design.widget.BottomNavigationView;
-import android.support.design.widget.NavigationView;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.view.ViewPager;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.AlertDialog;
+
+import com.blankj.utilcode.util.BarUtils;
+import com.blankj.utilcode.util.ColorUtils;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.navigation.NavigationView;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.core.view.GravityCompat;
+import androidx.viewpager.widget.ViewPager;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.appcompat.app.AlertDialog;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.MenuItem;
@@ -30,7 +30,6 @@ import com.bumptech.glide.Glide;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.zhihu.matisse.Matisse;
 import com.zhihu.matisse.MimeType;
-import com.zhihu.matisse.engine.impl.GlideEngine;
 import com.zhihu.matisse.engine.impl.PicassoEngine;
 
 import org.greenrobot.eventbus.EventBus;
@@ -42,8 +41,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.database.AppDatabase;
-import ceui.lisa.download.FileCreator;
 import ceui.lisa.download.TaskQueue;
 import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentCenter;
@@ -94,8 +91,6 @@ public class CoverActivity extends BaseActivity
                     if (permission.granted) {
                         callback.doSomething(null);
                     } else {
-                        // At least one denied permission with ask never again
-                        // Need to go to the settings
                         Common.showToast("请给与足够的权限");
                     }
                 });
@@ -235,12 +230,14 @@ public class CoverActivity extends BaseActivity
 
         } else if (id == R.id.nav_send) {
 
-            Intent intent = new Intent(mContext, FullscreenActivity.class);
+            Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "画廊");
             startActivity(intent);
         }else if (id == R.id.web_test) {
             Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
             intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "跟随动画");
             startActivity(intent);
+
         }
 
         mDrawer.closeDrawer(GravityCompat.START);
@@ -329,9 +326,7 @@ public class CoverActivity extends BaseActivity
 
     public void exit() {
         if ((System.currentTimeMillis() - mExitTime) > 2000) {
-
             if(TaskQueue.get().getTasks().size() != 0) {
-
                 AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
                 builder.setTitle("Shaft 提示");
                 builder.setMessage("你还有未下载完成的任务，确定退出吗？");
@@ -352,8 +347,6 @@ public class CoverActivity extends BaseActivity
                 Common.showToast(getString(R.string.double_click_finish));
                 mExitTime = System.currentTimeMillis();
             }
-
-
         } else {
             finish();
         }

@@ -49,6 +49,7 @@ public class FragmentDownloadFinish extends BaseAsyncFragment<DownlistAdapter, D
             Thread.sleep(500);
             Gson gson = new Gson();
             allIllusts = new ArrayList<>();
+            filePaths = new ArrayList<>();
             for (int i = 0; i < allItems.size(); i++) {
                 allIllusts.add(gson.fromJson(allItems.get(i).getIllustGson(), IllustsBean.class));
                 filePaths.add(allItems.get(i).getFilePath());
@@ -86,13 +87,13 @@ public class FragmentDownloadFinish extends BaseAsyncFragment<DownlistAdapter, D
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                if(viewType == 0) {
+                if (viewType == 0) {
                     Intent intent = new Intent(mContext, ImageDetailActivity.class);
                     intent.putExtra("illust", (Serializable) filePaths);
                     intent.putExtra("dataType", "下载详情");
                     intent.putExtra("index", position);
                     startActivity(intent);
-                }else if(viewType == 1){
+                } else if (viewType == 1) {
                     Intent intent = new Intent(mContext, UserDetailActivity.class);
                     intent.putExtra("user id", allIllusts.get(position).getUser().getId());
                     startActivity(intent);
@@ -157,7 +158,7 @@ public class FragmentDownloadFinish extends BaseAsyncFragment<DownlistAdapter, D
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(Channel event) {
-        if(className.contains(event.getReceiver())) {
+        if (className.contains(event.getReceiver())) {
 
             nowIndex++;
             mRecyclerView.setVisibility(View.VISIBLE);
@@ -165,7 +166,7 @@ public class FragmentDownloadFinish extends BaseAsyncFragment<DownlistAdapter, D
             DownloadEntity entity = (DownloadEntity) event.getObject();
             allItems.add(0, entity);
             allIllusts.add(new Gson().fromJson(entity.getIllustGson(), IllustsBean.class));
-            filePaths.add(entity.getFilePath());
+            filePaths.add(0, entity.getFilePath());
             mAdapter.notifyItemInserted(0);
             mRecyclerView.scrollToPosition(0);
             mAdapter.notifyItemRangeChanged(0, allItems.size());

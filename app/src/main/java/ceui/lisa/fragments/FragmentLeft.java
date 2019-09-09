@@ -1,16 +1,15 @@
 package ceui.lisa.fragments;
 
-import android.support.annotation.Nullable;
-import android.support.design.widget.TabLayout;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
-import android.support.v7.widget.Toolbar;
+import androidx.annotation.Nullable;
+import com.google.android.material.tabs.TabLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.viewpager.widget.ViewPager;
+import androidx.appcompat.widget.Toolbar;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-
 
 import ceui.lisa.R;
 import ceui.lisa.activities.CoverActivity;
@@ -34,19 +33,19 @@ public class FragmentLeft extends BaseFragment {
         head.setLayoutParams(headParams);
         //toolbar.setPadding(0, Shaft.statusHeight, 0, 0);
         toolbar.setNavigationOnClickListener(view -> {
-            if(getActivity() instanceof CoverActivity){
-                ((CoverActivity)getActivity()).getDrawer().openDrawer(Gravity.START);
+            if (getActivity() instanceof CoverActivity) {
+                ((CoverActivity) getActivity()).getDrawer().openDrawer(Gravity.START);
             }
         });
         ViewPager viewPager = v.findViewById(R.id.view_pager);
         viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
             @Override
             public Fragment getItem(int i) {
-                if(i == 0) {
+                if (i == 0) {
                     return new FragmentRecmdIllust();
-                }else if(i == 1){
+                } else if (i == 1) {
                     return new FragmentHotTag();
-                }else {
+                } else {
                     //只有左右两页，所以这个else应该不会触发
                     return new FragmentBlank();
                 }

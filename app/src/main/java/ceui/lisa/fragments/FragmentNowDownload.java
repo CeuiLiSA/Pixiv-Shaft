@@ -49,13 +49,13 @@ public class FragmentNowDownload extends BaseAsyncFragment<DownloadTaskAdapter, 
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(Channel event) {
-        if(className.contains(event.getReceiver())) {
+        if (className.contains(event.getReceiver())) {
             int position = (int) event.getObject();
             mAdapter.notifyItemRemoved(position);
             mAdapter.notifyItemRangeChanged(position, allItems.size() - position);
 
             Common.showLog(className + "删除一个 还剩 " + TaskQueue.get().getTasks().size());
-            if(position == 0){
+            if (position == 0) {
                 getFirstData();
             }
         }

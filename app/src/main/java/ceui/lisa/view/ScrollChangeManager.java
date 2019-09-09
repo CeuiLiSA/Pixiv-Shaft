@@ -1,7 +1,7 @@
 package ceui.lisa.view;
 
 import android.content.Context;
-import android.support.v7.widget.StaggeredGridLayoutManager;
+import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 import android.util.AttributeSet;
 
 /**

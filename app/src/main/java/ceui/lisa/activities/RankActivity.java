@@ -1,12 +1,16 @@
 package ceui.lisa.activities;
 
 import android.content.Intent;
-import android.support.annotation.Nullable;
-import android.support.design.widget.TabLayout;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.view.ViewPager;
-import android.support.v7.widget.Toolbar;
+import androidx.annotation.Nullable;
+
+import com.ToxicBakery.viewpager.transforms.CubeOutTransformer;
+import com.ToxicBakery.viewpager.transforms.DrawerTransformer;
+import com.ToxicBakery.viewpager.transforms.FlipHorizontalTransformer;
+import com.google.android.material.tabs.TabLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentStatePagerAdapter;
+import androidx.viewpager.widget.ViewPager;
+import androidx.appcompat.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -37,6 +41,8 @@ public class RankActivity extends BaseActivity implements DatePickerDialog.OnDat
         TabLayout tabLayout = findViewById(R.id.tab_layout);
         mViewPager = findViewById(R.id.view_pager);
         String queryDate = getIntent().getStringExtra("date");
+        mViewPager.setPageTransformer(true, new DrawerTransformer());
+
         mViewPager.setAdapter(new FragmentStatePagerAdapter(getSupportFragmentManager()) {
             @Override
             public Fragment getItem(int i) {
@@ -61,7 +67,9 @@ public class RankActivity extends BaseActivity implements DatePickerDialog.OnDat
         });
         tabLayout.setupWithViewPager(mViewPager);
         //如果指定了跳转到某一个排行，就显示该页排行
-        mViewPager.setCurrentItem(getIntent().getIntExtra("index", 0));
+        if(getIntent().getIntExtra("index", 0) >= 0) {
+            mViewPager.setCurrentItem(getIntent().getIntExtra("index", 0));
+        }
     }
 
     @Override

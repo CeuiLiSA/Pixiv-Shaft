@@ -2,11 +2,27 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.Toolbar;
+
+import com.ToxicBakery.viewpager.transforms.AccordionTransformer;
+import com.ToxicBakery.viewpager.transforms.BackgroundToForegroundTransformer;
+import com.ToxicBakery.viewpager.transforms.CubeInTransformer;
+import com.ToxicBakery.viewpager.transforms.CubeOutTransformer;
+import com.ToxicBakery.viewpager.transforms.DefaultTransformer;
+import com.ToxicBakery.viewpager.transforms.DepthPageTransformer;
+import com.ToxicBakery.viewpager.transforms.DrawerTransformer;
+import com.ToxicBakery.viewpager.transforms.FlipHorizontalTransformer;
+import com.ToxicBakery.viewpager.transforms.FlipVerticalTransformer;
+import com.ToxicBakery.viewpager.transforms.ForegroundToBackgroundTransformer;
+import com.ToxicBakery.viewpager.transforms.RotateUpTransformer;
+import com.ToxicBakery.viewpager.transforms.ScaleInOutTransformer;
+import com.ToxicBakery.viewpager.transforms.StackTransformer;
+import com.ToxicBakery.viewpager.transforms.TabletTransformer;
+import com.ToxicBakery.viewpager.transforms.ZoomInTransformer;
+import com.ToxicBakery.viewpager.transforms.ZoomOutTransformer;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.appcompat.widget.Toolbar;
 import android.text.TextUtils;
-import android.text.method.LinkMovementMethod;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,13 +31,16 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
-import com.scwang.smartrefresh.layout.util.DensityUtil;
+import com.scwang.smartrefresh.layout.api.RefreshLayout;
+import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
+import com.scwang.smartrefresh.layout.header.FalsifyHeader;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.sufficientlysecure.htmltextview.HtmlTextView;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,9 +49,11 @@ import ceui.lisa.activities.ImageDetailActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.activities.UserDetailActivity;
+import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.IllustDetailAdapter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustHistoryEntity;
+import ceui.lisa.download.FileCreator;
 import ceui.lisa.download.GifCreate;
 import ceui.lisa.download.GifDownload;
 import ceui.lisa.download.IllustDownload;
@@ -43,13 +64,12 @@ import ceui.lisa.model.GifResponse;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.ShareIllust;
-import ceui.lisa.view.ExpandCard;
 import ceui.lisa.view.LinearItemDecorationNoLRTB;
 import ceui.lisa.view.TouchRecyclerView;
-import ceui.lisa.view.WebSiteSpan;
 import de.hdodenhof.circleimageview.CircleImageView;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
@@ -71,6 +91,7 @@ public class FragmentSingleIllust extends BaseFragment {
     private TouchRecyclerView mRecyclerView;
     private TextView seeAll;
     private IllustDetailAdapter mDetailAdapter;
+    private FloatingActionButton download;
 
     public static FragmentSingleIllust newInstance(IllustsBean illustsBean) {
         FragmentSingleIllust fragmentSingleIllust = new FragmentSingleIllust();
@@ -86,6 +107,10 @@ public class FragmentSingleIllust extends BaseFragment {
     @Override
     View initView(View v) {
         Common.showLog(className + new Gson().toJson(illust));
+        RefreshLayout refreshLayout = v.findViewById(R.id.refreshLayout);
+        refreshLayout.setEnableLoadMore(true);
+        refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));
+        refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
         imageView = v.findViewById(R.id.bg_image);
         Toolbar toolbar = v.findViewById(R.id.toolbar);
         toolbar.inflateMenu(R.menu.share);
@@ -109,6 +134,7 @@ public class FragmentSingleIllust extends BaseFragment {
 
                         }
                     }.execute();
+                    return true;
                 }
                 return false;
             }
@@ -118,13 +144,13 @@ public class FragmentSingleIllust extends BaseFragment {
         toolbar.setTitleTextAppearance(mContext, R.style.toolbarText);
         toolbar.setNavigationOnClickListener(view -> getActivity().finish());
 
-        FloatingActionButton download = v.findViewById(R.id.download);
+        download = v.findViewById(R.id.download);
         download.setOnClickListener(new View.OnClickListener() {
-                        @Override
+            @Override
             public void onClick(View v) {
-                if(illust.isGif()){
+                if (illust.isGif()) {
                     GifCreate.createGif(illust);
-                }else {
+                } else {
                     if (illust.getPage_count() == 1) {
                         IllustDownload.downloadIllust(illust);
                     } else {
@@ -133,6 +159,11 @@ public class FragmentSingleIllust extends BaseFragment {
                 }
             }
         });
+        File file = FileCreator.createIllustFile(illust);
+        if (file.exists()) {
+            download.setImageResource(R.drawable.ic_has_download);
+        }
+
         FloatingActionButton related = v.findViewById(R.id.related);
         related.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -157,17 +188,17 @@ public class FragmentSingleIllust extends BaseFragment {
         });
         FloatingActionButton star = v.findViewById(R.id.post_like);
 
-        if(illust.isIs_bookmarked()){
+        if (illust.isIs_bookmarked()) {
             star.setImageResource(R.drawable.ic_favorite_accent_24dp);
-        }else {
+        } else {
             star.setImageResource(R.drawable.ic_favorite_black_24dp);
         }
         star.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(illust.isIs_bookmarked()){
+                if (illust.isIs_bookmarked()) {
                     star.setImageResource(R.drawable.ic_favorite_black_24dp);
-                }else {
+                } else {
                     star.setImageResource(R.drawable.ic_favorite_accent_24dp);
                 }
                 PixivOperate.postLike(illust, sUserModel, FragmentLikeIllust.TYPE_PUBLUC);
@@ -177,9 +208,9 @@ public class FragmentSingleIllust extends BaseFragment {
         star.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                if(illust.isIs_bookmarked()){
+                if (illust.isIs_bookmarked()) {
 
-                }else {
+                } else {
                     Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
                     intent.putExtra(TemplateFragmentActivity.EXTRA_ILLUST_ID, illust.getId());
                     intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "按标签收藏");
@@ -197,10 +228,6 @@ public class FragmentSingleIllust extends BaseFragment {
         ViewGroup.LayoutParams headParams = head.getLayoutParams();
         headParams.height = Shaft.statusHeight + Shaft.toolbarHeight;
         head.setLayoutParams(headParams);
-
-
-
-
 
 
         TextView userName = v.findViewById(R.id.user_name);
@@ -225,6 +252,9 @@ public class FragmentSingleIllust extends BaseFragment {
         userName.setText(illust.getUser().getName());
         mTagCloudView = v.findViewById(R.id.illust_tag);
         List<String> tags = new ArrayList<>();
+        String illustSize = "尺寸：" + illust.getSize();
+        TextView illustPx = v.findViewById(R.id.illust_px);
+        illustPx.setText(illustSize);
         for (int i = 0; i < illust.getTags().size(); i++) {
             String temp = illust.getTags().get(i).getName();
 //            if(!TextUtils.isEmpty(illust.getTags().get(i).getTranslated_name())){
@@ -251,7 +281,7 @@ public class FragmentSingleIllust extends BaseFragment {
             description.setHtml(illust.getCaption());
             //description.setClickableTableSpan(new WebSiteSpan());
             //description.setMovementMethod(LinkMovementMethod.getInstance());
-        }else {
+        } else {
             description.setVisibility(View.GONE);
         }
         TextView totalView = v.findViewById(R.id.illust_view);
@@ -294,8 +324,6 @@ public class FragmentSingleIllust extends BaseFragment {
     }
 
 
-
-
     private void loadImage() {
         Glide.with(mContext)
                 .load(GlideUtil.getSquare(illust))
@@ -306,13 +334,13 @@ public class FragmentSingleIllust extends BaseFragment {
         mDetailAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                if(viewType == 0) {
+                if (viewType == 0) {
                     Intent intent = new Intent(mContext, ImageDetailActivity.class);
                     intent.putExtra("illust", illust);
                     intent.putExtra("dataType", "二级详情");
                     intent.putExtra("index", position);
                     startActivity(intent);
-                }else if(viewType == 1){
+                } else if (viewType == 1) {
                     getGifUrl();
                 }
             }
@@ -328,12 +356,12 @@ public class FragmentSingleIllust extends BaseFragment {
     @Override
     public void onPause() {
         super.onPause();
-        if(illust.getType().equals("ugoira") && mDetailAdapter != null){
+        if (illust.getType().equals("ugoira") && mDetailAdapter != null) {
             mDetailAdapter.setPlayGif(false);
         }
     }
 
-    public void getGifUrl(){
+    public void getGifUrl() {
         Common.showToast("获取图组ZIP地址");
         Retro.getAppApi().getGifPackage(sUserModel.getResponse().getAccess_token(), illust.getId())
                 .subscribeOn(Schedulers.newThread())
@@ -350,14 +378,14 @@ public class FragmentSingleIllust extends BaseFragment {
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
         if (isVisibleToUser) {
-            if(Shaft.sSettings.isSaveViewHistory()) {
+            if (Shaft.sSettings.isSaveViewHistory()) {
                 insertViewHistory();
             }
-            if(illust.getType().equals("ugoira") && mDetailAdapter != null){
+            if (illust.getType().equals("ugoira") && mDetailAdapter != null) {
                 mDetailAdapter.startGif();
             }
-        }else {
-            if(illust.getType().equals("ugoira") && mDetailAdapter != null){
+        } else {
+            if (illust.getType().equals("ugoira") && mDetailAdapter != null) {
                 mDetailAdapter.setPlayGif(false);
             }
         }
@@ -378,15 +406,22 @@ public class FragmentSingleIllust extends BaseFragment {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(Channel event) {
-        if(className.contains(event.getReceiver())) {
+        if (className.contains(event.getReceiver())) {
             mDetailAdapter.startGif();
             return;
         }
 
-        if(event.getReceiver().contains("FragmentSingleIllust starIllust")) {
+        if (event.getReceiver().contains("FragmentSingleIllust starIllust")) {
             illust.setIs_bookmarked(true);
-            ((FloatingActionButton)parentView.findViewById(R.id.post_like))
+            ((FloatingActionButton) parentView.findViewById(R.id.post_like))
                     .setImageResource(R.drawable.ic_favorite_accent_24dp);
+        }
+
+
+        if(event.getReceiver().equals("FragmentSingleIllust option2")){
+            if((int) event.getObject() == illust.getId()) {
+                download.setImageResource(R.drawable.ic_has_download);
+            }
         }
     }
 
@@ -395,13 +430,11 @@ public class FragmentSingleIllust extends BaseFragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         EventBus.getDefault().register(this);
-        Common.showLog(className + "EVENTBUS 注册了");
     }
 
     @Override
     public void onDestroy() {
         EventBus.getDefault().unregister(this);
         super.onDestroy();
-        Common.showLog(className + "EVENTBUS 取消注册了");
     }
 }

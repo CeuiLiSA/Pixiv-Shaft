@@ -2,8 +2,6 @@ package ceui.lisa.fragments;
 
 import android.content.pm.ActivityInfo;
 import android.view.View;
-import android.widget.SeekBar;
-import android.widget.TextView;
 
 import ceui.lisa.R;
 
@@ -11,7 +9,6 @@ import ceui.lisa.R;
  * 地铁表白器
  */
 public class FragmentMetro extends BaseFragment {
-
 
 
     @Override
@@ -34,7 +31,7 @@ public class FragmentMetro extends BaseFragment {
     public void onResume() {
         super.onResume();
 
-        if(mActivity.getRequestedOrientation()!= ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE){
+        if (mActivity.getRequestedOrientation() != ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
             mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         }
     }

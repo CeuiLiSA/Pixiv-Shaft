@@ -1,12 +1,22 @@
 package ceui.lisa.activities;
 
+import android.content.ActivityNotFoundException;
+import android.content.Intent;
 import android.graphics.Color;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.viewpager.widget.ViewPager;
+
+import android.net.Uri;
 import android.view.View;
 import android.widget.TextView;
 
+import com.ToxicBakery.viewpager.transforms.CubeOutTransformer;
+import com.ToxicBakery.viewpager.transforms.RotateUpTransformer;
+import com.blankj.utilcode.util.BarUtils;
+import com.blankj.utilcode.util.ColorUtils;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,15 +32,19 @@ public class ImageDetailActivity extends BaseActivity {
 
     private IllustsBean mIllustsBean;
     private List<String> localIllust = new ArrayList<>();
-    private TextView currentPage, downloadSingle;
+    private TextView currentPage, downloadSingle, currentSize;
     private String dataType = "";
 
     @Override
     protected void initLayout() {
-        getWindow().setStatusBarColor(Color.TRANSPARENT);
-        getWindow().getDecorView().setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
-                        View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+//        getWindow().setStatusBarColor(Color.TRANSPARENT);
+//        getWindow().getDecorView().setSystemUiVisibility(
+//                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+//                        View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+        BarUtils.setStatusBarColor(this, ColorUtils.getColor(R.color.qmui_config_color_transparent));
+        if(BarUtils.isSupportNavBar()) {
+            BarUtils.setNavBarVisibility(this, false);
+        }
         mLayoutID = R.layout.activity_image_detail;
     }
 
@@ -38,7 +52,9 @@ public class ImageDetailActivity extends BaseActivity {
     protected void initView() {
         dataType = getIntent().getStringExtra("dataType");
         ViewPager viewPager = findViewById(R.id.view_pager);
+        viewPager.setPageTransformer(true, new CubeOutTransformer());
         if(dataType.equals("二级详情")) {
+            currentSize = findViewById(R.id.current_size);
             currentPage = findViewById(R.id.current_page);
             downloadSingle = findViewById(R.id.download_this_one);
             mIllustsBean = (IllustsBean) getIntent().getSerializableExtra("illust");
@@ -46,7 +62,6 @@ public class ImageDetailActivity extends BaseActivity {
             if (mIllustsBean == null) {
                 return;
             }
-
             viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
                 @Override
                 public Fragment getItem(int i) {
@@ -81,6 +96,9 @@ public class ImageDetailActivity extends BaseActivity {
 
                 }
             });
+//            if(mIllustsBean.getPage_count() == 1){
+//                currentSize.setText(mIllustsBean.getSize());
+//            }
             currentPage.setText("第" + (index + 1) + "P / 共" + mIllustsBean.getPage_count() + "P");
 
         }else if(dataType.equals("下载详情")){
@@ -128,6 +146,7 @@ public class ImageDetailActivity extends BaseActivity {
             downloadSingle.setText("路径：" + localIllust.get(index));
         }
     }
+
 
     @Override
     protected void initData() {

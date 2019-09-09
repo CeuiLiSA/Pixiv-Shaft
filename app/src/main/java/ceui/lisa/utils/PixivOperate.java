@@ -7,8 +7,8 @@ import android.content.Intent;
 import java.util.ArrayList;
 import java.util.List;
 
+import ceui.lisa.activities.LoginAlphaActivity;
 import ceui.lisa.activities.ViewPagerActivity;
-import ceui.lisa.fragments.FragmentLogin;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.IllustSearchResponse;
@@ -65,8 +65,8 @@ public class PixivOperate {
 
     public static void changeUser(UserModel userModel, Callback<UserModel> callback){
         Call<UserModel> call = Retro.getAccountApi().refreshToken(
-                FragmentLogin.CLIENT_ID,
-                FragmentLogin.CLIENT_SECRET,
+                LoginAlphaActivity.CLIENT_ID,
+                LoginAlphaActivity.CLIENT_SECRET,
                 "refresh_token",
                 userModel.getResponse().getRefresh_token(),
                 userModel.getResponse().getDevice_token(),

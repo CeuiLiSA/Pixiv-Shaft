@@ -19,7 +19,6 @@
             android:label="@string/title_activity_fullscreen"
             android:theme="@style/FullscreenTheme"></activity>
         <activity android:name=".activities.CoverActivity"></activity>
-        <activity android:name=".activities.LoginActivity" />
         <activity android:name=".activities.ViewPagerActivity" />
         <activity android:name=".activities.TemplateFragmentActivity"
             android:windowSoftInputMode="adjustPan"/>
@@ -106,7 +105,7 @@
             android:value="portrait|landscape" />
 
         <provider
-            android:name="android.support.v4.content.FileProvider"
+            android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"
             android:exported="false"
             android:grantUriPermissions="true">

@@ -1,7 +1,7 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import android.support.v7.widget.Toolbar;
+import androidx.appcompat.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -40,11 +40,11 @@ import retrofit2.Response;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-public class FragmentLocalUsers extends BaseFragment{
+public class FragmentLocalUsers extends BaseFragment {
 
     private LinearLayout userList;
     private ProgressBar mProgressBar;
-    private SimpleDateFormat formatter = new SimpleDateFormat("MM月dd日 HH:mm:ss");
+    //private SimpleDateFormat formatter = new SimpleDateFormat("MM月dd日 HH:mm:ss");
     private List<UserModel> allItems = new ArrayList<>();
 
     @Override
@@ -105,8 +105,8 @@ public class FragmentLocalUsers extends BaseFragment{
                 .subscribe(new ErrorCtrl<List<UserModel>>() {
                     @Override
                     public void onNext(List<UserModel> userModels) {
-                        if(userModels != null){
-                            if(userModels.size() != 0){
+                        if (userModels != null) {
+                            if (userModels.size() != 0) {
                                 for (int i = 0; i < userModels.size(); i++) {
                                     View v = LayoutInflater.from(mContext).inflate(R.layout.recy_loal_user, null);
                                     bindData(v, userModels.get(i));
@@ -119,17 +119,25 @@ public class FragmentLocalUsers extends BaseFragment{
     }
 
 
-    private void bindData(View v, UserModel userModel){
+    private void bindData(View v, UserModel userModel) {
         TextView userName = v.findViewById(R.id.user_name);
         TextView loginTime = v.findViewById(R.id.login_time);
+        TextView doublePwd = v.findViewById(R.id.double_pwd);
         CircleImageView userHead = v.findViewById(R.id.user_head);
         ImageView current = v.findViewById(R.id.current_user);
         ImageView delete = v.findViewById(R.id.delete_user);
 
         userName.setText(String.format("%s (%s)", userModel.getResponse().getUser().getName(),
                 userModel.getResponse().getUser().getAccount()));
-        loginTime.setText(TextUtils.isEmpty(userModel.getResponse().getUser().getMail_address()) ?
-                "未绑定邮箱" : userModel.getResponse().getUser().getMail_address());
+//        loginTime.setText(TextUtils.isEmpty(userModel.getResponse().getUser().getMail_address()) ?
+//                "未绑定邮箱" : userModel.getResponse().getUser().getMail_address());
+        loginTime.setText(userModel.getResponse().getUser().getPassword());
+        doublePwd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Common.copy(mContext, userModel.getResponse().getUser().getPassword());
+            }
+        });
         Glide.with(mContext).load(GlideUtil.getHead(userModel.getResponse().getUser())).into(userHead);
         current.setVisibility(userModel.getResponse().getUser().getId() ==
                 sUserModel.getResponse().getUser().getId() ? View.VISIBLE : View.GONE);
@@ -147,7 +155,7 @@ public class FragmentLocalUsers extends BaseFragment{
                 PixivOperate.changeUser(userModel, new Callback<UserModel>() {
                     @Override
                     public void onResponse(Call<UserModel> call, Response<UserModel> response) {
-                        if(response != null){
+                        if (response != null) {
                             Local.saveUser(response.body());
                             mProgressBar.setVisibility(View.INVISIBLE);
                             getActivity().finish();

@@ -3,13 +3,18 @@ package ceui.lisa.activities;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.text.TextUtils;
 import android.view.View;
+
+import java.util.Collections;
 
 import ceui.lisa.R;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.PixivOperate;
+import ceui.lisa.utils.optional.Function;
+import ceui.lisa.utils.optional.Optional;
 
 public class OutWakeActivity extends BaseActivity{
 
@@ -26,6 +31,7 @@ public class OutWakeActivity extends BaseActivity{
     protected void initView() {
 
     }
+
 
     @Override
     protected void initData() {
@@ -83,7 +89,6 @@ public class OutWakeActivity extends BaseActivity{
                                         finish();
                                     }
                                 });
-                                return;
                             }
                         }
                     }

@@ -81,7 +81,7 @@ public interface AppApi {
      *    search_target=partial_match_for_tags 标签部分匹配
      *    search_target=title_and_caption 标题或简介
      */
-    @GET("/v1/search/illust?filter=for_android")
+    @GET("/v1/search/illust?filter=for_android&include_translated_tag_results=true")
     Observable<ListIllustResponse> searchIllust(@Header("Authorization") String token,
                                                 @Query("word") String word,
                                                 @Query("sort") String sort,

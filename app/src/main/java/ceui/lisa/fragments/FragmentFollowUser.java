@@ -1,11 +1,10 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import android.support.v7.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import android.view.View;
 import android.widget.Button;
 
-import com.scwang.smartrefresh.layout.util.DensityUtil;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.UserDetailActivity;
@@ -14,6 +13,7 @@ import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.FullClickListener;
 import ceui.lisa.model.ListUserResponse;
 import ceui.lisa.model.UserPreviewsBean;
+import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.view.LinearItemDecoration;
 import io.reactivex.Observable;
@@ -25,7 +25,7 @@ public class FragmentFollowUser extends BaseListFragment<ListUserResponse, UserA
     private int userID;
     private String starType;
 
-    public static FragmentFollowUser newInstance(int userID, String starType){
+    public static FragmentFollowUser newInstance(int userID, String starType) {
         FragmentFollowUser followUser = new FragmentFollowUser();
         followUser.userID = userID;
         followUser.starType = starType;
@@ -81,7 +81,7 @@ public class FragmentFollowUser extends BaseListFragment<ListUserResponse, UserA
 
             @Override
             public void onItemLongClick(View v, int position, int viewType) {
-                if(!allItems.get(position).getUser().isIs_followed()){
+                if (!allItems.get(position).getUser().isIs_followed()) {
                     PixivOperate.postFollowUser(allItems.get(position).getUser().getId(), "private");
                     Button postFollow = ((Button) v);
                     postFollow.setText(getString(R.string.post_unfollow));

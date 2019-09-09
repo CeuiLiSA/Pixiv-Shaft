@@ -2,12 +2,11 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.View;
 import android.widget.ProgressBar;
 
-import com.scwang.smartrefresh.layout.util.DensityUtil;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -23,6 +22,7 @@ import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
 
@@ -60,7 +60,7 @@ public class FragmentRankHorizontal extends BaseFragment {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(Channel<List<IllustsBean>> event) {
 
-        if(className.contains(event.getReceiver())) {
+        if (className.contains(event.getReceiver())) {
             Common.showLog(className + "EVENTBUS 接受了消息");
             allItems.clear();
             allItems.addAll(event.getObject());

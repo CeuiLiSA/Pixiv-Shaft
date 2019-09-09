@@ -1,10 +1,9 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import android.support.v7.widget.GridLayoutManager;
+import androidx.recyclerview.widget.GridLayoutManager;
 import android.view.View;
 
-import com.scwang.smartrefresh.layout.util.DensityUtil;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateFragmentActivity;
@@ -12,6 +11,7 @@ import ceui.lisa.adapters.HotTagAdapter;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.TrendingtagResponse;
+import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.TagItemDecoration;
 import io.reactivex.Observable;
 
@@ -56,17 +56,16 @@ public class FragmentHotTag extends BaseListFragment<TrendingtagResponse, HotTag
         manager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
             @Override
             public int getSpanSize(int position) {
-                if(position == 0) {
+                if (position == 0) {
                     return 3;
-                }
-                else {
+                } else {
                     return 1;
                 }
             }
         });
         mRecyclerView.setLayoutManager(manager);
         mRecyclerView.addItemDecoration(new TagItemDecoration(
-                3, DensityUtil.dp2px( 1.0f), false));
+                3, DensityUtil.dp2px(1.0f), false));
     }
 
     @Override

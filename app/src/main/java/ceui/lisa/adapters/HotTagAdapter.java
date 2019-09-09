@@ -1,8 +1,8 @@
 package ceui.lisa.adapters;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
-import android.support.v7.widget.RecyclerView;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,10 +12,13 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.interfaces.MultiDownload;
 import ceui.lisa.interfaces.OnItemClickListener;
+import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.TrendingtagResponse;
 import ceui.lisa.utils.GlideUtil;
 
@@ -23,7 +26,7 @@ import ceui.lisa.utils.GlideUtil;
 /**
  * 热门标签
  */
-public class HotTagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public class HotTagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements MultiDownload {
 
     private Context mContext;
     private LayoutInflater mLayoutInflater;
@@ -73,6 +76,13 @@ public class HotTagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                 allIllust.get(position).getTranslated_name() :
                 allIllust.get(position).getTag());
 
+        holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                startDownload();
+                return true;
+            }
+        });
         if(mOnItemClickListener != null){
             holder.itemView.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 0));
         }
@@ -85,6 +95,20 @@ public class HotTagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
     public void setOnItemClickListener(OnItemClickListener itemClickListener) {
         mOnItemClickListener = itemClickListener;
+    }
+
+    @Override
+    public Context getContext() {
+        return mContext;
+    }
+
+    @Override
+    public List<IllustsBean> getIllustList() {
+        List<IllustsBean> tempList = new ArrayList<>();
+        for (int i = 0; i < allIllust.size(); i++) {
+            tempList.add(allIllust.get(i).getIllust());
+        }
+        return tempList;
     }
 
     public static class TagHolder extends RecyclerView.ViewHolder {

@@ -24,7 +24,6 @@ public class Settings {
 
 
 
-
     //瀑布流List点击动画
     private boolean mainListAnimate = true;
 
@@ -64,6 +63,9 @@ public class Settings {
 
     private String webDownloadPath = "";
 
+    //收藏量筛选搜索结果
+    private String searchFilter = "";
+
     public Settings() {
     }
 
@@ -81,6 +83,14 @@ public class Settings {
 
     public void setSaveViewHistory(boolean saveViewHistory) {
         this.saveViewHistory = saveViewHistory;
+    }
+
+    public String getSearchFilter() {
+        return TextUtils.isEmpty(searchFilter) ? " 无限制" : searchFilter;
+    }
+
+    public void setSearchFilter(String searchFilter) {
+        this.searchFilter = searchFilter;
     }
 
     public boolean isRelatedIllustNoLimit() {

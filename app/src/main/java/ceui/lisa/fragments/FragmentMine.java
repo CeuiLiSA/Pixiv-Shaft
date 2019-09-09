@@ -4,7 +4,7 @@ import android.view.View;
 
 import ceui.lisa.R;
 
-public class FragmentMine extends BaseFragment{
+public class FragmentMine extends BaseFragment {
 
     @Override
     void initLayout() {

@@ -2,15 +2,18 @@ package ceui.lisa.activities;
 
 import android.content.Intent;
 import android.graphics.Color;
-import android.support.annotation.Nullable;
-import android.support.design.widget.AppBarLayout;
-import android.support.design.widget.CollapsingToolbarLayout;
-import android.support.design.widget.TabLayout;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
-import android.support.v7.widget.Toolbar;
+import androidx.annotation.Nullable;
+
+import com.ToxicBakery.viewpager.transforms.DrawerTransformer;
+import com.google.android.material.appbar.AppBarLayout;
+import com.google.android.material.appbar.CollapsingToolbarLayout;
+import com.google.android.material.tabs.TabLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.viewpager.widget.ViewPager;
+import androidx.appcompat.widget.Toolbar;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -23,7 +26,7 @@ import ceui.lisa.R;
 import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentAboutUser;
 import ceui.lisa.fragments.FragmentLikeIllust;
-import ceui.lisa.fragments.FragmentSubmitIllust;
+import ceui.lisa.fragments.FragmentUserIllust;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.IllustsBean;
@@ -73,6 +76,14 @@ public class UserDetailActivity extends BaseActivity {
         userHead = findViewById(R.id.user_head);
         userName = findViewById(R.id.user_name);
         fans = findViewById(R.id.user_follow);
+
+
+        ImageView head = findViewById(R.id.header_item_id);
+        ViewGroup.LayoutParams headParams = head.getLayoutParams();
+        headParams.height = Shaft.statusHeight;
+        head.setLayoutParams(headParams);
+
+
         Toolbar toolbar = findViewById(R.id.toolbar_help);
         toolbar.setPadding(0, Shaft.statusHeight, 0, 0);
         toolbar.setNavigationOnClickListener(v -> finish());
@@ -95,6 +106,7 @@ public class UserDetailActivity extends BaseActivity {
             }
         });
         mViewPager = findViewById(R.id.view_pager);
+        mViewPager.setPageTransformer(true, new DrawerTransformer());
         mTabLayout = findViewById(R.id.tab);
         follow.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -115,7 +127,7 @@ public class UserDetailActivity extends BaseActivity {
         userID = getIntent().getIntExtra("user id", 0);
         baseFragments = new BaseFragment[]{
                 FragmentLikeIllust.newInstance(userID, FragmentLikeIllust.TYPE_PUBLUC),
-                FragmentSubmitIllust.newInstance(userID),
+                FragmentUserIllust.newInstance(userID),
                 new FragmentAboutUser()};
         mViewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override
