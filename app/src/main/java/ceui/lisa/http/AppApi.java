@@ -1,8 +1,5 @@
 package ceui.lisa.http;
 
-import java.util.List;
-
-import ceui.lisa.adapters.HotTagAdapter;
 import ceui.lisa.model.ArticalResponse;
 import ceui.lisa.model.BookmarkTags;
 import ceui.lisa.model.IllustBookmarkTags;
@@ -13,9 +10,9 @@ import ceui.lisa.model.NullResponse;
 import ceui.lisa.model.GifResponse;
 import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.model.ListUserResponse;
-import ceui.lisa.model.TagsBean;
 import ceui.lisa.model.TrendingtagResponse;
 import ceui.lisa.model.UserDetailResponse;
+import ceui.lisa.utils.NewObservable;
 import io.reactivex.Observable;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;

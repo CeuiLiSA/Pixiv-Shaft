@@ -29,19 +29,17 @@ import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.fragments.FragmentUserIllust;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
+import ceui.lisa.http.Rx;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.model.UserDetailResponse;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.view.AppBarStateChangeListener;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import de.hdodenhof.circleimageview.CircleImageView;
 import io.reactivex.Observable;
-import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
@@ -163,39 +161,19 @@ public class UserDetailActivity extends BaseActivity {
 
     private void getUserDetail() {
         Retro.getAppApi().getUserDetail(sUserModel.getResponse().getAccess_token(), userID)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<UserDetailResponse>() {
-                    @Override
-                    public void onSubscribe(Disposable d) {
-
-                    }
-
+                .compose(Rx.newThread())
+                .subscribe(new ErrorCtrl<UserDetailResponse>() {
                     @Override
                     public void onNext(UserDetailResponse userDetailResponse) {
-                        if (userDetailResponse != null) {
-                            mUserDetailResponse = userDetailResponse;
-                            setData(userDetailResponse);
-                        }
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        e.printStackTrace();
-                        Common.showToast(e.toString());
-                    }
-
-                    @Override
-                    public void onComplete() {
-
+                        mUserDetailResponse = userDetailResponse;
+                        setData(userDetailResponse);
                     }
                 });
     }
 
     private void getBackground(){
         Retro.getAppApi().getLoginBg(sUserModel.getResponse().getAccess_token())
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
+                .compose(Rx.newThread())
                 .subscribe(new ErrorCtrl<ListIllustResponse>() {
                     @Override
                     public void onNext(ListIllustResponse listIllustResponse) {
@@ -209,12 +187,7 @@ public class UserDetailActivity extends BaseActivity {
                         Observable.interval(0, 15, TimeUnit.SECONDS,
                                 AndroidSchedulers.mainThread())
                                 .takeWhile(aLong -> active)
-                                .subscribe(new Observer<Long>() {
-                                    @Override
-                                    public void onSubscribe(Disposable d) {
-
-                                    }
-
+                                .subscribe(new ErrorCtrl<Long>() {
                                     @Override
                                     public void onNext(Long aLong) {
                                         int index = (int) (aLong % list.size());
@@ -228,16 +201,6 @@ public class UserDetailActivity extends BaseActivity {
                                         Glide.with(mContext)
                                                 .load(GlideUtil.getMediumImg(list.get(++index % list.size())))
                                                 .preload();
-                                    }
-
-                                    @Override
-                                    public void onError(Throwable e) {
-
-                                    }
-
-                                    @Override
-                                    public void onComplete() {
-
                                     }
                                 });
                     }

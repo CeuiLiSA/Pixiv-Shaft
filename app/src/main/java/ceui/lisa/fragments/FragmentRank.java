@@ -52,7 +52,7 @@ public class FragmentRank extends AutoClipFragment<ListIllustResponse, IllustSta
 
     @Override
     Observable<ListIllustResponse> initNextApi() {
-        return Retro.getAppApi().getNextIllust("Bearer " + sUserModel.getResponse().getAccess_token(), nextUrl);
+        return Retro.getAppApi().getNextIllust(sUserModel.getResponse().getAccess_token(), nextUrl);
     }
 
     @Override
