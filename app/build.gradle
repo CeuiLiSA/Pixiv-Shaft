@@ -10,8 +10,8 @@ android {
         applicationId "ceui.lisa"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 28
-        versionName "1.0.28"
+        versionCode 30
+        versionName "1.0.30"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         manifestPlaceholders = [
@@ -103,6 +103,11 @@ dependencies {
     implementation 'com.stone.vega.library:VegaLayoutManager:1.0.6'
     implementation 'com.blankj:utilcode:1.25.0'
     implementation 'com.ToxicBakery.viewpager.transforms:view-pager-transforms:2.0.24'
+
+
+    implementation 'android.arch.persistence.room:runtime:1.1.1'
+    kapt 'android.arch.persistence.room:compiler:1.1.1'
+
 
     annotationProcessor 'com.github.bumptech.glide:compiler:4.9.0'
     annotationProcessor 'androidx.room:room-compiler:2.1.0'

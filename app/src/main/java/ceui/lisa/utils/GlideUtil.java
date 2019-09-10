@@ -90,7 +90,7 @@ public class GlideUtil {
     }
 
     public static GlideUrl getLargeImage(IllustsBean illustsBean, int i) {
-        if(i == 0){
+        if(illustsBean.getPage_count() == 1){
             return getLargeImage(illustsBean);
         }else {
             return new GlideUrl(illustsBean.getMeta_pages().get(i).getImage_urls().getLarge(), sHeaders);
@@ -99,9 +99,9 @@ public class GlideUtil {
 
 
     public static GlideUrl getOriginal(IllustsBean illustsBean, int i) {
-        if(i == 0){
+        if(illustsBean.getPage_count() == 1){
             return new GlideUrl(illustsBean.getMeta_single_page().getOriginal_image_url(), sHeaders);
-        }else {
+        } else {
             return new GlideUrl(illustsBean.getMeta_pages().get(i).getImage_urls().getOriginal(), sHeaders);
         }
     }

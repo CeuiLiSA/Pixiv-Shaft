@@ -7,6 +7,7 @@ import android.widget.Button;
 
 
 import ceui.lisa.R;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.adapters.UserAdapter;
 import ceui.lisa.http.Retro;
@@ -34,7 +35,12 @@ public class FragmentFollowUser extends BaseListFragment<ListUserResponse, UserA
 
     @Override
     boolean showToolbar() {
-        return false;
+        return userID != sUserModel.getResponse().getUser().getId();
+    }
+
+    @Override
+    String getToolbarTitle() {
+        return "关注";
     }
 
     @Override

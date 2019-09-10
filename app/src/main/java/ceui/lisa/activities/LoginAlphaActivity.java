@@ -44,14 +44,12 @@ public class LoginAlphaActivity extends BaseActivity {
     private CardView login, sign;
     private MaterialEditText userName, password, signName;
     private ProgressBar mProgressBar;
-    //private static final String SIGN_TOKEN = "Bearer l-f9qZ0ZyqSwRyZs8-MymbtWBbSxmCu1pmbOlyisou8";
-    private static final String SIGN_TOKEN = "pixiv";
+    private static final String SIGN_TOKEN = "Bearer l-f9qZ0ZyqSwRyZs8-MymbtWBbSxmCu1pmbOlyisou8";
     private static final String SIGN_REF = "pixiv_android_app_provisional_account";
-    private Toolbar mToolbar;
+
     public static final String CLIENT_ID = "MOBrBDS8blbauoSck0ZfDbtuzpyT";
     public static final String CLIENT_SECRET = "lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj";
     public static final String DEVICE_TOKEN = "pixiv";
-
 
     @Override
     protected void initLayout() {
@@ -64,9 +62,21 @@ public class LoginAlphaActivity extends BaseActivity {
 
     @Override
     protected void initView() {
-        mToolbar = findViewById(R.id.toolbar);
-        mToolbar.setPadding(0, Shaft.statusHeight, 0, 0);
-        setSupportActionBar(mToolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        toolbar.setPadding(0, Shaft.statusHeight, 0, 0);
+        toolbar.inflateMenu(R.menu.main);
+        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                if(item.getItemId() == R.id.action_settings){
+                    Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+                    intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "设置");
+                    startActivity(intent);
+                    return true;
+                }
+                return false;
+            }
+        });
         mProgressBar = findViewById(R.id.progress);
         signName = findViewById(R.id.sign_user_name);
         password = findViewById(R.id.password);
@@ -167,12 +177,7 @@ public class LoginAlphaActivity extends BaseActivity {
     private void sign(){
         Common.hideKeyboard(mActivity);
         mProgressBar.setVisibility(View.VISIBLE);
-        //固定参数写死就完事，借用了pixivlite的注册接口
-        Retro.getSignApi().pixivLiteSign(
-                signName.getText().toString(),
-                "PixivAndroidApp/5.0.118 (Android 6.0.1; D6653)",
-                "2019-07-09T11:15:19+08:00",
-                "45c4bee3635babbd169cf3bd90e11068")
+        Retro.getSignApi().pixivSign(SIGN_TOKEN, signName.getText().toString(), SIGN_REF)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ErrorCtrl<SignResponse>() {
@@ -207,62 +212,24 @@ public class LoginAlphaActivity extends BaseActivity {
                 pwd,
                 username).subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<UserModel>() {
-                    @Override
-                    public void onSubscribe(Disposable d) {
-
-                    }
-
+                .subscribe(new ErrorCtrl<UserModel>() {
                     @Override
                     public void onNext(UserModel userModel) {
-                        if(userModel != null){
-                            UserBean.ProfileImageUrlsBean profile_image_urls = userModel.getResponse().getUser().getProfile_image_urls();
-                            profile_image_urls.setMedium(profile_image_urls.getPx_50x50());
+                        UserBean.ProfileImageUrlsBean profile_image_urls = userModel.getResponse().getUser().getProfile_image_urls();
+                        profile_image_urls.setMedium(profile_image_urls.getPx_50x50());
 
-                            userModel.getResponse().getUser().setPassword(pwd);
-                            Local.saveUser(userModel);
-                            UserEntity userEntity = new UserEntity();
-                            userEntity.setLoginTime(System.currentTimeMillis());
-                            userEntity.setUserID(userModel.getResponse().getUser().getId());
-                            userEntity.setUserGson(new Gson().toJson(userModel));
-                            AppDatabase.getAppDatabase(mContext).downloadDao().insertUser(userEntity);
-                            mProgressBar.setVisibility(View.INVISIBLE);
-                            Intent intent = new Intent(mContext, CoverActivity.class);
-                            startActivity(intent);
-                            finish();
-                        }
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        Common.showToast(e.toString());
-                        e.printStackTrace();
+                        userModel.getResponse().getUser().setPassword(pwd);
+                        Local.saveUser(userModel);
+                        UserEntity userEntity = new UserEntity();
+                        userEntity.setLoginTime(System.currentTimeMillis());
+                        userEntity.setUserID(userModel.getResponse().getUser().getId());
+                        userEntity.setUserGson(new Gson().toJson(userModel));
+                        AppDatabase.getAppDatabase(mContext).downloadDao().insertUser(userEntity);
                         mProgressBar.setVisibility(View.INVISIBLE);
-
-                    }
-
-                    @Override
-                    public void onComplete() {
-
+                        Intent intent = new Intent(mContext, CoverActivity.class);
+                        startActivity(intent);
+                        finish();
                     }
                 });
-    }
-
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if(item.getItemId() == R.id.action_settings){
-            Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "设置");
-            startActivity(intent);
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
     }
 }

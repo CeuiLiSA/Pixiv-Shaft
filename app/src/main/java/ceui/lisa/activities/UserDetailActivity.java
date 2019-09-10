@@ -111,13 +111,19 @@ public class UserDetailActivity extends BaseActivity {
         follow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+                intent.putExtra("user id", userID);
+                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "正在关注");
+                startActivity(intent);
             }
         });
         fans.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+                intent.putExtra("user id", userID);
+                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "好P友");
+                startActivity(intent);
             }
         });
     }
@@ -248,6 +254,9 @@ public class UserDetailActivity extends BaseActivity {
                                     .getProfile_image_urls().getMedium()))
                     .into(userHead);
             userName.setText(userDetailResponse.getUser().getName());
+            if(userDetailResponse.getUser().getId() == sUserModel.getResponse().getUser().getId()){
+                nowFollow.setVisibility(View.GONE);
+            }
             if (userDetailResponse.getUser().isIs_followed()) {
                 nowFollow.setText("取消關注");
                 nowFollow.setOnClickListener(new View.OnClickListener() {

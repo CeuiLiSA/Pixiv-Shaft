@@ -4,20 +4,19 @@ import android.content.Intent;
 import androidx.fragment.app.Fragment;
 import android.view.KeyEvent;
 
-import com.mikepenz.aboutlibraries.Libs;
-import com.mikepenz.aboutlibraries.LibsBuilder;
-
 import ceui.lisa.fragments.FragmentAbout;
 import ceui.lisa.fragments.FragmentBlank;
 import ceui.lisa.fragments.FragmentBookTag;
 import ceui.lisa.fragments.FragmentComment;
 import ceui.lisa.fragments.FragmentDrag;
 import ceui.lisa.fragments.FragmentFollowAnime;
+import ceui.lisa.fragments.FragmentFollowUser;
 import ceui.lisa.fragments.FragmentLicense;
+import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.fragments.FragmentLocalUsers;
 import ceui.lisa.fragments.FragmentMetro;
 import ceui.lisa.fragments.FragmentMultiDownload;
-import ceui.lisa.fragments.FragmentPart;
+import ceui.lisa.fragments.FragmentNiceFriend;
 import ceui.lisa.fragments.FragmentPivision;
 import ceui.lisa.fragments.FragmentRecmdUser;
 import ceui.lisa.fragments.FragmentRelatedIllust;
@@ -29,6 +28,8 @@ import ceui.lisa.fragments.FragmentViewHistory;
 import ceui.lisa.fragments.FragmentWalkThrough;
 import ceui.lisa.fragments.FragmentWebView;
 import ceui.lisa.utils.ReverseResult;
+
+import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class TemplateFragmentActivity extends FragmentActivity {
 
@@ -96,16 +97,18 @@ public class TemplateFragmentActivity extends FragmentActivity {
                     return new FragmentAbout();
                 case "跟随动画":
                     return new FragmentFollowAnime();
-                case "搜索配件": {
-                    String keyword = intent.getStringExtra(EXTRA_KEYWORD);
-                    return FragmentPart.newInstance(keyword);
-                }
                 case "批量下载":
                     return new FragmentMultiDownload();
                 case "画廊":
                     return new FragmentWalkThrough();
                 case "License":
                     return new FragmentLicense();
+                case "正在关注":
+                    return FragmentFollowUser.newInstance(
+                            getIntent().getIntExtra("user id", 0),
+                            FragmentLikeIllust.TYPE_PUBLUC);
+                case "好P友":
+                    return new FragmentNiceFriend();
                 default:
                     return new FragmentBlank();
             }

@@ -46,7 +46,7 @@ class PixivHeaders {
             //return buf.toString().substring(8, 24);
         } catch (e: NoSuchAlgorithmException) {
             e.printStackTrace()
-            return null!!
+            return ""
         }
     }
 }

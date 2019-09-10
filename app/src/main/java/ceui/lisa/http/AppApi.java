@@ -288,6 +288,9 @@ public interface AppApi {
     Observable<MutedHistory> getMutedHistory(@Header("Authorization") String token);
 
 
-
+    //获取好P友
+    @GET("/v1/user/mypixiv?filter=for_android")
+    Observable<ListUserResponse> getNiceFriend(@Header("Authorization") String token,
+                                                         @Query("user_id") int user_id);
 
 }
