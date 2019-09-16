@@ -55,4 +55,5 @@
     <string name="project_license">License</string>
     <string name="select_inner_storage">请选择本机内置存储</string>
     <string name="walkthrough">画廊</string>
+    <string name="search">搜索</string>
 </resources>

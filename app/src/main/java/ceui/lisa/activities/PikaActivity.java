@@ -92,7 +92,7 @@ public class PikaActivity extends BaseActivity {
 
                 }
             });
-        }else {
+        } else {
             Intent intent = new Intent(mContext, CoverActivity.class);
             startActivity(intent);
             finish();

@@ -36,7 +36,6 @@ public class Local {
 
     public static void saveUser(UserModel userModel){
         if(userModel != null){
-            Common.showLog("333333");
             userModel.getResponse().getUser().setIs_login(true);
             String token = userModel.getResponse().getAccess_token();
             userModel.getResponse().setAccess_token("Bearer " + token);
@@ -47,14 +46,12 @@ public class Local {
             editor.putString(USER, userString);
             editor.apply();
             Shaft.sUserModel = userModel;
-            Common.showLog("444444");
         }
     }
 
     public static UserModel getUser(){
         SharedPreferences localData = Shaft.getContext().getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
         String userString = localData.getString(USER,"");
-        Common.showLog("UserModel " + userString);
         Gson gson = new Gson();
         UserModel userModel = gson.fromJson(userString, UserModel.class);
         return userModel;

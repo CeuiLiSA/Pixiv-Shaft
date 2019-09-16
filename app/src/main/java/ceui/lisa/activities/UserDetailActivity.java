@@ -76,10 +76,7 @@ public class UserDetailActivity extends BaseActivity {
         fans = findViewById(R.id.user_follow);
 
 
-        ImageView head = findViewById(R.id.header_item_id);
-        ViewGroup.LayoutParams headParams = head.getLayoutParams();
-        headParams.height = Shaft.statusHeight;
-        head.setLayoutParams(headParams);
+
 
 
         Toolbar toolbar = findViewById(R.id.toolbar_help);

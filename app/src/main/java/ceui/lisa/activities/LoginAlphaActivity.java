@@ -215,9 +215,6 @@ public class LoginAlphaActivity extends BaseActivity {
                 .subscribe(new ErrorCtrl<UserModel>() {
                     @Override
                     public void onNext(UserModel userModel) {
-                        UserBean.ProfileImageUrlsBean profile_image_urls = userModel.getResponse().getUser().getProfile_image_urls();
-                        profile_image_urls.setMedium(profile_image_urls.getPx_50x50());
-
                         userModel.getResponse().getUser().setPassword(pwd);
                         Local.saveUser(userModel);
                         UserEntity userEntity = new UserEntity();

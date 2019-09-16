@@ -86,7 +86,7 @@ public class CoverActivity extends BaseActivity
         final RxPermissions rxPermissions = new RxPermissions((FragmentActivity) mActivity);
         Disposable disposable = rxPermissions
                 .requestEachCombined(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                .subscribe(permission -> { // will emit 1 Permission object
+                .subscribe(permission -> {
                     if (permission.granted) {
                         callback.doSomething(null);
                     } else {
@@ -180,8 +180,6 @@ public class CoverActivity extends BaseActivity
         if (userModel != null && userModel.getResponse().getUser().isIs_login()) {
             checkPermission(t -> initFragment());
         } else {
-
-
             Intent intent = new Intent(mContext, LoginAlphaActivity.class);
             startActivity(intent);
             finish();

@@ -20,6 +20,7 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.LoginAlphaActivity;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
 import ceui.lisa.http.ErrorCtrl;
@@ -156,7 +157,11 @@ public class FragmentLocalUsers extends BaseFragment {
                     @Override
                     public void onResponse(Call<UserModel> call, Response<UserModel> response) {
                         if (response != null) {
-                            Local.saveUser(response.body());
+                            UserModel newUser = response.body();
+                            if(newUser != null) {
+                                newUser.getResponse().setUser(Shaft.sUserModel.getResponse().getUser());
+                            }
+                            Local.saveUser(newUser);
                             mProgressBar.setVisibility(View.INVISIBLE);
                             getActivity().finish();
                         }

@@ -20,6 +20,7 @@ import ceui.lisa.fragments.FragmentNiceFriend;
 import ceui.lisa.fragments.FragmentPivision;
 import ceui.lisa.fragments.FragmentRecmdUser;
 import ceui.lisa.fragments.FragmentRelatedIllust;
+import ceui.lisa.fragments.FragmentSearch;
 import ceui.lisa.fragments.FragmentSearchResult;
 import ceui.lisa.fragments.FragmentSearchUser;
 import ceui.lisa.fragments.FragmentSelectBookTag;
@@ -109,6 +110,8 @@ public class TemplateFragmentActivity extends FragmentActivity {
                             FragmentLikeIllust.TYPE_PUBLUC);
                 case "好P友":
                     return new FragmentNiceFriend();
+                case "搜索":
+                    return new FragmentSearch();
                 default:
                     return new FragmentBlank();
             }

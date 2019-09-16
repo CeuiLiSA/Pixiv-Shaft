@@ -61,7 +61,7 @@ public class ViewPagerActivity extends BaseActivity {
         viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override
             public Fragment getItem(int i) {
-                return FragmentIllust.newInstance(mIllusts.get(i));
+                return FragmentSingleIllust.newInstance(mIllusts.get(i));
             }
 
             @Override

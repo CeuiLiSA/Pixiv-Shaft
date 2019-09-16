@@ -69,8 +69,10 @@ public class Retro {
             builder.addInterceptor(loggingInterceptor)
                     .protocols(Collections.singletonList(Protocol.HTTP_1_1))
                     .addInterceptor(chain -> chain.proceed(addHeader(chain.request().newBuilder()).build()))
-                    .addInterceptor(new TokenInterceptor())
                     .build();
+            if(!baseUrl.equals(ACCOUNT_BASE_URL)){
+                builder.addInterceptor(new TokenInterceptor());
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
