@@ -89,7 +89,6 @@ public class FragmentSingleIllust extends BaseFragment {
     private ImageView imageView;
     private TagCloudView mTagCloudView;
     private TouchRecyclerView mRecyclerView;
-    private TextView seeAll;
     private IllustDetailAdapter mDetailAdapter;
     private FloatingActionButton download;
 

@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.fragments.FragmentIllust;
 import ceui.lisa.fragments.FragmentSingleIllust;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.IllustChannel;
@@ -60,7 +61,7 @@ public class ViewPagerActivity extends BaseActivity {
         viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override
             public Fragment getItem(int i) {
-                return FragmentSingleIllust.newInstance(mIllusts.get(i));
+                return FragmentIllust.newInstance(mIllusts.get(i));
             }
 
             @Override
