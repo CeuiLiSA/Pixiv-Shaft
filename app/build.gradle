@@ -103,8 +103,8 @@ dependencies {
     implementation 'com.stone.vega.library:VegaLayoutManager:1.0.6'
     implementation 'com.blankj:utilcode:1.25.0'
     implementation 'com.ToxicBakery.viewpager.transforms:view-pager-transforms:2.0.24'
-
-
+    implementation 'com.hyman:flowlayout-lib:1.1.2'
+    implementation 'com.github.razerdp:BasePopup:2.2.1'
     implementation 'android.arch.persistence.room:runtime:1.1.1'
     kapt 'android.arch.persistence.room:compiler:1.1.1'
 

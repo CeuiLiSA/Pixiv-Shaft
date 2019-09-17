@@ -6,13 +6,15 @@
 
     </data>
 
-    <LinearLayout
-        android:orientation="vertical"
+    <RelativeLayout
         android:layout_width="match_parent"
+        android:background="@color/white"
+        android:id="@+id/base_parent"
         android:layout_height="match_parent">
 
         <LinearLayout
             android:orientation="vertical"
+            android:id="@+id/top_rela"
             android:layout_width="match_parent"
             android:background="@color/colorPrimary"
             android:layout_height="wrap_content">
@@ -30,66 +32,125 @@
                 android:layout_height="wrap_content">
 
 
-            <EditText
-                android:layout_width="match_parent"
-                android:layout_marginStart="@dimen/sixteen_dp"
-                android:drawableStart="@drawable/ic_search_grey_24dp"
-                android:paddingStart="@dimen/twelve_dp"
-                android:drawablePadding="@dimen/six_dp"
-                android:textSize="14sp"
-                android:id="@+id/input_box"
-                android:layout_marginEnd="60dp"
-                android:layout_marginTop="@dimen/twelve_dp"
-                android:layout_marginBottom="@dimen/twelve_dp"
-                android:background="@drawable/search_et_bg"
-                android:layout_height="36dp">
+                <EditText
+                    android:layout_width="match_parent"
+                    android:layout_marginStart="@dimen/sixteen_dp"
+                    android:drawableStart="@drawable/ic_search_grey_24dp"
+                    android:paddingStart="@dimen/twelve_dp"
+                    android:drawablePadding="@dimen/six_dp"
+                    android:textSize="14sp"
+                    android:id="@+id/input_box"
+                    android:layout_marginEnd="60dp"
+                    android:layout_marginTop="@dimen/twelve_dp"
+                    android:layout_marginBottom="@dimen/twelve_dp"
+                    android:background="@drawable/search_et_bg"
+                    android:layout_height="36dp">
 
 
-            </EditText>
+                </EditText>
 
 
-            <ImageView
-                android:layout_width="30dp"
-                android:padding="@dimen/four_dp"
-                android:id="@+id/clear"
-                android:visibility="invisible"
-                android:src="@drawable/ic_cancel_black_24dp"
-                android:layout_centerVertical="true"
-                android:layout_alignEnd="@+id/input_box"
-                android:layout_marginEnd="@dimen/six_dp"
-                android:layout_height="30dp">
+                <ImageView
+                    android:layout_width="30dp"
+                    android:padding="@dimen/four_dp"
+                    android:id="@+id/clear"
+                    android:visibility="invisible"
+                    android:src="@drawable/ic_cancel_black_24dp"
+                    android:layout_centerVertical="true"
+                    android:layout_alignEnd="@+id/input_box"
+                    android:layout_marginEnd="@dimen/six_dp"
+                    android:layout_height="30dp">
 
-            </ImageView>
+                </ImageView>
+
+
+
 
             </RelativeLayout>
 
         </LinearLayout>
 
-        <androidx.recyclerview.widget.RecyclerView
+
+        <FrameLayout
             android:layout_width="match_parent"
-            android:id="@+id/hint_list"
-            android:layout_height="wrap_content">
+            android:layout_below="@+id/top_rela"
+            android:id="@+id/container"
+            android:layout_height="match_parent">
 
-        </androidx.recyclerview.widget.RecyclerView>
+            <androidx.core.widget.NestedScrollView
+                android:layout_width="match_parent"
+                android:id="@+id/scroll_view"
+                android:layout_height="wrap_content">
+
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:text="搜索历史"
+                        android:textSize="12sp"
+                        android:textColor="@color/deep_dark"
+                        android:layout_margin="@dimen/sixteen_dp"
+                        android:layout_height="wrap_content">
 
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:text="搜索历史"
-            android:layout_margin="@dimen/sixteen_dp"
-            android:layout_height="wrap_content">
+                    </TextView>
 
 
-        </TextView>
+                    <com.zhy.view.flowlayout.TagFlowLayout
+                        android:layout_width="match_parent"
+                        android:layout_marginStart="@dimen/twelve_dp"
+                        android:layout_marginEnd="@dimen/four_dp"
+                        android:id="@+id/search_history"
+                        android:layout_height="wrap_content">
 
 
-        <me.next.tagview.TagCloudView
-            android:layout_width="match_parent"
-            android:id="@+id/search_history"
-            android:layout_height="wrap_content">
+                    </com.zhy.view.flowlayout.TagFlowLayout>
 
 
-        </me.next.tagview.TagCloudView>
 
-    </LinearLayout>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:text="搜索发现"
+                        android:id="@+id/fuck"
+                        android:textSize="12sp"
+                        android:textColor="@color/deep_dark"
+                        android:layout_marginStart="@dimen/sixteen_dp"
+                        android:layout_marginTop="@dimen/sixteen_dp"
+                        android:layout_marginBottom="@dimen/eight_dp"
+                        android:layout_height="wrap_content">
+
+
+                    </TextView>
+
+
+                    <com.zhy.view.flowlayout.TagFlowLayout
+                        android:layout_width="match_parent"
+                        android:layout_marginStart="@dimen/twelve_dp"
+                        android:layout_marginEnd="@dimen/four_dp"
+                        android:layout_marginBottom="@dimen/twelve_dp"
+                        android:id="@+id/hot_tags"
+                        android:layout_height="wrap_content">
+
+
+                    </com.zhy.view.flowlayout.TagFlowLayout>
+
+                </LinearLayout>
+
+
+
+            </androidx.core.widget.NestedScrollView>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:layout_width="match_parent"
+                android:id="@+id/hint_list"
+                android:visibility="gone"
+                android:background="@color/white"
+                android:layout_height="wrap_content">
+
+            </androidx.recyclerview.widget.RecyclerView>
+        </FrameLayout>
+    </RelativeLayout>
 </layout>

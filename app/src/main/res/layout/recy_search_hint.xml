@@ -18,7 +18,7 @@
             android:id="@+id/title_text"
             android:layout_marginStart="@dimen/sixteen_dp"
             android:layout_marginTop="@dimen/twelve_dp"
-            android:textColor="@color/dark_text"
+            android:textColor="@color/deep_dark"
             android:layout_marginBottom="@dimen/twelve_dp"
             android:layout_height="wrap_content">
 
@@ -38,7 +38,7 @@
 
         <View
             android:layout_width="match_parent"
-            android:background="@color/light_bg"
+            android:background="#e7e7e7"
             android:layout_below="@+id/title_text"
             android:layout_marginStart="@dimen/twelve_dp"
             android:layout_marginEnd="@dimen/twelve_dp"

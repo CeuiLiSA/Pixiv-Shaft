@@ -5,6 +5,7 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
+import android.view.View;
 
 import com.blankj.utilcode.util.ResourceUtils;
 
@@ -17,6 +18,8 @@ import ceui.lisa.databinding.RecySearchHintBinding;
 import ceui.lisa.model.TrendingtagResponse;
 
 public class SearchHintAdapter extends BaseAdapter<TrendingtagResponse.TrendTagsBean, RecySearchHintBinding> {
+
+
 
     private String mKeyword;
 
@@ -40,21 +43,33 @@ public class SearchHintAdapter extends BaseAdapter<TrendingtagResponse.TrendTags
         if(!TextUtils.isEmpty(target.getTranslated_name()) && !target.getTranslated_name().equals(target.getName())) {
             bindView.baseBind.translatedText.setText(String.format("译：%s", target.getTranslated_name()));
         }
+
+        if(mOnItemClickListener != null){
+            bindView.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    mOnItemClickListener.onItemClick(view, position, 0);
+                }
+            });
+        }
     }
 
     private SpannableString matcherSearchText(int color, String text, String keyword) {
         SpannableString spannableString = new SpannableString(text);
-        //条件 keyword
         Pattern pattern = Pattern.compile(keyword);
-        //匹配
         Matcher matcher = pattern.matcher(new SpannableString(text.toLowerCase()));
         while (matcher.find()) {
             int start = matcher.start();
             int end = matcher.end();
-            //ForegroundColorSpan 需要new 不然也只能是部分变色
             spannableString.setSpan(new ForegroundColorSpan(color), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
-        //返回变色处理的结果
         return spannableString;
+    }
+    public String getmKeyword() {
+        return mKeyword;
+    }
+
+    public void setmKeyword(String mKeyword) {
+        this.mKeyword = mKeyword;
     }
 }

@@ -8,7 +8,7 @@ import androidx.room.migration.Migration;
 import android.content.Context;
 
 @Database(entities = {IllustHistoryEntity.class, IllustRecmdEntity.class,
-        DownloadEntity.class, UserEntity.class}, version = 6, exportSchema = false)
+        DownloadEntity.class, UserEntity.class, SearchEntity.class}, version = 7, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     public static final String DATABASE_NAME = "roomDemo-database";
@@ -18,6 +18,8 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract IllustRecmdDao recmdDao();
 
     public abstract DownloadDao downloadDao();
+
+    public abstract SearchDao searchDao();
 
 
     private static AppDatabase INSTANCE;

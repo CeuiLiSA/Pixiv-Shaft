@@ -267,23 +267,23 @@ public class CoverActivity extends BaseActivity
     }
 
     private void initDrawerHeader() {
-        File file = new File(FILE_PATH, Local.getPikaImageFileName());
-        if (file.exists()) {
-            Glide.with(mContext)
-                    .load(file)
-                    .placeholder(pikaBackground.getDrawable())
-                    .transition(withCrossFade())
-                    .into(pikaBackground);
-            pikaBackground.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent intent = new Intent(mContext, ViewPagerActivity.class);
-                    intent.putExtra("position", 0);
-                    IllustChannel.get().setIllustList(Collections.singletonList(Local.getPikaIllust()));
-                    startActivity(intent);
-                }
-            });
-        }
+//        File file = new File(FILE_PATH, Local.getPikaImageFileName());
+//        if (file.exists()) {
+//            Glide.with(mContext)
+//                    .load(file)
+//                    .placeholder(pikaBackground.getDrawable())
+//                    .transition(withCrossFade())
+//                    .into(pikaBackground);
+//            pikaBackground.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    Intent intent = new Intent(mContext, ViewPagerActivity.class);
+//                    intent.putExtra("position", 0);
+//                    IllustChannel.get().setIllustList(Collections.singletonList(Local.getPikaIllust()));
+//                    startActivity(intent);
+//                }
+//            });
+//        }
     }
 
     @Override
