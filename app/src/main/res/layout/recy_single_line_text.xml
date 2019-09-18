@@ -8,6 +8,8 @@
     android:background="@drawable/normal_bg"
     android:textSize="13sp"
     android:paddingStart="@dimen/twelve_dp"
+    android:foreground="?android:attr/selectableItemBackground"
+    android:clickable="true"
     android:paddingTop="@dimen/eight_dp"
     android:paddingEnd="@dimen/twelve_dp"
     android:paddingBottom="@dimen/eight_dp"

@@ -10,6 +10,7 @@ import androidx.databinding.ViewDataBinding;
 import androidx.recyclerview.widget.RecyclerView;
 
 
+import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.interfaces.Binding;
@@ -18,7 +19,7 @@ import ceui.lisa.interfaces.OnItemClickListener;
 public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extends
         RecyclerView.Adapter<RecyclerView.ViewHolder> implements Binding<BindView> {
 
-    protected List<Item> allIllust;
+    protected List<Item> allIllust = new ArrayList<>();
     protected Context mContext;
     protected int mLayoutID = -1;
     protected OnItemClickListener mOnItemClickListener;
@@ -39,9 +40,9 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
         return allIllust.size();
     }
 
-    abstract void initLayout();
+    public abstract void initLayout();
 
-    abstract void bindData(Item target, ViewHolder<BindView> bindView, int position);
+    public abstract void bindData(Item target, ViewHolder<BindView> bindView, int position);
 
     @Override
     public BindView getBind(LayoutInflater inflater, ViewGroup container) {
@@ -62,5 +63,11 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
 
     public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
         mOnItemClickListener = onItemClickListener;
+    }
+
+    public void clear(){
+        int size = allIllust.size();
+        allIllust.clear();
+        notifyItemRangeRemoved(0, size);
     }
 }

@@ -197,7 +197,6 @@ public class FragmentSearchResult extends AutoClipFragment<ListIllustResponse, I
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        //inflater.inflate(R.menu.select_star_size, menu);
         inflater.inflate(R.menu.illust_filter, menu);
     }
 

@@ -39,8 +39,11 @@
                     android:paddingStart="@dimen/twelve_dp"
                     android:drawablePadding="@dimen/six_dp"
                     android:textSize="14sp"
+                    android:imeOptions="actionSearch"
+                    android:singleLine="true"
+                    android:layout_toStartOf="@+id/more"
                     android:id="@+id/input_box"
-                    android:layout_marginEnd="60dp"
+                    android:layout_marginEnd="@dimen/twelve_dp"
                     android:layout_marginTop="@dimen/twelve_dp"
                     android:layout_marginBottom="@dimen/twelve_dp"
                     android:background="@drawable/search_et_bg"
@@ -58,12 +61,24 @@
                     android:src="@drawable/ic_cancel_black_24dp"
                     android:layout_centerVertical="true"
                     android:layout_alignEnd="@+id/input_box"
-                    android:layout_marginEnd="@dimen/six_dp"
+                    android:layout_marginEnd="@dimen/four_dp"
                     android:layout_height="30dp">
 
                 </ImageView>
 
 
+                <TextView
+                    android:text="切换"
+                    android:layout_width="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:textColor="@color/white"
+                    android:id="@+id/more"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginEnd="@dimen/sixteen_dp"
+                    android:layout_height="wrap_content">
+
+
+                </TextView>
 
 
             </RelativeLayout>
@@ -92,7 +107,9 @@
                         android:text="搜索历史"
                         android:textSize="12sp"
                         android:textColor="@color/deep_dark"
-                        android:layout_margin="@dimen/sixteen_dp"
+                        android:layout_marginStart="@dimen/sixteen_dp"
+                        android:layout_marginTop="@dimen/tweenty_four_dp"
+                        android:layout_marginBottom="@dimen/eight_dp"
                         android:layout_height="wrap_content">
 
 
@@ -118,7 +135,7 @@
                         android:textSize="12sp"
                         android:textColor="@color/deep_dark"
                         android:layout_marginStart="@dimen/sixteen_dp"
-                        android:layout_marginTop="@dimen/sixteen_dp"
+                        android:layout_marginTop="@dimen/eight_dp"
                         android:layout_marginBottom="@dimen/eight_dp"
                         android:layout_height="wrap_content">
 

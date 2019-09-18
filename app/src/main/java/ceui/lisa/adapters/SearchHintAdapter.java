@@ -29,12 +29,12 @@ public class SearchHintAdapter extends BaseAdapter<TrendingtagResponse.TrendTags
     }
 
     @Override
-    void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.recy_search_hint;
     }
 
     @Override
-    void bindData(TrendingtagResponse.TrendTagsBean target, ViewHolder<RecySearchHintBinding> bindView, int position) {
+    public void bindData(TrendingtagResponse.TrendTagsBean target, ViewHolder<RecySearchHintBinding> bindView, int position) {
 
         SpannableString string = matcherSearchText(mContext.getResources().getColor(R.color.colorPrimary),
                 target.getName(), mKeyword);

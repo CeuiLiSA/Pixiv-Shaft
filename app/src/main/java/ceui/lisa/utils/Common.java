@@ -26,7 +26,14 @@ import ceui.lisa.activities.Shaft;
 
 public class Common {
 
-
+    public static boolean isNumeric(String str) {
+        for (int i = str.length(); --i >= 0; ) {
+            if (!Character.isDigit(str.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
 
 
     public static void hideKeyboard(Activity activity) {

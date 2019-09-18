@@ -93,6 +93,28 @@ public class FragmentWebView extends BaseFragment {
                 .setAgentWebParent(webViewParent, new RelativeLayout.LayoutParams(-1, -1))
                 .useDefaultIndicator()
                 .setWebViewClient(new WebViewClient() {
+
+                    @Override
+                    public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                        //点击画作 https://www.pixiv.net/member_illust.php?mode=medium&illust_id=70374965
+                        Common.showLog(className + url);
+                        if (url.contains(ILLUST_HEAD)) {
+                            Common.showLog("点击了ILLUST， 拦截调回APP");
+                            PixivOperate.getIllustByID(sUserModel,
+                                    Integer.valueOf(url.substring(ILLUST_HEAD.length())), mContext);
+                            return true;
+                        }
+
+                        if (url.contains(USER_HEAD)) {
+                            Common.showLog("点击了USER， 拦截调回APP");
+                            Intent intent = new Intent(mContext, UserDetailActivity.class);
+                            intent.putExtra("user id", Integer.valueOf(url.substring(USER_HEAD.length())));
+                            startActivity(intent);
+                            return true;
+                        }
+                        return super.shouldOverrideUrlLoading(view, url);
+                    }
+
                     @Override
                     public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
 
@@ -115,12 +137,6 @@ public class FragmentWebView extends BaseFragment {
                         }
 
                         return super.shouldOverrideUrlLoading(view, request);
-                    }
-
-                    @Override
-                    public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-                        Log.i("WebView", String.format("requesting %s", request.getUrl()));
-                        return super.shouldInterceptRequest(view, request);
                     }
                 })
                 .createAgentWeb()
@@ -197,7 +213,7 @@ public class FragmentWebView extends BaseFragment {
         mAgentWeb = agentWeb;
     }
 
-    public class WebViewClickHandler implements MenuItem.OnMenuItemClickListener {
+    public final class WebViewClickHandler implements MenuItem.OnMenuItemClickListener {
         static final int OPEN_IN_BROWSER = 0x0;
         static final int OPEN_IMAGE = 0x1;
         static final int COPY_LINK_ADDRESS = 0x2;

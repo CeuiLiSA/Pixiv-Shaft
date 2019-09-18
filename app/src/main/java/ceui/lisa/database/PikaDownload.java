@@ -30,9 +30,6 @@ public class PikaDownload {
     //标志位，防止两个页面同时开始下载
     private static boolean isDownloading = false;
 
-
-
-
     public static void downloadPikaImage(IllustsBean illustsBean, Context context){
         if(isDownloading){
 

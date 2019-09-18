@@ -43,6 +43,7 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
+import static ceui.lisa.utils.Common.isNumeric;
 
 public class FragmentCenter extends BaseFragment {
 
@@ -54,15 +55,6 @@ public class FragmentCenter extends BaseFragment {
 
 
     public FragmentCenter() {
-    }
-
-    public static boolean isNumeric(String str) {
-        for (int i = str.length(); --i >= 0; ) {
-            if (!Character.isDigit(str.charAt(i))) {
-                return false;
-            }
-        }
-        return true;
     }
 
     @Override

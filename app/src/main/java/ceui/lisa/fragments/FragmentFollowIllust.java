@@ -47,7 +47,6 @@ public class FragmentFollowIllust extends AutoClipFragment<ListIllustResponse, E
         mProgressBar.setIndeterminateDrawable(doubleBounce);
         mRecyclerView.addItemDecoration(new LinearItemDecorationNoLR(DensityUtil.dp2px(12.0f)));
         LinearLayoutManager manager = new LinearLayoutManager(mContext);
-        //mRecyclerView.setLayoutManager(new LayoutManagerScaleFirst(mContext));
         mRecyclerView.setLayoutManager(manager);
     }
 

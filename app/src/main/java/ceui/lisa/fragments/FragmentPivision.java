@@ -11,13 +11,14 @@ import ceui.lisa.adapters.ArticalAdapter;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ArticalResponse;
+import ceui.lisa.model.SpotlightArticlesBean;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
 import io.reactivex.Observable;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-public class FragmentPivision extends BaseListFragment<ArticalResponse, ArticalAdapter, ArticalResponse.SpotlightArticlesBean> {
+public class FragmentPivision extends BaseListFragment<ArticalResponse, ArticalAdapter, SpotlightArticlesBean> {
 
     @Override
     void initLayout() {

@@ -18,6 +18,7 @@ import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ArticalResponse;
+import ceui.lisa.model.SpotlightArticlesBean;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -32,7 +33,7 @@ public class FragmentPivisionHorizontal extends BaseFragment {
 
     private ProgressBar mProgressBar;
     private RecyclerView mRecyclerView;
-    private List<ArticalResponse.SpotlightArticlesBean> allItems = new ArrayList<>();
+    private List<SpotlightArticlesBean> allItems = new ArrayList<>();
     private PivisionHorizontalAdapter mAdapter;
 
     @Override

@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 
-<RelativeLayout android:layout_width="match_parent"
-    android:clickable="true"
-    android:foreground="?attr/selectableItemBackground"
-    android:orientation="vertical"
-    android:layout_height="wrap_content"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+
+    </data>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:clickable="true"
+        android:foreground="?attr/selectableItemBackground"
+        android:orientation="vertical"
+        android:layout_height="wrap_content">
 
 
         <ImageView
@@ -38,3 +44,4 @@
 
 
     </RelativeLayout>
+</layout>

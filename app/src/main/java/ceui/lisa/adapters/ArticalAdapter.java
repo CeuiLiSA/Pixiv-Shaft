@@ -16,6 +16,7 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ArticalResponse;
+import ceui.lisa.model.SpotlightArticlesBean;
 import ceui.lisa.utils.GlideUtil;
 
 
@@ -24,10 +25,10 @@ public class ArticalAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     private Context mContext;
     private LayoutInflater mLayoutInflater;
     private OnItemClickListener mOnItemClickListener;
-    private List<ArticalResponse.SpotlightArticlesBean> allIllust;
+    private List<SpotlightArticlesBean> allIllust;
     private int imageSize = 0;
 
-    public ArticalAdapter(List<ArticalResponse.SpotlightArticlesBean> list, Context context) {
+    public ArticalAdapter(List<SpotlightArticlesBean> list, Context context) {
         mContext = context;
         mLayoutInflater = LayoutInflater.from(mContext);
         allIllust = list;

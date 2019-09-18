@@ -13,10 +13,12 @@ import ceui.lisa.fragments.FragmentFollowAnime;
 import ceui.lisa.fragments.FragmentFollowUser;
 import ceui.lisa.fragments.FragmentLicense;
 import ceui.lisa.fragments.FragmentLikeIllust;
+import ceui.lisa.fragments.FragmentList;
 import ceui.lisa.fragments.FragmentLocalUsers;
 import ceui.lisa.fragments.FragmentMetro;
 import ceui.lisa.fragments.FragmentMultiDownload;
 import ceui.lisa.fragments.FragmentNiceFriend;
+import ceui.lisa.fragments.FragmentP;
 import ceui.lisa.fragments.FragmentPivision;
 import ceui.lisa.fragments.FragmentRecmdUser;
 import ceui.lisa.fragments.FragmentRelatedIllust;
@@ -97,7 +99,7 @@ public class TemplateFragmentActivity extends FragmentActivity {
                 case "关于软件":
                     return new FragmentAbout();
                 case "跟随动画":
-                    return new FragmentFollowAnime();
+                    return new FragmentP();
                 case "批量下载":
                     return new FragmentMultiDownload();
                 case "画廊":

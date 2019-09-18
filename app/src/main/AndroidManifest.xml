@@ -18,12 +18,7 @@
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_fullscreen"
             android:theme="@style/FullscreenTheme"></activity>
-        <activity android:name=".activities.CoverActivity"></activity>
-        <activity android:name=".activities.ViewPagerActivity" />
-        <activity android:name=".activities.TemplateFragmentActivity"
-            android:windowSoftInputMode="adjustPan"/>
-        <activity android:name=".activities.RankActivity" />
-        <activity android:name=".activities.PikaActivity">
+        <activity android:name=".activities.CoverActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -44,6 +39,13 @@
                     android:path="/"
                     android:scheme="https" />
             </intent-filter>
+        </activity>
+        <activity android:name=".activities.ViewPagerActivity" />
+        <activity android:name=".activities.TemplateFragmentActivity"
+            android:windowSoftInputMode="adjustPan"/>
+        <activity android:name=".activities.RankActivity" />
+        <activity android:name=".activities.PikaActivity">
+
         </activity>
         <activity android:name=".activities.UserDetailActivity" />
         <activity android:name=".activities.DownloadManageActivity" />
