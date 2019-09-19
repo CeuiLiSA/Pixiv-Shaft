@@ -31,6 +31,7 @@ import ceui.lisa.http.NullCtrl;
 import ceui.lisa.interfaces.ListShow;
 import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.utils.DensityUtil;
+import ceui.lisa.view.LinearItemDecoration;
 import ceui.lisa.view.LinearItemDecorationNoLR;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -45,14 +46,22 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
     List<ItemBean> allItems = new ArrayList<>();
     String nextUrl = "";
     BaseAdapter<ItemBean, ItemView> mAdapter;
-    long animateDuration = 400L;
+    public static long animateDuration = 400L;
 
     @Override
     void initLayout() {
         mLayoutID = R.layout.fragment_list;
     }
 
-    public boolean showToolbar(){
+    public boolean showToolbar() {
+        return true;
+    }
+
+    public String getToolbarTitle() {
+        return "";
+    }
+
+    public boolean autoRefresh() {
         return true;
     }
 
@@ -64,17 +73,13 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
         landingAnimator.setMoveDuration(animateDuration);
         landingAnimator.setChangeDuration(animateDuration);
         baseBind.recyclerView.setItemAnimator(landingAnimator);
-        initRecyclerView();
-        initAdapter();
-        if(mAdapter != null) {
-            baseBind.recyclerView.setAdapter(mAdapter);
-        }
+
         baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
         baseBind.refreshLayout.setPrimaryColorsId(R.color.white);
         baseBind.refreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
             @Override
             public void onLoadMore(@NonNull RefreshLayout refreshLayout) {
-                get2();
+                getNextData();
             }
         });
         baseBind.refreshLayout.setRefreshHeader(new DeliveryHeader(mContext));
@@ -82,30 +87,33 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
             @Override
             public void onRefresh(@NonNull RefreshLayout refreshLayout) {
                 mAdapter.clear();
-                get1();
+                getFirstData();
             }
         });
-        if(showToolbar()){
+        initRecyclerView();
+        initAdapter();
+        if (mAdapter != null) {
+            baseBind.recyclerView.setAdapter(mAdapter);
+        }
+        if (showToolbar()) {
             baseBind.toolbar.setNavigationOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     mActivity.finish();
                 }
             });
-        }else {
+            baseBind.toolbar.setTitle(getToolbarTitle());
+        } else {
             baseBind.toolbar.setVisibility(View.GONE);
         }
-        getFirstData();
+        if (autoRefresh()) {
+            baseBind.refreshLayout.autoRefresh();
+        }
     }
 
-    @Override
-    public void getFirstData() {
-        baseBind.refreshLayout.autoRefresh();
-    }
-
-    public void initRecyclerView(){
+    public void initRecyclerView() {
         baseBind.recyclerView.setLayoutManager(new LinearLayoutManager(mContext));
-        baseBind.recyclerView.addItemDecoration(new LinearItemDecorationNoLR(DensityUtil.dp2px(12.0f)));
+        baseBind.recyclerView.addItemDecoration(new LinearItemDecoration(DensityUtil.dp2px(12.0f)));
     }
 
     public abstract Observable<Response> initApi();
@@ -114,9 +122,10 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
 
     public abstract void initAdapter();
 
-    public void get1(){
+    @Override
+    public void getFirstData() {
         mApi = initApi();
-        if(mApi != null) {
+        if (mApi != null) {
             mApi.subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new NullCtrl<Response>() {
@@ -142,9 +151,10 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
         }
     }
 
-    public void get2(){
+    @Override
+    public void getNextData() {
         mApi = initNextApi();
-        if(mApi != null) {
+        if (mApi != null) {
             mApi.subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new NullCtrl<Response>() {
@@ -167,7 +177,7 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
                             baseBind.refreshLayout.finishLoadMore(isSuccess);
                         }
                     });
-        }else {
+        } else {
             baseBind.refreshLayout.finishLoadMore(false);
             baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
         }

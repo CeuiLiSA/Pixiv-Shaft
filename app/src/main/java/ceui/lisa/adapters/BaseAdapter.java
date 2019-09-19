@@ -70,4 +70,9 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
         allIllust.clear();
         notifyItemRangeRemoved(0, size);
     }
+
+    public void remove(int position){
+        allIllust.remove(position);
+        notifyItemRemoved(position);
+    }
 }

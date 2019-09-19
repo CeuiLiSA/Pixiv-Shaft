@@ -5,6 +5,8 @@ import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.core.view.ViewCompat;
+
 import com.bumptech.glide.Glide;
 
 import java.util.List;
@@ -15,6 +17,7 @@ import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.databinding.RecyUserEventBinding;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.GlideUtil;
+import jp.wasabeef.recyclerview.animators.BaseItemAnimator;
 
 public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding> {
 
@@ -56,5 +59,10 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
             bindView.baseBind.pSize.setVisibility(View.VISIBLE);
             bindView.baseBind.pSize.setText(allIllust.get(position).getPage_count() + "P");
         }
+        bindView.itemView.setOnClickListener(view -> {
+            if(mOnItemClickListener != null){
+                mOnItemClickListener.onItemClick(view, position, 0);
+            }
+        });
     }
 }

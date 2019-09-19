@@ -48,7 +48,7 @@
             <item
                 android:id="@+id/web_test"
                 android:icon="@drawable/ic_menu_send"
-                android:title="hbtest" />
+                android:title="动画测试" />
         </menu>
     </item>
 

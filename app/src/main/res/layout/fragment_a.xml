@@ -25,7 +25,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
-            app:title=" "
+            app:title="动画测试"
             app:titleTextColor="@android:color/white">
 
         </androidx.appcompat.widget.Toolbar>

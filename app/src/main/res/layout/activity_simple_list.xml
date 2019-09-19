@@ -36,8 +36,6 @@
             android:id="@+id/recyclerView"
             android:background="@color/white"
             android:layout_width="match_parent"
-            android:paddingStart="@dimen/four_dp"
-            android:paddingEnd="@dimen/four_dp"
             android:layout_height="match_parent">
 
         </androidx.recyclerview.widget.RecyclerView>

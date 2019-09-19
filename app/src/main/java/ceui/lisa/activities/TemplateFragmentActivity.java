@@ -4,6 +4,7 @@ import android.content.Intent;
 import androidx.fragment.app.Fragment;
 import android.view.KeyEvent;
 
+import ceui.lisa.fragments.FragmentA;
 import ceui.lisa.fragments.FragmentAbout;
 import ceui.lisa.fragments.FragmentBlank;
 import ceui.lisa.fragments.FragmentBookTag;
@@ -99,7 +100,7 @@ public class TemplateFragmentActivity extends FragmentActivity {
                 case "关于软件":
                     return new FragmentAbout();
                 case "跟随动画":
-                    return new FragmentP();
+                    return new FragmentA();
                 case "批量下载":
                     return new FragmentMultiDownload();
                 case "画廊":

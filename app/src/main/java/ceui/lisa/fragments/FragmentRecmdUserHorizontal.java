@@ -4,6 +4,7 @@ import android.content.Intent;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import android.view.View;
+import android.view.animation.AnticipateOvershootInterpolator;
 import android.widget.ProgressBar;
 
 import com.github.ybq.android.spinkit.style.DoubleBounce;
@@ -14,6 +15,7 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.adapters.UserHorizontalAdapter;
+import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListUserResponse;
@@ -24,8 +26,11 @@ import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
+import jp.wasabeef.recyclerview.animators.FadeInLeftAnimator;
+import jp.wasabeef.recyclerview.animators.LandingAnimator;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
+import static ceui.lisa.fragments.FragmentList.animateDuration;
 
 /**
  * 推荐用户
@@ -50,9 +55,25 @@ public class FragmentRecmdUserHorizontal extends BaseFragment {
         mProgressBar.setIndeterminateDrawable(doubleBounce);
         mRecyclerView = v.findViewById(R.id.recyclerView);
         mRecyclerView.addItemDecoration(new LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
+        FadeInLeftAnimator landingAnimator = new FadeInLeftAnimator();
+        landingAnimator.setAddDuration(animateDuration);
+        landingAnimator.setRemoveDuration(animateDuration);
+        landingAnimator.setMoveDuration(animateDuration);
+        landingAnimator.setChangeDuration(animateDuration);
+        mRecyclerView.setItemAnimator(landingAnimator);
         LinearLayoutManager manager = new LinearLayoutManager(mContext, LinearLayoutManager.HORIZONTAL, false);
         mRecyclerView.setLayoutManager(manager);
         mRecyclerView.setHasFixedSize(true);
+        mAdapter = new UserHorizontalAdapter(allItems, mContext);
+        mAdapter.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(View v, int position, int viewType) {
+                Intent intent = new Intent(mContext, UserDetailActivity.class);
+                intent.putExtra("user id", allItems.get(position).getUser().getId());
+                startActivity(intent);
+            }
+        });
+        mRecyclerView.setAdapter(mAdapter);
         return v;
     }
 
@@ -65,39 +86,17 @@ public class FragmentRecmdUserHorizontal extends BaseFragment {
         Retro.getAppApi().getRecmdUser(sUserModel.getResponse().getAccess_token())
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<ListUserResponse>() {
+                .subscribe(new NullCtrl<ListUserResponse>() {
                     @Override
-                    public void onSubscribe(Disposable d) {
-
+                    public void success(ListUserResponse listUserResponse) {
+                        allItems.clear();
+                        allItems.addAll(listUserResponse.getList());
+                        mAdapter.notifyItemRangeInserted(0, listUserResponse.getList().size());
                     }
 
                     @Override
-                    public void onNext(ListUserResponse listUserResponse) {
-                        if (listUserResponse != null) {
-                            allItems.clear();
-                            allItems.addAll(listUserResponse.getList());
-                            mAdapter = new UserHorizontalAdapter(allItems, mContext);
-                            mAdapter.setOnItemClickListener(new OnItemClickListener() {
-                                @Override
-                                public void onItemClick(View v, int position, int viewType) {
-                                    Intent intent = new Intent(mContext, UserDetailActivity.class);
-                                    intent.putExtra("user id", allItems.get(position).getUser().getId());
-                                    startActivity(intent);
-                                }
-                            });
-                            mRecyclerView.setAdapter(mAdapter);
-                        }
+                    public void must(boolean isSuccess) {
                         mProgressBar.setVisibility(View.INVISIBLE);
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-
-                    }
-
-                    @Override
-                    public void onComplete() {
-
                     }
                 });
     }

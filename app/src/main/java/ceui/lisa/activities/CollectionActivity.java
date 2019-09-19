@@ -23,7 +23,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 public class CollectionActivity extends BaseActivity {
 
     private static final String[] CHINESE_TITLES = new String[]{"公开收藏", "私人收藏", "公开关注", "私人关注"};
-    private BaseFragment[] allPages;
+    private Fragment[] allPages;
     private ViewPager mViewPager;
 
     @Override
@@ -40,7 +40,7 @@ public class CollectionActivity extends BaseActivity {
         TabLayout tabLayout = findViewById(R.id.tab_layout);
         mViewPager = findViewById(R.id.view_pager);
         mViewPager.setPageTransformer(true, new DrawerTransformer());
-        allPages = new BaseFragment[]{
+        allPages = new Fragment[]{
                 FragmentLikeIllust.newInstance(sUserModel.getResponse().getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC),
                 FragmentLikeIllust.newInstance(sUserModel.getResponse().getUser().getId(), FragmentLikeIllust.TYPE_PRIVATE),
                 FragmentFollowUser.newInstance(sUserModel.getResponse().getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC),

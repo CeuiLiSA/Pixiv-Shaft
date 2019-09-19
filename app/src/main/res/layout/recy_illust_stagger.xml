@@ -12,8 +12,9 @@
         android:clickable="true"
         android:foreground="?attr/selectableItemBackground"
         app:cardCornerRadius="@dimen/four_dp"
-        android:elevation="0dp"
-        app:cardElevation="0dp">
+        android:stateListAnimator="@animator/touch_raise"
+        android:elevation="@dimen/four_dp"
+        app:cardElevation="@dimen/four_dp">
 
         <LinearLayout
             android:layout_width="match_parent"

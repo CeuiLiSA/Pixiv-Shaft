@@ -76,11 +76,6 @@ public class FragmentHotTag extends FragmentList<TrendingtagResponse, Trendingta
     }
 
     @Override
-    public void getFirstData() {
-
-    }
-
-    @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
 
@@ -88,5 +83,10 @@ public class FragmentHotTag extends FragmentList<TrendingtagResponse, Trendingta
             baseBind.refreshLayout.autoRefresh();
             isLoad = true;
         }
+    }
+
+    @Override
+    public boolean autoRefresh() {
+        return false;
     }
 }

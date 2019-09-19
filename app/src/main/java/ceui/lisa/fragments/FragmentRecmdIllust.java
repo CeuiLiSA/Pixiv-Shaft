@@ -47,7 +47,7 @@ public class FragmentRecmdIllust extends AutoClipFragment<ListIllustResponse,
 
     @Override
     void initRecyclerView() {
-        mRecyclerView.addItemDecoration(new SpacesItemDecoration(DensityUtil.dp2px(4.0f)));
+        mRecyclerView.addItemDecoration(new SpacesItemDecoration(DensityUtil.dp2px(8.0f)));
     }
 
     @Override

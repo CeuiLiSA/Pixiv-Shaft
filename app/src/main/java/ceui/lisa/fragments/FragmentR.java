@@ -3,6 +3,9 @@ package ceui.lisa.fragments;
 import android.content.Intent;
 import android.view.View;
 
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.StaggeredGridLayoutManager;
+
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.IAdapter;
@@ -37,24 +40,20 @@ public class FragmentR extends FragmentList<ListIllustResponse, IllustsBean, Rec
 
     @Override
     public void initRecyclerView() {
-        ScrollChangeManager layoutManager =
-                new ScrollChangeManager(2, ScrollChangeManager.VERTICAL);
+        StaggeredGridLayoutManager layoutManager =
+                new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         baseBind.recyclerView.setLayoutManager(layoutManager);
-        baseBind.recyclerView.addItemDecoration(new SpacesItemDecoration(DensityUtil.dp2px(4.0f)));
-
+        baseBind.recyclerView.addItemDecoration(new SpacesItemDecoration(DensityUtil.dp2px(8.0f)));
     }
 
     @Override
     public void initAdapter() {
         mAdapter = new IAdapter(allItems, mContext);
-        mAdapter.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(View v, int position, int viewType) {
-                IllustChannel.get().setIllustList(allItems);
-                Intent intent = new Intent(mContext, ViewPagerActivity.class);
-                intent.putExtra("position", position);
-                startActivity(intent);
-            }
+        mAdapter.setOnItemClickListener((v, position, viewType) -> {
+            IllustChannel.get().setIllustList(allItems);
+            Intent intent = new Intent(mContext, ViewPagerActivity.class);
+            intent.putExtra("position", position);
+            startActivity(intent);
         });
     }
 }

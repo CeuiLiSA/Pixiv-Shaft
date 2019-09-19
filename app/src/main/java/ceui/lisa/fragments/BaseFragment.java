@@ -56,16 +56,7 @@ public abstract class BaseFragment extends Fragment {
                 viewGroup.removeView(parentView);
             }
         }
-
-
         return parentView;
-    }
-
-
-    @Override
-    public void onViewCreated(@NonNull View view,
-                              @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
     }
 
     @Override

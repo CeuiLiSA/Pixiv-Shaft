@@ -24,6 +24,7 @@ public abstract class BaseBindFragment<T extends ViewDataBinding> extends Fragme
     protected int mLayoutID = -1;
     protected String className = getClass().getSimpleName() + " ";
     protected T baseBind;
+    protected View parentView;
 
     public BaseBindFragment() {
         Common.showLog(className + "new instance");
@@ -42,16 +43,18 @@ public abstract class BaseBindFragment<T extends ViewDataBinding> extends Fragme
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        initLayout();
-        baseBind = getBind(inflater, container);
-        return baseBind.getRoot();
-    }
-
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        initData();
+        if (parentView == null) {
+            initLayout();
+            baseBind = getBind(inflater, container);
+            parentView = baseBind.getRoot();
+            initData();
+        } else {
+            ViewGroup viewGroup = (ViewGroup) parentView.getParent();
+            if (viewGroup != null) {
+                viewGroup.removeView(parentView);
+            }
+        }
+        return parentView;
     }
 
     abstract void initLayout();

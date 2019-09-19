@@ -8,7 +8,9 @@ import android.widget.Button;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.UserDetailActivity;
+import ceui.lisa.adapters.UAdapter;
 import ceui.lisa.adapters.UserAdapter;
+import ceui.lisa.databinding.RecyUserPreviewBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.FullClickListener;
 import ceui.lisa.model.ListUserResponse;
@@ -23,40 +25,27 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 /**
  * 推荐用户
  */
-public class FragmentRecmdUser extends BaseListFragment<ListUserResponse, UserAdapter, UserPreviewsBean> {
+public class FragmentRecmdUser extends FragmentList<ListUserResponse, UserPreviewsBean, RecyUserPreviewBinding> {
 
     @Override
-    Observable<ListUserResponse> initApi() {
+    public Observable<ListUserResponse> initApi() {
         return Retro.getAppApi().getRecmdUser(sUserModel.getResponse().getAccess_token());
     }
 
     @Override
-    void initLayout() {
-        mLayoutID = R.layout.fragment_illust_list;
-    }
-
-    @Override
-    String getToolbarTitle() {
+    public String getToolbarTitle() {
         return "推荐用户";
     }
 
     @Override
-    void initRecyclerView() {
-        super.initRecyclerView();
-        mRecyclerView.addItemDecoration(new LinearItemDecoration(DensityUtil.dp2px(8.0f)));
-        LinearLayoutManager manager = new LinearLayoutManager(mContext);
-        mRecyclerView.setLayoutManager(manager);
-    }
-
-    @Override
-    Observable<ListUserResponse> initNextApi() {
+    public Observable<ListUserResponse> initNextApi() {
         return Retro.getAppApi().getNextUser(sUserModel.getResponse().getAccess_token(), nextUrl);
     }
 
     @Override
-    void initAdapter() {
-        mAdapter = new UserAdapter(allItems, mContext);
-        mAdapter.setOnItemClickListener(new FullClickListener() {
+    public void initAdapter() {
+        mAdapter = new UAdapter(allItems, mContext);
+        ((UAdapter)mAdapter).setFullClickListener(new FullClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
                 if (viewType == 0) { //普通item

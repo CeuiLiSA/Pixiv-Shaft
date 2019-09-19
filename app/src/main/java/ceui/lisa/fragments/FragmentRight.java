@@ -51,7 +51,7 @@ public class FragmentRight extends BaseFragment {
             FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
             transaction.add(R.id.fragment_container, recmdUser).commit();
 
-            FragmentFollowIllust fragmentFollowIllust = new FragmentFollowIllust();
+            FragmentP fragmentFollowIllust = new FragmentP();
             transaction = getChildFragmentManager().beginTransaction();
             transaction.add(R.id.fragment_recy, fragmentFollowIllust).commit();
             isLoad = true;

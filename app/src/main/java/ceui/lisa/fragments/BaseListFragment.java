@@ -27,8 +27,6 @@ import ceui.lisa.utils.Local;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
-import jp.wasabeef.recyclerview.animators.LandingAnimator;
-import jp.wasabeef.recyclerview.animators.SlideInLeftAnimator;
 
 /**
  * The {@code String} class represents character strings. All
@@ -130,7 +128,6 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
         }
         mProgressBar = v.findViewById(R.id.progress);
         mRecyclerView = v.findViewById(R.id.recyclerView);
-        mRecyclerView.setItemAnimator(new SlideInLeftAnimator());
         mRefreshLayout = v.findViewById(R.id.refreshLayout);
         noData = v.findViewById(R.id.no_data);
         noData.setOnClickListener(new View.OnClickListener() {
@@ -200,18 +197,9 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
                     .subscribe(new ListObserver<Response>() {
                         @Override
                         public void success(Response response) {
-
-                            initAdapter();
-                            mRefreshLayout.finishRefresh(true);
-                            mProgressBar.setVisibility(View.INVISIBLE);
-                            mRecyclerView.setVisibility(View.VISIBLE);
-                            noData.setVisibility(View.GONE);
-                            mRecyclerView.setAdapter(mAdapter);
-
                             mResponse = response;
                             allItems.clear();
                             allItems.addAll(response.getList());
-                            mAdapter.notifyItemRangeInserted(0, allItems.size());
                             nextUrl = response.getNextUrl();
                             if (!TextUtils.isEmpty(nextUrl)) {
                                 if (className.contains("FragmentRelatedIllust")) {
@@ -222,17 +210,22 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
                             } else {
                                 mRefreshLayout.setEnableLoadMore(false);
                             }
+                            initAdapter();
+                            mRefreshLayout.finishRefresh(true);
+                            mProgressBar.setVisibility(View.INVISIBLE);
+                            mRecyclerView.setVisibility(View.VISIBLE);
+                            noData.setVisibility(View.GONE);
+                            mRecyclerView.setAdapter(mAdapter);
 
-
-//                            if (System.currentTimeMillis() - Local.getPikaTime() > 3600 * 1000) {
-//                                Common.showLog("System.currentTimeMillis() " + System.currentTimeMillis());
-//                                Common.showLog("Local.getPikaTime() " + Local.getPikaTime());
-//                                Random random = new Random();
-//                                int position = random.nextInt(allItems.size());
-//                                if (allItems.get(position) instanceof IllustsBean) {
-//                                    PikaDownload.downloadPikaImage((IllustsBean) allItems.get(position), mContext);
-//                                }
-//                            }
+                            if (System.currentTimeMillis() - Local.getPikaTime() > 3600 * 1000) {
+                                Common.showLog("System.currentTimeMillis() " + System.currentTimeMillis());
+                                Common.showLog("Local.getPikaTime() " + Local.getPikaTime());
+                                Random random = new Random();
+                                int position = random.nextInt(allItems.size());
+                                if (allItems.get(position) instanceof IllustsBean) {
+                                    PikaDownload.downloadPikaImage((IllustsBean) allItems.get(position), mContext);
+                                }
+                            }
                         }
 
                         @Override
@@ -294,8 +287,7 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
                                 }
                                 mRefreshLayout.finishLoadMore(true);
                                 if (mAdapter != null) {
-                                    Common.showLog("lastSize " + lastSize + " newSize " + response.getList().size());
-                                    mAdapter.notifyItemRangeInserted(lastSize, response.getList().size());
+                                    mAdapter.notifyItemRangeChanged(lastSize, response.getList().size());
                                 }
                             }
 

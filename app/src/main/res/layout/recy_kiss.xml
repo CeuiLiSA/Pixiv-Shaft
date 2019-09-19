@@ -8,6 +8,7 @@
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
+        android:background="@color/qmui_config_color_gray_1"
         android:layout_height="wrap_content">
 
         <TextView

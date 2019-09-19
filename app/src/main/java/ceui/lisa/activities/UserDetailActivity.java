@@ -57,7 +57,7 @@ public class UserDetailActivity extends BaseActivity {
     private UserDetailResponse mUserDetailResponse;
     private boolean active = false;
     private int nowIndex = 0;
-    private BaseFragment[] baseFragments;
+    private Fragment[] baseFragments;
 
 
     @Override
@@ -126,7 +126,7 @@ public class UserDetailActivity extends BaseActivity {
     @Override
     public void initData() {
         userID = getIntent().getIntExtra("user id", 0);
-        baseFragments = new BaseFragment[]{
+        baseFragments = new Fragment[]{
                 FragmentLikeIllust.newInstance(userID, FragmentLikeIllust.TYPE_PUBLUC),
                 FragmentUserIllust.newInstance(userID),
                 new FragmentAboutUser()};
@@ -150,10 +150,7 @@ public class UserDetailActivity extends BaseActivity {
         mViewPager.setOffscreenPageLimit(baseFragments.length);
         mTabLayout.setupWithViewPager(mViewPager);
         getUserDetail();
-        //传进来的id 等于app当前用户的id,直接加载背景图。
-        if (userID == sUserModel.getResponse().getUser().getId()) {
-            getBackground();
-        }
+
     }
 
     private void getUserDetail() {
