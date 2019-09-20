@@ -19,7 +19,7 @@ import ceui.lisa.interfaces.OnItemClickListener;
 public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extends
         RecyclerView.Adapter<RecyclerView.ViewHolder> implements Binding<BindView> {
 
-    protected List<Item> allIllust = new ArrayList<>();
+    protected List<Item> allIllust;
     protected Context mContext;
     protected int mLayoutID = -1;
     protected OnItemClickListener mOnItemClickListener;
@@ -50,15 +50,10 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
                 container, false);
     }
 
-
     @NonNull
     @Override
     public ViewHolder<BindView> onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         return new ViewHolder<>(getBind(LayoutInflater.from(mContext), parent).getRoot());
-    }
-
-    public OnItemClickListener getOnItemClickListener() {
-        return mOnItemClickListener;
     }
 
     public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
@@ -69,10 +64,5 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
         int size = allIllust.size();
         allIllust.clear();
         notifyItemRangeRemoved(0, size);
-    }
-
-    public void remove(int position){
-        allIllust.remove(position);
-        notifyItemRemoved(position);
     }
 }

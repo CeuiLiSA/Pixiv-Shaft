@@ -10,8 +10,10 @@ import android.view.animation.OvershootInterpolator;
 import androidx.annotation.NonNull;
 import androidx.databinding.ViewDataBinding;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import com.scwang.smartrefresh.header.DeliveryHeader;
+import com.scwang.smartrefresh.layout.api.RefreshFooter;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
@@ -36,6 +38,9 @@ import ceui.lisa.view.LinearItemDecorationNoLR;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
+import jp.wasabeef.recyclerview.animators.BaseItemAnimator;
+import jp.wasabeef.recyclerview.animators.FadeInDownAnimator;
+import jp.wasabeef.recyclerview.animators.FadeInLeftAnimator;
 import jp.wasabeef.recyclerview.animators.LandingAnimator;
 
 public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean, ItemView extends ViewDataBinding>
@@ -43,6 +48,7 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
 
     public static final int PAGE_SIZE = 20;
     Observable<Response> mApi;
+    Response mResponse;
     List<ItemBean> allItems = new ArrayList<>();
     String nextUrl = "";
     BaseAdapter<ItemBean, ItemView> mAdapter;
@@ -67,28 +73,18 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
 
     @Override
     void initData() {
-        LandingAnimator landingAnimator = new LandingAnimator(new AnticipateOvershootInterpolator());
-        landingAnimator.setAddDuration(animateDuration);
-        landingAnimator.setRemoveDuration(animateDuration);
-        landingAnimator.setMoveDuration(animateDuration);
-        landingAnimator.setChangeDuration(animateDuration);
-        baseBind.recyclerView.setItemAnimator(landingAnimator);
-
-        baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
+        BaseItemAnimator baseItemAnimator = new LandingAnimator(new AnticipateOvershootInterpolator());
+        baseItemAnimator.setAddDuration(animateDuration);
+        baseItemAnimator.setRemoveDuration(animateDuration);
+        baseItemAnimator.setMoveDuration(animateDuration);
+        baseItemAnimator.setChangeDuration(animateDuration);
         baseBind.refreshLayout.setPrimaryColorsId(R.color.white);
-        baseBind.refreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
-            @Override
-            public void onLoadMore(@NonNull RefreshLayout refreshLayout) {
-                getNextData();
-            }
-        });
+        baseBind.refreshLayout.setOnLoadMoreListener(refreshLayout -> getNextData());
         baseBind.refreshLayout.setRefreshHeader(new DeliveryHeader(mContext));
-        baseBind.refreshLayout.setOnRefreshListener(new OnRefreshListener() {
-            @Override
-            public void onRefresh(@NonNull RefreshLayout refreshLayout) {
-                mAdapter.clear();
-                getFirstData();
-            }
+        baseBind.refreshLayout.setOnRefreshListener(refreshLayout -> {
+            baseBind.recyclerView.setItemAnimator(baseItemAnimator);
+            mAdapter.clear();
+            getFirstData();
         });
         initRecyclerView();
         initAdapter();
@@ -96,12 +92,7 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
             baseBind.recyclerView.setAdapter(mAdapter);
         }
         if (showToolbar()) {
-            baseBind.toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    mActivity.finish();
-                }
-            });
+            baseBind.toolbar.setNavigationOnClickListener(view -> mActivity.finish());
             baseBind.toolbar.setTitle(getToolbarTitle());
         } else {
             baseBind.toolbar.setVisibility(View.GONE);
@@ -111,10 +102,7 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
         }
     }
 
-    public void initRecyclerView() {
-        baseBind.recyclerView.setLayoutManager(new LinearLayoutManager(mContext));
-        baseBind.recyclerView.addItemDecoration(new LinearItemDecoration(DensityUtil.dp2px(12.0f)));
-    }
+
 
     public abstract Observable<Response> initApi();
 
@@ -130,17 +118,20 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new NullCtrl<Response>() {
                         @Override
-                        public void success(Response listIllustResponse) {
-                            if (listIllustResponse.getList() != null && listIllustResponse.getList().size() != 0) {
+                        public void success(Response response) {
+                            mResponse = response;
+                            if (response.getList() != null && response.getList().size() != 0) {
                                 int lastSize = allItems.size();
-                                allItems.addAll(listIllustResponse.getList());
-                                mAdapter.notifyItemRangeInserted(lastSize, allItems.size());
+                                allItems.addAll(response.getList());
+                                mAdapter.notifyItemRangeInserted(lastSize, response.getList().size());
                             }
-                            if (!TextUtils.isEmpty(listIllustResponse.getNextUrl())) {
-                                nextUrl = listIllustResponse.getNextUrl();
-                            } else {
+                            if (!TextUtils.isEmpty(response.getNextUrl())) {
+                                nextUrl = response.getNextUrl();
+                                baseBind.refreshLayout.setRefreshFooter(getFooter());
+                            }else {
                                 baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
                             }
+                            firstSuccess();
                         }
 
                         @Override
@@ -159,16 +150,15 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new NullCtrl<Response>() {
                         @Override
-                        public void success(Response listIllustResponse) {
-                            if (listIllustResponse.getList() != null && listIllustResponse.getList().size() != 0) {
+                        public void success(Response response) {
+                            mResponse = response;
+                            if (response.getList() != null && response.getList().size() != 0) {
                                 int lastSize = allItems.size();
-                                allItems.addAll(listIllustResponse.getList());
-                                mAdapter.notifyItemRangeInserted(lastSize, allItems.size());
+                                allItems.addAll(response.getList());
+                                mAdapter.notifyItemRangeInserted(lastSize, response.getList().size());
                             }
-                            if (!TextUtils.isEmpty(listIllustResponse.getNextUrl())) {
-                                nextUrl = listIllustResponse.getNextUrl();
-                            } else {
-                                baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
+                            if (!TextUtils.isEmpty(response.getNextUrl())) {
+                                nextUrl = response.getNextUrl();
                             }
                         }
 
@@ -179,7 +169,18 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
                     });
         } else {
             baseBind.refreshLayout.finishLoadMore(false);
-            baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
         }
+    }
+
+    public RefreshFooter getFooter(){
+        return new ClassicsFooter(mContext);
+    }
+
+    public void initRecyclerView() {
+        baseBind.recyclerView.setLayoutManager(new LinearLayoutManager(mContext));
+        baseBind.recyclerView.addItemDecoration(new LinearItemDecoration(DensityUtil.dp2px(12.0f)));
+    }
+
+    public void firstSuccess(){
     }
 }

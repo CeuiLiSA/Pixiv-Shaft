@@ -244,6 +244,7 @@
                         <View
                             android:layout_width="match_parent"
                             android:background="#e6e6e6"
+                            android:visibility="gone"
                             android:layout_marginStart="@dimen/sixteen_dp"
                             android:layout_height="1dp" />
 
@@ -252,6 +253,7 @@
                             android:background="?android:attr/selectableItemBackground"
                             android:clickable="true"
                             android:layout_width="match_parent"
+                            android:visibility="gone"
                             android:layout_height="match_parent">
 
 

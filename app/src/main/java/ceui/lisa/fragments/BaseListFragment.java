@@ -217,15 +217,15 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
                             noData.setVisibility(View.GONE);
                             mRecyclerView.setAdapter(mAdapter);
 
-                            if (System.currentTimeMillis() - Local.getPikaTime() > 3600 * 1000) {
-                                Common.showLog("System.currentTimeMillis() " + System.currentTimeMillis());
-                                Common.showLog("Local.getPikaTime() " + Local.getPikaTime());
-                                Random random = new Random();
-                                int position = random.nextInt(allItems.size());
-                                if (allItems.get(position) instanceof IllustsBean) {
-                                    PikaDownload.downloadPikaImage((IllustsBean) allItems.get(position), mContext);
-                                }
-                            }
+//                            if (System.currentTimeMillis() - Local.getPikaTime() > 3600 * 1000) {
+//                                Common.showLog("System.currentTimeMillis() " + System.currentTimeMillis());
+//                                Common.showLog("Local.getPikaTime() " + Local.getPikaTime());
+//                                Random random = new Random();
+//                                int position = random.nextInt(allItems.size());
+//                                if (allItems.get(position) instanceof IllustsBean) {
+//                                    PikaDownload.downloadPikaImage((IllustsBean) allItems.get(position), mContext);
+//                                }
+//                            }
                         }
 
                         @Override

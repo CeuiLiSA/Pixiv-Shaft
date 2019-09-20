@@ -6,6 +6,10 @@ import android.view.View;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
+import org.greenrobot.eventbus.EventBus;
+
+import java.util.List;
+
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.IAdapter;
@@ -15,6 +19,8 @@ import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
+import ceui.lisa.utils.Channel;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.view.ScrollChangeManager;
@@ -30,7 +36,7 @@ public class FragmentR extends FragmentList<ListIllustResponse, IllustsBean, Rec
 
     @Override
     public Observable<ListIllustResponse> initApi() {
-        return Retro.getAppApi().getRecmdIllust(Shaft.sUserModel.getResponse().getAccess_token(), false);
+        return Retro.getAppApi().getRecmdIllust(Shaft.sUserModel.getResponse().getAccess_token(), true);
     }
 
     @Override
@@ -55,5 +61,17 @@ public class FragmentR extends FragmentList<ListIllustResponse, IllustsBean, Rec
             intent.putExtra("position", position);
             startActivity(intent);
         });
+    }
+
+    @Override
+    public void firstSuccess() {
+        //向FragmentCenter发送数据
+        if(mResponse != null) {
+            Channel<List<IllustsBean>> channel = new Channel<>();
+            channel.setReceiver("FragmentRankHorizontal");
+            channel.setObject(mResponse.getRanking_illusts());
+            EventBus.getDefault().post(channel);
+            Common.showLog(className + "EVENTBUS 发送了消息");
+        }
     }
 }

@@ -17,6 +17,7 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.ViewPagerActivity;
+import ceui.lisa.adapters.RAdapter;
 import ceui.lisa.adapters.RankHorizontalAdapter;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
@@ -34,7 +35,7 @@ public class FragmentRankHorizontal extends BaseFragment {
     private ProgressBar mProgressBar;
     private RecyclerView mRecyclerView;
     private List<IllustsBean> allItems = new ArrayList<>();
-    private RankHorizontalAdapter mAdapter;
+    private RAdapter mAdapter;
 
     @Override
     void initLayout() {
@@ -49,6 +50,17 @@ public class FragmentRankHorizontal extends BaseFragment {
         LinearLayoutManager manager = new LinearLayoutManager(mContext, LinearLayoutManager.HORIZONTAL, false);
         mRecyclerView.setLayoutManager(manager);
         mRecyclerView.setHasFixedSize(true);
+        mAdapter = new RAdapter(allItems, mContext);
+        mAdapter.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(View v, int position, int viewType) {
+                IllustChannel.get().setIllustList(allItems);
+                Intent intent = new Intent(mContext, ViewPagerActivity.class);
+                intent.putExtra("position", position);
+                startActivity(intent);
+            }
+        });
+        mRecyclerView.setAdapter(mAdapter);
         return v;
     }
 
@@ -59,22 +71,10 @@ public class FragmentRankHorizontal extends BaseFragment {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(Channel<List<IllustsBean>> event) {
-
         if (className.contains(event.getReceiver())) {
-            Common.showLog(className + "EVENTBUS 接受了消息");
             allItems.clear();
             allItems.addAll(event.getObject());
-            mAdapter = new RankHorizontalAdapter(allItems, mContext);
-            mAdapter.setOnItemClickListener(new OnItemClickListener() {
-                @Override
-                public void onItemClick(View v, int position, int viewType) {
-                    IllustChannel.get().setIllustList(allItems);
-                    Intent intent = new Intent(mContext, ViewPagerActivity.class);
-                    intent.putExtra("position", position);
-                    startActivity(intent);
-                }
-            });
-            mRecyclerView.setAdapter(mAdapter);
+            mAdapter.notifyDataSetChanged();
             mProgressBar.setVisibility(View.INVISIBLE);
         }
     }
@@ -83,13 +83,11 @@ public class FragmentRankHorizontal extends BaseFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EventBus.getDefault().register(this);
-        Common.showLog(className + "EVENTBUS 注册了");
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         EventBus.getDefault().unregister(this);
-        Common.showLog(className + "EVENTBUS 取消注册了");
     }
 }

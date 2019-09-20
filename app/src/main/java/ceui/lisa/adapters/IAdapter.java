@@ -16,6 +16,7 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.databinding.RecyUserEventBinding;
 import ceui.lisa.model.IllustsBean;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import jp.wasabeef.recyclerview.animators.BaseItemAnimator;
 
@@ -45,6 +46,8 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
         } else if (params.height > 600) {
             params.height = 600;
         }
+
+        Common.showLog(position + " is bindData");
 
         bindView.baseBind.illustImage.setLayoutParams(params);
         bindView.baseBind.title.setText(allIllust.get(position).getTitle());

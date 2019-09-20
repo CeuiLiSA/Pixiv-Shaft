@@ -1,82 +1,89 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="180dp"
-    android:layout_height="180dp"
-    android:clickable="true"
-    android:foreground="?attr/selectableItemBackground"
-    app:cardCornerRadius="2dp"
-    app:cardElevation="2dp">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@android:color/white"
-        android:orientation="vertical">
+    <data>
 
+    </data>
 
-        <ImageView
-            android:layout_width="match_parent"
-            android:scaleType="centerCrop"
-            android:foreground="@drawable/side_rank_horizon"
-            android:id="@+id/illust_image"
-            android:layout_height="match_parent">
-
-        </ImageView>
-
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:textSize="14sp"
-            android:text="作品名字"
-            android:layout_marginStart="@dimen/eight_dp"
-            android:textColor="@android:color/white"
-            android:textStyle="bold"
-            android:shadowColor="#FF000000"
-            android:shadowDx="1.5"
-            android:shadowDy="1.5"
-            android:shadowRadius="1.5"
-            android:layout_above="@+id/bottom_rela"
-            android:id="@+id/title"
-            android:layout_height="wrap_content" />
-
+    <androidx.cardview.widget.CardView
+        android:layout_width="180dp"
+        android:layout_height="180dp"
+        android:clickable="true"
+        android:foreground="?attr/selectableItemBackground"
+        app:cardCornerRadius="2dp"
+        app:cardElevation="2dp">
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:id="@+id/bottom_rela"
-            android:layout_alignParentBottom="true"
-            android:layout_height="wrap_content">
+            android:layout_height="match_parent"
+            android:background="@android:color/white"
+            android:orientation="vertical">
 
 
-            <de.hdodenhof.circleimageview.CircleImageView
-                android:layout_width="20sp"
+            <ImageView
+                android:layout_width="match_parent"
+                android:scaleType="centerCrop"
+                android:foreground="@drawable/side_rank_horizon"
+                android:id="@+id/illust_image"
+                android:layout_height="match_parent">
 
-                android:id="@+id/user_head"
-                android:layout_marginStart="@dimen/eight_dp"
-                android:layout_marginBottom="@dimen/eight_dp"
-                android:layout_marginTop="@dimen/eight_dp"
-                android:layout_marginEnd="@dimen/four_dp"
-                android:layout_height="20sp" />
+            </ImageView>
 
 
             <TextView
                 android:layout_width="wrap_content"
-                android:textSize="11sp"
+                android:textSize="14sp"
+                android:text="作品名字"
+                android:layout_marginStart="@dimen/eight_dp"
+                android:textColor="@android:color/white"
+                android:textStyle="bold"
                 android:shadowColor="#FF000000"
                 android:shadowDx="1.5"
                 android:shadowDy="1.5"
-                android:layout_toEndOf="@+id/user_head"
                 android:shadowRadius="1.5"
-                android:text="作者名字"
-                android:layout_centerVertical="true"
-                android:layout_marginEnd="@dimen/eight_dp"
-                android:textColor="@android:color/white"
-                android:textStyle="bold"
-                android:id="@+id/author"
+                android:layout_above="@+id/bottom_rela"
+                android:id="@+id/title"
                 android:layout_height="wrap_content" />
 
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:id="@+id/bottom_rela"
+                android:layout_alignParentBottom="true"
+                android:layout_height="wrap_content">
+
+
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:layout_width="20sp"
+
+                    android:id="@+id/user_head"
+                    android:layout_marginStart="@dimen/eight_dp"
+                    android:layout_marginBottom="@dimen/eight_dp"
+                    android:layout_marginTop="@dimen/eight_dp"
+                    android:layout_marginEnd="@dimen/four_dp"
+                    android:layout_height="20sp" />
+
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:textSize="11sp"
+                    android:shadowColor="#FF000000"
+                    android:shadowDx="1.5"
+                    android:shadowDy="1.5"
+                    android:layout_toEndOf="@+id/user_head"
+                    android:shadowRadius="1.5"
+                    android:text="作者名字"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="@dimen/eight_dp"
+                    android:textColor="@android:color/white"
+                    android:textStyle="bold"
+                    android:id="@+id/author"
+                    android:layout_height="wrap_content" />
+
+            </RelativeLayout>
+
+
         </RelativeLayout>
-
-
-    </RelativeLayout>
-</androidx.cardview.widget.CardView>
+    </androidx.cardview.widget.CardView>
+</layout>

@@ -78,15 +78,6 @@ public class FragmentRecmdIllust extends AutoClipFragment<ListIllustResponse,
             }
         });
 
-
-        //向FragmentCenter发送数据
-        Channel<List<IllustsBean>> channel = new Channel<>();
-        channel.setReceiver("FragmentRankHorizontal");
-        channel.setObject(mResponse.getRanking_illusts());
-        EventBus.getDefault().post(channel);
-        Common.showLog(className + "EVENTBUS 发送了消息");
-
-
         Observable.create((ObservableOnSubscribe<String>) emitter -> {
             emitter.onNext("开始写入数据库");
             for (int i = 0; i < allItems.size(); i++) {
