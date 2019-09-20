@@ -1,13 +1,14 @@
 package ceui.lisa.adapters;
 
 import android.content.Context;
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
@@ -42,18 +43,18 @@ public class BookTagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         final TagHolder currentOne = (TagHolder) holder;
-        if(TextUtils.isEmpty(allIllust.get(position).getName())){
+        if (TextUtils.isEmpty(allIllust.get(position).getName())) {
             currentOne.title.setText("#全部");
-        }else {
+        } else {
             currentOne.title.setText("#" + allIllust.get(position).getName());
         }
 
-        if(allIllust.get(position).getCount() == -1){
+        if (allIllust.get(position).getCount() == -1) {
             currentOne.count.setText("");
-        }else {
+        } else {
             currentOne.count.setText(allIllust.get(position).getCount() + "个作品");
         }
-        if(mOnItemClickListener != null){
+        if (mOnItemClickListener != null) {
             holder.itemView.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 0));
         }
     }
@@ -69,6 +70,7 @@ public class BookTagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     public static class TagHolder extends RecyclerView.ViewHolder {
         TextView title, count;
+
         TagHolder(View itemView) {
             super(itemView);
             title = itemView.findViewById(R.id.star_size);

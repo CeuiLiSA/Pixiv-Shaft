@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 
-
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import org.greenrobot.eventbus.EventBus;
@@ -14,17 +13,14 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.IAdapter;
-import ceui.lisa.adapters.IllustStagAdapter;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.utils.Channel;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.IllustChannel;
-import ceui.lisa.view.ScrollChangeManager;
 import ceui.lisa.view.SpacesItemDecoration;
 import io.reactivex.Observable;
 
@@ -87,7 +83,6 @@ public class FragmentLikeIllust extends FragmentList<ListIllustResponse, Illusts
         });
     }
 
-
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(Channel event) {
         if (event.getReceiver().contains(starType)) {
@@ -96,18 +91,15 @@ public class FragmentLikeIllust extends FragmentList<ListIllustResponse, Illusts
         }
     }
 
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EventBus.getDefault().register(this);
-        Common.showLog(className + "EVENTBUS 注册了");
     }
 
     @Override
     public void onDestroy() {
         EventBus.getDefault().unregister(this);
         super.onDestroy();
-        Common.showLog(className + "EVENTBUS 取消注册了");
     }
 }

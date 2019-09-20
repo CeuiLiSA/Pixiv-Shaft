@@ -1,8 +1,8 @@
 package ceui.lisa.fragments;
 
-import androidx.recyclerview.widget.LinearLayoutManager;
 import android.view.View;
 
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import org.greenrobot.eventbus.EventBus;
 

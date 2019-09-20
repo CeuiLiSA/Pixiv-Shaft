@@ -1,18 +1,14 @@
 package ceui.lisa.adapters;
 
 import android.content.Context;
-import android.view.View;
-import android.view.ViewGroup;
 
 import com.bumptech.glide.Glide;
 
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.databinding.RecyRankHorizontalBinding;
 import ceui.lisa.model.IllustsBean;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 
 public class RAdapter extends BaseAdapter<IllustsBean, RecyRankHorizontalBinding> {
@@ -36,7 +32,7 @@ public class RAdapter extends BaseAdapter<IllustsBean, RecyRankHorizontalBinding
         Glide.with(mContext).load(GlideUtil.getMediumImg(allIllust.get(position)
                 .getUser().getProfile_image_urls().getMedium()))
                 .placeholder(R.color.light_bg).into(bindView.baseBind.userHead);
-        if(mOnItemClickListener != null){
+        if (mOnItemClickListener != null) {
             bindView.itemView.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 0));
         }
     }

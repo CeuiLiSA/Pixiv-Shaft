@@ -7,18 +7,18 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.UserDetailActivity
-import ceui.lisa.adapters.UserAdapter
+import ceui.lisa.adapters.UAdapter
+import ceui.lisa.databinding.RecyUserPreviewBinding
 import ceui.lisa.http.Retro
 import ceui.lisa.interfaces.FullClickListener
 import ceui.lisa.model.ListUserResponse
-import ceui.lisa.model.UserBean
 import ceui.lisa.model.UserPreviewsBean
 import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.PixivOperate
 import ceui.lisa.view.LinearItemDecoration
 import io.reactivex.Observable
 
-class FragmentNiceFriend: BaseListFragment<ListUserResponse, UserAdapter, UserPreviewsBean>() {
+class FragmentNiceFriend: FragmentList<ListUserResponse, UserPreviewsBean, RecyUserPreviewBinding>() {
 
     override fun initApi(): Observable<ListUserResponse> {
         return Retro.getAppApi().getNiceFriend(Shaft.sUserModel.response.access_token,
@@ -30,8 +30,8 @@ class FragmentNiceFriend: BaseListFragment<ListUserResponse, UserAdapter, UserPr
     }
 
     override fun initAdapter() {
-        mAdapter = UserAdapter(allItems, mContext)
-        mAdapter.setOnItemClickListener(object : FullClickListener {
+        mAdapter = UAdapter(allItems, mContext)
+        (mAdapter as UAdapter).setFullClickListener(object : FullClickListener {
             override fun onItemClick(v: View, position: Int, viewType: Int) {
                 if (viewType == 0) { //普通item
                     val intent = Intent(mContext, UserDetailActivity::class.java)
@@ -58,11 +58,6 @@ class FragmentNiceFriend: BaseListFragment<ListUserResponse, UserAdapter, UserPr
                 }
             }
         })
-    }
-
-    internal override fun initRecyclerView() {
-        mRecyclerView.addItemDecoration(LinearItemDecoration(DensityUtil.dp2px(8.0f)))
-        mRecyclerView.layoutManager = LinearLayoutManager(mContext)
     }
 
     override fun getToolbarTitle(): String {

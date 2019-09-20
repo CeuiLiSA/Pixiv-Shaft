@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 public class ViewHolder<BindView extends ViewDataBinding> extends RecyclerView.ViewHolder {
     BindView baseBind;
+
     public ViewHolder(@NonNull View itemView) {
         super(itemView);
         baseBind = DataBindingUtil.bind(itemView);

@@ -1,14 +1,15 @@
 package ceui.lisa.adapters;
 
 import android.content.Context;
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 
@@ -37,7 +38,7 @@ public class UserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         mLayoutInflater = LayoutInflater.from(mContext);
         allIllust = list;
         imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
-                2 * mContext.getResources().getDimensionPixelSize(R.dimen.eight_dp))/3;
+                2 * mContext.getResources().getDimensionPixelSize(R.dimen.eight_dp)) / 3;
     }
 
     @NonNull
@@ -57,7 +58,7 @@ public class UserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         currentOne.two.setLayoutParams(params);
         currentOne.three.setLayoutParams(params);
         currentOne.title.setText(allIllust.get(position).getUser().getName());
-        if(allIllust.get(position).getIllusts() != null && allIllust.get(position).getIllusts().size() >= 3) {
+        if (allIllust.get(position).getIllusts() != null && allIllust.get(position).getIllusts().size() >= 3) {
             Glide.with(mContext).load(GlideUtil.getMediumImg(allIllust.get(position)
                     .getUser().getProfile_image_urls().getMedium())).into(currentOne.head);
             Glide.with(mContext).load(GlideUtil.getMediumImg(allIllust.get(position)
@@ -77,7 +78,7 @@ public class UserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         currentOne.postLikeUser.setText(allIllust.get(position).getUser().isIs_followed() ?
                 mContext.getString(R.string.post_unfollow) : mContext.getString(R.string.post_follow));
 
-        if(mFullClickListener != null){
+        if (mFullClickListener != null) {
             currentOne.itemView.setOnClickListener(v ->
                     mFullClickListener.onItemClick(v, position, 0));
 

@@ -2,13 +2,14 @@ package ceui.lisa.adapters;
 
 import android.content.Context;
 import android.os.Handler;
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.facebook.rebound.SimpleSpringListener;
@@ -42,13 +43,12 @@ public class ViewHistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     private SimpleDateFormat mTime = new SimpleDateFormat("MM月dd日 HH: mm");
 
 
-
     public ViewHistoryAdapter(List<IllustHistoryEntity> list, Context context) {
         mContext = context;
         mLayoutInflater = LayoutInflater.from(mContext);
         allIllust = list;
         imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
-                mContext.getResources().getDimensionPixelSize(R.dimen.four_dp))/2;
+                mContext.getResources().getDimensionPixelSize(R.dimen.four_dp)) / 2;
     }
 
     @NonNull
@@ -72,14 +72,13 @@ public class ViewHistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                 .into(currentOne.illust);
         currentOne.title.setText(currentIllust.getTitle());
         currentOne.author.setText("by: " + currentIllust.getUser().getName());
-        if(currentIllust.getPage_count() == 1){
+        if (currentIllust.getPage_count() == 1) {
             currentOne.pSize.setVisibility(View.GONE);
-        }else {
+        } else {
             currentOne.pSize.setVisibility(View.VISIBLE);
             currentOne.pSize.setText(currentIllust.getPage_count() + "P");
         }
         currentOne.time.setText(mTime.format(allIllust.get(position).getTime()));
-
 
 
         //从-400 丝滑滑动到0
@@ -87,11 +86,7 @@ public class ViewHistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         currentOne.spring.setEndValue(0);
 
 
-
-
-
-
-        if(mOnItemClickListener != null){
+        if (mOnItemClickListener != null) {
 
             holder.itemView.setOnClickListener(v -> {
                 mOnItemClickListener.onItemClick(v, position, 0);
@@ -108,10 +103,16 @@ public class ViewHistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
         mOnItemClickListener = itemClickListener;
     }
 
+    public void clearAllData() {
+        allIllust.clear();
+        notifyDataSetChanged();
+    }
+
     public static class TagHolder extends RecyclerView.ViewHolder {
         ImageView illust;
         TextView title, time, author, pSize;
         Spring spring;
+
         TagHolder(View itemView) {
             super(itemView);
 
@@ -125,7 +126,7 @@ public class ViewHistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             // Add a spring to the system.
             spring = springSystem.createSpring();
 
-            spring.setSpringConfig(SpringConfig.fromOrigamiTensionAndFriction(40,5));
+            spring.setSpringConfig(SpringConfig.fromOrigamiTensionAndFriction(40, 5));
             spring.addListener(new SimpleSpringListener() {
 
                 @Override
@@ -138,11 +139,5 @@ public class ViewHistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
             });
 
         }
-    }
-
-
-    public void clearAllData(){
-        allIllust.clear();
-        notifyDataSetChanged();
     }
 }

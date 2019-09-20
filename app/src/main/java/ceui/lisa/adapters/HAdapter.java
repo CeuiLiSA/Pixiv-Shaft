@@ -12,7 +12,6 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.RecyTagGridBinding;
-import ceui.lisa.databinding.RecyUserEventBinding;
 import ceui.lisa.interfaces.MultiDownload;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.TrendingtagResponse;
@@ -20,12 +19,12 @@ import ceui.lisa.utils.GlideUtil;
 
 public class HAdapter extends BaseAdapter<TrendingtagResponse.TrendTagsBean, RecyTagGridBinding> implements MultiDownload {
 
-    private int imageSize = 0;
+    private int imageSize;
 
     public HAdapter(List<TrendingtagResponse.TrendTagsBean> targetList, Context context) {
         super(targetList, context);
         imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
-                mContext.getResources().getDimensionPixelSize(R.dimen.two_dp))/3;
+                mContext.getResources().getDimensionPixelSize(R.dimen.two_dp)) / 3;
     }
 
     @Override
@@ -35,7 +34,7 @@ public class HAdapter extends BaseAdapter<TrendingtagResponse.TrendTagsBean, Rec
 
     @Override
     public void bindData(TrendingtagResponse.TrendTagsBean target, ViewHolder<RecyTagGridBinding> bindView, int position) {
-        if(position == 0){
+        if (position == 0) {
             ViewGroup.LayoutParams params = bindView.baseBind.illustImage.getLayoutParams();
             params.height = imageSize * 2;
             params.width = mContext.getResources().getDisplayMetrics().widthPixels;
@@ -44,7 +43,7 @@ public class HAdapter extends BaseAdapter<TrendingtagResponse.TrendTagsBean, Rec
                     .load(GlideUtil.getLargeImage(allIllust.get(position).getIllust()))
                     .placeholder(R.color.light_bg)
                     .into(bindView.baseBind.illustImage);
-        }else {
+        } else {
             ViewGroup.LayoutParams params = bindView.baseBind.illustImage.getLayoutParams();
             params.height = imageSize;
             params.width = imageSize;
@@ -65,7 +64,7 @@ public class HAdapter extends BaseAdapter<TrendingtagResponse.TrendTagsBean, Rec
                 return true;
             }
         });
-        if(mOnItemClickListener != null){
+        if (mOnItemClickListener != null) {
             bindView.itemView.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 0));
         }
     }

@@ -3,12 +3,10 @@ package ceui.lisa.fragments;
 import android.content.Intent;
 import android.view.View;
 
-
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.IAdapter;
-import ceui.lisa.adapters.IllustStagAdapter;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
@@ -16,7 +14,6 @@ import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.IllustChannel;
-import ceui.lisa.view.ScrollChangeManager;
 import ceui.lisa.view.SpacesItemDecoration;
 import io.reactivex.Observable;
 

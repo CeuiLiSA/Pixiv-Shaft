@@ -1,12 +1,13 @@
 package ceui.lisa.adapters;
 
 import android.content.Context;
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
 import ceui.lisa.R;
 import ceui.lisa.interfaces.OnItemClickListener;
@@ -39,7 +40,7 @@ public class StarSizeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         final TagHolder currentOne = (TagHolder) holder;
         currentOne.title.setText(allIllust[position]);
-        if(mOnItemClickListener != null){
+        if (mOnItemClickListener != null) {
             holder.itemView.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 0));
         }
     }
@@ -55,6 +56,7 @@ public class StarSizeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     public static class TagHolder extends RecyclerView.ViewHolder {
         CheckBox title;
+
         TagHolder(View itemView) {
             super(itemView);
             title = itemView.findViewById(R.id.star_size);

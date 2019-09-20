@@ -1,9 +1,9 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import android.view.View;
 
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateFragmentActivity;

@@ -1,28 +1,22 @@
 package ceui.lisa.adapters;
 
 import android.content.Context;
-import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
-
-import androidx.core.view.ViewCompat;
 
 import com.bumptech.glide.Glide;
 
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
-import ceui.lisa.databinding.RecyUserEventBinding;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
-import jp.wasabeef.recyclerview.animators.BaseItemAnimator;
 
 public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding> {
 
-    private int imageSize = 0;
+    private int imageSize;
 
     public IAdapter(List<IllustsBean> targetList, Context context) {
         super(targetList, context);
@@ -63,7 +57,7 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
             bindView.baseBind.pSize.setText(allIllust.get(position).getPage_count() + "P");
         }
         bindView.itemView.setOnClickListener(view -> {
-            if(mOnItemClickListener != null){
+            if (mOnItemClickListener != null) {
                 mOnItemClickListener.onItemClick(view, position, 0);
             }
         });

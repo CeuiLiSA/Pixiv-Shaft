@@ -2,13 +2,14 @@ package ceui.lisa.adapters;
 
 import android.content.Context;
 import android.os.Handler;
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.facebook.rebound.SimpleSpringListener;
@@ -189,6 +190,42 @@ public class IllustStagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         return mContext;
     }
 
+    @Override
+    public int getItemCount() {
+        return allIllust.size();
+    }
+
+    public void setOnItemClickListener(OnItemClickListener itemClickListener) {
+        mOnItemClickListener = itemClickListener;
+    }
+
+    //还原被翻转的卡片
+    public void flipToOrigin() {
+        for (int i = 0; i < mRecyclerView.getChildCount(); i++) {
+            View view = mRecyclerView.getChildAt(i);
+            if (view != null) {
+                view.setRotationY(0f);
+                view.setRotationY(0f);
+            }
+        }
+    }
+
+    public interface OnAnimeEnd {
+        void onAnimeEndPerform();
+    }
+
+    public static class TagHolder extends RecyclerView.ViewHolder {
+        ImageView illust;
+        TextView title, pSize;
+
+
+        TagHolder(View itemView) {
+            super(itemView);
+            illust = itemView.findViewById(R.id.illust_image);
+            title = itemView.findViewById(R.id.title);
+            pSize = itemView.findViewById(R.id.p_size);
+        }
+    }
 
     public class AnimeEndRunnable implements Runnable {
 
@@ -241,7 +278,6 @@ public class IllustStagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         }
     }
 
-
     public class LeftOutRunnable implements Runnable {
 
         private int rotateY;
@@ -290,44 +326,6 @@ public class IllustStagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
         void setOnAnimeEnd(OnAnimeEnd onAnimeEnd) {
             mOnAnimeEnd = onAnimeEnd;
-        }
-    }
-
-    public interface OnAnimeEnd {
-        void onAnimeEndPerform();
-    }
-
-    @Override
-    public int getItemCount() {
-        return allIllust.size();
-    }
-
-    public void setOnItemClickListener(OnItemClickListener itemClickListener) {
-        mOnItemClickListener = itemClickListener;
-    }
-
-    public static class TagHolder extends RecyclerView.ViewHolder {
-        ImageView illust;
-        TextView title, pSize;
-
-
-        TagHolder(View itemView) {
-            super(itemView);
-            illust = itemView.findViewById(R.id.illust_image);
-            title = itemView.findViewById(R.id.title);
-            pSize = itemView.findViewById(R.id.p_size);
-        }
-    }
-
-
-    //还原被翻转的卡片
-    public void flipToOrigin() {
-        for (int i = 0; i < mRecyclerView.getChildCount(); i++) {
-            View view = mRecyclerView.getChildAt(i);
-            if (view != null) {
-                view.setRotationY(0f);
-                view.setRotationY(0f);
-            }
         }
     }
 }

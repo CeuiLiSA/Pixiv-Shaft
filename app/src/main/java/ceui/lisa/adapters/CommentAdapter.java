@@ -2,8 +2,6 @@ package ceui.lisa.adapters;
 
 import android.content.Context;
 import android.graphics.Color;
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
@@ -12,6 +10,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 
@@ -58,8 +59,8 @@ public class CommentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         currentOne.mTextView3.setText("1087");
         currentOne.mTextView4.setText(allIllust.get(position).getComment());
 
-        if(allIllust.get(position).getParent_comment() != null &&
-                allIllust.get(position).getParent_comment().getUser() != null){
+        if (allIllust.get(position).getParent_comment() != null &&
+                allIllust.get(position).getParent_comment().getUser() != null) {
             currentOne.mRelativeLayout.setVisibility(View.VISIBLE);
             SpannableString spannableString = new SpannableString(String.format("@%s：%s",
                     allIllust.get(position).getParent_comment().getUser().getName(),
@@ -68,13 +69,12 @@ public class CommentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                     0, allIllust.get(position).getParent_comment().getUser().getName().length() + 1,
                     Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             ((TagHolder) holder).mTextView5.setText(spannableString);
-        }else {
+        } else {
             currentOne.mRelativeLayout.setVisibility(View.GONE);
         }
 
 
-
-        if(mOnItemClickListener != null){
+        if (mOnItemClickListener != null) {
             holder.itemView.setOnClickListener(v -> {
                 mOnItemClickListener.onItemClick(v, position, 0);
             });

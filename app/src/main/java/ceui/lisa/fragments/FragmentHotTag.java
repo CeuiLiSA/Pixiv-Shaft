@@ -1,14 +1,12 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import androidx.recyclerview.widget.GridLayoutManager;
 import android.view.View;
 
+import androidx.recyclerview.widget.GridLayoutManager;
 
-import ceui.lisa.R;
 import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.adapters.HAdapter;
-import ceui.lisa.adapters.HotTagAdapter;
 import ceui.lisa.databinding.RecyTagGridBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;

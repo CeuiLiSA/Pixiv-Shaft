@@ -7,14 +7,11 @@ import com.scwang.smartrefresh.layout.api.RefreshFooter;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.activities.ViewPagerActivity;
-import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.EAdapter;
 import ceui.lisa.databinding.RecyUserEventBinding;
 import ceui.lisa.download.IllustDownload;
-import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
@@ -22,8 +19,6 @@ import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.utils.PixivOperate;
 import io.reactivex.Observable;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 

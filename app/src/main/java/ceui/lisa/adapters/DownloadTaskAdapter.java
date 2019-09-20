@@ -1,13 +1,14 @@
 package ceui.lisa.adapters;
 
 import android.content.Context;
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.liulishuo.okdownload.StatusUtil;
 
@@ -45,20 +46,20 @@ public class DownloadTaskAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         final TagHolder currentOne = (TagHolder) holder;
 
 
-        ((QueueListener)allIllust.get(position).getDownloadTask().getListener()).bind(currentOne,
+        ((QueueListener) allIllust.get(position).getDownloadTask().getListener()).bind(currentOne,
                 allIllust.get(position).getDownloadTask());
         StatusUtil.Status status = StatusUtil.getStatus(allIllust.get(position).getDownloadTask());
-        if(status == StatusUtil.Status.COMPLETED) {
+        if (status == StatusUtil.Status.COMPLETED) {
             currentOne.state.setText("已完成");
-        }else if(status == StatusUtil.Status.IDLE) {
+        } else if (status == StatusUtil.Status.IDLE) {
             currentOne.state.setText("闲置中");
-        }else if(status == StatusUtil.Status.PENDING) {
+        } else if (status == StatusUtil.Status.PENDING) {
             currentOne.state.setText("等待下载");
-        }else if(status == StatusUtil.Status.RUNNING) {
+        } else if (status == StatusUtil.Status.RUNNING) {
             currentOne.state.setText("下载中");
-        }else if(status == StatusUtil.Status.UNKNOWN) {
+        } else if (status == StatusUtil.Status.UNKNOWN) {
             currentOne.state.setText("未知状态");
-        }else {
+        } else {
             currentOne.state.setText("最坏的情况");
         }
         if (mOnItemClickListener != null) {
@@ -76,9 +77,10 @@ public class DownloadTaskAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     }
 
     public static class TagHolder extends RecyclerView.ViewHolder {
-        private IllustsBean mIllustsBean;
         public ProgressBar mProgressBar;
         public TextView title, currentSize, fullSize, state;
+        private IllustsBean mIllustsBean;
+
         TagHolder(View itemView) {
             super(itemView);
             title = itemView.findViewById(R.id.task_name);

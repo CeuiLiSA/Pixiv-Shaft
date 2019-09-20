@@ -3,7 +3,6 @@ package ceui.lisa.fragments;
 import android.content.Intent;
 import android.view.View;
 
-
 import ceui.lisa.R;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.IllustAdapter;

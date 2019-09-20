@@ -15,7 +15,7 @@ import ceui.lisa.utils.GlideUtil;
 
 public class EAdapter extends BaseAdapter<IllustsBean, RecyUserEventBinding> {
 
-    private int imageSize = 0;
+    private int imageSize;
 
     public EAdapter(List<IllustsBean> targetList, Context context) {
         super(targetList, context);
@@ -44,7 +44,7 @@ public class EAdapter extends BaseAdapter<IllustsBean, RecyUserEventBinding> {
         Glide.with(mContext).load(GlideUtil.getLargeImage(allIllust.get(position)))
                 .placeholder(R.color.light_bg)
                 .into(bindView.baseBind.illustImage);
-        if(mOnItemClickListener != null){
+        if (mOnItemClickListener != null) {
             bindView.itemView.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 0));
             bindView.baseBind.userHead.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 1));
             bindView.baseBind.download.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 2));

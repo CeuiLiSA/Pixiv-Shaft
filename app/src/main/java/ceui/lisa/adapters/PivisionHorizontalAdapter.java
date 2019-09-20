@@ -1,13 +1,14 @@
 package ceui.lisa.adapters;
 
 import android.content.Context;
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 
@@ -15,7 +16,6 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.model.ArticalResponse;
 import ceui.lisa.model.SpotlightArticlesBean;
 import ceui.lisa.utils.GlideUtil;
 
@@ -68,6 +68,7 @@ public class PivisionHorizontalAdapter extends RecyclerView.Adapter<RecyclerView
     public static class TagHolder extends RecyclerView.ViewHolder {
         ImageView imageView;
         TextView title;
+
         TagHolder(View itemView) {
             super(itemView);
             imageView = itemView.findViewById(R.id.illust_image);

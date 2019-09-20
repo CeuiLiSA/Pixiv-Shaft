@@ -9,22 +9,20 @@ import com.bumptech.glide.Glide;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.databinding.RecyUserPreviewBinding;
 import ceui.lisa.interfaces.FullClickListener;
-import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.UserPreviewsBean;
 import ceui.lisa.utils.GlideUtil;
 
 public class UAdapter extends BaseAdapter<UserPreviewsBean, RecyUserPreviewBinding> {
 
-    private int imageSize = 0;
+    private int imageSize;
     private FullClickListener mFullClickListener;
 
     public UAdapter(List<UserPreviewsBean> targetList, Context context) {
         super(targetList, context);
         imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
-                2 * mContext.getResources().getDimensionPixelSize(R.dimen.eight_dp))/3;
+                2 * mContext.getResources().getDimensionPixelSize(R.dimen.eight_dp)) / 3;
     }
 
     @Override
@@ -41,7 +39,7 @@ public class UAdapter extends BaseAdapter<UserPreviewsBean, RecyUserPreviewBindi
         bindView.baseBind.userShowTwo.setLayoutParams(params);
         bindView.baseBind.userShowThree.setLayoutParams(params);
         bindView.baseBind.userName.setText(allIllust.get(position).getUser().getName());
-        if(allIllust.get(position).getIllusts() != null && allIllust.get(position).getIllusts().size() >= 3) {
+        if (allIllust.get(position).getIllusts() != null && allIllust.get(position).getIllusts().size() >= 3) {
             Glide.with(mContext).load(GlideUtil.getMediumImg(allIllust.get(position)
                     .getUser().getProfile_image_urls().getMedium())).into(bindView.baseBind.userHead);
             Glide.with(mContext).load(GlideUtil.getMediumImg(allIllust.get(position)
@@ -61,7 +59,7 @@ public class UAdapter extends BaseAdapter<UserPreviewsBean, RecyUserPreviewBindi
         bindView.baseBind.postLikeUser.setText(allIllust.get(position).getUser().isIs_followed() ?
                 mContext.getString(R.string.post_unfollow) : mContext.getString(R.string.post_follow));
 
-        if(mFullClickListener != null){
+        if (mFullClickListener != null) {
             bindView.itemView.setOnClickListener(v ->
                     mFullClickListener.onItemClick(v, position, 0));
 

@@ -5,8 +5,6 @@ import android.content.Intent;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
-import android.view.ContextMenu;
-import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -14,17 +12,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.zhy.view.flowlayout.FlowLayout;
 import com.zhy.view.flowlayout.TagAdapter;
 import com.zhy.view.flowlayout.TagFlowLayout;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -36,32 +30,20 @@ import ceui.lisa.adapters.SearchHintAdapter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.SearchEntity;
 import ceui.lisa.databinding.FragmentSearchBinding;
-import ceui.lisa.dialogs.DemoPopup;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.TrendingtagResponse;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.DensityUtil;
-import ceui.lisa.utils.Local;
 import ceui.lisa.utils.PixivOperate;
-import ceui.lisa.view.LinearItemDecoration;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.Observer;
-import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
-import me.next.tagview.TagCloudView;
-import razerdp.basepopup.QuickPopupBuilder;
-import razerdp.basepopup.QuickPopupConfig;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
-import static ceui.lisa.fragments.FragmentFilter.ALL_SIZE;
-import static ceui.lisa.fragments.FragmentFilter.ALL_SIZE_VALUE;
 import static ceui.lisa.fragments.FragmentFilter.SEARCH_TYPE;
 import static ceui.lisa.utils.Common.isNumeric;
 
@@ -149,7 +131,7 @@ public class FragmentSearch extends BaseBindFragment<FragmentSearchBinding>{
             public boolean onTouch(View view, MotionEvent motionEvent) {
                 if(baseBind.hintList.getAdapter() != null &&
                         ((SearchHintAdapter) baseBind.hintList.getAdapter())
-                                .getmKeyword().equals(baseBind.inputBox.getText().toString())){
+                                .getKeyword().equals(baseBind.inputBox.getText().toString())){
                     baseBind.hintList.setVisibility(View.VISIBLE);
                 }
                 return false;

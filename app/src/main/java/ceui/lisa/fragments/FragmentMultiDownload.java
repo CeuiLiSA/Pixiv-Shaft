@@ -2,15 +2,15 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
-
-import androidx.recyclerview.widget.GridLayoutManager;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 
+import androidx.recyclerview.widget.GridLayoutManager;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateFragmentActivity;

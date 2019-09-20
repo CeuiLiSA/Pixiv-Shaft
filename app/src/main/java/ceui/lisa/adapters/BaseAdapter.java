@@ -9,8 +9,6 @@ import androidx.databinding.DataBindingUtil;
 import androidx.databinding.ViewDataBinding;
 import androidx.recyclerview.widget.RecyclerView;
 
-
-import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.interfaces.Binding;
@@ -32,7 +30,7 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        bindData(allIllust.get(position), (ViewHolder<BindView>)holder, position);
+        bindData(allIllust.get(position), (ViewHolder<BindView>) holder, position);
     }
 
     @Override
@@ -60,7 +58,7 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
         mOnItemClickListener = onItemClickListener;
     }
 
-    public void clear(){
+    public void clear() {
         int size = allIllust.size();
         allIllust.clear();
         notifyItemRangeRemoved(0, size);

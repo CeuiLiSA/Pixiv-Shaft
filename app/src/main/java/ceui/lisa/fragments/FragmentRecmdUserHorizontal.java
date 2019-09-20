@@ -1,11 +1,11 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
+import android.view.View;
+import android.widget.ProgressBar;
+
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import android.view.View;
-import android.view.animation.AnticipateOvershootInterpolator;
-import android.widget.ProgressBar;
 
 import com.github.ybq.android.spinkit.style.DoubleBounce;
 
@@ -22,12 +22,9 @@ import ceui.lisa.model.ListUserResponse;
 import ceui.lisa.model.UserPreviewsBean;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
-import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import jp.wasabeef.recyclerview.animators.FadeInLeftAnimator;
-import jp.wasabeef.recyclerview.animators.LandingAnimator;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 import static ceui.lisa.fragments.FragmentList.animateDuration;

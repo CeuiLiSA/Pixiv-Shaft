@@ -1,12 +1,13 @@
 package ceui.lisa.fragments;
 
-import androidx.appcompat.widget.AppCompatSpinner;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.Switch;
+
+import androidx.appcompat.widget.AppCompatSpinner;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;

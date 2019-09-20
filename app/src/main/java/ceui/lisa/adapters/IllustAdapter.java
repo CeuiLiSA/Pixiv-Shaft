@@ -2,13 +2,13 @@ package ceui.lisa.adapters;
 
 import android.content.Context;
 import android.os.Handler;
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.facebook.rebound.SimpleSpringListener;
@@ -54,7 +54,7 @@ public class IllustAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         mRefreshLayout = refreshLayout;
         mManager = (GridScrollChangeManager) mRecyclerView.getLayoutManager();
         imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
-                mContext.getResources().getDimensionPixelSize(R.dimen.four_dp))/2;
+                mContext.getResources().getDimensionPixelSize(R.dimen.four_dp)) / 2;
     }
 
     @NonNull
@@ -75,7 +75,7 @@ public class IllustAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                 .load(GlideUtil.getMediumImg(allIllust.get(position)))
                 .placeholder(R.color.light_bg)
                 .into(currentOne.illust);
-        if(mOnItemClickListener != null){
+        if (mOnItemClickListener != null) {
             holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
@@ -85,7 +85,7 @@ public class IllustAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             });
 
             holder.itemView.setOnClickListener(v -> {
-                if(Shaft.sSettings.isGridAnime()){
+                if (Shaft.sSettings.isGridAnime()) {
                     if (state == 1) {
                         mRefreshLayout.setEnableLoadMore(false);
                         mManager.setCanScroll(false);
@@ -117,7 +117,6 @@ public class IllustAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                                 }
 
 
-
                                 //最后翻转被点击的view， 并设置动画结束的回调
                                 if (i == mRecyclerView.getChildCount() - 1) {
                                     int[] array = new int[2];
@@ -144,7 +143,7 @@ public class IllustAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                             }
                         }
                     }
-                }else {
+                } else {
                     mOnItemClickListener.onItemClick(currentOne.illust, position, 0);
                 }
             });
@@ -159,6 +158,39 @@ public class IllustAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     @Override
     public Context getContext() {
         return mContext;
+    }
+
+    @Override
+    public int getItemCount() {
+        return allIllust.size();
+    }
+
+    public void setOnItemClickListener(OnItemClickListener itemClickListener) {
+        mOnItemClickListener = itemClickListener;
+    }
+
+    //还原被翻转的卡片
+    public void flipToOrigin() {
+        for (int i = 0; i < mRecyclerView.getChildCount(); i++) {
+            View view = mRecyclerView.getChildAt(i);
+            if (view != null) {
+                view.setRotationY(0f);
+                view.setRotationY(0f);
+            }
+        }
+    }
+
+    public interface OnAnimeEnd {
+        void onAnimeEndPerform();
+    }
+
+    public static class TagHolder extends RecyclerView.ViewHolder {
+        ImageView illust;
+
+        TagHolder(View itemView) {
+            super(itemView);
+            illust = itemView.findViewById(R.id.illust_image);
+        }
     }
 
     public class AnimeEndRunnable implements Runnable {
@@ -209,40 +241,6 @@ public class IllustAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
         void setOnAnimeEnd(OnAnimeEnd onAnimeEnd) {
             mOnAnimeEnd = onAnimeEnd;
-        }
-    }
-
-
-    public interface OnAnimeEnd {
-        void onAnimeEndPerform();
-    }
-
-    @Override
-    public int getItemCount() {
-        return allIllust.size();
-    }
-
-    public void setOnItemClickListener(OnItemClickListener itemClickListener) {
-        mOnItemClickListener = itemClickListener;
-    }
-
-    //还原被翻转的卡片
-    public void flipToOrigin() {
-        for (int i = 0; i < mRecyclerView.getChildCount(); i++) {
-            View view = mRecyclerView.getChildAt(i);
-            if (view != null) {
-                view.setRotationY(0f);
-                view.setRotationY(0f);
-            }
-        }
-    }
-
-    public static class TagHolder extends RecyclerView.ViewHolder {
-        ImageView illust;
-
-        TagHolder(View itemView) {
-            super(itemView);
-            illust = itemView.findViewById(R.id.illust_image);
         }
     }
 }

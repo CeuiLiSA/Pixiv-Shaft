@@ -1,11 +1,12 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.View;
 import android.view.animation.AnticipateOvershootInterpolator;
 import android.widget.ProgressBar;
+
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.github.ybq.android.spinkit.style.DoubleBounce;
 
@@ -15,10 +16,8 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.adapters.PivisionHorizontalAdapter;
-import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
-import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ArticalResponse;
 import ceui.lisa.model.SpotlightArticlesBean;
 import ceui.lisa.utils.DensityUtil;

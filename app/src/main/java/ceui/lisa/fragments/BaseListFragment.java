@@ -1,11 +1,12 @@
 package ceui.lisa.fragments;
 
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.appcompat.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+
+import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.scwang.smartrefresh.header.DeliveryHeader;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
@@ -14,16 +15,12 @@ import com.scwang.smartrefresh.layout.header.ClassicsHeader;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.database.PikaDownload;
 import ceui.lisa.interfaces.ListShow;
-import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.ListObserver;
-import ceui.lisa.utils.Local;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
