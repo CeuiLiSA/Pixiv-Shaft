@@ -18,7 +18,6 @@ public class FragmentMetro extends BaseFragment {
 
     @Override
     View initView(View v) {
-
         return v;
     }
 

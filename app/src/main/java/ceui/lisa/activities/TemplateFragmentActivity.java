@@ -1,25 +1,23 @@
 package ceui.lisa.activities;
 
 import android.content.Intent;
-import androidx.fragment.app.Fragment;
 import android.view.KeyEvent;
+
+import androidx.fragment.app.Fragment;
 
 import ceui.lisa.fragments.FragmentA;
 import ceui.lisa.fragments.FragmentAbout;
 import ceui.lisa.fragments.FragmentBlank;
 import ceui.lisa.fragments.FragmentBookTag;
-import ceui.lisa.fragments.FragmentComment;
+import ceui.lisa.fragments.FragmentC;
 import ceui.lisa.fragments.FragmentDrag;
-import ceui.lisa.fragments.FragmentFollowAnime;
 import ceui.lisa.fragments.FragmentFollowUser;
 import ceui.lisa.fragments.FragmentLicense;
 import ceui.lisa.fragments.FragmentLikeIllust;
-import ceui.lisa.fragments.FragmentList;
 import ceui.lisa.fragments.FragmentLocalUsers;
 import ceui.lisa.fragments.FragmentMetro;
 import ceui.lisa.fragments.FragmentMultiDownload;
 import ceui.lisa.fragments.FragmentNiceFriend;
-import ceui.lisa.fragments.FragmentP;
 import ceui.lisa.fragments.FragmentPivision;
 import ceui.lisa.fragments.FragmentRecmdUser;
 import ceui.lisa.fragments.FragmentRelatedIllust;
@@ -32,8 +30,6 @@ import ceui.lisa.fragments.FragmentViewHistory;
 import ceui.lisa.fragments.FragmentWalkThrough;
 import ceui.lisa.fragments.FragmentWebView;
 import ceui.lisa.utils.ReverseResult;
-
-import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class TemplateFragmentActivity extends FragmentActivity {
 
@@ -83,7 +79,7 @@ public class TemplateFragmentActivity extends FragmentActivity {
                 case "相关评论": {
                     int id = intent.getIntExtra(EXTRA_ILLUST_ID, 0);
                     String title = intent.getStringExtra(EXTRA_ILLUST_TITLE);
-                    return FragmentComment.newInstance(id, title);
+                    return FragmentC.newInstance(id, title);
                 }
                 case "账号管理":
                     return new FragmentLocalUsers();

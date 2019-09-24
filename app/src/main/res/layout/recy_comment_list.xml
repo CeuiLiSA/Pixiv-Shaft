@@ -1,106 +1,113 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="@android:color/white"
-    android:clickable="true"
-    android:foreground="?attr/selectableItemBackground"
-    android:paddingStart="@dimen/twelve_dp"
-    android:paddingTop="@dimen/twelve_dp"
-    android:paddingEnd="@dimen/twelve_dp">
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <de.hdodenhof.circleimageview.CircleImageView
-        android:id="@+id/user_head"
-        android:layout_width="35dp"
-        android:layout_height="35dp" />
+    <data>
 
-    <TextView
-        android:id="@+id/user_name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/eight_dp"
-        android:layout_toEndOf="@+id/user_head"
-        android:text="Michael"
-        android:textColor="#666666"
-        android:textSize="13sp" />
-
-    <TextView
-        android:id="@+id/time"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/user_name"
-        android:layout_alignBottom="@+id/user_head"
-        android:text="2018年10月23日"
-        android:textColor="#999999"
-        android:textSize="11sp" />
-
-    <ImageView
-        android:id="@+id/like"
-        android:layout_width="@dimen/sixteen_dp"
-        android:layout_height="@dimen/sixteen_dp"
-        android:layout_alignBottom="@+id/time"
-        android:layout_alignParentEnd="true"
-        android:layout_marginBottom="@dimen/twelve_dp"
-        android:src="@drawable/ic_thumb_up_black_24dp"
-        android:tint="#999999" />
-
-
-    <TextView
-        android:id="@+id/like_count"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/time"
-        android:layout_marginEnd="@dimen/four_dp"
-        android:layout_marginBottom="10dp"
-        android:layout_toStartOf="@+id/like"
-        android:text="2366"
-        android:textColor="#999999"
-        android:textSize="14sp" />
-
-    <TextView
-        android:id="@+id/content"
-        android:layout_width="wrap_content"
-        android:lineSpacingExtra="@dimen/four_dp"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/user_head"
-        android:layout_alignStart="@+id/user_name"
-        android:layout_marginTop="@dimen/eight_dp"
-        android:text="阿发发货撒地方和暗室逢灯哈弗斯"
-        android:textColor="#333333"
-        android:textSize="14sp" />
-
+    </data>
 
     <RelativeLayout
-        android:id="@+id/reply_comment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/content"
-        android:layout_alignStart="@id/user_name"
-        android:layout_marginTop="@dimen/eight_dp"
-        android:background="#f2f2f2">
+        android:background="@android:color/white"
+        android:clickable="true"
+        android:foreground="?attr/selectableItemBackground"
+        android:paddingStart="@dimen/twelve_dp"
+        android:paddingTop="@dimen/twelve_dp"
+        android:paddingEnd="@dimen/twelve_dp">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/user_head"
+            android:layout_width="35dp"
+            android:layout_height="35dp" />
+
+        <TextView
+            android:id="@+id/user_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/eight_dp"
+            android:layout_toEndOf="@+id/user_head"
+            android:text="Michael"
+            android:textColor="#666666"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignStart="@+id/user_name"
+            android:layout_alignBottom="@+id/user_head"
+            android:text="2018年10月23日"
+            android:textColor="#999999"
+            android:textSize="11sp" />
+
+        <ImageView
+            android:id="@+id/like"
+            android:layout_width="@dimen/sixteen_dp"
+            android:layout_height="@dimen/sixteen_dp"
+            android:layout_alignBottom="@+id/time"
+            android:layout_alignParentEnd="true"
+            android:layout_marginBottom="@dimen/twelve_dp"
+            android:src="@drawable/ic_thumb_up_black_24dp"
+            android:tint="#999999" />
 
 
         <TextView
-            android:id="@+id/reply_content"
+            android:id="@+id/like_count"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:lineSpacingExtra="@dimen/four_dp"
-            android:paddingStart="@dimen/six_dp"
-            android:paddingTop="@dimen/six_dp"
-            android:paddingEnd="@dimen/six_dp"
-            android:paddingBottom="@dimen/six_dp"
-            android:text="阿飞面试我好的所发生的覅闪电发货按时US大风爱书法gas的"
-            android:textColor="#808080"
+            android:layout_alignBottom="@+id/time"
+            android:layout_marginEnd="@dimen/four_dp"
+            android:layout_marginBottom="10dp"
+            android:layout_toStartOf="@+id/like"
+            android:text="2366"
+            android:textColor="#999999"
             android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/content"
+            android:layout_width="wrap_content"
+            android:lineSpacingExtra="@dimen/four_dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/user_head"
+            android:layout_alignStart="@+id/user_name"
+            android:layout_marginTop="@dimen/eight_dp"
+            android:text="阿发发货撒地方和暗室逢灯哈弗斯"
+            android:textColor="#333333"
+            android:textSize="14sp" />
+
+
+        <RelativeLayout
+            android:id="@+id/reply_comment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/content"
+            android:layout_alignStart="@id/user_name"
+            android:layout_marginTop="@dimen/eight_dp"
+            android:background="#f2f2f2">
+
+
+            <TextView
+                android:id="@+id/reply_content"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:lineSpacingExtra="@dimen/four_dp"
+                android:paddingStart="@dimen/six_dp"
+                android:paddingTop="@dimen/six_dp"
+                android:paddingEnd="@dimen/six_dp"
+                android:paddingBottom="@dimen/six_dp"
+                android:text="阿飞面试我好的所发生的覅闪电发货按时US大风爱书法gas的"
+                android:textColor="#808080"
+                android:textSize="14sp" />
+        </RelativeLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_below="@+id/reply_comment"
+            android:layout_alignStart="@id/user_name"
+            android:layout_marginTop="@dimen/eight_dp"
+            android:background="#f3f3f3" />
+
+
     </RelativeLayout>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_below="@+id/reply_comment"
-        android:layout_alignStart="@id/user_name"
-        android:layout_marginTop="@dimen/eight_dp"
-        android:background="#f3f3f3" />
-
-
-</RelativeLayout>
+</layout>

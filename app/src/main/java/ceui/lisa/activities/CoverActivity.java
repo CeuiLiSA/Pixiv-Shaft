@@ -43,6 +43,7 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.download.TaskQueue;
 import ceui.lisa.fragments.BaseFragment;
+import ceui.lisa.fragments.FragmentBlank;
 import ceui.lisa.fragments.FragmentCenter;
 import ceui.lisa.fragments.FragmentLeft;
 import ceui.lisa.fragments.FragmentRight;
@@ -67,7 +68,7 @@ public class CoverActivity extends BaseActivity
     private static final int REQUEST_CODE_CHOOSE = 10086;
     private ViewPager mViewPager;
     private DrawerLayout mDrawer;
-    private ImageView userHead, pikaBackground;
+    private ImageView userHead;
     private TextView username;
     private TextView user_email;
     private long mExitTime;
@@ -95,7 +96,8 @@ public class CoverActivity extends BaseActivity
                 });
     }
 
-    private void initContent() {
+    @Override
+    protected void initView() {
         mDrawer = findViewById(R.id.drawer_layout);
         mDrawer.setScrimColor(Color.TRANSPARENT);
         NavigationView navigationView = findViewById(R.id.nav_view);
@@ -103,7 +105,6 @@ public class CoverActivity extends BaseActivity
         userHead = navigationView.getHeaderView(0).findViewById(R.id.user_head);
         username = navigationView.getHeaderView(0).findViewById(R.id.user_name);
         user_email = navigationView.getHeaderView(0).findViewById(R.id.user_email);
-        pikaBackground = navigationView.getHeaderView(0).findViewById(R.id.pika_bg);
         initDrawerHeader();
         userHead.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -148,11 +149,6 @@ public class CoverActivity extends BaseActivity
         });
     }
 
-    @Override
-    protected void initView() {
-        initContent();
-    }
-
 
     private void initFragment() {
         BaseFragment[] baseFragments = new BaseFragment[]{
@@ -184,13 +180,6 @@ public class CoverActivity extends BaseActivity
             startActivity(intent);
             finish();
         }
-    }
-
-    @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        EventBus.getDefault().register(this);
-
     }
 
     public DrawerLayout getDrawer() {
@@ -253,37 +242,17 @@ public class CoverActivity extends BaseActivity
     }
 
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(Channel event) {
-        if (className.contains(event.getReceiver())) {
-            initDrawerHeader();
-        }
-    }
-
-    @Override
-    protected void onDestroy() {
-        EventBus.getDefault().unregister(this);
-        super.onDestroy();
-    }
 
     private void initDrawerHeader() {
-//        File file = new File(FILE_PATH, Local.getPikaImageFileName());
-//        if (file.exists()) {
-//            Glide.with(mContext)
-//                    .load(file)
-//                    .placeholder(pikaBackground.getDrawable())
-//                    .transition(withCrossFade())
-//                    .into(pikaBackground);
-//            pikaBackground.setOnClickListener(new View.OnClickListener() {
-//                @Override
-//                public void onClick(View v) {
-//                    Intent intent = new Intent(mContext, ViewPagerActivity.class);
-//                    intent.putExtra("position", 0);
-//                    IllustChannel.get().setIllustList(Collections.singletonList(Local.getPikaIllust()));
-//                    startActivity(intent);
-//                }
-//            });
-//        }
+        if (sUserModel != null && sUserModel.getResponse() != null) {
+            Glide.with(mContext)
+                    .load(GlideUtil.getMediumImg(
+                            sUserModel.getResponse().getUser().getProfile_image_urls().getPx_170x170()))
+                    .into(userHead);
+            username.setText(sUserModel.getResponse().getUser().getName());
+            user_email.setText(TextUtils.isEmpty(sUserModel.getResponse().getUser().getMail_address()) ?
+                    "未绑定邮箱" : sUserModel.getResponse().getUser().getMail_address());
+        }
     }
 
     @Override
@@ -295,20 +264,6 @@ public class CoverActivity extends BaseActivity
                 ReverseImage.reverse(new File(Common.getRealFilePath(mContext, result.get(0))),
                         ReverseImage.ReverseProvider.SauceNao, new ReverseWebviewCallback(this));
             }
-        }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (sUserModel != null && sUserModel.getResponse() != null) {
-            Glide.with(mContext)
-                    .load(GlideUtil.getMediumImg(
-                            sUserModel.getResponse().getUser().getProfile_image_urls().getPx_170x170()))
-                    .into(userHead);
-            username.setText(sUserModel.getResponse().getUser().getName());
-            user_email.setText(TextUtils.isEmpty(sUserModel.getResponse().getUser().getMail_address()) ?
-                    "未绑定邮箱" : sUserModel.getResponse().getUser().getMail_address());
         }
     }
 

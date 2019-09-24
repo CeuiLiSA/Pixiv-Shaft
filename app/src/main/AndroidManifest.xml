@@ -13,11 +13,6 @@
         android:roundIcon="@mipmap/logo_final_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity
-            android:name=".activities.FullscreenActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_fullscreen"
-            android:theme="@style/FullscreenTheme"></activity>
         <activity android:name=".activities.CoverActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

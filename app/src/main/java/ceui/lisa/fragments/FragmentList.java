@@ -6,6 +6,7 @@ import android.view.animation.AnticipateOvershootInterpolator;
 
 import androidx.databinding.ViewDataBinding;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import com.scwang.smartrefresh.header.DeliveryHeader;
 import com.scwang.smartrefresh.layout.api.RefreshFooter;
@@ -31,7 +32,6 @@ import jp.wasabeef.recyclerview.animators.LandingAnimator;
 public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean, ItemView extends ViewDataBinding>
         extends BaseBindFragment<FragmentListBinding> {
 
-    public static final int PAGE_SIZE = 20;
     Observable<Response> mApi;
     Response mResponse;
     List<ItemBean> allItems = new ArrayList<>();
@@ -58,16 +58,10 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
 
     @Override
     void initData() {
-        BaseItemAnimator baseItemAnimator = new LandingAnimator(new AnticipateOvershootInterpolator());
-        baseItemAnimator.setAddDuration(animateDuration);
-        baseItemAnimator.setRemoveDuration(animateDuration);
-        baseItemAnimator.setMoveDuration(animateDuration);
-        baseItemAnimator.setChangeDuration(animateDuration);
         baseBind.refreshLayout.setPrimaryColorsId(R.color.white);
         baseBind.refreshLayout.setOnLoadMoreListener(refreshLayout -> getNextData());
         baseBind.refreshLayout.setRefreshHeader(new DeliveryHeader(mContext));
         baseBind.refreshLayout.setOnRefreshListener(refreshLayout -> {
-            baseBind.recyclerView.setItemAnimator(baseItemAnimator);
             mAdapter.clear();
             getFirstData();
         });
@@ -75,6 +69,14 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
         initAdapter();
         if (mAdapter != null) {
             baseBind.recyclerView.setAdapter(mAdapter);
+        }
+        if(!(baseBind.recyclerView.getLayoutManager() instanceof StaggeredGridLayoutManager)){
+            BaseItemAnimator baseItemAnimator = new LandingAnimator(new AnticipateOvershootInterpolator());
+            baseItemAnimator.setAddDuration(animateDuration);
+            baseItemAnimator.setRemoveDuration(animateDuration);
+            baseItemAnimator.setMoveDuration(animateDuration);
+            baseItemAnimator.setChangeDuration(animateDuration);
+            baseBind.recyclerView.setItemAnimator(baseItemAnimator);
         }
         if (showToolbar()) {
             baseBind.toolbar.setNavigationOnClickListener(view -> mActivity.finish());
@@ -86,7 +88,6 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
             baseBind.refreshLayout.autoRefresh();
         }
     }
-
 
 
     public abstract Observable<Response> initApi();

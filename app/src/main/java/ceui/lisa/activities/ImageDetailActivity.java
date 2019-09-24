@@ -37,10 +37,6 @@ public class ImageDetailActivity extends BaseActivity {
 
     @Override
     protected void initLayout() {
-//        getWindow().setStatusBarColor(Color.TRANSPARENT);
-//        getWindow().getDecorView().setSystemUiVisibility(
-//                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
-//                        View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
         BarUtils.setStatusBarColor(this, ColorUtils.getColor(R.color.qmui_config_color_transparent));
         if(BarUtils.isSupportNavBar()) {
             BarUtils.setNavBarVisibility(this, false);
@@ -96,9 +92,6 @@ public class ImageDetailActivity extends BaseActivity {
 
                 }
             });
-//            if(mIllustsBean.getPage_count() == 1){
-//                currentSize.setText(mIllustsBean.getSize());
-//            }
             currentPage.setText("第" + (index + 1) + "P / 共" + mIllustsBean.getPage_count() + "P");
 
         }else if(dataType.equals("下载详情")){
@@ -121,12 +114,6 @@ public class ImageDetailActivity extends BaseActivity {
             });
             currentPage.setVisibility(View.GONE);
             viewPager.setCurrentItem(index);
-//            downloadSingle.setOnClickListener(new View.OnClickListener() {
-//                @Override
-//                public void onClick(View v) {
-//                    IllustDownload.downloadIllust(mIllustsBean, viewPager.getCurrentItem());
-//                }
-//            });
             viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
                 @Override
                 public void onPageScrolled(int i, float v, int i1) {

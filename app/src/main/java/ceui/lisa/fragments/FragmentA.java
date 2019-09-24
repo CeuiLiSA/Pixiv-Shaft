@@ -2,6 +2,7 @@ package ceui.lisa.fragments;
 
 import android.os.Handler;
 import android.view.MenuItem;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
@@ -47,6 +48,12 @@ public class FragmentA extends BaseBindFragment<FragmentABinding> {
     @Override
     void initData() {
         handler = new Handler();
+        baseBind.toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mActivity.finish();
+            }
+        });
         baseBind.toolbar.inflateMenu(R.menu.fragment_a);
         baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
