@@ -9,7 +9,7 @@ import ceui.lisa.fragments.FragmentA;
 import ceui.lisa.fragments.FragmentAbout;
 import ceui.lisa.fragments.FragmentBlank;
 import ceui.lisa.fragments.FragmentBookTag;
-import ceui.lisa.fragments.FragmentC;
+import ceui.lisa.fragments.FragmentComment;
 import ceui.lisa.fragments.FragmentDrag;
 import ceui.lisa.fragments.FragmentFollowUser;
 import ceui.lisa.fragments.FragmentLicense;
@@ -79,7 +79,7 @@ public class TemplateFragmentActivity extends FragmentActivity {
                 case "相关评论": {
                     int id = intent.getIntExtra(EXTRA_ILLUST_ID, 0);
                     String title = intent.getStringExtra(EXTRA_ILLUST_TITLE);
-                    return FragmentC.newInstance(id, title);
+                    return FragmentComment.newInstance(id, title);
                 }
                 case "账号管理":
                     return new FragmentLocalUsers();

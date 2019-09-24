@@ -241,10 +241,6 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
                             noData.setImageResource(R.mipmap.load_error);
                         }
                     });
-        } else {
-            if (className.equals("FragmentRecmdIllust ")) {
-                showDataBase();
-            }
         }
     }
 
@@ -309,10 +305,4 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
             mRefreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
         }
     }
-
-
-    public void showDataBase() {
-
-    }
-
 }

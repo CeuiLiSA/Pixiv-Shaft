@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -52,7 +53,6 @@ import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.ShareIllust;
 import ceui.lisa.view.LinearItemDecorationNoLRTB;
-import ceui.lisa.view.TouchRecyclerView;
 import de.hdodenhof.circleimageview.CircleImageView;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
@@ -71,7 +71,7 @@ public class FragmentSingleIllust extends BaseFragment {
     private IllustsBean illust;
     private ImageView imageView;
     private TagCloudView mTagCloudView;
-    private TouchRecyclerView mRecyclerView;
+    private RecyclerView mRecyclerView;
     private IllustDetailAdapter mDetailAdapter;
     private FloatingActionButton download;
 

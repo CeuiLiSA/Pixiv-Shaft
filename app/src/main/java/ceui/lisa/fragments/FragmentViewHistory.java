@@ -28,6 +28,7 @@ import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.ViewHistoryAdapter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustHistoryEntity;
+import ceui.lisa.http.NullCtrl;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
@@ -108,26 +109,15 @@ public class FragmentViewHistory extends BaseFragment {
             emitter.onComplete();
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<String>() {
+                .subscribe(new NullCtrl<String>() {
                     @Override
-                    public void onSubscribe(Disposable d) {
+                    public void success(String s) {
 
                     }
 
                     @Override
-                    public void onNext(String s) {
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        e.printStackTrace();
-                        Common.showToast(e.toString());
-                        mRefreshLayout.finishLoadMore(false);
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        mRefreshLayout.finishLoadMore(true);
+                    public void must(boolean isSuccess) {
+                        mRefreshLayout.finishLoadMore(isSuccess);
                     }
                 });
     }
@@ -138,12 +128,10 @@ public class FragmentViewHistory extends BaseFragment {
         allItems.clear();
         nowIndex = 0;
         Observable.create((ObservableOnSubscribe<List<IllustHistoryEntity>>) emitter -> {
-            Common.showLog(className + "11111");
             List<IllustHistoryEntity> temp = AppDatabase.getAppDatabase(mContext)
                     .downloadDao().getAllViewHistory(PAGE_SIZE, nowIndex);
             nowIndex += temp.size();
             allItems.addAll(temp);
-            Common.showLog(className + "222222 allItems " + allItems.size());
             emitter.onNext(temp);
         })
                 .map(new Function<List<IllustHistoryEntity>, ListIllustResponse>() {
@@ -225,7 +213,6 @@ public class FragmentViewHistory extends BaseFragment {
             if (allItems.size() == 0) {
                 Common.showToast("没有浏览历史");
             } else {
-
                 AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
                 builder.setTitle("Shaft 提示");
                 builder.setMessage("这将会删除所有的本地浏览历史");
@@ -240,7 +227,6 @@ public class FragmentViewHistory extends BaseFragment {
                 builder.setNegativeButton("取消", null);
                 AlertDialog alertDialog = builder.create();
                 alertDialog.show();
-
             }
         }
         return super.onOptionsItemSelected(item);

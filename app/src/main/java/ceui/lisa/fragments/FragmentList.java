@@ -125,7 +125,15 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
                             baseBind.refreshLayout.finishRefresh(isSuccess);
                         }
                     });
+        }  else {
+            if (className.equals("FragmentR ")) {
+                showDataBase();
+            }
         }
+    }
+
+    public void showDataBase(){
+
     }
 
     @Override
@@ -154,7 +162,8 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
                         }
                     });
         } else {
-            baseBind.refreshLayout.finishLoadMore(false);
+            baseBind.refreshLayout.finishLoadMore(true);
+            baseBind.refreshLayout.setEnableLoadMore(false);
         }
     }
 

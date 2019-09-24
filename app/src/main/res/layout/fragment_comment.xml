@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+    </data>
+
+    <RelativeLayout
+        android:orientation="vertical"
+        android:background="@color/white"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/loginBackground"
+            android:elevation="@dimen/six_dp"
+            android:fitsSystemWindows="true"
+            android:theme="@style/AppTheme.AppBarOverlay"
+            app:popupTheme="@style/AppTheme.PopupOverlay"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
+            app:title=" "
+            app:titleTextColor="@android:color/white">
+
+        </androidx.appcompat.widget.Toolbar>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:id="@+id/fragment_container"
+            android:layout_above="@+id/bottom_rela"
+            android:layout_below="@+id/toolbar"
+            android:layout_height="match_parent">
+
+
+        </FrameLayout>
+
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_alignParentBottom="true"
+            android:id="@+id/bottom_rela"
+            app:cardBackgroundColor="@color/white"
+            app:cardElevation="@dimen/four_dp"
+            app:cardCornerRadius="0dp"
+            android:layout_height="50dp">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <EditText
+                    android:layout_width="match_parent"
+                    android:id="@+id/input_box"
+                    android:hint="留下你的评论吧"
+                    android:textSize="14sp"
+                    android:layout_marginEnd="@dimen/eight_dp"
+                    android:layout_marginStart="@dimen/sixteen_dp"
+                    android:layout_toStartOf="@+id/post"
+                    android:background="@color/white"
+                    android:layout_height="match_parent">
+
+
+                </EditText>
+
+
+                <ImageView
+                    android:layout_width="30dp"
+                    android:id="@+id/post"
+                    android:src="@drawable/ic_send_black_24dp"
+                    android:tint="@color/colorPrimary"
+                    android:layout_centerVertical="true"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginEnd="@dimen/sixteen_dp"
+                    android:layout_height="30dp">
+
+
+
+                </ImageView>
+
+            </RelativeLayout>
+
+        </androidx.cardview.widget.CardView>
+
+    </RelativeLayout>
+</layout>

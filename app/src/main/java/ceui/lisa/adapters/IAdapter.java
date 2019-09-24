@@ -17,10 +17,26 @@ import ceui.lisa.utils.GlideUtil;
 public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding> {
 
     private int imageSize;
+    private boolean isSquare = false;
 
     public IAdapter(List<IllustsBean> targetList, Context context) {
         super(targetList, context);
-        imageSize = (mContext.getResources().getDisplayMetrics().widthPixels) / 2;
+        initImageSize();
+    }
+
+    public IAdapter(List<IllustsBean> targetList, Context context, boolean paramSquare) {
+        super(targetList, context);
+        isSquare = paramSquare;
+        initImageSize();
+    }
+
+    private void initImageSize(){
+        if(isSquare){
+            imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
+                    mContext.getResources().getDimensionPixelSize(R.dimen.tweenty_four_dp)) / 2;
+        }else {
+            imageSize = (mContext.getResources().getDisplayMetrics().widthPixels) / 2;
+        }
     }
 
     @Override
@@ -33,15 +49,18 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
         ViewGroup.LayoutParams params = bindView.baseBind.illustImage.getLayoutParams();
 
         params.width = imageSize;
-        params.height = allIllust.get(position).getHeight() * imageSize / allIllust.get(position).getWidth();
 
-        if (params.height < 350) {
-            params.height = 350;
-        } else if (params.height > 600) {
-            params.height = 600;
+        if(isSquare){
+            params.height = imageSize;
+        } else {
+            params.height = allIllust.get(position).getHeight() * imageSize / allIllust.get(position).getWidth();
+
+            if (params.height < 350) {
+                params.height = 350;
+            } else if (params.height > 600) {
+                params.height = 600;
+            }
         }
-
-        Common.showLog(position + " is bindData");
 
         bindView.baseBind.illustImage.setLayoutParams(params);
         bindView.baseBind.title.setText(allIllust.get(position).getTitle());

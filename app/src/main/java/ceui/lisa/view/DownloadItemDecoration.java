@@ -34,5 +34,4 @@ public class DownloadItemDecoration extends RecyclerView.ItemDecoration {
             outRect.bottom = spacing;
         }
     }
-
 }

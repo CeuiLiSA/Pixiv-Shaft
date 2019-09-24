@@ -3,9 +3,13 @@ package ceui.lisa.fragments;
 import android.content.Intent;
 import android.view.View;
 
+import androidx.recyclerview.widget.GridLayoutManager;
+
 import ceui.lisa.R;
 import ceui.lisa.activities.ViewPagerActivity;
+import ceui.lisa.adapters.IAdapter;
 import ceui.lisa.adapters.IllustAdapter;
+import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
@@ -18,38 +22,33 @@ import io.reactivex.Observable;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-public class FragmentWalkThrough extends AutoClipFragment<ListIllustResponse, IllustAdapter, IllustsBean> {
+public class FragmentWalkThrough extends FragmentList<ListIllustResponse, IllustsBean, RecyIllustStaggerBinding> {
 
     @Override
-    void initLayout() {
-        mLayoutID = R.layout.fragment_illust_list;
-    }
-
-    @Override
-    String getToolbarTitle() {
+    public String getToolbarTitle() {
         return "画廊";
     }
 
     @Override
-    void initRecyclerView() {
-        GridScrollChangeManager manager = new GridScrollChangeManager(mContext, 2);
-        mRecyclerView.setLayoutManager(manager);
-        mRecyclerView.addItemDecoration(new GridItemDecoration(2, DensityUtil.dp2px(4.0f), false));
+    public void initRecyclerView() {
+        GridLayoutManager manager = new GridLayoutManager(mContext, 2);
+        baseBind.recyclerView.setLayoutManager(manager);
+        baseBind.recyclerView.addItemDecoration(new GridItemDecoration(2, DensityUtil.dp2px(8.0f), true));
     }
 
     @Override
-    Observable<ListIllustResponse> initApi() {
+    public Observable<ListIllustResponse> initApi() {
         return Retro.getAppApi().getLoginBg(sUserModel.getResponse().getAccess_token());
     }
 
     @Override
-    Observable<ListIllustResponse> initNextApi() {
+    public Observable<ListIllustResponse> initNextApi() {
         return null;
     }
 
     @Override
-    void initAdapter() {
-        mAdapter = new IllustAdapter(allItems, mContext, mRecyclerView, mRefreshLayout);
+    public void initAdapter() {
+        mAdapter = new IAdapter(allItems, mContext, true);
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {

@@ -16,6 +16,7 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.adapters.PivisionHorizontalAdapter;
+import ceui.lisa.databinding.FragmentPivisionHorizontalBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ArticalResponse;
@@ -32,10 +33,8 @@ import static ceui.lisa.fragments.FragmentList.animateDuration;
 /**
  * Pivision 文章
  */
-public class FragmentPivisionHorizontal extends BaseFragment {
+public class FragmentPivisionHorizontal extends BaseBindFragment<FragmentPivisionHorizontalBinding> {
 
-    private ProgressBar mProgressBar;
-    private RecyclerView mRecyclerView;
     private List<SpotlightArticlesBean> allItems = new ArrayList<>();
     private PivisionHorizontalAdapter mAdapter;
 
@@ -45,41 +44,31 @@ public class FragmentPivisionHorizontal extends BaseFragment {
     }
 
     @Override
-    View initView(View v) {
-        mProgressBar = v.findViewById(R.id.progress);
+    void initData() {
         DoubleBounce doubleBounce = new DoubleBounce();
         doubleBounce.setColor(getResources().getColor(R.color.white));
-        mProgressBar.setIndeterminateDrawable(doubleBounce);
-        mRecyclerView = v.findViewById(R.id.recyclerView);
+        baseBind.progress.setIndeterminateDrawable(doubleBounce);
         LandingAnimator landingAnimator = new LandingAnimator(new AnticipateOvershootInterpolator());
         landingAnimator.setAddDuration(400L);
         landingAnimator.setRemoveDuration(animateDuration);
         landingAnimator.setMoveDuration(animateDuration);
         landingAnimator.setChangeDuration(animateDuration);
-        mRecyclerView.setItemAnimator(landingAnimator);
-        mRecyclerView.addItemDecoration(new LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
+        baseBind.recyclerView.setItemAnimator(landingAnimator);
+        baseBind.recyclerView.addItemDecoration(new LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
         LinearLayoutManager manager = new LinearLayoutManager(mContext, LinearLayoutManager.HORIZONTAL, false);
-        mRecyclerView.setLayoutManager(manager);
-        mRecyclerView.setHasFixedSize(true);
+        baseBind.recyclerView.setLayoutManager(manager);
+        baseBind.recyclerView.setHasFixedSize(true);
         mAdapter = new PivisionHorizontalAdapter(allItems, mContext);
-        mRecyclerView.setAdapter(mAdapter);
-        v.findViewById(R.id.see_more).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "特辑");
-                startActivity(intent);
-            }
+        baseBind.recyclerView.setAdapter(mAdapter);
+        baseBind.seeMore.setOnClickListener(view -> {
+            Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "特辑");
+            startActivity(intent);
         });
-        return v;
-    }
-
-    @Override
-    void initData() {
         getFirstData();
     }
 
-    private void getFirstData() {
+    public void getFirstData() {
         Retro.getAppApi().getArticals(sUserModel.getResponse().getAccess_token())
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -93,7 +82,7 @@ public class FragmentPivisionHorizontal extends BaseFragment {
 
                     @Override
                     public void must(boolean isSuccess) {
-                        mProgressBar.setVisibility(View.INVISIBLE);
+                        baseBind.progress.setVisibility(View.INVISIBLE);
                     }
                 });
     }

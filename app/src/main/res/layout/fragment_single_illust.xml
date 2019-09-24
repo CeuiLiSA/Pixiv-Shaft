@@ -52,13 +52,13 @@
                     android:layout_marginBottom="@dimen/eight_dp"
                     android:layout_height="wrap_content">
 
-                    <ceui.lisa.view.TouchRecyclerView
+                    <androidx.recyclerview.widget.RecyclerView
                         android:layout_width="match_parent"
                         android:id="@+id/recyclerView"
                         android:background="@color/light_bg"
                         android:layout_height="match_parent">
 
-                    </ceui.lisa.view.TouchRecyclerView>
+                    </androidx.recyclerview.widget.RecyclerView>
 
 
                     <TextView
