@@ -1,12 +1,10 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import android.view.View;
 
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import com.google.gson.Gson;
-import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -21,20 +19,15 @@ import ceui.lisa.database.IllustRecmdEntity;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
-import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.utils.Channel;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.IllustChannel;
-import ceui.lisa.view.ScrollChangeManager;
 import ceui.lisa.view.SpacesItemDecoration;
 import io.reactivex.Observable;
 import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 public class FragmentR extends FragmentList<ListIllustResponse, IllustsBean, RecyIllustStaggerBinding> {
@@ -46,8 +39,8 @@ public class FragmentR extends FragmentList<ListIllustResponse, IllustsBean, Rec
 
     @Override
     public Observable<ListIllustResponse> initApi() {
-        //return Retro.getAppApi().getRecmdIllust(Shaft.sUserModel.getResponse().getAccess_token(), true);
-        return null;
+        return Retro.getAppApi().getRecmdIllust(Shaft.sUserModel.getResponse().getAccess_token(), true);
+        //return null;
     }
 
     @Override
@@ -77,7 +70,7 @@ public class FragmentR extends FragmentList<ListIllustResponse, IllustsBean, Rec
     @Override
     public void firstSuccess() {
         //向FragmentCenter发送数据
-        if(mResponse != null) {
+        if (mResponse != null) {
             Channel<List<IllustsBean>> channel = new Channel<>();
             channel.setReceiver("FragmentRankHorizontal");
             channel.setObject(mResponse.getRanking_illusts());
@@ -128,7 +121,7 @@ public class FragmentR extends FragmentList<ListIllustResponse, IllustsBean, Rec
                 .subscribe(new NullCtrl<List<IllustsBean>>() {
                     @Override
                     public void success(List<IllustsBean> illustsBeans) {
-                        if(illustsBeans.size() >= 20){
+                        if (illustsBeans.size() >= 20) {
                             allItems.addAll(illustsBeans.subList(0, 20));
                             mAdapter.notifyItemRangeInserted(0, allItems.size());
                         }

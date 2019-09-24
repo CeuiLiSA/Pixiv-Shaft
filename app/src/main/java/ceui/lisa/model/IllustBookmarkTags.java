@@ -12,6 +12,7 @@ public class IllustBookmarkTags implements ListShow<BookmarkTagsBean> {
      */
 
     private BookmarkDetailBean bookmark_detail;
+    private String next_url;
 
     public String getNext_url() {
         return next_url;
@@ -20,8 +21,6 @@ public class IllustBookmarkTags implements ListShow<BookmarkTagsBean> {
     public void setNext_url(String next_url) {
         this.next_url = next_url;
     }
-
-    private String next_url;
 
     public BookmarkDetailBean getBookmark_detail() {
         return bookmark_detail;

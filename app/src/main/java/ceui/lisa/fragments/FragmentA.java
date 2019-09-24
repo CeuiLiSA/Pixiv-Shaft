@@ -61,21 +61,21 @@ public class FragmentA extends BaseBindFragment<FragmentABinding> {
                 BaseItemAnimator baseItemAnimator = null;
                 if (item.getItemId() == R.id.action_1) {
                     baseItemAnimator = new FadeInAnimator();
-                }else if (item.getItemId() == R.id.action_2) {
+                } else if (item.getItemId() == R.id.action_2) {
                     baseItemAnimator = new FadeInDownAnimator();
-                }else if (item.getItemId() == R.id.action_3) {
+                } else if (item.getItemId() == R.id.action_3) {
                     baseItemAnimator = new FadeInLeftAnimator();
-                }else if (item.getItemId() == R.id.action_4) {
+                } else if (item.getItemId() == R.id.action_4) {
                     baseItemAnimator = new FlipInBottomXAnimator();
-                }else if (item.getItemId() == R.id.action_5) {
+                } else if (item.getItemId() == R.id.action_5) {
                     baseItemAnimator = new FlipInLeftYAnimator();
-                }else if (item.getItemId() == R.id.action_6) {
+                } else if (item.getItemId() == R.id.action_6) {
                     baseItemAnimator = new LandingAnimator();
-                }else if (item.getItemId() == R.id.action_7) {
+                } else if (item.getItemId() == R.id.action_7) {
                     baseItemAnimator = new ScaleInAnimator();
-                }else if (item.getItemId() == R.id.action_8) {
+                } else if (item.getItemId() == R.id.action_8) {
                     baseItemAnimator = new ScaleInBottomAnimator();
-                }else if (item.getItemId() == R.id.action_9) {
+                } else if (item.getItemId() == R.id.action_9) {
                     baseItemAnimator = new SlideInDownAnimator();
                 }
                 baseItemAnimator.setAddDuration(animateDuration);

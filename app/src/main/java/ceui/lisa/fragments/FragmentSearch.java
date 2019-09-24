@@ -47,7 +47,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 import static ceui.lisa.fragments.FragmentFilter.SEARCH_TYPE;
 import static ceui.lisa.utils.Common.isNumeric;
 
-public class FragmentSearch extends BaseBindFragment<FragmentSearchBinding>{
+public class FragmentSearch extends BaseBindFragment<FragmentSearchBinding> {
 
     private ObservableEmitter<String> fuck = null;
     private int searchType = 0;
@@ -103,7 +103,7 @@ public class FragmentSearch extends BaseBindFragment<FragmentSearchBinding>{
             public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
                 if (!TextUtils.isEmpty(baseBind.inputBox.getText().toString())) {
                     dispatchClick(baseBind.inputBox.getText().toString(), searchType);
-                }else {
+                } else {
                     Common.showToast("请输入搜索内容");
                 }
                 return false;
@@ -129,9 +129,9 @@ public class FragmentSearch extends BaseBindFragment<FragmentSearchBinding>{
         baseBind.inputBox.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
-                if(baseBind.hintList.getAdapter() != null &&
+                if (baseBind.hintList.getAdapter() != null &&
                         ((SearchHintAdapter) baseBind.hintList.getAdapter())
-                                .getKeyword().equals(baseBind.inputBox.getText().toString())){
+                                .getKeyword().equals(baseBind.inputBox.getText().toString())) {
                     baseBind.hintList.setVisibility(View.VISIBLE);
                 }
                 return false;
@@ -141,7 +141,7 @@ public class FragmentSearch extends BaseBindFragment<FragmentSearchBinding>{
         baseBind.container.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(baseBind.hintList.getVisibility() == View.VISIBLE){
+                if (baseBind.hintList.getVisibility() == View.VISIBLE) {
                     baseBind.hintList.setVisibility(View.INVISIBLE);
                 }
             }
@@ -153,7 +153,7 @@ public class FragmentSearch extends BaseBindFragment<FragmentSearchBinding>{
                 builder.setItems(SEARCH_TYPE, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        if(searchType != which) {
+                        if (searchType != which) {
                             baseBind.inputBox.setText("");
                             baseBind.inputBox.setHint(SEARCH_TYPE[which]);
                             searchType = which;
@@ -169,8 +169,8 @@ public class FragmentSearch extends BaseBindFragment<FragmentSearchBinding>{
     }
 
 
-    private void dispatchClick(String keyWord, int searchType){
-        if(searchType == 0){
+    private void dispatchClick(String keyWord, int searchType) {
+        if (searchType == 0) {
             insertSearchHistory(keyWord);
             baseBind.hintList.setVisibility(View.INVISIBLE);
 
@@ -179,14 +179,14 @@ public class FragmentSearch extends BaseBindFragment<FragmentSearchBinding>{
             intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
                     "搜索结果");
             startActivity(intent);
-        }else if(searchType == 1){
+        } else if (searchType == 1) {
             if (isNumeric(keyWord)) {
                 insertSearchHistory(keyWord);
                 PixivOperate.getIllustByID(sUserModel, Integer.valueOf(keyWord), mContext);
             } else {
                 Common.showToast("ID必须为全数字");
             }
-        }else if(searchType == 2){
+        } else if (searchType == 2) {
             insertSearchHistory(keyWord);
             Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
             intent.putExtra(TemplateFragmentActivity.EXTRA_KEYWORD,
@@ -194,7 +194,7 @@ public class FragmentSearch extends BaseBindFragment<FragmentSearchBinding>{
             intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
                     "搜索用户");
             startActivity(intent);
-        }else if(searchType == 3){
+        } else if (searchType == 3) {
             if (isNumeric(keyWord)) {
                 insertSearchHistory(keyWord);
                 Intent intent = new Intent(mContext, UserDetailActivity.class);
@@ -237,7 +237,7 @@ public class FragmentSearch extends BaseBindFragment<FragmentSearchBinding>{
     }
 
 
-    private void insertSearchHistory(String key){
+    private void insertSearchHistory(String key) {
         SearchEntity searchEntity = new SearchEntity();
         searchEntity.setKeyword(key);
         searchEntity.setSearchType(searchType);
@@ -246,7 +246,7 @@ public class FragmentSearch extends BaseBindFragment<FragmentSearchBinding>{
         AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().insert(searchEntity);
     }
 
-    private void getHotTags(){
+    private void getHotTags() {
         Retro.getAppApi().getHotTags(sUserModel.getResponse().getAccess_token())
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -300,7 +300,7 @@ public class FragmentSearch extends BaseBindFragment<FragmentSearchBinding>{
         baseBind.searchHistory.setOnTagClickListener(new TagFlowLayout.OnTagClickListener() {
             @Override
             public boolean onTagClick(View view, int position, FlowLayout parent) {
-                if(history.get(position).getSearchType() == 0){
+                if (history.get(position).getSearchType() == 0) {
                     history.get(position).setSearchTime(System.currentTimeMillis());
                     AppDatabase.getAppDatabase(mContext).searchDao().insert(history.get(position));
                     baseBind.hintList.setVisibility(View.INVISIBLE);
@@ -310,11 +310,11 @@ public class FragmentSearch extends BaseBindFragment<FragmentSearchBinding>{
                     intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
                             "搜索结果");
                     startActivity(intent);
-                }else if(history.get(position).getSearchType() == 1){
+                } else if (history.get(position).getSearchType() == 1) {
                     history.get(position).setSearchTime(System.currentTimeMillis());
                     AppDatabase.getAppDatabase(mContext).searchDao().insert(history.get(position));
                     PixivOperate.getIllustByID(sUserModel, Integer.valueOf(history.get(position).getKeyword()), mContext);
-                }else if(history.get(position).getSearchType() == 2){
+                } else if (history.get(position).getSearchType() == 2) {
                     history.get(position).setSearchTime(System.currentTimeMillis());
                     AppDatabase.getAppDatabase(mContext).searchDao().insert(history.get(position));
                     Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
@@ -323,7 +323,7 @@ public class FragmentSearch extends BaseBindFragment<FragmentSearchBinding>{
                     intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
                             "搜索用户");
                     startActivity(intent);
-                }else if(history.get(position).getSearchType() == 3){
+                } else if (history.get(position).getSearchType() == 3) {
                     history.get(position).setSearchTime(System.currentTimeMillis());
                     AppDatabase.getAppDatabase(mContext).searchDao().insert(history.get(position));
                     Intent intent = new Intent(mContext, UserDetailActivity.class);

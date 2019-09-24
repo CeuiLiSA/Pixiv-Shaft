@@ -103,7 +103,7 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
     protected String nextUrl = "";
     protected ImageView noData;
 
-    public BaseListFragment(){
+    public BaseListFragment() {
         Common.showLog(className + "new instance !!");
     }
 
@@ -136,7 +136,7 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
         initRecyclerView();
         if (className.equals("FragmentRecmdIllust ")) {
             mRefreshLayout.setRefreshHeader(new ClassicsHeader(mContext));
-        }else {
+        } else {
             mRefreshLayout.setRefreshHeader(new DeliveryHeader(mContext));
         }
         mRefreshLayout.setOnRefreshListener(layout -> getFirstData());
@@ -299,7 +299,7 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
 
                         });
             }
-        }else {
+        } else {
             mRefreshLayout.setEnableLoadMore(false);
             mRefreshLayout.finishLoadMore(false);
             mRefreshLayout.setRefreshFooter(new FalsifyFooter(mContext));

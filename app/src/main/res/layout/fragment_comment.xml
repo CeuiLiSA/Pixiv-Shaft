@@ -83,9 +83,31 @@
 
                 </ImageView>
 
+                <ImageView
+                    android:layout_width="30dp"
+                    android:padding="@dimen/four_dp"
+                    android:id="@+id/clear"
+                    android:src="@drawable/ic_cancel_black_24dp"
+                    android:layout_centerVertical="true"
+                    android:layout_alignEnd="@+id/input_box"
+                    android:layout_marginEnd="@dimen/four_dp"
+                    android:layout_height="30dp">
+
+                </ImageView>
+
+
             </RelativeLayout>
 
         </androidx.cardview.widget.CardView>
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:id="@+id/progress"
+            android:visibility="gone"
+            android:layout_centerInParent="true"
+            android:layout_height="wrap_content">
+
+        </ProgressBar>
 
     </RelativeLayout>
 </layout>

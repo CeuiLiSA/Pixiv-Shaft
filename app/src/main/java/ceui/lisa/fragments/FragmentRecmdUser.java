@@ -40,7 +40,7 @@ public class FragmentRecmdUser extends FragmentList<ListUserResponse, UserPrevie
     @Override
     public void initAdapter() {
         mAdapter = new UAdapter(allItems, mContext);
-        ((UAdapter)mAdapter).setFullClickListener(new FullClickListener() {
+        ((UAdapter) mAdapter).setFullClickListener(new FullClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
                 if (viewType == 0) { //普通item

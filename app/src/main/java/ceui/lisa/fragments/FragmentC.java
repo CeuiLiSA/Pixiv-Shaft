@@ -2,32 +2,25 @@ package ceui.lisa.fragments;
 
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.view.View;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import ceui.lisa.R;
-import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.adapters.CAdapter;
 import ceui.lisa.databinding.RecyCommentListBinding;
 import ceui.lisa.http.Retro;
-import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.CommentsBean;
 import ceui.lisa.model.IllustCommentsResponse;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.Local;
 import io.reactivex.Observable;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
-import static ceui.lisa.fragments.FragmentFilter.ALL_SIZE;
-import static ceui.lisa.fragments.FragmentFilter.ALL_SIZE_VALUE;
 
 public class FragmentC extends FragmentList<IllustCommentsResponse, CommentsBean, RecyCommentListBinding> {
 
-    private int illustID;
     public static final String[] OPTIONS = new String[]{"回复评论", "复制评论"};
+    private int illustID;
 
     public static FragmentC newInstance(int id) {
         FragmentC comment = new FragmentC();
@@ -59,15 +52,15 @@ public class FragmentC extends FragmentList<IllustCommentsResponse, CommentsBean
                 builder.setItems(OPTIONS, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        if(which == 0){
-                            if(getParentFragment() instanceof FragmentComment){
+                        if (which == 0) {
+                            if (getParentFragment() instanceof FragmentComment) {
                                 ((FragmentComment) getParentFragment()).baseBind.inputBox.setHint(
                                         "回复" + allItems.get(position).getUser().getName()
                                 );
                                 ((FragmentComment) getParentFragment()).parentCommentID =
                                         allItems.get(position).getId();
                             }
-                        } else if(which == 1){
+                        } else if (which == 1) {
                             Common.copy(mContext, allItems.get(position).getComment());
                         }
                     }
@@ -83,15 +76,15 @@ public class FragmentC extends FragmentList<IllustCommentsResponse, CommentsBean
                 builder.setItems(OPTIONS, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        if(which == 0){
-                            if(getParentFragment() instanceof FragmentComment){
+                        if (which == 0) {
+                            if (getParentFragment() instanceof FragmentComment) {
                                 ((FragmentComment) getParentFragment()).baseBind.inputBox.setHint(
                                         "回复" + allItems.get(position).getParent_comment().getUser().getName()
                                 );
                                 ((FragmentComment) getParentFragment()).parentCommentID =
                                         allItems.get(position).getParent_comment().getId();
                             }
-                        } else if(which == 1){
+                        } else if (which == 1) {
                             Common.copy(mContext, allItems.get(position).getParent_comment().getComment());
                         }
                     }

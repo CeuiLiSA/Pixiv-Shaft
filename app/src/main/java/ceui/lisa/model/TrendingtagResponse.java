@@ -7,8 +7,9 @@ import java.util.List;
 
 import ceui.lisa.interfaces.ListShow;
 
-public class TrendingtagResponse implements ListShow<TrendingtagResponse.TrendTagsBean>, Serializable{
+public class TrendingtagResponse implements ListShow<TrendingtagResponse.TrendTagsBean>, Serializable {
     private List<TrendTagsBean> trend_tags;
+    private List<TrendTagsBean> tags;
 
     public List<TrendTagsBean> getTags() {
         return tags;
@@ -17,8 +18,6 @@ public class TrendingtagResponse implements ListShow<TrendingtagResponse.TrendTa
     public void setTags(List<TrendTagsBean> tags) {
         this.tags = tags;
     }
-
-    private List<TrendTagsBean> tags;
 
     public List<TrendTagsBean> getTrend_tags() {
         return this.trend_tags;
@@ -30,9 +29,9 @@ public class TrendingtagResponse implements ListShow<TrendingtagResponse.TrendTa
 
     @Override
     public List<TrendTagsBean> getList() {
-        if(trend_tags != null && trend_tags.size() != 0) {
+        if (trend_tags != null && trend_tags.size() != 0) {
             return trend_tags;
-        }else {
+        } else {
             return tags;
         }
     }
@@ -50,6 +49,9 @@ public class TrendingtagResponse implements ListShow<TrendingtagResponse.TrendTa
          */
 
         private String tag;
+        private String name;
+        private String translated_name;
+        private IllustsBean illust;
 
         public String getName() {
             return name;
@@ -59,16 +61,12 @@ public class TrendingtagResponse implements ListShow<TrendingtagResponse.TrendTa
             this.name = name;
         }
 
-        private String name;
-        private String translated_name;
-        private IllustsBean illust;
-
         public String getTag() {
-            if(!TextUtils.isEmpty(tag)) {
+            if (!TextUtils.isEmpty(tag)) {
                 return tag;
             }
 
-            if(!TextUtils.isEmpty(name)) {
+            if (!TextUtils.isEmpty(name)) {
                 return name;
             }
 

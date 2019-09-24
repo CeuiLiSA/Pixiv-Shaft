@@ -400,8 +400,8 @@ public class FragmentSingleIllust extends BaseFragment {
         }
 
 
-        if(event.getReceiver().equals("FragmentSingleIllust option2")){
-            if((int) event.getObject() == illust.getId()) {
+        if (event.getReceiver().equals("FragmentSingleIllust option2")) {
+            if ((int) event.getObject() == illust.getId()) {
                 download.setImageResource(R.drawable.ic_has_download);
             }
         }

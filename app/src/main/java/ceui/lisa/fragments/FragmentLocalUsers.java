@@ -157,7 +157,7 @@ public class FragmentLocalUsers extends BaseFragment {
                     public void onResponse(Call<UserModel> call, Response<UserModel> response) {
                         if (response != null) {
                             UserModel newUser = response.body();
-                            if(newUser != null) {
+                            if (newUser != null) {
                                 newUser.getResponse().setUser(Shaft.sUserModel.getResponse().getUser());
                             }
                             Local.saveUser(newUser);

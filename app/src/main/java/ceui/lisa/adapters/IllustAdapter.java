@@ -53,7 +53,8 @@ public class IllustAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         mRecyclerView = recyclerView;
         mRefreshLayout = refreshLayout;
         mManager = (GridScrollChangeManager) mRecyclerView.getLayoutManager();
-
+        imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
+                mContext.getResources().getDimensionPixelSize(R.dimen.four_dp)) / 2;
     }
 
     @NonNull

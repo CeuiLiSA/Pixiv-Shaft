@@ -8,6 +8,7 @@ public class BookmarkTagsBean {
 
     private String name;
     private int count;
+    private boolean isSelected = false;
 
     public boolean isSelected() {
         return isSelected;
@@ -16,8 +17,6 @@ public class BookmarkTagsBean {
     public void setSelected(boolean selected) {
         isSelected = selected;
     }
-
-    private boolean isSelected = false;
 
     public String getName() {
         return name;

@@ -32,12 +32,12 @@ import jp.wasabeef.recyclerview.animators.LandingAnimator;
 public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean, ItemView extends ViewDataBinding>
         extends BaseBindFragment<FragmentListBinding> {
 
+    public static long animateDuration = 400L;
     Observable<Response> mApi;
     Response mResponse;
     List<ItemBean> allItems = new ArrayList<>();
     String nextUrl = "";
     BaseAdapter<ItemBean, ItemView> mAdapter;
-    public static long animateDuration = 400L;
 
     @Override
     void initLayout() {
@@ -70,7 +70,7 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
         if (mAdapter != null) {
             baseBind.recyclerView.setAdapter(mAdapter);
         }
-        if(!(baseBind.recyclerView.getLayoutManager() instanceof StaggeredGridLayoutManager)){
+        if (!(baseBind.recyclerView.getLayoutManager() instanceof StaggeredGridLayoutManager)) {
             BaseItemAnimator baseItemAnimator = new LandingAnimator(new AnticipateOvershootInterpolator());
             baseItemAnimator.setAddDuration(animateDuration);
             baseItemAnimator.setRemoveDuration(animateDuration);
@@ -114,7 +114,7 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
                             if (!TextUtils.isEmpty(response.getNextUrl())) {
                                 nextUrl = response.getNextUrl();
                                 baseBind.refreshLayout.setRefreshFooter(getFooter());
-                            }else {
+                            } else {
                                 baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
                             }
                             firstSuccess();
@@ -125,14 +125,14 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
                             baseBind.refreshLayout.finishRefresh(isSuccess);
                         }
                     });
-        }  else {
+        } else {
             if (className.equals("FragmentR ")) {
                 showDataBase();
             }
         }
     }
 
-    public void showDataBase(){
+    public void showDataBase() {
 
     }
 
@@ -167,7 +167,7 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
         }
     }
 
-    public RefreshFooter getFooter(){
+    public RefreshFooter getFooter() {
         return new ClassicsFooter(mContext);
     }
 
@@ -176,6 +176,6 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
         baseBind.recyclerView.addItemDecoration(new LinearItemDecoration(DensityUtil.dp2px(12.0f)));
     }
 
-    public void firstSuccess(){
+    public void firstSuccess() {
     }
 }

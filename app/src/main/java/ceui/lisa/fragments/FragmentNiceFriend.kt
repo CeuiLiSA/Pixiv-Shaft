@@ -3,7 +3,6 @@ package ceui.lisa.fragments
 import android.content.Intent
 import android.view.View
 import android.widget.Button
-import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.UserDetailActivity
@@ -13,12 +12,10 @@ import ceui.lisa.http.Retro
 import ceui.lisa.interfaces.FullClickListener
 import ceui.lisa.model.ListUserResponse
 import ceui.lisa.model.UserPreviewsBean
-import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.PixivOperate
-import ceui.lisa.view.LinearItemDecoration
 import io.reactivex.Observable
 
-class FragmentNiceFriend: FragmentList<ListUserResponse, UserPreviewsBean, RecyUserPreviewBinding>() {
+class FragmentNiceFriend : FragmentList<ListUserResponse, UserPreviewsBean, RecyUserPreviewBinding>() {
 
     override fun initApi(): Observable<ListUserResponse> {
         return Retro.getAppApi().getNiceFriend(Shaft.sUserModel.response.access_token,

@@ -8,7 +8,7 @@ import com.mikepenz.aboutlibraries.LibsBuilder;
 import ceui.lisa.R;
 import ceui.lisa.databinding.FragmentLicenseBinding;
 
-public class FragmentLicense extends BaseBindFragment<FragmentLicenseBinding>{
+public class FragmentLicense extends BaseBindFragment<FragmentLicenseBinding> {
 
     @Override
     void initLayout() {
@@ -27,6 +27,6 @@ public class FragmentLicense extends BaseBindFragment<FragmentLicenseBinding>{
                 new LibsBuilder()
                         .withAboutAppName("Shaft")
                         .withLibraryModification("aboutlibraries",
-                        Libs.LibraryFields.LIBRARY_OPEN_SOURCE, "_AboutLibraries").supportFragment()).commit();
+                                Libs.LibraryFields.LIBRARY_OPEN_SOURCE, "_AboutLibraries").supportFragment()).commit();
     }
 }
