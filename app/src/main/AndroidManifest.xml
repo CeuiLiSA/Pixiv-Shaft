@@ -39,14 +39,11 @@
         <activity android:name=".activities.TemplateFragmentActivity"
             android:windowSoftInputMode="adjustPan"/>
         <activity android:name=".activities.RankActivity" />
-        <activity android:name=".activities.PikaActivity">
-
-        </activity>
         <activity android:name=".activities.UserDetailActivity" />
         <activity android:name=".activities.DownloadManageActivity" />
         <activity android:name=".activities.ImageDetailActivity" />
         <activity android:name=".activities.CollectionActivity" />
-        <activity android:name=".activities.LoginAlphaActivity" />
+        <activity android:name=".activities.LoginActivity" />
         <activity android:name=".activities.OutWakeActivity">
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
@@ -60,15 +57,6 @@
                     android:host="www.pixiv.net"
                     android:path="/member.php"
                     android:scheme="https" />
-
-                <!-- <data android:host="@string/website_users" -->
-                <!-- android:pathPattern="[0-9]*" -->
-                <!-- android:scheme="pixiv"/> -->
-
-
-                <!-- <data android:host="@string/website_illust" -->
-                <!-- android:pathPattern="[0-9]*" -->
-                <!-- android:scheme="pixiv"/> -->
 
                 <data
                     android:host="www.pixiv.net"

@@ -23,7 +23,7 @@ import java.io.File;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.LoginAlphaActivity;
+import ceui.lisa.activities.LoginActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.databinding.FragmentSettingsBinding;
@@ -54,7 +54,7 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
         baseBind.loginOut.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(mContext, LoginAlphaActivity.class);
+                Intent intent = new Intent(mContext, LoginActivity.class);
                 startActivity(intent);
                 getActivity().finish();
             }

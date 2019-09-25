@@ -14,7 +14,6 @@ import androidx.fragment.app.FragmentManager;
 
 import com.mxn.soul.flowingdrawer_core.ElasticDrawer;
 import com.mxn.soul.flowingdrawer_core.FlowingDrawer;
-import com.mxn.soul.flowingdrawer_core.FlowingMenuLayout;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;

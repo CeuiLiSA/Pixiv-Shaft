@@ -2,7 +2,7 @@ package ceui.lisa.http;
 
 import java.io.IOException;
 
-import ceui.lisa.activities.LoginAlphaActivity;
+import ceui.lisa.activities.LoginActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.model.UserModel;
 import ceui.lisa.utils.Common;
@@ -83,8 +83,8 @@ public class TokenInterceptor implements Interceptor {
         Common.showToast("刷新登录信息");
         UserModel userModel = Local.getUser();
         Call<UserModel> call = Retro.getAccountApi().refreshToken(
-                LoginAlphaActivity.CLIENT_ID,
-                LoginAlphaActivity.CLIENT_SECRET,
+                LoginActivity.CLIENT_ID,
+                LoginActivity.CLIENT_SECRET,
                 "refresh_token",
                 userModel.getResponse().getRefresh_token(),
                 userModel.getResponse().getDevice_token(),

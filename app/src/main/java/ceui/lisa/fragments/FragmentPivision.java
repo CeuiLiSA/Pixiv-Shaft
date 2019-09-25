@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateFragmentActivity;
-import ceui.lisa.adapters.ArticalAdapter;
+import ceui.lisa.adapters.ArticleAdapter;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ArticalResponse;
@@ -18,7 +18,7 @@ import io.reactivex.Observable;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-public class FragmentPivision extends BaseListFragment<ArticalResponse, ArticalAdapter, SpotlightArticlesBean> {
+public class FragmentPivision extends BaseListFragment<ArticalResponse, ArticleAdapter, SpotlightArticlesBean> {
 
     @Override
     Observable<ArticalResponse> initApi() {
@@ -45,7 +45,7 @@ public class FragmentPivision extends BaseListFragment<ArticalResponse, ArticalA
 
     @Override
     void initAdapter() {
-        mAdapter = new ArticalAdapter(allItems, mContext);
+        mAdapter = new ArticleAdapter(allItems, mContext);
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {

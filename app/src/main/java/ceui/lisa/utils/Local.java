@@ -16,7 +16,6 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import ceui.lisa.activities.PikaActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.model.IllustsBean;
@@ -192,45 +191,6 @@ public class Local {
                         callback.doSomething(localIllust);
                     }
                 });
-    }
-
-    public static String getPikaImageFileName(){
-        SharedPreferences localData = Shaft.getContext().getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
-        return localData.getString("pika file name", "nopic.png");
-    }
-
-    public static long getPikaTime(){
-        SharedPreferences localData = Shaft.getContext().getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
-        return localData.getLong("pika file time", 0L);
-    }
-
-    public static void setPikaImageFile(String pikaFileName, IllustsBean illustsBean){
-        SharedPreferences localData = Shaft.getContext().getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
-        File file = new File(PikaActivity.FILE_PATH);
-
-        //删除其他封面图
-        File[] childFile = file.listFiles();
-        for (File temp : childFile) {
-            if (!temp.getName().equals(pikaFileName)) {
-                temp.delete();
-            }
-        }
-        SharedPreferences.Editor editor = localData.edit();
-        editor.putString("pika file name", pikaFileName);
-        editor.putString("pika illust", new Gson().toJson(illustsBean));
-        editor.putLong("pika file time", System.currentTimeMillis());
-        editor.apply();
-
-        Channel channel = new Channel();
-        channel.setReceiver("CoverActivity");
-        EventBus.getDefault().post(channel);
-    }
-
-    public static IllustsBean getPikaIllust(){
-        SharedPreferences localData = Shaft.getContext().getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
-        String illustJson = localData.getString("pika illust", "");
-        IllustsBean illustsBean = new Gson().fromJson(illustJson, IllustsBean.class);
-        return illustsBean;
     }
 
     public static void setSettings(Settings settings){

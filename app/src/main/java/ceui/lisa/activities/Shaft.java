@@ -1,9 +1,7 @@
 package ceui.lisa.activities;
 
 import android.app.Application;
-import android.app.Service;
 import android.content.Context;
-import android.os.Vibrator;
 
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
@@ -19,20 +17,16 @@ import ceui.lisa.utils.Settings;
 
 public class Shaft extends Application {
 
-    /**
-     * 全局context
-     */
-    private static Context sContext = null;
     public static UserModel sUserModel;
     public static Settings sSettings;
-
-
-
     /**
      * 状态栏高度，初始化
      */
     public static int statusHeight = 0, toolbarHeight = 0;
-
+    /**
+     * 全局context
+     */
+    private static Context sContext = null;
 
     static {
         SmartRefreshLayout.setDefaultRefreshHeaderCreator((context, layout) -> {
@@ -44,6 +38,14 @@ public class Shaft extends Application {
                 new ClassicsFooter(context).setDrawableSize(20));
     }
 
+    public static Context getContext() {
+        return sContext;
+    }
+
+    public static void setContext(Context context) {
+        sContext = context;
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -52,7 +54,6 @@ public class Shaft extends Application {
         sContext = this;
         sUserModel = Local.getUser();
         sSettings = Local.getSettings();
-
 
 
         // 腾讯统计API
@@ -70,13 +71,5 @@ public class Shaft extends Application {
 
 
         //Spray.startServer("8088");
-    }
-
-    public static Context getContext() {
-        return sContext;
-    }
-
-    public static void setContext(Context context) {
-        sContext = context;
     }
 }

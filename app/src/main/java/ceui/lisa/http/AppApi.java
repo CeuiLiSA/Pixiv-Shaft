@@ -13,7 +13,6 @@ import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.model.ListUserResponse;
 import ceui.lisa.model.TrendingtagResponse;
 import ceui.lisa.model.UserDetailResponse;
-import ceui.lisa.utils.NewObservable;
 import io.reactivex.Observable;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;

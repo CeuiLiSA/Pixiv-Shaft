@@ -1,17 +1,18 @@
 package ceui.lisa.activities;
 
 import android.content.DialogInterface;
-import androidx.annotation.Nullable;
+import android.view.Menu;
+import android.view.MenuItem;
 
-import com.ToxicBakery.viewpager.transforms.DrawerTransformer;
-import com.google.android.material.tabs.TabLayout;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.viewpager.widget.ViewPager;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.widget.Toolbar;
-import android.view.Menu;
-import android.view.MenuItem;
+
+import com.ToxicBakery.viewpager.transforms.DrawerTransformer;
+import com.google.android.material.tabs.TabLayout;
 
 import ceui.lisa.R;
 import ceui.lisa.database.AppDatabase;
@@ -85,21 +86,21 @@ public class DownloadManageActivity extends BaseActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        if(mViewPager != null){
-            if(mViewPager.getCurrentItem() == 0){
+        if (mViewPager != null) {
+            if (mViewPager.getCurrentItem() == 0) {
                 return false;
-            }else {
+            } else {
                 getMenuInflater().inflate(R.menu.delete_all, menu);
                 return true;
             }
-        }else {
+        } else {
             return false;
         }
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if(item.getItemId() == R.id.action_delete){
+        if (item.getItemId() == R.id.action_delete) {
 
             AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
             builder.setTitle("Shaft 提示");
@@ -109,7 +110,7 @@ public class DownloadManageActivity extends BaseActivity {
                 public void onClick(DialogInterface dialog, int which) {
                     AppDatabase.getAppDatabase(mContext).downloadDao().deleteAllDownload();
                     Common.showToast("下载记录清除成功");
-                    if(allPages[1] instanceof FragmentDownloadFinish) {
+                    if (allPages[1] instanceof FragmentDownloadFinish) {
                         ((FragmentDownloadFinish) allPages[1]).getFirstData();
                     }
                 }

@@ -20,7 +20,7 @@ import ceui.lisa.model.SpotlightArticlesBean;
 import ceui.lisa.utils.GlideUtil;
 
 
-public class ArticalAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public class ArticleAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private Context mContext;
     private LayoutInflater mLayoutInflater;
@@ -28,7 +28,7 @@ public class ArticalAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     private List<SpotlightArticlesBean> allIllust;
     private int imageSize = 0;
 
-    public ArticalAdapter(List<SpotlightArticlesBean> list, Context context) {
+    public ArticleAdapter(List<SpotlightArticlesBean> list, Context context) {
         mContext = context;
         mLayoutInflater = LayoutInflater.from(mContext);
         allIllust = list;

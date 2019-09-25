@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.net.Uri;
-import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.MenuItem;
@@ -15,7 +14,6 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -32,35 +30,25 @@ import com.zhihu.matisse.Matisse;
 import com.zhihu.matisse.MimeType;
 import com.zhihu.matisse.engine.impl.PicassoEngine;
 
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
-
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.download.TaskQueue;
 import ceui.lisa.fragments.BaseFragment;
-import ceui.lisa.fragments.FragmentBlank;
 import ceui.lisa.fragments.FragmentCenter;
 import ceui.lisa.fragments.FragmentLeft;
 import ceui.lisa.fragments.FragmentRight;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.model.UserModel;
-import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
-import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.ReverseImage;
 import ceui.lisa.utils.ReverseWebviewCallback;
 import io.reactivex.disposables.Disposable;
 
-import static ceui.lisa.activities.PikaActivity.FILE_PATH;
 import static ceui.lisa.activities.Shaft.sUserModel;
-import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
 public class CoverActivity extends BaseActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -176,7 +164,7 @@ public class CoverActivity extends BaseActivity
         if (userModel != null && userModel.getResponse().getUser().isIs_login()) {
             checkPermission(t -> initFragment());
         } else {
-            Intent intent = new Intent(mContext, LoginAlphaActivity.class);
+            Intent intent = new Intent(mContext, LoginActivity.class);
             startActivity(intent);
             finish();
         }
@@ -240,7 +228,6 @@ public class CoverActivity extends BaseActivity
         mDrawer.closeDrawer(GravityCompat.START);
         return true;
     }
-
 
 
     private void initDrawerHeader() {

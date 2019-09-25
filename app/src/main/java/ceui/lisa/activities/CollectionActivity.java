@@ -1,20 +1,19 @@
 package ceui.lisa.activities;
 
 import android.content.Intent;
-import androidx.annotation.Nullable;
-
-import com.ToxicBakery.viewpager.transforms.DrawerTransformer;
-import com.ToxicBakery.viewpager.transforms.FlipHorizontalTransformer;
-import com.google.android.material.tabs.TabLayout;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentStatePagerAdapter;
-import androidx.viewpager.widget.ViewPager;
-import androidx.appcompat.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import androidx.annotation.Nullable;
+import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentStatePagerAdapter;
+import androidx.viewpager.widget.ViewPager;
+
+import com.ToxicBakery.viewpager.transforms.DrawerTransformer;
+import com.google.android.material.tabs.TabLayout;
+
 import ceui.lisa.R;
-import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentFollowUser;
 import ceui.lisa.fragments.FragmentLikeIllust;
 
@@ -90,28 +89,28 @@ public class CollectionActivity extends BaseActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        if(mViewPager != null){
+        if (mViewPager != null) {
             if (mViewPager.getCurrentItem() == 0 || mViewPager.getCurrentItem() == 1) {
                 getMenuInflater().inflate(R.menu.illust_filter, menu);
                 return true;
-            }else {
+            } else {
                 return super.onCreateOptionsMenu(menu);
             }
-        }else {
+        } else {
             return super.onCreateOptionsMenu(menu);
         }
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (mViewPager.getCurrentItem() == 0){
+        if (mViewPager.getCurrentItem() == 0) {
             Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
             intent.putExtra(TemplateFragmentActivity.EXTRA_KEYWORD,
                     FragmentLikeIllust.TYPE_PUBLUC);
             intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
                     "按标签筛选");
             startActivity(intent);
-        }else if (mViewPager.getCurrentItem() == 1){
+        } else if (mViewPager.getCurrentItem() == 1) {
             Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
             intent.putExtra(TemplateFragmentActivity.EXTRA_KEYWORD,
                     FragmentLikeIllust.TYPE_PRIVATE);

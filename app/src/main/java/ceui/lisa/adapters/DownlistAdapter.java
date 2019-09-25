@@ -84,7 +84,6 @@ public class DownlistAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
 
         if (mOnItemClickListener != null) {
-
             currentOne.itemView.setOnClickListener(v -> {
                 mOnItemClickListener.onItemClick(v, position, 0);
             });
@@ -110,29 +109,21 @@ public class DownlistAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
         TagHolder(View itemView) {
             super(itemView);
-
             illust = itemView.findViewById(R.id.illust_image);
             title = itemView.findViewById(R.id.title);
             time = itemView.findViewById(R.id.time);
             author = itemView.findViewById(R.id.author);
             pSize = itemView.findViewById(R.id.p_size);
             SpringSystem springSystem = SpringSystem.create();
-
-            // Add a spring to the system.
             spring = springSystem.createSpring();
-
             spring.setSpringConfig(SpringConfig.fromOrigamiTensionAndFriction(40, 5));
             spring.addListener(new SimpleSpringListener() {
 
                 @Override
                 public void onSpringUpdate(Spring spring) {
-                    // You can observe the updates in the spring
-                    // state by asking its current value in onSpringUpdate.
                     itemView.setTranslationX((float) spring.getCurrentValue());
-                    //Common.showLog(spring.getCurrentValue());
                 }
             });
-
         }
     }
 }

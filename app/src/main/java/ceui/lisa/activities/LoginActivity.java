@@ -2,16 +2,15 @@ package ceui.lisa.activities;
 
 import android.content.Intent;
 import android.graphics.Color;
-import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.appcompat.app.AlertDialog;
-import androidx.cardview.widget.CardView;
-import androidx.appcompat.widget.Toolbar;
 import android.text.TextUtils;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+
+import androidx.appcompat.widget.Toolbar;
+import androidx.cardview.widget.CardView;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
@@ -24,40 +23,37 @@ import ceui.lisa.R;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
 import ceui.lisa.http.ErrorCtrl;
+import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.SignResponse;
-import ceui.lisa.model.UserBean;
 import ceui.lisa.model.UserModel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
-import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 
-public class LoginAlphaActivity extends BaseActivity {
+public class LoginActivity extends BaseActivity {
 
+    public static final String CLIENT_ID = "MOBrBDS8blbauoSck0ZfDbtuzpyT";
+    public static final String CLIENT_SECRET = "lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj";
+    public static final String DEVICE_TOKEN = "pixiv";
+    private static final String SIGN_TOKEN = "Bearer l-f9qZ0ZyqSwRyZs8-MymbtWBbSxmCu1pmbOlyisou8";
+    private static final String SIGN_REF = "pixiv_android_app_provisional_account";
     private ConstraintLayout cardLogin, cardSign;
     private SpringSystem springSystem = SpringSystem.create();
     private Spring rotate;
     private CardView login, sign;
     private MaterialEditText userName, password, signName;
     private ProgressBar mProgressBar;
-    private static final String SIGN_TOKEN = "Bearer l-f9qZ0ZyqSwRyZs8-MymbtWBbSxmCu1pmbOlyisou8";
-    private static final String SIGN_REF = "pixiv_android_app_provisional_account";
-
-    public static final String CLIENT_ID = "MOBrBDS8blbauoSck0ZfDbtuzpyT";
-    public static final String CLIENT_SECRET = "lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj";
-    public static final String DEVICE_TOKEN = "pixiv";
 
     @Override
     protected void initLayout() {
-        mLayoutID = R.layout.activity_login_alpha;
+        mLayoutID = R.layout.activity_login;
         getWindow().setStatusBarColor(Color.TRANSPARENT);
         getWindow().getDecorView().setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+                        View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
     }
 
     @Override
@@ -68,7 +64,7 @@ public class LoginAlphaActivity extends BaseActivity {
         toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
-                if(item.getItemId() == R.id.action_settings){
+                if (item.getItemId() == R.id.action_settings) {
                     Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
                     intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "设置");
                     startActivity(intent);
@@ -81,7 +77,7 @@ public class LoginAlphaActivity extends BaseActivity {
         signName = findViewById(R.id.sign_user_name);
         password = findViewById(R.id.password);
         userName = findViewById(R.id.user_name);
-        if(Shaft.sUserModel != null) {
+        if (Shaft.sUserModel != null) {
             userName.setText(Shaft.sUserModel.getResponse().getUser().getAccount());
             password.requestFocus();
         }
@@ -91,13 +87,13 @@ public class LoginAlphaActivity extends BaseActivity {
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(userName.getText().toString().length() != 0) {
-                    if(password.getText().toString().length() != 0) {
+                if (userName.getText().toString().length() != 0) {
+                    if (password.getText().toString().length() != 0) {
                         login(userName.getText().toString(), password.getText().toString());
-                    }else {
+                    } else {
                         Common.showToast("请输入密码");
                     }
-                }else {
+                } else {
                     Common.showToast("请输入用户名");
                 }
             }
@@ -106,9 +102,9 @@ public class LoginAlphaActivity extends BaseActivity {
         sign.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(signName.getText().toString().length() != 0) {
+                if (signName.getText().toString().length() != 0) {
                     sign();
-                }else {
+                } else {
                     Common.showToast("请输入用户名");
                 }
             }
@@ -136,12 +132,12 @@ public class LoginAlphaActivity extends BaseActivity {
         rotate.setSpringConfig(SpringConfig.fromOrigamiTensionAndFriction(15, 8));
     }
 
-    public void showSignCard(){
+    public void showSignCard() {
         cardLogin.setVisibility(View.INVISIBLE);
         cardSign.setVisibility(View.VISIBLE);
         rotate.setCurrentValue(0);
         cardSign.setCameraDistance(80000.0f);
-        rotate.addListener(new SimpleSpringListener(){
+        rotate.addListener(new SimpleSpringListener() {
             @Override
             public void onSpringUpdate(Spring spring) {
                 cardSign.setRotationY((float) spring.getCurrentValue());
@@ -155,12 +151,12 @@ public class LoginAlphaActivity extends BaseActivity {
         rotate.setEndValue(360.0f);
     }
 
-    public void showLoginCard(){
+    public void showLoginCard() {
         cardSign.setVisibility(View.INVISIBLE);
         cardLogin.setVisibility(View.VISIBLE);
         rotate.setCurrentValue(0);
         cardLogin.setCameraDistance(80000.0f);
-        rotate.addListener(new SimpleSpringListener(){
+        rotate.addListener(new SimpleSpringListener() {
             @Override
             public void onSpringUpdate(Spring spring) {
                 cardLogin.setRotationY((float) spring.getCurrentValue());
@@ -174,7 +170,7 @@ public class LoginAlphaActivity extends BaseActivity {
         rotate.setEndValue(360.0f);
     }
 
-    private void sign(){
+    private void sign() {
         Common.hideKeyboard(mActivity);
         mProgressBar.setVisibility(View.VISIBLE);
         Retro.getSignApi().pixivSign(SIGN_TOKEN, signName.getText().toString(), SIGN_REF)
@@ -183,15 +179,15 @@ public class LoginAlphaActivity extends BaseActivity {
                 .subscribe(new ErrorCtrl<SignResponse>() {
                     @Override
                     public void onNext(SignResponse signResponse) {
-                        if(signResponse != null){
-                            if(signResponse.isError()){
+                        if (signResponse != null) {
+                            if (signResponse.isError()) {
                                 if (!TextUtils.isEmpty(signResponse.getMessage())) {
                                     Common.showToast(signResponse.getMessage());
-                                }else {
+                                } else {
                                     Common.showToast("未知错误");
                                 }
                                 mProgressBar.setVisibility(View.INVISIBLE);
-                            }else {
+                            } else {
                                 login(signResponse.getBody().getUser_account(), signResponse.getBody().getPassword());
                             }
                         }
@@ -199,7 +195,7 @@ public class LoginAlphaActivity extends BaseActivity {
                 });
     }
 
-    private void login(String username, String pwd){
+    private void login(String username, String pwd) {
         Common.hideKeyboard(mActivity);
         mProgressBar.setVisibility(View.VISIBLE);
         Retro.getAccountApi().login(
@@ -212,9 +208,9 @@ public class LoginAlphaActivity extends BaseActivity {
                 pwd,
                 username).subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new ErrorCtrl<UserModel>() {
+                .subscribe(new NullCtrl<UserModel>() {
                     @Override
-                    public void onNext(UserModel userModel) {
+                    public void success(UserModel userModel) {
                         userModel.getResponse().getUser().setPassword(pwd);
                         Local.saveUser(userModel);
                         UserEntity userEntity = new UserEntity();

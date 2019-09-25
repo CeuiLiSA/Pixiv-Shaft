@@ -10,7 +10,6 @@ import ceui.lisa.fragments.FragmentAbout;
 import ceui.lisa.fragments.FragmentBlank;
 import ceui.lisa.fragments.FragmentBookTag;
 import ceui.lisa.fragments.FragmentComment;
-import ceui.lisa.fragments.FragmentDrag;
 import ceui.lisa.fragments.FragmentFollowUser;
 import ceui.lisa.fragments.FragmentLicense;
 import ceui.lisa.fragments.FragmentLikeIllust;
@@ -67,8 +66,6 @@ public class TemplateFragmentActivity extends FragmentActivity {
                     return new FragmentRecmdUser();
                 case "特辑":
                     return new FragmentPivision();
-                case "拖动测试":
-                    return new FragmentDrag();
                 case "搜索用户": {
                     String keyword = intent.getStringExtra(EXTRA_KEYWORD);
                     return FragmentSearchUser.newInstance(keyword);

@@ -7,7 +7,7 @@ import android.content.Intent;
 import java.util.ArrayList;
 import java.util.List;
 
-import ceui.lisa.activities.LoginAlphaActivity;
+import ceui.lisa.activities.LoginActivity;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
@@ -22,51 +22,10 @@ import retrofit2.Callback;
 
 public class PixivOperate {
 
-//    public static void followOrUnfollowClick(int id, TextView post_like_user){
-//        UserModel.ResponseBean response = Local.getUser().getResponse();
-//        if (id == response.getUser().getId()) {
-//            Common.showToast("不能对自己操作");
-//        }
-//        Retro.getAppApi().getUserDetail(response.getAccess_token(), id)
-//                .subscribeOn(Schedulers.newThread())
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribe(new Observer<UserDetailResponse>() {
-//                    @Override
-//                    public void onSubscribe(Disposable d) {
-//
-//                    }
-//
-//                    @Override
-//                    public void onNext(UserDetailResponse userDetailResponse) {
-//                        UserBean user = userDetailResponse.getUser();
-//
-//                        if (user.isIs_followed()) {
-//                            PixivOperate.postUnFollowUser(id);
-//                            post_like_user.setText("+ 關注");
-//                            user.setIs_followed(false);
-//                        } else {
-//                            PixivOperate.postFollowUser(id, "public");
-//                            post_like_user.setText("取消關注");
-//                            user.setIs_followed(true);
-//                        }
-//                    }
-//
-//                    @Override
-//                    public void onError(Throwable e) {
-//
-//                    }
-//
-//                    @Override
-//                    public void onComplete() {
-//
-//                    }
-//                });
-//    }
-
     public static void changeUser(UserModel userModel, Callback<UserModel> callback){
         Call<UserModel> call = Retro.getAccountApi().refreshToken(
-                LoginAlphaActivity.CLIENT_ID,
-                LoginAlphaActivity.CLIENT_SECRET,
+                LoginActivity.CLIENT_ID,
+                LoginActivity.CLIENT_SECRET,
                 "refresh_token",
                 userModel.getResponse().getRefresh_token(),
                 userModel.getResponse().getDevice_token(),
