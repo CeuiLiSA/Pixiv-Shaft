@@ -21,18 +21,8 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 public class FragmentPivision extends BaseListFragment<ArticalResponse, ArticalAdapter, SpotlightArticlesBean> {
 
     @Override
-    void initLayout() {
-        mLayoutID = R.layout.fragment_illust_list;
-    }
-
-    @Override
     Observable<ArticalResponse> initApi() {
         return Retro.getAppApi().getArticals(sUserModel.getResponse().getAccess_token());
-    }
-
-    @Override
-    boolean showToolbar() {
-        return true;
     }
 
     @Override
@@ -42,7 +32,6 @@ public class FragmentPivision extends BaseListFragment<ArticalResponse, ArticalA
 
     @Override
     void initRecyclerView() {
-        super.initRecyclerView();
         LinearLayoutManager manager = new LinearLayoutManager(mContext);
         mRecyclerView.setLayoutManager(manager);
         mRecyclerView.addItemDecoration(new LinearItemDecoration(DensityUtil.dp2px(16.0f)));

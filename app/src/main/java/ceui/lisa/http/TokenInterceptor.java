@@ -80,7 +80,7 @@ public class TokenInterceptor implements Interceptor {
      * @return
      */
     private String getNewToken() throws IOException {
-        Common.showLog("synchronized getNewToken111");
+        Common.showToast("刷新登录信息");
         UserModel userModel = Local.getUser();
         Call<UserModel> call = Retro.getAccountApi().refreshToken(
                 LoginAlphaActivity.CLIENT_ID,
@@ -96,8 +96,6 @@ public class TokenInterceptor implements Interceptor {
         }
         Local.saveUser(newUser);
         isTokenNew = true;
-        Common.showLog("synchronized getNewToken222");
-
         if (newUser != null && newUser.getResponse() != null) {
             return newUser.getResponse().getAccess_token();
         } else {

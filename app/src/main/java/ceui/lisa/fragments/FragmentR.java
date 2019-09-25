@@ -5,6 +5,7 @@ import android.content.Intent;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import com.google.gson.Gson;
+import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -39,8 +40,8 @@ public class FragmentR extends FragmentList<ListIllustResponse, IllustsBean, Rec
 
     @Override
     public Observable<ListIllustResponse> initApi() {
-        return Retro.getAppApi().getRecmdIllust(Shaft.sUserModel.getResponse().getAccess_token(), true);
-        //return null;
+        //return Retro.getAppApi().getRecmdIllust(Shaft.sUserModel.getResponse().getAccess_token(), true);
+        return null;
     }
 
     @Override
@@ -130,7 +131,7 @@ public class FragmentR extends FragmentList<ListIllustResponse, IllustsBean, Rec
                     @Override
                     public void must(boolean isSuccess) {
                         baseBind.refreshLayout.finishRefresh(isSuccess);
-                        baseBind.refreshLayout.setEnableLoadMore(false);
+                        baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
                     }
                 });
     }

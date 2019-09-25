@@ -97,7 +97,6 @@ public class ArticalAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     }
 
     public static class HeadHolder extends RecyclerView.ViewHolder {
-
         HeadHolder(View itemView) {
             super(itemView);
         }

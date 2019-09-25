@@ -87,7 +87,7 @@ public class FragmentLikeIllust extends FragmentList<ListIllustResponse, Illusts
     public void onMessageEvent(Channel event) {
         if (event.getReceiver().contains(starType)) {
             tag = (String) event.getObject();
-            getFirstData();
+            baseBind.refreshLayout.autoRefresh();
         }
     }
 

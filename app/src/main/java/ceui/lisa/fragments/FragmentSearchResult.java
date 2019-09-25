@@ -50,7 +50,6 @@ public class FragmentSearchResult extends AutoClipFragment<ListIllustResponse, I
     private String searchTarget = "partial_match_for_tags";
     private FlowingDrawer mDrawer;
     private boolean isPopular = false;
-    private FlowingMenuLayout mFlowingMenuLayout;
     private FragmentFilter mFragmentFilter;
     private EditText mEditText;
 
@@ -64,9 +63,9 @@ public class FragmentSearchResult extends AutoClipFragment<ListIllustResponse, I
 
     public static FragmentSearchResult newInstance(String keyWord, String sort, String searchTarget) {
         FragmentSearchResult fragmentSearchResult = new FragmentSearchResult();
-        fragmentSearchResult.setKeyWord(keyWord);
-        fragmentSearchResult.setSort(sort);
-        fragmentSearchResult.setSearchTarget(searchTarget);
+        fragmentSearchResult.keyWord = keyWord;
+        fragmentSearchResult.sort = sort;
+        fragmentSearchResult.searchTarget = searchTarget;
         fragmentSearchResult.starSize = Shaft.sSettings.getSearchFilter().contains("无限制") ?
                 "" : (Shaft.sSettings.getSearchFilter() + "user");
         return fragmentSearchResult;
@@ -98,7 +97,6 @@ public class FragmentSearchResult extends AutoClipFragment<ListIllustResponse, I
                 return true;
             }
         });
-        mFlowingMenuLayout = v.findViewById(R.id.menulayout);
         mDrawer.setTouchMode(ElasticDrawer.TOUCH_MODE_BEZEL);
         token = sUserModel.getResponse().getAccess_token();
         mFragmentFilter = FragmentFilter.newInstance(new FragmentFilter.SearchFilter() {
@@ -154,7 +152,6 @@ public class FragmentSearchResult extends AutoClipFragment<ListIllustResponse, I
 
     @Override
     void initRecyclerView() {
-        super.initRecyclerView();
         GridScrollChangeManager manager = new GridScrollChangeManager(mContext, 2);
         mRecyclerView.setLayoutManager(manager);
         mRecyclerView.addItemDecoration(new GridItemDecoration(2, DensityUtil.dp2px(4.0f), false));
@@ -211,33 +208,6 @@ public class FragmentSearchResult extends AutoClipFragment<ListIllustResponse, I
                 mDrawer.openMenu(true);
             }
         }
-//        if (item.getItemId() == R.id.action_filter) {
-//            AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-//            builder.setTitle("被收藏数");
-//            builder.setItems(ALL_SIZE, new DialogInterface.OnClickListener() {
-//                @Override
-//                public void onClick(DialogInterface dialog, int which) {
-//                    starSize = ALL_SIZE[which].contains("无限制") ? "" : ALL_SIZE[which];
-//                    sort = "date_desc";
-//                    token = sUserModel.getResponse().getAccess_token();
-//                    getFirstData();
-//                }
-//            });
-//            AlertDialog alertDialog = builder.create();
-//            alertDialog.show();
-//        }else if(item.getItemId() == R.id.action_rank){
-//            getRankToken();
-//        }else if(item.getItemId() == R.id.action_new){
-//            sort = "date_desc";
-//            starSize = "";
-//            token = sUserModel.getResponse().getAccess_token();
-//            getFirstData();
-//        }else if(item.getItemId() == R.id.action_old){
-//            sort = "date_asc";
-//            starSize = "";
-//            token = sUserModel.getResponse().getAccess_token();
-//            getFirstData();
-//        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -262,29 +232,5 @@ public class FragmentSearchResult extends AutoClipFragment<ListIllustResponse, I
                         }
                     });
         }
-    }
-
-    public String getKeyWord() {
-        return keyWord;
-    }
-
-    public void setKeyWord(String keyWord) {
-        this.keyWord = keyWord;
-    }
-
-    public String getSort() {
-        return sort;
-    }
-
-    public void setSort(String sort) {
-        this.sort = sort;
-    }
-
-    public String getSearchTarget() {
-        return searchTarget;
-    }
-
-    public void setSearchTarget(String searchTarget) {
-        this.searchTarget = searchTarget;
     }
 }

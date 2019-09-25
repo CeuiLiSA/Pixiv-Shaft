@@ -109,7 +109,7 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
 
     @Override
     void initLayout() {
-        mLayoutID = R.layout.activity_simple_list;
+        mLayoutID = R.layout.fragment_illust_list;
     }
 
     @Override

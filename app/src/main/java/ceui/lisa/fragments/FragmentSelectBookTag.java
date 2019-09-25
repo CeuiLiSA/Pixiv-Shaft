@@ -38,7 +38,6 @@ public class FragmentSelectBookTag extends BaseListFragment<IllustBookmarkTags, 
 
     private int illustID;
     private Switch mSwitch;
-    private String bookType = "";
 
     public static FragmentSelectBookTag newInstance(int illustID) {
         FragmentSelectBookTag fragment = new FragmentSelectBookTag();

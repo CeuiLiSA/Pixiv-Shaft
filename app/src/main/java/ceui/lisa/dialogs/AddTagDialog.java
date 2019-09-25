@@ -40,11 +40,6 @@ public class AddTagDialog extends BaseDialog {
                 }
 
                 dismiss();
-//                Channel channel = new Channel();
-//                channel.setReceiver("FragmentSelectBookTag");
-//                channel.setObject(tagName.getText().toString());
-//                EventBus.getDefault().post(channel);
-//                dismiss();
             }
         });
         cancel = v.findViewById(R.id.cancel);

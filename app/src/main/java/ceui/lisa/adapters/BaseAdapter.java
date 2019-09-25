@@ -50,7 +50,7 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
 
     @NonNull
     @Override
-    public ViewHolder<BindView> onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         return new ViewHolder<>(getBind(LayoutInflater.from(mContext), parent).getRoot());
     }
 

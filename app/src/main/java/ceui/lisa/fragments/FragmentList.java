@@ -106,18 +106,18 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
                         @Override
                         public void success(Response response) {
                             mResponse = response;
+                            firstSuccess();
                             if (response.getList() != null && response.getList().size() != 0) {
                                 int lastSize = allItems.size();
                                 allItems.addAll(response.getList());
                                 mAdapter.notifyItemRangeInserted(lastSize, response.getList().size());
                             }
-                            if (!TextUtils.isEmpty(response.getNextUrl())) {
-                                nextUrl = response.getNextUrl();
+                            nextUrl = response.getNextUrl();
+                            if (!TextUtils.isEmpty(nextUrl)) {
                                 baseBind.refreshLayout.setRefreshFooter(getFooter());
                             } else {
                                 baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
                             }
-                            firstSuccess();
                         }
 
                         @Override
@@ -139,7 +139,7 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
     @Override
     public void getNextData() {
         mApi = initNextApi();
-        if (mApi != null) {
+        if (mApi != null && !TextUtils.isEmpty(nextUrl)) {
             mApi.subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new NullCtrl<Response>() {
@@ -163,7 +163,6 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
                     });
         } else {
             baseBind.refreshLayout.finishLoadMore(true);
-            baseBind.refreshLayout.setEnableLoadMore(false);
         }
     }
 
