@@ -10,11 +10,12 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
+import ceui.lisa.interfaces.MultiDownload;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 
-public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding> {
+public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding> implements MultiDownload {
 
     private int imageSize;
     private boolean isSquare = false;
@@ -80,5 +81,22 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
                 mOnItemClickListener.onItemClick(view, position, 0);
             }
         });
+        bindView.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                startDownload();
+                return true;
+            }
+        });
+    }
+
+    @Override
+    public Context getContext() {
+        return mContext;
+    }
+
+    @Override
+    public List<IllustsBean> getIllustList() {
+        return allIllust;
     }
 }

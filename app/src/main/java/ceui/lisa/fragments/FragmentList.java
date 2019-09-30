@@ -21,6 +21,7 @@ import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.databinding.FragmentListBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.interfaces.ListShow;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
 import io.reactivex.Observable;
@@ -89,7 +90,6 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
         }
     }
 
-
     public abstract Observable<Response> initApi();
 
     public abstract Observable<Response> initNextApi();
@@ -151,9 +151,7 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
                                 allItems.addAll(response.getList());
                                 mAdapter.notifyItemRangeInserted(lastSize, response.getList().size());
                             }
-                            if (!TextUtils.isEmpty(response.getNextUrl())) {
-                                nextUrl = response.getNextUrl();
-                            }
+                            nextUrl = response.getNextUrl();
                         }
 
                         @Override

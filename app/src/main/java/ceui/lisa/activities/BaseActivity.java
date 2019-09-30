@@ -23,7 +23,6 @@ public abstract class BaseActivity extends AppCompatActivity {
         mContext = this;
         mActivity = this;
 
-
         initView();
         initData();
     }

@@ -43,6 +43,7 @@
         <ImageView
             android:id="@+id/like"
             android:layout_width="@dimen/sixteen_dp"
+            android:visibility="invisible"
             android:layout_height="@dimen/sixteen_dp"
             android:layout_alignBottom="@+id/time"
             android:layout_alignParentEnd="true"
@@ -55,6 +56,7 @@
             android:id="@+id/like_count"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:visibility="invisible"
             android:layout_alignBottom="@+id/time"
             android:layout_marginEnd="@dimen/four_dp"
             android:layout_marginBottom="10dp"

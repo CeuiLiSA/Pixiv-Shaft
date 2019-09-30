@@ -80,7 +80,6 @@ public class TokenInterceptor implements Interceptor {
      * @return
      */
     private String getNewToken() throws IOException {
-        Common.showToast("刷新登录信息");
         UserModel userModel = Local.getUser();
         Call<UserModel> call = Retro.getAccountApi().refreshToken(
                 LoginActivity.CLIENT_ID,
