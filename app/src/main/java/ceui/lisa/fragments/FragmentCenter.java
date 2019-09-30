@@ -8,6 +8,7 @@ import android.widget.TextView;
 
 import androidx.fragment.app.FragmentTransaction;
 
+import com.bumptech.glide.Glide;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
@@ -28,9 +29,10 @@ public class FragmentCenter extends BaseFragment {
     @Override
     View initView(View v) {
         ImageView head = v.findViewById(R.id.head);
-        ViewGroup.LayoutParams headParams = head.getLayoutParams();
-        headParams.height = Shaft.statusHeight;
-        head.setLayoutParams(headParams);
+//        ViewGroup.LayoutParams headParams = head.getLayoutParams();
+//        headParams.height = Shaft.statusHeight;
+//        head.setLayoutParams(headParams);
+        Glide.with(mContext).load("https://api.dujin.org/bing/1920.php").into(head);
 
         RefreshLayout refreshLayout = v.findViewById(R.id.refreshLayout);
         refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));

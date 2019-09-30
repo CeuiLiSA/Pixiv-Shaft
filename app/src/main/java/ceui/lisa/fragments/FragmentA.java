@@ -115,6 +115,6 @@ public class FragmentA extends BaseBindFragment<FragmentABinding> {
             }
             mAdapter.notifyItemRangeInserted(0, allItems.size());
             baseBind.refreshLayout.finishRefresh(true);
-        }, 1000L);
+        }, 600L);
     }
 }
