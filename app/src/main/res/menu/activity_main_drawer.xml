@@ -41,14 +41,13 @@
                 android:title="@string/search_image_origin" />
             <item
                 android:id="@+id/nav_send"
-                android:icon="@drawable/ic_menu_send"
+                android:icon="@drawable/ic_toys_black_24dp"
                 android:title="@string/walkthrough" />
-
 
             <item
                 android:id="@+id/web_test"
-                android:icon="@drawable/ic_menu_send"
-                android:title="动画测试" />
+                android:icon="@drawable/ic_loyalty_black_24dp"
+                android:title="@string/hito" />
         </menu>
     </item>
 

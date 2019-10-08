@@ -56,4 +56,5 @@
     <string name="select_inner_storage">请选择本机内置存储</string>
     <string name="walkthrough">画廊</string>
     <string name="search">搜索</string>
+    <string name="hito">一言</string>
 </resources>

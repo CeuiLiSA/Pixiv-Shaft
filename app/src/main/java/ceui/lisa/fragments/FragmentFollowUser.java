@@ -32,8 +32,6 @@ public class FragmentFollowUser extends FragmentList<ListUserResponse, UserPrevi
 
     @Override
     public boolean showToolbar() {
-        Common.showLog("userID userID" + userID);
-        Common.showLog("selfID selfID" + sUserModel.getResponse().getUser().getId());
         return userID != sUserModel.getResponse().getUser().getId();
     }
 

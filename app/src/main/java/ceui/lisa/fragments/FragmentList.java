@@ -1,8 +1,10 @@
 package ceui.lisa.fragments;
 
+import android.content.Intent;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.animation.AnticipateOvershootInterpolator;
+import android.widget.Button;
 
 import androidx.databinding.ViewDataBinding;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -17,12 +19,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.adapters.BaseAdapter;
+import ceui.lisa.adapters.UAdapter;
 import ceui.lisa.databinding.FragmentListBinding;
 import ceui.lisa.http.NullCtrl;
+import ceui.lisa.interfaces.FullClickListener;
 import ceui.lisa.interfaces.ListShow;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
+import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.view.LinearItemDecoration;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;

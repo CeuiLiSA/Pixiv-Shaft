@@ -11,6 +11,7 @@ import ceui.lisa.fragments.FragmentBlank;
 import ceui.lisa.fragments.FragmentBookTag;
 import ceui.lisa.fragments.FragmentComment;
 import ceui.lisa.fragments.FragmentFollowUser;
+import ceui.lisa.fragments.FragmentH;
 import ceui.lisa.fragments.FragmentLicense;
 import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.fragments.FragmentLocalUsers;
@@ -108,6 +109,8 @@ public class TemplateFragmentActivity extends FragmentActivity {
                     return new FragmentNiceFriend();
                 case "搜索":
                     return new FragmentSearch();
+                case "一言":
+                    return new FragmentH();
                 default:
                     return new FragmentBlank();
             }

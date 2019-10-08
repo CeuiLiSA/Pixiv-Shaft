@@ -220,7 +220,7 @@ public class CoverActivity extends BaseActivity
             startActivity(intent);
         } else if (id == R.id.web_test) {
             Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "跟随动画");
+            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "一言");
             startActivity(intent);
 
         }
