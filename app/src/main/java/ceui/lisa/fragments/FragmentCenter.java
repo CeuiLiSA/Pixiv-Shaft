@@ -9,6 +9,7 @@ import android.widget.TextView;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
@@ -32,7 +33,11 @@ public class FragmentCenter extends BaseFragment {
 //        ViewGroup.LayoutParams headParams = head.getLayoutParams();
 //        headParams.height = Shaft.statusHeight;
 //        head.setLayoutParams(headParams);
-        Glide.with(mContext).load("https://api.dujin.org/bing/1920.php").into(head);
+        Glide.with(mContext)
+                .load("https://api.dujin.org/bing/1920.php")
+                .diskCacheStrategy(DiskCacheStrategy.NONE)
+                .skipMemoryCache(true)
+                .into(head);
 
         RefreshLayout refreshLayout = v.findViewById(R.id.refreshLayout);
         refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));

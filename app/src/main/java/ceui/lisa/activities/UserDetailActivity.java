@@ -3,7 +3,9 @@ package ceui.lisa.activities;
 import android.content.Intent;
 import android.graphics.Color;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
@@ -26,6 +28,7 @@ import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.http.Rx;
 import ceui.lisa.model.UserDetailResponse;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.view.AppBarStateChangeListener;
@@ -60,7 +63,27 @@ public class UserDetailActivity extends BaseActivity {
         userName = findViewById(R.id.user_name);
         fans = findViewById(R.id.user_follow);
         Toolbar toolbar = findViewById(R.id.toolbar_help);
-        toolbar.setPadding(0, Shaft.statusHeight, 0, 0);
+
+
+        ImageView imageView = findViewById(R.id.header_item_id);
+        ViewGroup.LayoutParams layoutParams = imageView.getLayoutParams();
+
+        //如果在MainActivity显示，判断是否有刘海
+        int statusHeight = 0;
+        int resourceId = mContext.getResources().getIdentifier("status_bar_height", "dimen", "android");
+        if (resourceId > 0) {
+            statusHeight = mContext.getResources().getDimensionPixelSize(resourceId);
+        }
+
+
+        if(statusHeight >= 80) {
+            layoutParams.height = statusHeight;
+            imageView.setLayoutParams(layoutParams);
+            Common.showLog(className + "执行了");
+        } else {
+            Common.showLog(className + "没执行");
+        }
+
         toolbar.setNavigationOnClickListener(v -> finish());
         follow = findViewById(R.id.follow_user);
         nowFollow = findViewById(R.id.follow);
