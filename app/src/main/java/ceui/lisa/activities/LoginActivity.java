@@ -19,18 +19,22 @@ import com.facebook.rebound.SpringSystem;
 import com.google.gson.Gson;
 import com.rengwuxian.materialedittext.MaterialEditText;
 
+import java.io.IOException;
+
 import ceui.lisa.R;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
+import ceui.lisa.model.ErrorResponse;
 import ceui.lisa.model.SignResponse;
 import ceui.lisa.model.UserModel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
+import retrofit2.HttpException;
 
 
 public class LoginActivity extends BaseActivity {
@@ -222,6 +226,25 @@ public class LoginActivity extends BaseActivity {
                         Intent intent = new Intent(mContext, CoverActivity.class);
                         startActivity(intent);
                         finish();
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        mProgressBar.setVisibility(View.INVISIBLE);
+                        e.printStackTrace();
+                        if(e instanceof HttpException) {
+                            try {
+                                HttpException httpException = (HttpException) e;
+                                String responseString = httpException.response().errorBody().string();
+                                Gson gson = new Gson();  //这个errorBody().string()只能获取一次，下一次就为空了
+                                ErrorResponse response = gson.fromJson(responseString, ErrorResponse.class);
+                                if(response != null){
+                                    Common.showToast(response.getErrors().getSystem().getMessage());
+                                }
+                            } catch (IOException ex) {
+                                ex.printStackTrace();
+                            }
+                        }
                     }
                 });
     }

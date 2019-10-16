@@ -35,10 +35,8 @@ public abstract class BaseFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         mContext = getContext();
         mActivity = getActivity();
-
     }
 
     @Nullable
@@ -58,17 +56,5 @@ public abstract class BaseFragment extends Fragment {
             }
         }
         return parentView;
-    }
-
-    @Override
-    public void setUserVisibleHint(boolean isVisibleToUser) {
-        super.setUserVisibleHint(isVisibleToUser);
-
-        if (isVisibleToUser) {
-
-            Common.showLog("setUserVisibleHint 被看见了" + className);
-        } else {
-            Common.showLog("setUserVisibleHint 消失了" + className);
-        }
     }
 }

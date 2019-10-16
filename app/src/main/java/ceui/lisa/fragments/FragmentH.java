@@ -7,6 +7,8 @@ import ceui.lisa.databinding.FragmentHBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.HitoResponse;
+import ceui.lisa.utils.ClipBoardUtils;
+import ceui.lisa.utils.Common;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
@@ -24,6 +26,11 @@ public class FragmentH extends BaseBindFragment<FragmentHBinding> {
         BarUtils.setNavBarColor(mActivity, getResources().getColor(R.color.hito_bg));
         freshData();
         baseBind.next.setOnClickListener(v -> freshData());
+        baseBind.hitoText.setOnLongClickListener(v -> {
+            ClipBoardUtils.putTextIntoClipboard(mContext, baseBind.hitoText.getText().toString());
+            return true;
+        });
+        baseBind.like.setOnClickListener(v -> Common.showToast("下版本更新再做吧？"));
     }
 
     private void freshData() {

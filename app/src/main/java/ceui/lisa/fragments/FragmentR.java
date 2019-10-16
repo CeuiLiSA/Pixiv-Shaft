@@ -24,6 +24,7 @@ import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.DensityUtil;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.view.SpacesItemDecoration;
 import io.reactivex.Observable;
@@ -40,8 +41,11 @@ public class FragmentR extends FragmentList<ListIllustResponse, IllustsBean, Rec
 
     @Override
     public Observable<ListIllustResponse> initApi() {
-        //return Retro.getAppApi().getRecmdIllust(Shaft.sUserModel.getResponse().getAccess_token(), true);
-        return null;
+        if(Dev.isDev){
+            return null;
+        }else {
+            return Retro.getAppApi().getRecmdIllust(Shaft.sUserModel.getResponse().getAccess_token(), true);
+        }
     }
 
     @Override

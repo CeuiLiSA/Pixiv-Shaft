@@ -14,5 +14,6 @@ public class ClipBoardUtils {
         ClipboardManager clipboardManager = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clipData = ClipData.newPlainText("copy text", text);
         clipboardManager.setPrimaryClip(clipData);
+        Common.showToast(text + "已复制到剪贴板");
     }
 }

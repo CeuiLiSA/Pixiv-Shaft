@@ -33,11 +33,11 @@ public class FragmentCenter extends BaseFragment {
 //        ViewGroup.LayoutParams headParams = head.getLayoutParams();
 //        headParams.height = Shaft.statusHeight;
 //        head.setLayoutParams(headParams);
-        Glide.with(mContext)
-                .load("https://api.dujin.org/bing/1920.php")
-                .diskCacheStrategy(DiskCacheStrategy.NONE)
-                .skipMemoryCache(true)
-                .into(head);
+//        Glide.with(mContext)
+//                .load("https://api.dujin.org/bing/1920.php")
+//                .diskCacheStrategy(DiskCacheStrategy.NONE)
+//                .skipMemoryCache(true)
+//                .into(head);
 
         RefreshLayout refreshLayout = v.findViewById(R.id.refreshLayout);
         refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));

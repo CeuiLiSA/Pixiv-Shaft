@@ -75,12 +75,7 @@ public class OutWakeActivity extends BaseActivity {
                             if (host.contains("illusts")) {
                                 String path = uri.getPath();
                                 PixivOperate.getIllustByID(Shaft.sUserModel, Integer.valueOf(path.substring(1)),
-                                        mContext, new Callback<Void>() {
-                                            @Override
-                                            public void doSomething(Void t) {
-                                                finish();
-                                            }
-                                        });
+                                        mContext, t -> finish());
                             }
                         }
                     }

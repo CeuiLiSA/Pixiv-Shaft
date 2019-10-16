@@ -68,8 +68,5 @@ public class Shaft extends Application {
             statusHeight = sContext.getResources().getDimensionPixelSize(resourceId);
         }
         toolbarHeight = DensityUtil.dp2px(56.0f);
-
-
-        //Spray.startServer("8088");
     }
 }

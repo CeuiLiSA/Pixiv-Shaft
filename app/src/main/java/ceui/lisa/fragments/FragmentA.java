@@ -19,6 +19,7 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.adapters.KissAdapter;
 import ceui.lisa.databinding.FragmentABinding;
+import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
 import jp.wasabeef.recyclerview.animators.BaseItemAnimator;
@@ -37,7 +38,7 @@ import static ceui.lisa.fragments.FragmentList.animateDuration;
 public class FragmentA extends BaseBindFragment<FragmentABinding> {
 
     private KissAdapter mAdapter;
-    private List<String> allItems = new ArrayList<>();
+    private List<KissAdapter.Item> allItems = new ArrayList<>();
     private Handler handler;
 
     @Override
@@ -111,10 +112,13 @@ public class FragmentA extends BaseBindFragment<FragmentABinding> {
     public void getFirstData() {
         handler.postDelayed(() -> {
             for (int i = 0; i < 20; i++) {
-                allItems.add("这是第" + i + "条数据");
+                KissAdapter.Item item = new KissAdapter.Item();
+                item.setCheckState(false);
+                item.setName("这是第" + i + "条数据");
+                allItems.add(item);
             }
             mAdapter.notifyItemRangeInserted(0, allItems.size());
             baseBind.refreshLayout.finishRefresh(true);
-        }, 600L);
+        }, 300L);
     }
 }

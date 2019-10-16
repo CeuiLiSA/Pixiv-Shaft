@@ -65,7 +65,7 @@
                     android:layout_marginStart="@dimen/tweenty_four_dp"
                     android:layout_marginTop="@dimen/sixteen_dp"
                     android:layout_marginEnd="@dimen/tweenty_four_dp"
-                    android:hint="用户名"
+                    android:hint="用户名/邮箱账号"
                     app:met_floatingLabel="highlight"
                     app:met_primaryColor="@color/loginBackground"
                     app:met_singleLineEllipsis="true" />
