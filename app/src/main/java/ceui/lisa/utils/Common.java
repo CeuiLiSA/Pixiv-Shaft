@@ -8,6 +8,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -98,5 +99,9 @@ public class Common {
         ClipData mClipData = ClipData.newPlainText("Label", s);
         cm.setPrimaryClip(mClipData);
         showToast(s + "已复制到剪切板");
+    }
+
+    public static String checkEmpty(String before) {
+        return TextUtils.isEmpty(before) ? "暂无信息" : before;
     }
 }
