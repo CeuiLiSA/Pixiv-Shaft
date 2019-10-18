@@ -9,6 +9,18 @@ import okhttp3.Dns;
 
 public class HttpDns implements Dns {
 
+    /**
+     * 210.129.120.55 pixiv.net
+     * 210.129.120.44 accounts.pixiv.net
+     * 210.140.131.145 source.pixiv.net
+     * 210.140.131.160 d.pixiv.org
+     * 210.140.131.144 imagaz.pixiv.net
+     * 210.129.120.55 www.pixiv.net
+     */
+
+    //private static final String[] addresses = {"123.207.56.160", "8.8.8.8", "134.175.87.79", "123.207.137.88"};
+    private static final String[] addresses = {"210.140.131.208", "210.140.131.206", "210.140.131.203", "210.140.131.209", "111.230.37.44"};
+    public static List<InetAddress> newDns = new ArrayList<>();
     private static HttpDns sHttpDns = null;
 
     private HttpDns() {
@@ -21,7 +33,7 @@ public class HttpDns implements Dns {
         }
     }
 
-    public static void reformatLocalDns(){
+    public static void reformatLocalDns() {
         newDns.clear();
         for (String address : addresses) {
             try {
@@ -32,27 +44,14 @@ public class HttpDns implements Dns {
         }
     }
 
+    /*private static final String[] addresses = {"123.207.56.160", "123.207.252.208", "202.141.162.123",
+            "40.73.101.101", "123.207.5.191", "210.129.120.45"};*/
+
     public static HttpDns getInstance() {
         if (sHttpDns == null) {
             sHttpDns = new HttpDns();
         }
         return sHttpDns;
-    }
-
-
-    public static List<InetAddress> newDns = new ArrayList<>();
-
-    /*private static final String[] addresses = {"123.207.56.160", "123.207.252.208", "202.141.162.123",
-            "40.73.101.101", "123.207.5.191", "210.129.120.45"};*/
-
-    public List<InetAddress> lookup(String paramString)
-            throws UnknownHostException {
-        try {
-            return newDns;
-        } catch (Exception localException) {
-            localException.printStackTrace();
-        }
-        return Dns.SYSTEM.lookup(paramString);
     }
 
     /*著作权归作者所有。
@@ -88,18 +87,16 @@ public class HttpDns implements Dns {
     210.140.92.135  pixiv.pximg.net
     210.129.120.56  fanbox.pixiv.net
     #Pixiv End*/
-    /**
-     *
-     * 210.129.120.55 pixiv.net
-     210.129.120.44 accounts.pixiv.net
-     210.140.131.145 source.pixiv.net
-     210.140.131.160 d.pixiv.org
-     210.140.131.144 imagaz.pixiv.net
-     210.129.120.55 www.pixiv.net
-     */
 
-    //private static final String[] addresses = {"123.207.56.160", "8.8.8.8", "134.175.87.79", "123.207.137.88"};
-    private static final String[] addresses = {"210.140.131.208", "210.140.131.206", "210.140.131.203","210.140.131.209", "111.230.37.44"};
+    public List<InetAddress> lookup(String paramString)
+            throws UnknownHostException {
+        try {
+            return newDns;
+        } catch (Exception localException) {
+            localException.printStackTrace();
+        }
+        return Dns.SYSTEM.lookup(paramString);
+    }
     //private static final String[] addresses = {"210.140.131.147", "210.129.120.50", "210.140.92.135", "210.140.131.144", "210.129.120.46", "210.140.131.144"};
     //private static final String[] addresses = {"210.129.120.55", "210.129.120.44", "210.140.131.145", "210.140.131.160", "210.140.131.144"};
     //private static final String[] addresses = {"210.129.120.49", "210.140.131.146", "210.129.120.56", "210.129.120.44", "210.129.120.48"};

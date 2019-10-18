@@ -136,7 +136,7 @@ public class IllustDownload {
         List<DownloadTask> tempList = new ArrayList<>();
 
         for (int i = 0; i < beans.size(); i++) {
-            if(beans.get(i).isChecked()) {
+            if (beans.get(i).isChecked()) {
                 final IllustsBean currentIllust = beans.get(i);
 
                 if (currentIllust.getPage_count() == 1) {
@@ -183,7 +183,7 @@ public class IllustDownload {
             }
         }
 
-        if(tempList.size() == 0){
+        if (tempList.size() == 0) {
             return;
         }
 

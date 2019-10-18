@@ -16,16 +16,16 @@
 
 package ceui.lisa.download;
 
+import android.util.SparseArray;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import android.util.SparseArray;
 
 import com.liulishuo.okdownload.DownloadTask;
 import com.liulishuo.okdownload.core.cause.EndCause;
 import com.liulishuo.okdownload.core.cause.ResumeFailedCause;
 import com.liulishuo.okdownload.core.listener.DownloadListener1;
 import com.liulishuo.okdownload.core.listener.assist.Listener1Assist;
-
 
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
@@ -115,12 +115,10 @@ public class QueueListener extends DownloadListener1 {
                     Common.showToast("图组ZIP解压完成");
 
 
-
                     //通知FragmentSingleIllust 开始播放gif
                     Channel channel = new Channel();
                     channel.setReceiver("FragmentSingleIllust");
                     EventBus.getDefault().post(channel);
-
 
 
                 } catch (ZipException e) {
@@ -133,7 +131,6 @@ public class QueueListener extends DownloadListener1 {
 
 
         TaskQueue.get().removeTask(illustTask);
-
 
 
     }

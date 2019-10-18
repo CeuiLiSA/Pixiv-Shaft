@@ -2,7 +2,6 @@ package ceui.lisa.database;
 
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
-import androidx.annotation.NonNull;
 
 @Entity(tableName = "user_table")
 public final class UserEntity {

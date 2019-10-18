@@ -75,7 +75,7 @@ public class GifCreate {
                             });
 
 
-                            if(illustsBean.getWidth() > 450 && illustsBean.getHeight() > 450) {
+                            if (illustsBean.getWidth() > 450 && illustsBean.getHeight() > 450) {
 
                                 if (illustsBean.getWidth() < illustsBean.getHeight()) {
                                     mGiffle.encode(450 * illustsBean.getWidth() / illustsBean.getHeight(),
@@ -84,7 +84,7 @@ public class GifCreate {
                                     mGiffle.encode(450, 450 * illustsBean.getHeight() / illustsBean.getWidth(),
                                             realGifFile.getPath(), allFiles);
                                 }
-                            }else {
+                            } else {
                                 mGiffle.encode(illustsBean.getWidth(), illustsBean.getHeight(), realGifFile.getPath(), allFiles);
                             }
 

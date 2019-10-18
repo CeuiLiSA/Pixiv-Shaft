@@ -5,7 +5,6 @@ import java.io.IOException;
 import ceui.lisa.activities.LoginActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.model.UserModel;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import okhttp3.Interceptor;
 import okhttp3.Request;
@@ -58,7 +57,6 @@ public class TokenInterceptor implements Interceptor {
     }
 
 
-
     /**
      * 根据Response，判断Token是否失效
      *
@@ -90,7 +88,7 @@ public class TokenInterceptor implements Interceptor {
                 true,
                 true);
         UserModel newUser = call.execute().body();
-        if(newUser != null) {
+        if (newUser != null) {
             newUser.getResponse().setUser(Shaft.sUserModel.getResponse().getUser());
         }
         Local.saveUser(newUser);

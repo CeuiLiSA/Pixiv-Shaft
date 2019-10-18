@@ -10,26 +10,6 @@ import retrofit2.Response;
 
 //TODO 实现ConverterFactory
 public class ReverseResult implements Parcelable {
-    private String title;
-    private String url;
-    private String mime;
-    private String encoding;
-    private String responseBody;
-    private String history_url;
-
-    public int describeContents() {
-        return 0;
-    }
-
-    public void writeToParcel(Parcel out, int flags) {
-        out.writeString(title);
-        out.writeString(url);
-        out.writeString(mime);
-        out.writeString(encoding);
-        out.writeString(responseBody);
-        out.writeString(history_url);
-    }
-
     public static final Parcelable.Creator<ReverseResult> CREATOR = new Parcelable.Creator<ReverseResult>() {
         public ReverseResult createFromParcel(Parcel in) {
             return new ReverseResult(in);
@@ -39,6 +19,12 @@ public class ReverseResult implements Parcelable {
             return new ReverseResult[size];
         }
     };
+    private String title;
+    private String url;
+    private String mime;
+    private String encoding;
+    private String responseBody;
+    private String history_url;
 
     private ReverseResult(Parcel in) {
         title = in.readString();
@@ -49,7 +35,7 @@ public class ReverseResult implements Parcelable {
         history_url = in.readString();
     }
 
-    public ReverseResult(Response<ResponseBody> response){
+    public ReverseResult(Response<ResponseBody> response) {
         try {
 
             title = "Result";
@@ -63,6 +49,19 @@ public class ReverseResult implements Parcelable {
             e.printStackTrace();
         }
 
+    }
+
+    public int describeContents() {
+        return 0;
+    }
+
+    public void writeToParcel(Parcel out, int flags) {
+        out.writeString(title);
+        out.writeString(url);
+        out.writeString(mime);
+        out.writeString(encoding);
+        out.writeString(responseBody);
+        out.writeString(history_url);
     }
 
     public String getTitle() {

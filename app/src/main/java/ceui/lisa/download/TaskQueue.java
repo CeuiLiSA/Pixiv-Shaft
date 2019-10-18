@@ -1,7 +1,6 @@
 package ceui.lisa.download;
 
 import com.google.gson.Gson;
-import com.liulishuo.okdownload.DownloadTask;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -22,10 +21,6 @@ public class TaskQueue {
     private TaskQueue() {
     }
 
-    private static class SingletonHolder {
-        private static TaskQueue instance = new TaskQueue();
-    }
-
     public static TaskQueue get() {
         return SingletonHolder.instance;
     }
@@ -33,7 +28,6 @@ public class TaskQueue {
     public ArrayList<IllustTask> getTasks() {
         return allTasks;
     }
-
 
     public void addTask(IllustTask downloadTask) {
         Common.showLog("TaskQueue addTask " + downloadTask.toString());
@@ -79,7 +73,7 @@ public class TaskQueue {
                     channel22.setObject(tempTask.getIllustsBean().getId());
                     EventBus.getDefault().post(channel22);
 
-                    new ImageSaver(){
+                    new ImageSaver() {
                         @Override
                         File whichFile() {
                             return tempTask.getDownloadTask().getFile();
@@ -97,5 +91,9 @@ public class TaskQueue {
 
     public void clearTask() {
         allTasks.clear();
+    }
+
+    private static class SingletonHolder {
+        private static TaskQueue instance = new TaskQueue();
     }
 }

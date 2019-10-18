@@ -39,8 +39,6 @@ import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentCenter;
 import ceui.lisa.fragments.FragmentLeft;
 import ceui.lisa.fragments.FragmentRight;
-import ceui.lisa.http.WorkThread;
-import ceui.lisa.http.NullCtrl;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.model.UserModel;
 import ceui.lisa.utils.Common;
@@ -71,7 +69,6 @@ public class CoverActivity extends BaseActivity
                         View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
         mLayoutID = R.layout.activity_cover;
     }
-
 
     public void checkPermission(Callback<Object> callback) {
         final RxPermissions rxPermissions = new RxPermissions((FragmentActivity) mActivity);
@@ -139,7 +136,6 @@ public class CoverActivity extends BaseActivity
         });
     }
 
-
     private void initFragment() {
         BaseFragment[] baseFragments = new BaseFragment[]{
                 new FragmentLeft(),
@@ -158,7 +154,6 @@ public class CoverActivity extends BaseActivity
             }
         });
     }
-
 
     @Override
     protected void initData() {

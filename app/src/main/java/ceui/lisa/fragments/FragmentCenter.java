@@ -2,21 +2,17 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.fragment.app.FragmentTransaction;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.RankActivity;
-import ceui.lisa.activities.Shaft;
 
 public class FragmentCenter extends BaseFragment {
 

@@ -8,16 +8,6 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-
-    <style name="SplashTheme" parent="AppTheme">
-        <!-- Customize your theme here. -->
-        <item name="android:windowBackground">@drawable/open_app</item>
-        <item name="android:windowFullscreen">true</item>
-        <item name="android:windowDrawsSystemBarBackgrounds">false</item>
-
-        <!--沉浸-->
-    </style>
-
     <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>

@@ -14,7 +14,7 @@ import ceui.lisa.utils.Common;
 public class WebDownloadListener extends DownloadListener1 {
     @Override
     public void taskStart(@NonNull DownloadTask task, @NonNull Listener1Assist.Listener1Model model) {
-        Common.showToast(String.format("%s started",task.getFilename()));
+        Common.showToast(String.format("%s started", task.getFilename()));
     }
 
     @Override
@@ -34,6 +34,6 @@ public class WebDownloadListener extends DownloadListener1 {
 
     @Override
     public void taskEnd(@NonNull DownloadTask task, @NonNull EndCause cause, @Nullable Exception realCause, @NonNull Listener1Assist.Listener1Model model) {
-        Common.showToast(String.format("%s done",task.getFilename()));
+        Common.showToast(String.format("%s done", task.getFilename()));
     }
 }

@@ -5,12 +5,11 @@ import java.io.FileInputStream;
 import java.text.DecimalFormat;
 
 public class FileSizeUtil {
-    private static final String TAG=FileSizeUtil.class.getSimpleName();
-
     public static final int SIZETYPE_B = 1;//获取文件大小单位为B的double值
     public static final int SIZETYPE_KB = 2;//获取文件大小单位为KB的double值
     public static final int SIZETYPE_MB = 3;//获取文件大小单位为MB的double值
     public static final int SIZETYPE_GB = 4;//获取文件大小单位为GB的double值
+    private static final String TAG = FileSizeUtil.class.getSimpleName();
 
     /**
      * 获取文件指定文件的指定单位的大小
@@ -75,7 +74,7 @@ public class FileSizeUtil {
      */
     private static long getFileSizes(File f) throws Exception {
         long size = 0;
-        File flist[] = f.listFiles();
+        File[] flist = f.listFiles();
         assert flist != null;
         for (File file : flist) {
             if (file.isDirectory()) {

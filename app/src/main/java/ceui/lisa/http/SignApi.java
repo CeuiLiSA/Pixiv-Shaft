@@ -15,7 +15,7 @@ public interface SignApi {
     @FormUrlEncoded
     @POST("api/provisional-accounts/create")
     Observable<SignResponse> pixivSign(@Header("Authorization") String token,
-                                     @Field("user_name") String userName,
-                                     @Field("ref") String ref);
+                                       @Field("user_name") String userName,
+                                       @Field("ref") String ref);
 
 }

@@ -9,6 +9,7 @@ public final class IllustRecmdEntity {
     @PrimaryKey()
     private int illustID;
     private String illustJson;
+    private long time;
 
     public long getTime() {
         return time;
@@ -17,8 +18,6 @@ public final class IllustRecmdEntity {
     public void setTime(long time) {
         this.time = time;
     }
-
-    private long time;
 
     public int getIllustID() {
         return illustID;

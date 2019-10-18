@@ -1,25 +1,13 @@
 package ceui.lisa.adapters;
 
 import android.content.Context;
-import android.graphics.Color;
-import android.text.SpannableString;
-import android.text.Spanned;
-import android.text.TextPaint;
-import android.text.method.LinkMovementMethod;
-import android.text.style.ClickableSpan;
-import android.view.View;
 import android.widget.CompoundButton;
-
-import com.bumptech.glide.Glide;
 
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.databinding.RecyCommentListBinding;
 import ceui.lisa.databinding.RecySelectTagBinding;
 import ceui.lisa.model.BookmarkTagsBean;
-import ceui.lisa.model.CommentsBean;
-import ceui.lisa.utils.GlideUtil;
 
 /**
  * 评论列表

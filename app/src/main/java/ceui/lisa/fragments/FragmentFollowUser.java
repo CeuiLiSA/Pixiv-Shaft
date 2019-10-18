@@ -12,7 +12,6 @@ import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.FullClickListener;
 import ceui.lisa.model.ListUserResponse;
 import ceui.lisa.model.UserPreviewsBean;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.PixivOperate;
 import io.reactivex.Observable;
 

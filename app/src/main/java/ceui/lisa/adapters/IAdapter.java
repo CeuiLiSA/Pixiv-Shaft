@@ -12,7 +12,6 @@ import ceui.lisa.R;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.interfaces.MultiDownload;
 import ceui.lisa.model.IllustsBean;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 
 public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding> implements MultiDownload {
@@ -31,11 +30,11 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
         initImageSize();
     }
 
-    private void initImageSize(){
-        if(isSquare){
+    private void initImageSize() {
+        if (isSquare) {
             imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
                     mContext.getResources().getDimensionPixelSize(R.dimen.tweenty_four_dp)) / 2;
-        }else {
+        } else {
             imageSize = (mContext.getResources().getDisplayMetrics().widthPixels) / 2;
         }
     }
@@ -51,7 +50,7 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
 
         params.width = imageSize;
 
-        if(isSquare){
+        if (isSquare) {
             params.height = imageSize;
         } else {
             params.height = allIllust.get(position).getHeight() * imageSize / allIllust.get(position).getWidth();

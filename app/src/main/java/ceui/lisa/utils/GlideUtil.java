@@ -22,11 +22,11 @@ public class GlideUtil {
         return hashMap;
     };
 
-    public static GlideUrl getMediumImg(IllustsBean illustsBean){
+    public static GlideUrl getMediumImg(IllustsBean illustsBean) {
         return new GlideUrl(illustsBean.getImage_urls().getMedium(), sHeaders);
     }
 
-    public static GlideUrl getMediumImg(String imageUrl){
+    public static GlideUrl getMediumImg(String imageUrl) {
         return new GlideUrl(imageUrl, sHeaders);
     }
 
@@ -44,7 +44,7 @@ public class GlideUtil {
 //    }
 
 
-    public static GlideUrl getArticle(String url){
+    public static GlideUrl getArticle(String url) {
         return new GlideUrl(url, sHeaders);
     }
 
@@ -56,12 +56,12 @@ public class GlideUtil {
         return new GlideUrl(url, sHeaders);
     }
 
-    public static GlideUrl getHead(UserBean userBean){
-        if(userBean == null){
+    public static GlideUrl getHead(UserBean userBean) {
+        if (userBean == null) {
             return null;
         }
 
-        if(userBean.getProfile_image_urls() == null){
+        if (userBean.getProfile_image_urls() == null) {
             return null;
         }
 
@@ -90,16 +90,16 @@ public class GlideUtil {
     }
 
     public static GlideUrl getLargeImage(IllustsBean illustsBean, int i) {
-        if(illustsBean.getPage_count() == 1){
+        if (illustsBean.getPage_count() == 1) {
             return getLargeImage(illustsBean);
-        }else {
+        } else {
             return new GlideUrl(illustsBean.getMeta_pages().get(i).getImage_urls().getLarge(), sHeaders);
         }
     }
 
 
     public static GlideUrl getOriginal(IllustsBean illustsBean, int i) {
-        if(illustsBean.getPage_count() == 1){
+        if (illustsBean.getPage_count() == 1) {
             return new GlideUrl(illustsBean.getMeta_single_page().getOriginal_image_url(), sHeaders);
         } else {
             return new GlideUrl(illustsBean.getMeta_pages().get(i).getImage_urls().getOriginal(), sHeaders);

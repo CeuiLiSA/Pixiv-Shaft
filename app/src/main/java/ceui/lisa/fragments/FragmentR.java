@@ -41,9 +41,9 @@ public class FragmentR extends FragmentList<ListIllustResponse, IllustsBean, Rec
 
     @Override
     public Observable<ListIllustResponse> initApi() {
-        if(Dev.isDev){
+        if (Dev.isDev) {
             return null;
-        }else {
+        } else {
             return Retro.getAppApi().getRecmdIllust(Shaft.sUserModel.getResponse().getAccess_token(), true);
         }
     }

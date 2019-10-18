@@ -1,11 +1,10 @@
 package ceui.lisa.database;
 
-import androidx.sqlite.db.SupportSQLiteDatabase;
+import android.content.Context;
+
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
-import androidx.room.migration.Migration;
-import android.content.Context;
 
 @Database(entities = {IllustHistoryEntity.class, IllustRecmdEntity.class,
         DownloadEntity.class, UserEntity.class, SearchEntity.class}, version = 7, exportSchema = false)
@@ -14,14 +13,6 @@ public abstract class AppDatabase extends RoomDatabase {
     public static final String DATABASE_NAME = "roomDemo-database";
 
     //public abstract IllustDao trackDao();
-
-    public abstract IllustRecmdDao recmdDao();
-
-    public abstract DownloadDao downloadDao();
-
-    public abstract SearchDao searchDao();
-
-
     private static AppDatabase INSTANCE;
 
     public static AppDatabase getAppDatabase(Context context) {
@@ -40,6 +31,12 @@ public abstract class AppDatabase extends RoomDatabase {
     public static void destroyInstance() {
         INSTANCE = null;
     }
+
+    public abstract IllustRecmdDao recmdDao();
+
+    public abstract DownloadDao downloadDao();
+
+    public abstract SearchDao searchDao();
 
 }
 

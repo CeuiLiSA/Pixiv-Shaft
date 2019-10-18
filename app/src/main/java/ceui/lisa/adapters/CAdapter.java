@@ -5,12 +5,9 @@ import android.graphics.Color;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextPaint;
-import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
-import android.text.style.ForegroundColorSpan;
 import android.view.View;
-import android.view.ViewGroup;
 
 import com.bumptech.glide.Glide;
 
@@ -18,10 +15,7 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.RecyCommentListBinding;
-import ceui.lisa.databinding.RecyUserEventBinding;
 import ceui.lisa.model.CommentsBean;
-import ceui.lisa.model.IllustsBean;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 
 /**

@@ -1,7 +1,6 @@
 package ceui.lisa.adapters;
 
 import android.content.Context;
-import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,7 +38,6 @@ public class ViewHistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     private List<IllustHistoryEntity> allIllust;
     private Gson mGson = new Gson();
     private int imageSize = 0;
-    private Handler mHandler = new Handler();
     private SimpleDateFormat mTime = new SimpleDateFormat("MM月dd日 HH: mm");
 
 
@@ -137,7 +135,6 @@ public class ViewHistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                     //Common.showLog(spring.getCurrentValue());
                 }
             });
-
         }
     }
 }

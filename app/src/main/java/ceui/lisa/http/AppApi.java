@@ -3,14 +3,14 @@ package ceui.lisa.http;
 import ceui.lisa.model.ArticalResponse;
 import ceui.lisa.model.BookmarkTags;
 import ceui.lisa.model.CommentHolder;
+import ceui.lisa.model.GifResponse;
 import ceui.lisa.model.IllustBookmarkTags;
 import ceui.lisa.model.IllustCommentsResponse;
 import ceui.lisa.model.IllustSearchResponse;
-import ceui.lisa.model.MutedHistory;
-import ceui.lisa.model.NullResponse;
-import ceui.lisa.model.GifResponse;
 import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.model.ListUserResponse;
+import ceui.lisa.model.MutedHistory;
+import ceui.lisa.model.NullResponse;
 import ceui.lisa.model.TrendingtagResponse;
 import ceui.lisa.model.UserDetailResponse;
 import io.reactivex.Observable;
@@ -47,7 +47,6 @@ public interface AppApi {
                                                   @Query("include_ranking_illusts") boolean include_ranking_illusts);
 
 
-
     @GET("v1/trending-tags/illust?filter=for_android&include_translated_tag_results=true")
     Observable<TrendingtagResponse> getHotTags(@Header("Authorization") String token);
 
@@ -63,15 +62,15 @@ public interface AppApi {
 
 
     /**
-     *    /v1/search/illust?
-     *    filter=for_android&
-     *    include_translated_tag_results=true&
-     *    word=%E8%89%A6%E9%9A%8A%E3%81%93%E3%82%8C%E3%81%8F%E3%81%97%E3%82%87%E3%82%93&
-     *    sort=date_desc& 最新
-     *    sort=date_asc& 旧的在前面
-     *    search_target=exact_match_for_tags 标签完全匹配
-     *    search_target=partial_match_for_tags 标签部分匹配
-     *    search_target=title_and_caption 标题或简介
+     * /v1/search/illust?
+     * filter=for_android&
+     * include_translated_tag_results=true&
+     * word=%E8%89%A6%E9%9A%8A%E3%81%93%E3%82%8C%E3%81%8F%E3%81%97%E3%82%87%E3%82%93&
+     * sort=date_desc& 最新
+     * sort=date_asc& 旧的在前面
+     * search_target=exact_match_for_tags 标签完全匹配
+     * search_target=partial_match_for_tags 标签部分匹配
+     * search_target=title_and_caption 标题或简介
      */
     @GET("v1/search/illust?filter=for_android&include_translated_tag_results=true")
     Observable<ListIllustResponse> searchIllust(@Header("Authorization") String token,
@@ -82,7 +81,7 @@ public interface AppApi {
 
     @GET("v2/illust/related?filter=for_android")
     Observable<ListIllustResponse> relatedIllust(@Header("Authorization") String token,
-                                                @Query("illust_id") int illust_id);
+                                                 @Query("illust_id") int illust_id);
 
 
     /**
@@ -95,11 +94,10 @@ public interface AppApi {
     Observable<ListUserResponse> getRecmdUser(@Header("Authorization") String token);
 
 
-
     // /v1/user/bookmarks/illust?user_id=24218478&restrict=public HTTP/1.1
     @GET("v1/user/bookmarks/illust")
     Observable<ListIllustResponse> getUserLikeIllust(@Header("Authorization") String token,
-                                                 @Query("user_id") int user_id,
+                                                     @Query("user_id") int user_id,
                                                      @Query("restrict") String restrict,
                                                      @Query("tag") String tag);
 
@@ -110,8 +108,8 @@ public interface AppApi {
 
     @GET("v1/user/illusts?filter=for_android")
     Observable<ListIllustResponse> getUserSubmitIllust(@Header("Authorization") String token,
-                                                     @Query("user_id") int user_id,
-                                                     @Query("type") String type);
+                                                       @Query("user_id") int user_id,
+                                                       @Query("type") String type);
 
 
     @GET("v2/illust/follow?restrict=public")
@@ -122,13 +120,10 @@ public interface AppApi {
     Observable<ArticalResponse> getArticals(@Header("Authorization") String token);
 
 
-
-
     ///v1/user/detail?filter=for_android&user_id=24218478
     @GET("v1/user/detail?filter=for_android")
     Observable<UserDetailResponse> getUserDetail(@Header("Authorization") String token,
                                                  @Query("user_id") int user_id);
-
 
 
     //  /v1/ugoira/metadata?illust_id=47297805
@@ -137,21 +132,9 @@ public interface AppApi {
                                           @Query("illust_id") int illust_id);
 
 
-
-
-
-
-
-
-
-
-
-
-
     @GET
     Observable<ListUserResponse> getNextUser(@Header("Authorization") String token,
                                              @Url String next_url);
-
 
 
     @GET
@@ -160,7 +143,7 @@ public interface AppApi {
 
     @GET
     Observable<ArticalResponse> getNextArticals(@Header("Authorization") String token,
-                                                 @Url String next_url);
+                                                @Url String next_url);
 
 
     @FormUrlEncoded
@@ -189,7 +172,6 @@ public interface AppApi {
                                                @Query("restrict") String restrict);
 
 
-
     @GET("v1/illust/comments")
     Observable<IllustCommentsResponse> getComment(@Header("Authorization") String token,
                                                   @Query("illust_id") int illust_id);
@@ -210,8 +192,8 @@ public interface AppApi {
     @FormUrlEncoded
     @POST("v2/illust/bookmark/add")
     Observable<NullResponse> postLike(@Header("Authorization") String token,
-                                         @Field("illust_id") int illust_id,
-                                         @Field("restrict") String restrict);
+                                      @Field("illust_id") int illust_id,
+                                      @Field("restrict") String restrict);
 
     @FormUrlEncoded
     @POST("v2/illust/bookmark/add")
@@ -223,7 +205,7 @@ public interface AppApi {
     @FormUrlEncoded
     @POST("v1/illust/bookmark/delete")
     Observable<NullResponse> postDislike(@Header("Authorization") String token,
-                                      @Field("illust_id") int illust_id);
+                                         @Field("illust_id") int illust_id);
 
 
     @GET("v1/illust/detail?filter=for_android")
@@ -236,11 +218,10 @@ public interface AppApi {
                                             @Query("word") String word);
 
 
-
     // v2/search/autocomplete?merge_plain_keyword_results=true&word=%E5%A5%B3%E4%BD%93 HTTP/1.1
     @GET("v2/search/autocomplete?merge_plain_keyword_results=true")
     Observable<TrendingtagResponse> searchCompleteWord(@Header("Authorization") String token,
-                                                 @Query("word") String word);
+                                                       @Query("word") String word);
 
 
     /**
@@ -255,7 +236,7 @@ public interface AppApi {
 
     @GET
     Observable<BookmarkTags> getNextTags(@Header("Authorization") String token,
-                                             @Url String nextUrl);
+                                         @Url String nextUrl);
 
 
     // GET v2/illust/bookmark/detail?illust_id=72878894 HTTP/1.1
@@ -268,9 +249,9 @@ public interface AppApi {
 
     /**
      * 获取已屏蔽的标签/用户
-     *
+     * <p>
      * 这功能感觉做了没啥卵用，因为未开会员的用户只能屏蔽一个标签/用户，
-     *
+     * <p>
      * 你屏蔽了一个用户，就不能再屏蔽标签，屏蔽了标签，就不能屏蔽用户，而且都只能屏蔽一个，擦
      *
      * @param token
@@ -283,6 +264,6 @@ public interface AppApi {
     //获取好P友
     @GET("v1/user/mypixiv?filter=for_android")
     Observable<ListUserResponse> getNiceFriend(@Header("Authorization") String token,
-                                                         @Query("user_id") int user_id);
+                                               @Query("user_id") int user_id);
 
 }

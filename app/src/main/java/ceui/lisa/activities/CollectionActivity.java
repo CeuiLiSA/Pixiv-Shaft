@@ -40,10 +40,15 @@ public class CollectionActivity extends BaseActivity {
         mViewPager = findViewById(R.id.view_pager);
         mViewPager.setPageTransformer(true, new DrawerTransformer());
         allPages = new Fragment[]{
-                FragmentLikeIllust.newInstance(sUserModel.getResponse().getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC),
-                FragmentLikeIllust.newInstance(sUserModel.getResponse().getUser().getId(), FragmentLikeIllust.TYPE_PRIVATE),
-                FragmentFollowUser.newInstance(sUserModel.getResponse().getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC),
-                FragmentFollowUser.newInstance(sUserModel.getResponse().getUser().getId(), FragmentLikeIllust.TYPE_PRIVATE)};
+                FragmentLikeIllust.newInstance(sUserModel.getResponse().getUser().getId(),
+                        FragmentLikeIllust.TYPE_PUBLUC),
+                FragmentLikeIllust.newInstance(sUserModel.getResponse().getUser().getId(),
+                        FragmentLikeIllust.TYPE_PRIVATE),
+                FragmentFollowUser.newInstance(sUserModel.getResponse().getUser().getId(),
+                        FragmentLikeIllust.TYPE_PUBLUC),
+                FragmentFollowUser.newInstance(sUserModel.getResponse().getUser().getId(),
+                        FragmentLikeIllust.TYPE_PRIVATE)
+        };
         mViewPager.setAdapter(new FragmentStatePagerAdapter(getSupportFragmentManager()) {
             @Override
             public Fragment getItem(int i) {

@@ -10,8 +10,8 @@ import ceui.lisa.model.IllustsBean;
 
 public class FileCreator {
 
-    public static File createGifFile(IllustsBean illustsBean){
-        if(illustsBean == null){
+    public static File createGifFile(IllustsBean illustsBean) {
+        if (illustsBean == null) {
             return null;
         }
 
@@ -20,8 +20,8 @@ public class FileCreator {
     }
 
 
-    public static File createGifParentFile(IllustsBean illustsBean){
-        if(illustsBean == null){
+    public static File createGifParentFile(IllustsBean illustsBean) {
+        if (illustsBean == null) {
             return null;
         }
 
@@ -29,17 +29,17 @@ public class FileCreator {
     }
 
 
-    public static File createIllustFile(IllustsBean illustsBean){
-        if(illustsBean == null){
+    public static File createIllustFile(IllustsBean illustsBean) {
+        if (illustsBean == null) {
             return null;
         }
 
         return new File(Shaft.sSettings.getIllustPath(),
-                    deleteSpecialWords(illustsBean.getTitle() + "_" + illustsBean.getId() + ".png"));
+                deleteSpecialWords(illustsBean.getTitle() + "_" + illustsBean.getId() + ".png"));
     }
 
-    public static File createIllustFile(IllustsBean illustsBean, int index){
-        if(illustsBean == null){
+    public static File createIllustFile(IllustsBean illustsBean, int index) {
+        if (illustsBean == null) {
             return null;
         }
 
@@ -68,21 +68,21 @@ public class FileCreator {
                 deleteSpecialWords(illustsBean.getTitle() + "_" + illustsBean.getId() + "_" + "p" + (index + 1) + ".png"));
     }
 
-    private static String deleteSpecialWords(String before){
-        if(!TextUtils.isEmpty(before)){
+    private static String deleteSpecialWords(String before) {
+        if (!TextUtils.isEmpty(before)) {
             String temp1 = before.replace("-", "_");
             String temp2 = temp1.replace("/", "_");
             String temp3 = temp2.replace(",", "_");
             return temp3;
-        }else {
+        } else {
             return "untitle_" + System.currentTimeMillis() + ".png";
         }
     }
 
 
-    public static File createWebFile(String name){
+    public static File createWebFile(String name) {
         File parent = new File(Shaft.sSettings.getIllustPath());
-        if(!parent.exists()){
+        if (!parent.exists()) {
             parent.mkdir();
         }
         return new File(parent, deleteSpecialWords(name));

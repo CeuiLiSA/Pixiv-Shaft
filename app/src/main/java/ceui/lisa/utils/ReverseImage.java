@@ -81,6 +81,17 @@ public class ReverseImage {
     }
 
 
+    public enum ReverseProvider {
+        Iqdb(IQDB_BASE_URL, IqdbApi.class), SauceNao(SAUCENAO_BASE_URL, SauceNaoApi.class), TinEye(TINEYE_BASE_URL, TinEyeApi.class);
+
+        public final String base_url;
+        public Class<?> apiClass;
+
+        ReverseProvider(String baseUrl, Class<?> apiClass) {
+            this.base_url = baseUrl;
+            this.apiClass = apiClass;
+        }
+    }
 
 
     public interface Callback {
@@ -89,18 +100,5 @@ public class ReverseImage {
         void onNext(Response<ResponseBody> response);
 
         void onError(Throwable e);
-    }
-
-
-    public enum ReverseProvider {
-        Iqdb(IQDB_BASE_URL, IqdbApi.class), SauceNao(SAUCENAO_BASE_URL, SauceNaoApi.class), TinEye(TINEYE_BASE_URL, TinEyeApi.class);
-
-        public Class<?> apiClass;
-        public final String base_url;
-
-        ReverseProvider(String baseUrl, Class<?> apiClass) {
-            this.base_url = baseUrl;
-            this.apiClass = apiClass;
-        }
     }
 }

@@ -1,6 +1,5 @@
 package ceui.lisa.http
 
-import android.content.Context
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.text.SimpleDateFormat

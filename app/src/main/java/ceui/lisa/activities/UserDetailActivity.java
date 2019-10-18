@@ -5,7 +5,6 @@ import android.graphics.Color;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
@@ -40,7 +39,6 @@ public class UserDetailActivity extends BaseActivity {
 
     private static final String[] TITLES = new String[]{"收藏", "作品", "关于"};
     private int userID;
-    private ImageView background;
     private TabLayout mTabLayout;
     private CircleImageView userHead;
     private TextView userName, follow, fans, nowFollow;
@@ -58,7 +56,6 @@ public class UserDetailActivity extends BaseActivity {
 
     @Override
     public void initView() {
-        background = findViewById(R.id.user_background);
         userHead = findViewById(R.id.user_head);
         userName = findViewById(R.id.user_name);
         fans = findViewById(R.id.user_follow);
@@ -76,7 +73,7 @@ public class UserDetailActivity extends BaseActivity {
         }
 
 
-        if(statusHeight >= 80) {
+        if (statusHeight >= 80) {
             layoutParams.height = statusHeight;
             imageView.setLayoutParams(layoutParams);
             Common.showLog(className + "执行了");
@@ -87,7 +84,6 @@ public class UserDetailActivity extends BaseActivity {
         toolbar.setNavigationOnClickListener(v -> finish());
         follow = findViewById(R.id.follow_user);
         nowFollow = findViewById(R.id.follow);
-        CollapsingToolbarLayout collapsingToolbarLayout = findViewById(R.id.toolbar_layout);
         AppBarLayout appBarLayout = findViewById(R.id.app_bar);
         appBarLayout.addOnOffsetChangedListener(new AppBarStateChangeListener() {
             @Override

@@ -3,6 +3,7 @@ package ceui.lisa.utils;
 public final class Channel<Target> {
 
     private String receiver;
+    private Target object;
 
     public String getReceiver() {
         return receiver;
@@ -11,10 +12,6 @@ public final class Channel<Target> {
     public void setReceiver(String receiver) {
         this.receiver = receiver;
     }
-
-
-    private Target object;
-
 
     public Target getObject() {
         return object;

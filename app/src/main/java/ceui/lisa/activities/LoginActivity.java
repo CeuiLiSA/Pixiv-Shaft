@@ -232,13 +232,13 @@ public class LoginActivity extends BaseActivity {
                     public void onError(Throwable e) {
                         mProgressBar.setVisibility(View.INVISIBLE);
                         e.printStackTrace();
-                        if(e instanceof HttpException) {
+                        if (e instanceof HttpException) {
                             try {
                                 HttpException httpException = (HttpException) e;
                                 String responseString = httpException.response().errorBody().string();
                                 Gson gson = new Gson();  //这个errorBody().string()只能获取一次，下一次就为空了
                                 ErrorResponse response = gson.fromJson(responseString, ErrorResponse.class);
-                                if(response != null){
+                                if (response != null) {
                                     Common.showToast(response.getErrors().getSystem().getMessage());
                                 }
                             } catch (IOException ex) {

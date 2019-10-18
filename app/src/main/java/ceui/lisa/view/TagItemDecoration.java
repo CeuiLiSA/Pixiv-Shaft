@@ -1,8 +1,9 @@
 package ceui.lisa.view;
 
 import android.graphics.Rect;
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.View;
+
+import androidx.recyclerview.widget.RecyclerView;
 
 public class TagItemDecoration extends RecyclerView.ItemDecoration {
 
@@ -19,9 +20,9 @@ public class TagItemDecoration extends RecyclerView.ItemDecoration {
     @Override
     public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
         int position = parent.getChildAdapterPosition(view); // item position
-        int column = (position-1) % spanCount; // item column
+        int column = (position - 1) % spanCount; // item column
 
-        if(position >= 1) {
+        if (position >= 1) {
             position = position - 1;
             if (includeEdge) {
                 outRect.left = spacing - column * spacing / spanCount; // spacing - column * ((1f / spanCount) * spacing)
@@ -38,7 +39,7 @@ public class TagItemDecoration extends RecyclerView.ItemDecoration {
                     outRect.top = spacing; // item top
                 }
             }
-        }else {
+        } else {
             outRect.bottom = spacing;
         }
     }

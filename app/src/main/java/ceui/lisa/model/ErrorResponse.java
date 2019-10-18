@@ -10,6 +10,7 @@ public class ErrorResponse {
 
     private boolean has_error;
     private ErrorsBean errors;
+    private ErrorBean error;
 
     public ErrorBean getError() {
         return error;
@@ -18,8 +19,6 @@ public class ErrorResponse {
     public void setError(ErrorBean error) {
         this.error = error;
     }
-
-    private ErrorBean error;
 
     public boolean isHas_error() {
         return has_error;
@@ -79,7 +78,11 @@ public class ErrorResponse {
         }
     }
 
-    public static class ErrorBean{
+    public static class ErrorBean {
+        private String user_message;
+        private String message;
+        private String reason;
+
         public String getUser_message() {
             return user_message;
         }
@@ -103,9 +106,5 @@ public class ErrorResponse {
         public void setReason(String reason) {
             this.reason = reason;
         }
-
-        private String user_message;
-        private String message;
-        private String reason;
     }
 }

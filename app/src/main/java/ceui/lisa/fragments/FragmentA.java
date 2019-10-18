@@ -19,7 +19,6 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.adapters.KissAdapter;
 import ceui.lisa.databinding.FragmentABinding;
-import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
 import jp.wasabeef.recyclerview.animators.BaseItemAnimator;

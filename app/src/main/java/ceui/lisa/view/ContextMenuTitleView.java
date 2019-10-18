@@ -11,7 +11,7 @@ import android.widget.TextView;
 
 /**
  * Origin:https://github.com/RikkaW/SearchByImage.git
- *
+ * <p>
  * Created by Rikka on 2016/1/7.
  */
 public class ContextMenuTitleView extends ScrollView {
@@ -47,14 +47,13 @@ public class ContextMenuTitleView extends ScrollView {
         addView(titleView);
     }
 
+    public static int dpToPx(int dp) {
+        return (int) (dp * Resources.getSystem().getDisplayMetrics().density);
+    }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         heightMeasureSpec = MeasureSpec.makeMeasureSpec(dpToPx(MAX_HEIGHT_DP), MeasureSpec.AT_MOST);
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-    }
-
-    public static int dpToPx(int dp) {
-        return (int) (dp * Resources.getSystem().getDisplayMetrics().density);
     }
 }

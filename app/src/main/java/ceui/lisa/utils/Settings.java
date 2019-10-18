@@ -23,7 +23,6 @@ public class Settings {
     public static final String WEB_DOWNLOAD_PATH = "/storage/emulated/0/Shaft/Web";
 
 
-
     //瀑布流List点击动画
     private boolean mainListAnimate = true;
 

@@ -14,6 +14,7 @@ public interface DownloadDao {
 
     /**
      * 添加一个下载记录
+     *
      * @param illustTask
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -22,6 +23,7 @@ public interface DownloadDao {
 
     /**
      * 删除一条下载记录
+     *
      * @param userEntity
      */
     @Delete
@@ -29,6 +31,7 @@ public interface DownloadDao {
 
     /**
      * 获取全部下载记录
+     *
      * @param limit
      * @param offset
      * @return
@@ -45,6 +48,7 @@ public interface DownloadDao {
 
     /**
      * 新增一个浏览历史
+     *
      * @param userEntity
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -53,6 +57,7 @@ public interface DownloadDao {
 
     /**
      * 删除一个浏览历史
+     *
      * @param userEntity
      */
     @Delete
@@ -68,6 +73,7 @@ public interface DownloadDao {
 
     /**
      * 查询所有浏览历史
+     *
      * @param limit
      * @param offset
      * @return
@@ -78,6 +84,7 @@ public interface DownloadDao {
 
     /**
      * 新增一个用户
+     *
      * @param userEntity
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -86,6 +93,7 @@ public interface DownloadDao {
 
     /**
      * 删除一个用户
+     *
      * @param userEntity
      */
     @Delete

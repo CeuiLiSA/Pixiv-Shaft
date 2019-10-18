@@ -1,12 +1,12 @@
 package ceui.lisa.utils;
 
 import android.content.ClipData;
-import android.content.Context;
 import android.content.ClipboardManager;
+import android.content.Context;
 
 /**
  * Origin:https://github.com/RikkaW/SearchByImage.git
- *
+ * <p>
  * Created by Rikka on 2015/12/18.
  */
 public class ClipBoardUtils {

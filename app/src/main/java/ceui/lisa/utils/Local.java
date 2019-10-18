@@ -6,9 +6,6 @@ import android.content.SharedPreferences;
 
 import com.google.gson.Gson;
 
-import org.greenrobot.eventbus.EventBus;
-
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
@@ -18,7 +15,6 @@ import java.util.List;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.interfaces.Callback;
-import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.UserModel;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
@@ -33,8 +29,8 @@ public class Local {
     public static final String LOCAL_DATA = "local_data";
     public static final String USER = "user";
 
-    public static void saveUser(UserModel userModel){
-        if(userModel != null){
+    public static void saveUser(UserModel userModel) {
+        if (userModel != null) {
             userModel.getResponse().getUser().setIs_login(true);
             String token = userModel.getResponse().getAccess_token();
             userModel.getResponse().setAccess_token("Bearer " + token);
@@ -48,9 +44,9 @@ public class Local {
         }
     }
 
-    public static UserModel getUser(){
+    public static UserModel getUser() {
         SharedPreferences localData = Shaft.getContext().getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
-        String userString = localData.getString(USER,"");
+        String userString = localData.getString(USER, "");
         Gson gson = new Gson();
         UserModel userModel = gson.fromJson(userString, UserModel.class);
         return userModel;
@@ -63,7 +59,7 @@ public class Local {
      * @param t
      * @param <T>
      */
-    public static <T> void saveIllustList(List<T> t){
+    public static <T> void saveIllustList(List<T> t) {
         try {
             FileOutputStream outputStream = Shaft.getContext().openFileOutput("RecommendIllust", Activity.MODE_PRIVATE);
             ObjectOutputStream oos = new ObjectOutputStream(outputStream);
@@ -71,8 +67,7 @@ public class Local {
             outputStream.close();//关闭输入流
             oos.close();
             Common.showLog("本地文件写入成功");
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -126,7 +121,6 @@ public class Local {
     }
 
 
-
     /**
      * 主线程 同步读取本地文件
      *
@@ -142,7 +136,7 @@ public class Local {
             bean = (List<T>) ois.readObject();
             fis.close();
             ois.close();
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return bean;
@@ -193,7 +187,14 @@ public class Local {
                 });
     }
 
-    public static void setSettings(Settings settings){
+    public static Settings getSettings() {
+        SharedPreferences localData = Shaft.getContext().getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
+        String settingsString = localData.getString("settings", "");
+        Settings settings = new Gson().fromJson(settingsString, Settings.class);
+        return settings == null ? new Settings() : settings;
+    }
+
+    public static void setSettings(Settings settings) {
         SharedPreferences localData = Shaft.getContext().getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
         Gson gson = new Gson();
         String settingsGson = gson.toJson(settings);
@@ -201,12 +202,5 @@ public class Local {
         editor.putString("settings", settingsGson);
         editor.apply();
         Shaft.sSettings = settings;
-    }
-
-    public static Settings getSettings(){
-        SharedPreferences localData = Shaft.getContext().getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
-        String settingsString = localData.getString("settings", "");
-        Settings settings = new Gson().fromJson(settingsString, Settings.class);
-        return settings == null ? new Settings() : settings;
     }
 }

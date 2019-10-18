@@ -5,7 +5,7 @@ public abstract class NullCtrl<T> extends ErrorCtrl<T> {
     @Override
     public void onNext(T t) {
         must(true);
-        if(t != null){
+        if (t != null) {
             success(t);
         } else {
             nullSuccess();
@@ -14,7 +14,7 @@ public abstract class NullCtrl<T> extends ErrorCtrl<T> {
 
     public abstract void success(T t);
 
-    public void nullSuccess(){
+    public void nullSuccess() {
 
     }
 
@@ -24,7 +24,7 @@ public abstract class NullCtrl<T> extends ErrorCtrl<T> {
         must(false);
     }
 
-    public void must(boolean isSuccess){
+    public void must(boolean isSuccess) {
 
     }
 }

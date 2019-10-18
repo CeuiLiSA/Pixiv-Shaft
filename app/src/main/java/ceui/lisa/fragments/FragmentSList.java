@@ -18,7 +18,6 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
-import ceui.lisa.databinding.FragmentListBinding;
 import ceui.lisa.databinding.FragmentSearchResultBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.interfaces.ListShow;

@@ -5,15 +5,9 @@ import android.util.Log;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.X509TrustManager;
 
 import ceui.lisa.activities.Shaft;
@@ -54,7 +48,7 @@ public class Retro {
         return what(ACCOUNT_BASE_URL, AccountApi.class);
     }
 
-    private static Request.Builder addHeader(Request.Builder before){
+    private static Request.Builder addHeader(Request.Builder before) {
         PixivHeaders pixivHeaders = new PixivHeaders();
         return before
                 .addHeader("User-Agent", "PixivAndroidApp/5.0.134 (Android 6.0.1; D6653)")
@@ -74,7 +68,7 @@ public class Retro {
                     .protocols(Collections.singletonList(Protocol.HTTP_1_1))
                     .addInterceptor(chain -> chain.proceed(addHeader(chain.request().newBuilder()).build()))
                     .build();
-            if(!baseUrl.equals(ACCOUNT_BASE_URL)){
+            if (!baseUrl.equals(ACCOUNT_BASE_URL)) {
                 builder.addInterceptor(new TokenInterceptor());
             }
         } catch (Exception e) {
