@@ -51,7 +51,8 @@ public class Common {
         else if (ContentResolver.SCHEME_FILE.equals(scheme)) {
             data = uri.getPath();
         } else if (ContentResolver.SCHEME_CONTENT.equals(scheme)) {
-            Cursor cursor = context.getContentResolver().query(uri, new String[]{MediaStore.Images.ImageColumns.DATA}, null, null, null);
+            Cursor cursor = context.getContentResolver().query(uri,
+                    new String[]{MediaStore.Images.ImageColumns.DATA}, null, null, null);
             if (null != cursor) {
                 if (cursor.moveToFirst()) {
                     int index = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
@@ -98,10 +99,10 @@ public class Common {
         ClipboardManager cm = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData mClipData = ClipData.newPlainText("Label", s);
         cm.setPrimaryClip(mClipData);
-        showToast(s + "已复制到剪切板");
+        showToast(s + context.getString(R.string.has_copyed));
     }
 
     public static String checkEmpty(String before) {
-        return TextUtils.isEmpty(before) ? "暂无信息" : before;
+        return TextUtils.isEmpty(before) ? Shaft.getContext().getString(R.string.no_info) : before;
     }
 }

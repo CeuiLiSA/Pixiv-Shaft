@@ -4,6 +4,8 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 
+import ceui.lisa.R;
+
 /**
  * Origin:https://github.com/RikkaW/SearchByImage.git
  * <p>
@@ -14,6 +16,6 @@ public class ClipBoardUtils {
         ClipboardManager clipboardManager = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clipData = ClipData.newPlainText("copy text", text);
         clipboardManager.setPrimaryClip(clipData);
-        Common.showToast(text + "已复制到剪贴板");
+        Common.showToast(text + context.getString(R.string.has_copyed));
     }
 }

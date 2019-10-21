@@ -78,7 +78,7 @@ public class CoverActivity extends BaseActivity
                     if (permission.granted) {
                         callback.doSomething(null);
                     } else {
-                        Common.showToast("请给与足够的权限");
+                        Common.showToast(mContext.getString(R.string.access_denied));
                     }
                 });
     }
@@ -184,15 +184,18 @@ public class CoverActivity extends BaseActivity
             startActivity(intent);
         } else if (id == R.id.nav_slideshow) {
             Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "浏览记录");
+            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
+                    mContext.getString(R.string.view_history));
             startActivity(intent);
         } else if (id == R.id.nav_manage) {
             Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "设置");
+            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
+                    mContext.getString(R.string.app_settings));
             startActivity(intent);
         } else if (id == R.id.nav_share) {
             Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "关于软件");
+            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
+                    mContext.getString(R.string.full_about_app));
             startActivity(intent);
 
         } else if (id == R.id.main_page) {
@@ -235,7 +238,7 @@ public class CoverActivity extends BaseActivity
                     .into(userHead);
             username.setText(sUserModel.getResponse().getUser().getName());
             user_email.setText(TextUtils.isEmpty(sUserModel.getResponse().getUser().getMail_address()) ?
-                    "未绑定邮箱" : sUserModel.getResponse().getUser().getMail_address());
+                    mContext.getString(R.string.no_mail_address) : sUserModel.getResponse().getUser().getMail_address());
         }
     }
 
@@ -269,15 +272,15 @@ public class CoverActivity extends BaseActivity
         if ((System.currentTimeMillis() - mExitTime) > 2000) {
             if (TaskQueue.get().getTasks().size() != 0) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                builder.setTitle("Shaft 提示");
-                builder.setMessage("你还有未下载完成的任务，确定退出吗？");
-                builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                builder.setTitle(getString(R.string.shaft_hint));
+                builder.setMessage(mContext.getString(R.string.you_have_download_plan));
+                builder.setPositiveButton(mContext.getString(R.string.sure), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         finish();
                     }
                 });
-                builder.setNegativeButton("取消", null);
+                builder.setNegativeButton(mContext.getString(R.string.cancel), null);
                 builder.setNeutralButton(getString(R.string.see_download_task), (dialog, which) -> {
                     Intent intent = new Intent(mContext, DownloadManageActivity.class);
                     startActivity(intent);

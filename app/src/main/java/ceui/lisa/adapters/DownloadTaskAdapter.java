@@ -50,7 +50,7 @@ public class DownloadTaskAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 allIllust.get(position).getDownloadTask());
         StatusUtil.Status status = StatusUtil.getStatus(allIllust.get(position).getDownloadTask());
         if (status == StatusUtil.Status.COMPLETED) {
-            currentOne.state.setText("已完成");
+            currentOne.state.setText(mContext.getString(R.string.has_download));
         } else if (status == StatusUtil.Status.IDLE) {
             currentOne.state.setText("闲置中");
         } else if (status == StatusUtil.Status.PENDING) {
@@ -79,7 +79,6 @@ public class DownloadTaskAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     public static class TagHolder extends RecyclerView.ViewHolder {
         public ProgressBar mProgressBar;
         public TextView title, currentSize, fullSize, state;
-        private IllustsBean mIllustsBean;
 
         TagHolder(View itemView) {
             super(itemView);

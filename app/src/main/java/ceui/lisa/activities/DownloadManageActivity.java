@@ -23,7 +23,10 @@ import ceui.lisa.utils.Common;
 
 public class DownloadManageActivity extends BaseActivity {
 
-    private static final String[] CHINESE_TITLES = new String[]{"正在下载", "已完成"};
+    private static final String[] CHINESE_TITLES = new String[]{
+            Shaft.getContext().getString(R.string.now_downloading),
+            Shaft.getContext().getString(R.string.has_download)
+    };
     private BaseFragment[] allPages = new BaseFragment[]{new FragmentNowDownload(), new FragmentDownloadFinish()};
     private ViewPager mViewPager;
 

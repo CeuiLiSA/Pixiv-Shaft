@@ -7,6 +7,7 @@ import android.content.Intent;
 import java.util.ArrayList;
 import java.util.List;
 
+import ceui.lisa.R;
 import ceui.lisa.activities.LoginActivity;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.http.ErrorCtrl;
@@ -19,6 +20,8 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
 import retrofit2.Callback;
+
+import static com.blankj.utilcode.util.StringUtils.getString;
 
 public class PixivOperate {
 
@@ -43,9 +46,9 @@ public class PixivOperate {
                     @Override
                     public void onNext(NullResponse nullResponse) {
                         if (followType.equals("public")) {
-                            Common.showToast("关注成功~(公开的)");
+                            Common.showToast(getString(R.string.like_success_public));
                         } else {
-                            Common.showToast("关注成功~(非公开的)");
+                            Common.showToast(getString(R.string.like_success_private));
                         }
                     }
                 });
@@ -59,7 +62,7 @@ public class PixivOperate {
                 .subscribe(new ErrorCtrl<NullResponse>() {
                     @Override
                     public void onNext(NullResponse nullResponse) {
-                        Common.showToast("取消关注~");
+                        Common.showToast(getString(R.string.cancel_like));
                     }
                 });
     }
@@ -77,7 +80,7 @@ public class PixivOperate {
                     .subscribe(new ErrorCtrl<NullResponse>() {
                         @Override
                         public void onNext(NullResponse nullResponse) {
-                            Common.showToast("取消收藏");
+                            Common.showToast(getString(R.string.cancel_like_illust));
                         }
                     });
         } else { //没有收藏
@@ -88,7 +91,7 @@ public class PixivOperate {
                     .subscribe(new ErrorCtrl<NullResponse>() {
                         @Override
                         public void onNext(NullResponse nullResponse) {
-                            Common.showToast("收藏成功");
+                            Common.showToast(getString(R.string.like_illust_success));
                         }
                     });
         }

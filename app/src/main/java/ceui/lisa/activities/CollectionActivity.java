@@ -21,7 +21,11 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class CollectionActivity extends BaseActivity {
 
-    private static final String[] CHINESE_TITLES = new String[]{"公开收藏", "私人收藏", "公开关注", "私人关注"};
+    private static final String[] CHINESE_TITLES = new String[]{
+            Shaft.getContext().getString(R.string.public_like_illust), 
+            Shaft.getContext().getString(R.string.private_like_illust), 
+            Shaft.getContext().getString(R.string.public_like_user), 
+            Shaft.getContext().getString(R.string.private_like_user)};
     private Fragment[] allPages;
     private ViewPager mViewPager;
 
@@ -34,7 +38,7 @@ public class CollectionActivity extends BaseActivity {
     protected void initView() {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        toolbar.setTitle("收藏夹");
+        toolbar.setTitle(mContext.getString(R.string.bookmark));
         toolbar.setNavigationOnClickListener(v -> finish());
         TabLayout tabLayout = findViewById(R.id.tab_layout);
         mViewPager = findViewById(R.id.view_pager);
@@ -113,14 +117,14 @@ public class CollectionActivity extends BaseActivity {
             intent.putExtra(TemplateFragmentActivity.EXTRA_KEYWORD,
                     FragmentLikeIllust.TYPE_PUBLUC);
             intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
-                    "按标签筛选");
+                    mContext.getString(R.string.filter_by_bookmark));
             startActivity(intent);
         } else if (mViewPager.getCurrentItem() == 1) {
             Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
             intent.putExtra(TemplateFragmentActivity.EXTRA_KEYWORD,
                     FragmentLikeIllust.TYPE_PRIVATE);
             intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
-                    "按标签筛选");
+                    mContext.getString(R.string.filter_by_bookmark));
             startActivity(intent);
         }
         return super.onOptionsItemSelected(item);
