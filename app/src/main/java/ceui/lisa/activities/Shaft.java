@@ -3,6 +3,7 @@ package ceui.lisa.activities;
 import android.app.Application;
 import android.content.Context;
 
+import com.liulishuo.okdownload.core.dispatcher.DownloadDispatcher;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 import com.scwang.smartrefresh.layout.header.ClassicsHeader;
@@ -68,5 +69,6 @@ public class Shaft extends Application {
             statusHeight = sContext.getResources().getDimensionPixelSize(resourceId);
         }
         toolbarHeight = DensityUtil.dp2px(56.0f);
+
     }
 }

@@ -20,6 +20,7 @@ import ceui.lisa.download.IllustDownload;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.view.DownloadItemDecoration;
@@ -125,6 +126,8 @@ public class FragmentMultiDownload extends BaseAsyncFragment<MultiDownloadAdapte
                 }
             }
             mAdapter.notifyDataSetChanged();
+        } else if (item.getItemId() == R.id.action_3) {
+            Common.showToast("还没做呢");
         }
         return super.onOptionsItemSelected(item);
     }

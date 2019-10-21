@@ -86,7 +86,6 @@ public class FragmentSearchResult extends FragmentSList<ListIllustResponse, Illu
                 }
                 Common.hideKeyboard(mActivity);
                 mAdapter.clear();
-                baseBind.recyclerView.requestLayout();
                 getFirstData();
                 return true;
             }
@@ -231,6 +230,7 @@ public class FragmentSearchResult extends FragmentSList<ListIllustResponse, Illu
                                 token = "Bearer " + tempTokenResponse.getToken();
                                 sort = "popular_desc";
                                 starSize = "";
+                                mAdapter.clear();
                                 getFirstData();
                             }
                         }

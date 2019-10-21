@@ -1,6 +1,7 @@
 package ceui.lisa.download;
 
 import com.liulishuo.okdownload.DownloadTask;
+import com.liulishuo.okdownload.core.dispatcher.DownloadDispatcher;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -89,6 +90,7 @@ public class IllustDownload {
             downloadIllust(illustsBean);
             return;
         }
+        DownloadDispatcher.setMaxParallelRunningCount(1);
 
 
         List<DownloadTask> tempList = new ArrayList<>();
@@ -131,6 +133,8 @@ public class IllustDownload {
             downloadAllIllust(beans.get(0));
             return;
         }
+
+        DownloadDispatcher.setMaxParallelRunningCount(1);
 
 
         List<DownloadTask> tempList = new ArrayList<>();
