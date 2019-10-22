@@ -88,4 +88,5 @@
     <string name="cancel_like">取消关注~</string>
     <string name="cancel_like_illust">取消收藏</string>
     <string name="like_illust_success">收藏成功</string>
+    <string name="how_about_trending">动态页面展示谁的作品？</string>
 </resources>

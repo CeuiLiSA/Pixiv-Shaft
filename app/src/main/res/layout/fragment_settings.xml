@@ -340,89 +340,6 @@
 
                             <TextView
                                 android:layout_margin="@dimen/sixteen_dp"
-                                android:text="瀑布流列表点击动画"
-                                android:textSize="15sp"
-                                android:textColor="@color/dark_text"
-                                android:layout_centerVertical="true"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
-
-
-                            </TextView>
-
-
-                            <Switch
-                                android:layout_width="wrap_content"
-                                android:checked="true"
-                                android:id="@+id/stagger_animate"
-                                android:layout_alignParentEnd="true"
-                                android:layout_centerVertical="true"
-                                android:layout_margin="@dimen/sixteen_dp"
-                                android:layout_height="wrap_content" />
-
-
-                        </RelativeLayout>
-
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:background="#e6e6e6"
-                            android:layout_marginStart="@dimen/sixteen_dp"
-                            android:layout_height="1dp" />
-
-
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:background="?android:attr/selectableItemBackground"
-                            android:clickable="true"
-                            android:layout_height="match_parent">
-
-
-                            <TextView
-                                android:layout_margin="@dimen/sixteen_dp"
-                                android:text="网格列表点击动画"
-                                android:textSize="15sp"
-                                android:textColor="@color/dark_text"
-                                android:layout_centerVertical="true"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
-
-
-                            </TextView>
-
-
-                            <Switch
-                                android:layout_width="wrap_content"
-                                android:checked="true"
-                                android:id="@+id/grid_animate"
-                                android:layout_alignParentEnd="true"
-                                android:layout_centerVertical="true"
-                                android:layout_margin="@dimen/sixteen_dp"
-                                android:layout_height="wrap_content" />
-
-
-                        </RelativeLayout>
-
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:background="#e6e6e6"
-                            android:layout_marginStart="@dimen/sixteen_dp"
-                            android:layout_height="1dp">
-
-
-                        </View>
-
-
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:background="?android:attr/selectableItemBackground"
-                            android:clickable="true"
-                            android:layout_height="match_parent">
-
-
-                            <TextView
-                                android:layout_margin="@dimen/sixteen_dp"
                                 android:text="保存浏览历史"
                                 android:textSize="15sp"
                                 android:layout_centerVertical="true"
@@ -801,6 +718,53 @@
 
                         </RelativeLayout>
 
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="#e6e6e6"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_height="1dp">
+
+
+                        </View>
+
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:layout_height="match_parent">
+
+
+                            <TextView
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="@string/how_about_trending"
+                                android:textSize="15sp"
+                                android:layout_centerVertical="true"
+                                android:id="@+id/how_about_trending"
+                                android:textColor="@color/dark_text"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+
+                            </TextView>
+
+
+                            <TextView
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="公开关注"
+                                android:textSize="14sp"
+                                android:id="@+id/trending_illust"
+                                android:layout_alignParentEnd="true"
+                                android:textColor="@color/colorPrimary"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+
+                            </TextView>
+
+
+                        </RelativeLayout>
 
                         <View
                             android:layout_width="match_parent"

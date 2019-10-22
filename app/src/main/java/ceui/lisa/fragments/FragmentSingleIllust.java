@@ -2,7 +2,10 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.SpannableString;
+import android.text.Spanned;
 import android.text.TextUtils;
+import android.text.style.ForegroundColorSpan;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -234,9 +237,12 @@ public class FragmentSingleIllust extends BaseFragment {
         userName.setText(illust.getUser().getName());
         mTagCloudView = v.findViewById(R.id.illust_tag);
         List<String> tags = new ArrayList<>();
-        String illustSize = "尺寸：" + illust.getSize();
+        SpannableString sizeString = new SpannableString(String.format("尺寸：%s",
+                illust.getSize()));
+        sizeString.setSpan(new ForegroundColorSpan(mContext.getResources().getColor(R.color.colorPrimary)),
+                3, illust.getSize().length() + 3, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         TextView illustPx = v.findViewById(R.id.illust_px);
-        illustPx.setText(illustSize);
+        illustPx.setText(sizeString);
         for (int i = 0; i < illust.getTags().size(); i++) {
             String temp = illust.getTags().get(i).getName();
 //            if(!TextUtils.isEmpty(illust.getTags().get(i).getTranslated_name())){
@@ -294,14 +300,39 @@ public class FragmentSingleIllust extends BaseFragment {
             follow.setText("+ 關注");
             follow.setOnClickListener(v1 -> {
                 finalFollow.setText("取消關注");
-                PixivOperate.postFollowUser(illust.getUser().getId(), "public");
+                PixivOperate.postFollowUser(illust.getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC);
             });
             follow.setOnLongClickListener(v1 -> {
                 finalFollow.setText("取消關注");
-                PixivOperate.postFollowUser(illust.getUser().getId(), "private");
+                PixivOperate.postFollowUser(illust.getUser().getId(), FragmentLikeIllust.TYPE_PRIVATE);
                 return true;
             });
         }
+
+        TextView userID = v.findViewById(R.id.user_id);
+        SpannableString userString = new SpannableString(String.format("用户ID：%s",
+                String.valueOf(illust.getUser().getId())));
+        userString.setSpan(new ForegroundColorSpan(mContext.getResources().getColor(R.color.colorPrimary)),
+                5, String.valueOf(illust.getUser().getId()).length() + 5, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        userID.setText(userString);
+        userID.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Common.copy(mContext, String.valueOf(illust.getUser().getId()));
+            }
+        });
+        TextView illustID = v.findViewById(R.id.illust_id);
+        SpannableString illustString = new SpannableString(String.format("作品ID：%s",
+                String.valueOf(illust.getId())));
+        illustString.setSpan(new ForegroundColorSpan(mContext.getResources().getColor(R.color.colorPrimary)),
+                5, String.valueOf(illust.getId()).length() + 5, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        illustID.setText(illustString);
+        illustID.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Common.copy(mContext, String.valueOf(illust.getId()));
+            }
+        });
         return v;
     }
 

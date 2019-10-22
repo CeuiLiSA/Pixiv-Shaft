@@ -7,6 +7,7 @@ import com.scwang.smartrefresh.layout.api.RefreshFooter;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.EAdapter;
@@ -31,7 +32,8 @@ public class FragmentP extends FragmentList<ListIllustResponse, IllustsBean, Rec
 
     @Override
     public Observable<ListIllustResponse> initApi() {
-        return Retro.getAppApi().getFollowUserIllust(sUserModel.getResponse().getAccess_token());
+        return Retro.getAppApi().getFollowUserIllust(sUserModel.getResponse().getAccess_token(),
+                Shaft.sSettings.isTrendsForPrivate() ? FragmentLikeIllust.TYPE_PRIVATE : FragmentLikeIllust.TYPE_PUBLUC);
     }
 
     @Override

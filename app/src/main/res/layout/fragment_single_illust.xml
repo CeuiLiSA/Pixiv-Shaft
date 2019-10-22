@@ -151,14 +151,36 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:textSize="13sp"
+                            android:textStyle="bold"
                             android:layout_marginStart="@dimen/twelve_dip"
                             android:layout_marginTop="@dimen/eight_dp"
-                            android:id="@+id/illust_px"
+                            android:id="@+id/user_id"
                             android:layout_height="wrap_content">
 
                         </TextView>
 
 
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:layout_marginStart="@dimen/twelve_dip"
+                            android:layout_marginTop="@dimen/eight_dp"
+                            android:id="@+id/illust_id"
+                            android:layout_height="wrap_content">
+
+                        </TextView>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:textSize="13sp"
+                            android:layout_marginStart="@dimen/twelve_dip"
+                            android:textStyle="bold"
+                            android:layout_marginTop="@dimen/eight_dp"
+                            android:id="@+id/illust_px"
+                            android:layout_height="wrap_content">
+
+                        </TextView>
 
                         <me.next.tagview.TagCloudView
                             android:layout_marginTop="4dp"
@@ -228,9 +250,6 @@
 
                     </LinearLayout>
 
-
-
-
                 </androidx.cardview.widget.CardView>
 
 
@@ -244,58 +263,10 @@
                     app:cardCornerRadius="@dimen/four_dp"
                     android:layout_height="wrap_content">
 
-
-
-
-
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:gravity="center_horizontal"
                         android:layout_height="wrap_content">
-
-                        <!--                <android.support.design.card.MaterialCardView-->
-                        <!--                    android:layout_width="0dp"-->
-                        <!--                    android:layout_weight="1"-->
-                        <!--                    android:id="@+id/download_illust"-->
-                        <!--                    app:cardElevation="@dimen/four_dp"-->
-                        <!--                    android:layout_marginBottom="@dimen/eight_dp"-->
-                        <!--                    android:layout_marginStart="@dimen/twelve_dp"-->
-                        <!--                    android:layout_marginEnd="@dimen/four_dp"-->
-                        <!--                    app:cardCornerRadius="@dimen/four_dp"-->
-                        <!--                    android:layout_height="match_parent">-->
-
-                        <!--                    <TextView-->
-                        <!--                        android:layout_width="wrap_content"-->
-                        <!--                        android:text="下载原图"-->
-                        <!--                        android:id="@+id/download_text"-->
-                        <!--                        android:layout_gravity="center"-->
-                        <!--                        android:layout_height="wrap_content" />-->
-
-
-                        <!--                </android.support.design.card.MaterialCardView>-->
-
-
-                        <!--                <android.support.design.card.MaterialCardView-->
-                        <!--                    android:layout_width="0dp"-->
-                        <!--                    android:layout_weight="1"-->
-                        <!--                    android:layout_marginEnd="@dimen/twelve_dp"-->
-                        <!--                    android:id="@+id/related_illust"-->
-                        <!--                    app:cardElevation="@dimen/four_dp"-->
-                        <!--                    android:layout_marginBottom="@dimen/eight_dp"-->
-                        <!--                    android:layout_marginStart="@dimen/four_dp"-->
-                        <!--                    app:cardCornerRadius="@dimen/four_dp"-->
-                        <!--                    android:layout_height="match_parent">-->
-
-                        <!--                    <TextView-->
-                        <!--                        android:layout_width="wrap_content"-->
-                        <!--                        android:text="相关作品"-->
-                        <!--                        android:layout_gravity="center"-->
-                        <!--                        android:layout_margin="@dimen/sixteen_dp"-->
-                        <!--                        android:layout_height="wrap_content" />-->
-
-
-                        <!--                </android.support.design.card.MaterialCardView>-->
-
 
                         <com.google.android.material.floatingactionbutton.FloatingActionButton
                             android:layout_width="0dp"
@@ -351,13 +322,7 @@
 
                 </androidx.cardview.widget.CardView>
 
-
-
-
             </LinearLayout>
-
-
-
 
     </androidx.core.widget.NestedScrollView>
 
@@ -375,9 +340,5 @@
         app:titleTextColor="@android:color/white">
 
     </androidx.appcompat.widget.Toolbar>
-
-
-
-
 
 </RelativeLayout>
