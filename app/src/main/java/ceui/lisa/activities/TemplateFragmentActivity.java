@@ -10,7 +10,6 @@ import ceui.lisa.fragments.FragmentAbout;
 import ceui.lisa.fragments.FragmentBlank;
 import ceui.lisa.fragments.FragmentBookTag;
 import ceui.lisa.fragments.FragmentComment;
-import ceui.lisa.fragments.FragmentE;
 import ceui.lisa.fragments.FragmentFollowUser;
 import ceui.lisa.fragments.FragmentH;
 import ceui.lisa.fragments.FragmentLicense;
@@ -111,7 +110,7 @@ public class TemplateFragmentActivity extends FragmentActivity {
                 case "搜索":
                     return new FragmentSearch();
                 case "一言":
-                    return new FragmentE();
+                    return new FragmentH();
                 default:
                     return new FragmentBlank();
             }
@@ -123,11 +122,8 @@ public class TemplateFragmentActivity extends FragmentActivity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (childFragment instanceof FragmentWebView) {
-            if (((FragmentWebView) childFragment).getAgentWeb().handleKeyEvent(keyCode, event)) {
-                return true;
-            } else {
-                return super.onKeyDown(keyCode, event);
-            }
+            return ((FragmentWebView) childFragment).getAgentWeb().handleKeyEvent(keyCode, event) ||
+                    super.onKeyDown(keyCode, event);
         }
         return super.onKeyDown(keyCode, event);
     }
