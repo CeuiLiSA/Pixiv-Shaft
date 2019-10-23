@@ -2,14 +2,6 @@ package ceui.lisa.model;
 
 public class UserDetailResponse {
 
-
-    /**
-     * user : {"id":24218478,"name":"￦ANKE","account":"user_jmyc2583","profile_image_urls":{"medium":"https://i.pximg.net/user-profile/img/2017/09/29/13/51/27/13283446_b908e62681a97cefa388c5e166144867_170.jpg"},"comment":"●　　　●\r\n　▼▼▼\r\n\r\n\r\nContact - wan_ke@eightstudio.co.kr\r\nBusiness : ms@eightstudio.co.kr","is_followed":false}
-     * profile : {"webpage":"http://blog.naver.com/wan_ke","gender":"","birth":"1997-10-23","birth_day":"10-23","birth_year":1997,"region":"Korea, Republic of","address_id":48,"country_code":"KR","job":"艺术家","job_id":14,"total_follow_users":296,"total_mypixiv_users":6,"total_illusts":40,"total_manga":0,"total_novels":0,"total_illust_bookmarks_public":37,"total_illust_series":0,"total_novel_series":0,"background_image_url":null,"twitter_account":"Classic_W_","twitter_url":"https://twitter.com/Classic_W_","pawoo_url":null,"is_premium":true,"is_using_custom_profile_image":true}
-     * profile_publicity : {"gender":"public","region":"public","birth_day":"public","birth_year":"public","job":"public","pawoo":true}
-     * workspace : {"pc":"","monitor":"","tool":"","scanner":"","tablet":"","mouse":"","printer":"","desktop":"","music":"","desk":"","chair":"","comment":"","workspace_image_url":null}
-     */
-
     private UserBean user;
     private ProfileBean profile;
     private ProfilePublicityBean profile_publicity;

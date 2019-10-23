@@ -6,11 +6,6 @@ import ceui.lisa.interfaces.ListShow;
 
 public class IllustBookmarkTags implements ListShow<BookmarkTagsBean> {
 
-
-    /**
-     * bookmark_detail : {"is_bookmarked":false,"tags":[{"name":"オリジナル","is_registered":false},{"name":"創作","is_registered":false},{"name":"女の子","is_registered":false},{"name":"擬人化","is_registered":false},{"name":"ストラップシューズ","is_registered":false},{"name":"チョコケーキ6姉妹","is_registered":false},{"name":"オリジナル10000users入り","is_registered":false},{"name":"procreate","is_registered":false},{"name":"らくがき","is_registered":false},{"name":"習作","is_registered":false},{"name":"我是特殊分类","is_registered":false},{"name":"VOCALOID","is_registered":false}],"restrict":"public"}
-     */
-
     private BookmarkDetailBean bookmark_detail;
     private String next_url;
 

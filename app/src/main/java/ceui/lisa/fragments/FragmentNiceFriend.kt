@@ -40,7 +40,7 @@ class FragmentNiceFriend : FragmentList<ListUserResponse, UserPreviewsBean, Recy
                         val postFollow = v as Button
                         postFollow.text = getString(R.string.post_follow)
                     } else {
-                        PixivOperate.postFollowUser(allItems[position].user.id, "public")
+                        PixivOperate.postFollowUser(allItems[position].user.id, FragmentLikeIllust.TYPE_PUBLUC)
                         val postFollow = v as Button
                         postFollow.text = getString(R.string.post_unfollow)
                     }
@@ -49,7 +49,7 @@ class FragmentNiceFriend : FragmentList<ListUserResponse, UserPreviewsBean, Recy
 
             override fun onItemLongClick(v: View, position: Int, viewType: Int) {
                 if (!allItems[position].user.isIs_followed) {
-                    PixivOperate.postFollowUser(allItems[position].user.id, "private")
+                    PixivOperate.postFollowUser(allItems[position].user.id, FragmentLikeIllust.TYPE_PRIVATE)
                     val postFollow = v as Button
                     postFollow.text = getString(R.string.post_unfollow)
                 }

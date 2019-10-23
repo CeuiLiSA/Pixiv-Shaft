@@ -10,6 +10,7 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.activities.LoginActivity;
 import ceui.lisa.activities.ViewPagerActivity;
+import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.IllustSearchResponse;
@@ -45,7 +46,7 @@ public class PixivOperate {
                 .subscribe(new ErrorCtrl<NullResponse>() {
                     @Override
                     public void onNext(NullResponse nullResponse) {
-                        if (followType.equals("public")) {
+                        if (followType.equals(FragmentLikeIllust.TYPE_PUBLUC)) {
                             Common.showToast(getString(R.string.like_success_public));
                         } else {
                             Common.showToast(getString(R.string.like_success_private));

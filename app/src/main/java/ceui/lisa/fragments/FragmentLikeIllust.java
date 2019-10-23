@@ -92,14 +92,7 @@ public class FragmentLikeIllust extends FragmentList<ListIllustResponse, Illusts
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        EventBus.getDefault().register(this);
-    }
-
-    @Override
-    public void onDestroy() {
-        EventBus.getDefault().unregister(this);
-        super.onDestroy();
+    public boolean eventBusEnable() {
+        return true;
     }
 }

@@ -29,7 +29,7 @@ public class FragmentRecmdUser extends FragmentList<ListUserResponse, UserPrevie
 
     @Override
     public String getToolbarTitle() {
-        return "推荐用户";
+        return getString(R.string.recomment_user);
     }
 
     @Override
@@ -53,7 +53,7 @@ public class FragmentRecmdUser extends FragmentList<ListUserResponse, UserPrevie
                         Button postFollow = ((Button) v);
                         postFollow.setText(getString(R.string.post_follow));
                     } else {
-                        PixivOperate.postFollowUser(allItems.get(position).getUser().getId(), "public");
+                        PixivOperate.postFollowUser(allItems.get(position).getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC);
                         Button postFollow = ((Button) v);
                         postFollow.setText(getString(R.string.post_unfollow));
                     }
@@ -63,7 +63,7 @@ public class FragmentRecmdUser extends FragmentList<ListUserResponse, UserPrevie
             @Override
             public void onItemLongClick(View v, int position, int viewType) {
                 if (!allItems.get(position).getUser().isIs_followed()) {
-                    PixivOperate.postFollowUser(allItems.get(position).getUser().getId(), "private");
+                    PixivOperate.postFollowUser(allItems.get(position).getUser().getId(), FragmentLikeIllust.TYPE_PRIVATE);
                     Button postFollow = ((Button) v);
                     postFollow.setText(getString(R.string.post_unfollow));
                 }

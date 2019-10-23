@@ -188,11 +188,11 @@ public class UserDetailActivity extends BaseActivity {
                 nowFollow.setText("+ 關注");
                 nowFollow.setOnClickListener(v -> {
                     nowFollow.setText("取消關注");
-                    PixivOperate.postFollowUser(userDetailResponse.getUser().getId(), "public");
+                    PixivOperate.postFollowUser(userDetailResponse.getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC);
                 });
                 nowFollow.setOnLongClickListener(v -> {
                     nowFollow.setText("取消關注");
-                    PixivOperate.postFollowUser(userDetailResponse.getUser().getId(), "private");
+                    PixivOperate.postFollowUser(userDetailResponse.getUser().getId(), FragmentLikeIllust.TYPE_PRIVATE);
                     return true;
                 });
             }

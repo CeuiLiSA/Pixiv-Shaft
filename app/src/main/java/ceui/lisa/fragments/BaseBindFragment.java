@@ -13,7 +13,12 @@ import androidx.databinding.ViewDataBinding;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
 import ceui.lisa.interfaces.Binding;
+import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 
 
@@ -36,7 +41,20 @@ public abstract class BaseBindFragment<T extends ViewDataBinding> extends Fragme
 
         mContext = getContext();
         mActivity = getActivity();
+
+        if (eventBusEnable()) {
+            EventBus.getDefault().register(this);
+        }
     }
+
+    @Override
+    public void onDestroy() {
+        if (eventBusEnable()) {
+            EventBus.getDefault().unregister(this);
+        }
+        super.onDestroy();
+    }
+
 
     @Nullable
     @Override
@@ -68,6 +86,25 @@ public abstract class BaseBindFragment<T extends ViewDataBinding> extends Fragme
 
     public void getNextData() {
 
+    }
+
+    /**
+     * 是否自动注册EventBus，懒得去每个子类里面写注册了
+     *
+     * @return default false
+     */
+    public boolean eventBusEnable() {
+        return false;
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(Channel event) {
+        if (className.contains(event.getReceiver())) {
+            handleEvent(event);
+        }
+    }
+
+    public void handleEvent(Channel channel) {
     }
 
     @Override
