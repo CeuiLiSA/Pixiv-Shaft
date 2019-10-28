@@ -92,35 +92,20 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 currentOne.playGif.setVisibility(View.GONE);
             }
         } else {
-            if (Shaft.sSettings.isFirstImageSize()) {
-                Glide.with(mContext)
-                        .asBitmap()
-                        .load(GlideUtil.getOriginal(allIllust, position))
-                        .into(new SimpleTarget<Bitmap>() {
-                            @Override
-                            public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                                ViewGroup.LayoutParams params = currentOne.illust.getLayoutParams();
-                                params.width = imageSize;
-                                params.height = imageSize * resource.getHeight() / resource.getWidth();
-                                currentOne.illust.setLayoutParams(params);
-                                currentOne.illust.setImageBitmap(resource);
-                            }
-                        });
-            } else {
-                Glide.with(mContext)
-                        .asBitmap()
-                        .load(GlideUtil.getLargeImage(allIllust, position))
-                        .into(new SimpleTarget<Bitmap>() {
-                            @Override
-                            public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                                ViewGroup.LayoutParams params = currentOne.illust.getLayoutParams();
-                                params.width = imageSize;
-                                params.height = imageSize * resource.getHeight() / resource.getWidth();
-                                currentOne.illust.setLayoutParams(params);
-                                currentOne.illust.setImageBitmap(resource);
-                            }
-                        });
-            }
+            Glide.with(mContext)
+                    .asBitmap()
+                    .load(Shaft.sSettings.isFirstImageSize() ? GlideUtil.getOriginal(allIllust, position) :
+                            GlideUtil.getLargeImage(allIllust, position))
+                    .into(new SimpleTarget<Bitmap>() {
+                        @Override
+                        public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                            ViewGroup.LayoutParams params = currentOne.illust.getLayoutParams();
+                            params.width = imageSize;
+                            params.height = imageSize * resource.getHeight() / resource.getWidth();
+                            currentOne.illust.setLayoutParams(params);
+                            currentOne.illust.setImageBitmap(resource);
+                        }
+                    });
         }
 
         if (mOnItemClickListener != null) {

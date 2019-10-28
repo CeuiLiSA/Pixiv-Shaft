@@ -18,6 +18,8 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
 
     private int imageSize;
     private boolean isSquare = false;
+    private static final int MIN_HEIGHT = 350;
+    private static final int MAX_HEIGHT = 600;
 
     public IAdapter(List<IllustsBean> targetList, Context context) {
         super(targetList, context);
@@ -44,6 +46,8 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
         mLayoutID = R.layout.recy_illust_stagger;
     }
 
+
+
     @Override
     public void bindData(IllustsBean target, ViewHolder<RecyIllustStaggerBinding> bindView, int position) {
         ViewGroup.LayoutParams params = bindView.baseBind.illustImage.getLayoutParams();
@@ -53,28 +57,28 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
         if (isSquare) {
             params.height = imageSize;
         } else {
-            params.height = allIllust.get(position).getHeight() * imageSize / allIllust.get(position).getWidth();
+            params.height = target.getHeight() * imageSize / target.getWidth();
 
-            if (params.height < 350) {
-                params.height = 350;
-            } else if (params.height > 600) {
-                params.height = 600;
+            if (params.height < MIN_HEIGHT) {
+                params.height = MIN_HEIGHT;
+            } else if (params.height > MAX_HEIGHT) {
+                params.height = MAX_HEIGHT;
             }
         }
 
         bindView.baseBind.illustImage.setLayoutParams(params);
-        bindView.baseBind.title.setText(allIllust.get(position).getTitle());
         Glide.with(mContext)
-                .load(GlideUtil.getMediumImg(allIllust.get(position)))
+                .load(GlideUtil.getMediumImg(target))
                 .placeholder(R.color.second_light_bg)
                 .into(bindView.baseBind.illustImage);
 
-        if (allIllust.get(position).getPage_count() == 1) {
+        if (target.getPage_count() == 1) {
             bindView.baseBind.pSize.setVisibility(View.GONE);
         } else {
             bindView.baseBind.pSize.setVisibility(View.VISIBLE);
-            bindView.baseBind.pSize.setText(allIllust.get(position).getPage_count() + "P");
+            bindView.baseBind.pSize.setText(target.getPage_count() + "P");
         }
+        bindView.baseBind.pGif.setVisibility(target.isGif() ? View.VISIBLE : View.GONE);
         bindView.itemView.setOnClickListener(view -> {
             if (mOnItemClickListener != null) {
                 mOnItemClickListener.onItemClick(view, position, 0);

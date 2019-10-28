@@ -127,7 +127,7 @@ public class FragmentR extends FragmentList<ListIllustResponse, IllustsBean, Rec
                     @Override
                     public void success(List<IllustsBean> illustsBeans) {
                         if (illustsBeans.size() >= 20) {
-                            allItems.addAll(illustsBeans.subList(0, 20));
+                            allItems.addAll(illustsBeans.subList(illustsBeans.size() - 20, illustsBeans.size() - 1));
                             mAdapter.notifyItemRangeInserted(0, allItems.size());
                         }
                     }

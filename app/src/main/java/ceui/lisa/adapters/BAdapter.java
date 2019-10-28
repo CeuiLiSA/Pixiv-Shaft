@@ -9,10 +9,6 @@ import ceui.lisa.R;
 import ceui.lisa.databinding.RecyBookTagBinding;
 import ceui.lisa.model.BookmarkTagsBean;
 
-/**
- * 评论列表
- */
-
 public class BAdapter extends BaseAdapter<BookmarkTagsBean, RecyBookTagBinding> {
 
 

@@ -42,8 +42,8 @@ public abstract class FragmentActivity extends BaseActivity {
                 fragmentManager.beginTransaction()
                         .add(R.id.fragment_container, fragment)
                         .commit();
+                childFragment = fragment;
             }
-            childFragment = fragment;
         }
     }
 

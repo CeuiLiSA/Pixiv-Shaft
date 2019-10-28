@@ -132,7 +132,6 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
     }
 
     public void showDataBase() {
-
     }
 
     @Override

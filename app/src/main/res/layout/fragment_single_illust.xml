@@ -257,65 +257,65 @@
                         android:layout_marginStart="@dimen/twelve_dp"
                         android:layout_marginEnd="@dimen/twelve_dp"
                         app:cardElevation="0dp"
-                        android:layout_marginBottom="@dimen/eight_dp"
+                        android:layout_marginBottom="@dimen/twelve_dp"
                         app:cardBackgroundColor="#33FFFFFF"
                         app:cardCornerRadius="@dimen/four_dp"
                         android:layout_height="wrap_content">
 
                         <LinearLayout
                             android:layout_width="match_parent"
-                            android:gravity="center_horizontal"
-                            android:layout_height="wrap_content">
+                            android:layout_height="wrap_content"
+                            android:gravity="center_horizontal">
 
                             <com.google.android.material.floatingactionbutton.FloatingActionButton
-                                android:layout_width="0dp"
-                                android:layout_weight="1"
                                 android:id="@+id/download"
-                                app:backgroundTint="@color/colorPrimary"
-                                android:src="@drawable/ic_file_download_black_24dp"
-                                android:layout_alignParentBottom="true"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
                                 android:layout_alignParentEnd="true"
-                                android:layout_marginTop="@dimen/eight_dp"
-                                android:layout_marginBottom="@dimen/eight_dp"
+                                android:layout_alignParentBottom="true"
                                 android:layout_marginStart="@dimen/twelve_dp"
+                                android:layout_marginTop="@dimen/eight_dp"
                                 android:layout_marginEnd="@dimen/twelve_dp"
-                                android:layout_height="wrap_content" />
+                                android:layout_marginBottom="@dimen/eight_dp"
+                                android:layout_weight="1"
+                                android:src="@drawable/ic_file_download_black_24dp"
+                                app:backgroundTint="@color/colorPrimary" />
 
                             <com.google.android.material.floatingactionbutton.FloatingActionButton
-                                android:layout_width="0dp"
-                                android:layout_weight="1"
                                 android:id="@+id/related"
-                                app:backgroundTint="@color/colorPrimary"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="@dimen/twelve_dp"
+                                android:layout_marginTop="@dimen/eight_dp"
+                                android:layout_marginEnd="@dimen/twelve_dp"
+                                android:layout_marginBottom="@dimen/eight_dp"
+                                android:layout_weight="1"
                                 android:src="@drawable/ic_equalizer_black_24dp"
-                                android:layout_marginTop="@dimen/eight_dp"
-                                android:layout_marginBottom="@dimen/eight_dp"
-                                android:layout_marginStart="@dimen/twelve_dp"
-                                android:layout_marginEnd="@dimen/twelve_dp"
-                                android:layout_height="wrap_content" />
+                                app:backgroundTint="@color/colorPrimary" />
 
                             <com.google.android.material.floatingactionbutton.FloatingActionButton
-                                android:layout_width="0dp"
-                                android:layout_weight="1"
                                 android:id="@+id/comment"
-                                app:backgroundTint="@color/colorPrimary"
-                                android:src="@drawable/ic_chat_black_24dp"
-                                android:layout_marginTop="@dimen/eight_dp"
-                                android:layout_marginBottom="@dimen/eight_dp"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
                                 android:layout_marginStart="@dimen/twelve_dp"
+                                android:layout_marginTop="@dimen/eight_dp"
                                 android:layout_marginEnd="@dimen/twelve_dp"
-                                android:layout_height="wrap_content" />
+                                android:layout_marginBottom="@dimen/eight_dp"
+                                android:layout_weight="1"
+                                android:src="@drawable/ic_chat_black_24dp"
+                                app:backgroundTint="@color/colorPrimary" />
 
                             <com.google.android.material.floatingactionbutton.FloatingActionButton
-                                android:layout_width="0dp"
-                                android:layout_weight="1"
                                 android:id="@+id/post_like"
-                                app:backgroundTint="@color/colorPrimary"
-                                android:src="@drawable/ic_favorite_black_24dp"
-                                android:layout_marginTop="@dimen/eight_dp"
-                                android:layout_marginBottom="@dimen/eight_dp"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
                                 android:layout_marginStart="@dimen/twelve_dp"
+                                android:layout_marginTop="@dimen/eight_dp"
                                 android:layout_marginEnd="@dimen/twelve_dp"
-                                android:layout_height="wrap_content" />
+                                android:layout_marginBottom="@dimen/eight_dp"
+                                android:layout_weight="1"
+                                android:src="@drawable/ic_favorite_black_24dp"
+                                app:backgroundTint="@color/colorPrimary" />
 
                         </LinearLayout>
 
