@@ -27,6 +27,7 @@ import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.http.Rx;
 import ceui.lisa.model.UserDetailResponse;
+import ceui.lisa.test.BasicActivity;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.PixivOperate;
@@ -35,28 +36,22 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-public class UserDetailActivity extends BaseActivity {
+public class UserDetailActivity extends BasicActivity {
 
     private static final String[] TITLES = new String[]{"收藏", "作品", "关于"};
     private int userID;
     private TabLayout mTabLayout;
     private CircleImageView userHead;
     private TextView userName, follow, fans, nowFollow;
+    private ImageView userBg;
     private ViewPager mViewPager;
     private UserDetailResponse mUserDetailResponse;
     private Fragment[] baseFragments;
 
     @Override
-    public void initLayout() {
-        getWindow().setStatusBarColor(Color.TRANSPARENT);
-        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
-        mLayoutID = R.layout.activity_user_detail;
-    }
-
-    @Override
     public void initView() {
         userHead = findViewById(R.id.user_head);
+        userBg = findViewById(R.id.user_background);
         userName = findViewById(R.id.user_name);
         fans = findViewById(R.id.user_follow);
         Toolbar toolbar = findViewById(R.id.toolbar_help);
@@ -76,9 +71,6 @@ public class UserDetailActivity extends BaseActivity {
         if (statusHeight >= 80) {
             layoutParams.height = statusHeight;
             imageView.setLayoutParams(layoutParams);
-            Common.showLog(className + "执行了");
-        } else {
-            Common.showLog(className + "没执行");
         }
 
         toolbar.setNavigationOnClickListener(v -> finish());
@@ -200,5 +192,15 @@ public class UserDetailActivity extends BaseActivity {
             follow.setText("關注：" + userDetailResponse.getProfile().getTotal_follow_users());
             ((FragmentAboutUser) baseFragments[2]).setData(userDetailResponse);
         }
+    }
+
+    @Override
+    public boolean hideStatusBar() {
+        return true;
+    }
+
+    @Override
+    public int layout() {
+        return R.layout.activity_user_detail;
     }
 }

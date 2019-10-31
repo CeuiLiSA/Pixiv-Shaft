@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
 import ceui.lisa.interfaces.Binding;
+import ceui.lisa.interfaces.Callback;
 import ceui.lisa.interfaces.OnItemClickListener;
 
 public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extends

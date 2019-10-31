@@ -41,7 +41,10 @@ import ceui.lisa.fragments.FragmentLeft;
 import ceui.lisa.fragments.FragmentRight;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.model.UserModel;
+import ceui.lisa.test.KActivity;
+import ceui.lisa.test.TActivity;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.ReverseImage;
@@ -219,9 +222,14 @@ public class CoverActivity extends BaseActivity
             intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "画廊");
             startActivity(intent);
         } else if (id == R.id.web_test) {
-            Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "一言");
-            startActivity(intent);
+            if(Dev.isDev) {
+                Intent intent = new Intent(mContext, KActivity.class);
+                startActivity(intent);
+            }else {
+                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "一言");
+                startActivity(intent);
+            }
 
         }
 

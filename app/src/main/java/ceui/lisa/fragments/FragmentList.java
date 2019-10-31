@@ -1,6 +1,7 @@
 package ceui.lisa.fragments;
 
 import android.text.TextUtils;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.animation.AnticipateOvershootInterpolator;
 
@@ -8,6 +9,7 @@ import androidx.databinding.ViewDataBinding;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
+import com.blankj.utilcode.util.NetworkUtils;
 import com.scwang.smartrefresh.header.DeliveryHeader;
 import com.scwang.smartrefresh.layout.api.RefreshFooter;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
@@ -21,6 +23,7 @@ import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.databinding.FragmentListBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.interfaces.ListShow;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
 import io.reactivex.Observable;
@@ -65,6 +68,10 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
             mAdapter.clear();
             getFirstData();
         });
+        baseBind.result.setOnClickListener(view -> {
+            mAdapter.clear();
+            getFirstData();
+        });
         initRecyclerView();
         initAdapter();
         if (mAdapter != null) {
@@ -97,37 +104,45 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
 
     @Override
     public void getFirstData() {
-        mApi = initApi();
-        if (mApi != null) {
-            mApi.subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new NullCtrl<Response>() {
-                        @Override
-                        public void success(Response response) {
-                            mResponse = response;
-                            firstSuccess();
-                            if (response.getList() != null && response.getList().size() != 0) {
-                                int lastSize = allItems.size();
-                                allItems.addAll(response.getList());
-                                mAdapter.notifyItemRangeInserted(lastSize, response.getList().size());
+        if(NetworkUtils.isConnected()) {
+            mApi = initApi();
+            if (mApi != null) {
+                mApi.subscribeOn(Schedulers.newThread())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new NullCtrl<Response>() {
+                            @Override
+                            public void success(Response response) {
+                                mResponse = response;
+                                firstSuccess();
+                                if (response.getList() != null && response.getList().size() != 0) {
+                                    int lastSize = allItems.size();
+                                    allItems.addAll(response.getList());
+                                    mAdapter.notifyItemRangeInserted(lastSize, response.getList().size());
+                                }
+                                nextUrl = response.getNextUrl();
+                                if (!TextUtils.isEmpty(nextUrl)) {
+                                    baseBind.refreshLayout.setRefreshFooter(getFooter());
+                                } else {
+                                    baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
+                                }
                             }
-                            nextUrl = response.getNextUrl();
-                            if (!TextUtils.isEmpty(nextUrl)) {
-                                baseBind.refreshLayout.setRefreshFooter(getFooter());
-                            } else {
-                                baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
-                            }
-                        }
 
-                        @Override
-                        public void must(boolean isSuccess) {
-                            baseBind.refreshLayout.finishRefresh(isSuccess);
-                        }
-                    });
-        } else {
-            if (className.equals("FragmentR ")) {
-                showDataBase();
+                            @Override
+                            public void must(boolean isSuccess) {
+                                baseBind.refreshLayout.finishRefresh(isSuccess);
+                                baseBind.result.setVisibility(View.GONE);
+                            }
+                        });
+            } else {
+                if (className.equals("FragmentR ")) {
+                    showDataBase();
+                }
             }
+        } else {
+            baseBind.result.setVisibility(View.VISIBLE);
+            baseBind.result.setImageResource(R.mipmap.load_error);
+            baseBind.refreshLayout.finishRefresh(false);
+            Common.showToast("无网络连接");
         }
     }
 
@@ -136,29 +151,35 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
 
     @Override
     public void getNextData() {
-        mApi = initNextApi();
-        if (mApi != null && !TextUtils.isEmpty(nextUrl)) {
-            mApi.subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new NullCtrl<Response>() {
-                        @Override
-                        public void success(Response response) {
-                            mResponse = response;
-                            if (response.getList() != null && response.getList().size() != 0) {
-                                int lastSize = allItems.size();
-                                allItems.addAll(response.getList());
-                                mAdapter.notifyItemRangeInserted(lastSize, response.getList().size());
+        if(NetworkUtils.isConnected()) {
+            mApi = initNextApi();
+            if (mApi != null && !TextUtils.isEmpty(nextUrl)) {
+                mApi.subscribeOn(Schedulers.newThread())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new NullCtrl<Response>() {
+                            @Override
+                            public void success(Response response) {
+                                mResponse = response;
+                                if (response.getList() != null && response.getList().size() != 0) {
+                                    int lastSize = allItems.size();
+                                    allItems.addAll(response.getList());
+                                    mAdapter.notifyItemRangeInserted(lastSize, response.getList().size());
+                                }
+                                nextUrl = response.getNextUrl();
                             }
-                            nextUrl = response.getNextUrl();
-                        }
 
-                        @Override
-                        public void must(boolean isSuccess) {
-                            baseBind.refreshLayout.finishLoadMore(isSuccess);
-                        }
-                    });
+                            @Override
+                            public void must(boolean isSuccess) {
+                                baseBind.refreshLayout.finishLoadMore(isSuccess);
+                                baseBind.result.setVisibility(View.GONE);
+                            }
+                        });
+            } else {
+                baseBind.refreshLayout.finishLoadMore(true);
+            }
         } else {
-            baseBind.refreshLayout.finishLoadMore(true);
+            baseBind.refreshLayout.finishLoadMore(false);
+            Common.showToast("无网络连接");
         }
     }
 

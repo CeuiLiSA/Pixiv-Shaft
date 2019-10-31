@@ -45,14 +45,14 @@ public class FragmentP extends FragmentList<ListIllustResponse, IllustsBean, Rec
     @Override
     public void initRecyclerView() {
         super.initRecyclerView();
-        baseBind.recyclerView.setBackgroundColor(getResources().getColor(R.color.follow_user_illust_divider));
-        baseBind.refreshLayout.setPrimaryColorsId(R.color.follow_user_illust_divider);
+        baseBind.recyclerView.setBackgroundColor(getResources().getColor(R.color.white));
+        baseBind.refreshLayout.setPrimaryColorsId(R.color.white);
     }
 
     @Override
     public RefreshFooter getFooter() {
         ClassicsFooter classicsFooter = new ClassicsFooter(mContext);
-        classicsFooter.setPrimaryColorId(R.color.follow_user_illust_divider);
+        classicsFooter.setPrimaryColorId(R.color.white);
         return classicsFooter;
     }
 

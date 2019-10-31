@@ -16,10 +16,11 @@ import com.google.android.material.tabs.TabLayout;
 import ceui.lisa.R;
 import ceui.lisa.fragments.FragmentFollowUser;
 import ceui.lisa.fragments.FragmentLikeIllust;
+import ceui.lisa.test.BasicActivity;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-public class CollectionActivity extends BaseActivity {
+public class CollectionActivity extends BasicActivity {
 
     private static final String[] CHINESE_TITLES = new String[]{
             Shaft.getContext().getString(R.string.public_like_illust), 
@@ -30,12 +31,7 @@ public class CollectionActivity extends BaseActivity {
     private ViewPager mViewPager;
 
     @Override
-    protected void initLayout() {
-        mLayoutID = R.layout.activity_download_manage;
-    }
-
-    @Override
-    protected void initView() {
+    public void initView() {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setTitle(mContext.getString(R.string.bookmark));
@@ -92,7 +88,7 @@ public class CollectionActivity extends BaseActivity {
     }
 
     @Override
-    protected void initData() {
+    public void initData() {
 
     }
 
@@ -128,5 +124,10 @@ public class CollectionActivity extends BaseActivity {
             startActivity(intent);
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public int layout() {
+        return R.layout.activity_download_manage;
     }
 }

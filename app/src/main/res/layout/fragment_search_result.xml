@@ -47,16 +47,6 @@
 
             </androidx.appcompat.widget.Toolbar>
 
-
-            <ImageView
-                android:layout_width="wrap_content"
-                android:id="@+id/no_data"
-                android:src="@mipmap/no_data"
-                android:scaleType="centerCrop"
-                android:visibility="gone"
-                android:layout_centerInParent="true"
-                android:layout_height="wrap_content" />
-
             <com.mxn.soul.flowingdrawer_core.FlowingDrawer
                 android:id="@+id/drawerlayout"
                 android:layout_width="match_parent"
@@ -97,6 +87,16 @@
                 </com.mxn.soul.flowingdrawer_core.FlowingMenuLayout>
 
             </com.mxn.soul.flowingdrawer_core.FlowingDrawer>
+
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:id="@+id/result"
+                android:src="@mipmap/no_data"
+                android:scaleType="centerCrop"
+                android:visibility="gone"
+                android:layout_centerInParent="true"
+                android:layout_height="wrap_content" />
         </RelativeLayout>
     </layout>
 

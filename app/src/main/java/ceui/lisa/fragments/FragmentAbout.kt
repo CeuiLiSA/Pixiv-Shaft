@@ -4,6 +4,7 @@ import android.content.Intent
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateFragmentActivity
 import ceui.lisa.databinding.FragmentAboutBinding
+import kotlinx.android.synthetic.main.fragment_about.*
 
 class FragmentAbout : BaseBindFragment<FragmentAboutBinding>() {
 
