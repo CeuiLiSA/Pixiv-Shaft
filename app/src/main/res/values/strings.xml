@@ -55,4 +55,39 @@
     <string name="project_license">License</string>
     <string name="select_inner_storage">请选择本机内置存储</string>
     <string name="walkthrough">画廊</string>
+    <string name="search">搜索</string>
+    <string name="hito">一言</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="cannot_download">你下你🐴呢？</string>
+    <string name="image_alredy_exist">图片已存在</string>
+    <string name="has_been_added">个项目已加入下载队列</string>
+    <string name="one_item_added">1个项目已加入下载队列</string>
+    <string name="public_like_illust">公开收藏</string>
+    <string name="private_like_illust">私人收藏</string>
+    <string name="public_like_user">公开关注</string>
+    <string name="private_like_user">私人关注</string>
+    <string name="bookmark">收藏夹</string>
+    <string name="filter_by_bookmark">按标签筛选</string>
+    <string name="access_denied">请给与足够的权限</string>
+    <string name="view_history">浏览记录</string>
+    <string name="app_settings">设置</string>
+    <string name="full_about_app">关于软件</string>
+    <string name="no_mail_address">未绑定邮箱</string>
+    <string name="shaft_hint">Shaft 提示</string>
+    <string name="you_have_download_plan">你还有未下载完成的任务，确定退出吗？</string>
+    <string name="sure">确定</string>
+    <string name="cancel">取消</string>
+    <string name="now_downloading">正在下载</string>
+    <string name="has_download">已完成</string>
+    <string name="has_copyed">已复制到剪贴板</string>
+    <string name="no_info">暂无信息</string>
+    <string name="like_success_public">关注成功~(公开的)</string>
+    <string name="like_success_private">关注成功~(非公开的)</string>
+    <string name="cancel_like">取消关注~</string>
+    <string name="cancel_like_illust">取消收藏</string>
+    <string name="like_illust_success">收藏成功</string>
+    <string name="how_about_trending">动态页面展示谁的作品？</string>
+    <string name="recomment_user">推荐用户</string>
 </resources>

@@ -1,8 +1,6 @@
 package ceui.lisa.utils;
 
-import android.content.Context;
 import android.content.res.Resources;
-import android.util.TypedValue;
 
 public class DensityUtil {
 
@@ -14,6 +12,7 @@ public class DensityUtil {
 
     /**
      * 根据手机的分辨率从 dp 的单位 转成为 px(像素)
+     *
      * @param dpValue 虚拟像素
      * @return 像素
      */
@@ -23,6 +22,7 @@ public class DensityUtil {
 
     /**
      * 根据手机的分辨率从 px(像素) 的单位 转成为 dp
+     *
      * @param pxValue 像素
      * @return 虚拟像素
      */
@@ -32,6 +32,7 @@ public class DensityUtil {
 
     /**
      * 根据手机的分辨率从 dp 的单位 转成为 px(像素)
+     *
      * @param dpValue 虚拟像素
      * @return 像素
      */
@@ -41,6 +42,7 @@ public class DensityUtil {
 
     /**
      * 根据手机的分辨率从 px(像素) 的单位 转成为 dp
+     *
      * @param pxValue 像素
      * @return 虚拟像素
      */

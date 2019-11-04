@@ -1,12 +1,13 @@
 package ceui.lisa.adapters;
 
 import android.content.Context;
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 
@@ -50,7 +51,7 @@ public class UserHorizontalAdapter extends RecyclerView.Adapter<RecyclerView.Vie
         Glide.with(mContext).load(GlideUtil.getMediumImg(allIllust.get(position)
                 .getUser().getProfile_image_urls().getMedium()))
                 .placeholder(R.color.light_bg).into(currentOne.head);
-        if(mOnItemClickListener != null){
+        if (mOnItemClickListener != null) {
             holder.itemView.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 0));
         }
     }
@@ -67,6 +68,7 @@ public class UserHorizontalAdapter extends RecyclerView.Adapter<RecyclerView.Vie
     public static class TagHolder extends RecyclerView.ViewHolder {
         TextView title;
         CircleImageView head;
+
         TagHolder(View itemView) {
             super(itemView);
             head = itemView.findViewById(R.id.user_head);

@@ -7,6 +7,7 @@ import ceui.lisa.model.IllustsBean;
 public class IllustTask {
 
     private DownloadTask mDownloadTask;
+    private IllustsBean mIllustsBean;
 
     public DownloadTask getDownloadTask() {
         return mDownloadTask;
@@ -15,8 +16,6 @@ public class IllustTask {
     public void setDownloadTask(DownloadTask downloadTask) {
         mDownloadTask = downloadTask;
     }
-
-    private IllustsBean mIllustsBean;
 
     public IllustsBean getIllustsBean() {
         return mIllustsBean;

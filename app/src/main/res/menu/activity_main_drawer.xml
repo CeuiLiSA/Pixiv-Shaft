@@ -4,6 +4,13 @@
     tools:showIn="navigation_view">
 
     <group android:checkableBehavior="single">
+
+
+
+        <item
+            android:id="@+id/main_page"
+            android:icon="@drawable/ic_home_black_24dp"
+            android:title="个人主页" />
         <item
             android:id="@+id/nav_camera"
             android:icon="@drawable/ic_collection"
@@ -34,14 +41,13 @@
                 android:title="@string/search_image_origin" />
             <item
                 android:id="@+id/nav_send"
-                android:icon="@drawable/ic_menu_send"
+                android:icon="@drawable/ic_toys_black_24dp"
                 android:title="@string/walkthrough" />
-
 
             <item
                 android:id="@+id/web_test"
-                android:icon="@drawable/ic_menu_send"
-                android:title="hbtest" />
+                android:icon="@drawable/ic_loyalty_black_24dp"
+                android:title="@string/hito" />
         </menu>
     </item>
 

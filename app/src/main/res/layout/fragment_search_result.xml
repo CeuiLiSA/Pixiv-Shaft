@@ -1,120 +1,103 @@
 
 
     <!--content-->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/top_parent"
-        android:layout_height="match_parent">
+    <layout xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:android="http://schemas.android.com/apk/res/android">
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:background="@color/loginBackground"
-            android:elevation="@dimen/six_dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:fitsSystemWindows="true"
-            android:theme="@style/AppTheme.AppBarOverlay"
-            app:popupTheme="@style/AppTheme.PopupOverlay"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
-            app:title=" "
-            app:titleTextColor="@android:color/white">
+        <data>
 
+        </data>
 
-            <EditText
-                android:layout_width="match_parent"
-                android:id="@+id/search_box"
-                android:imeOptions="actionSearch"
-                android:singleLine="true"
-                android:maxLines="1"
-                android:ellipsize="end"
-                android:textColor="@color/dark_text"
-                android:background="@drawable/stroke"
-                android:paddingStart="@dimen/eight_dp"
-                android:paddingEnd="@dimen/sixteen_dp"
-                android:paddingTop="@dimen/eight_dp"
-                android:paddingBottom="@dimen/eight_dp"
-                android:layout_height="wrap_content">
-
-
-            </EditText>
-
-        </androidx.appcompat.widget.Toolbar>
-
-
-    <ImageView
-        android:layout_width="wrap_content"
-        android:id="@+id/no_data"
-        android:src="@mipmap/no_data"
-        android:scaleType="centerCrop"
-        android:visibility="gone"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        android:layout_height="wrap_content" />
-
-    <com.mxn.soul.flowingdrawer_core.FlowingDrawer
-        android:id="@+id/drawerlayout"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:clipChildren="false"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar"
-        android:clipToPadding="false"
-        app:edPosition="2"
-        app:edMenuSize="280dp"
-        app:edMenuBackground="@color/white">
-
-        <com.scwang.smartrefresh.layout.SmartRefreshLayout
-            android:id="@+id/refreshLayout"
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/white"
-            >
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerView"
-                android:background="@color/white"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-            </androidx.recyclerview.widget.RecyclerView>
-        </com.scwang.smartrefresh.layout.SmartRefreshLayout>
-
-
-        <com.mxn.soul.flowingdrawer_core.FlowingMenuLayout
-            android:id="@+id/menulayout"
-            android:layout_width="match_parent"
+            android:id="@+id/top_parent"
             android:layout_height="match_parent">
 
-            <FrameLayout
-                android:id="@+id/id_container_menu"
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"/>
-
-        </com.mxn.soul.flowingdrawer_core.FlowingMenuLayout>
-
-    </com.mxn.soul.flowingdrawer_core.FlowingDrawer>
-
-        <ProgressBar
-            android:id="@+id/progress"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="@+id/drawerlayout"
-            app:layout_constraintTop_toTopOf="@+id/drawerlayout" />
+                android:layout_height="wrap_content"
+                android:background="@color/loginBackground"
+                android:elevation="@dimen/six_dp"
+                android:fitsSystemWindows="true"
+                android:theme="@style/AppTheme.AppBarOverlay"
+                app:popupTheme="@style/AppTheme.PopupOverlay"
+                app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
+                app:title=" "
+                app:titleTextColor="@android:color/white">
 
 
+                <EditText
+                    android:layout_width="match_parent"
+                    android:id="@+id/search_box"
+                    android:imeOptions="actionSearch"
+                    android:singleLine="true"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:textColor="@color/dark_text"
+                    android:background="@drawable/stroke"
+                    android:paddingStart="@dimen/eight_dp"
+                    android:paddingEnd="@dimen/sixteen_dp"
+                    android:paddingTop="@dimen/eight_dp"
+                    android:paddingBottom="@dimen/eight_dp"
+                    android:layout_height="wrap_content">
 
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+                </EditText>
+
+            </androidx.appcompat.widget.Toolbar>
+
+            <com.mxn.soul.flowingdrawer_core.FlowingDrawer
+                android:id="@+id/drawerlayout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipChildren="false"
+                android:layout_below="@+id/toolbar"
+                android:clipToPadding="false"
+                app:edPosition="2"
+                app:edMenuSize="280dp"
+                app:edMenuBackground="@color/white">
+
+                <com.scwang.smartrefresh.layout.SmartRefreshLayout
+                    android:id="@+id/refreshLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@color/white">
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recyclerView"
+                        android:background="@color/white"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+
+                    </androidx.recyclerview.widget.RecyclerView>
+                </com.scwang.smartrefresh.layout.SmartRefreshLayout>
+
+
+                <com.mxn.soul.flowingdrawer_core.FlowingMenuLayout
+                    android:id="@+id/menulayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <FrameLayout
+                        android:id="@+id/id_container_menu"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+
+                </com.mxn.soul.flowingdrawer_core.FlowingMenuLayout>
+
+            </com.mxn.soul.flowingdrawer_core.FlowingDrawer>
+
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:id="@+id/result"
+                android:src="@mipmap/no_data"
+                android:scaleType="centerCrop"
+                android:visibility="gone"
+                android:layout_centerInParent="true"
+                android:layout_height="wrap_content" />
+        </RelativeLayout>
+    </layout>
 
     <!--menu-->

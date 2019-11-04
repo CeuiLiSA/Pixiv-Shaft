@@ -1,12 +1,13 @@
 package ceui.lisa.fragments;
 
-import androidx.appcompat.widget.AppCompatSpinner;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.Switch;
+
+import androidx.appcompat.widget.AppCompatSpinner;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
@@ -27,6 +28,7 @@ public class FragmentFilter extends BaseFragment {
 
 
     public static final String[] DATE_SORT = new String[]{"最新作品(建议)", "由旧到新"};
+    public static final String[] SEARCH_TYPE = new String[]{"标签搜作品", "ID搜作品", "关键字搜画师", "ID搜画师"};
     public static final String[] DATE_SORT_VALUE = new String[]{"date_desc", "date_asc"};
 
     public SearchFilter mSearchFilter;

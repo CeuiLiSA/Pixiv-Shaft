@@ -3,12 +3,13 @@ package ceui.lisa.fragments;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 
 import ceui.lisa.utils.Common;
 
@@ -34,10 +35,8 @@ public abstract class BaseFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         mContext = getContext();
         mActivity = getActivity();
-
     }
 
     @Nullable
@@ -56,27 +55,6 @@ public abstract class BaseFragment extends Fragment {
                 viewGroup.removeView(parentView);
             }
         }
-
-
         return parentView;
-    }
-
-
-    @Override
-    public void onViewCreated(@NonNull View view,
-                              @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-    }
-
-    @Override
-    public void setUserVisibleHint(boolean isVisibleToUser) {
-        super.setUserVisibleHint(isVisibleToUser);
-
-        if (isVisibleToUser) {
-
-            Common.showLog("setUserVisibleHint 被看见了" + className);
-        } else {
-            Common.showLog("setUserVisibleHint 消失了" + className);
-        }
     }
 }

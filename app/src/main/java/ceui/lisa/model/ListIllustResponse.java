@@ -13,6 +13,8 @@ public class ListIllustResponse implements ListShow<IllustsBean>, Serializable {
      */
 
     private String next_url;
+    private List<IllustsBean> ranking_illusts;
+    private List<IllustsBean> illusts;
 
     public String getNext_url() {
         return next_url;
@@ -30,8 +32,6 @@ public class ListIllustResponse implements ListShow<IllustsBean>, Serializable {
         this.illusts = illusts;
     }
 
-    private List<IllustsBean> illusts;
-
     public List<IllustsBean> getRanking_illusts() {
         return ranking_illusts;
     }
@@ -39,8 +39,6 @@ public class ListIllustResponse implements ListShow<IllustsBean>, Serializable {
     public void setRanking_illusts(List<IllustsBean> ranking_illusts) {
         this.ranking_illusts = ranking_illusts;
     }
-
-    private List<IllustsBean> ranking_illusts;
 
     @Override
     public List<IllustsBean> getList() {

@@ -8,7 +8,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
-import android.provider.SearchRecentSuggestions;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,18 +16,21 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 
 public class Common {
 
+    private static Toast toast = null;
 
-
+    public static boolean isNumeric(String str) {
+        for (int i = str.length(); --i >= 0; ) {
+            if (!Character.isDigit(str.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     public static void hideKeyboard(Activity activity) {
         InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -48,7 +51,8 @@ public class Common {
         else if (ContentResolver.SCHEME_FILE.equals(scheme)) {
             data = uri.getPath();
         } else if (ContentResolver.SCHEME_CONTENT.equals(scheme)) {
-            Cursor cursor = context.getContentResolver().query(uri, new String[]{MediaStore.Images.ImageColumns.DATA}, null, null, null);
+            Cursor cursor = context.getContentResolver().query(uri,
+                    new String[]{MediaStore.Images.ImageColumns.DATA}, null, null, null);
             if (null != cursor) {
                 if (cursor.moveToFirst()) {
                     int index = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
@@ -62,14 +66,9 @@ public class Common {
         return data;
     }
 
-
     public static <T> void showLog(T t) {
-        Log.d("a line of my log", String.valueOf(t));
+        Log.d("==SHAFT== log ==> ", String.valueOf(t));
     }
-
-    private static Toast toast = null;
-
-
 
     public static <T> void showToast(T t) {
         if (toast == null) {
@@ -96,10 +95,14 @@ public class Common {
         toast.show();
     }
 
-    public static void copy(Context context, String s){
+    public static void copy(Context context, String s) {
         ClipboardManager cm = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData mClipData = ClipData.newPlainText("Label", s);
         cm.setPrimaryClip(mClipData);
-        showToast(s + "已复制到剪切板");
+        showToast(s + context.getString(R.string.has_copyed));
+    }
+
+    public static String checkEmpty(String before) {
+        return TextUtils.isEmpty(before) ? Shaft.getContext().getString(R.string.no_info) : before;
     }
 }

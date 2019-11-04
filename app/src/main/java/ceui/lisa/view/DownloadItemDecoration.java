@@ -1,8 +1,9 @@
 package ceui.lisa.view;
 
 import android.graphics.Rect;
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.View;
+
+import androidx.recyclerview.widget.RecyclerView;
 
 public class DownloadItemDecoration extends RecyclerView.ItemDecoration {
 
@@ -20,19 +21,18 @@ public class DownloadItemDecoration extends RecyclerView.ItemDecoration {
         int column = position % spanCount; // item column
 
 
-        if(column == 0 || column == 1){
+        if (column == 0 || column == 1) {
             outRect.top = 0;
             outRect.left = 0;
             outRect.right = spacing;
             outRect.bottom = spacing;
         }
 
-        if(column == 3){
+        if (column == 3) {
             outRect.top = 0;
             outRect.left = 0;
             outRect.right = 0;
             outRect.bottom = spacing;
         }
     }
-
 }

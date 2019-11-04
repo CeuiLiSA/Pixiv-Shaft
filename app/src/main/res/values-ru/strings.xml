@@ -1,0 +1,50 @@
+<resources>
+    <string name="app_name">Shaft</string>
+    <string name="action_settings">Параметры</string>
+
+
+    <string name="empty_list_1">На самом деле такого элемента не существует</string>
+    <string name="empty_list_2">На самом деле такого элемента не существует</string>
+    <string name="empty_list_3">На самом деле такого элемента не существует</string>
+    <string name="empty_list_4">На самом деле такого элемента не существует</string>
+    <string name="empty_list_5">На самом деле такого элемента не существует</string>
+    <string name="empty_list_6">На самом деле такого элемента не существует</string>
+    <string name="empty_list_7">На самом деле такого элемента не существует</string>
+    <string name="empty_list_8">На самом деле такого элемента не существует</string>
+    <string name="post_follow">+ Подписаться</string>
+    <string name="post_unfollow">Отписаться</string>
+    <string name="double_click_finish">Нажмите еще раз, чтобы выйти</string>
+    <string name="delete_all">Удалить всё</string>
+    <string name="illust_filter">Фильтр</string>
+    <string name="share_illust">%1$s | %2$s #Pixiv %3$s</string>
+    <string name="share">Поделиться</string>
+    <string name="webview_handler_open_in_browser">Открыть в браузере</string>
+    <string name="webview_handler_copy_link_addr">Копировать адрес ссылки</string>
+    <string name="webview_handler_copy_link_text">Копировать текст ссылки</string>
+    <string name="webview_handler_download_link">Ссылка для скачивания</string>
+    <string name="webview_handler_share">Поделиться ссылкой</string>
+    <string name="webview_handler_open_image">Открыть изображение</string>
+    <string name="webview_handler_search_with_ggl">Искать в Google это изображение</string>
+    <string name="copy_to_clipboard">Скопировано</string>
+    <string name="now_login">Войти</string>
+    <string name="has_no_account">Нет аккаунта?</string>
+    <string name="go_to_login">Я хочу войти</string>
+    <string name="now_sign">Зарегистрировать аккаунт</string>
+
+
+    <string name="website_users">Имя пользователя</string>
+    <string name="website_illust">Иллюстрации</string>
+    <string name="see_download_task">Посмотреть загрузки</string>
+    <string name="the_others">Другое</string>
+    <string name="search_image_origin">Поиск по источнику</string>
+
+    <string name="pixiv_use_detail">Условия обслуживания</string>
+    <string name="privacy">Политика конфиденциальности</string>
+    <string name="about_app">О нас</string>
+    <string name="pixiv_special">Экстровыпуск PixiVision</string>
+    <string name="pixiv_problem">ЧаВо</string>
+    <string name="project_license">Лицензия</string>
+    <string name="select_inner_storage">Пожалуйста, выберите это встроенное хранилище</string>
+    <string name="walkthrough">Галерея</string>
+    <string name="search">Поиск</string>
+</resources>

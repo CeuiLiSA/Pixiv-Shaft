@@ -10,16 +10,16 @@ import ceui.lisa.utils.Common;
 
 public class WebDownload {
 
-    public static void download(String url){
+    public static void download(String url) {
         File file = null;
         try {
-            file = FileCreator.createWebFile(new File(URLDecoder.decode(url,"utf-8")).getName());
+            file = FileCreator.createWebFile(new File(URLDecoder.decode(url, "utf-8")).getName());
             DownloadTask task = new DownloadTask.Builder(url, file.getParent(), file.getName())
                     .setMinIntervalMillisCallbackProcess(30)
                     .setPassIfAlreadyCompleted(false)
                     .build();
             task.enqueue(new WebDownloadListener());
-            Common.showLog(String.format("downloading %s",url));
+            Common.showLog(String.format("downloading %s", url));
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }

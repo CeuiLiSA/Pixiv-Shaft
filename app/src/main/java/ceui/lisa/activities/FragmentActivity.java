@@ -2,11 +2,10 @@ package ceui.lisa.activities;
 
 
 import android.graphics.Color;
+import android.view.View;
 
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
-import androidx.appcompat.app.AppCompatActivity;
-import android.view.View;
 
 import ceui.lisa.R;
 
@@ -39,12 +38,12 @@ public abstract class FragmentActivity extends BaseActivity {
 
         if (fragment == null) {
             fragment = createNewFragment();
-            if(fragment != null) {
+            if (fragment != null) {
                 fragmentManager.beginTransaction()
                         .add(R.id.fragment_container, fragment)
                         .commit();
+                childFragment = fragment;
             }
-            childFragment = fragment;
         }
     }
 

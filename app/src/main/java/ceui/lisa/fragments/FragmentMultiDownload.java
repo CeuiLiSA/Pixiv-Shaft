@@ -2,15 +2,15 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
-
-import androidx.recyclerview.widget.GridLayoutManager;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 
+import androidx.recyclerview.widget.GridLayoutManager;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateFragmentActivity;
@@ -20,6 +20,7 @@ import ceui.lisa.download.IllustDownload;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.view.DownloadItemDecoration;
@@ -125,6 +126,8 @@ public class FragmentMultiDownload extends BaseAsyncFragment<MultiDownloadAdapte
                 }
             }
             mAdapter.notifyDataSetChanged();
+        } else if (item.getItemId() == R.id.action_3) {
+            Common.showToast("还没做呢");
         }
         return super.onOptionsItemSelected(item);
     }

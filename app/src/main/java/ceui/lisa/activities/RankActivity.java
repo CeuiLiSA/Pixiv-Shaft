@@ -1,19 +1,17 @@
 package ceui.lisa.activities;
 
 import android.content.Intent;
-import androidx.annotation.Nullable;
-
-import com.ToxicBakery.viewpager.transforms.CubeOutTransformer;
-import com.ToxicBakery.viewpager.transforms.DrawerTransformer;
-import com.ToxicBakery.viewpager.transforms.FlipHorizontalTransformer;
-import com.google.android.material.tabs.TabLayout;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentStatePagerAdapter;
-import androidx.viewpager.widget.ViewPager;
-import androidx.appcompat.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import androidx.annotation.Nullable;
+import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentStatePagerAdapter;
+import androidx.viewpager.widget.ViewPager;
+
+import com.ToxicBakery.viewpager.transforms.DrawerTransformer;
+import com.google.android.material.tabs.TabLayout;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 
 import java.util.Calendar;
@@ -24,8 +22,8 @@ import ceui.lisa.utils.Common;
 
 public class RankActivity extends BaseActivity implements DatePickerDialog.OnDateSetListener {
 
-    private ViewPager mViewPager;
     private static final String[] CHINESE_TITLES = new String[]{"日榜", "每周", "每月", "男性向", "女性向", "原创", "新人", "R"};
+    private ViewPager mViewPager;
     private FragmentRank[] allPages = new FragmentRank[]{null, null, null, null, null, null, null, null};
 
     @Override
@@ -67,7 +65,7 @@ public class RankActivity extends BaseActivity implements DatePickerDialog.OnDat
         });
         tabLayout.setupWithViewPager(mViewPager);
         //如果指定了跳转到某一个排行，就显示该页排行
-        if(getIntent().getIntExtra("index", 0) >= 0) {
+        if (getIntent().getIntExtra("index", 0) >= 0) {
             mViewPager.setCurrentItem(getIntent().getIntExtra("index", 0));
         }
     }
@@ -85,7 +83,7 @@ public class RankActivity extends BaseActivity implements DatePickerDialog.OnDat
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if(item.getItemId() == R.id.action_select_date){
+        if (item.getItemId() == R.id.action_select_date) {
             Calendar now = Calendar.getInstance();
             now.add(Calendar.DAY_OF_MONTH, -1);
             DatePickerDialog dpd = DatePickerDialog.newInstance(

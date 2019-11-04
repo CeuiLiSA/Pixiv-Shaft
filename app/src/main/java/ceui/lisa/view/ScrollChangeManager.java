@@ -1,17 +1,14 @@
 package ceui.lisa.view;
 
 import android.content.Context;
-import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 import android.util.AttributeSet;
+
+import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 /**
  * 支持切换滚动状态的瀑布流LayoutManager
  */
 public class ScrollChangeManager extends StaggeredGridLayoutManager {
-
-    public void setCanScroll(boolean canScroll) {
-        this.canScroll = canScroll;
-    }
 
     private boolean canScroll = true;
 
@@ -21,6 +18,10 @@ public class ScrollChangeManager extends StaggeredGridLayoutManager {
 
     public ScrollChangeManager(int spanCount, int orientation) {
         super(spanCount, orientation);
+    }
+
+    public void setCanScroll(boolean canScroll) {
+        this.canScroll = canScroll;
     }
 
     @Override

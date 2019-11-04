@@ -1,115 +1,132 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="@color/white"
-    android:orientation="vertical">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <data>
 
+    </data>
 
-
-
-    <RelativeLayout
+    <androidx.cardview.widget.CardView
+        android:clickable="true"
+        app:cardCornerRadius="@dimen/four_dp"
+        app:cardElevation="@dimen/four_dp"
+        android:foreground="?attr/selectableItemBackground"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <TextView
-            android:id="@+id/user_name"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:layout_marginStart="@dimen/eight_dp"
-            android:layout_marginEnd="@dimen/eight_dp"
-            android:layout_marginBottom="@dimen/eight_dp"
-            android:layout_toEndOf="@+id/user_head"
-            android:ellipsize="end"
-            android:maxLines="2"
-            android:textColor="#333333"
-            android:textSize="14sp"
-            android:textStyle="bold">
-
-        </TextView>
 
 
-        <de.hdodenhof.circleimageview.CircleImageView
-            android:id="@+id/user_head"
-            android:layout_width="45dp"
-            android:layout_height="45dp"
-            android:layout_alignBottom="@+id/bottom_rela"
-            android:layout_marginStart="@dimen/twelve_dp"
-            android:layout_marginTop="@dimen/eight_dp"
-            android:layout_marginBottom="@dimen/eight_dp"
-            app:civ_border_color="#DDDDDD"
-            app:civ_border_width="2dp" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:orientation="vertical">
+
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/user_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="@dimen/eight_dp"
+                android:layout_marginEnd="@dimen/eight_dp"
+                android:layout_marginBottom="@dimen/eight_dp"
+                android:layout_toEndOf="@+id/user_head"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:textColor="#333333"
+                android:textSize="14sp"
+                android:textStyle="bold">
+
+            </TextView>
+
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/user_head"
+                android:layout_width="45dp"
+                android:layout_height="45dp"
+                android:layout_alignBottom="@+id/bottom_rela"
+                android:layout_marginStart="@dimen/twelve_dp"
+                android:layout_marginTop="@dimen/eight_dp"
+                android:layout_marginBottom="@dimen/eight_dp"
+                app:civ_border_color="#DDDDDD"
+                app:civ_border_width="2dp" />
+
+
+            <ImageView
+                android:id="@+id/more"
+                android:layout_width="61dp"
+                android:layout_height="61dp"
+                android:layout_centerVertical="true"
+                android:layout_alignParentEnd="true"
+                android:background="?android:attr/selectableItemBackground"
+                android:clickable="true"
+                android:padding="18dp"
+                android:src="@drawable/ic_more_vert_black_24dp"
+                android:tint="#a1a1a1" />
+
+        </RelativeLayout>
 
 
         <ImageView
-            android:id="@+id/more"
-            android:layout_width="61dp"
-            android:layout_height="61dp"
-            android:layout_centerVertical="true"
-            android:layout_alignParentEnd="true"
-            android:background="?android:attr/selectableItemBackground"
-            android:clickable="true"
-            android:padding="18dp"
-            android:src="@drawable/ic_more_vert_black_24dp"
-            android:tint="#a1a1a1" />
-
-    </RelativeLayout>
-
-
-    <ImageView
-        android:id="@+id/illust_image"
-        android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:scaleType="centerCrop" />
-
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <TextView
+            android:id="@+id/illust_image"
             android:layout_width="match_parent"
-            android:layout_toStartOf="@+id/star"
-            android:textSize="13sp"
-            android:id="@+id/illust_date"
-            android:drawableStart="@drawable/ic_send_black_24dp"
-            android:gravity="center_vertical"
-            android:drawablePadding="@dimen/eight_dp"
-            android:drawableTint="@color/colorPrimary"
-            android:layout_marginStart="@dimen/twelve_dp"
-            android:layout_centerVertical="true"
-            android:layout_height="wrap_content" />
-
-        <Button
-            style="@android:style/Widget.Material.Button.Borderless.Small"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:scaleType="centerCrop"
-            android:text="收藏"
-            android:layout_toStartOf="@+id/download"
-            android:id="@+id/star"
-            android:textColor="@color/colorPrimary"
-            android:tint="@color/colorPrimary" />
+            android:layout_height="100dp"
+            android:scaleType="centerCrop" />
 
 
-        <Button
-            style="@android:style/Widget.Material.Button.Borderless.Small"
-            android:layout_width="65dp"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/twelve_dp"
-            android:layout_alignParentEnd="true"
-            android:scaleType="centerCrop"
-            android:text="下载"
-            android:id="@+id/download"
-            android:textColor="@color/colorPrimary"
-            android:tint="@color/colorPrimary" />
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_toStartOf="@+id/star"
+                android:textSize="13sp"
+                android:id="@+id/illust_date"
+                android:drawableStart="@drawable/ic_send_black_24dp"
+                android:gravity="center_vertical"
+                android:drawablePadding="@dimen/eight_dp"
+                android:drawableTint="@color/colorPrimary"
+                android:layout_marginStart="@dimen/twelve_dp"
+                android:layout_centerVertical="true"
+                android:layout_height="wrap_content" />
+
+            <Button
+                style="@android:style/Widget.Material.Button.Borderless.Small"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:scaleType="centerCrop"
+                android:text="收藏"
+                android:layout_toStartOf="@+id/download"
+                android:id="@+id/star"
+                android:textColor="@color/colorPrimary"
+                android:tint="@color/colorPrimary" />
 
 
-    </RelativeLayout>
+            <Button
+                style="@android:style/Widget.Material.Button.Borderless.Small"
+                android:layout_width="65dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/twelve_dp"
+                android:layout_alignParentEnd="true"
+                android:scaleType="centerCrop"
+                android:text="下载"
+                android:id="@+id/download"
+                android:textColor="@color/colorPrimary"
+                android:tint="@color/colorPrimary" />
 
-</LinearLayout>
+
+        </RelativeLayout>
+
+    </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+</layout>

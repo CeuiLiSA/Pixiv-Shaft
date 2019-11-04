@@ -7,18 +7,6 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.net.Uri;
-
-import com.blankj.utilcode.util.BarUtils;
-import com.blankj.utilcode.util.ColorUtils;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.navigation.NavigationView;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
-import androidx.fragment.app.FragmentPagerAdapter;
-import androidx.core.view.GravityCompat;
-import androidx.viewpager.widget.ViewPager;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.appcompat.app.AlertDialog;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.MenuItem;
@@ -26,41 +14,44 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AlertDialog;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.viewpager.widget.ViewPager;
+
 import com.bumptech.glide.Glide;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.navigation.NavigationView;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.zhihu.matisse.Matisse;
 import com.zhihu.matisse.MimeType;
 import com.zhihu.matisse.engine.impl.PicassoEngine;
 
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
-
 import java.io.File;
-import java.util.Arrays;
 import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.download.TaskQueue;
 import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentCenter;
-import ceui.lisa.fragments.FragmentRight;
 import ceui.lisa.fragments.FragmentLeft;
+import ceui.lisa.fragments.FragmentRight;
 import ceui.lisa.interfaces.Callback;
-import ceui.lisa.utils.Channel;
-import ceui.lisa.utils.GlideUtil;
-import ceui.lisa.utils.IllustChannel;
-import ceui.lisa.utils.Local;
 import ceui.lisa.model.UserModel;
+import ceui.lisa.test.KActivity;
+import ceui.lisa.test.TActivity;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Dev;
+import ceui.lisa.utils.GlideUtil;
+import ceui.lisa.utils.Local;
 import ceui.lisa.utils.ReverseImage;
 import ceui.lisa.utils.ReverseWebviewCallback;
 import io.reactivex.disposables.Disposable;
 
-import static ceui.lisa.activities.PikaActivity.FILE_PATH;
-
 import static ceui.lisa.activities.Shaft.sUserModel;
-import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
 public class CoverActivity extends BaseActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -68,7 +59,7 @@ public class CoverActivity extends BaseActivity
     private static final int REQUEST_CODE_CHOOSE = 10086;
     private ViewPager mViewPager;
     private DrawerLayout mDrawer;
-    private ImageView userHead, pikaBackground;
+    private ImageView userHead;
     private TextView username;
     private TextView user_email;
     private long mExitTime;
@@ -82,21 +73,21 @@ public class CoverActivity extends BaseActivity
         mLayoutID = R.layout.activity_cover;
     }
 
-
-    public void checkPermission(Callback<Object> callback){
+    public void checkPermission(Callback<Object> callback) {
         final RxPermissions rxPermissions = new RxPermissions((FragmentActivity) mActivity);
         Disposable disposable = rxPermissions
                 .requestEachCombined(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                .subscribe(permission -> { // will emit 1 Permission object
+                .subscribe(permission -> {
                     if (permission.granted) {
                         callback.doSomething(null);
                     } else {
-                        Common.showToast("请给与足够的权限");
+                        Common.showToast(mContext.getString(R.string.access_denied));
                     }
                 });
     }
 
-    private void initContent(){
+    @Override
+    protected void initView() {
         mDrawer = findViewById(R.id.drawer_layout);
         mDrawer.setScrimColor(Color.TRANSPARENT);
         NavigationView navigationView = findViewById(R.id.nav_view);
@@ -104,7 +95,6 @@ public class CoverActivity extends BaseActivity
         userHead = navigationView.getHeaderView(0).findViewById(R.id.user_head);
         username = navigationView.getHeaderView(0).findViewById(R.id.user_name);
         user_email = navigationView.getHeaderView(0).findViewById(R.id.user_email);
-        pikaBackground = navigationView.getHeaderView(0).findViewById(R.id.pika_bg);
         initDrawerHeader();
         userHead.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -149,12 +139,6 @@ public class CoverActivity extends BaseActivity
         });
     }
 
-    @Override
-    protected void initView() {
-        initContent();
-    }
-
-
     private void initFragment() {
         BaseFragment[] baseFragments = new BaseFragment[]{
                 new FragmentLeft(),
@@ -174,17 +158,13 @@ public class CoverActivity extends BaseActivity
         });
     }
 
-
     @Override
     protected void initData() {
         UserModel userModel = Local.getUser();
         if (userModel != null && userModel.getResponse().getUser().isIs_login()) {
             checkPermission(t -> initFragment());
         } else {
-
-
-
-            Intent intent = new Intent(mContext, LoginAlphaActivity.class);
+            Intent intent = new Intent(mContext, LoginActivity.class);
             startActivity(intent);
             finish();
         }
@@ -207,15 +187,23 @@ public class CoverActivity extends BaseActivity
             startActivity(intent);
         } else if (id == R.id.nav_slideshow) {
             Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "浏览记录");
+            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
+                    mContext.getString(R.string.view_history));
             startActivity(intent);
         } else if (id == R.id.nav_manage) {
             Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "设置");
+            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
+                    mContext.getString(R.string.app_settings));
             startActivity(intent);
         } else if (id == R.id.nav_share) {
             Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "关于软件");
+            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
+                    mContext.getString(R.string.full_about_app));
+            startActivity(intent);
+
+        } else if (id == R.id.main_page) {
+            Intent intent = new Intent(mContext, UserDetailActivity.class);
+            intent.putExtra("user id", sUserModel.getResponse().getUser().getId());
             startActivity(intent);
 
         } else if (id == R.id.nav_reverse) {
@@ -233,10 +221,15 @@ public class CoverActivity extends BaseActivity
             Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
             intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "画廊");
             startActivity(intent);
-        }else if (id == R.id.web_test) {
-            Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "跟随动画");
-            startActivity(intent);
+        } else if (id == R.id.web_test) {
+            if(Dev.isDev) {
+                Intent intent = new Intent(mContext, KActivity.class);
+                startActivity(intent);
+            }else {
+                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "一言");
+                startActivity(intent);
+            }
 
         }
 
@@ -245,42 +238,15 @@ public class CoverActivity extends BaseActivity
     }
 
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(Channel event) {
-        if(className.contains(event.getReceiver())) {
-            initDrawerHeader();
-        }
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        EventBus.getDefault().register(this);
-    }
-
-    @Override
-    protected void onStop() {
-        EventBus.getDefault().unregister(this);
-        super.onStop();
-    }
-
-    private void initDrawerHeader(){
-        File file = new File(FILE_PATH, Local.getPikaImageFileName());
-        if(file.exists()){
+    private void initDrawerHeader() {
+        if (sUserModel != null && sUserModel.getResponse() != null) {
             Glide.with(mContext)
-                    .load(file)
-                    .placeholder(pikaBackground.getDrawable())
-                    .transition(withCrossFade())
-                    .into(pikaBackground);
-            pikaBackground.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent intent = new Intent(mContext, ViewPagerActivity.class);
-                    intent.putExtra("position", 0);
-                    IllustChannel.get().setIllustList(Arrays.asList(Local.getPikaIllust()));
-                    startActivity(intent);
-                }
-            });
+                    .load(GlideUtil.getMediumImg(
+                            sUserModel.getResponse().getUser().getProfile_image_urls().getPx_170x170()))
+                    .into(userHead);
+            username.setText(sUserModel.getResponse().getUser().getName());
+            user_email.setText(TextUtils.isEmpty(sUserModel.getResponse().getUser().getMail_address()) ?
+                    mContext.getString(R.string.no_mail_address) : sUserModel.getResponse().getUser().getMail_address());
         }
     }
 
@@ -289,24 +255,10 @@ public class CoverActivity extends BaseActivity
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_CODE_CHOOSE && resultCode == RESULT_OK) {
             List<Uri> result = Matisse.obtainResult(data);
-            if(result != null && result.size() != 0){
+            if (result != null && result.size() != 0) {
                 ReverseImage.reverse(new File(Common.getRealFilePath(mContext, result.get(0))),
                         ReverseImage.ReverseProvider.SauceNao, new ReverseWebviewCallback(this));
             }
-        }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (sUserModel != null && sUserModel.getResponse() != null) {
-            Glide.with(mContext)
-                    .load(GlideUtil.getMediumImg(
-                            sUserModel.getResponse().getUser().getProfile_image_urls().getPx_170x170()))
-                    .into(userHead);
-            username.setText(sUserModel.getResponse().getUser().getName());
-            user_email.setText(TextUtils.isEmpty(sUserModel.getResponse().getUser().getMail_address()) ?
-                    "未绑定邮箱" : sUserModel.getResponse().getUser().getMail_address());
         }
     }
 
@@ -326,17 +278,17 @@ public class CoverActivity extends BaseActivity
 
     public void exit() {
         if ((System.currentTimeMillis() - mExitTime) > 2000) {
-            if(TaskQueue.get().getTasks().size() != 0) {
+            if (TaskQueue.get().getTasks().size() != 0) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                builder.setTitle("Shaft 提示");
-                builder.setMessage("你还有未下载完成的任务，确定退出吗？");
-                builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                builder.setTitle(getString(R.string.shaft_hint));
+                builder.setMessage(mContext.getString(R.string.you_have_download_plan));
+                builder.setPositiveButton(mContext.getString(R.string.sure), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         finish();
                     }
                 });
-                builder.setNegativeButton("取消", null);
+                builder.setNegativeButton(mContext.getString(R.string.cancel), null);
                 builder.setNeutralButton(getString(R.string.see_download_task), (dialog, which) -> {
                     Intent intent = new Intent(mContext, DownloadManageActivity.class);
                     startActivity(intent);

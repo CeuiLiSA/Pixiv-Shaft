@@ -1,15 +1,15 @@
 package ceui.lisa.adapters;
 
 import android.content.Context;
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
@@ -44,30 +44,23 @@ public class SelectTagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         final TagHolder currentOne = (TagHolder) holder;
-
-
         currentOne.title.setText(allIllust.get(position).getName());
-
         currentOne.count.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked){
+                if (isChecked) {
                     allIllust.get(position).setSelected(true);
-                }else {
+                } else {
                     allIllust.get(position).setSelected(false);
                 }
             }
         });
-
-
-
-        if(allIllust.get(position).isSelected()){
+        if (allIllust.get(position).isSelected()) {
             currentOne.count.setChecked(true);
-        }else {
+        } else {
             currentOne.count.setChecked(false);
         }
-
-        if(mOnItemClickListener != null){
+        if (mOnItemClickListener != null) {
             holder.itemView.setOnClickListener(v -> {
                 currentOne.count.performClick();
             });
@@ -86,6 +79,7 @@ public class SelectTagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     public static class TagHolder extends RecyclerView.ViewHolder {
         TextView title;
         CheckBox count;
+
         TagHolder(View itemView) {
             super(itemView);
             title = itemView.findViewById(R.id.star_size);

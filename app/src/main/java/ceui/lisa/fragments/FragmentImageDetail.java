@@ -33,13 +33,13 @@ public class FragmentImageDetail extends BaseFragment {
     @Override
     View initView(View v) {
         mImageView = v.findViewById(R.id.illust_image);
-        if(Shaft.sSettings.isFirstImageSize()){
+        if (Shaft.sSettings.isFirstImageSize()) {
             Glide.with(mContext)
                     //.load(GlideUtil.getOriginal(mIllustsBean, index))
                     .load(GlideUtil.getOriginal(mIllustsBean, index))
                     .transition(withCrossFade())
                     .into(mImageView);
-        }else {
+        } else {
             Glide.with(mContext)
                     //.load(GlideUtil.getOriginal(mIllustsBean, index))
                     .load(GlideUtil.getLargeImage(mIllustsBean, index))

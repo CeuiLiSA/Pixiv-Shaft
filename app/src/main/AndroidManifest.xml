@@ -4,6 +4,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="ceui.lisa">
 
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission
+        android:name="android.permission.READ_PHONE_STATE"
+        tools:node="remove" />
+
+    <dist:module dist:instant="true" />
+
     <application
         android:name=".activities.Shaft"
         android:allowBackup="true"
@@ -13,17 +22,7 @@
         android:roundIcon="@mipmap/logo_final_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity
-            android:name=".activities.FullscreenActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_fullscreen"
-            android:theme="@style/FullscreenTheme"></activity>
-        <activity android:name=".activities.CoverActivity"></activity>
-        <activity android:name=".activities.ViewPagerActivity" />
-        <activity android:name=".activities.TemplateFragmentActivity"
-            android:windowSoftInputMode="adjustPan"/>
-        <activity android:name=".activities.RankActivity" />
-        <activity android:name=".activities.PikaActivity">
+        <activity android:name=".activities.CoverActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -32,7 +31,6 @@
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
-
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
@@ -45,16 +43,23 @@
                     android:scheme="https" />
             </intent-filter>
         </activity>
+        <activity android:name=".activities.ViewPagerActivity" />
+        <activity
+            android:name=".activities.TemplateFragmentActivity"
+            android:windowSoftInputMode="adjustPan" />
+        <activity android:name=".activities.RankActivity" />
         <activity android:name=".activities.UserDetailActivity" />
         <activity android:name=".activities.DownloadManageActivity" />
         <activity android:name=".activities.ImageDetailActivity" />
         <activity android:name=".activities.CollectionActivity" />
-        <activity android:name=".activities.LoginAlphaActivity" />
+        <activity android:name=".activities.LoginActivity" />
         <activity android:name=".activities.OutWakeActivity">
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
+
                 <data
                     android:host="www.pixiv.net"
                     android:path="/member.php"
@@ -63,21 +68,10 @@
                     android:host="www.pixiv.net"
                     android:path="/member.php"
                     android:scheme="https" />
-
-                <!-- <data android:host="@string/website_users" -->
-                <!-- android:pathPattern="[0-9]*" -->
-                <!-- android:scheme="pixiv"/> -->
-
-
-                <!-- <data android:host="@string/website_illust" -->
-                <!-- android:pathPattern="[0-9]*" -->
-                <!-- android:scheme="pixiv"/> -->
-
                 <data
                     android:host="www.pixiv.net"
                     android:path="/member_illust.php"
                     android:scheme="https" />
-
                 <data
                     android:host="www.pixiv.net"
                     android:path="/member_illust.php"
@@ -91,8 +85,8 @@
                 <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
-
                 <category android:name="android.intent.category.BROWSABLE" />
+
                 <data android:scheme="pixiv" />
             </intent-filter>
         </activity>
@@ -120,15 +114,13 @@
             android:theme="@style/FilePickerTheme">
             <intent-filter>
                 <action android:name="android.intent.action.GET_CONTENT" />
+
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-
+        <activity android:name=".test.BasicActivity" />
+        <activity android:name=".test.TActivity" />
+        <activity android:name=".test.KActivity" />
     </application>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" tools:node="remove" />
-    <dist:module dist:instant="true" />
 
 </manifest>

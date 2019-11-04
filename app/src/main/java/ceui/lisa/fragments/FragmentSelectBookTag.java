@@ -1,7 +1,6 @@
 package ceui.lisa.fragments;
 
 import android.os.Bundle;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -9,6 +8,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Switch;
 
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -38,7 +38,6 @@ public class FragmentSelectBookTag extends BaseListFragment<IllustBookmarkTags, 
 
     private int illustID;
     private Switch mSwitch;
-    private String bookType = "";
 
     public static FragmentSelectBookTag newInstance(int illustID) {
         FragmentSelectBookTag fragment = new FragmentSelectBookTag();

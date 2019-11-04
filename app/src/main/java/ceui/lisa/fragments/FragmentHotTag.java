@@ -1,13 +1,13 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import androidx.recyclerview.widget.GridLayoutManager;
 import android.view.View;
 
+import androidx.recyclerview.widget.GridLayoutManager;
 
-import ceui.lisa.R;
 import ceui.lisa.activities.TemplateFragmentActivity;
-import ceui.lisa.adapters.HotTagAdapter;
+import ceui.lisa.adapters.HAdapter;
+import ceui.lisa.databinding.RecyTagGridBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.TrendingtagResponse;
@@ -18,40 +18,24 @@ import io.reactivex.Observable;
 import static ceui.lisa.activities.Shaft.sUserModel;
 
 
-public class FragmentHotTag extends BaseListFragment<TrendingtagResponse, HotTagAdapter,
-        TrendingtagResponse.TrendTagsBean> {
+public class FragmentHotTag extends FragmentList<TrendingtagResponse, TrendingtagResponse.TrendTagsBean,
+        RecyTagGridBinding> {
 
     private boolean isLoad = false;
 
     @Override
-    Observable<TrendingtagResponse> initApi() {
+    public Observable<TrendingtagResponse> initApi() {
         return Retro.getAppApi().getHotTags(sUserModel.getResponse().getAccess_token());
-        //return null;
     }
 
     @Override
-    Observable<TrendingtagResponse> initNextApi() {
+    public Observable<TrendingtagResponse> initNextApi() {
         //热门标签没有下一页
         return null;
     }
 
     @Override
-    void initData() {
-        //啥事也不干
-    }
-
-    @Override
-    void initLayout() {
-        mLayoutID = R.layout.fragment_illust_list;
-    }
-
-    @Override
-    boolean hasNext() {
-        return false;
-    }
-
-    @Override
-    void initRecyclerView() {
+    public void initRecyclerView() {
         GridLayoutManager manager = new GridLayoutManager(mContext, 3);
         manager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
             @Override
@@ -63,19 +47,19 @@ public class FragmentHotTag extends BaseListFragment<TrendingtagResponse, HotTag
                 }
             }
         });
-        mRecyclerView.setLayoutManager(manager);
-        mRecyclerView.addItemDecoration(new TagItemDecoration(
+        baseBind.recyclerView.setLayoutManager(manager);
+        baseBind.recyclerView.addItemDecoration(new TagItemDecoration(
                 3, DensityUtil.dp2px(1.0f), false));
     }
 
     @Override
-    boolean showToolbar() {
+    public boolean showToolbar() {
         return false;
     }
 
     @Override
-    void initAdapter() {
-        mAdapter = new HotTagAdapter(allItems, mContext);
+    public void initAdapter() {
+        mAdapter = new HAdapter(allItems, mContext);
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
@@ -94,8 +78,13 @@ public class FragmentHotTag extends BaseListFragment<TrendingtagResponse, HotTag
         super.setUserVisibleHint(isVisibleToUser);
 
         if (isVisibleToUser && !isLoad) {
-            getFirstData();
+            baseBind.refreshLayout.autoRefresh();
             isLoad = true;
         }
+    }
+
+    @Override
+    public boolean autoRefresh() {
+        return false;
     }
 }

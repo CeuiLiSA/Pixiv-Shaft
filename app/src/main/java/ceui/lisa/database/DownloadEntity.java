@@ -1,8 +1,8 @@
 package ceui.lisa.database;
 
+import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
-import androidx.annotation.NonNull;
 
 @Entity(tableName = "illust_download_table")
 public final class DownloadEntity {
@@ -10,6 +10,10 @@ public final class DownloadEntity {
     @PrimaryKey()
     @NonNull
     private String fileName = "";
+    private String filePath = "";
+    private String taskGson;
+    private String illustGson;
+    private long downloadTime;
 
     public String getFilePath() {
         return filePath;
@@ -18,12 +22,6 @@ public final class DownloadEntity {
     public void setFilePath(String filePath) {
         this.filePath = filePath;
     }
-
-    private String filePath = "";
-
-    private String taskGson;
-    private String illustGson;
-    private long downloadTime;
 
     @Override
     public String toString() {

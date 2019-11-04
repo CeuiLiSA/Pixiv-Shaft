@@ -2,14 +2,15 @@ package ceui.lisa.adapters;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.SimpleTarget;
@@ -73,11 +74,11 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             params.height = imageSize * allIllust.getHeight() / allIllust.getWidth();
             params.width = imageSize;
             currentOne.illust.setLayoutParams(params);
-            if(Shaft.sSettings.isFirstImageSize()){
+            if (Shaft.sSettings.isFirstImageSize()) {
                 Glide.with(mContext)
                         .load(GlideUtil.getOriginal(allIllust, position))
                         .into(currentOne.illust);
-            }else {
+            } else {
                 Glide.with(mContext)
                         .load(GlideUtil.getLargeImage(allIllust, position))
                         .into(currentOne.illust);
@@ -87,39 +88,24 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             if (allIllust.getType().equals("ugoira")) {
                 gifHolder = currentOne;
                 startGif();
-            }else {
+            } else {
                 currentOne.playGif.setVisibility(View.GONE);
             }
         } else {
-            if(Shaft.sSettings.isFirstImageSize()){
-                Glide.with(mContext)
-                        .asBitmap()
-                        .load(GlideUtil.getOriginal(allIllust, position))
-                        .into(new SimpleTarget<Bitmap>() {
-                            @Override
-                            public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                                ViewGroup.LayoutParams params = currentOne.illust.getLayoutParams();
-                                params.width = imageSize;
-                                params.height = imageSize * resource.getHeight() / resource.getWidth();
-                                currentOne.illust.setLayoutParams(params);
-                                currentOne.illust.setImageBitmap(resource);
-                            }
-                        });
-            }else {
-                Glide.with(mContext)
-                        .asBitmap()
-                        .load(GlideUtil.getLargeImage(allIllust, position))
-                        .into(new SimpleTarget<Bitmap>() {
-                            @Override
-                            public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                                ViewGroup.LayoutParams params = currentOne.illust.getLayoutParams();
-                                params.width = imageSize;
-                                params.height = imageSize * resource.getHeight() / resource.getWidth();
-                                currentOne.illust.setLayoutParams(params);
-                                currentOne.illust.setImageBitmap(resource);
-                            }
-                        });
-            }
+            Glide.with(mContext)
+                    .asBitmap()
+                    .load(Shaft.sSettings.isFirstImageSize() ? GlideUtil.getOriginal(allIllust, position) :
+                            GlideUtil.getLargeImage(allIllust, position))
+                    .into(new SimpleTarget<Bitmap>() {
+                        @Override
+                        public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                            ViewGroup.LayoutParams params = currentOne.illust.getLayoutParams();
+                            params.width = imageSize;
+                            params.height = imageSize * resource.getHeight() / resource.getWidth();
+                            currentOne.illust.setLayoutParams(params);
+                            currentOne.illust.setImageBitmap(resource);
+                        }
+                    });
         }
 
         if (mOnItemClickListener != null) {
@@ -141,18 +127,6 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         mOnItemClickListener = itemClickListener;
     }
 
-    public static class TagHolder extends RecyclerView.ViewHolder {
-        ImageView illust, playGif;
-        ProgressBar mProgressBar;
-
-        TagHolder(View itemView) {
-            super(itemView);
-            illust = itemView.findViewById(R.id.illust_image);
-            playGif = itemView.findViewById(R.id.play_gif);
-            mProgressBar = itemView.findViewById(R.id.gif_progress);
-        }
-    }
-
     public boolean isPlayGif() {
         return playGif;
     }
@@ -162,7 +136,7 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         this.playGif = playGif;
     }
 
-    public void startGif(){
+    public void startGif() {
         Common.showLog("IllustDetailAdapter 开始播放gif图");
         playGif = true;
         File parentFile = FileCreator.createGifParentFile(allIllust);
@@ -208,8 +182,20 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                                     .into(gifHolder.illust);
                         }
                     });
-        }else {
+        } else {
             gifHolder.playGif.setVisibility(View.VISIBLE);
+        }
+    }
+
+    public static class TagHolder extends RecyclerView.ViewHolder {
+        ImageView illust, playGif;
+        ProgressBar mProgressBar;
+
+        TagHolder(View itemView) {
+            super(itemView);
+            illust = itemView.findViewById(R.id.illust_image);
+            playGif = itemView.findViewById(R.id.play_gif);
+            mProgressBar = itemView.findViewById(R.id.gif_progress);
         }
     }
 }

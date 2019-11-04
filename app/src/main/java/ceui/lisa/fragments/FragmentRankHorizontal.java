@@ -2,11 +2,11 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.View;
 import android.widget.ProgressBar;
 
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -17,11 +17,11 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.ViewPagerActivity;
-import ceui.lisa.adapters.RankHorizontalAdapter;
+import ceui.lisa.adapters.RAdapter;
+import ceui.lisa.databinding.FragmentUserHorizontalBinding;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.Channel;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
@@ -29,12 +29,10 @@ import ceui.lisa.view.LinearItemHorizontalDecoration;
 /**
  * 榜单
  */
-public class FragmentRankHorizontal extends BaseFragment {
+public class FragmentRankHorizontal extends BaseBindFragment<FragmentUserHorizontalBinding> {
 
-    private ProgressBar mProgressBar;
-    private RecyclerView mRecyclerView;
     private List<IllustsBean> allItems = new ArrayList<>();
-    private RankHorizontalAdapter mAdapter;
+    private RAdapter mAdapter;
 
     @Override
     void initLayout() {
@@ -42,54 +40,34 @@ public class FragmentRankHorizontal extends BaseFragment {
     }
 
     @Override
-    View initView(View v) {
-        mProgressBar = v.findViewById(R.id.progress);
-        mRecyclerView = v.findViewById(R.id.recyclerView);
-        mRecyclerView.addItemDecoration(new LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
-        LinearLayoutManager manager = new LinearLayoutManager(mContext, LinearLayoutManager.HORIZONTAL, false);
-        mRecyclerView.setLayoutManager(manager);
-        mRecyclerView.setHasFixedSize(true);
-        return v;
-    }
-
-    @Override
     void initData() {
-
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(Channel<List<IllustsBean>> event) {
-
-        if (className.contains(event.getReceiver())) {
-            Common.showLog(className + "EVENTBUS 接受了消息");
-            allItems.clear();
-            allItems.addAll(event.getObject());
-            mAdapter = new RankHorizontalAdapter(allItems, mContext);
-            mAdapter.setOnItemClickListener(new OnItemClickListener() {
-                @Override
-                public void onItemClick(View v, int position, int viewType) {
-                    IllustChannel.get().setIllustList(allItems);
-                    Intent intent = new Intent(mContext, ViewPagerActivity.class);
-                    intent.putExtra("position", position);
-                    startActivity(intent);
-                }
-            });
-            mRecyclerView.setAdapter(mAdapter);
-            mProgressBar.setVisibility(View.INVISIBLE);
-        }
+        baseBind.recyclerView.addItemDecoration(new LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
+        LinearLayoutManager manager = new LinearLayoutManager(mContext, LinearLayoutManager.HORIZONTAL, false);
+        baseBind.recyclerView.setLayoutManager(manager);
+        baseBind.recyclerView.setHasFixedSize(true);
+        mAdapter = new RAdapter(allItems, mContext);
+        mAdapter.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(View v, int position, int viewType) {
+                IllustChannel.get().setIllustList(allItems);
+                Intent intent = new Intent(mContext, ViewPagerActivity.class);
+                intent.putExtra("position", position);
+                startActivity(intent);
+            }
+        });
+        baseBind.recyclerView.setAdapter(mAdapter);
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        EventBus.getDefault().register(this);
-        Common.showLog(className + "EVENTBUS 注册了");
+    public boolean eventBusEnable() {
+        return true;
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-        EventBus.getDefault().unregister(this);
-        Common.showLog(className + "EVENTBUS 取消注册了");
+    public void handleEvent(Channel channel) {
+        allItems.clear();
+        allItems.addAll(((List<IllustsBean>) channel.getObject()));
+        mAdapter.notifyDataSetChanged();
+        baseBind.progress.setVisibility(View.INVISIBLE);
     }
 }

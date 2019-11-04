@@ -14,13 +14,13 @@ public abstract class ListObserver<T extends ListShow> implements Observer<T> {
 
     @Override
     public void onNext(T t) {
-        if(t != null){
-            if(t.getList() != null && t.getList().size() != 0){
+        if (t != null) {
+            if (t.getList() != null && t.getList().size() != 0) {
                 success(t);
-            }else {
+            } else {
                 dataError();
             }
-        }else {
+        } else {
             netError();
         }
     }
@@ -39,7 +39,7 @@ public abstract class ListObserver<T extends ListShow> implements Observer<T> {
 
     public abstract void netError();
 
-    public void onComplete(){
+    public void onComplete() {
 
     }
 }

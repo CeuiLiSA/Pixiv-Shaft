@@ -7,8 +7,10 @@ import android.content.Intent;
 import java.util.ArrayList;
 import java.util.List;
 
-import ceui.lisa.activities.LoginAlphaActivity;
+import ceui.lisa.R;
+import ceui.lisa.activities.LoginActivity;
 import ceui.lisa.activities.ViewPagerActivity;
+import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.IllustSearchResponse;
@@ -20,53 +22,14 @@ import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
 import retrofit2.Callback;
 
+import static com.blankj.utilcode.util.StringUtils.getString;
+
 public class PixivOperate {
 
-//    public static void followOrUnfollowClick(int id, TextView post_like_user){
-//        UserModel.ResponseBean response = Local.getUser().getResponse();
-//        if (id == response.getUser().getId()) {
-//            Common.showToast("不能对自己操作");
-//        }
-//        Retro.getAppApi().getUserDetail(response.getAccess_token(), id)
-//                .subscribeOn(Schedulers.newThread())
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribe(new Observer<UserDetailResponse>() {
-//                    @Override
-//                    public void onSubscribe(Disposable d) {
-//
-//                    }
-//
-//                    @Override
-//                    public void onNext(UserDetailResponse userDetailResponse) {
-//                        UserBean user = userDetailResponse.getUser();
-//
-//                        if (user.isIs_followed()) {
-//                            PixivOperate.postUnFollowUser(id);
-//                            post_like_user.setText("+ 關注");
-//                            user.setIs_followed(false);
-//                        } else {
-//                            PixivOperate.postFollowUser(id, "public");
-//                            post_like_user.setText("取消關注");
-//                            user.setIs_followed(true);
-//                        }
-//                    }
-//
-//                    @Override
-//                    public void onError(Throwable e) {
-//
-//                    }
-//
-//                    @Override
-//                    public void onComplete() {
-//
-//                    }
-//                });
-//    }
-
-    public static void changeUser(UserModel userModel, Callback<UserModel> callback){
+    public static void changeUser(UserModel userModel, Callback<UserModel> callback) {
         Call<UserModel> call = Retro.getAccountApi().refreshToken(
-                LoginAlphaActivity.CLIENT_ID,
-                LoginAlphaActivity.CLIENT_SECRET,
+                LoginActivity.CLIENT_ID,
+                LoginActivity.CLIENT_SECRET,
                 "refresh_token",
                 userModel.getResponse().getRefresh_token(),
                 userModel.getResponse().getDevice_token(),
@@ -83,10 +46,10 @@ public class PixivOperate {
                 .subscribe(new ErrorCtrl<NullResponse>() {
                     @Override
                     public void onNext(NullResponse nullResponse) {
-                        if (followType.equals("public")) {
-                            Common.showToast("关注成功~(公开的)");
+                        if (followType.equals(FragmentLikeIllust.TYPE_PUBLUC)) {
+                            Common.showToast(getString(R.string.like_success_public));
                         } else {
-                            Common.showToast("关注成功~(非公开的)");
+                            Common.showToast(getString(R.string.like_success_private));
                         }
                     }
                 });
@@ -100,18 +63,17 @@ public class PixivOperate {
                 .subscribe(new ErrorCtrl<NullResponse>() {
                     @Override
                     public void onNext(NullResponse nullResponse) {
-                        Common.showToast("取消关注~");
+                        Common.showToast(getString(R.string.cancel_like));
                     }
                 });
     }
 
-
-    public static void postLike(IllustsBean illustsBean, UserModel userModel, String starType){
-        if(illustsBean == null){
+    public static void postLike(IllustsBean illustsBean, UserModel userModel, String starType) {
+        if (illustsBean == null) {
             return;
         }
 
-        if(illustsBean.isIs_bookmarked()){ //已收藏
+        if (illustsBean.isIs_bookmarked()) { //已收藏
             illustsBean.setIs_bookmarked(false);
             Retro.getAppApi().postDislike(userModel.getResponse().getAccess_token(), illustsBean.getId())
                     .subscribeOn(Schedulers.newThread())
@@ -119,10 +81,10 @@ public class PixivOperate {
                     .subscribe(new ErrorCtrl<NullResponse>() {
                         @Override
                         public void onNext(NullResponse nullResponse) {
-                            Common.showToast("取消收藏");
+                            Common.showToast(getString(R.string.cancel_like_illust));
                         }
                     });
-        }else { //没有收藏
+        } else { //没有收藏
             illustsBean.setIs_bookmarked(true);
             Retro.getAppApi().postLike(userModel.getResponse().getAccess_token(), illustsBean.getId(), starType)
                     .subscribeOn(Schedulers.newThread())
@@ -130,61 +92,60 @@ public class PixivOperate {
                     .subscribe(new ErrorCtrl<NullResponse>() {
                         @Override
                         public void onNext(NullResponse nullResponse) {
-                            Common.showToast("收藏成功");
+                            Common.showToast(getString(R.string.like_illust_success));
                         }
                     });
         }
     }
 
-    public static void getIllustByID(UserModel userModel, int illustID, Context context){
+    public static void getIllustByID(UserModel userModel, int illustID, Context context) {
         Retro.getAppApi().getIllustByID(userModel.getResponse().getAccess_token(), illustID)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ErrorCtrl<IllustSearchResponse>() {
                     @Override
                     public void onNext(IllustSearchResponse illustSearchResponse) {
-                        if(illustSearchResponse != null){
-                            if(illustSearchResponse.getIllust() != null){
+                        if (illustSearchResponse != null) {
+                            if (illustSearchResponse.getIllust() != null) {
                                 List<IllustsBean> tempList = new ArrayList<>();
                                 tempList.add(illustSearchResponse.getIllust());
                                 IllustChannel.get().setIllustList(tempList);
                                 Intent intent = new Intent(context, ViewPagerActivity.class);
                                 intent.putExtra("position", 0);
                                 context.startActivity(intent);
-                            }else {
+                            } else {
                                 Common.showToast("illustSearchResponse.getIllust() 为空");
                             }
-                        }else {
+                        } else {
                             Common.showToast("illustSearchResponse 为空");
                         }
                     }
                 });
     }
 
-
     public static void getIllustByID(UserModel userModel, int illustID, Context context,
-                                     ceui.lisa.interfaces.Callback<Void> callback){
+                                     ceui.lisa.interfaces.Callback<Void> callback) {
         Retro.getAppApi().getIllustByID(userModel.getResponse().getAccess_token(), illustID)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ErrorCtrl<IllustSearchResponse>() {
                     @Override
                     public void onNext(IllustSearchResponse illustSearchResponse) {
-                        if(illustSearchResponse != null){
-                            if(illustSearchResponse.getIllust() != null){
+                        if (illustSearchResponse != null) {
+                            if (illustSearchResponse.getIllust() != null) {
                                 List<IllustsBean> tempList = new ArrayList<>();
                                 tempList.add(illustSearchResponse.getIllust());
                                 IllustChannel.get().setIllustList(tempList);
                                 Intent intent = new Intent(context, ViewPagerActivity.class);
                                 intent.putExtra("position", 0);
                                 context.startActivity(intent);
-                                if(callback != null){
+                                if (callback != null) {
                                     callback.doSomething(null);
                                 }
-                            }else {
+                            } else {
                                 Common.showToast("illustSearchResponse.getIllust() 为空");
                             }
-                        }else {
+                        } else {
                             Common.showToast("illustSearchResponse 为空");
                         }
                     }

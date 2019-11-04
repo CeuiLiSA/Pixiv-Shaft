@@ -1,37 +1,28 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import android.view.View;
 
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateFragmentActivity;
-import ceui.lisa.adapters.ArticalAdapter;
+import ceui.lisa.adapters.ArticleAdapter;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ArticalResponse;
+import ceui.lisa.model.SpotlightArticlesBean;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
 import io.reactivex.Observable;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-public class FragmentPivision extends BaseListFragment<ArticalResponse, ArticalAdapter, ArticalResponse.SpotlightArticlesBean> {
-
-    @Override
-    void initLayout() {
-        mLayoutID = R.layout.fragment_illust_list;
-    }
+public class FragmentPivision extends BaseListFragment<ArticalResponse, ArticleAdapter, SpotlightArticlesBean> {
 
     @Override
     Observable<ArticalResponse> initApi() {
         return Retro.getAppApi().getArticals(sUserModel.getResponse().getAccess_token());
-    }
-
-    @Override
-    boolean showToolbar() {
-        return true;
     }
 
     @Override
@@ -41,7 +32,6 @@ public class FragmentPivision extends BaseListFragment<ArticalResponse, ArticalA
 
     @Override
     void initRecyclerView() {
-        super.initRecyclerView();
         LinearLayoutManager manager = new LinearLayoutManager(mContext);
         mRecyclerView.setLayoutManager(manager);
         mRecyclerView.addItemDecoration(new LinearItemDecoration(DensityUtil.dp2px(16.0f)));
@@ -55,7 +45,7 @@ public class FragmentPivision extends BaseListFragment<ArticalResponse, ArticalA
 
     @Override
     void initAdapter() {
-        mAdapter = new ArticalAdapter(allItems, mContext);
+        mAdapter = new ArticleAdapter(allItems, mContext);
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {

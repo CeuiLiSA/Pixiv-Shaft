@@ -1,23 +1,28 @@
 package ceui.lisa.fragments;
 
-import androidx.annotation.Nullable;
-import com.google.android.material.tabs.TabLayout;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentPagerAdapter;
-import androidx.viewpager.widget.ViewPager;
-import androidx.appcompat.widget.Toolbar;
+import android.content.Intent;
 import android.view.Gravity;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import androidx.annotation.Nullable;
+import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.viewpager.widget.ViewPager;
+
+import com.google.android.material.tabs.TabLayout;
+
 import ceui.lisa.R;
 import ceui.lisa.activities.CoverActivity;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.activities.TemplateFragmentActivity;
 
 public class FragmentLeft extends BaseFragment {
 
-    public static final String[] TITLES = new String[]{"推荐作品", "热门标签"};
+    private static final String[] TITLES = new String[]{"推荐作品", "热门标签"};
 
     @Override
     void initLayout() {
@@ -31,10 +36,22 @@ public class FragmentLeft extends BaseFragment {
         ViewGroup.LayoutParams headParams = head.getLayoutParams();
         headParams.height = Shaft.statusHeight;
         head.setLayoutParams(headParams);
-        //toolbar.setPadding(0, Shaft.statusHeight, 0, 0);
         toolbar.setNavigationOnClickListener(view -> {
             if (getActivity() instanceof CoverActivity) {
                 ((CoverActivity) getActivity()).getDrawer().openDrawer(Gravity.START);
+            }
+        });
+        toolbar.inflateMenu(R.menu.fragment_left);
+        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                if (item.getItemId() == R.id.action_search) {
+                    Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+                    intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "搜索");
+                    startActivity(intent);
+                    return true;
+                }
+                return false;
             }
         });
         ViewPager viewPager = v.findViewById(R.id.view_pager);
@@ -42,7 +59,7 @@ public class FragmentLeft extends BaseFragment {
             @Override
             public Fragment getItem(int i) {
                 if (i == 0) {
-                    return new FragmentRecmdIllust();
+                    return new FragmentR();
                 } else if (i == 1) {
                     return new FragmentHotTag();
                 } else {

@@ -2,19 +2,18 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.net.Uri;
-import com.google.android.material.snackbar.Snackbar;
-import androidx.appcompat.widget.Toolbar;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.webkit.WebResourceRequest;
-import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.RelativeLayout;
 
+import androidx.appcompat.widget.Toolbar;
+
+import com.google.android.material.snackbar.Snackbar;
 import com.just.agentweb.AgentWeb;
 import com.just.agentweb.WebViewClient;
 
@@ -32,8 +31,9 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class FragmentWebView extends BaseFragment {
 
-    private static final String ILLUST_HEAD = "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=";
+    //private static final String ILLUST_HEAD = "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=";
     private static final String USER_HEAD = "https://www.pixiv.net/member.php?id=";
+    private static final String WORKS_HEAD = "https://www.pixiv.net/artworks/";
     private String title;
     private String url;
     private String response = null;
@@ -96,13 +96,12 @@ public class FragmentWebView extends BaseFragment {
                     @Override
                     public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
 
-                        //点击画作 https://www.pixiv.net/member_illust.php?mode=medium&illust_id=70374965
                         String destiny = request.getUrl().toString();
                         Common.showLog(className + destiny);
-                        if (destiny.contains(ILLUST_HEAD)) {
+                        if (destiny.contains(WORKS_HEAD)) {
                             Common.showLog("点击了ILLUST， 拦截调回APP");
                             PixivOperate.getIllustByID(sUserModel,
-                                    Integer.valueOf(destiny.substring(ILLUST_HEAD.length())), mContext);
+                                    Integer.valueOf(destiny.substring(WORKS_HEAD.length())), mContext);
                             return true;
                         }
 
@@ -115,12 +114,6 @@ public class FragmentWebView extends BaseFragment {
                         }
 
                         return super.shouldOverrideUrlLoading(view, request);
-                    }
-
-                    @Override
-                    public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-                        Log.i("WebView", String.format("requesting %s", request.getUrl()));
-                        return super.shouldInterceptRequest(view, request);
                     }
                 })
                 .createAgentWeb()
@@ -197,7 +190,7 @@ public class FragmentWebView extends BaseFragment {
         mAgentWeb = agentWeb;
     }
 
-    public class WebViewClickHandler implements MenuItem.OnMenuItemClickListener {
+    public final class WebViewClickHandler implements MenuItem.OnMenuItemClickListener {
         static final int OPEN_IN_BROWSER = 0x0;
         static final int OPEN_IMAGE = 0x1;
         static final int COPY_LINK_ADDRESS = 0x2;

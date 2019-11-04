@@ -1,13 +1,14 @@
 package ceui.lisa.adapters;
 
 import android.content.Context;
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.facebook.rebound.SimpleSpringListener;
@@ -39,13 +40,12 @@ public class DownlistAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private SimpleDateFormat mTime = new SimpleDateFormat("MM月dd日 HH: mm");
 
 
-
     public DownlistAdapter(List<DownloadEntity> list, Context context) {
         mContext = context;
         mLayoutInflater = LayoutInflater.from(mContext);
         allIllust = list;
         imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
-                mContext.getResources().getDimensionPixelSize(R.dimen.four_dp))/2;
+                mContext.getResources().getDimensionPixelSize(R.dimen.four_dp)) / 2;
     }
 
     @NonNull
@@ -69,7 +69,7 @@ public class DownlistAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 .into(currentOne.illust);
         currentOne.title.setText(allIllust.get(position).getFileName());
         currentOne.author.setText("by: " + currentIllust.getUser().getName());
-        if(currentIllust.getPage_count() == 1){
+        if (currentIllust.getPage_count() == 1) {
             currentOne.pSize.setVisibility(View.GONE);
         } else {
             currentOne.pSize.setVisibility(View.VISIBLE);
@@ -78,18 +78,12 @@ public class DownlistAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         currentOne.time.setText(mTime.format(allIllust.get(position).getDownloadTime()));
 
 
-
         //从-400 丝滑滑动到0
         currentOne.spring.setCurrentValue(-400);
         currentOne.spring.setEndValue(0);
 
 
-
-
-
-
-        if(mOnItemClickListener != null){
-
+        if (mOnItemClickListener != null) {
             currentOne.itemView.setOnClickListener(v -> {
                 mOnItemClickListener.onItemClick(v, position, 0);
             });
@@ -112,31 +106,24 @@ public class DownlistAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         ImageView illust;
         TextView title, time, author, pSize;
         Spring spring;
+
         TagHolder(View itemView) {
             super(itemView);
-
             illust = itemView.findViewById(R.id.illust_image);
             title = itemView.findViewById(R.id.title);
             time = itemView.findViewById(R.id.time);
             author = itemView.findViewById(R.id.author);
             pSize = itemView.findViewById(R.id.p_size);
             SpringSystem springSystem = SpringSystem.create();
-
-            // Add a spring to the system.
             spring = springSystem.createSpring();
-
-            spring.setSpringConfig(SpringConfig.fromOrigamiTensionAndFriction(40,5));
+            spring.setSpringConfig(SpringConfig.fromOrigamiTensionAndFriction(40, 5));
             spring.addListener(new SimpleSpringListener() {
 
                 @Override
                 public void onSpringUpdate(Spring spring) {
-                    // You can observe the updates in the spring
-                    // state by asking its current value in onSpringUpdate.
                     itemView.setTranslationX((float) spring.getCurrentValue());
-                    //Common.showLog(spring.getCurrentValue());
                 }
             });
-
         }
     }
 }

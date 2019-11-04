@@ -5,22 +5,22 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 
+import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import ceui.lisa.activities.ViewPagerActivity;
-import ceui.lisa.adapters.IllustStagAdapter;
+import ceui.lisa.adapters.IAdapter;
+import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.utils.Channel;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.IllustChannel;
-import ceui.lisa.view.ScrollChangeManager;
 import ceui.lisa.view.SpacesItemDecoration;
 import io.reactivex.Observable;
 
@@ -29,7 +29,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 /**
  * 某人收藏的插畫
  */
-public class FragmentLikeIllust extends AutoClipFragment<ListIllustResponse, IllustStagAdapter, IllustsBean> {
+public class FragmentLikeIllust extends FragmentList<ListIllustResponse, IllustsBean, RecyIllustStaggerBinding> {
 
     public static final String TYPE_PUBLUC = "public";
     public static final String TYPE_PRIVATE = "private";
@@ -44,18 +44,19 @@ public class FragmentLikeIllust extends AutoClipFragment<ListIllustResponse, Ill
     }
 
     @Override
-    void initRecyclerView() {
-        super.initRecyclerView();
-        mRecyclerView.addItemDecoration(new SpacesItemDecoration(DensityUtil.dp2px(4.0f)));
+    public void initRecyclerView() {
+        StaggeredGridLayoutManager manager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
+        baseBind.recyclerView.setLayoutManager(manager);
+        baseBind.recyclerView.addItemDecoration(new SpacesItemDecoration(DensityUtil.dp2px(8.0f)));
     }
 
     @Override
-    boolean showToolbar() {
+    public boolean showToolbar() {
         return false;
     }
 
     @Override
-    Observable<ListIllustResponse> initApi() {
+    public Observable<ListIllustResponse> initApi() {
         if (TextUtils.isEmpty(tag)) {
             return Retro.getAppApi().getUserLikeIllust(sUserModel.getResponse().getAccess_token(), userID, starType);
         } else {
@@ -64,16 +65,13 @@ public class FragmentLikeIllust extends AutoClipFragment<ListIllustResponse, Ill
     }
 
     @Override
-    Observable<ListIllustResponse> initNextApi() {
+    public Observable<ListIllustResponse> initNextApi() {
         return Retro.getAppApi().getNextIllust(sUserModel.getResponse().getAccess_token(), nextUrl);
     }
 
     @Override
-    void initAdapter() {
-        ScrollChangeManager layoutManager =
-                new ScrollChangeManager(2, ScrollChangeManager.VERTICAL);
-        mRecyclerView.setLayoutManager(layoutManager);
-        mAdapter = new IllustStagAdapter(allItems, mContext, mRecyclerView, mRefreshLayout);
+    public void initAdapter() {
+        mAdapter = new IAdapter(allItems, mContext);
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
@@ -85,27 +83,16 @@ public class FragmentLikeIllust extends AutoClipFragment<ListIllustResponse, Ill
         });
     }
 
-
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(Channel event) {
         if (event.getReceiver().contains(starType)) {
             tag = (String) event.getObject();
-            getFirstData();
+            baseBind.refreshLayout.autoRefresh();
         }
     }
 
-
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        EventBus.getDefault().register(this);
-        Common.showLog(className + "EVENTBUS 注册了");
-    }
-
-    @Override
-    public void onDestroy() {
-        EventBus.getDefault().unregister(this);
-        super.onDestroy();
-        Common.showLog(className + "EVENTBUS 取消注册了");
+    public boolean eventBusEnable() {
+        return true;
     }
 }

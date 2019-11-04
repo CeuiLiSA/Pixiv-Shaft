@@ -15,7 +15,7 @@ public interface MultiDownload {
 
     List<IllustsBean> getIllustList();
 
-    default void startDownload(){
+    default void startDownload() {
         IllustChannel illustChannel = IllustChannel.get();
         illustChannel.setDownloadList(getIllustList());
         Intent intent = new Intent(getContext(), TemplateFragmentActivity.class);

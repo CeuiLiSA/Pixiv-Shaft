@@ -5,11 +5,7 @@ import android.view.View;
 
 import ceui.lisa.R;
 
-/**
- * 地铁表白器
- */
 public class FragmentMetro extends BaseFragment {
-
 
     @Override
     void initLayout() {
@@ -18,7 +14,6 @@ public class FragmentMetro extends BaseFragment {
 
     @Override
     View initView(View v) {
-
         return v;
     }
 

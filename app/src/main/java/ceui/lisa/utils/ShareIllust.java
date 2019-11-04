@@ -12,9 +12,9 @@ import ceui.lisa.model.IllustsBean;
  */
 public abstract class ShareIllust implements IExecutor<Void> {
 
-    private IllustsBean mIllustsBean;
     private static final String URL_Head = "https://www.pixiv.net/member_illust.php?illust_id=";
     private static final String URL_BOTTOM = "&mode=medium";
+    private IllustsBean mIllustsBean;
     private Context mContext;
 
     public ShareIllust(Context context, IllustsBean illustsBean) {

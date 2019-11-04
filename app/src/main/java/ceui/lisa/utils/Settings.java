@@ -23,9 +23,10 @@ public class Settings {
     public static final String WEB_DOWNLOAD_PATH = "/storage/emulated/0/Shaft/Web";
 
 
-
     //瀑布流List点击动画
     private boolean mainListAnimate = true;
+
+    private boolean trendsForPrivate = false;
 
     //浏览历史List点击动画
     private boolean viewHistoryAnimate = true;
@@ -203,5 +204,13 @@ public class Settings {
 
     public void setWebDownloadPath(String webDownloadPath) {
         this.webDownloadPath = webDownloadPath;
+    }
+
+    public boolean isTrendsForPrivate() {
+        return trendsForPrivate;
+    }
+
+    public void setTrendsForPrivate(boolean trendsForPrivate) {
+        this.trendsForPrivate = trendsForPrivate;
     }
 }

@@ -19,4 +19,6 @@
     <color name="dark_text">#333333</color>
 
     <color name="black_overlay">#66000000</color>
+    <color name="deep_dark">#212121</color>
+    <color name="hito_bg">#000339</color>
 </resources>

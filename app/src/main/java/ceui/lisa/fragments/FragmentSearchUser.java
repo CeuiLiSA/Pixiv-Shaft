@@ -1,21 +1,18 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import android.view.View;
 import android.widget.Button;
 
-
 import ceui.lisa.R;
 import ceui.lisa.activities.UserDetailActivity;
-import ceui.lisa.adapters.UserAdapter;
+import ceui.lisa.adapters.UAdapter;
+import ceui.lisa.databinding.RecyUserPreviewBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.FullClickListener;
 import ceui.lisa.model.ListUserResponse;
 import ceui.lisa.model.UserPreviewsBean;
-import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.PixivOperate;
-import ceui.lisa.view.LinearItemDecoration;
 import io.reactivex.Observable;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
@@ -23,7 +20,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 /**
  * 搜索用户
  */
-public class FragmentSearchUser extends BaseListFragment<ListUserResponse, UserAdapter, UserPreviewsBean> {
+public class FragmentSearchUser extends FragmentList<ListUserResponse, UserPreviewsBean, RecyUserPreviewBinding> {
 
     private String word;
 
@@ -34,37 +31,24 @@ public class FragmentSearchUser extends BaseListFragment<ListUserResponse, UserA
     }
 
     @Override
-    Observable<ListUserResponse> initApi() {
-        return Retro.getAppApi().searchUser(sUserModel.getResponse().getAccess_token(), word);
-    }
-
-    @Override
-    void initLayout() {
-        mLayoutID = R.layout.fragment_illust_list;
-    }
-
-    @Override
-    String getToolbarTitle() {
+    public String getToolbarTitle() {
         return "搜索用户 " + word;
     }
 
     @Override
-    void initRecyclerView() {
-        super.initRecyclerView();
-        mRecyclerView.addItemDecoration(new LinearItemDecoration(DensityUtil.dp2px(8.0f)));
-        LinearLayoutManager manager = new LinearLayoutManager(mContext);
-        mRecyclerView.setLayoutManager(manager);
+    public Observable<ListUserResponse> initApi() {
+        return Retro.getAppApi().searchUser(sUserModel.getResponse().getAccess_token(), word);
     }
 
     @Override
-    Observable<ListUserResponse> initNextApi() {
+    public Observable<ListUserResponse> initNextApi() {
         return Retro.getAppApi().getNextUser(sUserModel.getResponse().getAccess_token(), nextUrl);
     }
 
     @Override
-    void initAdapter() {
-        mAdapter = new UserAdapter(allItems, mContext);
-        mAdapter.setOnItemClickListener(new FullClickListener() {
+    public void initAdapter() {
+        mAdapter = new UAdapter(allItems, mContext);
+        ((UAdapter) mAdapter).setFullClickListener(new FullClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
                 if (viewType == 0) { //普通item
@@ -77,7 +61,7 @@ public class FragmentSearchUser extends BaseListFragment<ListUserResponse, UserA
                         Button postFollow = ((Button) v);
                         postFollow.setText(getString(R.string.post_follow));
                     } else {
-                        PixivOperate.postFollowUser(allItems.get(position).getUser().getId(), "public");
+                        PixivOperate.postFollowUser(allItems.get(position).getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC);
                         Button postFollow = ((Button) v);
                         postFollow.setText(getString(R.string.post_unfollow));
                     }
@@ -87,7 +71,7 @@ public class FragmentSearchUser extends BaseListFragment<ListUserResponse, UserA
             @Override
             public void onItemLongClick(View v, int position, int viewType) {
                 if (!allItems.get(position).getUser().isIs_followed()) {
-                    PixivOperate.postFollowUser(allItems.get(position).getUser().getId(), "private");
+                    PixivOperate.postFollowUser(allItems.get(position).getUser().getId(), FragmentLikeIllust.TYPE_PRIVATE);
                     Button postFollow = ((Button) v);
                     postFollow.setText(getString(R.string.post_unfollow));
                 }

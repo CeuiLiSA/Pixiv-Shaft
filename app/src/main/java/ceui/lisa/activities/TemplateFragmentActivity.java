@@ -1,26 +1,27 @@
 package ceui.lisa.activities;
 
 import android.content.Intent;
-import androidx.fragment.app.Fragment;
 import android.view.KeyEvent;
 
-import com.mikepenz.aboutlibraries.Libs;
-import com.mikepenz.aboutlibraries.LibsBuilder;
+import androidx.fragment.app.Fragment;
 
+import ceui.lisa.fragments.FragmentA;
 import ceui.lisa.fragments.FragmentAbout;
 import ceui.lisa.fragments.FragmentBlank;
 import ceui.lisa.fragments.FragmentBookTag;
 import ceui.lisa.fragments.FragmentComment;
-import ceui.lisa.fragments.FragmentDrag;
-import ceui.lisa.fragments.FragmentFollowAnime;
+import ceui.lisa.fragments.FragmentFollowUser;
+import ceui.lisa.fragments.FragmentH;
 import ceui.lisa.fragments.FragmentLicense;
+import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.fragments.FragmentLocalUsers;
 import ceui.lisa.fragments.FragmentMetro;
 import ceui.lisa.fragments.FragmentMultiDownload;
-import ceui.lisa.fragments.FragmentPart;
+import ceui.lisa.fragments.FragmentNiceFriend;
 import ceui.lisa.fragments.FragmentPivision;
 import ceui.lisa.fragments.FragmentRecmdUser;
 import ceui.lisa.fragments.FragmentRelatedIllust;
+import ceui.lisa.fragments.FragmentSearch;
 import ceui.lisa.fragments.FragmentSearchResult;
 import ceui.lisa.fragments.FragmentSearchUser;
 import ceui.lisa.fragments.FragmentSelectBookTag;
@@ -66,8 +67,6 @@ public class TemplateFragmentActivity extends FragmentActivity {
                     return new FragmentRecmdUser();
                 case "特辑":
                     return new FragmentPivision();
-                case "拖动测试":
-                    return new FragmentDrag();
                 case "搜索用户": {
                     String keyword = intent.getStringExtra(EXTRA_KEYWORD);
                     return FragmentSearchUser.newInstance(keyword);
@@ -95,17 +94,23 @@ public class TemplateFragmentActivity extends FragmentActivity {
                 case "关于软件":
                     return new FragmentAbout();
                 case "跟随动画":
-                    return new FragmentFollowAnime();
-                case "搜索配件": {
-                    String keyword = intent.getStringExtra(EXTRA_KEYWORD);
-                    return FragmentPart.newInstance(keyword);
-                }
+                    return new FragmentA();
                 case "批量下载":
                     return new FragmentMultiDownload();
                 case "画廊":
                     return new FragmentWalkThrough();
                 case "License":
                     return new FragmentLicense();
+                case "正在关注":
+                    return FragmentFollowUser.newInstance(
+                            getIntent().getIntExtra("user id", 0),
+                            FragmentLikeIllust.TYPE_PUBLUC);
+                case "好P友":
+                    return new FragmentNiceFriend();
+                case "搜索":
+                    return new FragmentSearch();
+                case "一言":
+                    return new FragmentH();
                 default:
                     return new FragmentBlank();
             }
@@ -117,11 +122,8 @@ public class TemplateFragmentActivity extends FragmentActivity {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (childFragment instanceof FragmentWebView) {
-            if (((FragmentWebView) childFragment).getAgentWeb().handleKeyEvent(keyCode, event)) {
-                return true;
-            } else {
-                return super.onKeyDown(keyCode, event);
-            }
+            return ((FragmentWebView) childFragment).getAgentWeb().handleKeyEvent(keyCode, event) ||
+                    super.onKeyDown(keyCode, event);
         }
         return super.onKeyDown(keyCode, event);
     }

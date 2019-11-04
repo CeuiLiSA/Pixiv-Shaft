@@ -5,11 +5,8 @@ import android.view.View;
 
 import com.rengwuxian.materialedittext.MaterialEditText;
 
-import org.greenrobot.eventbus.EventBus;
-
 import ceui.lisa.R;
 import ceui.lisa.fragments.FragmentSelectBookTag;
-import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 
 public class AddTagDialog extends BaseDialog {
@@ -35,16 +32,11 @@ public class AddTagDialog extends BaseDialog {
                 }
 
 
-                if(getParentFragment() instanceof FragmentSelectBookTag){
+                if (getParentFragment() instanceof FragmentSelectBookTag) {
                     ((FragmentSelectBookTag) getParentFragment()).addTag(tagName.getText().toString());
                 }
 
                 dismiss();
-//                Channel channel = new Channel();
-//                channel.setReceiver("FragmentSelectBookTag");
-//                channel.setObject(tagName.getText().toString());
-//                EventBus.getDefault().post(channel);
-//                dismiss();
             }
         });
         cancel = v.findViewById(R.id.cancel);

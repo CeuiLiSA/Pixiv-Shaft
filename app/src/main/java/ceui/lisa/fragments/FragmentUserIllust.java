@@ -3,18 +3,18 @@ package ceui.lisa.fragments;
 import android.content.Intent;
 import android.view.View;
 
+import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
-import ceui.lisa.R;
 import ceui.lisa.activities.ViewPagerActivity;
-import ceui.lisa.adapters.IllustAdapter;
+import ceui.lisa.adapters.IAdapter;
+import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.IllustChannel;
-import ceui.lisa.view.GridItemDecoration;
-import ceui.lisa.view.GridScrollChangeManager;
+import ceui.lisa.view.SpacesItemDecoration;
 import io.reactivex.Observable;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
@@ -22,7 +22,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 /**
  * 某人創作的插畫
  */
-public class FragmentUserIllust extends AutoClipFragment<ListIllustResponse, IllustAdapter, IllustsBean> {
+public class FragmentUserIllust extends FragmentList<ListIllustResponse, IllustsBean, RecyIllustStaggerBinding> {
 
     private int userID;
 
@@ -33,36 +33,30 @@ public class FragmentUserIllust extends AutoClipFragment<ListIllustResponse, Ill
     }
 
     @Override
-    void initLayout() {
-        mLayoutID = R.layout.fragment_illust_list;
-    }
-
-    @Override
-    boolean showToolbar() {
+    public boolean showToolbar() {
         return false;
     }
 
     @Override
-    Observable<ListIllustResponse> initApi() {
+    public Observable<ListIllustResponse> initApi() {
         return Retro.getAppApi().getUserSubmitIllust(sUserModel.getResponse().getAccess_token(), userID, "illust");
     }
 
     @Override
-    Observable<ListIllustResponse> initNextApi() {
+    public Observable<ListIllustResponse> initNextApi() {
         return Retro.getAppApi().getNextIllust(sUserModel.getResponse().getAccess_token(), nextUrl);
     }
 
     @Override
-    void initRecyclerView() {
-        super.initRecyclerView();
-        GridScrollChangeManager manager = new GridScrollChangeManager(mContext, 2);
-        mRecyclerView.setLayoutManager(manager);
-        mRecyclerView.addItemDecoration(new GridItemDecoration(2, DensityUtil.dp2px(4.0f), false));
+    public void initRecyclerView() {
+        StaggeredGridLayoutManager manager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
+        baseBind.recyclerView.setLayoutManager(manager);
+        baseBind.recyclerView.addItemDecoration(new SpacesItemDecoration(DensityUtil.dp2px(8.0f)));
     }
 
     @Override
-    void initAdapter() {
-        mAdapter = new IllustAdapter(allItems, mContext, mRecyclerView, mRefreshLayout);
+    public void initAdapter() {
+        mAdapter = new IAdapter(allItems, mContext);
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {

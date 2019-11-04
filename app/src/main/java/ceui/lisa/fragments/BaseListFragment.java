@@ -1,11 +1,12 @@
 package ceui.lisa.fragments;
 
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.appcompat.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+
+import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.scwang.smartrefresh.header.DeliveryHeader;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
@@ -14,16 +15,12 @@ import com.scwang.smartrefresh.layout.header.ClassicsHeader;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.database.PikaDownload;
 import ceui.lisa.interfaces.ListShow;
-import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.ListObserver;
-import ceui.lisa.utils.Local;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
@@ -106,13 +103,13 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
     protected String nextUrl = "";
     protected ImageView noData;
 
-    public BaseListFragment(){
+    public BaseListFragment() {
         Common.showLog(className + "new instance !!");
     }
 
     @Override
     void initLayout() {
-        mLayoutID = R.layout.activity_simple_list;
+        mLayoutID = R.layout.fragment_illust_list;
     }
 
     @Override
@@ -139,7 +136,7 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
         initRecyclerView();
         if (className.equals("FragmentRecmdIllust ")) {
             mRefreshLayout.setRefreshHeader(new ClassicsHeader(mContext));
-        }else {
+        } else {
             mRefreshLayout.setRefreshHeader(new DeliveryHeader(mContext));
         }
         mRefreshLayout.setOnRefreshListener(layout -> getFirstData());
@@ -216,16 +213,6 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
                             mRecyclerView.setVisibility(View.VISIBLE);
                             noData.setVisibility(View.GONE);
                             mRecyclerView.setAdapter(mAdapter);
-
-                            if (System.currentTimeMillis() - Local.getPikaTime() > 3600 * 1000) {
-                                Common.showLog("System.currentTimeMillis() " + System.currentTimeMillis());
-                                Common.showLog("Local.getPikaTime() " + Local.getPikaTime());
-                                Random random = new Random();
-                                int position = random.nextInt(allItems.size());
-                                if (allItems.get(position) instanceof IllustsBean) {
-                                    PikaDownload.downloadPikaImage((IllustsBean) allItems.get(position), mContext);
-                                }
-                            }
                         }
 
                         @Override
@@ -244,10 +231,6 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
                             noData.setImageResource(R.mipmap.load_error);
                         }
                     });
-        } else {
-            if (className.equals("FragmentRecmdIllust ")) {
-                showDataBase();
-            }
         }
     }
 
@@ -287,7 +270,7 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
                                 }
                                 mRefreshLayout.finishLoadMore(true);
                                 if (mAdapter != null) {
-                                    mAdapter.notifyItemRangeChanged(lastSize, response.getList().size());
+                                    mAdapter.notifyItemRangeInserted(lastSize, response.getList().size());
                                 }
                             }
 
@@ -306,16 +289,10 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
 
                         });
             }
-        }else {
+        } else {
             mRefreshLayout.setEnableLoadMore(false);
             mRefreshLayout.finishLoadMore(false);
             mRefreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
         }
     }
-
-
-    public void showDataBase() {
-
-    }
-
 }

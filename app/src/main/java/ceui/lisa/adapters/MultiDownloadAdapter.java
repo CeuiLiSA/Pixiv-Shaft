@@ -1,15 +1,15 @@
 package ceui.lisa.adapters;
 
 import android.content.Context;
-import androidx.annotation.NonNull;
-import androidx.appcompat.widget.AppCompatCheckBox;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.widget.AppCompatCheckBox;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 
@@ -36,7 +36,7 @@ public class MultiDownloadAdapter extends RecyclerView.Adapter<RecyclerView.View
         mLayoutInflater = LayoutInflater.from(mContext);
         allIllust = list;
         imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
-                mContext.getResources().getDimensionPixelSize(R.dimen.two_dp))/3;
+                mContext.getResources().getDimensionPixelSize(R.dimen.two_dp)) / 3;
     }
 
     @NonNull
@@ -62,18 +62,18 @@ public class MultiDownloadAdapter extends RecyclerView.Adapter<RecyclerView.View
         currentOne.mCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked){
+                if (isChecked) {
                     allIllust.get(position).setChecked(true);
-                }else {
+                } else {
                     allIllust.get(position).setChecked(false);
                 }
                 mCallback.doSomething(null);
             }
         });
 
-        if(allIllust.get(position).isChecked()){
+        if (allIllust.get(position).isChecked()) {
             currentOne.mCheckBox.setChecked(true);
-        }else {
+        } else {
             currentOne.mCheckBox.setChecked(false);
         }
 
@@ -101,21 +101,22 @@ public class MultiDownloadAdapter extends RecyclerView.Adapter<RecyclerView.View
         return allIllust;
     }
 
-    public static class TagHolder extends RecyclerView.ViewHolder {
-        ImageView illust;
-        AppCompatCheckBox mCheckBox;
-        TagHolder(View itemView) {
-            super(itemView);
-            illust = itemView.findViewById(R.id.illust_image);
-            mCheckBox = itemView.findViewById(R.id.checkbox);
-        }
-    }
-
     public Callback getCallback() {
         return mCallback;
     }
 
     public void setCallback(Callback callback) {
         mCallback = callback;
+    }
+
+    public static class TagHolder extends RecyclerView.ViewHolder {
+        ImageView illust;
+        AppCompatCheckBox mCheckBox;
+
+        TagHolder(View itemView) {
+            super(itemView);
+            illust = itemView.findViewById(R.id.illust_image);
+            mCheckBox = itemView.findViewById(R.id.checkbox);
+        }
     }
 }

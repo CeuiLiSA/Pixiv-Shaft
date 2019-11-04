@@ -55,24 +55,6 @@ public class IllustsBean implements Serializable {
     private List<?> tools;
     private List<MetaPagesBean> meta_pages;
 
-
-
-    public static class MetaPagesBean implements Serializable{
-        /**
-         * image_urls : {"square_medium":"https://i.pximg.net/c/360x360_70/img-master/img/2019/04/03/21/13/11/74027091_p0_square1200.jpg","medium":"https://i.pximg.net/c/540x540_70/img-master/img/2019/04/03/21/13/11/74027091_p0_master1200.jpg","large":"https://i.pximg.net/c/600x1200_90/img-master/img/2019/04/03/21/13/11/74027091_p0_master1200.jpg","original":"https://i.pximg.net/img-original/img/2019/04/03/21/13/11/74027091_p0.png"}
-         */
-
-        private ImageUrlsBean image_urls;
-
-        public ImageUrlsBean getImage_urls() {
-            return image_urls;
-        }
-
-        public void setImage_urls(ImageUrlsBean image_urls) {
-            this.image_urls = image_urls;
-        }
-    }
-
     public int getId() {
         return id;
     }
@@ -93,12 +75,12 @@ public class IllustsBean implements Serializable {
         return type;
     }
 
-    public boolean isGif(){
-        return "ugoira".equals(type);
-    }
-
     public void setType(String type) {
         this.type = type;
+    }
+
+    public boolean isGif() {
+        return "ugoira".equals(type);
     }
 
     public ImageUrlsBean getImage_urls() {
@@ -269,8 +251,37 @@ public class IllustsBean implements Serializable {
         isChecked = checked;
     }
 
-    public String getSize(){
+    public String getSize() {
         return getWidth() + "px * " + getHeight() + "px";
+    }
+
+    @Override
+    public String toString() {
+        return "IllustsBean{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", type='" + type + '\'' +
+                ", image_urls=" + image_urls +
+                ", caption='" + caption + '\'' +
+                ", restrict=" + restrict +
+                ", user=" + user +
+                ", create_date='" + create_date + '\'' +
+                ", page_count=" + page_count +
+                ", width=" + width +
+                ", height=" + height +
+                ", sanity_level=" + sanity_level +
+                ", x_restrict=" + x_restrict +
+                ", series=" + series +
+                ", meta_single_page=" + meta_single_page +
+                ", total_view=" + total_view +
+                ", total_bookmarks=" + total_bookmarks +
+                ", is_bookmarked=" + is_bookmarked +
+                ", visible=" + visible +
+                ", is_muted=" + is_muted +
+                ", tags=" + tags +
+                ", tools=" + tools +
+                ", meta_pages=" + meta_pages +
+                '}';
     }
 
 //    public static class UserBean implements Serializable{
@@ -345,33 +356,19 @@ public class IllustsBean implements Serializable {
 //        }
 //    }
 
+    public static class MetaPagesBean implements Serializable {
+        /**
+         * image_urls : {"square_medium":"https://i.pximg.net/c/360x360_70/img-master/img/2019/04/03/21/13/11/74027091_p0_square1200.jpg","medium":"https://i.pximg.net/c/540x540_70/img-master/img/2019/04/03/21/13/11/74027091_p0_master1200.jpg","large":"https://i.pximg.net/c/600x1200_90/img-master/img/2019/04/03/21/13/11/74027091_p0_master1200.jpg","original":"https://i.pximg.net/img-original/img/2019/04/03/21/13/11/74027091_p0.png"}
+         */
 
-    @Override
-    public String toString() {
-        return "IllustsBean{" +
-                "id=" + id +
-                ", title='" + title + '\'' +
-                ", type='" + type + '\'' +
-                ", image_urls=" + image_urls +
-                ", caption='" + caption + '\'' +
-                ", restrict=" + restrict +
-                ", user=" + user +
-                ", create_date='" + create_date + '\'' +
-                ", page_count=" + page_count +
-                ", width=" + width +
-                ", height=" + height +
-                ", sanity_level=" + sanity_level +
-                ", x_restrict=" + x_restrict +
-                ", series=" + series +
-                ", meta_single_page=" + meta_single_page +
-                ", total_view=" + total_view +
-                ", total_bookmarks=" + total_bookmarks +
-                ", is_bookmarked=" + is_bookmarked +
-                ", visible=" + visible +
-                ", is_muted=" + is_muted +
-                ", tags=" + tags +
-                ", tools=" + tools +
-                ", meta_pages=" + meta_pages +
-                '}';
+        private ImageUrlsBean image_urls;
+
+        public ImageUrlsBean getImage_urls() {
+            return image_urls;
+        }
+
+        public void setImage_urls(ImageUrlsBean image_urls) {
+            this.image_urls = image_urls;
+        }
     }
 }

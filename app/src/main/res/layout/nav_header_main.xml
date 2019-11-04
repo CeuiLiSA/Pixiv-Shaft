@@ -9,7 +9,6 @@
     <ImageView
         android:layout_width="match_parent"
         android:id="@+id/pika_bg"
-        android:foreground="@drawable/side_rank_horizon"
         android:scaleType="centerCrop"
         android:layout_height="match_parent" />
 

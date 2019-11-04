@@ -73,6 +73,8 @@
 
                         <RelativeLayout
                             android:id="@+id/user_manage"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent">
 
@@ -81,6 +83,7 @@
                                 android:layout_margin="@dimen/sixteen_dp"
                                 android:text="账号管理"
                                 android:textSize="15sp"
+                                android:layout_centerVertical="true"
                                 android:textColor="@color/dark_text"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content">
@@ -134,6 +137,8 @@
 
                         <RelativeLayout
                             android:id="@+id/login_out"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent">
 
@@ -142,6 +147,7 @@
                                 android:layout_margin="@dimen/sixteen_dp"
                                 android:text="退出登录"
                                 android:textSize="15sp"
+                                android:layout_centerVertical="true"
                                 android:textColor="@color/dark_text"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content">
@@ -153,6 +159,9 @@
                         </RelativeLayout>
 
                     </LinearLayout>
+
+
+
 
 
                     <LinearLayout
@@ -174,6 +183,248 @@
 
                             <TextView
                                 android:layout_width="wrap_content"
+                                android:textSize="13sp"
+                                android:textColor="@color/colorPrimary"
+                                android:text="常规"
+                                android:layout_marginTop="@dimen/eight_dp"
+                                android:layout_marginBottom="@dimen/eight_dp"
+                                android:layout_marginStart="@dimen/sixteen_dp"
+                                android:layout_height="wrap_content" />
+                        </RelativeLayout>
+
+
+                        <RelativeLayout
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+
+                            <TextView
+                                android:layout_marginStart="@dimen/sixteen_dp"
+                                android:layout_marginTop="@dimen/sixteen_dp"
+                                android:layout_marginBottom="@dimen/six_dp"
+                                android:text="开启直连（自行代理或在墙外，可以关闭）"
+                                android:textSize="15sp"
+                                android:id="@+id/fuck_china_s"
+                                android:textColor="@color/dark_text"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+
+                            </TextView>
+
+
+                            <TextView
+                                android:layout_marginStart="@dimen/sixteen_dp"
+                                android:layout_marginBottom="@dimen/sixteen_dp"
+                                android:text="详见 Notsfsssf/Pix-EzViewer"
+                                android:layout_below="@+id/fuck_china_s"
+                                android:textSize="13sp"
+                                android:textColor="@color/colorPrimary"
+                                android:singleLine="true"
+                                android:ellipsize="start"
+                                android:id="@+id/fuck_china"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content" />
+
+
+                            <Switch
+                                android:layout_width="wrap_content"
+                                android:checked="true"
+                                android:id="@+id/auto_dns"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:layout_height="wrap_content" />
+
+
+                        </RelativeLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="#e6e6e6"
+                            android:visibility="gone"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_height="1dp" />
+
+
+                        <RelativeLayout
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:layout_width="match_parent"
+                            android:visibility="gone"
+                            android:layout_height="match_parent">
+
+
+                            <TextView
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="图片详情样式"
+                                android:textSize="15sp"
+                                android:layout_centerVertical="true"
+                                android:textColor="@color/dark_text"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+                            </TextView>
+
+
+                            <Switch
+                                android:layout_width="wrap_content"
+                                android:checked="true"
+                                android:id="@+id/detail_type"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:layout_height="wrap_content" />
+
+
+                        </RelativeLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="#e6e6e6"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_height="1dp">
+
+
+                        </View>
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:clickable="true"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:layout_height="match_parent">
+
+
+                            <TextView
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="图片详情展示原图"
+                                android:textSize="15sp"
+                                android:layout_centerVertical="true"
+                                android:textColor="@color/dark_text"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+
+                            </TextView>
+
+
+                            <Switch
+                                android:layout_width="wrap_content"
+                                android:checked="true"
+                                android:id="@+id/first_detail_origin"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:layout_height="wrap_content" />
+
+
+                        </RelativeLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="#e6e6e6"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_height="1dp">
+
+
+                        </View>
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:layout_height="match_parent">
+
+
+                            <TextView
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="保存浏览历史"
+                                android:textSize="15sp"
+                                android:layout_centerVertical="true"
+                                android:textColor="@color/dark_text"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+
+                            </TextView>
+
+
+                            <Switch
+                                android:layout_width="wrap_content"
+                                android:checked="true"
+                                android:id="@+id/save_history"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:layout_height="wrap_content" />
+
+
+                        </RelativeLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="#e6e6e6"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_height="1dp">
+
+
+                        </View>
+
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:layout_height="match_parent">
+
+
+                            <TextView
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="相关作品无限下滑（可能出现重复）"
+                                android:textSize="15sp"
+                                android:textColor="@color/dark_text"
+                                android:layout_centerVertical="true"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+
+                            </TextView>
+
+
+                            <Switch
+                                android:layout_width="wrap_content"
+                                android:checked="true"
+                                android:id="@+id/related_no_limit"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:layout_height="wrap_content" />
+
+
+                        </RelativeLayout>
+                    </LinearLayout>
+
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:orientation="vertical"
+                        android:layout_height="wrap_content">
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="@color/light_bg"
+                            android:layout_height="20dp">
+
+                        </View>
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <TextView
+                                android:layout_width="wrap_content"
                                 android:text="下载路径"
                                 android:textSize="13sp"
                                 android:textColor="@color/colorPrimary"
@@ -186,6 +437,8 @@
 
                         <RelativeLayout
                             android:id="@+id/single_illust_path"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent">
 
@@ -267,6 +520,8 @@
                         <RelativeLayout
                             android:id="@+id/gif_result_path"
                             android:layout_width="match_parent"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true"
                             android:layout_height="match_parent">
 
 
@@ -314,6 +569,8 @@
 
                         <RelativeLayout
                             android:id="@+id/gif_zip_path"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent">
 
@@ -359,6 +616,8 @@
 
                         <RelativeLayout
                             android:id="@+id/gif_unzip_path"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent">
 
@@ -392,274 +651,6 @@
 
                     </LinearLayout>
 
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:orientation="vertical"
-                        android:layout_height="wrap_content">
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:background="@color/light_bg"
-                            android:layout_height="20dp">
-
-
-                        </View>
-
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:textSize="13sp"
-                                android:textColor="@color/colorPrimary"
-                                android:text="常规"
-                                android:layout_marginTop="@dimen/eight_dp"
-                                android:layout_marginBottom="@dimen/eight_dp"
-                                android:layout_marginStart="@dimen/sixteen_dp"
-                                android:layout_height="wrap_content" />
-                        </RelativeLayout>
-
-
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent">
-
-
-                            <TextView
-                                android:layout_marginStart="@dimen/sixteen_dp"
-                                android:layout_marginTop="@dimen/sixteen_dp"
-                                android:layout_marginBottom="@dimen/six_dp"
-                                android:text="开启直连（自行代理或在墙外，可以关闭）"
-                                android:textSize="15sp"
-                                android:id="@+id/fuck_china_s"
-                                android:textColor="@color/dark_text"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
-
-
-                            </TextView>
-
-
-                            <TextView
-                                android:layout_marginStart="@dimen/sixteen_dp"
-                                android:layout_marginBottom="@dimen/sixteen_dp"
-                                android:text="详见 Notsfsssf/Pix-EzViewer"
-                                android:layout_below="@+id/fuck_china_s"
-                                android:textSize="13sp"
-                                android:textColor="@color/colorPrimary"
-                                android:singleLine="true"
-                                android:ellipsize="start"
-                                android:id="@+id/fuck_china"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
-
-
-                            <Switch
-                                android:layout_width="wrap_content"
-                                android:checked="true"
-                                android:id="@+id/auto_dns"
-                                android:layout_alignParentEnd="true"
-                                android:layout_centerVertical="true"
-                                android:layout_margin="@dimen/sixteen_dp"
-                                android:layout_height="wrap_content" />
-
-
-                        </RelativeLayout>
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:background="#e6e6e6"
-                            android:layout_marginStart="@dimen/sixteen_dp"
-                            android:layout_height="1dp" />
-
-
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent">
-
-
-                            <TextView
-                                android:layout_margin="@dimen/sixteen_dp"
-                                android:text="图片详情展示原图"
-                                android:textSize="15sp"
-                                android:textColor="@color/dark_text"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
-
-
-                            </TextView>
-
-
-                            <Switch
-                                android:layout_width="wrap_content"
-                                android:checked="true"
-                                android:id="@+id/first_detail_origin"
-                                android:layout_alignParentEnd="true"
-                                android:layout_centerVertical="true"
-                                android:layout_margin="@dimen/sixteen_dp"
-                                android:layout_height="wrap_content" />
-
-
-                        </RelativeLayout>
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:background="#e6e6e6"
-                            android:layout_marginStart="@dimen/sixteen_dp"
-                            android:layout_height="1dp">
-
-
-                        </View>
-
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent">
-
-
-                            <TextView
-                                android:layout_margin="@dimen/sixteen_dp"
-                                android:text="瀑布流列表点击动画"
-                                android:textSize="15sp"
-                                android:textColor="@color/dark_text"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
-
-
-                            </TextView>
-
-
-                            <Switch
-                                android:layout_width="wrap_content"
-                                android:checked="true"
-                                android:id="@+id/stagger_animate"
-                                android:layout_alignParentEnd="true"
-                                android:layout_centerVertical="true"
-                                android:layout_margin="@dimen/sixteen_dp"
-                                android:layout_height="wrap_content" />
-
-
-                        </RelativeLayout>
-
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:background="#e6e6e6"
-                            android:layout_marginStart="@dimen/sixteen_dp"
-                            android:layout_height="1dp" />
-
-
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent">
-
-
-                            <TextView
-                                android:layout_margin="@dimen/sixteen_dp"
-                                android:text="网格列表点击动画"
-                                android:textSize="15sp"
-                                android:textColor="@color/dark_text"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
-
-
-                            </TextView>
-
-
-                            <Switch
-                                android:layout_width="wrap_content"
-                                android:checked="true"
-                                android:id="@+id/grid_animate"
-                                android:layout_alignParentEnd="true"
-                                android:layout_centerVertical="true"
-                                android:layout_margin="@dimen/sixteen_dp"
-                                android:layout_height="wrap_content" />
-
-
-                        </RelativeLayout>
-
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:background="#e6e6e6"
-                            android:layout_marginStart="@dimen/sixteen_dp"
-                            android:layout_height="1dp">
-
-
-                        </View>
-
-
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent">
-
-
-                            <TextView
-                                android:layout_margin="@dimen/sixteen_dp"
-                                android:text="保存浏览历史"
-                                android:textSize="15sp"
-                                android:textColor="@color/dark_text"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
-
-
-                            </TextView>
-
-
-                            <Switch
-                                android:layout_width="wrap_content"
-                                android:checked="true"
-                                android:id="@+id/save_history"
-                                android:layout_alignParentEnd="true"
-                                android:layout_centerVertical="true"
-                                android:layout_margin="@dimen/sixteen_dp"
-                                android:layout_height="wrap_content" />
-
-
-                        </RelativeLayout>
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:background="#e6e6e6"
-                            android:layout_marginStart="@dimen/sixteen_dp"
-                            android:layout_height="1dp">
-
-
-                        </View>
-
-
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent">
-
-
-                            <TextView
-                                android:layout_margin="@dimen/sixteen_dp"
-                                android:text="相关作品无限下滑（可能出现重复）"
-                                android:textSize="15sp"
-                                android:textColor="@color/dark_text"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
-
-
-                            </TextView>
-
-
-                            <Switch
-                                android:layout_width="wrap_content"
-                                android:checked="true"
-                                android:id="@+id/related_no_limit"
-                                android:layout_alignParentEnd="true"
-                                android:layout_centerVertical="true"
-                                android:layout_margin="@dimen/sixteen_dp"
-                                android:layout_height="wrap_content" />
-
-
-                        </RelativeLayout>
-                    </LinearLayout>
-
-
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:orientation="vertical"
@@ -692,6 +683,8 @@
 
                         <RelativeLayout
                             android:layout_width="match_parent"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true"
                             android:layout_height="match_parent">
 
 
@@ -699,6 +692,7 @@
                                 android:layout_margin="@dimen/sixteen_dp"
                                 android:text="搜索结果收藏量筛选"
                                 android:textSize="15sp"
+                                android:layout_centerVertical="true"
                                 android:id="@+id/search_filter_s"
                                 android:textColor="@color/dark_text"
                                 android:layout_width="wrap_content"
@@ -734,15 +728,20 @@
 
                         </View>
 
+
                         <RelativeLayout
                             android:layout_width="match_parent"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true"
                             android:layout_height="match_parent">
 
 
                             <TextView
                                 android:layout_margin="@dimen/sixteen_dp"
-                                android:text="二级助推器分离"
+                                android:text="@string/how_about_trending"
                                 android:textSize="15sp"
+                                android:layout_centerVertical="true"
+                                android:id="@+id/how_about_trending"
                                 android:textColor="@color/dark_text"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content">
@@ -751,36 +750,13 @@
                             </TextView>
 
 
-                            <Switch
-                                android:layout_width="wrap_content"
-                                android:checked="true"
-                                android:layout_alignParentEnd="true"
-                                android:layout_centerVertical="true"
-                                android:layout_margin="@dimen/sixteen_dp"
-                                android:layout_height="wrap_content" />
-
-
-                        </RelativeLayout>
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:background="#e6e6e6"
-                            android:layout_marginStart="@dimen/sixteen_dp"
-                            android:layout_height="1dp">
-
-
-                        </View>
-
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent">
-
-
                             <TextView
                                 android:layout_margin="@dimen/sixteen_dp"
-                                android:text="开启回旋加速器"
-                                android:textSize="15sp"
-                                android:textColor="@color/dark_text"
+                                android:text="公开关注"
+                                android:textSize="14sp"
+                                android:id="@+id/trending_illust"
+                                android:layout_alignParentEnd="true"
+                                android:textColor="@color/colorPrimary"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content">
 
@@ -788,55 +764,7 @@
                             </TextView>
 
 
-                            <Switch
-                                android:layout_width="wrap_content"
-                                android:checked="true"
-                                android:layout_alignParentEnd="true"
-                                android:layout_centerVertical="true"
-                                android:layout_margin="@dimen/sixteen_dp"
-                                android:layout_height="wrap_content" />
-
-
                         </RelativeLayout>
-
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:background="#e6e6e6"
-                            android:layout_marginStart="@dimen/sixteen_dp"
-                            android:layout_height="1dp">
-
-
-                        </View>
-
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent">
-
-
-                            <TextView
-                                android:layout_margin="@dimen/sixteen_dp"
-                                android:text="X-performance"
-                                android:textSize="15sp"
-                                android:textColor="@color/dark_text"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
-
-
-                            </TextView>
-
-
-                            <Switch
-                                android:layout_width="wrap_content"
-                                android:checked="true"
-                                android:layout_alignParentEnd="true"
-                                android:layout_centerVertical="true"
-                                android:layout_margin="@dimen/sixteen_dp"
-                                android:layout_height="wrap_content" />
-
-
-                        </RelativeLayout>
-
 
                         <View
                             android:layout_width="match_parent"

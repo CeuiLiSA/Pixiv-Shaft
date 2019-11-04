@@ -9,7 +9,6 @@ import retrofit2.http.POST;
 
 public interface AccountApi {
 
-
     /**
      * 用户登录
      *
@@ -34,7 +33,6 @@ public interface AccountApi {
                                 @Field("password") String password,
                                 @Field("username") String username);
 
-
     /**
      * 刷新TOKEN
      *
@@ -56,5 +54,4 @@ public interface AccountApi {
                                  @Field("device_token") String device_token,
                                  @Field("get_secure_url") boolean get_secure_url,
                                  @Field("include_policy") boolean include_policy);
-
 }

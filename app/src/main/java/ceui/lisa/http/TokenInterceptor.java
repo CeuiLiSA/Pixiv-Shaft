@@ -2,10 +2,9 @@ package ceui.lisa.http;
 
 import java.io.IOException;
 
-import ceui.lisa.activities.LoginAlphaActivity;
+import ceui.lisa.activities.LoginActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.model.UserModel;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import okhttp3.Interceptor;
 import okhttp3.Request;
@@ -58,7 +57,6 @@ public class TokenInterceptor implements Interceptor {
     }
 
 
-
     /**
      * 根据Response，判断Token是否失效
      *
@@ -80,27 +78,21 @@ public class TokenInterceptor implements Interceptor {
      * @return
      */
     private String getNewToken() throws IOException {
-        Common.showLog("synchronized getNewToken111");
         UserModel userModel = Local.getUser();
         Call<UserModel> call = Retro.getAccountApi().refreshToken(
-                LoginAlphaActivity.CLIENT_ID,
-                LoginAlphaActivity.CLIENT_SECRET,
+                LoginActivity.CLIENT_ID,
+                LoginActivity.CLIENT_SECRET,
                 "refresh_token",
                 userModel.getResponse().getRefresh_token(),
                 userModel.getResponse().getDevice_token(),
                 true,
                 true);
         UserModel newUser = call.execute().body();
-        if(newUser != null) {
+        if (newUser != null) {
             newUser.getResponse().setUser(Shaft.sUserModel.getResponse().getUser());
         }
-//        UserBean.ProfileImageUrlsBean profile_image_urls = newUser.getResponse().getUser().getProfile_image_urls();
-//        profile_image_urls.setMedium(profile_image_urls.getPx_50x50());
-//        newUser.getResponse().getUser().setPassword(userModel.getResponse().getUser().getPassword());
         Local.saveUser(newUser);
         isTokenNew = true;
-        Common.showLog("synchronized getNewToken222");
-
         if (newUser != null && newUser.getResponse() != null) {
             return newUser.getResponse().getAccess_token();
         } else {

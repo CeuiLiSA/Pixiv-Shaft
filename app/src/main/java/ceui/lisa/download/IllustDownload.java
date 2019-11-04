@@ -1,11 +1,14 @@
 package ceui.lisa.download;
 
 import com.liulishuo.okdownload.DownloadTask;
+import com.liulishuo.okdownload.core.dispatcher.DownloadDispatcher;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import ceui.lisa.R;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.IllustTask;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.Common;
@@ -17,16 +20,18 @@ public class IllustDownload {
 
     public static void downloadIllust(IllustsBean illustsBean) {
         if (illustsBean == null) {
+            Common.showToast(Shaft.getContext().getString(R.string.cannot_download));
             return;
         }
 
         if (illustsBean.getPage_count() != 1) {
+            Common.showToast(Shaft.getContext().getString(R.string.cannot_download));
             return;
         }
 
         File file = FileCreator.createIllustFile(illustsBean);
         if (file.exists()) {
-            Common.showToast("图片已存在");
+            Common.showToast(Shaft.getContext().getString(R.string.image_alredy_exist));
             return;
         }
 
@@ -44,18 +49,19 @@ public class IllustDownload {
         illustTask.setDownloadTask(task);
         TaskQueue.get().addTask(illustTask);
         task.enqueue(new QueueListener());
-        Common.showToast("1个项目已加入下载队列");
+        Common.showToast(Shaft.getContext().getString(R.string.one_item_added));
     }
 
 
     public static void downloadIllust(IllustsBean illustsBean, int index) {
         if (illustsBean == null) {
+            Common.showToast(Shaft.getContext().getString(R.string.cannot_download));
             return;
         }
 
         File file = FileCreator.createIllustFile(illustsBean, index);
         if (file.exists()) {
-            Common.showToast("图片已存在");
+            Common.showToast(Shaft.getContext().getString(R.string.image_alredy_exist));
             return;
         }
 
@@ -75,13 +81,14 @@ public class IllustDownload {
             illustTask.setDownloadTask(task);
             TaskQueue.get().addTask(illustTask);
             task.enqueue(new QueueListener());
-            Common.showToast("1个项目已加入下载队列");
+            Common.showToast(Shaft.getContext().getString(R.string.one_item_added));
         }
     }
 
 
     public static void downloadAllIllust(IllustsBean illustsBean) {
         if (illustsBean == null) {
+            Common.showToast(Shaft.getContext().getString(R.string.cannot_download));
             return;
         }
 
@@ -89,6 +96,7 @@ public class IllustDownload {
             downloadIllust(illustsBean);
             return;
         }
+        DownloadDispatcher.setMaxParallelRunningCount(1);
 
 
         List<DownloadTask> tempList = new ArrayList<>();
@@ -114,16 +122,18 @@ public class IllustDownload {
 
         DownloadTask[] taskArray = new DownloadTask[tempList.size()];
         DownloadTask.enqueue(tempList.toArray(taskArray), new QueueListener());
-        Common.showToast(tempList.size() + "个项目已加入下载队列");
+        Common.showToast(tempList.size() + Shaft.getContext().getString(R.string.has_been_added));
     }
 
 
     public static void downloadAllIllust(List<IllustsBean> beans) {
         if (beans == null) {
+            Common.showToast(Shaft.getContext().getString(R.string.cannot_download));
             return;
         }
 
         if (beans.size() <= 0) {
+            Common.showToast(Shaft.getContext().getString(R.string.cannot_download));
             return;
         }
 
@@ -132,11 +142,13 @@ public class IllustDownload {
             return;
         }
 
+        DownloadDispatcher.setMaxParallelRunningCount(1);
+
 
         List<DownloadTask> tempList = new ArrayList<>();
 
         for (int i = 0; i < beans.size(); i++) {
-            if(beans.get(i).isChecked()) {
+            if (beans.get(i).isChecked()) {
                 final IllustsBean currentIllust = beans.get(i);
 
                 if (currentIllust.getPage_count() == 1) {
@@ -183,12 +195,12 @@ public class IllustDownload {
             }
         }
 
-        if(tempList.size() == 0){
+        if (tempList.size() == 0) {
             return;
         }
 
         DownloadTask[] taskArray = new DownloadTask[tempList.size()];
         DownloadTask.enqueue(tempList.toArray(taskArray), new QueueListener());
-        Common.showToast(tempList.size() + "个项目已加入下载队列");
+        Common.showToast(tempList.size() + Shaft.getContext().getString(R.string.has_been_added));
     }
 }

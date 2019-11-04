@@ -1,10 +1,10 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.View;
-import android.widget.ProgressBar;
+import android.view.animation.AnticipateOvershootInterpolator;
+
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.github.ybq.android.spinkit.style.DoubleBounce;
 
@@ -14,25 +14,26 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.adapters.PivisionHorizontalAdapter;
-import ceui.lisa.http.ErrorCtrl;
+import ceui.lisa.databinding.FragmentPivisionHorizontalBinding;
+import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
-import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ArticalResponse;
+import ceui.lisa.model.SpotlightArticlesBean;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
+import jp.wasabeef.recyclerview.animators.LandingAnimator;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
+import static ceui.lisa.fragments.FragmentList.animateDuration;
 
 /**
  * Pivision 文章
  */
-public class FragmentPivisionHorizontal extends BaseFragment {
+public class FragmentPivisionHorizontal extends BaseBindFragment<FragmentPivisionHorizontalBinding> {
 
-    private ProgressBar mProgressBar;
-    private RecyclerView mRecyclerView;
-    private List<ArticalResponse.SpotlightArticlesBean> allItems = new ArrayList<>();
+    private List<SpotlightArticlesBean> allItems = new ArrayList<>();
     private PivisionHorizontalAdapter mAdapter;
 
     @Override
@@ -41,56 +42,45 @@ public class FragmentPivisionHorizontal extends BaseFragment {
     }
 
     @Override
-    View initView(View v) {
-        mProgressBar = v.findViewById(R.id.progress);
+    void initData() {
         DoubleBounce doubleBounce = new DoubleBounce();
         doubleBounce.setColor(getResources().getColor(R.color.white));
-        mProgressBar.setIndeterminateDrawable(doubleBounce);
-        mRecyclerView = v.findViewById(R.id.recyclerView);
-        mRecyclerView.addItemDecoration(new LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
+        baseBind.progress.setIndeterminateDrawable(doubleBounce);
+        LandingAnimator landingAnimator = new LandingAnimator(new AnticipateOvershootInterpolator());
+        landingAnimator.setAddDuration(400L);
+        landingAnimator.setRemoveDuration(animateDuration);
+        landingAnimator.setMoveDuration(animateDuration);
+        landingAnimator.setChangeDuration(animateDuration);
+        baseBind.recyclerView.setItemAnimator(landingAnimator);
+        baseBind.recyclerView.addItemDecoration(new LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
         LinearLayoutManager manager = new LinearLayoutManager(mContext, LinearLayoutManager.HORIZONTAL, false);
-        mRecyclerView.setLayoutManager(manager);
-        mRecyclerView.setHasFixedSize(true);
-        v.findViewById(R.id.see_more).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "特辑");
-                startActivity(intent);
-            }
+        baseBind.recyclerView.setLayoutManager(manager);
+        baseBind.recyclerView.setHasFixedSize(true);
+        mAdapter = new PivisionHorizontalAdapter(allItems, mContext);
+        baseBind.recyclerView.setAdapter(mAdapter);
+        baseBind.seeMore.setOnClickListener(view -> {
+            Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "特辑");
+            startActivity(intent);
         });
-        return v;
-    }
-
-    @Override
-    void initData() {
         getFirstData();
     }
 
-    private void getFirstData() {
+    public void getFirstData() {
         Retro.getAppApi().getArticals(sUserModel.getResponse().getAccess_token())
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new ErrorCtrl<ArticalResponse>() {
+                .subscribe(new NullCtrl<ArticalResponse>() {
                     @Override
-                    public void onNext(ArticalResponse articalResponse) {
-                        if (articalResponse != null) {
-                            allItems.clear();
-                            allItems.addAll(articalResponse.getList());
-                            mAdapter = new PivisionHorizontalAdapter(allItems, mContext);
-                            mAdapter.setOnItemClickListener(new OnItemClickListener() {
-                                @Override
-                                public void onItemClick(View v, int position, int viewType) {
-                                    Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-                                    intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "网页链接");
-                                    intent.putExtra("url", allItems.get(position).getArticle_url());
-                                    intent.putExtra("title", getString(R.string.pixiv_special));
-                                    startActivity(intent);
-                                }
-                            });
-                            mRecyclerView.setAdapter(mAdapter);
-                        }
-                        mProgressBar.setVisibility(View.INVISIBLE);
+                    public void success(ArticalResponse articalResponse) {
+                        allItems.clear();
+                        allItems.addAll(articalResponse.getList());
+                        mAdapter.notifyItemRangeInserted(0, articalResponse.getList().size());
+                    }
+
+                    @Override
+                    public void must(boolean isSuccess) {
+                        baseBind.progress.setVisibility(View.INVISIBLE);
                     }
                 });
     }

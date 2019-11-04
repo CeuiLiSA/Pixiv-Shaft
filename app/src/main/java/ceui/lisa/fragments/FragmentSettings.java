@@ -5,14 +5,11 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Environment;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.widget.Toolbar;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
-import android.widget.Switch;
-import android.widget.TextView;
+
+import androidx.appcompat.app.AlertDialog;
 
 import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
@@ -26,7 +23,7 @@ import java.io.File;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.LoginAlphaActivity;
+import ceui.lisa.activities.LoginActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.databinding.FragmentSettingsBinding;
@@ -43,6 +40,7 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
     private static final int gifResultPath_CODE = 10087;
     private static final int gifZipPath_CODE = 10088;
     private static final int gifUnzipPath_CODE = 10089;
+    public static final String[] STRINGS = new String[]{"公开关注", "私人关注"};
 
     @Override
     void initLayout() {
@@ -57,7 +55,7 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
         baseBind.loginOut.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(mContext, LoginAlphaActivity.class);
+                Intent intent = new Intent(mContext, LoginActivity.class);
                 startActivity(intent);
                 getActivity().finish();
             }
@@ -72,33 +70,6 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
                 getActivity().finish();
             }
         });
-
-        baseBind.staggerAnimate.setChecked(Shaft.sSettings.isStaggerAnime());
-        baseBind.staggerAnimate.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    Shaft.sSettings.setStaggerAnime(true);
-                } else {
-                    Shaft.sSettings.setStaggerAnime(false);
-                }
-                Local.setSettings(Shaft.sSettings);
-            }
-        });
-
-        baseBind.gridAnimate.setChecked(Shaft.sSettings.isGridAnime());
-        baseBind.gridAnimate.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    Shaft.sSettings.setGridAnime(true);
-                } else {
-                    Shaft.sSettings.setGridAnime(false);
-                }
-                Local.setSettings(Shaft.sSettings);
-            }
-        });
-
 
         baseBind.saveHistory.setChecked(Shaft.sSettings.isSaveViewHistory());
         baseBind.saveHistory.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -245,6 +216,30 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
                 alertDialog.show();
             }
         });
+
+        baseBind.trendingIllust.setText(Shaft.sSettings.isTrendsForPrivate() ? STRINGS[1] : STRINGS[0]);
+        baseBind.trendingIllust.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+                builder.setTitle("动态作品展示");
+                builder.setItems(STRINGS, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if(which == 0){
+                            Shaft.sSettings.setTrendsForPrivate(false);
+                        }else {
+                            Shaft.sSettings.setTrendsForPrivate(true);
+                        }
+                        Local.setSettings(Shaft.sSettings);
+                        baseBind.trendingIllust.setText(STRINGS[which]);
+                    }
+                });
+                AlertDialog alertDialog = builder.create();
+                alertDialog.show();
+            }
+        });
+
         baseBind.refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));
         baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
     }

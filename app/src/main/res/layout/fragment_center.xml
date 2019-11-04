@@ -6,50 +6,13 @@
     android:layout_width="match_parent">
 
 
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:id="@+id/rela_1"
-            android:background="@color/colorPrimary"
-            android:focusableInTouchMode="true"
-            android:focusable="true"
-            android:layout_height="wrap_content"
-            app:layout_scrollFlags="scroll">
-
-            <ImageView
-                android:id="@+id/head"
-                android:layout_width="match_parent"
-                android:layout_height="5dp">
-
-            </ImageView>
-
-
-            <com.mancj.materialsearchbar.MaterialSearchBar
-                style="@style/MaterialSearchBarLight"
-                android:layout_below="@+id/head"
-                app:mt_hint="输你想输的"
-                app:mt_maxSuggestionsCount="5"
-                app:mt_placeholder="标签搜作品"
-                android:layout_marginTop="@dimen/eight_dp"
-                android:layout_marginStart="@dimen/sixteen_dp"
-                android:layout_marginEnd="@dimen/sixteen_dp"
-                android:layout_marginBottom="@dimen/sixteen_dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/searchBar" />
-
-
-        </RelativeLayout>
-
-
     <com.scwang.smartrefresh.layout.SmartRefreshLayout
         android:layout_width="match_parent"
-        android:layout_below="@+id/rela_1"
         android:id="@+id/refreshLayout"
         android:layout_height="match_parent">
 
 
-        <androidx.core.widget.NestedScrollView
+        <ceui.lisa.view.HeadZoomScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
@@ -58,6 +21,15 @@
                 android:layout_width="match_parent"
                 android:orientation="vertical"
                 android:layout_height="match_parent">
+
+                <ImageView
+                    android:id="@+id/head"
+                    android:layout_width="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@color/colorPrimary"
+                    android:layout_height="200dp">
+
+                </ImageView>
 
                 <RelativeLayout
                     android:layout_width="match_parent"
@@ -124,7 +96,7 @@
 
             </LinearLayout>
 
-        </androidx.core.widget.NestedScrollView>
+        </ceui.lisa.view.HeadZoomScrollView>
 
 
     </com.scwang.smartrefresh.layout.SmartRefreshLayout>

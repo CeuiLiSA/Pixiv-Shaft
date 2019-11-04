@@ -18,6 +18,17 @@ public class UserBean implements Serializable {
     private ProfileImageUrlsBean profile_image_urls;
     private int id;
     private String name;
+    private String comment;
+    private String account;
+    private String password;
+    private String mail_address;
+    private boolean is_premium;
+    private boolean is_login;
+    private boolean is_followed;
+    private long lastTokenTime = -1;
+    private int x_restrict;
+    private boolean is_mail_authorized;
+    private boolean require_policy_agreement;
 
     public String getComment() {
         return comment;
@@ -26,14 +37,6 @@ public class UserBean implements Serializable {
     public void setComment(String comment) {
         this.comment = comment;
     }
-
-    private String comment;
-    private String account;
-    private String password;
-    private String mail_address;
-    private boolean is_premium;
-    private boolean is_login;
-    private boolean is_followed;
 
     public boolean isIs_followed() {
         return is_followed;
@@ -51,8 +54,6 @@ public class UserBean implements Serializable {
         this.lastTokenTime = lastTokenTime;
     }
 
-    private long lastTokenTime = -1;
-
     public boolean isIs_login() {
         return is_login;
     }
@@ -60,10 +61,6 @@ public class UserBean implements Serializable {
     public void setIs_login(boolean is_login) {
         this.is_login = is_login;
     }
-
-    private int x_restrict;
-    private boolean is_mail_authorized;
-    private boolean require_policy_agreement;
 
     public ProfileImageUrlsBean getProfile_image_urls() {
         return profile_image_urls;
@@ -137,6 +134,14 @@ public class UserBean implements Serializable {
         this.require_policy_agreement = require_policy_agreement;
     }
 
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
     public static class ProfileImageUrlsBean implements Serializable {
         /**
          * px_16x16 : https://i.pximg.net/user-profile/img/2018/06/20/23/27/47/14384932_69771f95cafdac1a1d3da88fcfe4ecab_16.jpg
@@ -180,14 +185,6 @@ public class UserBean implements Serializable {
         public void setPx_170x170(String px_170x170) {
             this.px_170x170 = px_170x170;
         }
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 
 }

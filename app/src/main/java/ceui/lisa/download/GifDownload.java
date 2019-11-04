@@ -14,8 +14,8 @@ public class GifDownload {
     private static final String MAP_KEY = "Referer";
     private static final String IMAGE_REFERER = "https://app-api.pixiv.net/";
 
-    public static void downloadGif(GifResponse response, IllustsBean illustsBean){
-        if(response == null){
+    public static void downloadGif(GifResponse response, IllustsBean illustsBean) {
+        if (response == null) {
             return;
         }
 

@@ -37,13 +37,12 @@
                     <ImageView
                         android:id="@+id/user_background"
                         android:layout_width="match_parent"
-                        android:foreground="@drawable/side_rank_horizon"
                         android:layout_height="match_parent"
                         android:scaleType="centerCrop" />
 
 
                     <de.hdodenhof.circleimageview.CircleImageView
-                        android:id="@+id/user_head"
+                        android:id="@+id/userHead"
                         android:layout_width="65dp"
                         android:layout_height="65dp"
                         android:layout_above="@+id/user_name"
@@ -127,6 +126,7 @@
                         android:layout_height="1dp">
 
                     </ImageView>
+
 
                     <androidx.appcompat.widget.Toolbar
                         android:id="@+id/toolbar_help"

@@ -7,14 +7,13 @@ import ceui.lisa.model.IllustsBean;
 
 public class IllustChannel {
 
-    private IllustChannel() {
-    }
-
+    private volatile static IllustChannel instance = null;
     private List<IllustsBean> illustList = new ArrayList<>();
 
     private List<IllustsBean> downloadList = new ArrayList<>();
 
-    private volatile static IllustChannel instance = null;
+    private IllustChannel() {
+    }
 
     public static IllustChannel get() {
         if (instance == null) {

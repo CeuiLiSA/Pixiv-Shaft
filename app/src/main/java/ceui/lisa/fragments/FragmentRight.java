@@ -1,10 +1,12 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import androidx.fragment.app.FragmentTransaction;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
@@ -51,7 +53,7 @@ public class FragmentRight extends BaseFragment {
             FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
             transaction.add(R.id.fragment_container, recmdUser).commit();
 
-            FragmentFollowIllust fragmentFollowIllust = new FragmentFollowIllust();
+            FragmentP fragmentFollowIllust = new FragmentP();
             transaction = getChildFragmentManager().beginTransaction();
             transaction.add(R.id.fragment_recy, fragmentFollowIllust).commit();
             isLoad = true;
