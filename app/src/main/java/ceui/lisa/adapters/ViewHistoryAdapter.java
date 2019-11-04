@@ -85,9 +85,11 @@ public class ViewHistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
 
         if (mOnItemClickListener != null) {
-
-            holder.itemView.setOnClickListener(v -> {
-                mOnItemClickListener.onItemClick(v, position, 0);
+            holder.itemView.setOnClickListener(v ->
+                    mOnItemClickListener.onItemClick(v, position, 0));
+            currentOne.author.setOnClickListener(v -> {
+                currentOne.author.setTag(currentIllust.getUser().getId());
+                mOnItemClickListener.onItemClick(currentOne.author, position, 1);
             });
         }
     }

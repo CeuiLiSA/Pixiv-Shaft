@@ -26,6 +26,7 @@ import ceui.lisa.fragments.FragmentUserIllust;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.http.Rx;
+import ceui.lisa.interfaces.Display;
 import ceui.lisa.model.UserDetailResponse;
 import ceui.lisa.test.BasicActivity;
 import ceui.lisa.utils.Common;
@@ -33,8 +34,11 @@ import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.view.AppBarStateChangeListener;
 import de.hdodenhof.circleimageview.CircleImageView;
+import jp.wasabeef.glide.transformations.BlurTransformation;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
+import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
+import static com.bumptech.glide.request.RequestOptions.bitmapTransform;
 
 public class UserDetailActivity extends BasicActivity {
 
@@ -47,10 +51,11 @@ public class UserDetailActivity extends BasicActivity {
     private ViewPager mViewPager;
     private UserDetailResponse mUserDetailResponse;
     private Fragment[] baseFragments;
+    private Display<UserDetailResponse> showAbout;
 
     @Override
     public void initView() {
-        userHead = findViewById(R.id.user_head);
+        userHead = findViewById(R.id.userHead);
         userBg = findViewById(R.id.user_background);
         userName = findViewById(R.id.user_name);
         fans = findViewById(R.id.user_follow);
@@ -117,10 +122,12 @@ public class UserDetailActivity extends BasicActivity {
     @Override
     public void initData() {
         userID = getIntent().getIntExtra("user id", 0);
+        FragmentAboutUser fragmentAboutUser = new FragmentAboutUser();
+        showAbout = fragmentAboutUser;
         baseFragments = new Fragment[]{
                 FragmentLikeIllust.newInstance(userID, FragmentLikeIllust.TYPE_PUBLUC),
                 FragmentUserIllust.newInstance(userID),
-                new FragmentAboutUser()};
+                fragmentAboutUser};
         mViewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override
             public Fragment getItem(int i) {
@@ -157,40 +164,54 @@ public class UserDetailActivity extends BasicActivity {
     }
 
     private void setData(UserDetailResponse userDetailResponse) {
-        if (mContext != null && !isDestroyed()) {
-            Glide.with(mContext)
-                    .load(GlideUtil.getMediumImg(
-                            userDetailResponse.getUser()
-                                    .getProfile_image_urls().getMedium()))
-                    .into(userHead);
-            userName.setText(userDetailResponse.getUser().getName());
-            if (userDetailResponse.getUser().getId() == sUserModel.getResponse().getUser().getId()) {
-                nowFollow.setVisibility(View.GONE);
-            }
-            if (userDetailResponse.getUser().isIs_followed()) {
-                nowFollow.setText("取消關注");
-                nowFollow.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        nowFollow.setText("+ 關注");
-                        PixivOperate.postUnFollowUser(userDetailResponse.getUser().getId());
-                    }
-                });
-            } else {
-                nowFollow.setText("+ 關注");
-                nowFollow.setOnClickListener(v -> {
+        if (!isDestroyed()) {
+            try {
+
+                String userHeadUrl = userDetailResponse.getUser()
+                        .getProfile_image_urls().getMedium();
+                Common.showLog(getClassName() + userHeadUrl);
+                Glide.with(mContext)
+                        .load(GlideUtil.getMediumImg(userHeadUrl))
+                        .into(userHead);
+
+                Glide.with(mContext)
+                        .load(GlideUtil.getMediumImg(userHeadUrl))
+                        .apply(bitmapTransform(new BlurTransformation(25, 3)))
+                        .transition(withCrossFade())
+                        .into(userBg);
+
+                userName.setText(userDetailResponse.getUser().getName());
+                if (userDetailResponse.getUser().getId() == sUserModel.getResponse().getUser().getId()) {
+                    nowFollow.setVisibility(View.GONE);
+                }
+                if (userDetailResponse.getUser().isIs_followed()) {
                     nowFollow.setText("取消關注");
-                    PixivOperate.postFollowUser(userDetailResponse.getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC);
-                });
-                nowFollow.setOnLongClickListener(v -> {
-                    nowFollow.setText("取消關注");
-                    PixivOperate.postFollowUser(userDetailResponse.getUser().getId(), FragmentLikeIllust.TYPE_PRIVATE);
-                    return true;
-                });
+                    nowFollow.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            nowFollow.setText("+ 關注");
+                            PixivOperate.postUnFollowUser(userDetailResponse.getUser().getId());
+                        }
+                    });
+                } else {
+                    nowFollow.setText("+ 關注");
+                    nowFollow.setOnClickListener(v -> {
+                        nowFollow.setText("取消關注");
+                        PixivOperate.postFollowUser(userDetailResponse.getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC);
+                    });
+                    nowFollow.setOnLongClickListener(v -> {
+                        nowFollow.setText("取消關注");
+                        PixivOperate.postFollowUser(userDetailResponse.getUser().getId(), FragmentLikeIllust.TYPE_PRIVATE);
+                        return true;
+                    });
+                }
+                fans.setText("好P友：" + userDetailResponse.getProfile().getTotal_mypixiv_users());
+                follow.setText("關注：" + userDetailResponse.getProfile().getTotal_follow_users());
+                showAbout.show(userDetailResponse);
+            }catch (Exception e){
+                e.printStackTrace();
+                Common.showToast(e.toString());
             }
-            fans.setText("好P友：" + userDetailResponse.getProfile().getTotal_mypixiv_users());
-            follow.setText("關注：" + userDetailResponse.getProfile().getTotal_follow_users());
-            ((FragmentAboutUser) baseFragments[2]).setData(userDetailResponse);
         }
     }
 
