@@ -30,20 +30,6 @@ public class GlideUtil {
         return new GlideUrl(imageUrl, sHeaders);
     }
 
-
-//    public static GlideUrl getUserHead(UserPreviewsBean user){
-//        return new GlideUrl(user.getUser().getProfile_image_urls().getMedium(), sHeaders);
-//    }
-//
-//    public static GlideUrl getUserHead(String headImage){
-//        return new GlideUrl(headImage, sHeaders);
-//    }
-//
-//    public static GlideUrl getUserHead(UserBean user){
-//        return new GlideUrl(user.getProfile_image_urls().getMedium(), sHeaders);
-//    }
-
-
     public static GlideUrl getArticle(String url) {
         return new GlideUrl(url, sHeaders);
     }

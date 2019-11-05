@@ -116,6 +116,7 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
         baseBind.refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));
         baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
         baseBind.toolbar.inflateMenu(R.menu.share);
+
         baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem menuItem) {
@@ -143,7 +144,7 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
         });
         baseBind.toolbar.setPadding(0, Shaft.statusHeight, 0, 0);
         baseBind.toolbar.setTitle(illust.getTitle() + "  ");
-        baseBind.toolbar.setTitleTextAppearance(mContext, R.style.toolbarText);
+        baseBind.toolbar.setTitleTextAppearance(mContext, R.style.shadowText);
         baseBind.toolbar.setNavigationOnClickListener(view -> getActivity().finish());
         baseBind.download.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -333,7 +334,7 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
         }
     }
 
-    public void getGifUrl() {
+    private void getGifUrl() {
         Common.showToast("获取图组ZIP地址");
         Retro.getAppApi().getGifPackage(sUserModel.getResponse().getAccess_token(), illust.getId())
                 .subscribeOn(Schedulers.newThread())
@@ -389,7 +390,7 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
                     .setImageResource(R.drawable.ic_favorite_accent_24dp);
         }
 
-        if (event.getReceiver().equals("FragmentSingleIllust option2")) {
+        if (event.getReceiver().equals("FragmentSingleIllust download finish")) {
             if ((int) event.getObject() == illust.getId()) {
                 baseBind.download.setImageResource(R.drawable.ic_has_download);
             }

@@ -13,6 +13,19 @@ abstract class BasicActivity : AppCompatActivity() {
     lateinit var mContext: Context
     lateinit var mActivity: AppCompatActivity
 
+
+    /**
+     * 执行顺序：
+     *
+     * 1. hideStatusBar()
+     *
+     * 2. layout()
+     *
+     * 3. initView()
+     *
+     * 4. initData()
+     */
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Common.showLog(className + "onCreate ")

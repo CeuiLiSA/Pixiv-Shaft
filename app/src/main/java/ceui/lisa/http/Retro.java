@@ -31,7 +31,8 @@ public class Retro {
     private static final String API_HITO_URL = "https://api.a632079.me/";
 
     //用作获取会员token
-    private static final String RANK_TOKEN_BASE_URL = "http://202.182.113.0/";
+    //private static final String RANK_TOKEN_BASE_URL = "http://202.182.113.0/";
+    private static final String RANK_TOKEN_BASE_URL = "https://s.aragaki.fun/";
 
     //用作注册账号
     private static final String SIGN_API = "https://accounts.pixiv.net/";

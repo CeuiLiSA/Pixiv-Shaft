@@ -303,4 +303,13 @@ public class CoverActivity extends BaseActivity
             finish();
         }
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(Dev.refreshUser) {
+            initDrawerHeader();
+            Dev.refreshUser = false;
+        }
+    }
 }

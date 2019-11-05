@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
@@ -56,15 +57,13 @@ public class FragmentLeft extends BaseFragment {
         });
         ViewPager viewPager = v.findViewById(R.id.view_pager);
         viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
+            @NonNull
             @Override
             public Fragment getItem(int i) {
                 if (i == 0) {
                     return new FragmentR();
-                } else if (i == 1) {
-                    return new FragmentHotTag();
                 } else {
-                    //只有左右两页，所以这个else应该不会触发
-                    return new FragmentBlank();
+                    return new FragmentHotTag();
                 }
             }
 
@@ -73,7 +72,7 @@ public class FragmentLeft extends BaseFragment {
                 return TITLES.length;
             }
 
-            @Nullable
+            @NonNull
             @Override
             public CharSequence getPageTitle(int position) {
                 return TITLES[position];

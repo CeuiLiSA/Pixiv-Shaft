@@ -313,7 +313,7 @@ public class FragmentSearch extends BaseBindFragment<FragmentSearchBinding> {
                 } else if (history.get(position).getSearchType() == 1) {
                     history.get(position).setSearchTime(System.currentTimeMillis());
                     AppDatabase.getAppDatabase(mContext).searchDao().insert(history.get(position));
-                    PixivOperate.getIllustByID(sUserModel, Integer.valueOf(history.get(position).getKeyword()), mContext);
+                    PixivOperate.getIllustByID(sUserModel, Integer.parseInt(history.get(position).getKeyword()), mContext);
                 } else if (history.get(position).getSearchType() == 2) {
                     history.get(position).setSearchTime(System.currentTimeMillis());
                     AppDatabase.getAppDatabase(mContext).searchDao().insert(history.get(position));

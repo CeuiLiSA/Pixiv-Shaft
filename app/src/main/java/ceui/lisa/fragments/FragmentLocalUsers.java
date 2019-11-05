@@ -25,6 +25,7 @@ import ceui.lisa.database.UserEntity;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.model.UserModel;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.PixivOperate;
@@ -157,10 +158,11 @@ public class FragmentLocalUsers extends BaseFragment {
                     public void onResponse(Call<UserModel> call, Response<UserModel> response) {
                         if (response != null) {
                             UserModel newUser = response.body();
-                            if (newUser != null) {
-                                newUser.getResponse().setUser(Shaft.sUserModel.getResponse().getUser());
-                            }
+//                            if (newUser != null) {
+//                                newUser.getResponse().setUser(Shaft.sUserModel.getResponse().getUser());
+//                            }
                             Local.saveUser(newUser);
+                            Dev.refreshUser = true;
                             mProgressBar.setVisibility(View.INVISIBLE);
                             getActivity().finish();
                         }

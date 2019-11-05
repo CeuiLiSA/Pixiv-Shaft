@@ -221,24 +221,26 @@ public class FragmentSearchResult extends FragmentSList<ListIllustResponse, Illu
             mAdapter.clear();
             getFirstData();
         } else {
-            mAdapter.clear();
-            getFirstData();
-            Common.showToast("热度排序功能调试中");
-//            Retro.getRankApi().getRankToken()
-//                    .subscribeOn(Schedulers.newThread())
-//                    .observeOn(AndroidSchedulers.mainThread())
-//                    .subscribe(new ErrorCtrl<TempTokenResponse>() {
-//                        @Override
-//                        public void onNext(TempTokenResponse tempTokenResponse) {
-//                            if (tempTokenResponse != null) {
-//                                token = "Bearer " + tempTokenResponse.getToken();
-//                                sort = "popular_desc";
-//                                starSize = "";
-//                                mAdapter.clear();
-//                                getFirstData();
-//                            }
-//                        }
-//                    });
+//            mAdapter.clear();
+//            getFirstData();
+//            Common.showToast("热度排序功能调试中");
+            baseBind.progress.setVisibility(View.VISIBLE);
+            Retro.getRankApi().getRankToken()
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new ErrorCtrl<TempTokenResponse>() {
+                        @Override
+                        public void onNext(TempTokenResponse tempTokenResponse) {
+                            if (tempTokenResponse != null) {
+                                token = "Bearer " + tempTokenResponse.getToken();
+                                sort = "popular_desc";
+                                starSize = "";
+                                mAdapter.clear();
+                                getFirstData();
+                            }
+                            baseBind.progress.setVisibility(View.GONE);
+                        }
+                    });
         }
     }
 }

@@ -124,6 +124,8 @@ public class ImageDetailActivity extends BaseActivity {
             });
             downloadSingle.setText("路径：" + localIllust.get(index));
         }
+        currentPage.setTextAppearance(mContext, R.style.shadowText);
+        downloadSingle.setTextAppearance(mContext, R.style.shadowText);
     }
 
 

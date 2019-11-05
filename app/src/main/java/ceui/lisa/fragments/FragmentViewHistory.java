@@ -24,6 +24,7 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateFragmentActivity;
+import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.ViewHistoryAdapter;
 import ceui.lisa.database.AppDatabase;
@@ -156,10 +157,16 @@ public class FragmentViewHistory extends BaseFragment {
                         mAdapter.setOnItemClickListener(new OnItemClickListener() {
                             @Override
                             public void onItemClick(View v, int position, int viewType) {
-                                IllustChannel.get().setIllustList(allIllusts);
-                                Intent intent = new Intent(mContext, ViewPagerActivity.class);
-                                intent.putExtra("position", position);
-                                startActivity(intent);
+                                if(viewType == 0) {
+                                    IllustChannel.get().setIllustList(allIllusts);
+                                    Intent intent = new Intent(mContext, ViewPagerActivity.class);
+                                    intent.putExtra("position", position);
+                                    startActivity(intent);
+                                }else if(viewType == 1){
+                                    Intent intent = new Intent(mContext, UserDetailActivity.class);
+                                    intent.putExtra("user id", (int) v.getTag());
+                                    startActivity(intent);
+                                }
                             }
                         });
                         mProgressBar.setVisibility(View.INVISIBLE);
