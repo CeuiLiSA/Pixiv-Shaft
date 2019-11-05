@@ -4,7 +4,7 @@ import java.util.List;
 
 import ceui.lisa.interfaces.ListShow;
 
-public class ArticalResponse implements ListShow<SpotlightArticlesBean> {
+public class ArticleResponse implements ListShow<SpotlightArticlesBean> {
 
 
     /**

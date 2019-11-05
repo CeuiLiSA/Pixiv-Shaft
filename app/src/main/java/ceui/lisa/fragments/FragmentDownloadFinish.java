@@ -41,11 +41,9 @@ public class FragmentDownloadFinish extends BaseAsyncFragment<DownlistAdapter, D
         allItems.clear();
         nowIndex = 0;
         Observable.create((ObservableOnSubscribe<String>) emitter -> {
-            emitter.onNext("开始查询数据库");
             List<DownloadEntity> temp = AppDatabase.getAppDatabase(mContext).downloadDao().getAll(PAGE_SIZE, nowIndex);
             nowIndex += temp.size();
             allItems.addAll(temp);
-            emitter.onNext("开始转换数据类型");
             Thread.sleep(500);
             Gson gson = new Gson();
             allIllusts = new ArrayList<>();

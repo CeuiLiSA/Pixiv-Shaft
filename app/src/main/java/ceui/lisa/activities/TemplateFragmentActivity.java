@@ -5,7 +5,6 @@ import android.view.KeyEvent;
 
 import androidx.fragment.app.Fragment;
 
-import ceui.lisa.fragments.FragmentA;
 import ceui.lisa.fragments.FragmentAbout;
 import ceui.lisa.fragments.FragmentBlank;
 import ceui.lisa.fragments.FragmentBookTag;
@@ -29,6 +28,8 @@ import ceui.lisa.fragments.FragmentSettings;
 import ceui.lisa.fragments.FragmentViewHistory;
 import ceui.lisa.fragments.FragmentWalkThrough;
 import ceui.lisa.fragments.FragmentWebView;
+import ceui.lisa.ui.fragment.FragmentQ;
+import ceui.lisa.ui.fragment.FragmentT;
 import ceui.lisa.utils.ReverseResult;
 
 public class TemplateFragmentActivity extends FragmentActivity {
@@ -93,8 +94,6 @@ public class TemplateFragmentActivity extends FragmentActivity {
                 }
                 case "关于软件":
                     return new FragmentAbout();
-                case "跟随动画":
-                    return new FragmentA();
                 case "批量下载":
                     return new FragmentMultiDownload();
                 case "画廊":
@@ -110,7 +109,7 @@ public class TemplateFragmentActivity extends FragmentActivity {
                 case "搜索":
                     return new FragmentSearch();
                 case "一言":
-                    return new FragmentH();
+                    return new FragmentT();
                 default:
                     return new FragmentBlank();
             }

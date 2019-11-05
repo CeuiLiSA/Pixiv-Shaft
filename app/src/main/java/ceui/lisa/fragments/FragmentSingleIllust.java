@@ -242,6 +242,14 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
             }
         });
         baseBind.userName.setText(illust.getUser().getName());
+        baseBind.userName.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(mContext, UserDetailActivity.class);
+                intent.putExtra("user id", illust.getUser().getId());
+                startActivity(intent);
+            }
+        });
         List<String> tags = new ArrayList<>();
         SpannableString sizeString = new SpannableString(String.format("尺寸：%s",
                 illust.getSize()));

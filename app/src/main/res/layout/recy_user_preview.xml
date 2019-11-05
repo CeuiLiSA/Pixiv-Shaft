@@ -97,7 +97,7 @@
                 android:layout_alignBottom="@+id/bottom_rela"
                 android:layout_marginStart="@dimen/twelve_dp"
                 android:layout_marginBottom="@dimen/twelve_dp"
-                app:civ_border_color="@color/colorPrimary"
+                app:civ_border_color="#DDDDDD"
                 app:civ_border_width="2dp" />
 
 

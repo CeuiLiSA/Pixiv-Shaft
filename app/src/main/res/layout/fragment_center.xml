@@ -22,14 +22,14 @@
                 android:orientation="vertical"
                 android:layout_height="match_parent">
 
-                <ImageView
-                    android:id="@+id/head"
+                <androidx.viewpager.widget.ViewPager
+                    android:id="@+id/viewPager"
                     android:layout_width="match_parent"
-                    android:scaleType="centerCrop"
-                    android:src="@color/colorPrimary"
-                    android:layout_height="200dp">
+                    android:layout_height="220dp">
 
-                </ImageView>
+
+
+                </androidx.viewpager.widget.ViewPager>
 
                 <RelativeLayout
                     android:layout_width="match_parent"

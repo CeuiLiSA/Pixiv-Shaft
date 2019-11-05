@@ -8,11 +8,11 @@ import kotlinx.android.synthetic.main.fragment_about.*
 
 class FragmentAbout : BaseBindFragment<FragmentAboutBinding>() {
 
-    internal override fun initLayout() {
+    override fun initLayout() {
         mLayoutID = R.layout.fragment_about
     }
 
-    internal override fun initData() {
+    override fun initData() {
         baseBind.toolbar.setNavigationOnClickListener { mActivity.finish() }
         baseBind.pixivProblem.setOnClickListener {
             val intent = Intent(mContext, TemplateFragmentActivity::class.java)

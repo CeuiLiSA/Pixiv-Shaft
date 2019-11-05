@@ -9,7 +9,7 @@
     <com.github.chrisbanes.photoview.PhotoView
         android:layout_width="match_parent"
         android:id="@+id/illust_image"
-        android:scaleType="fitCenter"
+        android:scaleType="centerCrop"
         android:layout_height="match_parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

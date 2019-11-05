@@ -222,15 +222,9 @@ public class CoverActivity extends BaseActivity
             intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "画廊");
             startActivity(intent);
         } else if (id == R.id.web_test) {
-            if(Dev.isDev) {
-                Intent intent = new Intent(mContext, KActivity.class);
-                startActivity(intent);
-            }else {
-                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "一言");
-                startActivity(intent);
-            }
-
+            Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "一言");
+            startActivity(intent);
         }
 
         mDrawer.closeDrawer(GravityCompat.START);

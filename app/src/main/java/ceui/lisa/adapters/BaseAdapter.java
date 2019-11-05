@@ -12,7 +12,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
 import ceui.lisa.interfaces.Binding;
-import ceui.lisa.interfaces.Callback;
 import ceui.lisa.interfaces.OnItemClickListener;
 
 public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extends
@@ -55,8 +54,9 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
         return new ViewHolder<>(getBind(LayoutInflater.from(mContext), parent).getRoot());
     }
 
-    public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
+    public BaseAdapter<Item, BindView> setOnItemClickListener(OnItemClickListener onItemClickListener) {
         mOnItemClickListener = onItemClickListener;
+        return this;
     }
 
     public void clear() {

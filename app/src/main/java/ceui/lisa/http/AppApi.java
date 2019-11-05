@@ -1,6 +1,6 @@
 package ceui.lisa.http;
 
-import ceui.lisa.model.ArticalResponse;
+import ceui.lisa.model.ArticleResponse;
 import ceui.lisa.model.BookmarkTags;
 import ceui.lisa.model.CommentHolder;
 import ceui.lisa.model.GifResponse;
@@ -118,7 +118,7 @@ public interface AppApi {
 
 
     @GET("v1/spotlight/articles?filter=for_android&category=all&offset=10")
-    Observable<ArticalResponse> getArticals(@Header("Authorization") String token);
+    Observable<ArticleResponse> getArticals(@Header("Authorization") String token);
 
 
     ///v1/user/detail?filter=for_android&user_id=24218478
@@ -143,7 +143,7 @@ public interface AppApi {
                                                  @Url String next_url);
 
     @GET
-    Observable<ArticalResponse> getNextArticals(@Header("Authorization") String token,
+    Observable<ArticleResponse> getNextArticals(@Header("Authorization") String token,
                                                 @Url String next_url);
 
 

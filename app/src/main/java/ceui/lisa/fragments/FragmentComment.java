@@ -75,7 +75,6 @@ public class FragmentComment extends BaseBindFragment<FragmentCommentBinding> {
                                 fragmentC.allItems.add(0, commentHolder.getComment());
                                 fragmentC.mAdapter.notifyItemInserted(0);
                                 fragmentC.baseBind.recyclerView.scrollToPosition(0);
-                                //fragmentC.baseBind.refreshLayout.autoRefresh();
                             }
 
                             @Override
