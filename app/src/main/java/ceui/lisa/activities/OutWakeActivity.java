@@ -13,12 +13,13 @@ import ceui.lisa.utils.PixivOperate;
 public class OutWakeActivity extends BaseActivity {
 
     @Override
-    protected void initLayout() {
-        getWindow().setStatusBarColor(Color.TRANSPARENT);
-        getWindow().getDecorView().setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
-                        View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
-        mLayoutID = R.layout.activity_out_wake;
+    protected int initLayout() {
+        return R.layout.activity_out_wake;
+    }
+
+    @Override
+    public boolean hideStatusBar() {
+        return true;
     }
 
     @Override

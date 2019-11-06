@@ -52,12 +52,13 @@ public class LoginActivity extends BaseActivity {
     private ProgressBar mProgressBar;
 
     @Override
-    protected void initLayout() {
-        mLayoutID = R.layout.activity_login;
-        getWindow().setStatusBarColor(Color.TRANSPARENT);
-        getWindow().getDecorView().setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
-                        View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+    protected int initLayout() {
+        return R.layout.activity_login;
+    }
+
+    @Override
+    public boolean hideStatusBar() {
+        return true;
     }
 
     @Override

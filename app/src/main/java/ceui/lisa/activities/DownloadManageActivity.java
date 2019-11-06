@@ -16,35 +16,32 @@ import com.google.android.material.tabs.TabLayout;
 
 import ceui.lisa.R;
 import ceui.lisa.database.AppDatabase;
+import ceui.lisa.databinding.ActivityDownloadManageBinding;
 import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentDownloadFinish;
 import ceui.lisa.fragments.FragmentNowDownload;
 import ceui.lisa.utils.Common;
 
-public class DownloadManageActivity extends BaseActivity {
+public class DownloadManageActivity extends BaseActivity<ActivityDownloadManageBinding> {
 
     private static final String[] CHINESE_TITLES = new String[]{
             Shaft.getContext().getString(R.string.now_downloading),
             Shaft.getContext().getString(R.string.has_download)
     };
     private BaseFragment[] allPages = new BaseFragment[]{new FragmentNowDownload(), new FragmentDownloadFinish()};
-    private ViewPager mViewPager;
 
     @Override
-    protected void initLayout() {
-        mLayoutID = R.layout.activity_download_manage;
+    protected int initLayout() {
+        return R.layout.activity_download_manage;
     }
 
     @Override
     protected void initView() {
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        toolbar.setTitle("下载管理");
-        toolbar.setNavigationOnClickListener(v -> finish());
-        TabLayout tabLayout = findViewById(R.id.tab_layout);
-        mViewPager = findViewById(R.id.view_pager);
-        mViewPager.setPageTransformer(true, new DrawerTransformer());
-        mViewPager.setAdapter(new FragmentStatePagerAdapter(getSupportFragmentManager()) {
+        setSupportActionBar(baseBind.toolbar);
+        baseBind.toolbar.setTitle("下载管理");
+        baseBind.toolbar.setNavigationOnClickListener(v -> finish());
+        baseBind.viewPager.setPageTransformer(true, new DrawerTransformer());
+        baseBind.viewPager.setAdapter(new FragmentStatePagerAdapter(getSupportFragmentManager()) {
             @Override
             public Fragment getItem(int i) {
                 return allPages[i];
@@ -63,8 +60,8 @@ public class DownloadManageActivity extends BaseActivity {
 
 
         });
-        tabLayout.setupWithViewPager(mViewPager);
-        mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+        baseBind.tabLayout.setupWithViewPager(baseBind.viewPager);
+        baseBind.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int i, float v, int i1) {
 
@@ -89,8 +86,8 @@ public class DownloadManageActivity extends BaseActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        if (mViewPager != null) {
-            if (mViewPager.getCurrentItem() == 0) {
+        if (baseBind.viewPager != null) {
+            if (baseBind.viewPager.getCurrentItem() == 0) {
                 return false;
             } else {
                 getMenuInflater().inflate(R.menu.delete_all, menu);

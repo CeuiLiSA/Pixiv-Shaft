@@ -28,12 +28,12 @@ public class ImageDetailActivity extends BaseActivity {
     private String dataType = "";
 
     @Override
-    protected void initLayout() {
+    protected int initLayout() {
         BarUtils.setStatusBarColor(this, ColorUtils.getColor(R.color.qmui_config_color_transparent));
         if (BarUtils.isSupportNavBar()) {
             BarUtils.setNavBarVisibility(this, false);
         }
-        mLayoutID = R.layout.activity_image_detail;
+        return R.layout.activity_image_detail;
     }
 
     @Override

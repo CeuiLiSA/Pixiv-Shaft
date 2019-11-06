@@ -5,6 +5,7 @@ import android.view.View;
 import android.widget.Button;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.UActivity;
 import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.adapters.UAdapter;
 import ceui.lisa.databinding.RecyUserPreviewBinding;
@@ -12,6 +13,7 @@ import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.FullClickListener;
 import ceui.lisa.model.ListUserResponse;
 import ceui.lisa.model.UserPreviewsBean;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.PixivOperate;
 import io.reactivex.Observable;
 
@@ -44,7 +46,12 @@ public class FragmentRecmdUser extends FragmentList<ListUserResponse, UserPrevie
             @Override
             public void onItemClick(View v, int position, int viewType) {
                 if (viewType == 0) { //普通item
-                    Intent intent = new Intent(mContext, UserDetailActivity.class);
+                    Intent intent;
+                    if(Dev.isDev){
+                        intent = new Intent(mContext, UActivity.class);
+                    }else {
+                        intent = new Intent(mContext, UserDetailActivity.class);
+                    }
                     intent.putExtra("user id", allItems.get(position).getUser().getId());
                     startActivity(intent);
                 } else if (viewType == 1) { //关注按钮

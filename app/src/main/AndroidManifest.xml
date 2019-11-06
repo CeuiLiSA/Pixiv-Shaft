@@ -118,9 +118,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity android:name=".test.BasicActivity" />
-        <activity android:name=".test.TActivity" />
-        <activity android:name=".test.KActivity" />
+        <activity android:name=".activities.UActivity" />
     </application>
 
 </manifest>

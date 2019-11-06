@@ -41,8 +41,6 @@ import ceui.lisa.fragments.FragmentLeft;
 import ceui.lisa.fragments.FragmentRight;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.model.UserModel;
-import ceui.lisa.test.KActivity;
-import ceui.lisa.test.TActivity;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
@@ -65,12 +63,13 @@ public class CoverActivity extends BaseActivity
     private long mExitTime;
 
     @Override
-    protected void initLayout() {
-        getWindow().setStatusBarColor(Color.TRANSPARENT);
-        getWindow().getDecorView().setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
-                        View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
-        mLayoutID = R.layout.activity_cover;
+    protected int initLayout() {
+        return R.layout.activity_cover;
+    }
+
+    @Override
+    public boolean hideStatusBar() {
+        return true;
     }
 
     public void checkPermission(Callback<Object> callback) {
@@ -202,7 +201,12 @@ public class CoverActivity extends BaseActivity
             startActivity(intent);
 
         } else if (id == R.id.main_page) {
-            Intent intent = new Intent(mContext, UserDetailActivity.class);
+            Intent intent;
+            if(Dev.isDev) {
+                intent = new Intent(mContext, UActivity.class);
+            }else {
+                intent = new Intent(mContext, UserDetailActivity.class);
+            }
             intent.putExtra("user id", sUserModel.getResponse().getUser().getId());
             startActivity(intent);
 

@@ -23,12 +23,13 @@ public abstract class FragmentActivity extends BaseActivity {
     protected Fragment childFragment;
 
     @Override
-    protected void initLayout() {
-        getWindow().setStatusBarColor(Color.TRANSPARENT);
-        getWindow().getDecorView().setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
-                        View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
-        mLayoutID = R.layout.activity_fragment;
+    protected int initLayout() {
+        return mLayoutID = R.layout.activity_fragment;
+    }
+
+    @Override
+    public boolean hideStatusBar() {
+        return true;
     }
 
     @Override

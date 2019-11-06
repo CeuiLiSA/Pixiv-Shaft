@@ -28,7 +28,6 @@ import ceui.lisa.http.Retro;
 import ceui.lisa.http.Rx;
 import ceui.lisa.interfaces.Display;
 import ceui.lisa.model.UserDetailResponse;
-import ceui.lisa.test.BasicActivity;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.PixivOperate;
@@ -40,7 +39,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 import static com.bumptech.glide.request.RequestOptions.bitmapTransform;
 
-public class UserDetailActivity extends BasicActivity {
+public class UserDetailActivity extends BaseActivity {
 
     private static final String[] TITLES = new String[]{"收藏", "作品", "关于"};
     private int userID;
@@ -52,6 +51,11 @@ public class UserDetailActivity extends BasicActivity {
     private UserDetailResponse mUserDetailResponse;
     private Fragment[] baseFragments;
     private Display<UserDetailResponse> showAbout;
+
+    @Override
+    protected int initLayout() {
+        return R.layout.activity_user_detail;
+    }
 
     @Override
     public void initView() {
@@ -169,7 +173,6 @@ public class UserDetailActivity extends BasicActivity {
 
                 String userHeadUrl = userDetailResponse.getUser()
                         .getProfile_image_urls().getMedium();
-                Common.showLog(getClassName() + userHeadUrl);
                 Glide.with(mContext)
                         .load(GlideUtil.getMediumImg(userHeadUrl))
                         .into(userHead);
@@ -218,10 +221,5 @@ public class UserDetailActivity extends BasicActivity {
     @Override
     public boolean hideStatusBar() {
         return true;
-    }
-
-    @Override
-    public int layout() {
-        return R.layout.activity_user_detail;
     }
 }

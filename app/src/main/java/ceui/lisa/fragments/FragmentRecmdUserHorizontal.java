@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.UActivity;
 import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.adapters.UserHorizontalAdapter;
 import ceui.lisa.http.NullCtrl;
@@ -21,6 +22,7 @@ import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListUserResponse;
 import ceui.lisa.model.UserPreviewsBean;
 import ceui.lisa.utils.DensityUtil;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
@@ -65,9 +67,15 @@ public class FragmentRecmdUserHorizontal extends BaseFragment {
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                Intent intent = new Intent(mContext, UserDetailActivity.class);
+                Intent intent;
+                if(Dev.isDev){
+                    intent = new Intent(mContext, UActivity.class);
+                }else {
+                    intent = new Intent(mContext, UserDetailActivity.class);
+                }
                 intent.putExtra("user id", allItems.get(position).getUser().getId());
                 startActivity(intent);
+
             }
         });
         mRecyclerView.setAdapter(mAdapter);

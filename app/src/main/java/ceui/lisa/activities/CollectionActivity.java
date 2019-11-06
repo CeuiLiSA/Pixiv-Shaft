@@ -14,13 +14,13 @@ import com.ToxicBakery.viewpager.transforms.DrawerTransformer;
 import com.google.android.material.tabs.TabLayout;
 
 import ceui.lisa.R;
+import ceui.lisa.databinding.ActivityDownloadManageBinding;
 import ceui.lisa.fragments.FragmentFollowUser;
 import ceui.lisa.fragments.FragmentLikeIllust;
-import ceui.lisa.test.BasicActivity;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-public class CollectionActivity extends BasicActivity {
+public class CollectionActivity extends BaseActivity<ActivityDownloadManageBinding> {
 
     private static final String[] CHINESE_TITLES = new String[]{
             Shaft.getContext().getString(R.string.public_like_illust), 
@@ -28,17 +28,18 @@ public class CollectionActivity extends BasicActivity {
             Shaft.getContext().getString(R.string.public_like_user), 
             Shaft.getContext().getString(R.string.private_like_user)};
     private Fragment[] allPages;
-    private ViewPager mViewPager;
+
+    @Override
+    protected int initLayout() {
+        return R.layout.activity_download_manage;
+    }
 
     @Override
     public void initView() {
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        toolbar.setTitle(mContext.getString(R.string.bookmark));
-        toolbar.setNavigationOnClickListener(v -> finish());
-        TabLayout tabLayout = findViewById(R.id.tab_layout);
-        mViewPager = findViewById(R.id.view_pager);
-        mViewPager.setPageTransformer(true, new DrawerTransformer());
+        setSupportActionBar(baseBind.toolbar);
+        baseBind.toolbar.setTitle(mContext.getString(R.string.bookmark));
+        baseBind.toolbar.setNavigationOnClickListener(v -> finish());
+        baseBind.viewPager.setPageTransformer(true, new DrawerTransformer());
         allPages = new Fragment[]{
                 FragmentLikeIllust.newInstance(sUserModel.getResponse().getUser().getId(),
                         FragmentLikeIllust.TYPE_PUBLUC),
@@ -49,7 +50,7 @@ public class CollectionActivity extends BasicActivity {
                 FragmentFollowUser.newInstance(sUserModel.getResponse().getUser().getId(),
                         FragmentLikeIllust.TYPE_PRIVATE)
         };
-        mViewPager.setAdapter(new FragmentStatePagerAdapter(getSupportFragmentManager()) {
+        baseBind.viewPager.setAdapter(new FragmentStatePagerAdapter(getSupportFragmentManager()) {
             @Override
             public Fragment getItem(int i) {
                 return allPages[i];
@@ -68,8 +69,8 @@ public class CollectionActivity extends BasicActivity {
 
 
         });
-        tabLayout.setupWithViewPager(mViewPager);
-        mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+        baseBind.tabLayout.setupWithViewPager(baseBind.viewPager);
+        baseBind.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int i, float v, int i1) {
 
@@ -94,8 +95,9 @@ public class CollectionActivity extends BasicActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        if (mViewPager != null) {
-            if (mViewPager.getCurrentItem() == 0 || mViewPager.getCurrentItem() == 1) {
+        if (baseBind.viewPager != null) {
+            if (baseBind.viewPager.getCurrentItem() == 0 ||
+                    baseBind.viewPager.getCurrentItem() == 1) {
                 getMenuInflater().inflate(R.menu.illust_filter, menu);
                 return true;
             } else {
@@ -108,14 +110,14 @@ public class CollectionActivity extends BasicActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (mViewPager.getCurrentItem() == 0) {
+        if (baseBind.viewPager.getCurrentItem() == 0) {
             Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
             intent.putExtra(TemplateFragmentActivity.EXTRA_KEYWORD,
                     FragmentLikeIllust.TYPE_PUBLUC);
             intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
                     mContext.getString(R.string.filter_by_bookmark));
             startActivity(intent);
-        } else if (mViewPager.getCurrentItem() == 1) {
+        } else if (baseBind.viewPager.getCurrentItem() == 1) {
             Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
             intent.putExtra(TemplateFragmentActivity.EXTRA_KEYWORD,
                     FragmentLikeIllust.TYPE_PRIVATE);
@@ -124,10 +126,5 @@ public class CollectionActivity extends BasicActivity {
             startActivity(intent);
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public int layout() {
-        return R.layout.activity_download_manage;
     }
 }

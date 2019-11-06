@@ -1,15 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <data>
 
-    <androidx.viewpager.widget.ViewPager
+    </data>
+
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:id="@+id/viewPager"
         android:layout_height="match_parent">
 
-    </androidx.viewpager.widget.ViewPager>
 
-</RelativeLayout>
+        <androidx.viewpager.widget.ViewPager
+            android:layout_width="match_parent"
+            android:id="@+id/viewPager"
+            android:layout_height="match_parent">
+
+        </androidx.viewpager.widget.ViewPager>
+
+    </RelativeLayout>
+</layout>

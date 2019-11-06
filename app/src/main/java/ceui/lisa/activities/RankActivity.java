@@ -27,8 +27,8 @@ public class RankActivity extends BaseActivity implements DatePickerDialog.OnDat
     private FragmentRank[] allPages = new FragmentRank[]{null, null, null, null, null, null, null, null};
 
     @Override
-    protected void initLayout() {
-        mLayoutID = R.layout.activity_multi_view_pager;
+    protected int initLayout() {
+        return R.layout.activity_multi_view_pager;
     }
 
     @Override
