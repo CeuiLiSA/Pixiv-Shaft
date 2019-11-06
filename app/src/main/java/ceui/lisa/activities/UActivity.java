@@ -1,5 +1,6 @@
 package ceui.lisa.activities;
 
+import android.content.Intent;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -82,12 +83,30 @@ public class UActivity extends BaseActivity<ActicityUserBinding> {
                             baseBind.card1.setVisibility(View.VISIBLE);
                             baseBind.howMany1.setText(String.format("%s个插画/漫画收藏",
                                     String.valueOf(userDetailResponse.getProfile().getTotal_illust_bookmarks_public())));
+                            baseBind.card1.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+                                    intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "插画/漫画收藏");
+                                    intent.putExtra("user id", userID);
+                                    startActivity(intent);
+                                }
+                            });
                         }else {
                             baseBind.card1.setVisibility(View.GONE);
                         }
 
                         if(userDetailResponse.getProfile().getTotal_illusts() > 0){
                             baseBind.card2.setVisibility(View.VISIBLE);
+                            baseBind.card2.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+                                    intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "插画作品");
+                                    intent.putExtra("user id", userID);
+                                    startActivity(intent);
+                                }
+                            });
                             baseBind.howMany2.setText(String.format("%s件插画作品",
                                     String.valueOf(userDetailResponse.getProfile().getTotal_illusts())));
                         }else {
@@ -109,6 +128,10 @@ public class UActivity extends BaseActivity<ActicityUserBinding> {
                             baseBind.card4.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View view) {
+                                    Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+                                    intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "漫画作品");
+                                    intent.putExtra("user id", userID);
+                                    startActivity(intent);
                                 }
                             });
                         }else {

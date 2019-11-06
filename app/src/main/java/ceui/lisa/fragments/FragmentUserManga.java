@@ -20,21 +20,21 @@ import io.reactivex.Observable;
 import static ceui.lisa.activities.Shaft.sUserModel;
 
 /**
- * 某人創作的插畫
+ * 某人創作的漫画
  */
-public class FragmentUserIllust extends FragmentList<ListIllustResponse, IllustsBean, RecyIllustStaggerBinding> {
+public class FragmentUserManga extends FragmentList<ListIllustResponse, IllustsBean, RecyIllustStaggerBinding> {
 
     private int userID;
     private boolean showToolbar = false;
 
-    public static FragmentUserIllust newInstance(int userID) {
-        FragmentUserIllust fragmentRelatedIllust = new FragmentUserIllust();
+    public static FragmentUserManga newInstance(int userID) {
+        FragmentUserManga fragmentRelatedIllust = new FragmentUserManga();
         fragmentRelatedIllust.userID = userID;
         return fragmentRelatedIllust;
     }
 
-    public static FragmentUserIllust newInstance(int userID, boolean paramShowToolbar) {
-        FragmentUserIllust fragmentRelatedIllust = new FragmentUserIllust();
+    public static FragmentUserManga newInstance(int userID, boolean paramShowToolbar) {
+        FragmentUserManga fragmentRelatedIllust = new FragmentUserManga();
         fragmentRelatedIllust.userID = userID;
         fragmentRelatedIllust.showToolbar = paramShowToolbar;
         return fragmentRelatedIllust;
@@ -48,7 +48,7 @@ public class FragmentUserIllust extends FragmentList<ListIllustResponse, Illusts
     @Override
     public String getToolbarTitle() {
         if(showToolbar){
-            return "插画作品";
+            return "漫画作品";
         }else {
             return super.getToolbarTitle();
         }
@@ -56,7 +56,7 @@ public class FragmentUserIllust extends FragmentList<ListIllustResponse, Illusts
 
     @Override
     public Observable<ListIllustResponse> initApi() {
-        return Retro.getAppApi().getUserSubmitIllust(sUserModel.getResponse().getAccess_token(), userID, "illust");
+        return Retro.getAppApi().getUserSubmitIllust(sUserModel.getResponse().getAccess_token(), userID, "manga");
     }
 
     @Override

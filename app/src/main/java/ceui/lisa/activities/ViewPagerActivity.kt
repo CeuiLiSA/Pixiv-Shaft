@@ -39,6 +39,5 @@ class ViewPagerActivity : BaseActivity<ActivityViewPagerBinding>() {
     }
 
     override fun initData() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 }

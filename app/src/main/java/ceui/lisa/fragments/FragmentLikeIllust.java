@@ -35,11 +35,20 @@ public class FragmentLikeIllust extends FragmentList<ListIllustResponse, Illusts
     public static final String TYPE_PRIVATE = "private";
     private int userID;
     private String starType, tag = "";
+    private boolean showToolbar = false;
 
     public static FragmentLikeIllust newInstance(int userID, String starType) {
         FragmentLikeIllust fragmentRelatedIllust = new FragmentLikeIllust();
         fragmentRelatedIllust.userID = userID;
         fragmentRelatedIllust.starType = starType;
+        return fragmentRelatedIllust;
+    }
+
+    public static FragmentLikeIllust newInstance(int userID, String starType, boolean paramShowToolbar) {
+        FragmentLikeIllust fragmentRelatedIllust = new FragmentLikeIllust();
+        fragmentRelatedIllust.userID = userID;
+        fragmentRelatedIllust.starType = starType;
+        fragmentRelatedIllust.showToolbar = paramShowToolbar;
         return fragmentRelatedIllust;
     }
 
@@ -52,7 +61,16 @@ public class FragmentLikeIllust extends FragmentList<ListIllustResponse, Illusts
 
     @Override
     public boolean showToolbar() {
-        return false;
+        return showToolbar;
+    }
+
+    @Override
+    public String getToolbarTitle() {
+        if(showToolbar){
+            return "插画/漫画收藏";
+        }else {
+            return super.getToolbarTitle();
+        }
     }
 
     @Override

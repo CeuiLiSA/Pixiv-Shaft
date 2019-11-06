@@ -25,6 +25,8 @@ import ceui.lisa.fragments.FragmentSearchResult;
 import ceui.lisa.fragments.FragmentSearchUser;
 import ceui.lisa.fragments.FragmentSelectBookTag;
 import ceui.lisa.fragments.FragmentSettings;
+import ceui.lisa.fragments.FragmentUserIllust;
+import ceui.lisa.fragments.FragmentUserManga;
 import ceui.lisa.fragments.FragmentViewHistory;
 import ceui.lisa.fragments.FragmentWalkThrough;
 import ceui.lisa.fragments.FragmentWebView;
@@ -110,6 +112,15 @@ public class TemplateFragmentActivity extends FragmentActivity {
                     return new FragmentSearch();
                 case "一言":
                     return new FragmentT();
+                case "插画作品":
+                    return FragmentUserIllust.newInstance(intent.getIntExtra("user id", 0),
+                            true);
+                case "漫画作品":
+                    return FragmentUserManga.newInstance(intent.getIntExtra("user id", 0),
+                            true);
+                case "插画/漫画收藏":
+                    return FragmentLikeIllust.newInstance(intent.getIntExtra("user id", 0),
+                            FragmentLikeIllust.TYPE_PUBLUC, true);
                 default:
                     return new FragmentBlank();
             }
