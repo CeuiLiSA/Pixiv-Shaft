@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+
+    </data>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:orientation="vertical"
+        android:layout_height="wrap_content">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:id="@+id/title_rela"
+            android:visibility="gone"
+            android:layout_height="wrap_content">
+
+            <View
+                android:layout_width="2dp"
+                android:layout_centerVertical="true"
+                android:id="@+id/head"
+                android:background="@color/colorPrimary"
+                android:layout_height="@dimen/sixteen_dp">
+
+            </View>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:text="插画/漫画收藏"
+                android:layout_marginStart="@dimen/sixteen_dp"
+                android:id="@+id/title"
+                android:layout_marginTop="@dimen/eight_dp"
+                android:layout_centerVertical="true"
+                android:textSize="15sp"
+                android:layout_marginBottom="@dimen/eight_dp"
+                android:textColor="@color/deep_dark"
+                android:layout_height="wrap_content">
+
+            </TextView>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="@dimen/sixteen_dp"
+                android:layout_marginTop="@dimen/eight_dp"
+                android:gravity="center_vertical"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:id="@+id/how_many"
+                android:drawableEnd="@drawable/ic_chevron_right_black_24dp"
+                android:drawableTint="@color/colorPrimary"
+                android:layout_marginBottom="@dimen/eight_dp"
+                android:textColor="@color/colorPrimary"
+                android:layout_height="wrap_content">
+
+            </TextView>
+
+        </RelativeLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:layout_width="match_parent"
+            android:id="@+id/recyclerView"
+            android:layout_marginBottom="@dimen/eight_dp"
+            android:layout_height="wrap_content">
+
+        </androidx.recyclerview.widget.RecyclerView>
+
+
+    </LinearLayout>
+</layout>
