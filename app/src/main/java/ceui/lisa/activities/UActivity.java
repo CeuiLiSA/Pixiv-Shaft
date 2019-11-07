@@ -49,7 +49,6 @@ public class UActivity extends BaseActivity<ActicityUserBinding> {
     @Override
     protected void initData() {
         userID = getIntent().getIntExtra("user id", 0);
-        userID = 552160;
         Retro.getAppApi().getUserDetail(sUserModel.getResponse().getAccess_token(), userID)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())

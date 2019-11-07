@@ -89,7 +89,7 @@ public class FragmentLikeIllustHorizontal extends BaseBindFragment<FragmentLikeI
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, baseBind.title.toString());
+                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, baseBind.title.getText().toString());
                 intent.putExtra("user id", mUserDetailResponse.getUser().getId());
                 startActivity(intent);
             }
