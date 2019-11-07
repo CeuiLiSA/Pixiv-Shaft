@@ -55,102 +55,106 @@ public class UActivity extends BaseActivity<ActicityUserBinding> {
                 .subscribe(new ErrorCtrl<UserDetailResponse>() {
                     @Override
                     public void onNext(UserDetailResponse user) {
-                        currentUser = user;
-                        Glide.with(mContext).load(GlideUtil.getMediumImg(currentUser
-                                .getUser().getProfile_image_urls().getMedium()))
-                                .placeholder(R.color.light_bg).into(baseBind.userHead);
-
-                        baseBind.userName.setText(currentUser.getUser().getName());
-                        baseBind.userAddress.setText(Common.checkEmpty(currentUser.getProfile().getRegion()));
-                        List<String> tagList = currentUser.getTag();
-                        if (tagList.size() == 0) {
-                            tagList.add("Pixiv member");
-                            tagList.add("にじげん");
-                        }
-                        baseBind.tagType.setAdapter(new TagAdapter<String>(tagList) {
-                            @Override
-                            public View getView(FlowLayout parent, int position, String s) {
-                                TextView tv = (TextView) LayoutInflater.from(mContext).inflate(R.layout.recy_single_tag_text,
-                                        parent, false);
-                                tv.setText(s);
-                                return tv;
-                            }
-                        });
-
-
-
-                        if(currentUser.getUser().getId() != sUserModel.getResponse().getUser().getId()){
-                            if(currentUser.getUser().isIs_followed()){
-                                baseBind.send.setImageResource(R.drawable.ic_favorite_accent_24dp);
-                            } else {
-                                baseBind.send.setImageResource(R.drawable.ic_favorite_black_24dp);
-                            }
-
-                            baseBind.send.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    if(currentUser.getUser().isIs_followed()){
-                                        baseBind.send.setImageResource(R.drawable.ic_favorite_black_24dp);
-                                        currentUser.getUser().setIs_followed(false);
-                                        PixivOperate.postUnFollowUser(currentUser.getUser().getId());
-                                    }else {
-                                        baseBind.send.setImageResource(R.drawable.ic_favorite_accent_24dp);
-                                        currentUser.getUser().setIs_followed(true);
-                                        PixivOperate.postFollowUser(currentUser.getUser().getId(),
-                                                FragmentLikeIllust.TYPE_PUBLUC);
-                                    }
-                                }
-                            });
-                            baseBind.send.setOnLongClickListener(new View.OnLongClickListener() {
-                                @Override
-                                public boolean onLongClick(View view) {
-                                    if (!currentUser.getUser().isIs_followed()) {
-                                        baseBind.send.setImageResource(R.drawable.ic_favorite_accent_24dp);
-                                        currentUser.getUser().setIs_followed(true);
-                                        PixivOperate.postFollowUser(currentUser.getUser().getId(),
-                                                FragmentLikeIllust.TYPE_PRIVATE);
-                                    }
-                                    return true;
-                                }
-                            });
-                            baseBind.send.show();
-                        }
-
-                        if (!TextUtils.isEmpty(currentUser.getWorkspace().getWorkspace_image_url())) {
-                            Glide.with(mContext)
-                                    .load(GlideUtil.getMediumImg(currentUser.getWorkspace().getWorkspace_image_url()))
-                                    .transition(withCrossFade())
-                                    .into(baseBind.userBackground);
-                        }
-
-                        if (currentUser.getProfile().getTotal_illust_bookmarks_public() > 0) {
-                            getSupportFragmentManager()
-                                    .beginTransaction()
-                                    .replace(R.id.illust_collection,
-                                            FragmentLikeIllustHorizontal
-                                                    .newInstance(currentUser, 1))
-                                    .commit();
-                        }
-
-                        if (currentUser.getProfile().getTotal_illusts() > 0) {
-                            getSupportFragmentManager()
-                                    .beginTransaction()
-                                    .replace(R.id.illust_works,
-                                            FragmentLikeIllustHorizontal
-                                                    .newInstance(currentUser, 2))
-                                    .commit();
-                        }
-
-                        if (currentUser.getProfile().getTotal_manga() > 0) {
-                            getSupportFragmentManager()
-                                    .beginTransaction()
-                                    .replace(R.id.manga_works,
-                                            FragmentLikeIllustHorizontal
-                                                    .newInstance(currentUser, 3))
-                                    .commit();
-                        }
+                        setResult(user);
                     }
                 });
+    }
+
+    private void setResult(UserDetailResponse userDetailResponse){
+        currentUser = userDetailResponse;
+        Glide.with(mContext).load(GlideUtil.getMediumImg(currentUser
+                .getUser().getProfile_image_urls().getMedium()))
+                .placeholder(R.color.light_bg).into(baseBind.userHead);
+
+        baseBind.userName.setText(currentUser.getUser().getName());
+        baseBind.userAddress.setText(Common.checkEmpty(currentUser.getProfile().getRegion()));
+        List<String> tagList = currentUser.getTag();
+        if (tagList.size() == 0) {
+            tagList.add("Pixiv member");
+            tagList.add("にじげん");
+        }
+        baseBind.tagType.setAdapter(new TagAdapter<String>(tagList) {
+            @Override
+            public View getView(FlowLayout parent, int position, String s) {
+                TextView tv = (TextView) LayoutInflater.from(mContext).inflate(R.layout.recy_single_tag_text,
+                        parent, false);
+                tv.setText(s);
+                return tv;
+            }
+        });
+
+
+
+        if(currentUser.getUser().getId() != sUserModel.getResponse().getUser().getId()){
+            if(currentUser.getUser().isIs_followed()){
+                baseBind.send.setImageResource(R.drawable.ic_favorite_accent_24dp);
+            } else {
+                baseBind.send.setImageResource(R.drawable.ic_favorite_black_24dp);
+            }
+
+            baseBind.send.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(currentUser.getUser().isIs_followed()){
+                        baseBind.send.setImageResource(R.drawable.ic_favorite_black_24dp);
+                        currentUser.getUser().setIs_followed(false);
+                        PixivOperate.postUnFollowUser(currentUser.getUser().getId());
+                    }else {
+                        baseBind.send.setImageResource(R.drawable.ic_favorite_accent_24dp);
+                        currentUser.getUser().setIs_followed(true);
+                        PixivOperate.postFollowUser(currentUser.getUser().getId(),
+                                FragmentLikeIllust.TYPE_PUBLUC);
+                    }
+                }
+            });
+            baseBind.send.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View view) {
+                    if (!currentUser.getUser().isIs_followed()) {
+                        baseBind.send.setImageResource(R.drawable.ic_favorite_accent_24dp);
+                        currentUser.getUser().setIs_followed(true);
+                        PixivOperate.postFollowUser(currentUser.getUser().getId(),
+                                FragmentLikeIllust.TYPE_PRIVATE);
+                    }
+                    return true;
+                }
+            });
+            baseBind.send.show();
+        }
+
+        if (!TextUtils.isEmpty(currentUser.getWorkspace().getWorkspace_image_url())) {
+            Glide.with(mContext)
+                    .load(GlideUtil.getMediumImg(currentUser.getWorkspace().getWorkspace_image_url()))
+                    .transition(withCrossFade())
+                    .into(baseBind.userBackground);
+        }
+
+        if (currentUser.getProfile().getTotal_illust_bookmarks_public() > 0) {
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.illust_collection,
+                            FragmentLikeIllustHorizontal
+                                    .newInstance(currentUser, 1))
+                    .commit();
+        }
+
+        if (currentUser.getProfile().getTotal_illusts() > 0) {
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.illust_works,
+                            FragmentLikeIllustHorizontal
+                                    .newInstance(currentUser, 2))
+                    .commit();
+        }
+
+        if (currentUser.getProfile().getTotal_manga() > 0) {
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.manga_works,
+                            FragmentLikeIllustHorizontal
+                                    .newInstance(currentUser, 3))
+                    .commit();
+        }
     }
 
     @Override
