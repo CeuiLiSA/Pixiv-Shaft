@@ -101,7 +101,7 @@ public interface AppApi {
                                                      @Query("restrict") String restrict,
                                                      @Query("tag") String tag);
 
-    @GET("v1/user/bookmarks/illust")
+    @GET("v1/user/bookmarks/illust?type=manga")
     Observable<ListIllustResponse> getUserLikeIllust(@Header("Authorization") String token,
                                                      @Query("user_id") int user_id,
                                                      @Query("restrict") String restrict);

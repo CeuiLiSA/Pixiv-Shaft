@@ -12,6 +12,7 @@ import com.bumptech.glide.Glide;
 import com.zhy.view.flowlayout.FlowLayout;
 import com.zhy.view.flowlayout.TagAdapter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
@@ -68,11 +69,10 @@ public class UActivity extends BaseActivity<ActicityUserBinding> {
 
         baseBind.userName.setText(currentUser.getUser().getName());
         baseBind.userAddress.setText(Common.checkEmpty(currentUser.getProfile().getRegion()));
-        List<String> tagList = currentUser.getTag();
-        if (tagList.size() == 0) {
-            tagList.add("Pixiv member");
-            tagList.add("にじげん");
-        }
+        List<String> tagList = new ArrayList<>();
+        tagList.add("好P友: " + userDetailResponse.getProfile().getTotal_mypixiv_users());
+        tagList.add("关注: " + userDetailResponse.getProfile().getTotal_follow_users());
+        tagList.addAll(currentUser.getTag());
         baseBind.tagType.setAdapter(new TagAdapter<String>(tagList) {
             @Override
             public View getView(FlowLayout parent, int position, String s) {
@@ -134,7 +134,7 @@ public class UActivity extends BaseActivity<ActicityUserBinding> {
                     .beginTransaction()
                     .replace(R.id.illust_collection,
                             FragmentLikeIllustHorizontal
-                                    .newInstance(currentUser, 1))
+                                    .newInstance(currentUser, 1))// 1插画收藏    2插画作品     3漫画作品
                     .commit();
         }
 
@@ -143,7 +143,7 @@ public class UActivity extends BaseActivity<ActicityUserBinding> {
                     .beginTransaction()
                     .replace(R.id.illust_works,
                             FragmentLikeIllustHorizontal
-                                    .newInstance(currentUser, 2))
+                                    .newInstance(currentUser, 2))// 1插画收藏    2插画作品     3漫画作品
                     .commit();
         }
 
@@ -152,7 +152,7 @@ public class UActivity extends BaseActivity<ActicityUserBinding> {
                     .beginTransaction()
                     .replace(R.id.manga_works,
                             FragmentLikeIllustHorizontal
-                                    .newInstance(currentUser, 3))
+                                    .newInstance(currentUser, 3))// 1插画收藏    2插画作品     3漫画作品
                     .commit();
         }
     }

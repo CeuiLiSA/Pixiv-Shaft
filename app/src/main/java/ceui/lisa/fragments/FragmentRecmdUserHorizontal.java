@@ -68,11 +68,7 @@ public class FragmentRecmdUserHorizontal extends BaseFragment {
             @Override
             public void onItemClick(View v, int position, int viewType) {
                 Intent intent;
-                if(Dev.isDev){
-                    intent = new Intent(mContext, UActivity.class);
-                }else {
-                    intent = new Intent(mContext, UserDetailActivity.class);
-                }
+                intent = new Intent(mContext, UActivity.class);
                 intent.putExtra("user id", allItems.get(position).getUser().getId());
                 startActivity(intent);
 

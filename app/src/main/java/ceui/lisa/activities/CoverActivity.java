@@ -98,7 +98,7 @@ public class CoverActivity extends BaseActivity
         userHead.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(mContext, UserDetailActivity.class);
+                Intent intent = new Intent(mContext, UActivity.class);
                 intent.putExtra("user id", sUserModel.getResponse().getUser().getId());
                 startActivity(intent);
             }
@@ -202,11 +202,7 @@ public class CoverActivity extends BaseActivity
 
         } else if (id == R.id.main_page) {
             Intent intent;
-            if(Dev.isDev) {
-                intent = new Intent(mContext, UActivity.class);
-            }else {
-                intent = new Intent(mContext, UserDetailActivity.class);
-            }
+            intent = new Intent(mContext, UActivity.class);
             intent.putExtra("user id", sUserModel.getResponse().getUser().getId());
             startActivity(intent);
 

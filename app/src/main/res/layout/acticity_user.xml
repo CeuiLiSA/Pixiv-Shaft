@@ -25,7 +25,6 @@
                         android:layout_width="match_parent"
                         android:id="@+id/user_background"
                         android:scaleType="centerCrop"
-                        android:tag="i am wtf tag"
                         android:src="@drawable/randomdata_background4"
                         android:layout_height="240dp">
 

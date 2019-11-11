@@ -6,6 +6,7 @@ import android.content.Intent;
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import ceui.lisa.activities.UActivity;
 import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.adapters.CAdapter;
 import ceui.lisa.databinding.RecyCommentListBinding;
@@ -68,7 +69,7 @@ public class FragmentC extends FragmentList<IllustCommentsResponse, CommentsBean
                 AlertDialog alertDialog = builder.create();
                 alertDialog.show();
             } else if (viewType == 1) {
-                Intent userIntent = new Intent(mContext, UserDetailActivity.class);
+                Intent userIntent = new Intent(mContext, UActivity.class);
                 userIntent.putExtra("user id", allItems.get(position).getUser().getId());
                 startActivity(userIntent);
             } else if (viewType == 2) {
@@ -93,7 +94,7 @@ public class FragmentC extends FragmentList<IllustCommentsResponse, CommentsBean
                 alertDialog.show();
 
             } else if (viewType == 3) {
-                Intent userIntent = new Intent(mContext, UserDetailActivity.class);
+                Intent userIntent = new Intent(mContext, UActivity.class);
                 userIntent.putExtra("user id", allItems.get(position).getParent_comment().getUser().getId());
                 startActivity(userIntent);
             }

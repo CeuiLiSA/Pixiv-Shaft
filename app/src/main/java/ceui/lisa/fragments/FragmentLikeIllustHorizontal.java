@@ -2,6 +2,7 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.view.View;
+import android.view.ViewGroup;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -29,6 +30,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 import jp.wasabeef.recyclerview.animators.FadeInLeftAnimator;
 
+import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static ceui.lisa.activities.Shaft.sUserModel;
 import static ceui.lisa.fragments.FragmentList.animateDuration;
 
@@ -74,6 +76,10 @@ public class FragmentLikeIllustHorizontal extends BaseBindFragment<FragmentLikeI
             }
         });
         baseBind.recyclerView.setAdapter(mAdapter);
+        ViewGroup.LayoutParams layoutParams = baseBind.recyclerView.getLayoutParams();
+        layoutParams.width = MATCH_PARENT;
+        layoutParams.height = mAdapter.getImageSize();
+        baseBind.recyclerView.setLayoutParams(layoutParams);
         if(type == 1){
             baseBind.title.setText("插画/漫画收藏");
             baseBind.howMany.setText(String.format("%d件作品", mUserDetailResponse.getProfile().getTotal_illust_bookmarks_public()));

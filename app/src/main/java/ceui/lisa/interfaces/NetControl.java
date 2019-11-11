@@ -15,7 +15,6 @@ import io.reactivex.schedulers.Schedulers;
 public abstract class NetControl<Response> {
 
     private Observable<Response> mApi;
-    private Context mContext;
 
     public abstract Observable<Response> initApi();
 

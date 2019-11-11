@@ -36,6 +36,7 @@ import ceui.lisa.R;
 import ceui.lisa.activities.ImageDetailActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateFragmentActivity;
+import ceui.lisa.activities.UActivity;
 import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.adapters.IllustDetailAdapter;
 import ceui.lisa.database.AppDatabase;
@@ -236,7 +237,7 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
         baseBind.userHead.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(mContext, UserDetailActivity.class);
+                Intent intent = new Intent(mContext, UActivity.class);
                 intent.putExtra("user id", illust.getUser().getId());
                 startActivity(intent);
             }
@@ -245,7 +246,7 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
         baseBind.userName.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(mContext, UserDetailActivity.class);
+                Intent intent = new Intent(mContext, UActivity.class);
                 intent.putExtra("user id", illust.getUser().getId());
                 startActivity(intent);
             }

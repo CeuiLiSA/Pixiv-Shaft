@@ -1,14 +1,21 @@
 package ceui.lisa.fragments;
 
+import android.content.Intent;
 import android.view.View;
+import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
 import com.github.chrisbanes.photoview.PhotoView;
 
+import java.util.Arrays;
+import java.util.Collections;
+
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.GlideUtil;
+import ceui.lisa.utils.IllustChannel;
 
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
@@ -29,11 +36,20 @@ public class FragmentImage extends BaseFragment {
 
     @Override
     View initView(View v) {
-        PhotoView mImageView = v.findViewById(R.id.illust_image);
+        ImageView mImageView = v.findViewById(R.id.illust_image);
         Glide.with(mContext)
                 .load(GlideUtil.getLargeImage(mIllustsBean))
                 .transition(withCrossFade())
                 .into(mImageView);
+        mImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View pView) {
+                IllustChannel.get().setIllustList(Collections.singletonList(mIllustsBean));
+                Intent intent = new Intent(mContext, ViewPagerActivity.class);
+                intent.putExtra("position", 0);
+                startActivity(intent);
+            }
+        });
         return v;
     }
 

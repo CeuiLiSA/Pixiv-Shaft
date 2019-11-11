@@ -53,6 +53,13 @@ public class FragmentLikeIllust extends FragmentList<ListIllustResponse, Illusts
     }
 
     @Override
+    public void initView(View view) {
+        if(showToolbar){
+            //baseBind.toolbar.inflateMenu();
+        }
+    }
+
+    @Override
     public void initRecyclerView() {
         StaggeredGridLayoutManager manager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         baseBind.recyclerView.setLayoutManager(manager);
@@ -66,11 +73,7 @@ public class FragmentLikeIllust extends FragmentList<ListIllustResponse, Illusts
 
     @Override
     public String getToolbarTitle() {
-        if(showToolbar){
-            return "插画/漫画收藏";
-        }else {
-            return super.getToolbarTitle();
-        }
+        return showToolbar ? "插画/漫画收藏" : super.getToolbarTitle();
     }
 
     @Override
