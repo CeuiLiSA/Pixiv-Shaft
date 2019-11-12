@@ -14,12 +14,15 @@ import java.util.List;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.ViewPagerActivity;
+import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustRecmdEntity;
+import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
+import ceui.lisa.interfaces.NetControl;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.utils.Channel;
@@ -32,26 +35,43 @@ import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
-public class FragmentR extends FragmentList<ListIllustResponse, IllustsBean, RecyIllustStaggerBinding> {
+public class FragmentR extends NetListFragment<FragmentBaseListBinding,
+        ListIllustResponse, IllustsBean, RecyIllustStaggerBinding> {
+
+    @Override
+    public NetControl<ListIllustResponse> present() {
+        return new NetControl<ListIllustResponse>() {
+            @Override
+            public Observable<ListIllustResponse> initApi() {
+                if (Dev.isDev) {
+                    return null;
+                } else {
+                    return Retro.getAppApi().getRecmdIllust(Shaft.sUserModel.getResponse().getAccess_token(), true);
+                }
+            }
+
+            @Override
+            public Observable<ListIllustResponse> initNextApi() {
+                return Retro.getAppApi().getNextIllust(Shaft.sUserModel.getResponse().getAccess_token(), nextUrl);
+            }
+        };
+    }
+
+    @Override
+    public BaseAdapter<IllustsBean, RecyIllustStaggerBinding> adapter() {
+        return new IAdapter(allItems, mContext).setOnItemClickListener((v, position, viewType) -> {
+            IllustChannel.get().setIllustList(allItems);
+            Intent intent = new Intent(mContext, ViewPagerActivity.class);
+            intent.putExtra("position", position);
+            startActivity(intent);
+        });
+    }
 
     @Override
     public boolean showToolbar() {
         return false;
     }
 
-    @Override
-    public Observable<ListIllustResponse> initApi() {
-        if (Dev.isDev) {
-            return null;
-        } else {
-            return Retro.getAppApi().getRecmdIllust(Shaft.sUserModel.getResponse().getAccess_token(), true);
-        }
-    }
-
-    @Override
-    public Observable<ListIllustResponse> initNextApi() {
-        return Retro.getAppApi().getNextIllust(Shaft.sUserModel.getResponse().getAccess_token(), nextUrl);
-    }
 
     @Override
     public void initRecyclerView() {
@@ -62,20 +82,9 @@ public class FragmentR extends FragmentList<ListIllustResponse, IllustsBean, Rec
     }
 
     @Override
-    public void initAdapter() {
-        mAdapter = new IAdapter(allItems, mContext);
-        mAdapter.setOnItemClickListener((v, position, viewType) -> {
-            IllustChannel.get().setIllustList(allItems);
-            Intent intent = new Intent(mContext, ViewPagerActivity.class);
-            intent.putExtra("position", position);
-            startActivity(intent);
-        });
-    }
-
-    @Override
     public void firstSuccess() {
         //向FragmentCenter发送数据
-        if (mResponse != null) {
+        if (mNetControl != null) {
             Channel<List<IllustsBean>> channel = new Channel<>();
             channel.setReceiver("FragmentRankHorizontal");
             channel.setObject(mResponse.getRanking_illusts());

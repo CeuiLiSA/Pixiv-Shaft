@@ -2,12 +2,14 @@ package ceui.lisa.fragments;
 
 import android.text.TextUtils;
 import android.view.View;
+import android.view.animation.AnticipateOvershootInterpolator;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
 import androidx.databinding.ViewDataBinding;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
@@ -24,8 +26,11 @@ import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.interfaces.ListShow;
 import ceui.lisa.interfaces.NetControl;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
+import jp.wasabeef.recyclerview.animators.BaseItemAnimator;
+import jp.wasabeef.recyclerview.animators.LandingAnimator;
 
 public abstract class NetListFragment<Layout extends ViewDataBinding,
         Response extends ListShow<Item>, Item,
@@ -34,10 +39,12 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
     protected NetControl<Response> mNetControl;
     protected RecyclerView mRecyclerView;
     protected RefreshLayout mRefreshLayout;
+    protected Response mResponse;
     protected BaseAdapter<Item, ItemLayout> mAdapter;
     protected List<Item> allItems = new ArrayList<>();
     protected String nextUrl;
     protected Toolbar mToolbar;
+    private static final long animateDuration = 400L;
 
     public abstract NetControl<Response> present();
 
@@ -67,41 +74,52 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
         mRefreshLayout.setRefreshHeader(mNetControl.enableRefresh() ?
                 mNetControl.getHeader(mContext) : new FalsifyHeader(mContext));
         mRefreshLayout.setRefreshFooter(mNetControl.hasNext() ?
-                new ClassicsFooter(mContext) : new FalsifyFooter(mContext));
+                mNetControl.getFooter(mContext) : new FalsifyFooter(mContext));
         mRefreshLayout.setOnRefreshListener(new OnRefreshListener() {
             @Override
             public void onRefresh(@NonNull RefreshLayout refreshLayout) {
+                Common.showLog(className + "onRefresh ");
                 mAdapter.clear();
-                mNetControl.getFirstData(new NullCtrl<Response>() {
-                    @Override
-                    public void success(Response response) {
-                        if (response.getList() != null && response.getList().size() != 0) {
-                            int lastSize = allItems.size();
-                            allItems.addAll(response.getList());
-                            mAdapter.notifyItemRangeInserted(lastSize, response.getList().size());
+                if(mNetControl.initApi() != null) {
+                    mNetControl.getFirstData(new NullCtrl<Response>() {
+                        @Override
+                        public void success(Response response) {
+                            mResponse = response;
+                            if (response.getList() != null && response.getList().size() != 0) {
+                                int lastSize = allItems.size();
+                                allItems.addAll(response.getList());
+                                mAdapter.notifyItemRangeInserted(lastSize, response.getList().size());
+                            }
+                            nextUrl = response.getNextUrl();
+                            if (!TextUtils.isEmpty(nextUrl)) {
+                                mRefreshLayout.setRefreshFooter(new ClassicsFooter(mContext));
+                            } else {
+                                mRefreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
+                            }
+                            firstSuccess();
                         }
-                        nextUrl = response.getNextUrl();
-                        if (!TextUtils.isEmpty(nextUrl)) {
-                            mRefreshLayout.setRefreshFooter(new ClassicsFooter(mContext));
-                        } else {
-                            mRefreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
-                        }
-                    }
 
-                    @Override
-                    public void must(boolean isSuccess) {
-                        mRefreshLayout.finishRefresh(isSuccess);
+                        @Override
+                        public void must(boolean isSuccess) {
+                            mRefreshLayout.finishRefresh(isSuccess);
+                        }
+                    });
+                } else {
+                    if (className.equals("FragmentR ")) {
+                        showDataBase();
                     }
-                });
+                }
             }
         });
         mRefreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
             @Override
             public void onLoadMore(@NonNull RefreshLayout refreshLayout) {
+                Common.showLog(className + "onLoadMore ");
                 if (!TextUtils.isEmpty(nextUrl)) {
                     mNetControl.getNextData(new NullCtrl<Response>() {
                         @Override
                         public void success(Response response) {
+                            mResponse = response;
                             if (response.getList() != null && response.getList().size() != 0) {
                                 int lastSize = allItems.size();
                                 allItems.addAll(response.getList());
@@ -124,7 +142,17 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
     public void initData() {
         mAdapter = adapter();
         mRecyclerView.setAdapter(mAdapter);
-        mRefreshLayout.autoRefresh();
+        if (!(mRecyclerView.getLayoutManager() instanceof StaggeredGridLayoutManager)) {
+            BaseItemAnimator baseItemAnimator = new LandingAnimator(new AnticipateOvershootInterpolator());
+            baseItemAnimator.setAddDuration(animateDuration);
+            baseItemAnimator.setRemoveDuration(animateDuration);
+            baseItemAnimator.setMoveDuration(animateDuration);
+            baseItemAnimator.setChangeDuration(animateDuration);
+            mRecyclerView.setItemAnimator(baseItemAnimator);
+        }
+        if (autoRefresh()) {
+            mRefreshLayout.autoRefresh();
+        }
     }
 
     public boolean showToolbar() {
@@ -139,5 +167,15 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
         mRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.addItemDecoration(new LinearItemDecoration(DensityUtil.dp2px(12.0f)));
+    }
+
+    public boolean autoRefresh() {
+        return true;
+    }
+
+    public void firstSuccess() {
+    }
+
+    public void showDataBase() {
     }
 }

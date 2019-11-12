@@ -31,7 +31,6 @@ import jp.wasabeef.recyclerview.animators.FadeInLeftAnimator;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static ceui.lisa.activities.Shaft.sUserModel;
-import static ceui.lisa.fragments.FragmentList.animateDuration;
 
 public class FragmentLikeIllustHorizontal extends BaseBindFragment<FragmentLikeIllustHorizontalBinding> {
 
@@ -57,6 +56,7 @@ public class FragmentLikeIllustHorizontal extends BaseBindFragment<FragmentLikeI
         baseBind.recyclerView.addItemDecoration(new
                 LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
         FadeInLeftAnimator landingAnimator = new FadeInLeftAnimator();
+        final long animateDuration = 400L;
         landingAnimator.setAddDuration(animateDuration);
         landingAnimator.setRemoveDuration(animateDuration);
         landingAnimator.setMoveDuration(animateDuration);

@@ -10,9 +10,12 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
 import ceui.lisa.activities.ViewPagerActivity;
+import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapter;
+import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.http.Retro;
+import ceui.lisa.interfaces.NetControl;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
@@ -27,7 +30,8 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 /**
  * 某人收藏的插畫
  */
-public class FragmentLikeIllust extends FragmentList<ListIllustResponse, IllustsBean, RecyIllustStaggerBinding> {
+public class FragmentLikeIllust extends NetListFragment<FragmentBaseListBinding,
+        ListIllustResponse, IllustsBean, RecyIllustStaggerBinding> {
 
     public static final String TYPE_PUBLUC = "public";
     public static final String TYPE_PRIVATE = "private";
@@ -51,10 +55,35 @@ public class FragmentLikeIllust extends FragmentList<ListIllustResponse, Illusts
     }
 
     @Override
-    public void initView(View view) {
-        if (showToolbar) {
-            //baseBind.toolbar.inflateMenu();
-        }
+    public NetControl<ListIllustResponse> present() {
+        return new NetControl<ListIllustResponse>() {
+            @Override
+            public Observable<ListIllustResponse> initApi() {
+                return TextUtils.isEmpty(tag) ?
+                        Retro.getAppApi().getUserLikeIllust(sUserModel
+                                .getResponse().getAccess_token(), userID, starType) :
+                        Retro.getAppApi().getUserLikeIllust(sUserModel
+                                .getResponse().getAccess_token(), userID, starType, tag);
+            }
+
+            @Override
+            public Observable<ListIllustResponse> initNextApi() {
+                return Retro.getAppApi().getNextIllust(sUserModel.getResponse().getAccess_token(), nextUrl);
+            }
+        };
+    }
+
+    @Override
+    public BaseAdapter<IllustsBean, RecyIllustStaggerBinding> adapter() {
+        return new IAdapter(allItems, mContext).setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(View v, int position, int viewType) {
+                IllustChannel.get().setIllustList(allItems);
+                Intent intent = new Intent(mContext, ViewPagerActivity.class);
+                intent.putExtra("position", position);
+                startActivity(intent);
+            }
+        });
     }
 
     @Override
@@ -74,33 +103,6 @@ public class FragmentLikeIllust extends FragmentList<ListIllustResponse, Illusts
         return showToolbar ? "插画/漫画收藏" : super.getToolbarTitle();
     }
 
-    @Override
-    public Observable<ListIllustResponse> initApi() {
-        if (TextUtils.isEmpty(tag)) {
-            return Retro.getAppApi().getUserLikeIllust(sUserModel.getResponse().getAccess_token(), userID, starType);
-        } else {
-            return Retro.getAppApi().getUserLikeIllust(sUserModel.getResponse().getAccess_token(), userID, starType, tag);
-        }
-    }
-
-    @Override
-    public Observable<ListIllustResponse> initNextApi() {
-        return Retro.getAppApi().getNextIllust(sUserModel.getResponse().getAccess_token(), nextUrl);
-    }
-
-    @Override
-    public void initAdapter() {
-        mAdapter = new IAdapter(allItems, mContext);
-        mAdapter.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(View v, int position, int viewType) {
-                IllustChannel.get().setIllustList(allItems);
-                Intent intent = new Intent(mContext, ViewPagerActivity.class);
-                intent.putExtra("position", position);
-                startActivity(intent);
-            }
-        });
-    }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(Channel event) {

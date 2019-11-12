@@ -3,7 +3,9 @@ package ceui.lisa.interfaces;
 import android.content.Context;
 
 import com.scwang.smartrefresh.header.MaterialHeader;
+import com.scwang.smartrefresh.layout.api.RefreshFooter;
 import com.scwang.smartrefresh.layout.api.RefreshHeader;
+import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 
 import java.util.List;
 
@@ -48,5 +50,9 @@ public abstract class NetControl<Response> {
 
     public RefreshHeader getHeader(Context context){
         return new MaterialHeader(context);
+    }
+
+    public RefreshFooter getFooter(Context context){
+        return new ClassicsFooter(context);
     }
 }

@@ -28,7 +28,6 @@ import io.reactivex.schedulers.Schedulers;
 import jp.wasabeef.recyclerview.animators.FadeInLeftAnimator;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
-import static ceui.lisa.fragments.FragmentList.animateDuration;
 
 /**
  * 推荐用户
@@ -54,6 +53,7 @@ public class FragmentRecmdUserHorizontal extends BaseFragment {
         mRecyclerView = v.findViewById(R.id.recyclerView);
         mRecyclerView.addItemDecoration(new LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
         FadeInLeftAnimator landingAnimator = new FadeInLeftAnimator();
+        final long animateDuration = 400L;
         landingAnimator.setAddDuration(animateDuration);
         landingAnimator.setRemoveDuration(animateDuration);
         landingAnimator.setMoveDuration(animateDuration);

@@ -6,10 +6,13 @@ import android.widget.Button;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.UActivity;
+import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.UAdapter;
+import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyUserPreviewBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.FullClickListener;
+import ceui.lisa.interfaces.NetControl;
 import ceui.lisa.model.ListUserResponse;
 import ceui.lisa.model.UserPreviewsBean;
 import ceui.lisa.utils.Params;
@@ -18,7 +21,8 @@ import io.reactivex.Observable;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-public class FragmentFollowUser extends FragmentList<ListUserResponse, UserPreviewsBean, RecyUserPreviewBinding> {
+public class FragmentFollowUser extends NetListFragment<FragmentBaseListBinding,
+        ListUserResponse, UserPreviewsBean, RecyUserPreviewBinding> {
 
     private int userID;
     private String starType;
@@ -33,29 +37,23 @@ public class FragmentFollowUser extends FragmentList<ListUserResponse, UserPrevi
     }
 
     @Override
-    public boolean showToolbar() {
-        return showToolbar;
+    public NetControl<ListUserResponse> present() {
+        return new NetControl<ListUserResponse>() {
+            @Override
+            public Observable<ListUserResponse> initApi() {
+                return Retro.getAppApi().getFollowUser(sUserModel.getResponse().getAccess_token(), userID, starType);
+            }
+
+            @Override
+            public Observable<ListUserResponse> initNextApi() {
+                return Retro.getAppApi().getNextUser(sUserModel.getResponse().getAccess_token(), nextUrl);
+            }
+        };
     }
 
     @Override
-    public String getToolbarTitle() {
-        return "关注";
-    }
-
-    @Override
-    public Observable<ListUserResponse> initApi() {
-        return Retro.getAppApi().getFollowUser(sUserModel.getResponse().getAccess_token(), userID, starType);
-    }
-
-    @Override
-    public Observable<ListUserResponse> initNextApi() {
-        return Retro.getAppApi().getNextUser(sUserModel.getResponse().getAccess_token(), nextUrl);
-    }
-
-    @Override
-    public void initAdapter() {
-        mAdapter = new UAdapter(allItems, mContext);
-        ((UAdapter) mAdapter).setFullClickListener(new FullClickListener() {
+    public BaseAdapter<UserPreviewsBean, RecyUserPreviewBinding> adapter() {
+        return new UAdapter(allItems, mContext).setFullClickListener(new FullClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
                 if (viewType == 0) { //普通item
@@ -84,5 +82,15 @@ public class FragmentFollowUser extends FragmentList<ListUserResponse, UserPrevi
                 }
             }
         });
+    }
+
+    @Override
+    public boolean showToolbar() {
+        return showToolbar;
+    }
+
+    @Override
+    public String getToolbarTitle() {
+        return "关注";
     }
 }
