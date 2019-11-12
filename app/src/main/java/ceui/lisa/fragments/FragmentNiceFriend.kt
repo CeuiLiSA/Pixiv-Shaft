@@ -12,6 +12,7 @@ import ceui.lisa.http.Retro
 import ceui.lisa.interfaces.FullClickListener
 import ceui.lisa.model.ListUserResponse
 import ceui.lisa.model.UserPreviewsBean
+import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
 import io.reactivex.Observable
 
@@ -19,7 +20,7 @@ class FragmentNiceFriend : FragmentList<ListUserResponse, UserPreviewsBean, Recy
 
     override fun initApi(): Observable<ListUserResponse> {
         return Retro.getAppApi().getNiceFriend(Shaft.sUserModel.response.access_token,
-                mActivity.intent.getIntExtra("user id", 0))
+                mActivity.intent.getIntExtra(Params.USER_ID, 0))
     }
 
     override fun initNextApi(): Observable<ListUserResponse> {
@@ -32,7 +33,7 @@ class FragmentNiceFriend : FragmentList<ListUserResponse, UserPreviewsBean, Recy
             override fun onItemClick(v: View, position: Int, viewType: Int) {
                 if (viewType == 0) { //普通item
                     val intent = Intent(mContext, UActivity::class.java)
-                    intent.putExtra("user id", allItems[position].user.id)
+                    intent.putExtra(Params.USER_ID, allItems[position].user.id)
                     startActivity(intent)
                 } else if (viewType == 1) { //关注按钮
                     if (allItems[position].user.isIs_followed) {

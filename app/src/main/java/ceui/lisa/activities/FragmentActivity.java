@@ -1,9 +1,6 @@
 package ceui.lisa.activities;
 
 
-import android.graphics.Color;
-import android.view.View;
-
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 

@@ -1,6 +1,5 @@
 package ceui.lisa.activities
 
-import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentPagerAdapter
 import ceui.lisa.R

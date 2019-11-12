@@ -1,7 +1,6 @@
 package ceui.lisa.fragments;
 
 import android.text.TextUtils;
-import android.view.KeyEvent;
 import android.view.View;
 import android.view.animation.AnticipateOvershootInterpolator;
 
@@ -104,7 +103,7 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
 
     @Override
     public void getFirstData() {
-        if(NetworkUtils.isConnected()) {
+        if (NetworkUtils.isConnected()) {
             mApi = initApi();
             if (mApi != null) {
                 mApi.subscribeOn(Schedulers.newThread())
@@ -151,7 +150,7 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
 
     @Override
     public void getNextData() {
-        if(NetworkUtils.isConnected()) {
+        if (NetworkUtils.isConnected()) {
             mApi = initNextApi();
             if (mApi != null && !TextUtils.isEmpty(nextUrl)) {
                 mApi.subscribeOn(Schedulers.newThread())

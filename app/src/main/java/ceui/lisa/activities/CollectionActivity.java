@@ -5,33 +5,31 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import com.ToxicBakery.viewpager.transforms.DrawerTransformer;
-import com.google.android.material.tabs.TabLayout;
 
 import ceui.lisa.R;
-import ceui.lisa.databinding.ActivityDownloadManageBinding;
+import ceui.lisa.databinding.ViewpagerWithTablayoutBinding;
 import ceui.lisa.fragments.FragmentFollowUser;
 import ceui.lisa.fragments.FragmentLikeIllust;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-public class CollectionActivity extends BaseActivity<ActivityDownloadManageBinding> {
+public class CollectionActivity extends BaseActivity<ViewpagerWithTablayoutBinding> {
 
     private static final String[] CHINESE_TITLES = new String[]{
-            Shaft.getContext().getString(R.string.public_like_illust), 
-            Shaft.getContext().getString(R.string.private_like_illust), 
-            Shaft.getContext().getString(R.string.public_like_user), 
+            Shaft.getContext().getString(R.string.public_like_illust),
+            Shaft.getContext().getString(R.string.private_like_illust),
+            Shaft.getContext().getString(R.string.public_like_user),
             Shaft.getContext().getString(R.string.private_like_user)};
     private Fragment[] allPages;
 
     @Override
     protected int initLayout() {
-        return R.layout.activity_download_manage;
+        return R.layout.viewpager_with_tablayout;
     }
 
     @Override
@@ -111,17 +109,17 @@ public class CollectionActivity extends BaseActivity<ActivityDownloadManageBindi
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (baseBind.viewPager.getCurrentItem() == 0) {
-            Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-            intent.putExtra(TemplateFragmentActivity.EXTRA_KEYWORD,
+            Intent intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_KEYWORD,
                     FragmentLikeIllust.TYPE_PUBLUC);
-            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT,
                     mContext.getString(R.string.filter_by_bookmark));
             startActivity(intent);
         } else if (baseBind.viewPager.getCurrentItem() == 1) {
-            Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-            intent.putExtra(TemplateFragmentActivity.EXTRA_KEYWORD,
+            Intent intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_KEYWORD,
                     FragmentLikeIllust.TYPE_PRIVATE);
-            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT,
                     mContext.getString(R.string.filter_by_bookmark));
             startActivity(intent);
         }

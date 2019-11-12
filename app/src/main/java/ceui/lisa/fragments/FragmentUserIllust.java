@@ -47,9 +47,9 @@ public class FragmentUserIllust extends FragmentList<ListIllustResponse, Illusts
 
     @Override
     public String getToolbarTitle() {
-        if(showToolbar){
+        if (showToolbar) {
             return "插画作品";
-        }else {
+        } else {
             return super.getToolbarTitle();
         }
     }

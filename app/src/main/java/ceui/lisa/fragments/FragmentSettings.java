@@ -25,7 +25,7 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.activities.LoginActivity;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.activities.TemplateFragmentActivity;
+import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.FragmentSettingsBinding;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
@@ -36,11 +36,11 @@ import static ceui.lisa.fragments.FragmentFilter.ALL_SIZE_VALUE;
 
 public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> {
 
+    public static final String[] STRINGS = new String[]{"公开关注", "私人关注"};
     private static final int illustPath_CODE = 10086;
     private static final int gifResultPath_CODE = 10087;
     private static final int gifZipPath_CODE = 10088;
     private static final int gifUnzipPath_CODE = 10089;
-    public static final String[] STRINGS = new String[]{"公开关注", "私人关注"};
 
     @Override
     void initLayout() {
@@ -64,8 +64,8 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
         baseBind.userManage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "账号管理");
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "账号管理");
                 startActivity(intent);
                 getActivity().finish();
             }
@@ -190,8 +190,8 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
         baseBind.fuckChina.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "网页链接");
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
                 intent.putExtra("url", "https://github.com/Notsfsssf/Pix-EzViewer");
                 intent.putExtra("title", "PxEz项目主页");
                 startActivity(intent);
@@ -226,9 +226,9 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
                 builder.setItems(STRINGS, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        if(which == 0){
+                        if (which == 0) {
                             Shaft.sSettings.setTrendsForPrivate(false);
-                        }else {
+                        } else {
                             Shaft.sSettings.setTrendsForPrivate(true);
                         }
                         Local.setSettings(Shaft.sSettings);

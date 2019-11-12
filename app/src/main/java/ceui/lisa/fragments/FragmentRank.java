@@ -6,9 +6,7 @@ import android.view.View;
 
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
-import com.scwang.smartrefresh.header.DropBoxHeader;
 import com.scwang.smartrefresh.header.MaterialHeader;
-import com.scwang.smartrefresh.header.WaterDropHeader;
 import com.scwang.smartrefresh.layout.api.RefreshHeader;
 
 import ceui.lisa.activities.ViewPagerActivity;

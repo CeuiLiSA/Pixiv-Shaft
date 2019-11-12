@@ -16,10 +16,10 @@ import ceui.lisa.utils.GlideUtil;
 
 public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding> implements MultiDownload {
 
-    private int imageSize;
-    private boolean isSquare = false;
     private static final int MIN_HEIGHT = 350;
     private static final int MAX_HEIGHT = 600;
+    private int imageSize;
+    private boolean isSquare = false;
 
     public IAdapter(List<IllustsBean> targetList, Context context) {
         super(targetList, context);
@@ -45,7 +45,6 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
     public void initLayout() {
         mLayoutID = R.layout.recy_illust_stagger;
     }
-
 
 
     @Override

@@ -5,13 +5,10 @@ import android.view.View;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
-import com.github.chrisbanes.photoview.PhotoView;
 
-import java.util.Arrays;
 import java.util.Collections;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.GlideUtil;

@@ -1,13 +1,11 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
-import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
@@ -54,7 +52,7 @@ public class FragmentLikeIllust extends FragmentList<ListIllustResponse, Illusts
 
     @Override
     public void initView(View view) {
-        if(showToolbar){
+        if (showToolbar) {
             //baseBind.toolbar.inflateMenu();
         }
     }

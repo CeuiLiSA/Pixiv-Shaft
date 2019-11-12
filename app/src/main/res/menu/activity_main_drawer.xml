@@ -5,8 +5,6 @@
 
     <group android:checkableBehavior="single">
 
-
-
         <item
             android:id="@+id/main_page"
             android:icon="@drawable/ic_home_black_24dp"
@@ -43,6 +41,11 @@
                 android:id="@+id/nav_send"
                 android:icon="@drawable/ic_toys_black_24dp"
                 android:title="@string/walkthrough" />
+
+            <item
+                android:id="@+id/nav_new_work"
+                android:icon="@drawable/ic_fiber_new_black_24dp"
+                android:title="@string/latest_work" />
 
             <item
                 android:id="@+id/web_test"

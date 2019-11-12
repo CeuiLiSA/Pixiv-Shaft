@@ -105,18 +105,18 @@
 //        follow.setOnClickListener(new View.OnClickListener() {
 //            @Override
 //            public void onClick(View v) {
-//                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+//                Intent intent = new Intent(mContext, TemplateActivity.class);
 //                intent.putExtra("user id", userID);
-//                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "正在关注");
+//                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "正在关注");
 //                startActivity(intent);
 //            }
 //        });
 //        fans.setOnClickListener(new View.OnClickListener() {
 //            @Override
 //            public void onClick(View v) {
-//                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+//                Intent intent = new Intent(mContext, TemplateActivity.class);
 //                intent.putExtra("user id", userID);
-//                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "好P友");
+//                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "好P友");
 //                startActivity(intent);
 //            }
 //        });

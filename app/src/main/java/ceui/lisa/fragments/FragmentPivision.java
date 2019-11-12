@@ -6,7 +6,7 @@ import android.view.View;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.TemplateFragmentActivity;
+import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.adapters.ArticleAdapter;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
@@ -49,8 +49,8 @@ public class FragmentPivision extends BaseListFragment<ArticleResponse, ArticleA
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "网页链接");
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
                 intent.putExtra("url", allItems.get(position).getArticle_url());
                 intent.putExtra("title", getString(R.string.pixiv_special));
                 startActivity(intent);

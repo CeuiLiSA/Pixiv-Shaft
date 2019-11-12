@@ -8,7 +8,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
@@ -19,7 +18,7 @@ import com.google.android.material.tabs.TabLayout;
 import ceui.lisa.R;
 import ceui.lisa.activities.CoverActivity;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.activities.TemplateFragmentActivity;
+import ceui.lisa.activities.TemplateActivity;
 
 public class FragmentLeft extends BaseFragment {
 
@@ -47,8 +46,8 @@ public class FragmentLeft extends BaseFragment {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 if (item.getItemId() == R.id.action_search) {
-                    Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-                    intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "搜索");
+                    Intent intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "搜索");
                     startActivity(intent);
                     return true;
                 }

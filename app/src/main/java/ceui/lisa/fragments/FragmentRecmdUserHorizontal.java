@@ -21,7 +21,7 @@ import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListUserResponse;
 import ceui.lisa.model.UserPreviewsBean;
 import ceui.lisa.utils.DensityUtil;
-import ceui.lisa.utils.Dev;
+import ceui.lisa.utils.Params;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
@@ -68,7 +68,7 @@ public class FragmentRecmdUserHorizontal extends BaseFragment {
             public void onItemClick(View v, int position, int viewType) {
                 Intent intent;
                 intent = new Intent(mContext, UActivity.class);
-                intent.putExtra("user id", allItems.get(position).getUser().getId());
+                intent.putExtra(Params.USER_ID, allItems.get(position).getUser().getId());
                 startActivity(intent);
 
             }

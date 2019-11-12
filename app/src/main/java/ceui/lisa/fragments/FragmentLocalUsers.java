@@ -19,7 +19,6 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.LoginActivity;
-import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
 import ceui.lisa.http.ErrorCtrl;

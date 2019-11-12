@@ -1,7 +1,6 @@
 package ceui.lisa.activities;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
@@ -70,8 +69,8 @@ public class LoginActivity extends BaseActivity {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 if (item.getItemId() == R.id.action_settings) {
-                    Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-                    intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "设置");
+                    Intent intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "设置");
                     startActivity(intent);
                     return true;
                 }

@@ -18,6 +18,7 @@ import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.utils.IllustChannel;
+import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import io.reactivex.Observable;
 
@@ -69,7 +70,7 @@ public class FragmentP extends FragmentList<ListIllustResponse, IllustsBean, Rec
                     startActivity(intent);
                 } else if (viewType == 1) {
                     Intent intent = new Intent(mContext, UActivity.class);
-                    intent.putExtra("user id", allItems.get(position).getUser().getId());
+                    intent.putExtra(Params.USER_ID, allItems.get(position).getUser().getId());
                     startActivity(intent);
                 } else if (viewType == 2) {
                     if (allItems.get(position).getPage_count() == 1) {

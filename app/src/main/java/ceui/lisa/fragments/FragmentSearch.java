@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.activities.TemplateFragmentActivity;
+import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UActivity;
 import ceui.lisa.adapters.SearchHintAdapter;
 import ceui.lisa.database.AppDatabase;
@@ -36,6 +36,7 @@ import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.TrendingtagResponse;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
@@ -174,9 +175,9 @@ public class FragmentSearch extends BaseBindFragment<FragmentSearchBinding> {
             insertSearchHistory(keyWord);
             baseBind.hintList.setVisibility(View.INVISIBLE);
 
-            Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-            intent.putExtra(TemplateFragmentActivity.EXTRA_KEYWORD, keyWord);
-            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
+            Intent intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_KEYWORD, keyWord);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT,
                     "搜索结果");
             startActivity(intent);
         } else if (searchType == 1) {
@@ -188,17 +189,17 @@ public class FragmentSearch extends BaseBindFragment<FragmentSearchBinding> {
             }
         } else if (searchType == 2) {
             insertSearchHistory(keyWord);
-            Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-            intent.putExtra(TemplateFragmentActivity.EXTRA_KEYWORD,
+            Intent intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_KEYWORD,
                     keyWord);
-            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT,
                     "搜索用户");
             startActivity(intent);
         } else if (searchType == 3) {
             if (isNumeric(keyWord)) {
                 insertSearchHistory(keyWord);
                 Intent intent = new Intent(mContext, UActivity.class);
-                intent.putExtra("user id", Integer.valueOf(keyWord));
+                intent.putExtra(Params.USER_ID, Integer.valueOf(keyWord));
                 startActivity(intent);
             } else {
                 Common.showToast("ID必须为全数字");
@@ -222,10 +223,10 @@ public class FragmentSearch extends BaseBindFragment<FragmentSearchBinding> {
                                 insertSearchHistory(trendingtagResponse.getList().get(position).getTag());
                                 baseBind.hintList.setVisibility(View.INVISIBLE);
 
-                                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-                                intent.putExtra(TemplateFragmentActivity.EXTRA_KEYWORD,
+                                Intent intent = new Intent(mContext, TemplateActivity.class);
+                                intent.putExtra(TemplateActivity.EXTRA_KEYWORD,
                                         trendingtagResponse.getList().get(position).getTag());
-                                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
+                                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT,
                                         "搜索结果");
                                 startActivity(intent);
                             }
@@ -270,10 +271,10 @@ public class FragmentSearch extends BaseBindFragment<FragmentSearchBinding> {
                                     insertSearchHistory(trendingtagResponse.getList().get(position).getTag());
                                     baseBind.hintList.setVisibility(View.INVISIBLE);
 
-                                    Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-                                    intent.putExtra(TemplateFragmentActivity.EXTRA_KEYWORD,
+                                    Intent intent = new Intent(mContext, TemplateActivity.class);
+                                    intent.putExtra(TemplateActivity.EXTRA_KEYWORD,
                                             trendingtagResponse.getList().get(position).getTag());
-                                    intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
+                                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT,
                                             "搜索结果");
                                     startActivity(intent);
                                     return false;
@@ -305,9 +306,9 @@ public class FragmentSearch extends BaseBindFragment<FragmentSearchBinding> {
                     AppDatabase.getAppDatabase(mContext).searchDao().insert(history.get(position));
                     baseBind.hintList.setVisibility(View.INVISIBLE);
 
-                    Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-                    intent.putExtra(TemplateFragmentActivity.EXTRA_KEYWORD, history.get(position).getKeyword());
-                    intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
+                    Intent intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(TemplateActivity.EXTRA_KEYWORD, history.get(position).getKeyword());
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT,
                             "搜索结果");
                     startActivity(intent);
                 } else if (history.get(position).getSearchType() == 1) {
@@ -317,17 +318,17 @@ public class FragmentSearch extends BaseBindFragment<FragmentSearchBinding> {
                 } else if (history.get(position).getSearchType() == 2) {
                     history.get(position).setSearchTime(System.currentTimeMillis());
                     AppDatabase.getAppDatabase(mContext).searchDao().insert(history.get(position));
-                    Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-                    intent.putExtra(TemplateFragmentActivity.EXTRA_KEYWORD,
+                    Intent intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(TemplateActivity.EXTRA_KEYWORD,
                             history.get(position).getKeyword());
-                    intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT,
                             "搜索用户");
                     startActivity(intent);
                 } else if (history.get(position).getSearchType() == 3) {
                     history.get(position).setSearchTime(System.currentTimeMillis());
                     AppDatabase.getAppDatabase(mContext).searchDao().insert(history.get(position));
                     Intent intent = new Intent(mContext, UActivity.class);
-                    intent.putExtra("user id", Integer.valueOf(history.get(position).getKeyword()));
+                    intent.putExtra(Params.USER_ID, Integer.valueOf(history.get(position).getKeyword()));
                     startActivity(intent);
                 }
                 return false;

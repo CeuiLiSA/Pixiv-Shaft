@@ -45,7 +45,7 @@
         </activity>
         <activity android:name=".activities.ViewPagerActivity" />
         <activity
-            android:name=".activities.TemplateFragmentActivity"
+            android:name=".activities.TemplateActivity"
             android:windowSoftInputMode="adjustPan" />
         <activity android:name=".activities.RankActivity" />
         <activity android:name=".activities.DownloadManageActivity" />

@@ -173,6 +173,12 @@ public interface AppApi {
                                                @Query("restrict") String restrict);
 
 
+    //获取关注 这个userid 的人
+    @GET("v1/user/follower?filter=for_android")
+    Observable<ListUserResponse> getWhoFollowThisUser(@Header("Authorization") String token,
+                                               @Query("user_id") int user_id);
+
+
     @GET("v1/illust/comments")
     Observable<IllustCommentsResponse> getComment(@Header("Authorization") String token,
                                                   @Query("illust_id") int illust_id);
@@ -266,5 +272,10 @@ public interface AppApi {
     @GET("v1/user/mypixiv?filter=for_android")
     Observable<ListUserResponse> getNiceFriend(@Header("Authorization") String token,
                                                @Query("user_id") int user_id);
+
+    //获取最新作品
+    @GET("v1/illust/new?filter=for_android")
+    Observable<ListIllustResponse> getNewWorks(@Header("Authorization") String token,
+                                               @Query("content_type") String content_type);
 
 }

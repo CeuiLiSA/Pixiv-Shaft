@@ -17,7 +17,7 @@ import com.mxn.soul.flowingdrawer_core.ElasticDrawer;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.activities.TemplateFragmentActivity;
+import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.IAdapter;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
@@ -69,7 +69,7 @@ public class FragmentSearchResult extends FragmentSList<ListIllustResponse, Illu
 
     @Override
     void initData() {
-        ((TemplateFragmentActivity) getActivity()).setSupportActionBar(baseBind.toolbar);
+        ((TemplateActivity) getActivity()).setSupportActionBar(baseBind.toolbar);
         baseBind.toolbar.setTitle(getToolbarTitle());
         baseBind.toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override

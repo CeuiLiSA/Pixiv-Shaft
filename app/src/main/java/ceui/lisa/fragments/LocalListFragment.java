@@ -1,6 +1,5 @@
 package ceui.lisa.fragments;
 
-import android.text.TextUtils;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -21,11 +20,7 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
-import ceui.lisa.http.NullCtrl;
 import ceui.lisa.interfaces.DataControl;
-import ceui.lisa.interfaces.ListShow;
-import ceui.lisa.interfaces.NetControl;
-import ceui.lisa.ui.fragment.DataHolder;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
 
@@ -61,7 +56,7 @@ public abstract class LocalListFragment<Layout extends ViewDataBinding, Item,
         mRefreshLayout.setOnRefreshListener(new OnRefreshListener() {
             @Override
             public void onRefresh(@NonNull RefreshLayout refreshLayout) {
-                if(mDataControl.enableRefresh()) {
+                if (mDataControl.enableRefresh()) {
                     mAdapter.clear();
                     int lastSize = allItems.size();
                     allItems.addAll(mDataControl.first());
@@ -73,7 +68,7 @@ public abstract class LocalListFragment<Layout extends ViewDataBinding, Item,
         mRefreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
             @Override
             public void onLoadMore(@NonNull RefreshLayout refreshLayout) {
-                if(mDataControl.hasNext()) {
+                if (mDataControl.hasNext()) {
                     int lastSize = allItems.size();
                     allItems.addAll(mDataControl.next());
                     mAdapter.notifyItemRangeInserted(lastSize, mDataControl.next().size());
@@ -90,7 +85,7 @@ public abstract class LocalListFragment<Layout extends ViewDataBinding, Item,
         mRefreshLayout.autoRefresh();
     }
 
-    public void initRecyclerView(){
+    public void initRecyclerView() {
         mRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.addItemDecoration(new LinearItemDecoration(DensityUtil.dp2px(12.0f)));

@@ -9,11 +9,9 @@ import androidx.databinding.ViewDataBinding;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.scwang.smartrefresh.header.MaterialHeader;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
-import com.scwang.smartrefresh.layout.header.ClassicsHeader;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
 import com.scwang.smartrefresh.layout.listener.OnLoadMoreListener;
 import com.scwang.smartrefresh.layout.listener.OnRefreshListener;
@@ -23,17 +21,14 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
-import ceui.lisa.fragments.BaseBindFragment;
 import ceui.lisa.http.NullCtrl;
-import ceui.lisa.interfaces.Callback;
 import ceui.lisa.interfaces.ListShow;
 import ceui.lisa.interfaces.NetControl;
-import ceui.lisa.ui.fragment.DataHolder;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
 
 public abstract class NetListFragment<Layout extends ViewDataBinding,
-        Response extends ListShow<Item> , Item,
+        Response extends ListShow<Item>, Item,
         ItemLayout extends ViewDataBinding> extends BaseBindFragment<Layout> {
 
     protected NetControl<Response> mNetControl;
@@ -56,12 +51,12 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
     @Override
     public void initView(View view) {
         mToolbar = view.findViewById(R.id.toolbar);
-        if(mToolbar != null) {
+        if (mToolbar != null) {
             if (showToolbar()) {
                 mToolbar.setVisibility(View.VISIBLE);
                 mToolbar.setNavigationOnClickListener(v -> mActivity.finish());
                 mToolbar.setTitle(getToolbarTitle());
-            }else {
+            } else {
                 mToolbar.setVisibility(View.GONE);
             }
         }
@@ -132,7 +127,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
         mRefreshLayout.autoRefresh();
     }
 
-    public boolean showToolbar(){
+    public boolean showToolbar() {
         return true;
     }
 
@@ -140,7 +135,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
         return "";
     }
 
-    public void initRecyclerView(){
+    public void initRecyclerView() {
         mRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.addItemDecoration(new LinearItemDecoration(DensityUtil.dp2px(12.0f)));

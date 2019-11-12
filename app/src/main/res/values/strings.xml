@@ -55,6 +55,7 @@
     <string name="project_license">License</string>
     <string name="select_inner_storage">请选择本机内置存储</string>
     <string name="walkthrough">画廊</string>
+    <string name="latest_work">最新</string>
     <string name="search">搜索</string>
     <string name="hito">一言</string>
 
@@ -64,6 +65,8 @@
     <string name="image_alredy_exist">图片已存在</string>
     <string name="has_been_added">个项目已加入下载队列</string>
     <string name="one_item_added">1个项目已加入下载队列</string>
+    <string name="type_illust">插画</string>
+    <string name="type_manga">漫画</string>
     <string name="public_like_illust">公开收藏</string>
     <string name="private_like_illust">私人收藏</string>
     <string name="public_like_user">公开关注</string>

@@ -5,7 +5,7 @@ import android.view.View;
 
 import androidx.recyclerview.widget.GridLayoutManager;
 
-import ceui.lisa.activities.TemplateFragmentActivity;
+import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.adapters.HAdapter;
 import ceui.lisa.databinding.RecyTagGridBinding;
 import ceui.lisa.http.Retro;
@@ -63,10 +63,10 @@ public class FragmentHotTag extends FragmentList<TrendingtagResponse, Trendingta
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-                intent.putExtra(TemplateFragmentActivity.EXTRA_KEYWORD,
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_KEYWORD,
                         allItems.get(position).getTag());
-                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT,
                         "搜索结果");
                 startActivity(intent);
             }

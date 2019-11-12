@@ -11,12 +11,12 @@ import ceui.lisa.fragments.FragmentBlank;
 import ceui.lisa.fragments.FragmentBookTag;
 import ceui.lisa.fragments.FragmentComment;
 import ceui.lisa.fragments.FragmentFollowUser;
-import ceui.lisa.fragments.FragmentH;
 import ceui.lisa.fragments.FragmentLicense;
 import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.fragments.FragmentLocalUsers;
 import ceui.lisa.fragments.FragmentMetro;
 import ceui.lisa.fragments.FragmentMultiDownload;
+import ceui.lisa.fragments.FragmentNew;
 import ceui.lisa.fragments.FragmentNiceFriend;
 import ceui.lisa.fragments.FragmentPivision;
 import ceui.lisa.fragments.FragmentRecmdUser;
@@ -31,11 +31,12 @@ import ceui.lisa.fragments.FragmentUserManga;
 import ceui.lisa.fragments.FragmentViewHistory;
 import ceui.lisa.fragments.FragmentWalkThrough;
 import ceui.lisa.fragments.FragmentWebView;
-import ceui.lisa.ui.fragment.FragmentQ;
+import ceui.lisa.fragments.FragmentWhoFollowThisUser;
 import ceui.lisa.ui.fragment.FragmentT;
+import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseResult;
 
-public class TemplateFragmentActivity extends FragmentActivity {
+public class TemplateActivity extends FragmentActivity {
 
     public static final String EXTRA_FRAGMENT = "dataType";
     public static final String EXTRA_OBJECT = "object";
@@ -106,7 +107,7 @@ public class TemplateFragmentActivity extends FragmentActivity {
                     return new FragmentLicense();
                 case "正在关注":
                     return FragmentFollowUser.newInstance(
-                            getIntent().getIntExtra("user id", 0),
+                            getIntent().getIntExtra(Params.USER_ID, 0),
                             FragmentLikeIllust.TYPE_PUBLUC, true);
                 case "好P友":
                     return new FragmentNiceFriend();
@@ -116,14 +117,18 @@ public class TemplateFragmentActivity extends FragmentActivity {
                     return new FragmentAboutUser();
                 case "一言":
                     return new FragmentT();
+                case "最新作品":
+                    return new FragmentNew();
+                case "粉丝":
+                    return FragmentWhoFollowThisUser.newInstance(intent.getIntExtra(Params.USER_ID, 0));
                 case "插画作品":
-                    return FragmentUserIllust.newInstance(intent.getIntExtra("user id", 0),
+                    return FragmentUserIllust.newInstance(intent.getIntExtra(Params.USER_ID, 0),
                             true);
                 case "漫画作品":
-                    return FragmentUserManga.newInstance(intent.getIntExtra("user id", 0),
+                    return FragmentUserManga.newInstance(intent.getIntExtra(Params.USER_ID, 0),
                             true);
                 case "插画/漫画收藏":
-                    return FragmentLikeIllust.newInstance(intent.getIntExtra("user id", 0),
+                    return FragmentLikeIllust.newInstance(intent.getIntExtra(Params.USER_ID, 0),
                             FragmentLikeIllust.TYPE_PUBLUC, true);
                 default:
                     return new FragmentBlank();
@@ -140,5 +145,10 @@ public class TemplateFragmentActivity extends FragmentActivity {
                     super.onKeyDown(keyCode, event);
         }
         return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    public boolean hideStatusBar() {
+        return super.hideStatusBar() && getIntent().getBooleanExtra("hideStatusBar", true);
     }
 }

@@ -9,24 +9,18 @@ import android.text.style.ForegroundColorSpan;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
-import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
 
-import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-import org.sufficientlysecure.htmltextview.HtmlTextView;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -35,7 +29,7 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.activities.ImageDetailActivity;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.activities.TemplateFragmentActivity;
+import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UActivity;
 import ceui.lisa.adapters.IllustDetailAdapter;
 import ceui.lisa.database.AppDatabase;
@@ -54,10 +48,10 @@ import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.GlideUtil;
+import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.ShareIllust;
 import ceui.lisa.view.LinearItemDecorationNoLRTB;
-import de.hdodenhof.circleimageview.CircleImageView;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 import jp.wasabeef.glide.transformations.BlurTransformation;
@@ -168,20 +162,20 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
         baseBind.related.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "相关作品");
-                intent.putExtra(TemplateFragmentActivity.EXTRA_ILLUST_ID, illust.getId());
-                intent.putExtra(TemplateFragmentActivity.EXTRA_ILLUST_TITLE, illust.getTitle());
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关作品");
+                intent.putExtra(TemplateActivity.EXTRA_ILLUST_ID, illust.getId());
+                intent.putExtra(TemplateActivity.EXTRA_ILLUST_TITLE, illust.getTitle());
                 startActivity(intent);
             }
         });
         baseBind.comment.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "相关评论");
-                intent.putExtra(TemplateFragmentActivity.EXTRA_ILLUST_ID, illust.getId());
-                intent.putExtra(TemplateFragmentActivity.EXTRA_ILLUST_TITLE, illust.getTitle());
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关评论");
+                intent.putExtra(TemplateActivity.EXTRA_ILLUST_ID, illust.getId());
+                intent.putExtra(TemplateActivity.EXTRA_ILLUST_TITLE, illust.getTitle());
                 startActivity(intent);
             }
         });
@@ -207,9 +201,9 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
                 if (illust.isIs_bookmarked()) {
 
                 } else {
-                    Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-                    intent.putExtra(TemplateFragmentActivity.EXTRA_ILLUST_ID, illust.getId());
-                    intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "按标签收藏");
+                    Intent intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(TemplateActivity.EXTRA_ILLUST_ID, illust.getId());
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏");
                     startActivity(intent);
                 }
                 return true;
@@ -237,7 +231,7 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, UActivity.class);
-                intent.putExtra("user id", illust.getUser().getId());
+                intent.putExtra(Params.USER_ID, illust.getUser().getId());
                 startActivity(intent);
             }
         });
@@ -246,7 +240,7 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, UActivity.class);
-                intent.putExtra("user id", illust.getUser().getId());
+                intent.putExtra(Params.USER_ID, illust.getUser().getId());
                 startActivity(intent);
             }
         });
@@ -263,10 +257,10 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
         baseBind.illustTag.setOnTagClickListener(new TagCloudView.OnTagClickListener() {
             @Override
             public void onTagClick(int position) {
-                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-                intent.putExtra(TemplateFragmentActivity.EXTRA_KEYWORD,
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_KEYWORD,
                         illust.getTags().get(position).getName());
-                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT,
                         "搜索结果");
                 startActivity(intent);
             }

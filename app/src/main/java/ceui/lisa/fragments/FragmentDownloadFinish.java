@@ -23,6 +23,7 @@ import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Params;
 import io.reactivex.Observable;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.Observer;
@@ -93,7 +94,7 @@ public class FragmentDownloadFinish extends BaseAsyncFragment<DownlistAdapter, D
                     startActivity(intent);
                 } else if (viewType == 1) {
                     Intent intent = new Intent(mContext, UActivity.class);
-                    intent.putExtra("user id", allIllusts.get(position).getUser().getId());
+                    intent.putExtra(Params.USER_ID, allIllusts.get(position).getUser().getId());
                     startActivity(intent);
                 }
             }

@@ -12,6 +12,7 @@ import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.FullClickListener;
 import ceui.lisa.model.ListUserResponse;
 import ceui.lisa.model.UserPreviewsBean;
+import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import io.reactivex.Observable;
 
@@ -59,7 +60,7 @@ public class FragmentFollowUser extends FragmentList<ListUserResponse, UserPrevi
             public void onItemClick(View v, int position, int viewType) {
                 if (viewType == 0) { //普通item
                     Intent intent = new Intent(mContext, UActivity.class);
-                    intent.putExtra("user id", allItems.get(position).getUser().getId());
+                    intent.putExtra(Params.USER_ID, allItems.get(position).getUser().getId());
                     startActivity(intent);
                 } else if (viewType == 1) { //关注按钮
                     if (allItems.get(position).getUser().isIs_followed()) {

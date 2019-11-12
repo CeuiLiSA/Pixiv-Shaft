@@ -1,13 +1,12 @@
 package ceui.lisa.activities;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.net.Uri;
 import android.text.TextUtils;
-import android.view.View;
 
 import ceui.lisa.R;
 import ceui.lisa.interfaces.Callback;
+import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 
 public class OutWakeActivity extends BaseActivity {
@@ -53,7 +52,7 @@ public class OutWakeActivity extends BaseActivity {
                         String userID = uri.getQueryParameter("id");
                         if (!TextUtils.isEmpty(userID)) {
                             Intent userIntent = new Intent(mContext, UActivity.class);
-                            userIntent.putExtra("user id", Integer.valueOf(userID));
+                            userIntent.putExtra(Params.USER_ID, Integer.valueOf(userID));
                             startActivity(userIntent);
                             finish();
                             return;
@@ -67,7 +66,7 @@ public class OutWakeActivity extends BaseActivity {
                             if (host.contains("users")) {
                                 String path = uri.getPath();
                                 Intent userIntent = new Intent(mContext, UActivity.class);
-                                userIntent.putExtra("user id", Integer.valueOf(path.substring(1)));
+                                userIntent.putExtra(Params.USER_ID, Integer.valueOf(path.substring(1)));
                                 startActivity(userIntent);
                                 finish();
                                 return;

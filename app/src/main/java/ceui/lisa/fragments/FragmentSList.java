@@ -103,7 +103,7 @@ public abstract class FragmentSList<Response extends ListShow<ItemBean>, ItemBea
 
     @Override
     public void getFirstData() {
-        if(NetworkUtils.isConnected()) {
+        if (NetworkUtils.isConnected()) {
             mApi = initApi();
             if (mApi != null) {
                 mApi.subscribeOn(Schedulers.newThread())
@@ -150,7 +150,7 @@ public abstract class FragmentSList<Response extends ListShow<ItemBean>, ItemBea
 
     @Override
     public void getNextData() {
-        if(NetworkUtils.isConnected()) {
+        if (NetworkUtils.isConnected()) {
             mApi = initNextApi();
             if (mApi != null && !TextUtils.isEmpty(nextUrl)) {
                 mApi.subscribeOn(Schedulers.newThread())

@@ -13,6 +13,7 @@ import ceui.lisa.http.Retro;
 import ceui.lisa.model.CommentsBean;
 import ceui.lisa.model.IllustCommentsResponse;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Params;
 import io.reactivex.Observable;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
@@ -69,7 +70,7 @@ public class FragmentC extends FragmentList<IllustCommentsResponse, CommentsBean
                 alertDialog.show();
             } else if (viewType == 1) {
                 Intent userIntent = new Intent(mContext, UActivity.class);
-                userIntent.putExtra("user id", allItems.get(position).getUser().getId());
+                userIntent.putExtra(Params.USER_ID, allItems.get(position).getUser().getId());
                 startActivity(userIntent);
             } else if (viewType == 2) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
@@ -94,7 +95,7 @@ public class FragmentC extends FragmentList<IllustCommentsResponse, CommentsBean
 
             } else if (viewType == 3) {
                 Intent userIntent = new Intent(mContext, UActivity.class);
-                userIntent.putExtra("user id", allItems.get(position).getParent_comment().getUser().getId());
+                userIntent.putExtra(Params.USER_ID, allItems.get(position).getParent_comment().getUser().getId());
                 startActivity(userIntent);
             }
         });

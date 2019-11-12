@@ -13,7 +13,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.TemplateFragmentActivity;
+import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.MultiDownloadAdapter;
 import ceui.lisa.download.IllustDownload;
@@ -37,7 +37,7 @@ public class FragmentMultiDownload extends BaseAsyncFragment<MultiDownloadAdapte
     @Override
     View initView(View v) {
         super.initView(v);
-        ((TemplateFragmentActivity) getActivity()).setSupportActionBar(mToolbar);
+        ((TemplateActivity) getActivity()).setSupportActionBar(mToolbar);
         download = v.findViewById(R.id.start_download);
         download.setOnClickListener(new View.OnClickListener() {
             @Override

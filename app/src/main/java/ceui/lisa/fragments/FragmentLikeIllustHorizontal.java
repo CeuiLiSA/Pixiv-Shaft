@@ -1,7 +1,6 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -11,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.TemplateFragmentActivity;
+import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.LAdapter;
 import ceui.lisa.databinding.FragmentLikeIllustHorizontalBinding;
@@ -20,12 +19,10 @@ import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
-import ceui.lisa.model.ListUserResponse;
 import ceui.lisa.model.UserDetailResponse;
-import ceui.lisa.ui.fragment.BlankFragment;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.IllustChannel;
+import ceui.lisa.utils.Params;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -43,7 +40,7 @@ public class FragmentLikeIllustHorizontal extends BaseBindFragment<FragmentLikeI
     private LAdapter mAdapter;
     private int type; // 1插画收藏    2插画作品     3漫画作品
 
-    public static FragmentLikeIllustHorizontal newInstance(UserDetailResponse userDetailResponse, int pType){
+    public static FragmentLikeIllustHorizontal newInstance(UserDetailResponse userDetailResponse, int pType) {
         FragmentLikeIllustHorizontal fragmentLikeIllustHorizontal = new FragmentLikeIllustHorizontal();
         fragmentLikeIllustHorizontal.mUserDetailResponse = userDetailResponse;
         fragmentLikeIllustHorizontal.type = pType;
@@ -85,16 +82,16 @@ public class FragmentLikeIllustHorizontal extends BaseBindFragment<FragmentLikeI
         layoutParams.height = mAdapter.getImageSize() + mContext.getResources()
                 .getDimensionPixelSize(R.dimen.sixteen_dp);
         baseBind.recyclerView.setLayoutParams(layoutParams);
-        if(type == 1){
+        if (type == 1) {
             baseBind.title.setText("插画/漫画收藏");
             baseBind.howMany.setText(String.format(getString(R.string.how_many_illust_works),
                     mUserDetailResponse.getProfile().getTotal_illust_bookmarks_public()));
-        }else if(type == 2){
+        } else if (type == 2) {
             baseBind.title.setText("插画作品");
             baseBind.howMany.setText(String.format(getString(R.string.how_many_illust_works),
                     mUserDetailResponse.getProfile().getTotal_illusts()));
 
-        }else if(type == 3){
+        } else if (type == 3) {
             baseBind.title.setText("漫画作品");
             baseBind.howMany.setText(String.format(getString(R.string.how_many_illust_works),
                     mUserDetailResponse.getProfile().getTotal_manga()));
@@ -102,10 +99,10 @@ public class FragmentLikeIllustHorizontal extends BaseBindFragment<FragmentLikeI
         baseBind.howMany.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT,
                         baseBind.title.getText().toString());
-                intent.putExtra("user id", mUserDetailResponse.getUser().getId());
+                intent.putExtra(Params.USER_ID, mUserDetailResponse.getUser().getId());
                 startActivity(intent);
             }
         });
@@ -114,18 +111,18 @@ public class FragmentLikeIllustHorizontal extends BaseBindFragment<FragmentLikeI
     @Override
     void initData() {
         Observable<ListIllustResponse> api = null;
-        if(type == 1) {
+        if (type == 1) {
             api = Retro.getAppApi().getUserLikeIllust(sUserModel.getResponse().getAccess_token(),
                     mUserDetailResponse.getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC);
-        }else if(type == 2){
+        } else if (type == 2) {
             api = Retro.getAppApi().getUserSubmitIllust(sUserModel.getResponse().getAccess_token(),
                     mUserDetailResponse.getUser().getId(), "illust");
-        }else if(type == 3){
+        } else if (type == 3) {
             api = Retro.getAppApi().getUserSubmitIllust(sUserModel.getResponse().getAccess_token(),
                     mUserDetailResponse.getUser().getId(), "manga");
         }
 
-        if(api != null) {
+        if (api != null) {
             api.subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new NullCtrl<ListIllustResponse>() {

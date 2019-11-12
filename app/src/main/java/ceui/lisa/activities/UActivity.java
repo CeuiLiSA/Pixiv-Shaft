@@ -6,15 +6,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-
 import com.bumptech.glide.Glide;
 import com.zhy.view.flowlayout.FlowLayout;
 import com.zhy.view.flowlayout.TagAdapter;
 import com.zhy.view.flowlayout.TagFlowLayout;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,6 +24,7 @@ import ceui.lisa.interfaces.Display;
 import ceui.lisa.model.UserDetailResponse;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
+import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
@@ -52,7 +49,7 @@ public class UActivity extends BaseActivity<ActicityUserBinding> implements Disp
 
     @Override
     protected void initData() {
-        int userID = getIntent().getIntExtra("user id", 0);
+        int userID = getIntent().getIntExtra(Params.USER_ID, 0);
         Retro.getAppApi().getUserDetail(sUserModel.getResponse().getAccess_token(), userID)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -95,20 +92,20 @@ public class UActivity extends BaseActivity<ActicityUserBinding> implements Disp
         baseBind.tagType.setOnTagClickListener(new TagFlowLayout.OnTagClickListener() {
             @Override
             public boolean onTagClick(View view, int position, FlowLayout parent) {
-                if(position == 0){
-                    Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-                    intent.putExtra("user id", currentUser.getUser().getId());
-                    intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "好P友");
+                if (position == 0) {
+                    Intent intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(Params.USER_ID, currentUser.getUser().getId());
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "好P友");
                     startActivity(intent);
-                }else if(position == 1){
-                    Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-                    intent.putExtra("user id", currentUser.getUser().getId());
-                    intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "正在关注");
+                } else if (position == 1) {
+                    Intent intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(Params.USER_ID, currentUser.getUser().getId());
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "正在关注");
                     startActivity(intent);
-                }else if(position == 2){
-                    Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-                    intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "详细信息");
-                    intent.putExtra(TemplateFragmentActivity.EXTRA_OBJECT, (Serializable) currentUser);
+                } else if (position == 2) {
+                    Intent intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "详细信息");
+                    intent.putExtra(TemplateActivity.EXTRA_OBJECT, currentUser);
                     startActivity(intent);
                 }
                 return false;
@@ -116,8 +113,8 @@ public class UActivity extends BaseActivity<ActicityUserBinding> implements Disp
         });
 
 
-        if(currentUser.getUser().getId() != sUserModel.getResponse().getUser().getId()){
-            if(currentUser.getUser().isIs_followed()){
+        if (currentUser.getUser().getId() != sUserModel.getResponse().getUser().getId()) {
+            if (currentUser.getUser().isIs_followed()) {
                 baseBind.send.setImageResource(R.drawable.ic_favorite_accent_24dp);
             } else {
                 baseBind.send.setImageResource(R.drawable.ic_favorite_black_24dp);
@@ -126,11 +123,11 @@ public class UActivity extends BaseActivity<ActicityUserBinding> implements Disp
             baseBind.send.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if(currentUser.getUser().isIs_followed()){
+                    if (currentUser.getUser().isIs_followed()) {
                         baseBind.send.setImageResource(R.drawable.ic_favorite_black_24dp);
                         currentUser.getUser().setIs_followed(false);
                         PixivOperate.postUnFollowUser(currentUser.getUser().getId());
-                    }else {
+                    } else {
                         baseBind.send.setImageResource(R.drawable.ic_favorite_accent_24dp);
                         currentUser.getUser().setIs_followed(true);
                         PixivOperate.postFollowUser(currentUser.getUser().getId(),

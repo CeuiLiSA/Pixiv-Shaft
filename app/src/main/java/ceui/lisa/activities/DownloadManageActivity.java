@@ -6,23 +6,21 @@ import android.view.MenuItem;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import com.ToxicBakery.viewpager.transforms.DrawerTransformer;
-import com.google.android.material.tabs.TabLayout;
 
 import ceui.lisa.R;
 import ceui.lisa.database.AppDatabase;
-import ceui.lisa.databinding.ActivityDownloadManageBinding;
+import ceui.lisa.databinding.ViewpagerWithTablayoutBinding;
 import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentDownloadFinish;
 import ceui.lisa.fragments.FragmentNowDownload;
 import ceui.lisa.utils.Common;
 
-public class DownloadManageActivity extends BaseActivity<ActivityDownloadManageBinding> {
+public class DownloadManageActivity extends BaseActivity<ViewpagerWithTablayoutBinding> {
 
     private static final String[] CHINESE_TITLES = new String[]{
             Shaft.getContext().getString(R.string.now_downloading),
@@ -32,7 +30,7 @@ public class DownloadManageActivity extends BaseActivity<ActivityDownloadManageB
 
     @Override
     protected int initLayout() {
-        return R.layout.activity_download_manage;
+        return R.layout.viewpager_with_tablayout;
     }
 
     @Override

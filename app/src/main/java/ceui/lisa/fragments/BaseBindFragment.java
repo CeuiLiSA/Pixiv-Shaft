@@ -1,7 +1,6 @@
 package ceui.lisa.fragments;
 
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,12 +17,11 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import ceui.lisa.interfaces.Binding;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 
 
-public abstract class BaseBindFragment<Layout extends ViewDataBinding> extends Fragment{
+public abstract class BaseBindFragment<Layout extends ViewDataBinding> extends Fragment {
 
     protected Context mContext;
     protected FragmentActivity mActivity;
@@ -42,6 +40,11 @@ public abstract class BaseBindFragment<Layout extends ViewDataBinding> extends F
 
         mContext = getContext();
         mActivity = getActivity();
+
+        Bundle bundle = getArguments();
+        if (bundle != null) {
+            initBundle(bundle);
+        }
 
         if (eventBusEnable()) {
             EventBus.getDefault().register(this);
@@ -77,7 +80,11 @@ public abstract class BaseBindFragment<Layout extends ViewDataBinding> extends F
         return parentView;
     }
 
-    public void initView(View view){
+    public void initBundle(Bundle bundle) {
+
+    }
+
+    public void initView(View view) {
 
     }
 

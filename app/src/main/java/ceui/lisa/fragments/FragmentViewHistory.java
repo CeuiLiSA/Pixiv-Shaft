@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.TemplateFragmentActivity;
+import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UActivity;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.ViewHistoryAdapter;
@@ -37,6 +37,7 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.utils.ListObserver;
+import ceui.lisa.utils.Params;
 import ceui.lisa.view.LinearItemDecoration;
 import io.reactivex.Observable;
 import io.reactivex.ObservableOnSubscribe;
@@ -66,7 +67,7 @@ public class FragmentViewHistory extends BaseFragment {
     @Override
     View initView(View v) {
         mToolbar = v.findViewById(R.id.toolbar);
-        ((TemplateFragmentActivity) getActivity()).setSupportActionBar(mToolbar);
+        ((TemplateActivity) getActivity()).setSupportActionBar(mToolbar);
         mToolbar.setNavigationOnClickListener(view -> getActivity().finish());
         mToolbar.setTitle("浏览记录");
         mProgressBar = v.findViewById(R.id.progress);
@@ -157,14 +158,14 @@ public class FragmentViewHistory extends BaseFragment {
                         mAdapter.setOnItemClickListener(new OnItemClickListener() {
                             @Override
                             public void onItemClick(View v, int position, int viewType) {
-                                if(viewType == 0) {
+                                if (viewType == 0) {
                                     IllustChannel.get().setIllustList(allIllusts);
                                     Intent intent = new Intent(mContext, ViewPagerActivity.class);
                                     intent.putExtra("position", position);
                                     startActivity(intent);
-                                }else if(viewType == 1){
+                                } else if (viewType == 1) {
                                     Intent intent = new Intent(mContext, UActivity.class);
-                                    intent.putExtra("user id", (int) v.getTag());
+                                    intent.putExtra(Params.USER_ID, (int) v.getTag());
                                     startActivity(intent);
                                 }
                             }

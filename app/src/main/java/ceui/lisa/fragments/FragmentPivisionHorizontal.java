@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.TemplateFragmentActivity;
+import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.adapters.PivisionHorizontalAdapter;
 import ceui.lisa.databinding.FragmentPivisionHorizontalBinding;
 import ceui.lisa.http.NullCtrl;
@@ -59,8 +59,8 @@ public class FragmentPivisionHorizontal extends BaseBindFragment<FragmentPivisio
         mAdapter = new PivisionHorizontalAdapter(allItems, mContext);
         baseBind.recyclerView.setAdapter(mAdapter);
         baseBind.seeMore.setOnClickListener(view -> {
-            Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "特辑");
+            Intent intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "特辑");
             startActivity(intent);
         });
         getFirstData();
