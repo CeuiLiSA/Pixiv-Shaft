@@ -88,6 +88,7 @@
                                 android:layout_width="wrap_content"
                                 android:id="@+id/user_address"
                                 android:gravity="center_vertical"
+                                android:visibility="gone"
                                 android:textColor="@color/dark_text"
                                 android:drawableStart="@drawable/ic_location_on_black_24dp"
                                 android:layout_below="@+id/center"
@@ -162,7 +163,7 @@
             android:fitsSystemWindows="true"
             android:background="@android:color/transparent"
             app:titleTextColor="@color/white"
-            app:title="Home"
+            app:title=" "
             app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
             app:popupTheme="@style/AppTheme.PopupOverlay" />
     </RelativeLayout>

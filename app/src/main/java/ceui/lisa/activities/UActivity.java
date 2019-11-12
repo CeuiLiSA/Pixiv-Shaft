@@ -78,6 +78,7 @@ public class UActivity extends BaseActivity<ActicityUserBinding> implements Disp
 
         baseBind.userName.setText(currentUser.getUser().getName());
         baseBind.userAddress.setText(Common.checkEmpty(currentUser.getProfile().getRegion()));
+        baseBind.userAddress.setVisibility(View.VISIBLE);
         List<String> tagList = new ArrayList<>();
         tagList.add("好P友: " + currentUser.getProfile().getTotal_mypixiv_users());
         tagList.add("关注: " + currentUser.getProfile().getTotal_follow_users());

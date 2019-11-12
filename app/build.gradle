@@ -106,6 +106,7 @@ dependencies {
     implementation 'com.hyman:flowlayout-lib:1.1.2'
     implementation 'com.github.razerdp:BasePopup:2.2.1'
     implementation 'android.arch.persistence.room:runtime:1.1.1'
+    implementation 'androidx.lifecycle:lifecycle-extensions:2.0.0'
     kapt 'android.arch.persistence.room:compiler:1.1.1'
     implementation 'jp.wasabeef:recyclerview-animators:3.0.0'
 

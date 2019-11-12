@@ -175,6 +175,7 @@ public abstract class FragmentList<Response extends ListShow<ItemBean>, ItemBean
                             }
                         });
             } else {
+                Common.showToast("没有更多数据啦");
                 baseBind.refreshLayout.finishLoadMore(true);
             }
         } else {

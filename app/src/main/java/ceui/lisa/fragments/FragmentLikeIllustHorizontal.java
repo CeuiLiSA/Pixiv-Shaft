@@ -1,6 +1,7 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -21,6 +22,7 @@ import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.model.ListUserResponse;
 import ceui.lisa.model.UserDetailResponse;
+import ceui.lisa.ui.fragment.BlankFragment;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.IllustChannel;
@@ -136,7 +138,6 @@ public class FragmentLikeIllustHorizontal extends BaseBindFragment<FragmentLikeI
                                 allItems.addAll(listIllustResponse.getList());
                             }
                             mAdapter.notifyItemRangeInserted(0, allItems.size());
-                            baseBind.titleRela.setVisibility(View.VISIBLE);
                         }
                     });
         }

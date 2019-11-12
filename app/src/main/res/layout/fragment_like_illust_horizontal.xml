@@ -13,7 +13,6 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:id="@+id/title_rela"
-            android:visibility="gone"
             android:layout_height="wrap_content">
 
             <View
