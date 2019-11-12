@@ -122,8 +122,7 @@ public class FragmentSearchResult extends NetListFragment<FragmentSearchResultBi
                     return true;
                 }
                 Common.hideKeyboard(mActivity);
-                mAdapter.clear();
-                getFirstData();
+                baseBind.refreshLayout.autoRefresh();
                 return true;
             }
         });
@@ -162,10 +161,7 @@ public class FragmentSearchResult extends NetListFragment<FragmentSearchResultBi
                 if (isPopular) {
                     getRankToken();
                 } else {
-                    baseBind.recyclerView.requestFocus();
-                    baseBind.recyclerView.performClick();
-                    mAdapter.clear();
-                    getFirstData();
+                    baseBind.refreshLayout.autoRefresh();
                 }
             }
 
@@ -231,8 +227,7 @@ public class FragmentSearchResult extends NetListFragment<FragmentSearchResultBi
         if (sUserModel.getResponse().getUser().isIs_premium()) {
             sort = "popular_desc";
             starSize = "";
-            mAdapter.clear();
-            getFirstData();
+            baseBind.refreshLayout.autoRefresh();
         } else {
             baseBind.progress.setVisibility(View.VISIBLE);
             Retro.getRankApi().getRankToken()
@@ -245,8 +240,7 @@ public class FragmentSearchResult extends NetListFragment<FragmentSearchResultBi
                                 token = "Bearer " + tempTokenResponse.getToken();
                                 sort = "popular_desc";
                                 starSize = "";
-                                mAdapter.clear();
-                                getFirstData();
+                                baseBind.refreshLayout.autoRefresh();
                             }
                             baseBind.progress.setVisibility(View.GONE);
                         }
