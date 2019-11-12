@@ -6,6 +6,7 @@ import android.view.KeyEvent;
 import androidx.fragment.app.Fragment;
 
 import ceui.lisa.fragments.FragmentAbout;
+import ceui.lisa.fragments.FragmentAboutUser;
 import ceui.lisa.fragments.FragmentBlank;
 import ceui.lisa.fragments.FragmentBookTag;
 import ceui.lisa.fragments.FragmentComment;
@@ -37,6 +38,7 @@ import ceui.lisa.utils.ReverseResult;
 public class TemplateFragmentActivity extends FragmentActivity {
 
     public static final String EXTRA_FRAGMENT = "dataType";
+    public static final String EXTRA_OBJECT = "object";
     public static final String EXTRA_KEYWORD = "keyword";
     public static final String EXTRA_ILLUST_ID = "illust id";
     public static final String EXTRA_ILLUST_TITLE = "illust title";
@@ -105,11 +107,13 @@ public class TemplateFragmentActivity extends FragmentActivity {
                 case "正在关注":
                     return FragmentFollowUser.newInstance(
                             getIntent().getIntExtra("user id", 0),
-                            FragmentLikeIllust.TYPE_PUBLUC);
+                            FragmentLikeIllust.TYPE_PUBLUC, true);
                 case "好P友":
                     return new FragmentNiceFriend();
                 case "搜索":
                     return new FragmentSearch();
+                case "详细信息":
+                    return new FragmentAboutUser();
                 case "一言":
                     return new FragmentT();
                 case "插画作品":

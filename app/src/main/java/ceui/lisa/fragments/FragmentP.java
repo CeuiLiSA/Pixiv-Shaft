@@ -8,7 +8,7 @@ import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.activities.UserDetailActivity;
+import ceui.lisa.activities.UActivity;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.EAdapter;
 import ceui.lisa.databinding.RecyUserEventBinding;
@@ -68,7 +68,7 @@ public class FragmentP extends FragmentList<ListIllustResponse, IllustsBean, Rec
                     intent.putExtra("position", position);
                     startActivity(intent);
                 } else if (viewType == 1) {
-                    Intent intent = new Intent(mContext, UserDetailActivity.class);
+                    Intent intent = new Intent(mContext, UActivity.class);
                     intent.putExtra("user id", allItems.get(position).getUser().getId());
                     startActivity(intent);
                 } else if (viewType == 2) {

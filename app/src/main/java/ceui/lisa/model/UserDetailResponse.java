@@ -2,12 +2,13 @@ package ceui.lisa.model;
 
 import android.text.TextUtils;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class UserDetailResponse {
+public class UserDetailResponse implements Serializable{
 
     private UserBean user;
     private ProfileBean profile;
@@ -47,7 +48,7 @@ public class UserDetailResponse {
     }
 
 
-    public static class ProfileBean {
+    public static class ProfileBean implements Serializable {
         /**
          * webpage : http://blog.naver.com/wan_ke
          * gender :
@@ -93,7 +94,7 @@ public class UserDetailResponse {
         private int total_illust_bookmarks_public;
         private int total_illust_series;
         private int total_novel_series;
-        private Object background_image_url;
+        private String background_image_url;
         private String twitter_account;
         private String twitter_url;
         private String pawoo_url;
@@ -244,11 +245,11 @@ public class UserDetailResponse {
             this.total_novel_series = total_novel_series;
         }
 
-        public Object getBackground_image_url() {
+        public String getBackground_image_url() {
             return background_image_url;
         }
 
-        public void setBackground_image_url(Object background_image_url) {
+        public void setBackground_image_url(String background_image_url) {
             this.background_image_url = background_image_url;
         }
 
@@ -293,7 +294,7 @@ public class UserDetailResponse {
         }
     }
 
-    public static class ProfilePublicityBean {
+    public static class ProfilePublicityBean implements Serializable {
         /**
          * gender : public
          * region : public
@@ -359,7 +360,7 @@ public class UserDetailResponse {
         }
     }
 
-    public static class WorkspaceBean {
+    public static class WorkspaceBean implements Serializable {
         /**
          * pc :
          * monitor :

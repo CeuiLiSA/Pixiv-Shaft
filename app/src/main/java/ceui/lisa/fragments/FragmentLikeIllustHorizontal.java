@@ -55,14 +55,16 @@ public class FragmentLikeIllustHorizontal extends BaseBindFragment<FragmentLikeI
 
     @Override
     public void initView(View view) {
-        baseBind.recyclerView.addItemDecoration(new LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
+        baseBind.recyclerView.addItemDecoration(new
+                LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
         FadeInLeftAnimator landingAnimator = new FadeInLeftAnimator();
         landingAnimator.setAddDuration(animateDuration);
         landingAnimator.setRemoveDuration(animateDuration);
         landingAnimator.setMoveDuration(animateDuration);
         landingAnimator.setChangeDuration(animateDuration);
         baseBind.recyclerView.setItemAnimator(landingAnimator);
-        LinearLayoutManager manager = new LinearLayoutManager(mContext, LinearLayoutManager.HORIZONTAL, false);
+        LinearLayoutManager manager = new LinearLayoutManager(
+                mContext, LinearLayoutManager.HORIZONTAL, false);
         baseBind.recyclerView.setLayoutManager(manager);
         baseBind.recyclerView.setHasFixedSize(true);
         mAdapter = new LAdapter(allItems, mContext);
@@ -78,24 +80,29 @@ public class FragmentLikeIllustHorizontal extends BaseBindFragment<FragmentLikeI
         baseBind.recyclerView.setAdapter(mAdapter);
         ViewGroup.LayoutParams layoutParams = baseBind.recyclerView.getLayoutParams();
         layoutParams.width = MATCH_PARENT;
-        layoutParams.height = mAdapter.getImageSize();
+        layoutParams.height = mAdapter.getImageSize() + mContext.getResources()
+                .getDimensionPixelSize(R.dimen.sixteen_dp);
         baseBind.recyclerView.setLayoutParams(layoutParams);
         if(type == 1){
             baseBind.title.setText("插画/漫画收藏");
-            baseBind.howMany.setText(String.format("%d件作品", mUserDetailResponse.getProfile().getTotal_illust_bookmarks_public()));
+            baseBind.howMany.setText(String.format(getString(R.string.how_many_illust_works),
+                    mUserDetailResponse.getProfile().getTotal_illust_bookmarks_public()));
         }else if(type == 2){
             baseBind.title.setText("插画作品");
-            baseBind.howMany.setText(String.format("%d件作品", mUserDetailResponse.getProfile().getTotal_illusts()));
+            baseBind.howMany.setText(String.format(getString(R.string.how_many_illust_works),
+                    mUserDetailResponse.getProfile().getTotal_illusts()));
 
         }else if(type == 3){
             baseBind.title.setText("漫画作品");
-            baseBind.howMany.setText(String.format("%d件作品", mUserDetailResponse.getProfile().getTotal_manga()));
+            baseBind.howMany.setText(String.format(getString(R.string.how_many_illust_works),
+                    mUserDetailResponse.getProfile().getTotal_manga()));
         }
         baseBind.howMany.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, baseBind.title.getText().toString());
+                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
+                        baseBind.title.getText().toString());
                 intent.putExtra("user id", mUserDetailResponse.getUser().getId());
                 startActivity(intent);
             }

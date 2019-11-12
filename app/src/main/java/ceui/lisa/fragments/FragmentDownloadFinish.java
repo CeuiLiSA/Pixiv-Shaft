@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.activities.ImageDetailActivity;
-import ceui.lisa.activities.UserDetailActivity;
+import ceui.lisa.activities.UActivity;
 import ceui.lisa.adapters.DownlistAdapter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.DownloadEntity;
@@ -92,7 +92,7 @@ public class FragmentDownloadFinish extends BaseAsyncFragment<DownlistAdapter, D
                     intent.putExtra("index", position);
                     startActivity(intent);
                 } else if (viewType == 1) {
-                    Intent intent = new Intent(mContext, UserDetailActivity.class);
+                    Intent intent = new Intent(mContext, UActivity.class);
                     intent.putExtra("user id", allIllusts.get(position).getUser().getId());
                     startActivity(intent);
                 }

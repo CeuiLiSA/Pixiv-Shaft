@@ -7,7 +7,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import ceui.lisa.activities.UActivity;
-import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.adapters.CAdapter;
 import ceui.lisa.databinding.RecyCommentListBinding;
 import ceui.lisa.http.Retro;
@@ -20,7 +19,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class FragmentC extends FragmentList<IllustCommentsResponse, CommentsBean, RecyCommentListBinding> {
 
-    public static final String[] OPTIONS = new String[]{"回复评论", "复制评论"};
+    private static final String[] OPTIONS = new String[]{"回复评论", "复制评论"};
     private int illustID;
 
     public static FragmentC newInstance(int id) {

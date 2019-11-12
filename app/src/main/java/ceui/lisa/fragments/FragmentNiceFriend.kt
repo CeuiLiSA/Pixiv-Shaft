@@ -5,7 +5,7 @@ import android.view.View
 import android.widget.Button
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
-import ceui.lisa.activities.UserDetailActivity
+import ceui.lisa.activities.UActivity
 import ceui.lisa.adapters.UAdapter
 import ceui.lisa.databinding.RecyUserPreviewBinding
 import ceui.lisa.http.Retro
@@ -31,7 +31,7 @@ class FragmentNiceFriend : FragmentList<ListUserResponse, UserPreviewsBean, Recy
         (mAdapter as UAdapter).setFullClickListener(object : FullClickListener {
             override fun onItemClick(v: View, position: Int, viewType: Int) {
                 if (viewType == 0) { //普通item
-                    val intent = Intent(mContext, UserDetailActivity::class.java)
+                    val intent = Intent(mContext, UActivity::class.java)
                     intent.putExtra("user id", allItems[position].user.id)
                     startActivity(intent)
                 } else if (viewType == 1) { //关注按钮

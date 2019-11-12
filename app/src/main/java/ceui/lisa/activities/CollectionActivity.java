@@ -46,9 +46,9 @@ public class CollectionActivity extends BaseActivity<ActivityDownloadManageBindi
                 FragmentLikeIllust.newInstance(sUserModel.getResponse().getUser().getId(),
                         FragmentLikeIllust.TYPE_PRIVATE),
                 FragmentFollowUser.newInstance(sUserModel.getResponse().getUser().getId(),
-                        FragmentLikeIllust.TYPE_PUBLUC),
+                        FragmentLikeIllust.TYPE_PUBLUC, false),
                 FragmentFollowUser.newInstance(sUserModel.getResponse().getUser().getId(),
-                        FragmentLikeIllust.TYPE_PRIVATE)
+                        FragmentLikeIllust.TYPE_PRIVATE, false)
         };
         baseBind.viewPager.setAdapter(new FragmentStatePagerAdapter(getSupportFragmentManager()) {
             @Override

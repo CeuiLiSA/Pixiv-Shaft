@@ -1,5 +1,6 @@
 package ceui.lisa.activities;
 
+import android.content.Intent;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,7 +12,9 @@ import androidx.fragment.app.FragmentTransaction;
 import com.bumptech.glide.Glide;
 import com.zhy.view.flowlayout.FlowLayout;
 import com.zhy.view.flowlayout.TagAdapter;
+import com.zhy.view.flowlayout.TagFlowLayout;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,6 +24,7 @@ import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.fragments.FragmentLikeIllustHorizontal;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
+import ceui.lisa.interfaces.Display;
 import ceui.lisa.model.UserDetailResponse;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
@@ -31,9 +35,8 @@ import io.reactivex.schedulers.Schedulers;
 import static ceui.lisa.activities.Shaft.sUserModel;
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
-public class UActivity extends BaseActivity<ActicityUserBinding> {
+public class UActivity extends BaseActivity<ActicityUserBinding> implements Display<UserDetailResponse> {
 
-    private int userID;
     private UserDetailResponse currentUser;
 
     @Override
@@ -49,20 +52,26 @@ public class UActivity extends BaseActivity<ActicityUserBinding> {
 
     @Override
     protected void initData() {
-        userID = getIntent().getIntExtra("user id", 0);
+        int userID = getIntent().getIntExtra("user id", 0);
         Retro.getAppApi().getUserDetail(sUserModel.getResponse().getAccess_token(), userID)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ErrorCtrl<UserDetailResponse>() {
                     @Override
                     public void onNext(UserDetailResponse user) {
-                        setResult(user);
+                        show(user);
                     }
                 });
     }
 
-    private void setResult(UserDetailResponse userDetailResponse){
-        currentUser = userDetailResponse;
+    @Override
+    public boolean hideStatusBar() {
+        return true;
+    }
+
+    @Override
+    public void show(UserDetailResponse pUserDetailResponse) {
+        currentUser = pUserDetailResponse;
         Glide.with(mContext).load(GlideUtil.getMediumImg(currentUser
                 .getUser().getProfile_image_urls().getMedium()))
                 .placeholder(R.color.light_bg).into(baseBind.userHead);
@@ -70,9 +79,9 @@ public class UActivity extends BaseActivity<ActicityUserBinding> {
         baseBind.userName.setText(currentUser.getUser().getName());
         baseBind.userAddress.setText(Common.checkEmpty(currentUser.getProfile().getRegion()));
         List<String> tagList = new ArrayList<>();
-        tagList.add("好P友: " + userDetailResponse.getProfile().getTotal_mypixiv_users());
-        tagList.add("关注: " + userDetailResponse.getProfile().getTotal_follow_users());
-        tagList.addAll(currentUser.getTag());
+        tagList.add("好P友: " + currentUser.getProfile().getTotal_mypixiv_users());
+        tagList.add("关注: " + currentUser.getProfile().getTotal_follow_users());
+        tagList.add("详细信息");
         baseBind.tagType.setAdapter(new TagAdapter<String>(tagList) {
             @Override
             public View getView(FlowLayout parent, int position, String s) {
@@ -82,7 +91,28 @@ public class UActivity extends BaseActivity<ActicityUserBinding> {
                 return tv;
             }
         });
-
+        baseBind.tagType.setOnTagClickListener(new TagFlowLayout.OnTagClickListener() {
+            @Override
+            public boolean onTagClick(View view, int position, FlowLayout parent) {
+                if(position == 0){
+                    Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+                    intent.putExtra("user id", currentUser.getUser().getId());
+                    intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "好P友");
+                    startActivity(intent);
+                }else if(position == 1){
+                    Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+                    intent.putExtra("user id", currentUser.getUser().getId());
+                    intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "正在关注");
+                    startActivity(intent);
+                }else if(position == 2){
+                    Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
+                    intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "详细信息");
+                    intent.putExtra(TemplateFragmentActivity.EXTRA_OBJECT, (Serializable) currentUser);
+                    startActivity(intent);
+                }
+                return false;
+            }
+        });
 
 
         if(currentUser.getUser().getId() != sUserModel.getResponse().getUser().getId()){
@@ -155,10 +185,5 @@ public class UActivity extends BaseActivity<ActicityUserBinding> {
                                     .newInstance(currentUser, 3))// 1插画收藏    2插画作品     3漫画作品
                     .commit();
         }
-    }
-
-    @Override
-    public boolean hideStatusBar() {
-        return true;
     }
 }

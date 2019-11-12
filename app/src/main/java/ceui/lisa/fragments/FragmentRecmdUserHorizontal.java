@@ -14,7 +14,6 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.UActivity;
-import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.adapters.UserHorizontalAdapter;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;

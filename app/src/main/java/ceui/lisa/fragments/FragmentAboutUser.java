@@ -1,6 +1,7 @@
 package ceui.lisa.fragments;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.TemplateFragmentActivity;
 import ceui.lisa.databinding.FragmentAboutUserBinding;
 import ceui.lisa.interfaces.Display;
 import ceui.lisa.model.UserDetailResponse;
@@ -35,5 +36,8 @@ public class FragmentAboutUser extends BaseBindFragment<FragmentAboutUserBinding
 
     @Override
     void initData() {
+        UserDetailResponse user = ((UserDetailResponse) mActivity.getIntent().getSerializableExtra(
+                TemplateFragmentActivity.EXTRA_OBJECT));
+        show(user);
     }
 }

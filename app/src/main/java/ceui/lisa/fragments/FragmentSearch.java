@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateFragmentActivity;
-import ceui.lisa.activities.UserDetailActivity;
+import ceui.lisa.activities.UActivity;
 import ceui.lisa.adapters.SearchHintAdapter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.SearchEntity;
@@ -197,7 +197,7 @@ public class FragmentSearch extends BaseBindFragment<FragmentSearchBinding> {
         } else if (searchType == 3) {
             if (isNumeric(keyWord)) {
                 insertSearchHistory(keyWord);
-                Intent intent = new Intent(mContext, UserDetailActivity.class);
+                Intent intent = new Intent(mContext, UActivity.class);
                 intent.putExtra("user id", Integer.valueOf(keyWord));
                 startActivity(intent);
             } else {
@@ -326,7 +326,7 @@ public class FragmentSearch extends BaseBindFragment<FragmentSearchBinding> {
                 } else if (history.get(position).getSearchType() == 3) {
                     history.get(position).setSearchTime(System.currentTimeMillis());
                     AppDatabase.getAppDatabase(mContext).searchDao().insert(history.get(position));
-                    Intent intent = new Intent(mContext, UserDetailActivity.class);
+                    Intent intent = new Intent(mContext, UActivity.class);
                     intent.putExtra("user id", Integer.valueOf(history.get(position).getKeyword()));
                     startActivity(intent);
                 }

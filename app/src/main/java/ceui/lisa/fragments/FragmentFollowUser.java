@@ -6,7 +6,6 @@ import android.widget.Button;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.UActivity;
-import ceui.lisa.activities.UserDetailActivity;
 import ceui.lisa.adapters.UAdapter;
 import ceui.lisa.databinding.RecyUserPreviewBinding;
 import ceui.lisa.http.Retro;
@@ -22,17 +21,19 @@ public class FragmentFollowUser extends FragmentList<ListUserResponse, UserPrevi
 
     private int userID;
     private String starType;
+    private boolean showToolbar = false;
 
-    public static FragmentFollowUser newInstance(int userID, String starType) {
+    public static FragmentFollowUser newInstance(int userID, String starType, boolean pShowToolbar) {
         FragmentFollowUser followUser = new FragmentFollowUser();
         followUser.userID = userID;
         followUser.starType = starType;
+        followUser.showToolbar = pShowToolbar;
         return followUser;
     }
 
     @Override
     public boolean showToolbar() {
-        return userID != sUserModel.getResponse().getUser().getId();
+        return showToolbar;
     }
 
     @Override

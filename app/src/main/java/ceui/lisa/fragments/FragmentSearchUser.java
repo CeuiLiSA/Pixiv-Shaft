@@ -5,7 +5,7 @@ import android.view.View;
 import android.widget.Button;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.UserDetailActivity;
+import ceui.lisa.activities.UActivity;
 import ceui.lisa.adapters.UAdapter;
 import ceui.lisa.databinding.RecyUserPreviewBinding;
 import ceui.lisa.http.Retro;
@@ -52,7 +52,7 @@ public class FragmentSearchUser extends FragmentList<ListUserResponse, UserPrevi
             @Override
             public void onItemClick(View v, int position, int viewType) {
                 if (viewType == 0) { //普通item
-                    Intent intent = new Intent(mContext, UserDetailActivity.class);
+                    Intent intent = new Intent(mContext, UActivity.class);
                     intent.putExtra("user id", allItems.get(position).getUser().getId());
                     startActivity(intent);
                 } else if (viewType == 1) { //关注按钮

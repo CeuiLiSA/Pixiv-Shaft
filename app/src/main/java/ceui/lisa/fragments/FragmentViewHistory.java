@@ -24,7 +24,7 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateFragmentActivity;
-import ceui.lisa.activities.UserDetailActivity;
+import ceui.lisa.activities.UActivity;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.ViewHistoryAdapter;
 import ceui.lisa.database.AppDatabase;
@@ -163,7 +163,7 @@ public class FragmentViewHistory extends BaseFragment {
                                     intent.putExtra("position", position);
                                     startActivity(intent);
                                 }else if(viewType == 1){
-                                    Intent intent = new Intent(mContext, UserDetailActivity.class);
+                                    Intent intent = new Intent(mContext, UActivity.class);
                                     intent.putExtra("user id", (int) v.getTag());
                                     startActivity(intent);
                                 }
