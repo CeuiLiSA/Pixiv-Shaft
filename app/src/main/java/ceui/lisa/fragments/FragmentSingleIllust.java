@@ -164,7 +164,7 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, TemplateActivity.class);
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关作品");
-                intent.putExtra(TemplateActivity.EXTRA_ILLUST_ID, illust.getId());
+                intent.putExtra(Params.ILLUST_ID, illust.getId());
                 intent.putExtra(TemplateActivity.EXTRA_ILLUST_TITLE, illust.getTitle());
                 startActivity(intent);
             }
@@ -174,7 +174,7 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, TemplateActivity.class);
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关评论");
-                intent.putExtra(TemplateActivity.EXTRA_ILLUST_ID, illust.getId());
+                intent.putExtra(Params.ILLUST_ID, illust.getId());
                 intent.putExtra(TemplateActivity.EXTRA_ILLUST_TITLE, illust.getTitle());
                 startActivity(intent);
             }
@@ -202,7 +202,7 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
 
                 } else {
                     Intent intent = new Intent(mContext, TemplateActivity.class);
-                    intent.putExtra(TemplateActivity.EXTRA_ILLUST_ID, illust.getId());
+                    intent.putExtra(Params.ILLUST_ID, illust.getId());
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏");
                     startActivity(intent);
                 }

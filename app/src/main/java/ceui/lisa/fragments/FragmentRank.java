@@ -2,6 +2,7 @@ package ceui.lisa.fragments;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.view.View;
 
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
@@ -21,6 +22,7 @@ import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.IllustChannel;
+import ceui.lisa.utils.Params;
 import ceui.lisa.view.SpacesItemDecoration;
 import io.reactivex.Observable;
 
@@ -36,10 +38,18 @@ public class FragmentRank extends NetListFragment<FragmentBaseListBinding, ListI
     private String queryDate = "";
 
     public static FragmentRank newInstance(int index, String date) {
-        FragmentRank fragmentRank = new FragmentRank();
-        fragmentRank.mIndex = index;
-        fragmentRank.queryDate = date;
-        return fragmentRank;
+        Bundle args = new Bundle();
+        args.putInt(Params.INDEX, index);
+        args.putString(Params.DAY, date);
+        FragmentRank fragment = new FragmentRank();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void initBundle(Bundle bundle) {
+        mIndex = bundle.getInt(Params.INDEX);
+        queryDate = bundle.getString(Params.DAY);
     }
 
     @Override

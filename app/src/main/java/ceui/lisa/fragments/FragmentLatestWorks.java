@@ -17,6 +17,7 @@ import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.IllustChannel;
+import ceui.lisa.utils.Params;
 import ceui.lisa.view.SpacesItemDecoration;
 import io.reactivex.Observable;
 
@@ -27,7 +28,7 @@ public class FragmentLatestWorks extends NetListFragment<FragmentBaseListBinding
 
     public static FragmentLatestWorks newInstance(String paramWorkType) {
         Bundle args = new Bundle();
-        args.putString("dataType", paramWorkType);
+        args.putString(Params.DATA_TYPE, paramWorkType);
         FragmentLatestWorks fragment = new FragmentLatestWorks();
         fragment.setArguments(args);
         return fragment;
@@ -35,7 +36,7 @@ public class FragmentLatestWorks extends NetListFragment<FragmentBaseListBinding
 
     @Override
     public void initBundle(Bundle bundle) {
-        workType = bundle.getString("dataType");
+        workType = bundle.getString(Params.DATA_TYPE);
     }
 
     @Override

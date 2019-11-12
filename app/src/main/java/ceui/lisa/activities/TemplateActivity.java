@@ -41,7 +41,6 @@ public class TemplateActivity extends FragmentActivity {
     public static final String EXTRA_FRAGMENT = "dataType";
     public static final String EXTRA_OBJECT = "object";
     public static final String EXTRA_KEYWORD = "keyword";
-    public static final String EXTRA_ILLUST_ID = "illust id";
     public static final String EXTRA_ILLUST_TITLE = "illust title";
 
     @Override
@@ -56,7 +55,7 @@ public class TemplateActivity extends FragmentActivity {
                     return FragmentSearchResult.newInstance(keyword);
                 }
                 case "相关作品": {
-                    int id = intent.getIntExtra(EXTRA_ILLUST_ID, 0);
+                    int id = intent.getIntExtra(Params.ILLUST_ID, 0);
                     String title = intent.getStringExtra(EXTRA_ILLUST_TITLE);
                     return FragmentRelatedIllust.newInstance(id, title);
                 }
@@ -81,7 +80,7 @@ public class TemplateActivity extends FragmentActivity {
                     ReverseResult result = intent.getParcelableExtra("result");
                     return FragmentWebView.newInstance(result.getTitle(), result.getUrl(), result.getResponseBody(), result.getMime(), result.getEncoding(), result.getHistory_url());
                 case "相关评论": {
-                    int id = intent.getIntExtra(EXTRA_ILLUST_ID, 0);
+                    int id = intent.getIntExtra(Params.ILLUST_ID, 0);
                     String title = intent.getStringExtra(EXTRA_ILLUST_TITLE);
                     return FragmentComment.newInstance(id, title);
                 }
@@ -94,7 +93,7 @@ public class TemplateActivity extends FragmentActivity {
                     return FragmentBookTag.newInstance(keyword);
                 }
                 case "按标签收藏": {
-                    int id = intent.getIntExtra(EXTRA_ILLUST_ID, 0);
+                    int id = intent.getIntExtra(Params.ILLUST_ID, 0);
                     return FragmentSelectBookTag.newInstance(id);
                 }
                 case "关于软件":

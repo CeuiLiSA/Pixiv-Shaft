@@ -1,5 +1,7 @@
 package ceui.lisa.http;
 
+import android.text.TextUtils;
+
 import com.google.gson.Gson;
 
 import java.io.IOException;
@@ -28,10 +30,16 @@ public abstract class ErrorCtrl<T> implements Observer<T> {
                 ErrorResponse response = gson.fromJson(responseString, ErrorResponse.class);
                 if (response != null) {
                     if (response.getErrors() != null) {
-                        Common.showToast(response.getErrors().getSystem().getMessage());
+                        Common.showToast(response.getErrors().getSystem().getMessage(), true);
                     }
                     if (response.getError() != null) {
-                        Common.showToast(response.getError().getMessage());
+                        if(!TextUtils.isEmpty(response.getError().getMessage())) {
+                            Common.showToast(response.getError().getMessage(), true);
+                        } else if(!TextUtils.isEmpty(response.getError().getReason())) {
+                            Common.showToast(response.getError().getReason(), true);
+                        } else if(!TextUtils.isEmpty(response.getError().getUser_message())) {
+                            Common.showToast(response.getError().getUser_message(), true);
+                        }
                     }
                 } else {
                     Common.showToast(e.toString());
