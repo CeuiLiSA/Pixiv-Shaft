@@ -6,9 +6,12 @@ import android.view.View;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import ceui.lisa.activities.ViewPagerActivity;
+import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapter;
+import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.http.Retro;
+import ceui.lisa.interfaces.NetControl;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
@@ -22,7 +25,8 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 /**
  * 某人創作的漫画
  */
-public class FragmentUserManga extends FragmentList<ListIllustResponse, IllustsBean, RecyIllustStaggerBinding> {
+public class FragmentUserManga extends NetListFragment<FragmentBaseListBinding,
+        ListIllustResponse, IllustsBean, RecyIllustStaggerBinding> {
 
     private int userID;
     private boolean showToolbar = false;
@@ -41,6 +45,34 @@ public class FragmentUserManga extends FragmentList<ListIllustResponse, IllustsB
     }
 
     @Override
+    public NetControl<ListIllustResponse> present() {
+        return new NetControl<ListIllustResponse>() {
+            @Override
+            public Observable<ListIllustResponse> initApi() {
+                return Retro.getAppApi().getUserSubmitIllust(sUserModel.getResponse().getAccess_token(), userID, "manga");
+            }
+
+            @Override
+            public Observable<ListIllustResponse> initNextApi() {
+                return Retro.getAppApi().getNextIllust(sUserModel.getResponse().getAccess_token(), nextUrl);
+            }
+        };
+    }
+
+    @Override
+    public BaseAdapter<IllustsBean, RecyIllustStaggerBinding> adapter() {
+        return new IAdapter(allItems, mContext).setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(View v, int position, int viewType) {
+                IllustChannel.get().setIllustList(allItems);
+                Intent intent = new Intent(mContext, ViewPagerActivity.class);
+                intent.putExtra("position", position);
+                startActivity(intent);
+            }
+        });
+    }
+
+    @Override
     public boolean showToolbar() {
         return showToolbar;
     }
@@ -55,33 +87,9 @@ public class FragmentUserManga extends FragmentList<ListIllustResponse, IllustsB
     }
 
     @Override
-    public Observable<ListIllustResponse> initApi() {
-        return Retro.getAppApi().getUserSubmitIllust(sUserModel.getResponse().getAccess_token(), userID, "manga");
-    }
-
-    @Override
-    public Observable<ListIllustResponse> initNextApi() {
-        return Retro.getAppApi().getNextIllust(sUserModel.getResponse().getAccess_token(), nextUrl);
-    }
-
-    @Override
     public void initRecyclerView() {
         StaggeredGridLayoutManager manager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         baseBind.recyclerView.setLayoutManager(manager);
         baseBind.recyclerView.addItemDecoration(new SpacesItemDecoration(DensityUtil.dp2px(8.0f)));
-    }
-
-    @Override
-    public void initAdapter() {
-        mAdapter = new IAdapter(allItems, mContext);
-        mAdapter.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(View v, int position, int viewType) {
-                IllustChannel.get().setIllustList(allItems);
-                Intent intent = new Intent(mContext, ViewPagerActivity.class);
-                intent.putExtra("position", position);
-                startActivity(intent);
-            }
-        });
     }
 }

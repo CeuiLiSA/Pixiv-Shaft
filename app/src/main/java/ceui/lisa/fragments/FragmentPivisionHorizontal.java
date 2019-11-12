@@ -26,7 +26,6 @@ import io.reactivex.schedulers.Schedulers;
 import jp.wasabeef.recyclerview.animators.LandingAnimator;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
-import static ceui.lisa.fragments.FragmentList.animateDuration;
 
 /**
  * Pivision 文章
@@ -48,9 +47,9 @@ public class FragmentPivisionHorizontal extends BaseBindFragment<FragmentPivisio
         baseBind.progress.setIndeterminateDrawable(doubleBounce);
         LandingAnimator landingAnimator = new LandingAnimator(new AnticipateOvershootInterpolator());
         landingAnimator.setAddDuration(400L);
-        landingAnimator.setRemoveDuration(animateDuration);
-        landingAnimator.setMoveDuration(animateDuration);
-        landingAnimator.setChangeDuration(animateDuration);
+        landingAnimator.setRemoveDuration(400L);
+        landingAnimator.setMoveDuration(400L);
+        landingAnimator.setChangeDuration(400L);
         baseBind.recyclerView.setItemAnimator(landingAnimator);
         baseBind.recyclerView.addItemDecoration(new LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
         LinearLayoutManager manager = new LinearLayoutManager(mContext, LinearLayoutManager.HORIZONTAL, false);

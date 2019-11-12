@@ -52,6 +52,7 @@ public class Retro {
     private static Request.Builder addHeader(Request.Builder before) {
         PixivHeaders pixivHeaders = new PixivHeaders();
         return before
+                //.addHeader("Authorization", Shaft.sUserModel.getResponse().getAccess_token())
                 .addHeader("User-Agent", "PixivAndroidApp/5.0.134 (Android 6.0.1; D6653)")
                 .addHeader("Accept-Language", "zh_CN")
                 .addHeader("X-Client-Time", pixivHeaders.getXClientTime())

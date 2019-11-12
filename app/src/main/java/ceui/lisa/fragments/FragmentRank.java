@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 import com.scwang.smartrefresh.header.MaterialHeader;
 import com.scwang.smartrefresh.layout.api.RefreshHeader;
 
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapter;
@@ -62,7 +63,8 @@ public class FragmentRank extends NetListFragment<FragmentBaseListBinding, ListI
         return new NetControl<ListIllustResponse>() {
             @Override
             public Observable<ListIllustResponse> initApi() {
-                return Retro.getAppApi().getRank(sUserModel.getResponse().getAccess_token(), API_TITLES[mIndex], queryDate);
+                return Retro.getAppApi().getRank(Shaft.sUserModel.getResponse().getAccess_token(),
+                        API_TITLES[mIndex], queryDate);
             }
 
             @Override

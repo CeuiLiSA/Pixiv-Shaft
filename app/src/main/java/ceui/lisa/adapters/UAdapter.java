@@ -76,7 +76,8 @@ public class UAdapter extends BaseAdapter<UserPreviewsBean, RecyUserPreviewBindi
         }
     }
 
-    public void setFullClickListener(FullClickListener fullClickListener) {
+    public UAdapter setFullClickListener(FullClickListener fullClickListener) {
         mFullClickListener = fullClickListener;
+        return this;
     }
 }
