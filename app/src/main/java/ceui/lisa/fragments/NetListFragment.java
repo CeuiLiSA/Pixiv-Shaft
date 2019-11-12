@@ -32,6 +32,14 @@ import ceui.lisa.view.LinearItemDecoration;
 import jp.wasabeef.recyclerview.animators.BaseItemAnimator;
 import jp.wasabeef.recyclerview.animators.LandingAnimator;
 
+/**
+ * 联网获取xx列表，
+ *
+ * @param <Layout>     这个列表的LayoutBinding
+ * @param <Response>   这次请求的Response
+ * @param <Item>       这个列表的单个Item实体类
+ * @param <ItemLayout> 单个Item的LayoutBinding
+ */
 public abstract class NetListFragment<Layout extends ViewDataBinding,
         Response extends ListShow<Item>, Item,
         ItemLayout extends ViewDataBinding> extends BaseBindFragment<Layout> {
@@ -80,7 +88,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
             public void onRefresh(@NonNull RefreshLayout refreshLayout) {
                 Common.showLog(className + "onRefresh ");
                 mAdapter.clear();
-                if(mNetControl.initApi() != null) {
+                if (mNetControl.initApi() != null) {
                     mNetControl.getFirstData(new NullCtrl<Response>() {
                         @Override
                         public void success(Response response) {
