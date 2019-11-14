@@ -32,6 +32,9 @@ import io.reactivex.schedulers.Schedulers;
 import static ceui.lisa.activities.Shaft.sUserModel;
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
+/**
+ * 用户详情页面
+ */
 public class UActivity extends BaseActivity<ActicityUserBinding> implements Display<UserDetailResponse> {
 
     private UserDetailResponse currentUser;

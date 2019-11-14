@@ -66,7 +66,7 @@ public class FragmentPivisionHorizontal extends BaseBindFragment<FragmentPivisio
     }
 
     public void getFirstData() {
-        Retro.getAppApi().getArticals(sUserModel.getResponse().getAccess_token())
+        Retro.getAppApi().getArticles(sUserModel.getResponse().getAccess_token(), "all")
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new NullCtrl<ArticleResponse>() {

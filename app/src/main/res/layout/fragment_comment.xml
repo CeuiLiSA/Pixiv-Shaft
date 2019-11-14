@@ -30,16 +30,21 @@
 
         </androidx.appcompat.widget.Toolbar>
 
-        <FrameLayout
+        <com.scwang.smartrefresh.layout.SmartRefreshLayout
             android:layout_width="match_parent"
-            android:id="@+id/fragment_container"
+            android:id="@+id/refreshLayout"
             android:layout_above="@+id/bottom_rela"
             android:layout_below="@+id/toolbar"
             android:layout_height="match_parent">
 
+            <androidx.recyclerview.widget.RecyclerView
+                android:layout_width="match_parent"
+                android:id="@+id/recyclerView"
+                android:layout_height="match_parent">
 
-        </FrameLayout>
+            </androidx.recyclerview.widget.RecyclerView>
 
+        </com.scwang.smartrefresh.layout.SmartRefreshLayout>
 
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
@@ -78,9 +83,6 @@
                     android:layout_alignParentEnd="true"
                     android:layout_marginEnd="@dimen/sixteen_dp"
                     android:layout_height="30dp">
-
-
-
                 </ImageView>
 
                 <ImageView

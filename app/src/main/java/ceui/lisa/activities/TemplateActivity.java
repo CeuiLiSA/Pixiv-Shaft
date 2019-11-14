@@ -9,7 +9,9 @@ import ceui.lisa.fragments.FragmentAbout;
 import ceui.lisa.fragments.FragmentAboutUser;
 import ceui.lisa.fragments.FragmentBlank;
 import ceui.lisa.fragments.FragmentBookTag;
-import ceui.lisa.fragments.FragmentComment;
+import ceui.lisa.fragments.FragmentC;
+import ceui.lisa.fragments.FragmentCollection;
+import ceui.lisa.fragments.FragmentD;
 import ceui.lisa.fragments.FragmentFollowUser;
 import ceui.lisa.fragments.FragmentLicense;
 import ceui.lisa.fragments.FragmentLikeIllust;
@@ -81,8 +83,8 @@ public class TemplateActivity extends FragmentActivity {
                     return FragmentWebView.newInstance(result.getTitle(), result.getUrl(), result.getResponseBody(), result.getMime(), result.getEncoding(), result.getHistory_url());
                 case "相关评论": {
                     int id = intent.getIntExtra(Params.ILLUST_ID, 0);
-                    String title = intent.getStringExtra(EXTRA_ILLUST_TITLE);
-                    return FragmentComment.newInstance(id, title);
+                    String title = intent.getStringExtra(Params.ILLUST_TITLE);
+                    return FragmentC.newInstance(id, title);
                 }
                 case "账号管理":
                     return new FragmentLocalUsers();
@@ -129,6 +131,10 @@ public class TemplateActivity extends FragmentActivity {
                 case "插画/漫画收藏":
                     return FragmentLikeIllust.newInstance(intent.getIntExtra(Params.USER_ID, 0),
                             FragmentLikeIllust.TYPE_PUBLUC, true);
+                case "下载管理":
+                    return new FragmentD();
+                case "收藏夹":
+                    return new FragmentCollection();
                 default:
                     return new FragmentBlank();
             }

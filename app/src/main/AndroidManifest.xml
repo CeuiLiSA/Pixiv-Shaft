@@ -48,9 +48,7 @@
             android:name=".activities.TemplateActivity"
             android:windowSoftInputMode="adjustPan" />
         <activity android:name=".activities.RankActivity" />
-        <activity android:name=".activities.DownloadManageActivity" />
         <activity android:name=".activities.ImageDetailActivity" />
-        <activity android:name=".activities.CollectionActivity" />
         <activity android:name=".activities.LoginActivity" />
         <activity android:name=".activities.OutWakeActivity">
             <intent-filter android:autoVerify="true">

@@ -180,10 +180,14 @@ public class CoverActivity extends BaseActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_camera) {
-            Intent intent = new Intent(mContext, CollectionActivity.class);
+            Intent intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "收藏夹");
+            intent.putExtra("hideStatusBar", false);
             startActivity(intent);
         } else if (id == R.id.nav_gallery) {
-            Intent intent = new Intent(mContext, DownloadManageActivity.class);
+            Intent intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载管理");
+            intent.putExtra("hideStatusBar", false);
             startActivity(intent);
         } else if (id == R.id.nav_slideshow) {
             Intent intent = new Intent(mContext, TemplateActivity.class);
@@ -290,7 +294,9 @@ public class CoverActivity extends BaseActivity
                 });
                 builder.setNegativeButton(mContext.getString(R.string.cancel), null);
                 builder.setNeutralButton(getString(R.string.see_download_task), (dialog, which) -> {
-                    Intent intent = new Intent(mContext, DownloadManageActivity.class);
+                    Intent intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载管理");
+                    intent.putExtra("hideStatusBar", false);
                     startActivity(intent);
                 });
                 AlertDialog alertDialog = builder.create();

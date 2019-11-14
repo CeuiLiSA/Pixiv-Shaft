@@ -39,12 +39,14 @@ public interface AppApi {
      * 推荐榜单
      *
      * @param token
-     * @param include_ranking_illusts
      * @return
      */
-    @GET("v1/illust/recommended?include_privacy_policy=true&filter=for_android")
-    Observable<ListIllustResponse> getRecmdIllust(@Header("Authorization") String token,
-                                                  @Query("include_ranking_illusts") boolean include_ranking_illusts);
+    @GET("v1/illust/recommended?include_privacy_policy=true&filter=for_android&include_ranking_illusts=true")
+    Observable<ListIllustResponse> getRecmdIllust(@Header("Authorization") String token);
+
+
+    @GET("v1/manga/recommended?include_privacy_policy=true&filter=for_android&include_ranking_illusts=true")
+    Observable<ListIllustResponse> getRecmdManga(@Header("Authorization") String token);
 
 
     @GET("v1/trending-tags/illust?filter=for_android&include_translated_tag_results=true")
@@ -117,8 +119,9 @@ public interface AppApi {
                                                        @Query("restrict") String restrict);
 
 
-    @GET("v1/spotlight/articles?filter=for_android&category=all&offset=10")
-    Observable<ArticleResponse> getArticals(@Header("Authorization") String token);
+    @GET("v1/spotlight/articles?filter=for_android&offset=10")
+    Observable<ArticleResponse> getArticles(@Header("Authorization") String token,
+                                            @Query("category") String category);
 
 
     ///v1/user/detail?filter=for_android&user_id=24218478

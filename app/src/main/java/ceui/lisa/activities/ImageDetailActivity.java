@@ -25,7 +25,6 @@ public class ImageDetailActivity extends BaseActivity {
     private IllustsBean mIllustsBean;
     private List<String> localIllust = new ArrayList<>();
     private TextView currentPage, downloadSingle, currentSize;
-    private String dataType = "";
 
     @Override
     protected int initLayout() {
@@ -38,7 +37,7 @@ public class ImageDetailActivity extends BaseActivity {
 
     @Override
     protected void initView() {
-        dataType = getIntent().getStringExtra("dataType");
+        String dataType = getIntent().getStringExtra("dataType");
         ViewPager viewPager = findViewById(R.id.view_pager);
         viewPager.setPageTransformer(true, new CubeOutTransformer());
         if (dataType.equals("二级详情")) {

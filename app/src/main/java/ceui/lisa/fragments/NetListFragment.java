@@ -163,27 +163,51 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
         }
     }
 
+    /**
+     * 指定是否显示Toolbar
+     *
+     * @return default true
+     */
     public boolean showToolbar() {
         return true;
     }
 
+    /**
+     * 指定Toolbar title
+     *
+     * @return title
+     */
     public String getToolbarTitle() {
         return "";
     }
 
+    /**
+     * 默认 LinearLayoutManager
+     */
     public void initRecyclerView() {
         mRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.addItemDecoration(new LinearItemDecoration(DensityUtil.dp2px(12.0f)));
     }
 
+    /**
+     * 决定刚进入页面是否直接刷新，一般都是直接刷新，但是FragmentHotTag，不要直接刷新
+     *
+     * @return default true
+     */
     public boolean autoRefresh() {
         return true;
     }
 
+    /**
+     * 第一波数据加载成功之后，FragmentR页面将数据写入到数据库，方法实际上没啥用，只是为了方便测试
+     */
     public void firstSuccess() {
     }
 
+    /**
+     * FragmentR页面，调试过程中不需要每次都刷新，就调用这个方法来家在数据。只是为了方便测试
+     */
     public void showDataBase() {
     }
 }

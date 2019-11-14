@@ -46,7 +46,7 @@ public class FragmentR extends NetListFragment<FragmentBaseListBinding,
                 if (Dev.isDev) {
                     return null;
                 } else {
-                    return Retro.getAppApi().getRecmdIllust(Shaft.sUserModel.getResponse().getAccess_token(), true);
+                    return Retro.getAppApi().getRecmdIllust(Shaft.sUserModel.getResponse().getAccess_token());
                 }
             }
 
@@ -92,8 +92,16 @@ public class FragmentR extends NetListFragment<FragmentBaseListBinding,
 
             Observable.create((ObservableOnSubscribe<String>) emitter -> {
                 emitter.onNext("开始写入数据库");
-                for (int i = 0; i < allItems.size(); i++) {
-                    insertViewHistory(allItems.get(i));
+                if (allItems != null) {
+                    if (allItems.size() >= 20) {
+                        for (int i = 0; i < 20; i++) {
+                            insertViewHistory(allItems.get(i));
+                        }
+                    } else {
+                        for (int i = 0; i < allItems.size(); i++) {
+                            insertViewHistory(allItems.get(i));
+                        }
+                    }
                 }
                 emitter.onComplete();
             }).subscribeOn(Schedulers.io())
@@ -135,10 +143,8 @@ public class FragmentR extends NetListFragment<FragmentBaseListBinding,
                 .subscribe(new NullCtrl<List<IllustsBean>>() {
                     @Override
                     public void success(List<IllustsBean> illustsBeans) {
-                        if (illustsBeans.size() >= 20) {
-                            allItems.addAll(illustsBeans.subList(illustsBeans.size() - 20, illustsBeans.size() - 1));
-                            mAdapter.notifyItemRangeInserted(0, allItems.size());
-                        }
+                        allItems.addAll(illustsBeans);
+                        mAdapter.notifyItemRangeInserted(0, allItems.size());
                     }
 
                     @Override

@@ -22,7 +22,7 @@ public class FragmentPivision extends BaseListFragment<ArticleResponse, ArticleA
 
     @Override
     Observable<ArticleResponse> initApi() {
-        return Retro.getAppApi().getArticals(sUserModel.getResponse().getAccess_token());
+        return Retro.getAppApi().getArticles(sUserModel.getResponse().getAccess_token(), "all");
     }
 
     @Override
