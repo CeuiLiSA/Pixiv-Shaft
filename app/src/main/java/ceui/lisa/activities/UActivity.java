@@ -59,7 +59,7 @@ public class UActivity extends BaseActivity<ActicityUserBinding> implements Disp
                 .subscribe(new ErrorCtrl<UserDetailResponse>() {
                     @Override
                     public void onNext(UserDetailResponse user) {
-                        show(user);
+                        invoke(user);
                     }
                 });
     }
@@ -70,7 +70,7 @@ public class UActivity extends BaseActivity<ActicityUserBinding> implements Disp
     }
 
     @Override
-    public void show(UserDetailResponse pUserDetailResponse) {
+    public void invoke(UserDetailResponse pUserDetailResponse) {
         currentUser = pUserDetailResponse;
         Glide.with(mContext).load(GlideUtil.getMediumImg(currentUser
                 .getUser().getProfile_image_urls().getMedium()))

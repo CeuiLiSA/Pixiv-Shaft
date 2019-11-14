@@ -44,6 +44,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
         Response extends ListShow<Item>, Item,
         ItemLayout extends ViewDataBinding> extends BaseBindFragment<Layout> {
 
+    private static final long animateDuration = 400L;
     protected NetControl<Response> mNetControl;
     protected RecyclerView mRecyclerView;
     protected RefreshLayout mRefreshLayout;
@@ -52,7 +53,6 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
     protected List<Item> allItems = new ArrayList<>();
     protected String nextUrl;
     protected Toolbar mToolbar;
-    private static final long animateDuration = 400L;
 
     public abstract NetControl<Response> present();
 

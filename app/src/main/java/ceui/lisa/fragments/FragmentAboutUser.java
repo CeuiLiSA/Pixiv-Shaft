@@ -16,7 +16,7 @@ public class FragmentAboutUser extends BaseBindFragment<FragmentAboutUserBinding
     }
 
     @Override
-    public void show(UserDetailResponse response) {
+    public void invoke(UserDetailResponse response) {
         baseBind.mainPage.setHtml(Common.checkEmpty(response.getProfile().getWebpage()));
         baseBind.twitter.setHtml(Common.checkEmpty(response.getProfile().getTwitter_url()));
         baseBind.description.setHtml(Common.checkEmpty(response.getUser().getComment()));
@@ -38,6 +38,6 @@ public class FragmentAboutUser extends BaseBindFragment<FragmentAboutUserBinding
     void initData() {
         UserDetailResponse user = ((UserDetailResponse) mActivity.getIntent().getSerializableExtra(
                 TemplateActivity.EXTRA_OBJECT));
-        show(user);
+        invoke(user);
     }
 }

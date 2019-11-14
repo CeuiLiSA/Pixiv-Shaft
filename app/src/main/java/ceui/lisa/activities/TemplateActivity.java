@@ -3,8 +3,14 @@ package ceui.lisa.activities;
 import android.content.Intent;
 import android.view.KeyEvent;
 
+import androidx.core.app.NavUtils;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
+import com.blankj.utilcode.util.BarUtils;
+
+import ceui.lisa.R;
+import ceui.lisa.databinding.ActivityFragmentBinding;
 import ceui.lisa.fragments.FragmentAbout;
 import ceui.lisa.fragments.FragmentAboutUser;
 import ceui.lisa.fragments.FragmentBlank;
@@ -13,6 +19,8 @@ import ceui.lisa.fragments.FragmentC;
 import ceui.lisa.fragments.FragmentCollection;
 import ceui.lisa.fragments.FragmentD;
 import ceui.lisa.fragments.FragmentFollowUser;
+import ceui.lisa.fragments.FragmentH;
+import ceui.lisa.fragments.FragmentL;
 import ceui.lisa.fragments.FragmentLicense;
 import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.fragments.FragmentLocalUsers;
@@ -34,24 +42,26 @@ import ceui.lisa.fragments.FragmentViewHistory;
 import ceui.lisa.fragments.FragmentWalkThrough;
 import ceui.lisa.fragments.FragmentWebView;
 import ceui.lisa.fragments.FragmentWhoFollowThisUser;
-import ceui.lisa.ui.fragment.FragmentT;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseResult;
 
-public class TemplateActivity extends FragmentActivity {
+public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
 
+    protected Fragment childFragment;
     public static final String EXTRA_FRAGMENT = "dataType";
     public static final String EXTRA_OBJECT = "object";
     public static final String EXTRA_KEYWORD = "keyword";
     public static final String EXTRA_ILLUST_TITLE = "illust title";
 
-    @Override
     protected Fragment createNewFragment() {
         Intent intent = getIntent();
         String dataType = intent.getStringExtra(EXTRA_FRAGMENT);
 
         if (dataType != null) {
             switch (dataType) {
+                case "登录注册":
+                    BarUtils.setNavBarColor(mActivity, getResources().getColor(R.color.colorPrimary));
+                    return new FragmentL();
                 case "搜索结果": {
                     String keyword = intent.getStringExtra(EXTRA_KEYWORD);
                     return FragmentSearchResult.newInstance(keyword);
@@ -117,7 +127,7 @@ public class TemplateActivity extends FragmentActivity {
                 case "详细信息":
                     return new FragmentAboutUser();
                 case "一言":
-                    return new FragmentT();
+                    return new FragmentH();
                 case "最新作品":
                     return new FragmentNew();
                 case "粉丝":
@@ -142,7 +152,6 @@ public class TemplateActivity extends FragmentActivity {
         return null;
     }
 
-
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (childFragment instanceof FragmentWebView) {
@@ -153,7 +162,33 @@ public class TemplateActivity extends FragmentActivity {
     }
 
     @Override
+    protected int initLayout() {
+        return R.layout.activity_fragment;
+    }
+
+    @Override
+    protected void initView() {
+
+    }
+
+    @Override
+    protected void initData() {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        Fragment fragment = fragmentManager.findFragmentById(R.id.fragment_container);
+
+        if (fragment == null) {
+            fragment = createNewFragment();
+            if (fragment != null) {
+                fragmentManager.beginTransaction()
+                        .add(R.id.fragment_container, fragment)
+                        .commit();
+                childFragment = fragment;
+            }
+        }
+    }
+
+    @Override
     public boolean hideStatusBar() {
-        return super.hideStatusBar() && getIntent().getBooleanExtra("hideStatusBar", true);
+        return getIntent().getBooleanExtra("hideStatusBar", true);
     }
 }

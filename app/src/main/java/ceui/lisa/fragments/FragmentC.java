@@ -1,6 +1,5 @@
 package ceui.lisa.fragments;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.view.View;
 
@@ -11,7 +10,6 @@ import ceui.lisa.R;
 import ceui.lisa.activities.UActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.CAdapter;
-import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.FragmentCommentBinding;
 import ceui.lisa.databinding.RecyCommentListBinding;
 import ceui.lisa.http.NullCtrl;
@@ -37,16 +35,16 @@ public class FragmentC extends NetListFragment<FragmentCommentBinding,
     private String title;
     private int parentCommentID;
 
-    @Override
-    public void initLayout() {
-        mLayoutID = R.layout.fragment_comment;
-    }
-
     public static FragmentC newInstance(int id, String title) {
         FragmentC comment = new FragmentC();
         comment.illustID = id;
         comment.title = title;
         return comment;
+    }
+
+    @Override
+    public void initLayout() {
+        mLayoutID = R.layout.fragment_comment;
     }
 
     @Override

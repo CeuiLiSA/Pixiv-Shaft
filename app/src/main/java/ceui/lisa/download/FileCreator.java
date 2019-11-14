@@ -43,27 +43,6 @@ public class FileCreator {
             return null;
         }
 
-//        File parentFile = new File(FILE_PATH_META + illustsBean.getTitle() + "_" + illustsBean.getId());
-//        if(!parentFile.exists()){
-//            try {
-//                if(parentFile.createNewFile()) {
-//                    Common.showToast("父文件夹创建成功");
-//
-//
-//
-//
-//                    File childFile = new File(parentFile.getPath(),
-//                            deleteSpecialWords(illustsBean.getTitle() + "_" + illustsBean.getId() + ".png"))
-//                }else {
-//                    Common.showToast("父文件夹创建失败");
-//                }
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }else {
-//
-//        }
-
         return new File(Shaft.sSettings.getIllustPath(),
                 deleteSpecialWords(illustsBean.getTitle() + "_" + illustsBean.getId() + "_" + "p" + (index + 1) + ".png"));
     }

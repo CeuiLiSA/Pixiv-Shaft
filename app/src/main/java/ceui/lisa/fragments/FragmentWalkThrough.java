@@ -1,7 +1,6 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import android.view.View;
 
 import androidx.recyclerview.widget.GridLayoutManager;
 
@@ -12,7 +11,6 @@ import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.NetControl;
-import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.utils.DensityUtil;
@@ -44,11 +42,11 @@ public class FragmentWalkThrough extends NetListFragment<FragmentBaseListBinding
     public BaseAdapter<IllustsBean, RecyIllustStaggerBinding> adapter() {
         return new IAdapter(allItems, mContext, true)
                 .setOnItemClickListener((v, position, viewType) -> {
-            IllustChannel.get().setIllustList(allItems);
-            Intent intent = new Intent(mContext, ViewPagerActivity.class);
-            intent.putExtra("position", position);
-            startActivity(intent);
-        });
+                    IllustChannel.get().setIllustList(allItems);
+                    Intent intent = new Intent(mContext, ViewPagerActivity.class);
+                    intent.putExtra("position", position);
+                    startActivity(intent);
+                });
     }
 
     @Override

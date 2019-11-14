@@ -8,7 +8,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
-import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import com.ToxicBakery.viewpager.transforms.DrawerTransformer;
@@ -104,10 +103,10 @@ public class FragmentCollection extends BaseBindFragment<ViewpagerWithTablayoutB
             @Override
             public void onPageSelected(int i) {
                 baseBind.toolbar.getMenu().clear();
-                if(i == 0){
+                if (i == 0) {
                     Common.showLog("添加menu");
                     baseBind.toolbar.inflateMenu(R.menu.illust_filter);
-                } else if(i == 1){
+                } else if (i == 1) {
                     Common.showLog("添加menu");
                     baseBind.toolbar.inflateMenu(R.menu.illust_filter);
                 }

@@ -1,6 +1,5 @@
 package ceui.lisa.fragments
 
-import android.content.Context
 import android.content.Intent
 import android.view.View
 import android.widget.Button
@@ -14,13 +13,10 @@ import ceui.lisa.databinding.RecyUserPreviewBinding
 import ceui.lisa.http.Retro
 import ceui.lisa.interfaces.FullClickListener
 import ceui.lisa.interfaces.NetControl
-import ceui.lisa.model.ListIllustResponse
 import ceui.lisa.model.ListUserResponse
 import ceui.lisa.model.UserPreviewsBean
 import ceui.lisa.utils.Params
 import ceui.lisa.utils.PixivOperate
-import com.scwang.smartrefresh.layout.api.RefreshFooter
-import com.scwang.smartrefresh.layout.footer.ClassicsFooter
 import io.reactivex.Observable
 
 class FragmentNiceFriend : NetListFragment<FragmentBaseListBinding,

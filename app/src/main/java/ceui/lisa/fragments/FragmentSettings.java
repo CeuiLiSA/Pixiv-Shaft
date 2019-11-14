@@ -23,7 +23,6 @@ import java.io.File;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.LoginActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.FragmentSettingsBinding;
@@ -55,9 +54,10 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
         baseBind.loginOut.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(mContext, LoginActivity.class);
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "登录注册");
                 startActivity(intent);
-                getActivity().finish();
+                mActivity.finish();
             }
         });
 
@@ -67,7 +67,7 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
                 Intent intent = new Intent(mContext, TemplateActivity.class);
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "账号管理");
                 startActivity(intent);
-                getActivity().finish();
+                mActivity.finish();
             }
         });
 

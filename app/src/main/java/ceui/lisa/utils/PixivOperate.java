@@ -8,8 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.LoginActivity;
 import ceui.lisa.activities.ViewPagerActivity;
+import ceui.lisa.fragments.FragmentL;
 import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
@@ -28,8 +28,8 @@ public class PixivOperate {
 
     public static void changeUser(UserModel userModel, Callback<UserModel> callback) {
         Call<UserModel> call = Retro.getAccountApi().refreshToken(
-                LoginActivity.CLIENT_ID,
-                LoginActivity.CLIENT_SECRET,
+                FragmentL.CLIENT_ID,
+                FragmentL.CLIENT_SECRET,
                 "refresh_token",
                 userModel.getResponse().getRefresh_token(),
                 userModel.getResponse().getDevice_token(),

@@ -164,7 +164,8 @@ public class CoverActivity extends BaseActivity
         if (userModel != null && userModel.getResponse().getUser().isIs_login()) {
             checkPermission(t -> initFragment());
         } else {
-            Intent intent = new Intent(mContext, LoginActivity.class);
+            Intent intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "登录注册");
             startActivity(intent);
             finish();
         }

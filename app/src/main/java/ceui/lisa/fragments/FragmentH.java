@@ -6,13 +6,14 @@ import ceui.lisa.R;
 import ceui.lisa.databinding.FragmentHBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
+import ceui.lisa.interfaces.Display;
 import ceui.lisa.model.HitoResponse;
 import ceui.lisa.utils.ClipBoardUtils;
 import ceui.lisa.utils.Common;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
-public class FragmentH extends BaseBindFragment<FragmentHBinding> {
+public class FragmentH extends BaseBindFragment<FragmentHBinding> implements Display<HitoResponse> {
 
     private static final String[] TYPES = new String[]{"动画", "漫画", "游戏", "小说", "原创", "网络", "其他"};
 
@@ -41,12 +42,13 @@ public class FragmentH extends BaseBindFragment<FragmentHBinding> {
                 .subscribe(new NullCtrl<HitoResponse>() {
                     @Override
                     public void success(HitoResponse hitoResponse) {
-                        setData(hitoResponse);
+                        invoke(hitoResponse);
                     }
                 });
     }
 
-    private void setData(HitoResponse response) {
+    @Override
+    public void invoke(HitoResponse response) {
         baseBind.hitoText.setText(String.format("%s", response.getHitokoto()));
         baseBind.from.setText(String.format("《%s》", response.getFrom()));
         baseBind.creator.setText(String.format("—— %s", response.getCreator()));

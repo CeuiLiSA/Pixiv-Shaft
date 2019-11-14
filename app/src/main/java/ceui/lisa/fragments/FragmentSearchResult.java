@@ -53,11 +53,6 @@ public class FragmentSearchResult extends NetListFragment<FragmentSearchResultBi
     private String searchTarget = "partial_match_for_tags";
     private boolean isPopular = false;
 
-    @Override
-    public void initLayout() {
-        mLayoutID = R.layout.fragment_search_result;
-    }
-
     public static FragmentSearchResult newInstance(String keyWord) {
         return newInstance(keyWord, "date_desc", "partial_match_for_tags");
     }
@@ -74,6 +69,11 @@ public class FragmentSearchResult extends NetListFragment<FragmentSearchResultBi
         fragmentSearchResult.starSize = Shaft.sSettings.getSearchFilter().contains("无限制") ?
                 "" : " " + (Shaft.sSettings.getSearchFilter());
         return fragmentSearchResult;
+    }
+
+    @Override
+    public void initLayout() {
+        mLayoutID = R.layout.fragment_search_result;
     }
 
     @Override

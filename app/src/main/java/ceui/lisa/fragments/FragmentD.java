@@ -9,7 +9,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
-import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import com.ToxicBakery.viewpager.transforms.DrawerTransformer;
@@ -20,6 +19,9 @@ import ceui.lisa.database.AppDatabase;
 import ceui.lisa.databinding.ViewpagerWithTablayoutBinding;
 import ceui.lisa.utils.Common;
 
+/**
+ * 下载管理
+ */
 public class FragmentD extends BaseBindFragment<ViewpagerWithTablayoutBinding> {
 
     private static final String[] CHINESE_TITLES = new String[]{
@@ -91,7 +93,7 @@ public class FragmentD extends BaseBindFragment<ViewpagerWithTablayoutBinding> {
 
             @Override
             public void onPageSelected(int i) {
-                if(i == 0){
+                if (i == 0) {
                     Common.showLog("清空menu");
                     baseBind.toolbar.getMenu().clear();
                 } else {
