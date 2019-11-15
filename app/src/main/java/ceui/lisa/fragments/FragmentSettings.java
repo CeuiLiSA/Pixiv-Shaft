@@ -216,30 +216,6 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
                 alertDialog.show();
             }
         });
-
-        baseBind.trendingIllust.setText(Shaft.sSettings.isTrendsForPrivate() ? STRINGS[1] : STRINGS[0]);
-        baseBind.trendingIllust.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                builder.setTitle("动态作品展示");
-                builder.setItems(STRINGS, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        if (which == 0) {
-                            Shaft.sSettings.setTrendsForPrivate(false);
-                        } else {
-                            Shaft.sSettings.setTrendsForPrivate(true);
-                        }
-                        Local.setSettings(Shaft.sSettings);
-                        baseBind.trendingIllust.setText(STRINGS[which]);
-                    }
-                });
-                AlertDialog alertDialog = builder.create();
-                alertDialog.show();
-            }
-        });
-
         baseBind.refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));
         baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
     }

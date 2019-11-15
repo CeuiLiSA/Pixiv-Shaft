@@ -36,10 +36,7 @@ public class FragmentP extends NetListFragment<FragmentBaseListBinding,
         return new NetControl<ListIllustResponse>() {
             @Override
             public Observable<ListIllustResponse> initApi() {
-                return Retro.getAppApi().getFollowUserIllust(sUserModel.getResponse().getAccess_token(),
-                        Shaft.sSettings.isTrendsForPrivate() ?
-                                FragmentLikeIllust.TYPE_PRIVATE :
-                                FragmentLikeIllust.TYPE_PUBLUC);
+                return Retro.getAppApi().getFollowUserIllust(sUserModel.getResponse().getAccess_token());
             }
 
             @Override

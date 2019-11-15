@@ -718,64 +718,7 @@
 
                         </RelativeLayout>
 
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:background="#e6e6e6"
-                            android:layout_marginStart="@dimen/sixteen_dp"
-                            android:layout_height="1dp">
-
-
-                        </View>
-
-
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:background="?android:attr/selectableItemBackground"
-                            android:clickable="true"
-                            android:layout_height="match_parent">
-
-
-                            <TextView
-                                android:layout_margin="@dimen/sixteen_dp"
-                                android:text="@string/how_about_trending"
-                                android:textSize="15sp"
-                                android:layout_centerVertical="true"
-                                android:id="@+id/how_about_trending"
-                                android:textColor="@color/dark_text"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
-
-
-                            </TextView>
-
-
-                            <TextView
-                                android:layout_margin="@dimen/sixteen_dp"
-                                android:text="公开关注"
-                                android:textSize="14sp"
-                                android:id="@+id/trending_illust"
-                                android:layout_alignParentEnd="true"
-                                android:textColor="@color/colorPrimary"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
-
-
-                            </TextView>
-
-
-                        </RelativeLayout>
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:background="@color/light_bg"
-                            android:layout_height="20dp">
-
-
-                        </View>
-
                     </LinearLayout>
-
 
                 </LinearLayout>
             </androidx.core.widget.NestedScrollView>

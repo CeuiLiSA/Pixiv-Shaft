@@ -27,13 +27,6 @@ public class Retro {
     //用作各个页面请求数据
     private static final String API_BASE_URL = "https://app-api.pixiv.net/";
 
-    //一言API
-    private static final String API_HITO_URL = "https://api.a632079.me/";
-
-    //用作获取会员token
-    //private static final String RANK_TOKEN_BASE_URL = "http://202.182.113.0/";
-    private static final String RANK_TOKEN_BASE_URL = "https://s.aragaki.fun/";
-
     //用作注册账号
     private static final String SIGN_API = "https://accounts.pixiv.net/";
 
@@ -106,7 +99,7 @@ public class Retro {
                 .client(okHttpClient)
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .baseUrl(RANK_TOKEN_BASE_URL)
+                .baseUrl(RankTokenApi.BASE_URL)
                 .build();
         return retrofit.create(RankTokenApi.class);
     }
@@ -125,7 +118,7 @@ public class Retro {
                 .client(okHttpClient)
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .baseUrl(API_HITO_URL)
+                .baseUrl(HitoApi.BASE_URL)
                 .build();
         return retrofit.create(HitoApi.class);
     }

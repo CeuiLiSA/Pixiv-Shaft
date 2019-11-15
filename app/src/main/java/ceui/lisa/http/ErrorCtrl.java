@@ -4,6 +4,8 @@ import android.text.TextUtils;
 
 import com.google.gson.Gson;
 
+import org.json.JSONObject;
+
 import java.io.IOException;
 
 import ceui.lisa.model.ErrorResponse;
