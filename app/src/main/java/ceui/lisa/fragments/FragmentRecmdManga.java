@@ -25,7 +25,6 @@ import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.IllustChannel;
-import ceui.lisa.view.LinearItemDecorationNoLRTB;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
 import ceui.lisa.view.SpacesItemDecoration;
 import io.reactivex.Observable;

@@ -5,31 +5,21 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
-import androidx.recyclerview.widget.StaggeredGridLayoutManager;
-
 import com.scwang.smartrefresh.header.MaterialHeader;
 import com.scwang.smartrefresh.layout.api.RefreshHeader;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
-import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.BaseAdapter;
-import ceui.lisa.adapters.IAdapter;
 import ceui.lisa.adapters.NAdapter;
 import ceui.lisa.databinding.FragmentBaseListBinding;
-import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.databinding.RecyNovelBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.NetControl;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.model.IllustsBean;
-import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.model.ListNovelResponse;
 import ceui.lisa.model.NovelBean;
-import ceui.lisa.utils.DensityUtil;
-import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.utils.Params;
-import ceui.lisa.view.SpacesItemDecoration;
 import io.reactivex.Observable;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
@@ -39,7 +29,7 @@ public class FragmentRankNovel extends NetListFragment<FragmentBaseListBinding,
         ListNovelResponse, NovelBean, RecyNovelBinding> {
 
     private static final String[] API_TITLES = new String[]{"day", "week",
-            "day_male", "day_female",  "week_rookie", "day_r18"};
+            "day_male", "day_female", "week_rookie", "day_r18"};
     private int mIndex = -1;
     private String queryDate = "";
 

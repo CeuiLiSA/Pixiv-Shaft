@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.view.View;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,28 +12,19 @@ import ceui.lisa.R;
 import ceui.lisa.activities.RankActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
-import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.BaseAdapter;
-import ceui.lisa.adapters.IAdapter;
 import ceui.lisa.adapters.NAdapter;
 import ceui.lisa.adapters.NovelHorizontalAdapter;
-import ceui.lisa.adapters.RAdapter;
 import ceui.lisa.databinding.FragmentRecmdBinding;
-import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.databinding.RecyNovelBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.NetControl;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.model.IllustsBean;
-import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.model.ListNovelResponse;
 import ceui.lisa.model.NovelBean;
 import ceui.lisa.utils.DensityUtil;
-import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.utils.Params;
-import ceui.lisa.view.LinearItemDecorationNoLRTB;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
-import ceui.lisa.view.SpacesItemDecoration;
 import io.reactivex.Observable;
 
 public class FragmentRecmdNovel extends NetListFragment<FragmentRecmdBinding,

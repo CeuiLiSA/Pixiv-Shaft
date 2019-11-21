@@ -16,10 +16,8 @@ import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.NovelDetail;
 import ceui.lisa.utils.Params;
-import ceui.lisa.view.VerticalPageTransformer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
-import me.kaelaela.verticalviewpager.transforms.DefaultTransformer;
 
 public class FragmentNovelHolder extends BaseBindFragment<FragmentNovelHolderBinding> {
 
@@ -61,7 +59,7 @@ public class FragmentNovelHolder extends BaseBindFragment<FragmentNovelHolderBin
                 .subscribe(new NullCtrl<NovelDetail>() {
                     @Override
                     public void success(NovelDetail novelDetail) {
-                        if(novelDetail.getNovel_text().contains("[newpage]")){
+                        if (novelDetail.getNovel_text().contains("[newpage]")) {
                             String[] partList = novelDetail.getNovel_text().split("\\[newpage]");
                             baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
                                 @NonNull

@@ -35,7 +35,7 @@ import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
-public class FragmentR extends NetListFragment<FragmentBaseListBinding,
+public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding,
         ListIllustResponse, IllustsBean, RecyIllustStaggerBinding> {
 
     @Override

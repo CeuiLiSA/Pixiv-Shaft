@@ -229,9 +229,9 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
                         Shaft.sSettings.setAppLanguage(ALL_LANGUAGE[which]);
                         baseBind.appLanguage.setText(ALL_LANGUAGE[which]);
                         Local.setSettings(Shaft.sSettings);
-                        if(which == 0) {
+                        if (which == 0) {
                             LanguageUtils.applyLanguage(Locale.SIMPLIFIED_CHINESE, "");
-                        }else if(which == 1){
+                        } else if (which == 1) {
                             LanguageUtils.applyLanguage(Locale.JAPAN, "");
                         }
                     }

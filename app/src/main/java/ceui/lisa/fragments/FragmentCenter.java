@@ -22,7 +22,6 @@ import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.Params;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 

@@ -63,7 +63,7 @@ public class FragmentLeft extends BaseFragment {
             @Override
             public Fragment getItem(int i) {
                 if (i == 0) {
-                    return new FragmentR();
+                    return new FragmentRecmdIllust();
                 } else {
                     return new FragmentHotTag();
                 }

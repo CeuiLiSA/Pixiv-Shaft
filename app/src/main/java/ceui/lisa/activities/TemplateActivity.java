@@ -3,7 +3,6 @@ package ceui.lisa.activities;
 import android.content.Intent;
 import android.view.KeyEvent;
 
-import androidx.core.app.NavUtils;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
@@ -39,7 +38,6 @@ import ceui.lisa.fragments.FragmentSearchResult;
 import ceui.lisa.fragments.FragmentSearchUser;
 import ceui.lisa.fragments.FragmentSelectBookTag;
 import ceui.lisa.fragments.FragmentSettings;
-import ceui.lisa.fragments.FragmentSingleNovel;
 import ceui.lisa.fragments.FragmentUserIllust;
 import ceui.lisa.fragments.FragmentUserManga;
 import ceui.lisa.fragments.FragmentViewHistory;
@@ -51,11 +49,11 @@ import ceui.lisa.utils.ReverseResult;
 
 public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
 
-    protected Fragment childFragment;
     public static final String EXTRA_FRAGMENT = "dataType";
     public static final String EXTRA_OBJECT = "object";
     public static final String EXTRA_KEYWORD = "keyword";
     public static final String EXTRA_ILLUST_TITLE = "illust title";
+    protected Fragment childFragment;
 
     protected Fragment createNewFragment() {
         Intent intent = getIntent();

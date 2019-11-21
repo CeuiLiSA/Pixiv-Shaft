@@ -29,15 +29,17 @@ import io.reactivex.Observable;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-
+/**
+ * illust / manga 排行榜都用这个类
+ */
 public class FragmentRank extends NetListFragment<FragmentBaseListBinding,
         ListIllustResponse, IllustsBean, RecyIllustStaggerBinding> {
 
     private static final String[] API_TITLES = new String[]{"day", "week",
             "month", "day_male", "day_female", "week_original", "week_rookie",
             "day_r18"};
-    private static final String[] API_TITLES_MANGA = new String[]{"day_manga", "week_manga",
-            "month_manga", "week_rookie_manga", "day_r18_manga"};
+    private static final String[] API_TITLES_MANGA = new String[]{"day_manga",
+            "week_manga", "month_manga", "week_rookie_manga", "day_r18_manga"};
 
 
     private int mIndex = -1;

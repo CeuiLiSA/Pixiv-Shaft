@@ -4,29 +4,18 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
-import androidx.recyclerview.widget.StaggeredGridLayoutManager;
-
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
-import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.BaseAdapter;
-import ceui.lisa.adapters.IAdapter;
 import ceui.lisa.adapters.NAdapter;
 import ceui.lisa.databinding.FragmentBaseListBinding;
-import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.databinding.RecyNovelBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.NetControl;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.model.IllustsBean;
-import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.model.ListNovelResponse;
 import ceui.lisa.model.NovelBean;
-import ceui.lisa.utils.Common;
-import ceui.lisa.utils.DensityUtil;
-import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.utils.Params;
-import ceui.lisa.view.SpacesItemDecoration;
 import io.reactivex.Observable;
 
 public class FragmentLatestNovel extends NetListFragment<FragmentBaseListBinding, ListNovelResponse,

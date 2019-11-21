@@ -8,7 +8,6 @@ import com.scwang.smartrefresh.layout.api.RefreshFooter;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.UActivity;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.BaseAdapter;

@@ -32,7 +32,7 @@ public class FragmentNew extends BaseBindFragment<ViewpagerWithTablayoutBinding>
             @NonNull
             @Override
             public Fragment getItem(int position) {
-                if(Dev.isDev){
+                if (Dev.isDev) {
                     if (position == 0) {
                         return FragmentLatestNovel.newInstance("novel");
                     } else if (position == 1) {
@@ -42,7 +42,7 @@ public class FragmentNew extends BaseBindFragment<ViewpagerWithTablayoutBinding>
                     } else {
                         return new FragmentBlank();
                     }
-                }else {
+                } else {
                     if (position == 0) {
                         return FragmentLatestWorks.newInstance("illust");
                     } else if (position == 1) {
