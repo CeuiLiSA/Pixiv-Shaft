@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+    </data>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/loginBackground"
+            android:elevation="@dimen/six_dp"
+            android:fitsSystemWindows="true"
+            android:theme="@style/AppTheme.AppBarOverlay"
+            app:popupTheme="@style/AppTheme.PopupOverlay"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
+            app:title=" "
+            app:titleTextColor="@android:color/white">
+
+        </androidx.appcompat.widget.Toolbar>
+
+        <com.scwang.smartrefresh.layout.SmartRefreshLayout
+            android:layout_width="match_parent"
+            android:id="@+id/refreshLayout"
+            android:layout_below="@+id/toolbar"
+            android:layout_height="match_parent">
+
+            <androidx.coordinatorlayout.widget.CoordinatorLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+
+                <com.google.android.material.appbar.AppBarLayout
+                    android:layout_width="match_parent"
+                    android:background="@color/trans"
+                    app:elevation="0dp"
+                    android:layout_height="wrap_content">
+
+
+                    <RelativeLayout
+                        app:layout_scrollFlags="scroll"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_marginTop="@dimen/twelve_dip"
+                            android:layout_marginBottom="@dimen/four_dp"
+                            android:drawableStart="@drawable/ic_huangguan"
+                            android:drawablePadding="@dimen/eight_dp"
+                            android:text="@string/ranking_illust"
+                            android:textColor="#2c333c"
+                            android:gravity="center"
+                            android:id="@+id/ranking_s"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/see_more"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_alignBaseline="@+id/ranking_s"
+                            android:layout_marginEnd="@dimen/sixteen_dp"
+                            android:layout_marginBottom="@dimen/four_dp"
+                            android:text="@string/see_more"
+                            android:drawableRight="@drawable/ic_chevron_right_black_24dp"
+                            android:gravity="center"
+                            android:drawableTint="@color/colorPrimary"
+                            android:textColor="#748c98"
+                            android:textSize="13sp" />
+
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:layout_width="match_parent"
+                            android:id="@+id/ranking"
+                            android:layout_below="@+id/see_more"
+                            android:layout_height="wrap_content">
+
+
+                        </androidx.recyclerview.widget.RecyclerView>
+
+                    </RelativeLayout>
+
+                </com.google.android.material.appbar.AppBarLayout>
+
+
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:layout_width="match_parent"
+                    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+                    android:id="@+id/recyclerView"
+                    android:layout_height="match_parent">
+
+                </androidx.recyclerview.widget.RecyclerView>
+            </androidx.coordinatorlayout.widget.CoordinatorLayout>
+        </com.scwang.smartrefresh.layout.SmartRefreshLayout>
+    </RelativeLayout>
+</layout>

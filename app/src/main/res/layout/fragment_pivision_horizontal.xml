@@ -42,7 +42,7 @@
                     android:layout_marginStart="@dimen/sixteen_dp"
                     android:layout_alignBottom="@+id/image_1"
                     android:layout_marginEnd="@dimen/sixteen_dp"
-                    android:text="查看更多"
+                    android:text="@string/see_more"
                     android:drawableRight="@drawable/ic_chevron_right_black_24dp"
                     android:gravity="center"
                     android:drawableTint="@color/colorPrimary"

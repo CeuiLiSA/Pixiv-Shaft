@@ -10,8 +10,8 @@ android {
         applicationId "ceui.lisa"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 44
-        versionName "1.0.44"
+        versionCode 46
+        versionName "1.0.46"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         manifestPlaceholders = [
@@ -109,6 +109,7 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-extensions:2.0.0'
     kapt 'android.arch.persistence.room:compiler:1.1.1'
     implementation 'jp.wasabeef:recyclerview-animators:3.0.0'
+    implementation 'me.kaelaela:verticalviewpager:1.0.0@aar'
 
     annotationProcessor 'com.github.bumptech.glide:compiler:4.9.0'
     annotationProcessor 'androidx.room:room-compiler:2.1.0'

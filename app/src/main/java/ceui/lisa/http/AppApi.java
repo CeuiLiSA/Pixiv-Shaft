@@ -8,8 +8,10 @@ import ceui.lisa.model.IllustBookmarkTags;
 import ceui.lisa.model.IllustCommentsResponse;
 import ceui.lisa.model.IllustSearchResponse;
 import ceui.lisa.model.ListIllustResponse;
+import ceui.lisa.model.ListNovelResponse;
 import ceui.lisa.model.ListUserResponse;
 import ceui.lisa.model.MutedHistory;
+import ceui.lisa.model.NovelDetail;
 import ceui.lisa.model.NullResponse;
 import ceui.lisa.model.TrendingtagResponse;
 import ceui.lisa.model.UserDetailResponse;
@@ -35,6 +37,11 @@ public interface AppApi {
                                            @Query("mode") String mode,
                                            @Query("date") String date);
 
+    @GET("v1/novel/ranking?filter=for_android")
+    Observable<ListNovelResponse> getRankNovel(@Header("Authorization") String token,
+                                           @Query("mode") String mode,
+                                           @Query("date") String date);
+
     /**
      * 推荐榜单
      *
@@ -47,6 +54,9 @@ public interface AppApi {
 
     @GET("v1/manga/recommended?include_privacy_policy=true&filter=for_android&include_ranking_illusts=true")
     Observable<ListIllustResponse> getRecmdManga(@Header("Authorization") String token);
+
+    @GET("v1/novel/recommended?include_privacy_policy=true&filter=for_android&include_ranking_novels=true")
+    Observable<ListNovelResponse> getRecmdNovel(@Header("Authorization") String token);
 
 
     @GET("v1/trending-tags/illust?filter=for_android&include_translated_tag_results=true")
@@ -134,19 +144,6 @@ public interface AppApi {
     Observable<GifResponse> getGifPackage(@Header("Authorization") String token,
                                           @Query("illust_id") int illust_id);
 
-
-    @GET
-    Observable<ListUserResponse> getNextUser(@Header("Authorization") String token,
-                                             @Url String next_url);
-
-
-    @GET
-    Observable<ListIllustResponse> getNextIllust(@Header("Authorization") String token,
-                                                 @Url String next_url);
-
-    @GET
-    Observable<ArticleResponse> getNextArticals(@Header("Authorization") String token,
-                                                @Url String next_url);
 
 
     @FormUrlEncoded
@@ -280,4 +277,31 @@ public interface AppApi {
     Observable<ListIllustResponse> getNewWorks(@Header("Authorization") String token,
                                                @Query("content_type") String content_type);
 
+    //获取最新作品
+    @GET("v1/novel/new")
+    Observable<ListNovelResponse> getNewNovels(@Header("Authorization") String token);
+
+
+
+    @GET
+    Observable<ListUserResponse> getNextUser(@Header("Authorization") String token,
+                                             @Url String next_url);
+
+
+    @GET
+    Observable<ListIllustResponse> getNextIllust(@Header("Authorization") String token,
+                                                 @Url String next_url);
+
+    @GET
+    Observable<ListNovelResponse> getNextNovel(@Header("Authorization") String token,
+                                               @Url String next_url);
+
+    @GET
+    Observable<ArticleResponse> getNextArticals(@Header("Authorization") String token,
+                                                @Url String next_url);
+
+    //获取好P友
+    @GET("v1/novel/text")
+    Observable<NovelDetail> getNovelDetail(@Header("Authorization") String token,
+                                           @Query("novel_id") int novel_id);
 }

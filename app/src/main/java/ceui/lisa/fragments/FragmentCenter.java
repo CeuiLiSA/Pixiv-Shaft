@@ -17,10 +17,12 @@ import com.scwang.smartrefresh.layout.header.FalsifyHeader;
 import ceui.lisa.R;
 import ceui.lisa.activities.RankActivity;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Params;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
@@ -45,6 +47,7 @@ public class FragmentCenter extends BaseFragment {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, RankActivity.class);
+                intent.putExtra("dataType", "插画");
                 startActivity(intent);
             }
         });
@@ -52,6 +55,25 @@ public class FragmentCenter extends BaseFragment {
         FragmentRankHorizontal fragmentRankHorizontal = new FragmentRankHorizontal();
         FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
         transaction.add(R.id.fragment_container, fragmentRankHorizontal).commit();
+
+        v.findViewById(R.id.manga).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "推荐漫画");
+                startActivity(intent);
+            }
+        });
+        v.findViewById(R.id.novel).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "推荐小说");
+                startActivity(intent);
+            }
+        });
+
+
         return v;
     }
 

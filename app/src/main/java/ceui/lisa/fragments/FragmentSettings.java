@@ -11,6 +11,7 @@ import android.widget.LinearLayout;
 
 import androidx.appcompat.app.AlertDialog;
 
+import com.blankj.utilcode.util.LanguageUtils;
 import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringChain;
@@ -21,6 +22,7 @@ import com.scwang.smartrefresh.layout.header.FalsifyHeader;
 
 import java.io.File;
 import java.util.List;
+import java.util.Locale;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
@@ -29,13 +31,13 @@ import ceui.lisa.databinding.FragmentSettingsBinding;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 
+import static ceui.lisa.fragments.FragmentFilter.ALL_LANGUAGE;
 import static ceui.lisa.fragments.FragmentFilter.ALL_SIZE;
 import static ceui.lisa.fragments.FragmentFilter.ALL_SIZE_VALUE;
 
 
 public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> {
 
-    public static final String[] STRINGS = new String[]{"公开关注", "私人关注"};
     private static final int illustPath_CODE = 10086;
     private static final int gifResultPath_CODE = 10087;
     private static final int gifZipPath_CODE = 10088;
@@ -96,7 +98,6 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
                 Local.setSettings(Shaft.sSettings);
             }
         });
-
 
         baseBind.autoDns.setChecked(Shaft.sSettings.isAutoFuckChina());
         baseBind.autoDns.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -210,6 +211,29 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
                         Shaft.sSettings.setSearchFilter(ALL_SIZE_VALUE[which]);
                         Local.setSettings(Shaft.sSettings);
                         baseBind.searchFilter.setText(ALL_SIZE[which]);
+                    }
+                });
+                AlertDialog alertDialog = builder.create();
+                alertDialog.show();
+            }
+        });
+        baseBind.appLanguage.setText(Shaft.sSettings.getAppLanguage());
+        baseBind.appLanguage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+                builder.setTitle(getString(R.string.language));
+                builder.setItems(ALL_LANGUAGE, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Shaft.sSettings.setAppLanguage(ALL_LANGUAGE[which]);
+                        baseBind.appLanguage.setText(ALL_LANGUAGE[which]);
+                        Local.setSettings(Shaft.sSettings);
+                        if(which == 0) {
+                            LanguageUtils.applyLanguage(Locale.SIMPLIFIED_CHINESE, "");
+                        }else if(which == 1){
+                            LanguageUtils.applyLanguage(Locale.JAPAN, "");
+                        }
                     }
                 });
                 AlertDialog alertDialog = builder.create();

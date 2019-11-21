@@ -4,22 +4,21 @@
     <item
         android:id="@+id/action_1"
         android:orderInCategory="100"
-        android:title="推荐"
+        android:title="@string/recommend"
         android:icon="@drawable/ic_gesture_black_24dp"
         app:showAsAction="always" />
 
     <item
         android:id="@+id/action_2"
         android:orderInCategory="100"
-        android:title="发现"
+        android:title="@string/discover"
         android:icon="@drawable/ic_discover"
-
         app:showAsAction="always" />
 
     <item
         android:id="@+id/action_3"
         android:orderInCategory="100"
-        android:title="动态"
+        android:title="@string/whats_new"
         android:icon="@drawable/ic_user_new_illust"
         app:showAsAction="always" />
 

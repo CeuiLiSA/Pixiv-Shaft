@@ -18,13 +18,18 @@ import java.util.Calendar;
 
 import ceui.lisa.R;
 import ceui.lisa.fragments.FragmentRank;
+import ceui.lisa.fragments.FragmentRankNovel;
+import ceui.lisa.fragments.NetListFragment;
 import ceui.lisa.utils.Common;
 
 public class RankActivity extends BaseActivity implements DatePickerDialog.OnDateSetListener {
 
     private static final String[] CHINESE_TITLES = new String[]{"日榜", "每周", "每月", "男性向", "女性向", "原创", "新人", "R"};
+    private static final String[] CHINESE_TITLES_MANGA = new String[]{"日榜", "每周", "每月", "新人", "R"};
+    private static final String[] CHINESE_TITLES_NOVEL = new String[]{"日榜", "每周", "男性向", "女性向", "新人", "R"};
     private ViewPager mViewPager;
-    private FragmentRank[] allPages = new FragmentRank[]{null, null, null, null, null, null, null, null};
+    private NetListFragment[] allPages = new NetListFragment[]{null, null, null, null, null, null, null, null};
+    private String dataType = "";
 
     @Override
     protected int initLayout() {
@@ -37,6 +42,7 @@ public class RankActivity extends BaseActivity implements DatePickerDialog.OnDat
         setSupportActionBar(toolbar);
         toolbar.setNavigationOnClickListener(v -> finish());
         TabLayout tabLayout = findViewById(R.id.tab_layout);
+        dataType = getIntent().getStringExtra("dataType");
         mViewPager = findViewById(R.id.view_pager);
         String queryDate = getIntent().getStringExtra("date");
         mViewPager.setPageTransformer(true, new DrawerTransformer());
@@ -45,20 +51,40 @@ public class RankActivity extends BaseActivity implements DatePickerDialog.OnDat
             @Override
             public Fragment getItem(int i) {
                 if (allPages[i] == null) {
-                    allPages[i] = FragmentRank.newInstance(i, queryDate);
+                    if ("插画".equals(dataType)) {
+                        allPages[i] = FragmentRank.newInstance(i, queryDate, false);
+                    } else if ("漫画".equals(dataType)) {
+                        allPages[i] = FragmentRank.newInstance(i, queryDate, true);
+                    } else if ("小说".equals(dataType)) {
+                        allPages[i] = FragmentRankNovel.newInstance(i, queryDate);
+                    }
                 }
                 return allPages[i];
             }
 
             @Override
             public int getCount() {
-                return CHINESE_TITLES.length;
+                if ("插画".equals(dataType)) {
+                    return CHINESE_TITLES.length;
+                } else if ("漫画".equals(dataType)) {
+                    return CHINESE_TITLES_MANGA.length;
+                } else if ("小说".equals(dataType)) {
+                    return CHINESE_TITLES_NOVEL.length;
+                }
+                return 0;
             }
 
             @Nullable
             @Override
             public CharSequence getPageTitle(int position) {
-                return CHINESE_TITLES[position];
+                if ("插画".equals(dataType)) {
+                    return CHINESE_TITLES[position];
+                } else if ("漫画".equals(dataType)) {
+                    return CHINESE_TITLES_MANGA[position];
+                } else if ("小说".equals(dataType)) {
+                    return CHINESE_TITLES_NOVEL[position];
+                }
+                return "";
             }
 
 
@@ -109,6 +135,7 @@ public class RankActivity extends BaseActivity implements DatePickerDialog.OnDat
         Common.showLog(date);
         Intent intent = new Intent(mContext, RankActivity.class);
         intent.putExtra("date", date);
+        intent.putExtra("dataType", dataType);
         intent.putExtra("index", mViewPager.getCurrentItem());
         startActivity(intent);
         finish();

@@ -11,6 +11,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 import androidx.databinding.ViewDataBinding;
 
+import com.blankj.utilcode.util.LanguageUtils;
+
+import java.util.Locale;
+
 public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCompatActivity {
 
     protected Context mContext;

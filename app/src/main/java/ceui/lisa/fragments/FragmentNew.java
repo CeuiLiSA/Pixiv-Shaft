@@ -10,12 +10,14 @@ import androidx.fragment.app.FragmentPagerAdapter;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.ViewpagerWithTablayoutBinding;
+import ceui.lisa.utils.Dev;
 
 public class FragmentNew extends BaseBindFragment<ViewpagerWithTablayoutBinding> {
 
     private static final String[] CHINESE_TITLES = new String[]{
             Shaft.getContext().getString(R.string.type_illust),
-            Shaft.getContext().getString(R.string.type_manga)};
+            Shaft.getContext().getString(R.string.type_manga),
+            Shaft.getContext().getString(R.string.type_novel)};
 
     @Override
     void initLayout() {
@@ -30,9 +32,27 @@ public class FragmentNew extends BaseBindFragment<ViewpagerWithTablayoutBinding>
             @NonNull
             @Override
             public Fragment getItem(int position) {
-                return position == 0 ?
-                        FragmentLatestWorks.newInstance("illust") :
-                        FragmentLatestWorks.newInstance("manga");
+                if(Dev.isDev){
+                    if (position == 0) {
+                        return FragmentLatestNovel.newInstance("novel");
+                    } else if (position == 1) {
+                        return new FragmentBlank();
+                    } else if (position == 2) {
+                        return new FragmentBlank();
+                    } else {
+                        return new FragmentBlank();
+                    }
+                }else {
+                    if (position == 0) {
+                        return FragmentLatestWorks.newInstance("illust");
+                    } else if (position == 1) {
+                        return FragmentLatestWorks.newInstance("manga");
+                    } else if (position == 2) {
+                        return FragmentLatestNovel.newInstance("novel");
+                    } else {
+                        return new FragmentBlank();
+                    }
+                }
             }
 
             @Override

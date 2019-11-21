@@ -11,16 +11,21 @@ import com.scwang.smartrefresh.header.MaterialHeader;
 import com.scwang.smartrefresh.layout.api.RefreshHeader;
 
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapter;
+import ceui.lisa.adapters.NAdapter;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
+import ceui.lisa.databinding.RecyNovelBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.NetControl;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
+import ceui.lisa.model.ListNovelResponse;
+import ceui.lisa.model.NovelBean;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.utils.Params;
@@ -30,26 +35,19 @@ import io.reactivex.Observable;
 import static ceui.lisa.activities.Shaft.sUserModel;
 
 
-public class FragmentRank extends NetListFragment<FragmentBaseListBinding,
-        ListIllustResponse, IllustsBean, RecyIllustStaggerBinding> {
+public class FragmentRankNovel extends NetListFragment<FragmentBaseListBinding,
+        ListNovelResponse, NovelBean, RecyNovelBinding> {
 
     private static final String[] API_TITLES = new String[]{"day", "week",
-            "month", "day_male", "day_female", "week_original", "week_rookie",
-            "day_r18"};
-    private static final String[] API_TITLES_MANGA = new String[]{"day_manga", "week_manga",
-            "month_manga", "week_rookie_manga", "day_r18_manga"};
-
-
+            "day_male", "day_female",  "week_rookie", "day_r18"};
     private int mIndex = -1;
-    private boolean isManga = false;
     private String queryDate = "";
 
-    public static FragmentRank newInstance(int index, String date, boolean isManga) {
+    public static FragmentRankNovel newInstance(int index, String date) {
         Bundle args = new Bundle();
         args.putInt(Params.INDEX, index);
-        args.putBoolean(Params.MANGA, isManga);
         args.putString(Params.DAY, date);
-        FragmentRank fragment = new FragmentRank();
+        FragmentRankNovel fragment = new FragmentRankNovel();
         fragment.setArguments(args);
         return fragment;
     }
@@ -58,7 +56,6 @@ public class FragmentRank extends NetListFragment<FragmentBaseListBinding,
     public void initBundle(Bundle bundle) {
         mIndex = bundle.getInt(Params.INDEX);
         queryDate = bundle.getString(Params.DAY);
-        isManga = bundle.getBoolean(Params.MANGA);
     }
 
     @Override
@@ -67,17 +64,17 @@ public class FragmentRank extends NetListFragment<FragmentBaseListBinding,
     }
 
     @Override
-    public NetControl<ListIllustResponse> present() {
-        return new NetControl<ListIllustResponse>() {
+    public NetControl<ListNovelResponse> present() {
+        return new NetControl<ListNovelResponse>() {
             @Override
-            public Observable<ListIllustResponse> initApi() {
-                return Retro.getAppApi().getRank(Shaft.sUserModel.getResponse().getAccess_token(),
-                        isManga ? API_TITLES_MANGA[mIndex] : API_TITLES[mIndex], queryDate);
+            public Observable<ListNovelResponse> initApi() {
+                return Retro.getAppApi().getRankNovel(Shaft.sUserModel.getResponse().getAccess_token(),
+                        API_TITLES[mIndex], queryDate);
             }
 
             @Override
-            public Observable<ListIllustResponse> initNextApi() {
-                return Retro.getAppApi().getNextIllust(sUserModel.getResponse().getAccess_token(), nextUrl);
+            public Observable<ListNovelResponse> initNextApi() {
+                return Retro.getAppApi().getNextNovel(sUserModel.getResponse().getAccess_token(), nextUrl);
             }
 
             @Override
@@ -88,23 +85,15 @@ public class FragmentRank extends NetListFragment<FragmentBaseListBinding,
     }
 
     @Override
-    public BaseAdapter<IllustsBean, RecyIllustStaggerBinding> adapter() {
-        return new IAdapter(allItems, mContext).setOnItemClickListener(new OnItemClickListener() {
+    public BaseAdapter<NovelBean, RecyNovelBinding> adapter() {
+        return new NAdapter(allItems, mContext).setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                IllustChannel.get().setIllustList(allItems);
-                Intent intent = new Intent(mContext, ViewPagerActivity.class);
-                intent.putExtra("position", position);
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(Params.NOVEL_ID, allItems.get(position).getId());
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情");
                 startActivity(intent);
             }
         });
-    }
-
-    @Override
-    public void initRecyclerView() {
-        StaggeredGridLayoutManager layoutManager =
-                new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
-        baseBind.recyclerView.setLayoutManager(layoutManager);
-        baseBind.recyclerView.addItemDecoration(new SpacesItemDecoration(DensityUtil.dp2px(8.0f)));
     }
 }

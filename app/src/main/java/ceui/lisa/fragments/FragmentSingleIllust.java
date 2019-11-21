@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.blankj.utilcode.util.BarUtils;
 import com.bumptech.glide.Glide;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
@@ -110,6 +111,7 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
         baseBind.refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));
         baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
         baseBind.toolbar.inflateMenu(R.menu.share);
+        BarUtils.setNavBarColor(mActivity, getResources().getColor(R.color.trans));
 
         baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
@@ -244,12 +246,12 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
                 startActivity(intent);
             }
         });
-        List<String> tags = new ArrayList<>();
         SpannableString sizeString = new SpannableString(String.format("尺寸：%s",
                 illust.getSize()));
         sizeString.setSpan(new ForegroundColorSpan(mContext.getResources().getColor(R.color.colorPrimary)),
                 3, illust.getSize().length() + 3, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         baseBind.illustPx.setText(sizeString);
+        List<String> tags = new ArrayList<>();
         for (int i = 0; i < illust.getTags().size(); i++) {
             String temp = illust.getTags().get(i).getName();
             tags.add(temp);

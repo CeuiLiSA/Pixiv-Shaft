@@ -22,7 +22,10 @@ import ceui.lisa.activities.TemplateActivity;
 
 public class FragmentLeft extends BaseFragment {
 
-    private static final String[] TITLES = new String[]{"推荐作品", "热门标签"};
+    private static final String[] TITLES = new String[]{
+            Shaft.getContext().getString(R.string.recommend_illust),
+            Shaft.getContext().getString(R.string.hot_tag)
+    };
 
     @Override
     void initLayout() {

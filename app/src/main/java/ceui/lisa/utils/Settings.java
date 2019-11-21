@@ -2,6 +2,8 @@ package ceui.lisa.utils;
 
 import android.text.TextUtils;
 
+import ceui.lisa.fragments.FragmentFilter;
+
 public class Settings {
 
     //只包含1P图片的下载路径
@@ -63,6 +65,20 @@ public class Settings {
     private String gifUnzipPath = "";
 
     private String webDownloadPath = "";
+
+    public String getAppLanguage() {
+        if(!TextUtils.isEmpty(appLanguage)){
+            return appLanguage;
+        } else {
+            return FragmentFilter.ALL_LANGUAGE[0];
+        }
+    }
+
+    public void setAppLanguage(String appLanguage) {
+        this.appLanguage = appLanguage;
+    }
+
+    private String appLanguage = "";
 
     //收藏量筛选搜索结果
     private String searchFilter = "";

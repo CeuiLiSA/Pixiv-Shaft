@@ -8,22 +8,25 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.RecyRankIllustHorizontalBinding;
+import ceui.lisa.databinding.RecyRankNovelHorizontalBinding;
 import ceui.lisa.model.IllustsBean;
+import ceui.lisa.model.NovelBean;
 import ceui.lisa.utils.GlideUtil;
 
-public class RAdapter extends BaseAdapter<IllustsBean, RecyRankIllustHorizontalBinding> {
+public class NovelHorizontalAdapter extends BaseAdapter<NovelBean, RecyRankNovelHorizontalBinding> {
 
-    public RAdapter(List<IllustsBean> targetList, Context context) {
+    public NovelHorizontalAdapter(List<NovelBean> targetList, Context context) {
         super(targetList, context);
     }
 
     @Override
     public void initLayout() {
-        mLayoutID = R.layout.recy_rank_illust_horizontal;
+        mLayoutID = R.layout.recy_rank_novel_horizontal;
     }
 
     @Override
-    public void bindData(IllustsBean target, ViewHolder<RecyRankIllustHorizontalBinding> bindView, int position) {
+    public void bindData(NovelBean target, ViewHolder<RecyRankNovelHorizontalBinding> bindView, int position) {
+        bindView.baseBind.novelLength.setText(allIllust.get(position).getText_length() + "字");
         bindView.baseBind.title.setText(allIllust.get(position).getTitle());
         bindView.baseBind.author.setText(allIllust.get(position).getUser().getName());
         Glide.with(mContext).load(GlideUtil.getMediumImg(allIllust.get(position)

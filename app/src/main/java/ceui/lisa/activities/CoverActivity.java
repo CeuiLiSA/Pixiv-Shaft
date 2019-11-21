@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.MenuItem;
@@ -14,6 +15,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -22,6 +24,7 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
+import com.blankj.utilcode.util.LanguageUtils;
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
@@ -32,6 +35,7 @@ import com.zhihu.matisse.engine.impl.PicassoEngine;
 
 import java.io.File;
 import java.util.List;
+import java.util.Locale;
 
 import ceui.lisa.R;
 import ceui.lisa.download.TaskQueue;
@@ -193,17 +197,17 @@ public class CoverActivity extends BaseActivity
         } else if (id == R.id.nav_slideshow) {
             Intent intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT,
-                    mContext.getString(R.string.view_history));
+                    "浏览记录");
             startActivity(intent);
         } else if (id == R.id.nav_manage) {
             Intent intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT,
-                    mContext.getString(R.string.app_settings));
+                    "设置");
             startActivity(intent);
         } else if (id == R.id.nav_share) {
             Intent intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT,
-                    mContext.getString(R.string.full_about_app));
+                    "关于软件");
             startActivity(intent);
 
         } else if (id == R.id.main_page) {

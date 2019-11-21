@@ -30,7 +30,7 @@
                 android:layout_height="wrap_content"
                 app:layout_scrollFlags="scroll|enterAlways"
                 app:navigationIcon="@drawable/ic_menu_white"
-                app:title="Shaft"
+                app:title="@string/app_name"
                 app:titleTextColor="@android:color/white">
 
             </androidx.appcompat.widget.Toolbar>
