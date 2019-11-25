@@ -20,7 +20,7 @@ import ceui.lisa.interfaces.NetControl;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
-import ceui.lisa.utils.IllustChannel;
+import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import io.reactivex.Observable;
@@ -58,7 +58,7 @@ public class FragmentP extends NetListFragment<FragmentBaseListBinding,
             @Override
             public void onItemClick(View v, int position, int viewType) {
                 if (viewType == 0) {
-                    IllustChannel.get().setIllustList(allItems);
+                    DataChannel.get().setIllustList(allItems);
                     Intent intent = new Intent(mContext, ViewPagerActivity.class);
                     intent.putExtra("position", position);
                     startActivity(intent);

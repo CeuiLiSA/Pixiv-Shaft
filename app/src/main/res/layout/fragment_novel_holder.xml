@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
 
@@ -17,6 +18,76 @@
             android:layout_height="match_parent">
 
         </androidx.viewpager.widget.ViewPager>
+
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            app:cardCornerRadius="@dimen/four_dp"
+            app:cardBackgroundColor="#7323c3"
+            app:cardElevation="@dimen/four_dp"
+            android:layout_above="@+id/fab"
+            android:layout_marginStart="@dimen/sixteen_dp"
+            android:visibility="invisible"
+            android:layout_marginEnd="@dimen/sixteen_dp"
+            android:id="@+id/awesome_card"
+            android:layout_height="260dp">
+
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+
+
+
+
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_alignParentBottom="true"
+                    android:layout_height="wrap_content">
+
+                    <Button
+                        style="@style/Widget.AppCompat.Button.Borderless"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:drawableStart="@drawable/ic_chevron_left_black_24dp"
+                        android:layout_marginStart="@dimen/six_dp"
+                        android:text="上一章节"
+                        android:textColor="@color/white">
+
+                    </Button>
+
+
+                    <Button
+                        style="@style/Widget.AppCompat.Button.Borderless"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerHorizontal="true"
+                        android:text="查看系列"
+                        android:textColor="@color/white">
+
+                    </Button>
+
+
+                    <Button
+                        style="@style/Widget.AppCompat.Button.Borderless"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:drawableEnd="@drawable/ic_chevron_right_black_24dp"
+                        android:layout_alignParentEnd="true"
+                        android:gravity="center_vertical"
+                        android:layout_marginEnd="@dimen/six_dp"
+                        android:text="下一章节"
+                        android:textColor="@color/white">
+
+                    </Button>
+
+                </RelativeLayout>
+            </RelativeLayout>
+
+        </androidx.cardview.widget.CardView>
 
 
         <RelativeLayout
@@ -46,6 +117,17 @@
 
         </RelativeLayout>
 
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:layout_width="wrap_content"
+            android:id="@+id/fab"
+            android:layout_alignParentEnd="true"
+            android:src="@drawable/ic_keyboard_arrow_up_black_24dp"
+            android:layout_alignParentBottom="true"
+            android:layout_margin="@dimen/sixteen_dp"
+            android:layout_height="wrap_content">
+
+        </com.google.android.material.floatingactionbutton.FloatingActionButton>
 
     </RelativeLayout>
 </layout>

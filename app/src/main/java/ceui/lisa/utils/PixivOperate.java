@@ -15,6 +15,7 @@ import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.IllustSearchResponse;
 import ceui.lisa.model.IllustsBean;
+import ceui.lisa.model.NovelBean;
 import ceui.lisa.model.NullResponse;
 import ceui.lisa.model.UserModel;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -98,6 +99,10 @@ public class PixivOperate {
         }
     }
 
+    public static void postLikeNovel(NovelBean novelBean, UserModel userModel, String starType) {
+        // TODO: 2019-11-22 收藏小说
+    }
+
     public static void getIllustByID(UserModel userModel, int illustID, Context context) {
         Retro.getAppApi().getIllustByID(userModel.getResponse().getAccess_token(), illustID)
                 .subscribeOn(Schedulers.newThread())
@@ -109,7 +114,7 @@ public class PixivOperate {
                             if (illustSearchResponse.getIllust() != null) {
                                 List<IllustsBean> tempList = new ArrayList<>();
                                 tempList.add(illustSearchResponse.getIllust());
-                                IllustChannel.get().setIllustList(tempList);
+                                DataChannel.get().setIllustList(tempList);
                                 Intent intent = new Intent(context, ViewPagerActivity.class);
                                 intent.putExtra("position", 0);
                                 context.startActivity(intent);
@@ -135,7 +140,7 @@ public class PixivOperate {
                             if (illustSearchResponse.getIllust() != null) {
                                 List<IllustsBean> tempList = new ArrayList<>();
                                 tempList.add(illustSearchResponse.getIllust());
-                                IllustChannel.get().setIllustList(tempList);
+                                DataChannel.get().setIllustList(tempList);
                                 Intent intent = new Intent(context, ViewPagerActivity.class);
                                 intent.putExtra("position", 0);
                                 context.startActivity(intent);

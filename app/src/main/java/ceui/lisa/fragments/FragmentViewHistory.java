@@ -35,7 +35,7 @@ import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
-import ceui.lisa.utils.IllustChannel;
+import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.ListObserver;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.LinearItemDecoration;
@@ -159,7 +159,7 @@ public class FragmentViewHistory extends BaseFragment {
                             @Override
                             public void onItemClick(View v, int position, int viewType) {
                                 if (viewType == 0) {
-                                    IllustChannel.get().setIllustList(allIllusts);
+                                    DataChannel.get().setIllustList(allIllusts);
                                     Intent intent = new Intent(mContext, ViewPagerActivity.class);
                                     intent.putExtra("position", position);
                                     startActivity(intent);

@@ -22,7 +22,7 @@ import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
-import ceui.lisa.utils.IllustChannel;
+import ceui.lisa.utils.DataChannel;
 import ceui.lisa.view.DownloadItemDecoration;
 
 public class FragmentMultiDownload extends BaseAsyncFragment<MultiDownloadAdapter, IllustsBean> {
@@ -51,7 +51,7 @@ public class FragmentMultiDownload extends BaseAsyncFragment<MultiDownloadAdapte
     @Override
     public void getFirstData() {
         allItems.clear();
-        allItems.addAll(IllustChannel.get().getDownloadList());
+        allItems.addAll(DataChannel.get().getDownloadList());
         for (int i = 0; i < allItems.size(); i++) {
             allItems.get(i).setChecked(true);
         }
@@ -75,7 +75,7 @@ public class FragmentMultiDownload extends BaseAsyncFragment<MultiDownloadAdapte
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                IllustChannel.get().setIllustList(allItems);
+                DataChannel.get().setIllustList(allItems);
                 Intent intent = new Intent(mContext, ViewPagerActivity.class);
                 intent.putExtra("position", position);
                 startActivity(intent);

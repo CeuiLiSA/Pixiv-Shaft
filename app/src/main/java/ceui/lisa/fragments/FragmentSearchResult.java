@@ -32,7 +32,7 @@ import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.model.TempTokenResponse;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
-import ceui.lisa.utils.IllustChannel;
+import ceui.lisa.utils.DataChannel;
 import ceui.lisa.view.GridItemDecoration;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -96,7 +96,7 @@ public class FragmentSearchResult extends NetListFragment<FragmentSearchResultBi
         return new IAdapter(allItems, mContext, true).setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                IllustChannel.get().setIllustList(allItems);
+                DataChannel.get().setIllustList(allItems);
                 Intent intent = new Intent(mContext, ViewPagerActivity.class);
                 intent.putExtra("position", position);
                 startActivity(intent);

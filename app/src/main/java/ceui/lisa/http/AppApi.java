@@ -202,6 +202,12 @@ public interface AppApi {
                                       @Field("restrict") String restrict);
 
     @FormUrlEncoded
+    @POST("v2/novel/bookmark/add")
+    Observable<NullResponse> postLikeNovel(@Header("Authorization") String token,
+                                      @Field("novel_id") int novel_id,
+                                      @Field("restrict") String restrict);
+
+    @FormUrlEncoded
     @POST("v2/illust/bookmark/add")
     Observable<NullResponse> postLike(@Header("Authorization") String token,
                                       @Field("illust_id") int illust_id,

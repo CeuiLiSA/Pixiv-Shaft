@@ -61,6 +61,6 @@ public abstract class ErrorCtrl<T> implements Observer<T> {
 
     @Override
     public void onComplete() {
-
+        Common.showLog(getClass().getSimpleName() + " onComplete() ");
     }
 }

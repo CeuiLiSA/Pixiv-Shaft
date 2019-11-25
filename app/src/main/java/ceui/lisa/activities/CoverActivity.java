@@ -192,18 +192,15 @@ public class CoverActivity extends BaseActivity
             startActivity(intent);
         } else if (id == R.id.nav_slideshow) {
             Intent intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT,
-                    "浏览记录");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "浏览记录");
             startActivity(intent);
         } else if (id == R.id.nav_manage) {
             Intent intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT,
-                    "设置");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "设置");
             startActivity(intent);
         } else if (id == R.id.nav_share) {
             Intent intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT,
-                    "关于软件");
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "关于软件");
             startActivity(intent);
 
         } else if (id == R.id.main_page) {

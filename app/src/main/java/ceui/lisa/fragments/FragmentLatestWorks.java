@@ -16,7 +16,7 @@ import ceui.lisa.interfaces.NetControl;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.utils.DensityUtil;
-import ceui.lisa.utils.IllustChannel;
+import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.SpacesItemDecoration;
 import io.reactivex.Observable;
@@ -57,7 +57,7 @@ public class FragmentLatestWorks extends NetListFragment<FragmentBaseListBinding
     @Override
     public BaseAdapter<IllustsBean, RecyIllustStaggerBinding> adapter() {
         return new IAdapter(allItems, mContext).setOnItemClickListener((v, position, viewType) -> {
-            IllustChannel.get().setIllustList(allItems);
+            DataChannel.get().setIllustList(allItems);
             Intent intent = new Intent(mContext, ViewPagerActivity.class);
             intent.putExtra("position", position);
             startActivity(intent);

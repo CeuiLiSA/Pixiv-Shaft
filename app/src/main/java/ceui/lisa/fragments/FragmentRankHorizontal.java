@@ -16,7 +16,7 @@ import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.DensityUtil;
-import ceui.lisa.utils.IllustChannel;
+import ceui.lisa.utils.DataChannel;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
 
 /**
@@ -42,7 +42,7 @@ public class FragmentRankHorizontal extends BaseBindFragment<FragmentUserHorizon
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                IllustChannel.get().setIllustList(allItems);
+                DataChannel.get().setIllustList(allItems);
                 Intent intent = new Intent(mContext, ViewPagerActivity.class);
                 intent.putExtra("position", position);
                 startActivity(intent);

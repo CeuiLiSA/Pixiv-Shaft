@@ -21,7 +21,7 @@ import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.DensityUtil;
-import ceui.lisa.utils.IllustChannel;
+import ceui.lisa.utils.DataChannel;
 import ceui.lisa.view.SpacesItemDecoration;
 import io.reactivex.Observable;
 
@@ -78,7 +78,7 @@ public class FragmentLikeIllust extends NetListFragment<FragmentBaseListBinding,
         return new IAdapter(allItems, mContext).setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                IllustChannel.get().setIllustList(allItems);
+                DataChannel.get().setIllustList(allItems);
                 Intent intent = new Intent(mContext, ViewPagerActivity.class);
                 intent.putExtra("position", position);
                 startActivity(intent);

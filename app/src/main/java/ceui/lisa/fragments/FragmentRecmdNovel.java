@@ -23,6 +23,7 @@ import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListNovelResponse;
 import ceui.lisa.model.NovelBean;
 import ceui.lisa.utils.DensityUtil;
+import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
 import io.reactivex.Observable;
@@ -50,9 +51,11 @@ public class FragmentRecmdNovel extends NetListFragment<FragmentRecmdBinding,
         return new NAdapter(allItems, mContext).setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
+                DataChannel.get().setNovelList(allItems);
                 Intent intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(Params.NOVEL_ID, allItems.get(position).getId());
+                intent.putExtra(Params.INDEX, position);
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情");
+                intent.putExtra("hideStatusBar", false);
                 startActivity(intent);
             }
         });
@@ -92,9 +95,11 @@ public class FragmentRecmdNovel extends NetListFragment<FragmentRecmdBinding,
         adapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
+                DataChannel.get().setNovelList(allItems);
                 Intent intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(Params.NOVEL_ID, ranking.get(position).getId());
+                intent.putExtra(Params.INDEX, position);
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情");
+                intent.putExtra("hideStatusBar", false);
                 startActivity(intent);
             }
         });

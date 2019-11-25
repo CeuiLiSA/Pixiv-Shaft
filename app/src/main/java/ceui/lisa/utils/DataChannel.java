@@ -4,22 +4,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.model.IllustsBean;
+import ceui.lisa.model.NovelBean;
 
-public class IllustChannel {
+public class DataChannel {
 
-    private volatile static IllustChannel instance = null;
+    private volatile static DataChannel instance = null;
     private List<IllustsBean> illustList = new ArrayList<>();
 
     private List<IllustsBean> downloadList = new ArrayList<>();
 
-    private IllustChannel() {
+    private List<NovelBean> novelList = new ArrayList<>();
+
+    private DataChannel() {
     }
 
-    public static IllustChannel get() {
+    public static DataChannel get() {
         if (instance == null) {
-            synchronized (IllustChannel.class) {
+            synchronized (DataChannel.class) {
                 if (instance == null) {
-                    instance = new IllustChannel();
+                    instance = new DataChannel();
                 }
             }
         }
@@ -41,5 +44,13 @@ public class IllustChannel {
 
     public void setDownloadList(List<IllustsBean> illustList) {
         this.downloadList = illustList;
+    }
+
+    public List<NovelBean> getNovelList() {
+        return novelList;
+    }
+
+    public void setNovelList(List<NovelBean> novelList) {
+        this.novelList = novelList;
     }
 }

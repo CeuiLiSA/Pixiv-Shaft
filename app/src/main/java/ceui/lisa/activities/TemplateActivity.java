@@ -23,7 +23,6 @@ import ceui.lisa.fragments.FragmentL;
 import ceui.lisa.fragments.FragmentLicense;
 import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.fragments.FragmentLocalUsers;
-import ceui.lisa.fragments.FragmentMetro;
 import ceui.lisa.fragments.FragmentMultiDownload;
 import ceui.lisa.fragments.FragmentNew;
 import ceui.lisa.fragments.FragmentNiceFriend;
@@ -100,8 +99,6 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                 }
                 case "账号管理":
                     return new FragmentLocalUsers();
-                case "地铁表白器":
-                    return new FragmentMetro();
                 case "按标签筛选": {
                     String keyword = intent.getStringExtra(EXTRA_KEYWORD);
                     return FragmentBookTag.newInstance(keyword);

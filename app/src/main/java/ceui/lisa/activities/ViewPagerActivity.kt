@@ -6,7 +6,7 @@ import ceui.lisa.R
 import ceui.lisa.databinding.ActivityViewPagerBinding
 import ceui.lisa.fragments.FragmentSingleIllust
 import ceui.lisa.model.IllustsBean
-import ceui.lisa.utils.IllustChannel
+import ceui.lisa.utils.DataChannel
 import com.ToxicBakery.viewpager.transforms.DrawerTransformer
 import java.util.*
 
@@ -19,7 +19,7 @@ class ViewPagerActivity : BaseActivity<ActivityViewPagerBinding>() {
     }
 
     override fun initView() {
-        dataList.addAll(IllustChannel.get().illustList)
+        dataList.addAll(DataChannel.get().illustList)
         baseBind.viewPager.setPageTransformer(true, DrawerTransformer())
         baseBind.viewPager.adapter = object : FragmentPagerAdapter(supportFragmentManager) {
             override fun getItem(i: Int): Fragment {
