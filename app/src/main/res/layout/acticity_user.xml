@@ -152,6 +152,14 @@
 
 
                         </FrameLayout>
+
+                        <FrameLayout
+                            android:layout_width="match_parent"
+                            android:id="@+id/like_novel"
+                            android:layout_height="wrap_content">
+
+
+                        </FrameLayout>
                     </LinearLayout>
                 </RelativeLayout>
         </ceui.lisa.view.ZoomNestedView>

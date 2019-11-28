@@ -1,6 +1,5 @@
 package ceui.lisa.fragments;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.KeyEvent;
@@ -18,7 +17,6 @@ import com.mxn.soul.flowingdrawer_core.ElasticDrawer;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
-import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapter;
 import ceui.lisa.databinding.FragmentSearchResultBinding;
@@ -26,13 +24,11 @@ import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.NetControl;
-import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.model.TempTokenResponse;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
-import ceui.lisa.utils.DataChannel;
 import ceui.lisa.view.GridItemDecoration;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -93,15 +89,7 @@ public class FragmentSearchResult extends NetListFragment<FragmentSearchResultBi
 
     @Override
     public BaseAdapter<IllustsBean, RecyIllustStaggerBinding> adapter() {
-        return new IAdapter(allItems, mContext, true).setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(View v, int position, int viewType) {
-                DataChannel.get().setIllustList(allItems);
-                Intent intent = new Intent(mContext, ViewPagerActivity.class);
-                intent.putExtra("position", position);
-                startActivity(intent);
-            }
-        });
+        return new IAdapter(allItems, mContext, true);
     }
 
     @Override

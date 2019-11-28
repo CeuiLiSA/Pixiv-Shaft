@@ -1,22 +1,16 @@
 package ceui.lisa.fragments;
 
-import android.content.Intent;
-import android.view.View;
-
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
-import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapter;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.NetControl;
-import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.utils.DensityUtil;
-import ceui.lisa.utils.DataChannel;
 import ceui.lisa.view.SpacesItemDecoration;
 import io.reactivex.Observable;
 
@@ -61,15 +55,7 @@ public class FragmentUserManga extends NetListFragment<FragmentBaseListBinding,
 
     @Override
     public BaseAdapter<IllustsBean, RecyIllustStaggerBinding> adapter() {
-        return new IAdapter(allItems, mContext).setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(View v, int position, int viewType) {
-                DataChannel.get().setIllustList(allItems);
-                Intent intent = new Intent(mContext, ViewPagerActivity.class);
-                intent.putExtra("position", position);
-                startActivity(intent);
-            }
-        });
+        return new IAdapter(allItems, mContext);
     }
 
     @Override

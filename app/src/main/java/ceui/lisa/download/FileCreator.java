@@ -15,8 +15,8 @@ public class FileCreator {
             return null;
         }
 
-        return new File(Shaft.sSettings.getGifZipPath(),
-                deleteSpecialWords(illustsBean.getTitle() + "_" + illustsBean.getId() + ".zip"));
+        return new File(Shaft.sSettings.getGifZipPath(), deleteSpecialWords(
+                illustsBean.getTitle() + "_" + illustsBean.getId() + ".zip"));
     }
 
 
@@ -25,7 +25,8 @@ public class FileCreator {
             return null;
         }
 
-        return new File(Shaft.sSettings.getGifUnzipPath() + deleteSpecialWords(illustsBean.getTitle() + "_" + illustsBean.getId()));
+        return new File(Shaft.sSettings.getGifUnzipPath() + deleteSpecialWords(
+                illustsBean.getTitle() + "_" + illustsBean.getId()));
     }
 
 
@@ -34,8 +35,8 @@ public class FileCreator {
             return null;
         }
 
-        return new File(Shaft.sSettings.getIllustPath(),
-                deleteSpecialWords(illustsBean.getTitle() + "_" + illustsBean.getId() + ".png"));
+        return new File(Shaft.sSettings.getIllustPath(), deleteSpecialWords(
+                illustsBean.getTitle() + "_" + illustsBean.getId() + ".png"));
     }
 
     public static File createIllustFile(IllustsBean illustsBean, int index) {
@@ -43,8 +44,8 @@ public class FileCreator {
             return null;
         }
 
-        return new File(Shaft.sSettings.getIllustPath(),
-                deleteSpecialWords(illustsBean.getTitle() + "_" + illustsBean.getId() + "_" + "p" + (index + 1) + ".png"));
+        return new File(Shaft.sSettings.getIllustPath(), deleteSpecialWords(
+                illustsBean.getTitle() + "_" + illustsBean.getId() + "_" + "p" + (index + 1) + ".png"));
     }
 
     private static String deleteSpecialWords(String before) {

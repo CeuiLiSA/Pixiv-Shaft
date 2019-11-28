@@ -8,6 +8,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+
 import com.bumptech.glide.Glide;
 import com.zhy.view.flowlayout.FlowLayout;
 import com.zhy.view.flowlayout.TagAdapter;
@@ -20,9 +23,12 @@ import ceui.lisa.R;
 import ceui.lisa.databinding.ActicityUserBinding;
 import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.fragments.FragmentLikeIllustHorizontal;
+import ceui.lisa.fragments.FragmentLikeNovelHorizontal;
 import ceui.lisa.http.ErrorCtrl;
+import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.Display;
+import ceui.lisa.model.ListNovelResponse;
 import ceui.lisa.model.UserDetailResponse;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
@@ -162,31 +168,27 @@ public class UActivity extends BaseActivity<ActicityUserBinding> implements Disp
                     .into(baseBind.userBackground);
         }
 
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+
         if (currentUser.getProfile().getTotal_illust_bookmarks_public() > 0) {
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.illust_collection,
-                            FragmentLikeIllustHorizontal
-                                    .newInstance(currentUser, 1))// 1插画收藏    2插画作品     3漫画作品
-                    .commit();
+            transaction.replace(R.id.illust_collection, FragmentLikeIllustHorizontal
+                    .newInstance(currentUser, 1));// 1插画收藏    2插画作品     3漫画作品
         }
 
         if (currentUser.getProfile().getTotal_illusts() > 0) {
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.illust_works,
-                            FragmentLikeIllustHorizontal
-                                    .newInstance(currentUser, 2))// 1插画收藏    2插画作品     3漫画作品
-                    .commit();
+            transaction.replace(R.id.illust_works, FragmentLikeIllustHorizontal
+                    .newInstance(currentUser, 2));// 1插画收藏    2插画作品     3漫画作品
         }
 
         if (currentUser.getProfile().getTotal_manga() > 0) {
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.manga_works,
-                            FragmentLikeIllustHorizontal
-                                    .newInstance(currentUser, 3))// 1插画收藏    2插画作品     3漫画作品
-                    .commit();
+            transaction.replace(R.id.manga_works, FragmentLikeIllustHorizontal
+                    .newInstance(currentUser, 3));// 1插画收藏    2插画作品     3漫画作品
         }
+
+        transaction.replace(R.id.like_novel, FragmentLikeNovelHorizontal
+                .newInstance(currentUser));// 1插画收藏    2插画作品     3漫画作品
+
+        transaction.commit();
     }
 }

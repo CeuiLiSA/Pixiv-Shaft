@@ -113,8 +113,13 @@ public interface AppApi {
                                                      @Query("restrict") String restrict,
                                                      @Query("tag") String tag);
 
-    @GET("v1/user/bookmarks/illust?type=manga")
+    @GET("v1/user/bookmarks/illust")
     Observable<ListIllustResponse> getUserLikeIllust(@Header("Authorization") String token,
+                                                     @Query("user_id") int user_id,
+                                                     @Query("restrict") String restrict);
+
+    @GET("v1/user/bookmarks/novel")
+    Observable<ListNovelResponse> getUserLikeNovel(@Header("Authorization") String token,
                                                      @Query("user_id") int user_id,
                                                      @Query("restrict") String restrict);
 
@@ -218,6 +223,11 @@ public interface AppApi {
     @POST("v1/illust/bookmark/delete")
     Observable<NullResponse> postDislike(@Header("Authorization") String token,
                                          @Field("illust_id") int illust_id);
+
+    @FormUrlEncoded
+    @POST("v1/novel/bookmark/delete")
+    Observable<NullResponse> postDislikeNovel(@Header("Authorization") String token,
+                                         @Field("novel_id") int novel_id);
 
 
     @GET("v1/illust/detail?filter=for_android")

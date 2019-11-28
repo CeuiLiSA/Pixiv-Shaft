@@ -12,7 +12,6 @@ public abstract class AppDatabase extends RoomDatabase {
 
     public static final String DATABASE_NAME = "roomDemo-database";
 
-    //public abstract IllustDao trackDao();
     private static AppDatabase INSTANCE;
 
     public static AppDatabase getAppDatabase(Context context) {

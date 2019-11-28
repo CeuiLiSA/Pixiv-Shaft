@@ -23,9 +23,11 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
+import ceui.lisa.adapters.IAdapter;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.interfaces.ListShow;
 import ceui.lisa.interfaces.NetControl;
+import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
@@ -41,8 +43,8 @@ import jp.wasabeef.recyclerview.animators.LandingAnimator;
  * @param <ItemLayout> 单个Item的LayoutBinding
  */
 public abstract class NetListFragment<Layout extends ViewDataBinding,
-        Response extends ListShow<Item>, Item,
-        ItemLayout extends ViewDataBinding> extends BaseBindFragment<Layout> {
+        Response extends ListShow<Item>, Item, ItemLayout extends ViewDataBinding>
+        extends BaseBindFragment<Layout> {
 
     private static final long animateDuration = 400L;
     protected NetControl<Response> mNetControl;

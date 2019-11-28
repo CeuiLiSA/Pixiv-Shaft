@@ -49,15 +49,7 @@ public class FragmentRecmdManga extends NetListFragment<FragmentRecmdBinding,
 
     @Override
     public BaseAdapter<IllustsBean, RecyIllustStaggerBinding> adapter() {
-        return new IAdapter(allItems, mContext).setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(View v, int position, int viewType) {
-                DataChannel.get().setIllustList(allItems);
-                Intent intent = new Intent(mContext, ViewPagerActivity.class);
-                intent.putExtra("position", position);
-                startActivity(intent);
-            }
-        });
+        return new IAdapter(allItems, mContext);
     }
 
     @Override

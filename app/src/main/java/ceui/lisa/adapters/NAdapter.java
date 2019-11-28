@@ -15,17 +15,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
+import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.databinding.RecyNovelBinding;
+import ceui.lisa.fragments.FragmentLikeIllust;
+import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.NovelBean;
 import ceui.lisa.model.TagsBean;
+import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.GlideUtil;
+import ceui.lisa.utils.Params;
+import ceui.lisa.utils.PixivOperate;
 import me.next.tagview.TagCloudView;
 
 public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
 
     public NAdapter(List<NovelBean> targetList, Context context) {
         super(targetList, context);
+        handleClick();
     }
 
     @Override
@@ -43,8 +51,50 @@ public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
         bindView.baseBind.howManyWord.setText(target.getText_length() + "字");
         Glide.with(mContext).load(target.getImage_urls().getLarge()).into(bindView.baseBind.cover);
         Glide.with(mContext).load(GlideUtil.getHead(target.getUser())).into(bindView.baseBind.userHead);
+        if (target.isIs_bookmarked()) {
+            bindView.baseBind.like.setText("取消收藏");
+        }else {
+            bindView.baseBind.like.setText("收藏");
+        }
         if (mOnItemClickListener != null) {
+            bindView.baseBind.like.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mOnItemClickListener.onItemClick(bindView.baseBind.like, position, 1);
+                }
+            });
+            bindView.baseBind.like.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    if (target.isIs_bookmarked()) {
+
+                    } else {
+                        PixivOperate.postLikeNovel(allIllust.get(position), Shaft.sUserModel,
+                                FragmentLikeIllust.TYPE_PRIVATE, bindView.baseBind.like);
+                    }
+                    return true;
+                }
+            });
             bindView.itemView.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 0));
         }
+    }
+
+    private void handleClick(){
+        setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(View v, int position, int viewType) {
+                if(viewType == 0) {
+                    DataChannel.get().setNovelList(allIllust);
+                    Intent intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(Params.INDEX, position);
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情");
+                    intent.putExtra("hideStatusBar", false);
+                    mContext.startActivity(intent);
+                } else if(viewType == 1){
+                    PixivOperate.postLikeNovel(allIllust.get(position), Shaft.sUserModel,
+                            FragmentLikeIllust.TYPE_PUBLUC, v);
+                }
+            }
+        });
     }
 }

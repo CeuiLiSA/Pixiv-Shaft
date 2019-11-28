@@ -4,8 +4,11 @@ import android.content.Intent;
 import android.net.Uri;
 import android.text.TextUtils;
 
+import java.util.List;
+
 import ceui.lisa.R;
 import ceui.lisa.interfaces.Callback;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 
@@ -36,6 +39,20 @@ public class OutWakeActivity extends BaseActivity {
                 String scheme = uri.getScheme();
                 if (!TextUtils.isEmpty(scheme)) {
 
+                    if(uri.getPath() != null && uri.getPath().contains("artworks")){
+                        List<String> pathArray = uri.getPathSegments();
+                        String illustID = pathArray.get(pathArray.size() - 1);
+                        if (!TextUtils.isEmpty(illustID)) {
+                            PixivOperate.getIllustByID(Shaft.sUserModel, Integer.valueOf(illustID), mContext, new Callback<Void>() {
+                                @Override
+                                public void doSomething(Void t) {
+                                    finish();
+                                }
+                            });
+                            return;
+                        }
+                    }
+
                     //http网页跳转到这里
                     if (scheme.contains("http")) {
                         String illustID = uri.getQueryParameter("illust_id");
@@ -57,6 +74,7 @@ public class OutWakeActivity extends BaseActivity {
                             finish();
                             return;
                         }
+
                     }
 
                     //pixiv内部链接，如 pixiv://illusts/73190863

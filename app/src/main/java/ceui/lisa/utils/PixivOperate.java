@@ -3,6 +3,8 @@ package ceui.lisa.utils;
 
 import android.content.Context;
 import android.content.Intent;
+import android.view.View;
+import android.widget.Button;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -99,8 +101,40 @@ public class PixivOperate {
         }
     }
 
-    public static void postLikeNovel(NovelBean novelBean, UserModel userModel, String starType) {
-        // TODO: 2019-11-22 收藏小说
+    public static void postLikeNovel(NovelBean novelBean, UserModel userModel, String starType, View view) {
+        if (novelBean == null) {
+            return;
+        }
+
+        if (novelBean.isIs_bookmarked()) { //已收藏
+            novelBean.setIs_bookmarked(false);
+            Retro.getAppApi().postDislikeNovel(userModel.getResponse().getAccess_token(), novelBean.getId())
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new ErrorCtrl<NullResponse>() {
+                        @Override
+                        public void onNext(NullResponse nullResponse) {
+                            if(view instanceof Button){
+                                ((Button) view).setText("收藏");
+                            }
+                            Common.showToast(getString(R.string.cancel_like_illust));
+                        }
+                    });
+        } else { //没有收藏
+            novelBean.setIs_bookmarked(true);
+            Retro.getAppApi().postLikeNovel(userModel.getResponse().getAccess_token(), novelBean.getId(), starType)
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new ErrorCtrl<NullResponse>() {
+                        @Override
+                        public void onNext(NullResponse nullResponse) {
+                            if(view instanceof Button){
+                                ((Button) view).setText("取消收藏");
+                            }
+                            Common.showToast(getString(R.string.like_illust_success));
+                        }
+                    });
+        }
     }
 
     public static void getIllustByID(UserModel userModel, int illustID, Context context) {

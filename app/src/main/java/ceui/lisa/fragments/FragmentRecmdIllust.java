@@ -1,7 +1,5 @@
 package ceui.lisa.fragments;
 
-import android.content.Intent;
-
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import com.google.gson.Gson;
@@ -13,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapter;
 import ceui.lisa.database.AppDatabase;
@@ -28,7 +25,6 @@ import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Dev;
-import ceui.lisa.utils.DataChannel;
 import ceui.lisa.view.SpacesItemDecoration;
 import io.reactivex.Observable;
 import io.reactivex.ObservableOnSubscribe;
@@ -59,12 +55,7 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
 
     @Override
     public BaseAdapter<IllustsBean, RecyIllustStaggerBinding> adapter() {
-        return new IAdapter(allItems, mContext).setOnItemClickListener((v, position, viewType) -> {
-            DataChannel.get().setIllustList(allItems);
-            Intent intent = new Intent(mContext, ViewPagerActivity.class);
-            intent.putExtra("position", position);
-            startActivity(intent);
-        });
+        return new IAdapter(allItems, mContext);
     }
 
     @Override

@@ -36,33 +36,7 @@ class FragmentNiceFriend : NetListFragment<FragmentBaseListBinding,
     }
 
     override fun adapter(): BaseAdapter<UserPreviewsBean, RecyUserPreviewBinding> {
-        return UAdapter(allItems, mContext).setFullClickListener(object : FullClickListener {
-            override fun onItemClick(v: View, position: Int, viewType: Int) {
-                if (viewType == 0) { //普通item
-                    val intent = Intent(mContext, UActivity::class.java)
-                    intent.putExtra(Params.USER_ID, allItems[position].user.id)
-                    startActivity(intent)
-                } else if (viewType == 1) { //关注按钮
-                    if (allItems[position].user.isIs_followed) {
-                        PixivOperate.postUnFollowUser(allItems[position].user.id)
-                        val postFollow = v as Button
-                        postFollow.text = getString(R.string.post_follow)
-                    } else {
-                        PixivOperate.postFollowUser(allItems[position].user.id, FragmentLikeIllust.TYPE_PUBLUC)
-                        val postFollow = v as Button
-                        postFollow.text = getString(R.string.post_unfollow)
-                    }
-                }
-            }
-
-            override fun onItemLongClick(v: View, position: Int, viewType: Int) {
-                if (!allItems[position].user.isIs_followed) {
-                    PixivOperate.postFollowUser(allItems[position].user.id, FragmentLikeIllust.TYPE_PRIVATE)
-                    val postFollow = v as Button
-                    postFollow.text = getString(R.string.post_unfollow)
-                }
-            }
-        })
+        return UAdapter(allItems, mContext)
     }
 
     override fun getToolbarTitle(): String {
