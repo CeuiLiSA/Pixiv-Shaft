@@ -155,6 +155,14 @@
 
                         <FrameLayout
                             android:layout_width="match_parent"
+                            android:id="@+id/novel_works"
+                            android:layout_height="wrap_content">
+
+
+                        </FrameLayout>
+
+                        <FrameLayout
+                            android:layout_width="match_parent"
                             android:id="@+id/like_novel"
                             android:layout_height="wrap_content">
 

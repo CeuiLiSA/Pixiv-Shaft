@@ -40,6 +40,7 @@ import ceui.lisa.fragments.FragmentSelectBookTag;
 import ceui.lisa.fragments.FragmentSettings;
 import ceui.lisa.fragments.FragmentUserIllust;
 import ceui.lisa.fragments.FragmentUserManga;
+import ceui.lisa.fragments.FragmentUserNovel;
 import ceui.lisa.fragments.FragmentViewHistory;
 import ceui.lisa.fragments.FragmentWalkThrough;
 import ceui.lisa.fragments.FragmentWebView;
@@ -152,8 +153,11 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                 case "小说收藏":
                     return FragmentLikeNovel.newInstance(intent.getIntExtra(Params.USER_ID, 0),
                             FragmentLikeIllust.TYPE_PUBLUC, true);
+                case "小说作品":
+                    return FragmentUserNovel.newInstance(intent.getIntExtra(Params.USER_ID, 0),
+                            FragmentLikeIllust.TYPE_PUBLUC, true);
                 case "小说详情":
-                    return FragmentNovelHolder.newInstance(intent.getIntExtra(Params.NOVEL_ID, 0));
+                    return FragmentNovelHolder.newInstance(intent.getIntExtra(Params.INDEX, 0));
 
                 default:
                     return new FragmentBlank();

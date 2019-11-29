@@ -45,24 +45,37 @@ public class UAdapter extends BaseAdapter<UserPreviewsBean, RecyUserPreviewBindi
         bindView.baseBind.userShowOne.setLayoutParams(params);
         bindView.baseBind.userShowTwo.setLayoutParams(params);
         bindView.baseBind.userShowThree.setLayoutParams(params);
-        bindView.baseBind.userName.setText(allIllust.get(position).getUser().getName());
-        if (allIllust.get(position).getIllusts() != null && allIllust.get(position).getIllusts().size() >= 3) {
-            Glide.with(mContext).load(GlideUtil.getMediumImg(allIllust.get(position)
-                    .getUser().getProfile_image_urls().getMedium())).into(bindView.baseBind.userHead);
-            Glide.with(mContext).load(GlideUtil.getMediumImg(allIllust.get(position)
+        bindView.baseBind.userName.setText(target.getUser().getName());
+        if (target.getIllusts() != null && target.getIllusts().size() >= 3) {
+            Glide.with(mContext).load(GlideUtil.getMediumImg(target
                     .getIllusts().get(0)))
                     .placeholder(R.color.light_bg)
                     .into(bindView.baseBind.userShowOne);
-            Glide.with(mContext).load(GlideUtil.getMediumImg(allIllust.get(position)
+            Glide.with(mContext).load(GlideUtil.getMediumImg(target
                     .getIllusts().get(1)))
                     .placeholder(R.color.light_bg)
                     .into(bindView.baseBind.userShowTwo);
-            Glide.with(mContext).load(GlideUtil.getMediumImg(allIllust.get(position)
+            Glide.with(mContext).load(GlideUtil.getMediumImg(target
                     .getIllusts().get(2)))
+                    .placeholder(R.color.light_bg)
+                    .into(bindView.baseBind.userShowThree);
+        }else if(target.getNovels() != null && target.getNovels().size() >= 3){
+            Glide.with(mContext).load(GlideUtil.getMediumImg(target
+                    .getNovels().get(0).getImage_urls().getMedium()))
+                    .placeholder(R.color.light_bg)
+                    .into(bindView.baseBind.userShowOne);
+            Glide.with(mContext).load(GlideUtil.getMediumImg(target
+                    .getNovels().get(1).getImage_urls().getMedium()))
+                    .placeholder(R.color.light_bg)
+                    .into(bindView.baseBind.userShowTwo);
+            Glide.with(mContext).load(GlideUtil.getMediumImg(target
+                    .getNovels().get(2).getImage_urls().getMedium()))
                     .placeholder(R.color.light_bg)
                     .into(bindView.baseBind.userShowThree);
         }
 
+        Glide.with(mContext).load(GlideUtil.getMediumImg(allIllust.get(position)
+                .getUser().getProfile_image_urls().getMedium())).into(bindView.baseBind.userHead);
         bindView.baseBind.postLikeUser.setText(allIllust.get(position).getUser().isIs_followed() ?
                 mContext.getString(R.string.post_unfollow) : mContext.getString(R.string.post_follow));
 

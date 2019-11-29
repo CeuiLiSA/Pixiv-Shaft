@@ -128,6 +128,10 @@ public interface AppApi {
                                                        @Query("user_id") int user_id,
                                                        @Query("type") String type);
 
+    @GET("v1/user/novels")
+    Observable<ListNovelResponse> getUserSubmitNovel(@Header("Authorization") String token,
+                                                       @Query("user_id") int user_id);
+
 
     @GET("v2/illust/follow?restrict=all")
     Observable<ListIllustResponse> getFollowUserIllust(@Header("Authorization") String token);
