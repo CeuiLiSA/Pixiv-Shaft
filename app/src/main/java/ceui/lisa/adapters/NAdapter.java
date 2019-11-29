@@ -3,31 +3,23 @@ package ceui.lisa.adapters;
 import android.content.Context;
 import android.content.Intent;
 import android.text.TextUtils;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.zhy.view.flowlayout.FlowLayout;
-import com.zhy.view.flowlayout.TagAdapter;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
-import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.databinding.RecyNovelBinding;
 import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.NovelBean;
-import ceui.lisa.model.TagsBean;
 import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
-import me.next.tagview.TagCloudView;
 
 public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
 
@@ -44,7 +36,7 @@ public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
     @Override
     public void bindData(NovelBean target, ViewHolder<RecyNovelBinding> bindView, int position) {
         bindView.baseBind.title.setText(target.getTitle());
-        if(target.getSeries() != null && !TextUtils.isEmpty(target.getSeries().getTitle())) {
+        if (target.getSeries() != null && !TextUtils.isEmpty(target.getSeries().getTitle())) {
             bindView.baseBind.series.setText(String.format("系列：%s", target.getSeries().getTitle()));
         }
         bindView.baseBind.author.setText(target.getUser().getName());
@@ -53,7 +45,7 @@ public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
         Glide.with(mContext).load(GlideUtil.getHead(target.getUser())).into(bindView.baseBind.userHead);
         if (target.isIs_bookmarked()) {
             bindView.baseBind.like.setText("取消收藏");
-        }else {
+        } else {
             bindView.baseBind.like.setText("收藏");
         }
         if (mOnItemClickListener != null) {
@@ -79,18 +71,18 @@ public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
         }
     }
 
-    private void handleClick(){
+    private void handleClick() {
         setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                if(viewType == 0) {
+                if (viewType == 0) {
                     DataChannel.get().setNovelList(allIllust);
                     Intent intent = new Intent(mContext, TemplateActivity.class);
                     intent.putExtra(Params.INDEX, position);
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情");
                     intent.putExtra("hideStatusBar", false);
                     mContext.startActivity(intent);
-                } else if(viewType == 1){
+                } else if (viewType == 1) {
                     PixivOperate.postLikeNovel(allIllust.get(position), Shaft.sUserModel,
                             FragmentLikeIllust.TYPE_PUBLUC, v);
                 }

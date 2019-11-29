@@ -14,6 +14,7 @@ public class ListNovelResponse implements ListShow<NovelBean>, Serializable {
 
     private String next_url;
     private List<NovelBean> novels;
+    private List<NovelBean> ranking_novels;
 
     public List<NovelBean> getRanking_novels() {
         return ranking_novels;
@@ -22,8 +23,6 @@ public class ListNovelResponse implements ListShow<NovelBean>, Serializable {
     public void setRanking_novels(List<NovelBean> ranking_novels) {
         this.ranking_novels = ranking_novels;
     }
-
-    private List<NovelBean> ranking_novels;
 
     @Override
     public List<NovelBean> getList() {

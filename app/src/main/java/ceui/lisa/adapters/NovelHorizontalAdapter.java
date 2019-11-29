@@ -7,9 +7,7 @@ import com.bumptech.glide.Glide;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.databinding.RecyRankIllustHorizontalBinding;
 import ceui.lisa.databinding.RecyRankNovelHorizontalBinding;
-import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.NovelBean;
 import ceui.lisa.utils.GlideUtil;
 

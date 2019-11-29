@@ -8,7 +8,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class UserDetailResponse implements Serializable{
+public class UserDetailResponse implements Serializable {
 
     private UserBean user;
     private ProfileBean profile;
@@ -47,6 +47,77 @@ public class UserDetailResponse implements Serializable{
         this.workspace = workspace;
     }
 
+    public List<String> getTag() {
+        List<String> result = new ArrayList<>();
+        if (workspace == null) {
+            return result;
+        }
+
+        if (!TextUtils.isEmpty(workspace.chair)) {
+            result.add(workspace.chair);
+        }
+
+        if (!TextUtils.isEmpty(workspace.comment)) {
+            result.add(workspace.comment);
+        }
+
+        if (!TextUtils.isEmpty(workspace.desk)) {
+            result.add(workspace.desk);
+        }
+
+        if (!TextUtils.isEmpty(workspace.desktop)) {
+            result.add(workspace.desktop);
+        }
+
+        if (!TextUtils.isEmpty(workspace.monitor)) {
+            result.add(workspace.monitor);
+        }
+
+        if (!TextUtils.isEmpty(workspace.mouse)) {
+            result.add(workspace.mouse);
+        }
+
+        if (!TextUtils.isEmpty(workspace.music)) {
+            result.add(workspace.music);
+        }
+
+        if (!TextUtils.isEmpty(workspace.pc)) {
+            result.add(workspace.pc);
+        }
+
+        if (!TextUtils.isEmpty(workspace.printer)) {
+            result.add(workspace.printer);
+        }
+
+        if (!TextUtils.isEmpty(workspace.scanner)) {
+            result.add(workspace.scanner);
+        }
+
+        if (!TextUtils.isEmpty(workspace.tablet)) {
+            result.add(workspace.tablet);
+        }
+
+        if (!TextUtils.isEmpty(workspace.tool)) {
+            result.add(workspace.tool);
+        }
+
+        if (result.size() != 0) {
+            Collections.sort(result, new Comparator<String>() {
+                @Override
+                public int compare(String s, String t1) {
+                    if (s.length() < t1.length()) {
+                        return -1;
+                    } else if (s.length() > t1.length()) {
+                        return 1;
+                    } else {
+                        return 0;
+                    }
+                }
+            });
+        }
+
+        return result;
+    }
 
     public static class ProfileBean implements Serializable {
         /**
@@ -494,77 +565,5 @@ public class UserDetailResponse implements Serializable{
         public void setWorkspace_image_url(String workspace_image_url) {
             this.workspace_image_url = workspace_image_url;
         }
-    }
-
-    public List<String> getTag(){
-        List<String> result = new ArrayList<>();
-        if(workspace == null){
-            return result;
-        }
-
-        if(!TextUtils.isEmpty(workspace.chair)){
-            result.add(workspace.chair);
-        }
-
-        if(!TextUtils.isEmpty(workspace.comment)){
-            result.add(workspace.comment);
-        }
-
-        if(!TextUtils.isEmpty(workspace.desk)){
-            result.add(workspace.desk);
-        }
-
-        if(!TextUtils.isEmpty(workspace.desktop)){
-            result.add(workspace.desktop);
-        }
-
-        if(!TextUtils.isEmpty(workspace.monitor)){
-            result.add(workspace.monitor);
-        }
-
-        if(!TextUtils.isEmpty(workspace.mouse)){
-            result.add(workspace.mouse);
-        }
-
-        if(!TextUtils.isEmpty(workspace.music)){
-            result.add(workspace.music);
-        }
-
-        if(!TextUtils.isEmpty(workspace.pc)){
-            result.add(workspace.pc);
-        }
-
-        if(!TextUtils.isEmpty(workspace.printer)){
-            result.add(workspace.printer);
-        }
-
-        if(!TextUtils.isEmpty(workspace.scanner)){
-            result.add(workspace.scanner);
-        }
-
-        if(!TextUtils.isEmpty(workspace.tablet)){
-            result.add(workspace.tablet);
-        }
-
-        if(!TextUtils.isEmpty(workspace.tool)){
-            result.add(workspace.tool);
-        }
-
-        if(result.size() != 0){
-            Collections.sort(result, new Comparator<String>() {
-                @Override
-                public int compare(String s, String t1) {
-                    if(s.length() < t1.length()){
-                        return -1;
-                    }else if (s.length() > t1.length()){
-                        return 1;
-                    }else {
-                        return 0;
-                    }
-                }
-            });
-        }
-
-        return result;
     }
 }

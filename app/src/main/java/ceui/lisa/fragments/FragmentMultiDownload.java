@@ -21,8 +21,8 @@ import ceui.lisa.interfaces.Callback;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.DataChannel;
+import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.DownloadItemDecoration;
 
 public class FragmentMultiDownload extends BaseAsyncFragment<MultiDownloadAdapter, IllustsBean> {

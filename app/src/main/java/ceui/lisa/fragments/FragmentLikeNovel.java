@@ -1,27 +1,13 @@
 package ceui.lisa.fragments;
 
-import android.text.TextUtils;
-
-import androidx.recyclerview.widget.StaggeredGridLayoutManager;
-
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
-
 import ceui.lisa.adapters.BaseAdapter;
-import ceui.lisa.adapters.IAdapter;
 import ceui.lisa.adapters.NAdapter;
 import ceui.lisa.databinding.FragmentBaseListBinding;
-import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.databinding.RecyNovelBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.NetControl;
-import ceui.lisa.model.IllustsBean;
-import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.model.ListNovelResponse;
 import ceui.lisa.model.NovelBean;
-import ceui.lisa.utils.Channel;
-import ceui.lisa.utils.DensityUtil;
-import ceui.lisa.view.SpacesItemDecoration;
 import io.reactivex.Observable;
 
 import static ceui.lisa.activities.Shaft.sUserModel;

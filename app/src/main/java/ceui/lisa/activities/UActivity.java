@@ -1,8 +1,6 @@
 package ceui.lisa.activities;
 
-import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,10 +23,8 @@ import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.fragments.FragmentLikeIllustHorizontal;
 import ceui.lisa.fragments.FragmentLikeNovelHorizontal;
 import ceui.lisa.http.ErrorCtrl;
-import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.Display;
-import ceui.lisa.model.ListNovelResponse;
 import ceui.lisa.model.UserDetailResponse;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;

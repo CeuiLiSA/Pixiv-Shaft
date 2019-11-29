@@ -28,7 +28,6 @@ import ceui.lisa.view.LinearItemHorizontalDecoration;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
-import jp.wasabeef.recyclerview.animators.FadeInLeftAnimator;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static ceui.lisa.activities.Shaft.sUserModel;
@@ -57,7 +56,7 @@ public class FragmentLikeNovelHorizontal extends BaseBindFragment<FragmentLikeIl
         baseBind.rootParentView.setVisibility(View.GONE);
         baseBind.recyclerView.addItemDecoration(new
                 LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
-        if(type == 1){
+        if (type == 1) {
             baseBind.title.setText("小说作品");
             baseBind.howMany.setText(String.format(getString(R.string.how_many_illust_works),
                     mUserDetailResponse.getProfile().getTotal_novels()));
@@ -71,7 +70,7 @@ public class FragmentLikeNovelHorizontal extends BaseBindFragment<FragmentLikeIl
                     startActivity(intent);
                 }
             });
-        }else if(type == 0){
+        } else if (type == 0) {
             baseBind.title.setText("小说收藏");
             baseBind.howMany.setText("查看全部");
             baseBind.howMany.setOnClickListener(new View.OnClickListener() {
@@ -113,10 +112,10 @@ public class FragmentLikeNovelHorizontal extends BaseBindFragment<FragmentLikeIl
     @Override
     void initData() {
         Observable<ListNovelResponse> mApi = null;
-        if(type == 0) {
+        if (type == 0) {
             mApi = Retro.getAppApi().getUserLikeNovel(sUserModel.getResponse().getAccess_token(),
                     mUserDetailResponse.getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC);
-        }else {
+        } else {
             mApi = Retro.getAppApi().getUserSubmitNovel(sUserModel.getResponse().getAccess_token(),
                     mUserDetailResponse.getUser().getId());
         }

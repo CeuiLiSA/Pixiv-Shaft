@@ -8,7 +8,6 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.interfaces.Callback;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 
@@ -39,7 +38,7 @@ public class OutWakeActivity extends BaseActivity {
                 String scheme = uri.getScheme();
                 if (!TextUtils.isEmpty(scheme)) {
 
-                    if(uri.getPath() != null && uri.getPath().contains("artworks")){
+                    if (uri.getPath() != null && uri.getPath().contains("artworks")) {
                         List<String> pathArray = uri.getPathSegments();
                         String illustID = pathArray.get(pathArray.size() - 1);
                         if (!TextUtils.isEmpty(illustID)) {

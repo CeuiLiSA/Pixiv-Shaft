@@ -2,7 +2,7 @@ package ceui.lisa.view;
 
 import android.animation.Animator;
 
-public abstract class AnimeListener implements Animator.AnimatorListener  {
+public abstract class AnimeListener implements Animator.AnimatorListener {
 
     @Override
     public void onAnimationStart(Animator animation, boolean isReverse) {

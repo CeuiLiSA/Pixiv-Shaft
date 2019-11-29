@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewAnimationUtils;
-import android.view.animation.AccelerateDecelerateInterpolator;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -18,13 +17,11 @@ import com.bumptech.glide.Glide;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.UActivity;
-import ceui.lisa.adapters.UAdapter;
 import ceui.lisa.databinding.FragmentNovelHolderBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.NovelBean;
 import ceui.lisa.model.NovelDetail;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
@@ -64,18 +61,18 @@ public class FragmentNovelHolder extends BaseBindFragment<FragmentNovelHolderBin
         baseBind.fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(isOpen){
+                if (isOpen) {
                     isOpen = false;
                     close();
-                }else {
+                } else {
                     isOpen = true;
                     open();
                 }
             }
         });
-        if(mNovelBean.isIs_bookmarked()){
+        if (mNovelBean.isIs_bookmarked()) {
             baseBind.like.setText("取消收藏");
-        }else {
+        } else {
             baseBind.like.setText("收藏");
         }
         baseBind.like.setOnClickListener(new View.OnClickListener() {
@@ -88,9 +85,9 @@ public class FragmentNovelHolder extends BaseBindFragment<FragmentNovelHolderBin
         baseBind.like.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                if(mNovelBean.isIs_bookmarked()){
+                if (mNovelBean.isIs_bookmarked()) {
 
-                }else {
+                } else {
                     PixivOperate.postLikeNovel(mNovelBean, Shaft.sUserModel,
                             FragmentLikeIllust.TYPE_PRIVATE, baseBind.like);
                 }
@@ -109,7 +106,7 @@ public class FragmentNovelHolder extends BaseBindFragment<FragmentNovelHolderBin
         baseBind.userName.setOnClickListener(seeUser);
         baseBind.userName.setText(mNovelBean.getUser().getName());
         baseBind.novelTitle.setText("标题：" + mNovelBean.getTitle());
-        if(mNovelBean.getSeries() != null && !TextUtils.isEmpty(mNovelBean.getSeries().getTitle())){
+        if (mNovelBean.getSeries() != null && !TextUtils.isEmpty(mNovelBean.getSeries().getTitle())) {
             baseBind.novelSeries.setText("系列：" + mNovelBean.getSeries().getTitle());
         }
         Glide.with(mContext).load(GlideUtil.getHead(mNovelBean.getUser())).into(baseBind.userHead);
@@ -142,7 +139,7 @@ public class FragmentNovelHolder extends BaseBindFragment<FragmentNovelHolderBin
                                     return partList.length;
                                 }
                             });
-                        }else {
+                        } else {
                             baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
                                 @NonNull
                                 @Override
@@ -165,7 +162,7 @@ public class FragmentNovelHolder extends BaseBindFragment<FragmentNovelHolderBin
                 });
     }
 
-    private void open(){
+    private void open() {
         int centerX = baseBind.awesomeCard.getRight();
         int centerY = baseBind.awesomeCard.getBottom();
         float finalRadius = (float) Math.hypot((double) centerX, (double) centerY);
@@ -182,7 +179,7 @@ public class FragmentNovelHolder extends BaseBindFragment<FragmentNovelHolderBin
         mCircularReveal.start();
     }
 
-    private void close(){
+    private void close() {
         int centerX = baseBind.awesomeCard.getRight();
         int centerY = baseBind.awesomeCard.getBottom();
         float finalRadius = (float) Math.hypot((double) centerX, (double) centerY);

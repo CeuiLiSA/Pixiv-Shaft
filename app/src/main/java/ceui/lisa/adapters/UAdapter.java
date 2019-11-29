@@ -59,7 +59,7 @@ public class UAdapter extends BaseAdapter<UserPreviewsBean, RecyUserPreviewBindi
                     .getIllusts().get(2)))
                     .placeholder(R.color.light_bg)
                     .into(bindView.baseBind.userShowThree);
-        }else if(target.getNovels() != null && target.getNovels().size() >= 3){
+        } else if (target.getNovels() != null && target.getNovels().size() >= 3) {
             Glide.with(mContext).load(GlideUtil.getMediumImg(target
                     .getNovels().get(0).getImage_urls().getMedium()))
                     .placeholder(R.color.light_bg)
@@ -101,7 +101,7 @@ public class UAdapter extends BaseAdapter<UserPreviewsBean, RecyUserPreviewBindi
         return this;
     }
 
-    private void handleClick(){
+    private void handleClick() {
         setFullClickListener(new FullClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {

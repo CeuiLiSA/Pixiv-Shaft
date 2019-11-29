@@ -1,21 +1,16 @@
 package ceui.lisa.fragments;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.NAdapter;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyNovelBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.NetControl;
-import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListNovelResponse;
 import ceui.lisa.model.NovelBean;
-import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.Params;
 import io.reactivex.Observable;
 

@@ -7,14 +7,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.widget.ImageView;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.core.widget.NestedScrollView;
-
-import ceui.lisa.R;
-import ceui.lisa.utils.Common;
 
 public class ZoomNestedView extends NestedScrollView {
 
@@ -101,6 +95,7 @@ public class ZoomNestedView extends NestedScrollView {
         }
         return super.onTouchEvent(ev);
     }
+
     //回弹动画
     private void replyImage() {
         float distance = mZoomView.getMeasuredWidth() - mZoomViewWidth;
@@ -113,6 +108,7 @@ public class ZoomNestedView extends NestedScrollView {
         });
         valueAnimator.start();
     }
+
     public void setZoom(float zoom) {
         if (mZoomViewWidth <= 0 || mZoomViewHeight <= 0) {
             return;

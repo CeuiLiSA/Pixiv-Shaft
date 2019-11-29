@@ -108,7 +108,7 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
         return allIllust;
     }
 
-    private void handleClick(){
+    private void handleClick() {
         setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {

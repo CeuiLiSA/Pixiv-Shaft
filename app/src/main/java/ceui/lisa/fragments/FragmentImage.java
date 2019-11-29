@@ -11,8 +11,8 @@ import java.util.Collections;
 import ceui.lisa.R;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.model.IllustsBean;
-import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.DataChannel;
+import ceui.lisa.utils.GlideUtil;
 
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
