@@ -105,12 +105,6 @@ public class FragmentRecmdManga extends NetListFragment<FragmentRecmdBinding,
                 startActivity(intent);
             }
         });
-        LandingAnimator landingAnimator = new LandingAnimator();
-        landingAnimator.setAddDuration(400L);
-        landingAnimator.setRemoveDuration(400L);
-        landingAnimator.setMoveDuration(400L);
-        landingAnimator.setChangeDuration(400L);
-        baseBind.recyclerView.setItemAnimator(landingAnimator);
         baseBind.ranking.addItemDecoration(new LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
         LinearLayoutManager manager = new LinearLayoutManager(mContext, LinearLayoutManager.HORIZONTAL, false);
         baseBind.ranking.setLayoutManager(manager);

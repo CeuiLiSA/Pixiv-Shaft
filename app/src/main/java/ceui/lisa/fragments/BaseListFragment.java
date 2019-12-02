@@ -134,11 +134,7 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
             }
         });
         initRecyclerView();
-        if (className.equals("FragmentRecmdIllust ")) {
-            mRefreshLayout.setRefreshHeader(new ClassicsHeader(mContext));
-        } else {
-            mRefreshLayout.setRefreshHeader(new DeliveryHeader(mContext));
-        }
+        mRefreshLayout.setRefreshHeader(new DeliveryHeader(mContext));
         mRefreshLayout.setOnRefreshListener(layout -> getFirstData());
         mRefreshLayout.setEnableLoadMore(false);
         if (hasNext()) {
