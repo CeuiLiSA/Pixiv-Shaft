@@ -72,6 +72,8 @@
     <string name="private_like_illust">私人收藏</string>
     <string name="public_like_user">公开关注</string>
     <string name="private_like_user">私人关注</string>
+    <string name="private_like_novel">私人收藏小说</string>
+    <string name="public_like_novel">公开收藏小说</string>
     <string name="bookmark">收藏夹</string>
     <string name="filter_by_bookmark">按标签筛选</string>
     <string name="access_denied">请给与足够的权限</string>

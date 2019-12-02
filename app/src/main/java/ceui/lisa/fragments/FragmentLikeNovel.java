@@ -22,13 +22,6 @@ public class FragmentLikeNovel extends NetListFragment<FragmentBaseListBinding,
     private String starType;
     private boolean showToolbar = false;
 
-    public static FragmentLikeNovel newInstance(int userID, String starType) {
-        FragmentLikeNovel fragmentRelatedIllust = new FragmentLikeNovel();
-        fragmentRelatedIllust.userID = userID;
-        fragmentRelatedIllust.starType = starType;
-        return fragmentRelatedIllust;
-    }
-
     public static FragmentLikeNovel newInstance(int userID, String starType, boolean paramShowToolbar) {
         FragmentLikeNovel fragmentRelatedIllust = new FragmentLikeNovel();
         fragmentRelatedIllust.userID = userID;

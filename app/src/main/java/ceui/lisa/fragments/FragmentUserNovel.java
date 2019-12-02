@@ -19,20 +19,11 @@ public class FragmentUserNovel extends NetListFragment<FragmentBaseListBinding,
         ListNovelResponse, NovelBean, RecyNovelBinding> {
 
     private int userID;
-    private String starType;
     private boolean showToolbar = false;
 
-    public static FragmentUserNovel newInstance(int userID, String starType) {
+    public static FragmentUserNovel newInstance(int userID, boolean paramShowToolbar) {
         FragmentUserNovel fragmentRelatedIllust = new FragmentUserNovel();
         fragmentRelatedIllust.userID = userID;
-        fragmentRelatedIllust.starType = starType;
-        return fragmentRelatedIllust;
-    }
-
-    public static FragmentUserNovel newInstance(int userID, String starType, boolean paramShowToolbar) {
-        FragmentUserNovel fragmentRelatedIllust = new FragmentUserNovel();
-        fragmentRelatedIllust.userID = userID;
-        fragmentRelatedIllust.starType = starType;
         fragmentRelatedIllust.showToolbar = paramShowToolbar;
         return fragmentRelatedIllust;
     }

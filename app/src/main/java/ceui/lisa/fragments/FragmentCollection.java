@@ -26,7 +26,10 @@ public class FragmentCollection extends BaseBindFragment<ViewpagerWithTablayoutB
             Shaft.getContext().getString(R.string.public_like_illust),
             Shaft.getContext().getString(R.string.private_like_illust),
             Shaft.getContext().getString(R.string.public_like_user),
-            Shaft.getContext().getString(R.string.private_like_user)};
+            Shaft.getContext().getString(R.string.private_like_user),
+            Shaft.getContext().getString(R.string.public_like_novel),
+            Shaft.getContext().getString(R.string.private_like_novel)
+    };
     private Fragment[] allPages;
 
 
@@ -71,6 +74,10 @@ public class FragmentCollection extends BaseBindFragment<ViewpagerWithTablayoutB
                 FragmentFollowUser.newInstance(sUserModel.getResponse().getUser().getId(),
                         FragmentLikeIllust.TYPE_PUBLUC, false),
                 FragmentFollowUser.newInstance(sUserModel.getResponse().getUser().getId(),
+                        FragmentLikeIllust.TYPE_PRIVATE, false),
+                FragmentLikeNovel.newInstance(sUserModel.getResponse().getUser().getId(),
+                        FragmentLikeIllust.TYPE_PUBLUC, false),
+                FragmentLikeNovel.newInstance(sUserModel.getResponse().getUser().getId(),
                         FragmentLikeIllust.TYPE_PRIVATE, false)
         };
         baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
