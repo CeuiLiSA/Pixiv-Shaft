@@ -12,7 +12,7 @@
         <RelativeLayout
             android:id="@+id/user_follow_linear"
             android:layout_width="220dp"
-            android:layout_height="188dp"
+            android:layout_height="@dimen/article_horizontal_height"
             android:background="@android:color/white"
             android:orientation="vertical">
 
@@ -40,8 +40,8 @@
                 android:ellipsize="end"
                 android:textSize="13sp"
                 android:layout_marginStart="@dimen/eight_dp"
-                android:layout_marginTop="@dimen/four_dp"
-                android:layout_marginBottom="@dimen/four_dp"
+                android:layout_marginTop="@dimen/six_dp"
+                android:layout_marginBottom="@dimen/six_dp"
                 android:layout_marginEnd="@dimen/eight_dp"
                 android:textColor="#666666"
                 android:layout_below="@+id/illust_image"

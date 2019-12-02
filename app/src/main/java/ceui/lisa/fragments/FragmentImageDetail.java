@@ -1,5 +1,7 @@
 package ceui.lisa.fragments;
 
+import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 
 import com.bumptech.glide.Glide;
@@ -7,16 +9,18 @@ import com.github.chrisbanes.photoview.PhotoView;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.databinding.FragmentImageDetailBinding;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.GlideUtil;
+import ceui.lisa.utils.Params;
 
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
-public class FragmentImageDetail extends BaseFragment {
+public class FragmentImageDetail extends BaseBindFragment<FragmentImageDetailBinding> {
 
     private IllustsBean mIllustsBean;
     private int index;
-    private PhotoView mImageView;
+    private String url;
 
     public static FragmentImageDetail newInstance(IllustsBean illustsBean, int index) {
         FragmentImageDetail fragmentImageDetail = new FragmentImageDetail();
@@ -25,32 +29,43 @@ public class FragmentImageDetail extends BaseFragment {
         return fragmentImageDetail;
     }
 
+    public static FragmentImageDetail newInstance(String pUrl) {
+        Bundle args = new Bundle();
+        args.putString(Params.URL, pUrl);
+        FragmentImageDetail fragment = new FragmentImageDetail();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void initBundle(Bundle bundle) {
+        url = bundle.getString(Params.URL);
+    }
+
     @Override
     void initLayout() {
         mLayoutID = R.layout.fragment_image_detail;
     }
 
     @Override
-    View initView(View v) {
-        mImageView = v.findViewById(R.id.illust_image);
-        if (Shaft.sSettings.isFirstImageSize()) {
-            Glide.with(mContext)
-                    //.load(GlideUtil.getOriginal(mIllustsBean, index))
-                    .load(GlideUtil.getOriginal(mIllustsBean, index))
-                    .transition(withCrossFade())
-                    .into(mImageView);
-        } else {
-            Glide.with(mContext)
-                    //.load(GlideUtil.getOriginal(mIllustsBean, index))
-                    .load(GlideUtil.getLargeImage(mIllustsBean, index))
-                    .transition(withCrossFade())
-                    .into(mImageView);
-        }
-        return v;
-    }
-
-    @Override
     void initData() {
-
+        if(!TextUtils.isEmpty(url)){
+            Glide.with(mContext)
+                    .load(GlideUtil.getMediumImg(url))
+                    .transition(withCrossFade())
+                    .into(baseBind.illustImage);
+        } else {
+            if (Shaft.sSettings.isFirstImageSize()) {
+                Glide.with(mContext)
+                        .load(GlideUtil.getOriginal(mIllustsBean, index))
+                        .transition(withCrossFade())
+                        .into(baseBind.illustImage);
+            } else {
+                Glide.with(mContext)
+                        .load(GlideUtil.getLargeImage(mIllustsBean, index))
+                        .transition(withCrossFade())
+                        .into(baseBind.illustImage);
+            }
+        }
     }
 }

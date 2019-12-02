@@ -47,6 +47,8 @@
 
                     <RelativeLayout
                         app:layout_scrollFlags="scroll"
+                        android:id="@+id/top_rela"
+                        android:visibility="invisible"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content">
 
@@ -59,9 +61,9 @@
                             android:drawableStart="@drawable/ic_huangguan"
                             android:drawablePadding="@dimen/eight_dp"
                             android:text="@string/ranking_illust"
-                            android:textColor="#2c333c"
                             android:gravity="center"
                             android:id="@+id/ranking_s"
+                            android:textColor="#2c333c"
                             android:textSize="15sp"
                             android:textStyle="bold" />
 
@@ -90,10 +92,42 @@
 
                         </androidx.recyclerview.widget.RecyclerView>
 
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_below="@+id/ranking"
+                            android:layout_height="wrap_content">
+
+                            <ImageView
+                                android:layout_width="30dp"
+                                android:src="@mipmap/recmd"
+                                android:layout_marginStart="@dimen/eight_dp"
+                                android:scaleType="centerCrop"
+                                android:id="@+id/image_recmd"
+                                android:layout_height="30dp">
+
+                            </ImageView>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:textColor="#2c333c"
+                                android:textSize="15sp"
+                                android:text="为你推荐"
+                                android:layout_marginTop="@dimen/six_dp"
+                                android:textStyle="bold"
+                                android:layout_toEndOf="@+id/image_recmd"
+                                android:layout_marginStart="@dimen/eight_dp"
+                                android:layout_height="wrap_content">
+
+
+                            </TextView>
+
+                        </RelativeLayout>
+
+
                     </RelativeLayout>
 
                 </com.google.android.material.appbar.AppBarLayout>
-
 
 
                 <androidx.recyclerview.widget.RecyclerView

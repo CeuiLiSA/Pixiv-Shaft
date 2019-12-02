@@ -41,7 +41,7 @@ public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
         }
         bindView.baseBind.author.setText(target.getUser().getName());
         bindView.baseBind.howManyWord.setText(target.getText_length() + "字");
-        Glide.with(mContext).load(GlideUtil.getMediumImg(target.getImage_urls().getLarge())).into(bindView.baseBind.cover);
+        Glide.with(mContext).load(GlideUtil.getMediumImg(target.getImage_urls().getMaxImage())).into(bindView.baseBind.cover);
         Glide.with(mContext).load(GlideUtil.getHead(target.getUser())).into(bindView.baseBind.userHead);
         if (target.isIs_bookmarked()) {
             bindView.baseBind.like.setText("取消收藏");
@@ -53,6 +53,12 @@ public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
                 @Override
                 public void onClick(View v) {
                     mOnItemClickListener.onItemClick(bindView.baseBind.like, position, 1);
+                }
+            });
+            bindView.baseBind.cover.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mOnItemClickListener.onItemClick(bindView.baseBind.like, position, 2);
                 }
             });
             bindView.baseBind.like.setOnLongClickListener(new View.OnLongClickListener() {
@@ -85,6 +91,11 @@ public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
                 } else if (viewType == 1) {
                     PixivOperate.postLikeNovel(allIllust.get(position), Shaft.sUserModel,
                             FragmentLikeIllust.TYPE_PUBLUC, v);
+                } else if (viewType == 2) {
+                    Intent intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(Params.URL, allIllust.get(position).getImage_urls().getMaxImage());
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "图片详情");
+                    mContext.startActivity(intent);
                 }
             }
         });

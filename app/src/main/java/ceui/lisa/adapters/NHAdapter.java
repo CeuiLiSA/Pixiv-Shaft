@@ -11,9 +11,9 @@ import ceui.lisa.databinding.RecyRankNovelHorizontalBinding;
 import ceui.lisa.model.NovelBean;
 import ceui.lisa.utils.GlideUtil;
 
-public class NovelHorizontalAdapter extends BaseAdapter<NovelBean, RecyRankNovelHorizontalBinding> {
+public class NHAdapter extends BaseAdapter<NovelBean, RecyRankNovelHorizontalBinding> {
 
-    public NovelHorizontalAdapter(List<NovelBean> targetList, Context context) {
+    public NHAdapter(List<NovelBean> targetList, Context context) {
         super(targetList, context);
     }
 

@@ -2,6 +2,7 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.AnticipateOvershootInterpolator;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -23,8 +24,10 @@ import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
+import jp.wasabeef.recyclerview.animators.FadeInLeftAnimator;
 import jp.wasabeef.recyclerview.animators.LandingAnimator;
 
+import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static ceui.lisa.activities.Shaft.sUserModel;
 
 /**
@@ -45,7 +48,7 @@ public class FragmentPivisionHorizontal extends BaseBindFragment<FragmentPivisio
         DoubleBounce doubleBounce = new DoubleBounce();
         doubleBounce.setColor(getResources().getColor(R.color.white));
         baseBind.progress.setIndeterminateDrawable(doubleBounce);
-        LandingAnimator landingAnimator = new LandingAnimator(new AnticipateOvershootInterpolator());
+        FadeInLeftAnimator landingAnimator = new FadeInLeftAnimator();
         landingAnimator.setAddDuration(400L);
         landingAnimator.setRemoveDuration(400L);
         landingAnimator.setMoveDuration(400L);
@@ -55,16 +58,25 @@ public class FragmentPivisionHorizontal extends BaseBindFragment<FragmentPivisio
         LinearLayoutManager manager = new LinearLayoutManager(mContext, LinearLayoutManager.HORIZONTAL, false);
         baseBind.recyclerView.setLayoutManager(manager);
         baseBind.recyclerView.setHasFixedSize(true);
+        ViewGroup.LayoutParams layoutParams = baseBind.recyclerView.getLayoutParams();
+        layoutParams.width = MATCH_PARENT;
+        layoutParams.height = mContext.getResources()
+                .getDimensionPixelSize(R.dimen.article_horizontal_height) +
+                mContext.getResources()
+                        .getDimensionPixelSize(R.dimen.sixteen_dp);
+        baseBind.recyclerView.setLayoutParams(layoutParams);
         mAdapter = new PivisionHorizontalAdapter(allItems, mContext);
         baseBind.recyclerView.setAdapter(mAdapter);
         baseBind.seeMore.setOnClickListener(view -> {
             Intent intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "特辑");
+            intent.putExtra("hideStatusBar", false);
             startActivity(intent);
         });
         getFirstData();
     }
 
+    @Override
     public void getFirstData() {
         Retro.getAppApi().getArticles(sUserModel.getResponse().getAccess_token(), "all")
                 .subscribeOn(Schedulers.newThread())

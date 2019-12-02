@@ -8,8 +8,16 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:orientation="vertical"
+        android:background="@color/white"
         android:id="@+id/root_parent_view"
         android:layout_height="wrap_content">
+
+        <View
+            android:layout_width="match_parent"
+            android:background="@color/light_bg"
+            android:layout_height="@dimen/sixteen_dp">
+
+        </View>
 
         <RelativeLayout
             android:layout_width="match_parent"

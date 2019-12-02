@@ -10,5 +10,6 @@ public class Params {
     public static final String INDEX            = "index";
     public static final String CONTENT            = "content";
     public static final String DAY              = "day";
+    public static final String URL              = "url";
     public static final String MANGA              = "is manga";
 }

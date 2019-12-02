@@ -13,7 +13,7 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateActivity;
-import ceui.lisa.adapters.NovelHorizontalAdapter;
+import ceui.lisa.adapters.NHAdapter;
 import ceui.lisa.databinding.FragmentLikeIllustHorizontalBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
@@ -36,7 +36,7 @@ public class FragmentLikeNovelHorizontal extends BaseBindFragment<FragmentLikeIl
 
     private List<NovelBean> allItems = new ArrayList<>();
     private UserDetailResponse mUserDetailResponse;
-    private NovelHorizontalAdapter mAdapter;
+    private NHAdapter mAdapter;
     private int type; // 0某人收藏的小说，1某人创作的小说
 
     public static FragmentLikeNovelHorizontal newInstance(UserDetailResponse userDetailResponse, int pType) {
@@ -88,7 +88,7 @@ public class FragmentLikeNovelHorizontal extends BaseBindFragment<FragmentLikeIl
                 mContext, LinearLayoutManager.HORIZONTAL, false);
         baseBind.recyclerView.setLayoutManager(manager);
         baseBind.recyclerView.setHasFixedSize(true);
-        mAdapter = new NovelHorizontalAdapter(allItems, mContext);
+        mAdapter = new NHAdapter(allItems, mContext);
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {

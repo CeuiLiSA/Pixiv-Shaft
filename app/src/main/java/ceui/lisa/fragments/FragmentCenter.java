@@ -41,19 +41,6 @@ public class FragmentCenter extends BaseFragment {
         RefreshLayout refreshLayout = v.findViewById(R.id.refreshLayout);
         refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));
         refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
-        TextView textView = v.findViewById(R.id.see_more);
-        textView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(mContext, RankActivity.class);
-                intent.putExtra("dataType", "插画");
-                startActivity(intent);
-            }
-        });
-
-        FragmentRankHorizontal fragmentRankHorizontal = new FragmentRankHorizontal();
-        FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
-        transaction.add(R.id.fragment_container, fragmentRankHorizontal).commit();
 
         v.findViewById(R.id.manga).setOnClickListener(new View.OnClickListener() {
             @Override

@@ -77,9 +77,17 @@ public class UActivity extends BaseActivity<ActicityUserBinding> implements Disp
     public void invoke(UserDetailResponse pUserDetailResponse) {
         currentUser = pUserDetailResponse;
         Glide.with(mContext).load(GlideUtil.getMediumImg(currentUser
-                .getUser().getProfile_image_urls().getMedium()))
+                .getUser().getProfile_image_urls().getMaxImage()))
                 .placeholder(R.color.light_bg).into(baseBind.userHead);
-
+        baseBind.userHead.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(Params.URL, currentUser.getUser().getProfile_image_urls().getMaxImage());
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "图片详情");
+                mContext.startActivity(intent);
+            }
+        });
         baseBind.userName.setText(currentUser.getUser().getName());
         baseBind.userAddress.setText(Common.checkEmpty(currentUser.getProfile().getRegion()));
         baseBind.userAddress.setVisibility(View.VISIBLE);
@@ -162,6 +170,16 @@ public class UActivity extends BaseActivity<ActicityUserBinding> implements Disp
                     .load(GlideUtil.getMediumImg(currentUser.getWorkspace().getWorkspace_image_url()))
                     .transition(withCrossFade())
                     .into(baseBind.userBackground);
+
+            baseBind.userBackground.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(Params.URL, currentUser.getWorkspace().getWorkspace_image_url());
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "图片详情");
+                    mContext.startActivity(intent);
+                }
+            });
         }
 
         FragmentManager fragmentManager = getSupportFragmentManager();

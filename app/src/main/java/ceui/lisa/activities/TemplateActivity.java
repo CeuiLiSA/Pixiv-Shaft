@@ -19,6 +19,7 @@ import ceui.lisa.fragments.FragmentCollection;
 import ceui.lisa.fragments.FragmentD;
 import ceui.lisa.fragments.FragmentFollowUser;
 import ceui.lisa.fragments.FragmentH;
+import ceui.lisa.fragments.FragmentImageDetail;
 import ceui.lisa.fragments.FragmentL;
 import ceui.lisa.fragments.FragmentLicense;
 import ceui.lisa.fragments.FragmentLikeIllust;
@@ -29,6 +30,7 @@ import ceui.lisa.fragments.FragmentNew;
 import ceui.lisa.fragments.FragmentNiceFriend;
 import ceui.lisa.fragments.FragmentNovelHolder;
 import ceui.lisa.fragments.FragmentPivision;
+import ceui.lisa.fragments.FragmentPv;
 import ceui.lisa.fragments.FragmentRecmdManga;
 import ceui.lisa.fragments.FragmentRecmdNovel;
 import ceui.lisa.fragments.FragmentRecmdUser;
@@ -86,7 +88,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                 case "推荐用户":
                     return new FragmentRecmdUser();
                 case "特辑":
-                    return new FragmentPivision();
+                    return new FragmentPv();
                 case "搜索用户": {
                     String keyword = intent.getStringExtra(EXTRA_KEYWORD);
                     return FragmentSearchUser.newInstance(keyword);
@@ -147,7 +149,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                 case "收藏夹":
                     return new FragmentCollection();
                 case "推荐漫画":
-                    return new FragmentRecmdManga();
+                    return FragmentRecmdManga.newInstance("漫画");
                 case "推荐小说":
                     return new FragmentRecmdNovel();
                 case "小说收藏":
@@ -158,7 +160,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                             FragmentLikeIllust.TYPE_PUBLUC, true);
                 case "小说详情":
                     return FragmentNovelHolder.newInstance(intent.getIntExtra(Params.INDEX, 0));
-
+                case "图片详情":
+                    return FragmentImageDetail.newInstance(intent.getStringExtra(Params.URL));
                 default:
                     return new FragmentBlank();
             }

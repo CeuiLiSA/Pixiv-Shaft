@@ -113,7 +113,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                         }
                     });
                 } else {
-                    if (className.equals("FragmentRecmdIllust ")) {
+                    if (className.equals("FragmentRecmdManga ")) {
                         showDataBase();
                     }
                 }
@@ -151,7 +151,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
         mAdapter = adapter();
         mRecyclerView.setAdapter(mAdapter);
         if (!(mRecyclerView.getLayoutManager() instanceof StaggeredGridLayoutManager)) {
-            BaseItemAnimator baseItemAnimator = new LandingAnimator(new AnticipateOvershootInterpolator());
+            BaseItemAnimator baseItemAnimator = new LandingAnimator();
             baseItemAnimator.setAddDuration(animateDuration);
             baseItemAnimator.setRemoveDuration(animateDuration);
             baseItemAnimator.setMoveDuration(animateDuration);

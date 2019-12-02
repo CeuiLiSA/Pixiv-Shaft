@@ -38,10 +38,6 @@ public class GlideUtil {
         return new GlideUrl(illustsBean.getImage_urls().getLarge(), sHeaders);
     }
 
-    public static GlideUrl getLargeImage(String url) {
-        return new GlideUrl(url, sHeaders);
-    }
-
     public static GlideUrl getHead(UserBean userBean) {
         if (userBean == null) {
             return null;

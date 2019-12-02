@@ -2,6 +2,8 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -14,7 +16,7 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.NAdapter;
-import ceui.lisa.adapters.NovelHorizontalAdapter;
+import ceui.lisa.adapters.NHAdapter;
 import ceui.lisa.databinding.FragmentRecmdBinding;
 import ceui.lisa.databinding.RecyNovelBinding;
 import ceui.lisa.http.Retro;
@@ -81,7 +83,7 @@ public class FragmentRecmdNovel extends NetListFragment<FragmentRecmdBinding,
         LinearLayoutManager manager = new LinearLayoutManager(mContext, LinearLayoutManager.HORIZONTAL, false);
         baseBind.ranking.setLayoutManager(manager);
         baseBind.ranking.setHasFixedSize(true);
-        NovelHorizontalAdapter adapter = new NovelHorizontalAdapter(ranking, mContext);
+        NHAdapter adapter = new NHAdapter(ranking, mContext);
         adapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
@@ -94,5 +96,9 @@ public class FragmentRecmdNovel extends NetListFragment<FragmentRecmdBinding,
             }
         });
         baseBind.ranking.setAdapter(adapter);
+        baseBind.topRela.setVisibility(View.VISIBLE);
+        Animation animation = new AlphaAnimation(0.0f, 1.0f);
+        animation.setDuration(800L);
+        baseBind.topRela.startAnimation(animation);
     }
 }
