@@ -6,6 +6,7 @@ import java.io.File;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.model.IllustsBean;
+import ceui.lisa.utils.Settings;
 
 
 public class FileCreator {
@@ -62,6 +63,14 @@ public class FileCreator {
 
     public static File createWebFile(String name) {
         File parent = new File(Shaft.sSettings.getIllustPath());
+        if (!parent.exists()) {
+            parent.mkdir();
+        }
+        return new File(parent, deleteSpecialWords(name));
+    }
+
+    public static File createLogFile(String name) {
+        File parent = new File(Settings.getLogPath());
         if (!parent.exists()) {
             parent.mkdir();
         }

@@ -12,10 +12,13 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 
+import java.io.File;
+
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.MultiDownloadAdapter;
+import ceui.lisa.core.TextWritter;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.interfaces.OnItemClickListener;
@@ -24,6 +27,9 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.DownloadItemDecoration;
+import gdut.bsx.share2.FileUtil;
+import gdut.bsx.share2.Share2;
+import gdut.bsx.share2.ShareContentType;
 
 public class FragmentMultiDownload extends BaseAsyncFragment<MultiDownloadAdapter, IllustsBean> {
 
@@ -127,7 +133,30 @@ public class FragmentMultiDownload extends BaseAsyncFragment<MultiDownloadAdapte
             }
             mAdapter.notifyDataSetChanged();
         } else if (item.getItemId() == R.id.action_3) {
-            Common.showToast("还没做呢");
+            StringBuilder content = new StringBuilder();
+            for (IllustsBean illustsBean : DataChannel.get().getDownloadList()) {
+                if(illustsBean.getPage_count() == 1) {
+                    content.append(illustsBean.getMeta_single_page().getOriginal_image_url());
+                    content.append("\n");
+                }else {
+                    for (int i = 0; i < illustsBean.getPage_count(); i++) {
+                        content.append(illustsBean.getMeta_pages().get(i).getImage_urls().getMaxImage());
+                        content.append("\n");
+                    }
+                }
+            }
+            TextWritter.writeToTxt(System.currentTimeMillis() + "_log.txt",
+                    content.toString(), new Callback<File>() {
+                        @Override
+                        public void doSomething(File t) {
+                            new Share2.Builder(mActivity)
+                                    .setContentType(ShareContentType.FILE)
+                                    .setShareFileUri(FileUtil.getFileUri(mContext, ShareContentType.FILE, t))
+                                    .setTitle("Share File")
+                                    .build()
+                                    .shareBySystem();
+                        }
+                    });
         }
         return super.onOptionsItemSelected(item);
     }

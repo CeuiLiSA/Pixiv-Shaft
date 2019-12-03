@@ -101,7 +101,7 @@ dependencies {
     implementation 'com.mxn.soul:flowingdrawer-core:2.1.0'
     implementation 'com.nineoldandroids:library:2.4.0'
     implementation 'com.stone.vega.library:VegaLayoutManager:1.0.6'
-    implementation 'com.blankj:utilcode:1.25.0'
+    implementation 'com.blankj:utilcode:1.26.0'
     implementation 'com.ToxicBakery.viewpager.transforms:view-pager-transforms:2.0.24'
     implementation 'com.hyman:flowlayout-lib:1.1.2'
     implementation 'com.github.razerdp:BasePopup:2.2.1'
@@ -110,6 +110,7 @@ dependencies {
     kapt 'android.arch.persistence.room:compiler:1.1.1'
     implementation 'jp.wasabeef:recyclerview-animators:3.0.0'
     implementation 'me.kaelaela:verticalviewpager:1.0.0@aar'
+    implementation 'gdut.bsx:share2:0.9.3'
 
     annotationProcessor 'com.github.bumptech.glide:compiler:4.9.0'
     annotationProcessor 'androidx.room:room-compiler:2.1.0'

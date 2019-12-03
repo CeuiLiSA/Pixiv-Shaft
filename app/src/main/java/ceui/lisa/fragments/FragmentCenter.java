@@ -22,6 +22,7 @@ import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Dev;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
@@ -65,31 +66,35 @@ public class FragmentCenter extends BaseFragment {
 
     @Override
     void initData() {
-        Retro.getAppApi().getLoginBg(Shaft.sUserModel.getResponse().getAccess_token())
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new NullCtrl<ListIllustResponse>() {
-                    @Override
-                    public void success(ListIllustResponse listIllustResponse) {
-                        mViewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
-                            @NonNull
-                            @Override
-                            public Fragment getItem(int position) {
-                                int index = position % listIllustResponse.getList().size();
-                                Common.showLog(className + index);
-                                return FragmentImage.newInstance(listIllustResponse.getIllusts()
-                                        .get(index));
-                            }
+        if(Dev.isDev){
 
-                            @Override
-                            public int getCount() {
-                                return Integer.MAX_VALUE;
-                            }
-                        });
-                        mViewPager.setCurrentItem(listIllustResponse.getList().size());
+        }else {
+            Retro.getAppApi().getLoginBg(Shaft.sUserModel.getResponse().getAccess_token())
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new NullCtrl<ListIllustResponse>() {
+                        @Override
+                        public void success(ListIllustResponse listIllustResponse) {
+                            mViewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
+                                @NonNull
+                                @Override
+                                public Fragment getItem(int position) {
+                                    int index = position % listIllustResponse.getList().size();
+                                    Common.showLog(className + index);
+                                    return FragmentImage.newInstance(listIllustResponse.getIllusts()
+                                            .get(index));
+                                }
 
-                    }
-                });
+                                @Override
+                                public int getCount() {
+                                    return Integer.MAX_VALUE;
+                                }
+                            });
+                            mViewPager.setCurrentItem(listIllustResponse.getList().size());
+
+                        }
+                    });
+        }
     }
 
     @Override

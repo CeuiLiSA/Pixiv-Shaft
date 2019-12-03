@@ -11,6 +11,7 @@ import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import com.ToxicBakery.viewpager.transforms.DrawerTransformer;
+import com.google.android.material.tabs.TabLayout;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
@@ -99,6 +100,7 @@ public class FragmentCollection extends BaseBindFragment<ViewpagerWithTablayoutB
 
 
         });
+        baseBind.tabLayout.setTabMode(TabLayout.MODE_SCROLLABLE);
         baseBind.tabLayout.setupWithViewPager(baseBind.viewPager);
         baseBind.toolbar.inflateMenu(R.menu.illust_filter);
         baseBind.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
