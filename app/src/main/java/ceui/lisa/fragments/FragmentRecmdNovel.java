@@ -6,6 +6,7 @@ import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.PagerSnapHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -83,6 +84,8 @@ public class FragmentRecmdNovel extends NetListFragment<FragmentRecmdBinding,
         LinearLayoutManager manager = new LinearLayoutManager(mContext, LinearLayoutManager.HORIZONTAL, false);
         baseBind.ranking.setLayoutManager(manager);
         baseBind.ranking.setHasFixedSize(true);
+        PagerSnapHelper snapHelper = new PagerSnapHelper();
+        snapHelper.attachToRecyclerView(baseBind.ranking);
         NHAdapter adapter = new NHAdapter(ranking, mContext);
         adapter.setOnItemClickListener(new OnItemClickListener() {
             @Override

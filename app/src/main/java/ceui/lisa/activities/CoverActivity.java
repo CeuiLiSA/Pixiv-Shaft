@@ -242,10 +242,10 @@ public class CoverActivity extends BaseActivity
 
     private void initDrawerHeader() {
         if (sUserModel != null && sUserModel.getResponse() != null) {
-            Glide.with(mContext)
-                    .load(GlideUtil.getMediumImg(
-                            sUserModel.getResponse().getUser().getProfile_image_urls().getPx_170x170()))
-                    .into(userHead);
+//            Glide.with(mContext)
+//                    .load(GlideUtil.getMediumImg(
+//                            sUserModel.getResponse().getUser().getProfile_image_urls().getPx_170x170()))
+//                    .into(userHead);
             username.setText(sUserModel.getResponse().getUser().getName());
             user_email.setText(TextUtils.isEmpty(sUserModel.getResponse().getUser().getMail_address()) ?
                     mContext.getString(R.string.no_mail_address) : sUserModel.getResponse().getUser().getMail_address());

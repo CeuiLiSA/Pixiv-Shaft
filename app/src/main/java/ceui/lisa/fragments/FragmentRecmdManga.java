@@ -8,6 +8,9 @@ import android.view.animation.Animation;
 import android.view.animation.AnticipateOvershootInterpolator;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.LinearSnapHelper;
+import androidx.recyclerview.widget.PagerSnapHelper;
+import androidx.recyclerview.widget.SnapHelper;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import com.google.gson.Gson;
@@ -109,6 +112,8 @@ public class FragmentRecmdManga extends NetListFragment<FragmentRecmdBinding,
         LinearLayoutManager manager = new LinearLayoutManager(mContext, LinearLayoutManager.HORIZONTAL, false);
         baseBind.ranking.setLayoutManager(manager);
         baseBind.ranking.setHasFixedSize(true);
+        PagerSnapHelper snapHelper = new PagerSnapHelper();
+        snapHelper.attachToRecyclerView(baseBind.ranking);
         adapter = new RAdapter(ranking, mContext);
         adapter.setOnItemClickListener(new OnItemClickListener() {
             @Override

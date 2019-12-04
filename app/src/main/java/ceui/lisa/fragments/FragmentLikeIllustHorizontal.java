@@ -5,6 +5,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.LinearSnapHelper;
+import androidx.recyclerview.widget.PagerSnapHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,6 +68,8 @@ public class FragmentLikeIllustHorizontal extends BaseBindFragment<FragmentLikeI
                 mContext, LinearLayoutManager.HORIZONTAL, false);
         baseBind.recyclerView.setLayoutManager(manager);
         baseBind.recyclerView.setHasFixedSize(true);
+        PagerSnapHelper snapHelper = new PagerSnapHelper();
+        snapHelper.attachToRecyclerView(baseBind.recyclerView);
         mAdapter = new LAdapter(allItems, mContext);
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override

@@ -7,6 +7,8 @@ import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.LinearSnapHelper;
+import androidx.recyclerview.widget.PagerSnapHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -100,6 +102,8 @@ public class FragmentLikeNovelHorizontal extends BaseBindFragment<FragmentLikeIl
                 startActivity(intent);
             }
         });
+        PagerSnapHelper snapHelper = new PagerSnapHelper();
+        snapHelper.attachToRecyclerView(baseBind.recyclerView);
         baseBind.recyclerView.setAdapter(mAdapter);
         ViewGroup.LayoutParams layoutParams = baseBind.recyclerView.getLayoutParams();
         layoutParams.width = MATCH_PARENT;

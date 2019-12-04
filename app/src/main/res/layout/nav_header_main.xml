@@ -28,6 +28,7 @@
             android:id="@+id/user_head"
             app:civ_border_width="2dp"
             app:civ_border_color="@color/white"
+            android:src="@mipmap/avatar"
             android:layout_width="60dp"
             android:layout_height="60dp"
             android:contentDescription="@string/nav_header_desc" />
