@@ -13,7 +13,7 @@ public class UserPreviewsBean {
     private UserBean user;
     private boolean is_muted;
     private List<IllustsBean> illusts;
-    private List<?> novels;
+    private List<NovelBean> novels;
 
     public UserBean getUser() {
         return user;
@@ -39,11 +39,11 @@ public class UserPreviewsBean {
         this.illusts = illusts;
     }
 
-    public List<?> getNovels() {
+    public List<NovelBean> getNovels() {
         return novels;
     }
 
-    public void setNovels(List<?> novels) {
+    public void setNovels(List<NovelBean> novels) {
         this.novels = novels;
     }
 }

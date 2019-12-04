@@ -3,18 +3,21 @@ package ceui.lisa.utils;
 
 import android.content.Context;
 import android.content.Intent;
+import android.view.View;
+import android.widget.Button;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.LoginActivity;
 import ceui.lisa.activities.ViewPagerActivity;
+import ceui.lisa.fragments.FragmentL;
 import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.IllustSearchResponse;
 import ceui.lisa.model.IllustsBean;
+import ceui.lisa.model.NovelBean;
 import ceui.lisa.model.NullResponse;
 import ceui.lisa.model.UserModel;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -28,8 +31,8 @@ public class PixivOperate {
 
     public static void changeUser(UserModel userModel, Callback<UserModel> callback) {
         Call<UserModel> call = Retro.getAccountApi().refreshToken(
-                LoginActivity.CLIENT_ID,
-                LoginActivity.CLIENT_SECRET,
+                FragmentL.CLIENT_ID,
+                FragmentL.CLIENT_SECRET,
                 "refresh_token",
                 userModel.getResponse().getRefresh_token(),
                 userModel.getResponse().getDevice_token(),
@@ -98,6 +101,42 @@ public class PixivOperate {
         }
     }
 
+    public static void postLikeNovel(NovelBean novelBean, UserModel userModel, String starType, View view) {
+        if (novelBean == null) {
+            return;
+        }
+
+        if (novelBean.isIs_bookmarked()) { //已收藏
+            novelBean.setIs_bookmarked(false);
+            Retro.getAppApi().postDislikeNovel(userModel.getResponse().getAccess_token(), novelBean.getId())
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new ErrorCtrl<NullResponse>() {
+                        @Override
+                        public void onNext(NullResponse nullResponse) {
+                            if(view instanceof Button){
+                                ((Button) view).setText("收藏");
+                            }
+                            Common.showToast(getString(R.string.cancel_like_illust));
+                        }
+                    });
+        } else { //没有收藏
+            novelBean.setIs_bookmarked(true);
+            Retro.getAppApi().postLikeNovel(userModel.getResponse().getAccess_token(), novelBean.getId(), starType)
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new ErrorCtrl<NullResponse>() {
+                        @Override
+                        public void onNext(NullResponse nullResponse) {
+                            if(view instanceof Button){
+                                ((Button) view).setText("取消收藏");
+                            }
+                            Common.showToast(getString(R.string.like_illust_success));
+                        }
+                    });
+        }
+    }
+
     public static void getIllustByID(UserModel userModel, int illustID, Context context) {
         Retro.getAppApi().getIllustByID(userModel.getResponse().getAccess_token(), illustID)
                 .subscribeOn(Schedulers.newThread())
@@ -109,7 +148,7 @@ public class PixivOperate {
                             if (illustSearchResponse.getIllust() != null) {
                                 List<IllustsBean> tempList = new ArrayList<>();
                                 tempList.add(illustSearchResponse.getIllust());
-                                IllustChannel.get().setIllustList(tempList);
+                                DataChannel.get().setIllustList(tempList);
                                 Intent intent = new Intent(context, ViewPagerActivity.class);
                                 intent.putExtra("position", 0);
                                 context.startActivity(intent);
@@ -135,7 +174,7 @@ public class PixivOperate {
                             if (illustSearchResponse.getIllust() != null) {
                                 List<IllustsBean> tempList = new ArrayList<>();
                                 tempList.add(illustSearchResponse.getIllust());
-                                IllustChannel.get().setIllustList(tempList);
+                                DataChannel.get().setIllustList(tempList);
                                 Intent intent = new Intent(context, ViewPagerActivity.class);
                                 intent.putExtra("position", 0);
                                 context.startActivity(intent);

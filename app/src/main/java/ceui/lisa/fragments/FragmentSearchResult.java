@@ -1,6 +1,5 @@
 package ceui.lisa.fragments;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.KeyEvent;
@@ -17,19 +16,19 @@ import com.mxn.soul.flowingdrawer_core.ElasticDrawer;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.activities.TemplateFragmentActivity;
-import ceui.lisa.activities.ViewPagerActivity;
+import ceui.lisa.activities.TemplateActivity;
+import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapter;
+import ceui.lisa.databinding.FragmentSearchResultBinding;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
-import ceui.lisa.interfaces.OnItemClickListener;
+import ceui.lisa.interfaces.NetControl;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.model.TempTokenResponse;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
-import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.view.GridItemDecoration;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -40,7 +39,8 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 /**
  * 搜索插画结果，
  */
-public class FragmentSearchResult extends FragmentSList<ListIllustResponse, IllustsBean, RecyIllustStaggerBinding> {
+public class FragmentSearchResult extends NetListFragment<FragmentSearchResultBinding,
+        ListIllustResponse, IllustsBean, RecyIllustStaggerBinding> {
 
     private String token = "";
     private String keyWord = "";
@@ -68,8 +68,33 @@ public class FragmentSearchResult extends FragmentSList<ListIllustResponse, Illu
     }
 
     @Override
-    void initData() {
-        ((TemplateFragmentActivity) getActivity()).setSupportActionBar(baseBind.toolbar);
+    public void initLayout() {
+        mLayoutID = R.layout.fragment_search_result;
+    }
+
+    @Override
+    public NetControl<ListIllustResponse> present() {
+        return new NetControl<ListIllustResponse>() {
+            @Override
+            public Observable<ListIllustResponse> initApi() {
+                return Retro.getAppApi().searchIllust(token, baseBind.searchBox.getText().toString(), sort, searchTarget);
+            }
+
+            @Override
+            public Observable<ListIllustResponse> initNextApi() {
+                return Retro.getAppApi().getNextIllust(token, nextUrl);
+            }
+        };
+    }
+
+    @Override
+    public BaseAdapter<IllustsBean, RecyIllustStaggerBinding> adapter() {
+        return new IAdapter(allItems, mContext, true);
+    }
+
+    @Override
+    public void initData() {
+        ((TemplateActivity) getActivity()).setSupportActionBar(baseBind.toolbar);
         baseBind.toolbar.setTitle(getToolbarTitle());
         baseBind.toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
@@ -85,8 +110,7 @@ public class FragmentSearchResult extends FragmentSList<ListIllustResponse, Illu
                     return true;
                 }
                 Common.hideKeyboard(mActivity);
-                mAdapter.clear();
-                getFirstData();
+                baseBind.refreshLayout.autoRefresh();
                 return true;
             }
         });
@@ -125,10 +149,7 @@ public class FragmentSearchResult extends FragmentSList<ListIllustResponse, Illu
                 if (isPopular) {
                     getRankToken();
                 } else {
-                    baseBind.recyclerView.requestFocus();
-                    baseBind.recyclerView.performClick();
-                    mAdapter.clear();
-                    getFirstData();
+                    baseBind.refreshLayout.autoRefresh();
                 }
             }
 
@@ -166,30 +187,6 @@ public class FragmentSearchResult extends FragmentSList<ListIllustResponse, Illu
     }
 
     @Override
-    public Observable<ListIllustResponse> initApi() {
-        return Retro.getAppApi().searchIllust(token, baseBind.searchBox.getText().toString(), sort, searchTarget);
-    }
-
-    @Override
-    public Observable<ListIllustResponse> initNextApi() {
-        return Retro.getAppApi().getNextIllust(token, nextUrl);
-    }
-
-    @Override
-    public void initAdapter() {
-        mAdapter = new IAdapter(allItems, mContext, true);
-        mAdapter.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(View v, int position, int viewType) {
-                IllustChannel.get().setIllustList(allItems);
-                Intent intent = new Intent(mContext, ViewPagerActivity.class);
-                intent.putExtra("position", position);
-                startActivity(intent);
-            }
-        });
-    }
-
-    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
@@ -218,12 +215,8 @@ public class FragmentSearchResult extends FragmentSList<ListIllustResponse, Illu
         if (sUserModel.getResponse().getUser().isIs_premium()) {
             sort = "popular_desc";
             starSize = "";
-            mAdapter.clear();
-            getFirstData();
+            baseBind.refreshLayout.autoRefresh();
         } else {
-//            mAdapter.clear();
-//            getFirstData();
-//            Common.showToast("热度排序功能调试中");
             baseBind.progress.setVisibility(View.VISIBLE);
             Retro.getRankApi().getRankToken()
                     .subscribeOn(Schedulers.newThread())
@@ -235,8 +228,7 @@ public class FragmentSearchResult extends FragmentSList<ListIllustResponse, Illu
                                 token = "Bearer " + tempTokenResponse.getToken();
                                 sort = "popular_desc";
                                 starSize = "";
-                                mAdapter.clear();
-                                getFirstData();
+                                baseBind.refreshLayout.autoRefresh();
                             }
                             baseBind.progress.setVisibility(View.GONE);
                         }

@@ -20,10 +20,11 @@ import com.just.agentweb.WebViewClient;
 import java.util.Objects;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.UserDetailActivity;
+import ceui.lisa.activities.UActivity;
 import ceui.lisa.download.WebDownload;
 import ceui.lisa.utils.ClipBoardUtils;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.view.ContextMenuTitleView;
 
@@ -107,8 +108,8 @@ public class FragmentWebView extends BaseFragment {
 
                         if (destiny.contains(USER_HEAD)) {
                             Common.showLog("点击了USER， 拦截调回APP");
-                            Intent intent = new Intent(mContext, UserDetailActivity.class);
-                            intent.putExtra("user id", Integer.valueOf(destiny.substring(USER_HEAD.length())));
+                            Intent intent = new Intent(mContext, UActivity.class);
+                            intent.putExtra(Params.USER_ID, Integer.valueOf(destiny.substring(USER_HEAD.length())));
                             startActivity(intent);
                             return true;
                         }

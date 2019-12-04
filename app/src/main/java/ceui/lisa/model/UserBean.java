@@ -1,5 +1,7 @@
 package ceui.lisa.model;
 
+import android.text.TextUtils;
+
 import java.io.Serializable;
 
 public class UserBean implements Serializable {
@@ -184,6 +186,20 @@ public class UserBean implements Serializable {
 
         public void setPx_170x170(String px_170x170) {
             this.px_170x170 = px_170x170;
+        }
+
+        public String getMaxImage() {
+            if (!TextUtils.isEmpty(px_170x170)) {
+                return px_170x170;
+            } else if (!TextUtils.isEmpty(medium)) {
+                return medium;
+            } else if (!TextUtils.isEmpty(px_50x50)) {
+                return px_50x50;
+            } else if (!TextUtils.isEmpty(px_16x16)) {
+                return px_16x16;
+            } else {
+                return "";
+            }
         }
     }
 

@@ -1,6 +1,6 @@
 package ceui.lisa.http;
 
-import ceui.lisa.model.ArticalResponse;
+import ceui.lisa.model.ArticleResponse;
 import ceui.lisa.model.BookmarkTags;
 import ceui.lisa.model.CommentHolder;
 import ceui.lisa.model.GifResponse;
@@ -8,8 +8,10 @@ import ceui.lisa.model.IllustBookmarkTags;
 import ceui.lisa.model.IllustCommentsResponse;
 import ceui.lisa.model.IllustSearchResponse;
 import ceui.lisa.model.ListIllustResponse;
+import ceui.lisa.model.ListNovelResponse;
 import ceui.lisa.model.ListUserResponse;
 import ceui.lisa.model.MutedHistory;
+import ceui.lisa.model.NovelDetail;
 import ceui.lisa.model.NullResponse;
 import ceui.lisa.model.TrendingtagResponse;
 import ceui.lisa.model.UserDetailResponse;
@@ -35,16 +37,26 @@ public interface AppApi {
                                            @Query("mode") String mode,
                                            @Query("date") String date);
 
+    @GET("v1/novel/ranking?filter=for_android")
+    Observable<ListNovelResponse> getRankNovel(@Header("Authorization") String token,
+                                           @Query("mode") String mode,
+                                           @Query("date") String date);
+
     /**
      * 推荐榜单
      *
      * @param token
-     * @param include_ranking_illusts
      * @return
      */
-    @GET("v1/illust/recommended?include_privacy_policy=true&filter=for_android")
-    Observable<ListIllustResponse> getRecmdIllust(@Header("Authorization") String token,
-                                                  @Query("include_ranking_illusts") boolean include_ranking_illusts);
+    @GET("v1/illust/recommended?include_privacy_policy=true&filter=for_android&include_ranking_illusts=true")
+    Observable<ListIllustResponse> getRecmdIllust(@Header("Authorization") String token);
+
+
+    @GET("v1/manga/recommended?include_privacy_policy=true&filter=for_android&include_ranking_illusts=true")
+    Observable<ListIllustResponse> getRecmdManga(@Header("Authorization") String token);
+
+    @GET("v1/novel/recommended?include_privacy_policy=true&filter=for_android&include_ranking_novels=true")
+    Observable<ListNovelResponse> getRecmdNovel(@Header("Authorization") String token);
 
 
     @GET("v1/trending-tags/illust?filter=for_android&include_translated_tag_results=true")
@@ -106,19 +118,28 @@ public interface AppApi {
                                                      @Query("user_id") int user_id,
                                                      @Query("restrict") String restrict);
 
+    @GET("v1/user/bookmarks/novel")
+    Observable<ListNovelResponse> getUserLikeNovel(@Header("Authorization") String token,
+                                                     @Query("user_id") int user_id,
+                                                     @Query("restrict") String restrict);
+
     @GET("v1/user/illusts?filter=for_android")
     Observable<ListIllustResponse> getUserSubmitIllust(@Header("Authorization") String token,
                                                        @Query("user_id") int user_id,
                                                        @Query("type") String type);
 
+    @GET("v1/user/novels")
+    Observable<ListNovelResponse> getUserSubmitNovel(@Header("Authorization") String token,
+                                                       @Query("user_id") int user_id);
 
-    @GET("v2/illust/follow")
-    Observable<ListIllustResponse> getFollowUserIllust(@Header("Authorization") String token,
-                                                       @Query("restrict") String restrict);
+
+    @GET("v2/illust/follow?restrict=all")
+    Observable<ListIllustResponse> getFollowUserIllust(@Header("Authorization") String token);
 
 
-    @GET("v1/spotlight/articles?filter=for_android&category=all&offset=10")
-    Observable<ArticalResponse> getArticals(@Header("Authorization") String token);
+    @GET("v1/spotlight/articles?filter=for_android&offset=10")
+    Observable<ArticleResponse> getArticles(@Header("Authorization") String token,
+                                            @Query("category") String category);
 
 
     ///v1/user/detail?filter=for_android&user_id=24218478
@@ -132,19 +153,6 @@ public interface AppApi {
     Observable<GifResponse> getGifPackage(@Header("Authorization") String token,
                                           @Query("illust_id") int illust_id);
 
-
-    @GET
-    Observable<ListUserResponse> getNextUser(@Header("Authorization") String token,
-                                             @Url String next_url);
-
-
-    @GET
-    Observable<ListIllustResponse> getNextIllust(@Header("Authorization") String token,
-                                                 @Url String next_url);
-
-    @GET
-    Observable<ArticalResponse> getNextArticals(@Header("Authorization") String token,
-                                                @Url String next_url);
 
 
     @FormUrlEncoded
@@ -173,6 +181,12 @@ public interface AppApi {
                                                @Query("restrict") String restrict);
 
 
+    //获取关注 这个userid 的人
+    @GET("v1/user/follower?filter=for_android")
+    Observable<ListUserResponse> getWhoFollowThisUser(@Header("Authorization") String token,
+                                               @Query("user_id") int user_id);
+
+
     @GET("v1/illust/comments")
     Observable<IllustCommentsResponse> getComment(@Header("Authorization") String token,
                                                   @Query("illust_id") int illust_id);
@@ -197,6 +211,12 @@ public interface AppApi {
                                       @Field("restrict") String restrict);
 
     @FormUrlEncoded
+    @POST("v2/novel/bookmark/add")
+    Observable<NullResponse> postLikeNovel(@Header("Authorization") String token,
+                                      @Field("novel_id") int novel_id,
+                                      @Field("restrict") String restrict);
+
+    @FormUrlEncoded
     @POST("v2/illust/bookmark/add")
     Observable<NullResponse> postLike(@Header("Authorization") String token,
                                       @Field("illust_id") int illust_id,
@@ -207,6 +227,11 @@ public interface AppApi {
     @POST("v1/illust/bookmark/delete")
     Observable<NullResponse> postDislike(@Header("Authorization") String token,
                                          @Field("illust_id") int illust_id);
+
+    @FormUrlEncoded
+    @POST("v1/novel/bookmark/delete")
+    Observable<NullResponse> postDislikeNovel(@Header("Authorization") String token,
+                                         @Field("novel_id") int novel_id);
 
 
     @GET("v1/illust/detail?filter=for_android")
@@ -267,4 +292,36 @@ public interface AppApi {
     Observable<ListUserResponse> getNiceFriend(@Header("Authorization") String token,
                                                @Query("user_id") int user_id);
 
+    //获取最新作品
+    @GET("v1/illust/new?filter=for_android")
+    Observable<ListIllustResponse> getNewWorks(@Header("Authorization") String token,
+                                               @Query("content_type") String content_type);
+
+    //获取最新作品
+    @GET("v1/novel/new")
+    Observable<ListNovelResponse> getNewNovels(@Header("Authorization") String token);
+
+
+
+    @GET
+    Observable<ListUserResponse> getNextUser(@Header("Authorization") String token,
+                                             @Url String next_url);
+
+
+    @GET
+    Observable<ListIllustResponse> getNextIllust(@Header("Authorization") String token,
+                                                 @Url String next_url);
+
+    @GET
+    Observable<ListNovelResponse> getNextNovel(@Header("Authorization") String token,
+                                               @Url String next_url);
+
+    @GET
+    Observable<ArticleResponse> getNextArticals(@Header("Authorization") String token,
+                                                @Url String next_url);
+
+    //获取好P友
+    @GET("v1/novel/text")
+    Observable<NovelDetail> getNovelDetail(@Header("Authorization") String token,
+                                           @Query("novel_id") int novel_id);
 }

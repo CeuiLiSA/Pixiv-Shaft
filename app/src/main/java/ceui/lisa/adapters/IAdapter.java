@@ -1,6 +1,7 @@
 package ceui.lisa.adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -9,27 +10,32 @@ import com.bumptech.glide.Glide;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.interfaces.MultiDownload;
+import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
+import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.GlideUtil;
 
 public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding> implements MultiDownload {
 
-    private int imageSize;
-    private boolean isSquare = false;
     private static final int MIN_HEIGHT = 350;
     private static final int MAX_HEIGHT = 600;
+    private int imageSize;
+    private boolean isSquare = false;
 
     public IAdapter(List<IllustsBean> targetList, Context context) {
         super(targetList, context);
         initImageSize();
+        handleClick();
     }
 
     public IAdapter(List<IllustsBean> targetList, Context context, boolean paramSquare) {
         super(targetList, context);
         isSquare = paramSquare;
         initImageSize();
+        handleClick();
     }
 
     private void initImageSize() {
@@ -45,7 +51,6 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
     public void initLayout() {
         mLayoutID = R.layout.recy_illust_stagger;
     }
-
 
 
     @Override
@@ -101,5 +106,17 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
     @Override
     public List<IllustsBean> getIllustList() {
         return allIllust;
+    }
+
+    private void handleClick() {
+        setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(View v, int position, int viewType) {
+                DataChannel.get().setIllustList(allIllust);
+                Intent intent = new Intent(mContext, ViewPagerActivity.class);
+                intent.putExtra("position", position);
+                mContext.startActivity(intent);
+            }
+        });
     }
 }

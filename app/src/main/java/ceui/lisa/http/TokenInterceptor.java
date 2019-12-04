@@ -2,8 +2,8 @@ package ceui.lisa.http;
 
 import java.io.IOException;
 
-import ceui.lisa.activities.LoginActivity;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.fragments.FragmentL;
 import ceui.lisa.model.UserModel;
 import ceui.lisa.utils.Local;
 import okhttp3.Interceptor;
@@ -80,8 +80,8 @@ public class TokenInterceptor implements Interceptor {
     private String getNewToken() throws IOException {
         UserModel userModel = Local.getUser();
         Call<UserModel> call = Retro.getAccountApi().refreshToken(
-                LoginActivity.CLIENT_ID,
-                LoginActivity.CLIENT_SECRET,
+                FragmentL.CLIENT_ID,
+                FragmentL.CLIENT_SECRET,
                 "refresh_token",
                 userModel.getResponse().getRefresh_token(),
                 userModel.getResponse().getDevice_token(),

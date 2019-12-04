@@ -22,83 +22,132 @@
                 android:orientation="vertical"
                 android:layout_height="match_parent">
 
-                <ImageView
-                    android:id="@+id/head"
+                <androidx.viewpager.widget.ViewPager
+                    android:id="@+id/viewPager"
                     android:layout_width="match_parent"
-                    android:scaleType="centerCrop"
-                    android:src="@color/colorPrimary"
-                    android:layout_height="200dp">
-
-                </ImageView>
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="@dimen/sixteen_dp"
-                        android:layout_marginTop="@dimen/twelve_dip"
-                        android:layout_marginBottom="@dimen/four_dp"
-                        android:drawableStart="@drawable/ic_huangguan"
-                        android:drawablePadding="@dimen/eight_dp"
-                        android:text="排行榜"
-                        android:textColor="#2c333c"
-                        android:gravity="center"
-                        android:id="@+id/ranking"
-                        android:textSize="15sp"
-                        android:textStyle="bold"
-                        app:layout_constraintStart_toStartOf="parent" />
-
-
-                    <TextView
-                        android:id="@+id/see_more"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentEnd="true"
-                        android:layout_marginStart="@dimen/sixteen_dp"
-                        android:layout_alignBaseline="@+id/ranking"
-                        android:layout_marginEnd="@dimen/sixteen_dp"
-                        android:layout_marginBottom="@dimen/four_dp"
-                        android:text="查看更多"
-                        android:drawableRight="@drawable/ic_chevron_right_black_24dp"
-                        android:gravity="center"
-                        android:drawableTint="@color/colorPrimary"
-                        android:textColor="#748c98"
-                        android:textSize="13sp"
-                        app:layout_constraintEnd_toEndOf="parent" />
-
-
-                    <FrameLayout
-                        android:id="@+id/fragment_container"
-                        android:layout_width="match_parent"
-                        android:layout_height="196dp"
-                        android:layout_below="@+id/see_more">
-
-
-                    </FrameLayout>
-
-                </RelativeLayout>
+                    android:layout_height="220dp">
 
 
 
-
-
+                </androidx.viewpager.widget.ViewPager>
 
 
                 <FrameLayout
                     android:id="@+id/fragment_pivision"
                     android:layout_width="match_parent"
-                    android:layout_height="225dp">
+                    android:layout_height="wrap_content">
 
                 </FrameLayout>
+
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:orientation="horizontal"
+                    android:layout_height="140dp">
+
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="0dp"
+                        android:id="@+id/manga"
+                        android:layout_marginTop="@dimen/four_dp"
+                        android:layout_weight="1"
+                        app:cardBackgroundColor="@color/hito_bg"
+                        android:layout_marginStart="@dimen/eight_dp"
+                        android:layout_marginBottom="@dimen/eight_dp"
+                        android:layout_marginEnd="@dimen/four_dp"
+                        android:layout_height="match_parent">
+
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+
+                            <ImageView
+                                android:layout_width="match_parent"
+                                android:scaleType="centerCrop"
+                                android:src="@mipmap/main_novel"
+                                android:layout_height="match_parent">
+
+
+                            </ImageView>
+
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:textColor="@color/white"
+                                android:text="漫画"
+                                android:shadowColor="#FF000000"
+                                android:shadowDx="2"
+                                android:shadowDy="2"
+                                android:shadowRadius="2"
+                                android:layout_margin="10dp"
+                                android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:layout_height="wrap_content">
+
+
+                            </TextView>
+
+                        </RelativeLayout>
+
+                    </androidx.cardview.widget.CardView>
+
+
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:id="@+id/novel"
+                        android:layout_marginStart="@dimen/four_dp"
+                        android:layout_marginTop="@dimen/four_dp"
+                        app:cardBackgroundColor="@color/hito_bg"
+                        android:layout_marginBottom="@dimen/eight_dp"
+                        android:layout_marginEnd="@dimen/eight_dp"
+                        android:layout_height="match_parent">
+
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+
+                            <ImageView
+                                android:layout_width="match_parent"
+                                android:scaleType="centerCrop"
+                                android:src="@mipmap/main_manga"
+                                android:layout_height="match_parent">
+
+
+                            </ImageView>
+
+
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:textColor="@color/white"
+                                android:text="小说"
+                                android:layout_margin="10dp"
+                                android:layout_alignParentEnd="true"
+                                android:shadowColor="#FF000000"
+                                android:shadowDx="2"
+                                android:shadowDy="2"
+                                android:shadowRadius="2"
+                                android:layout_alignParentBottom="true"
+                                android:textStyle="bold"
+                                android:textSize="16sp"
+                                android:layout_height="wrap_content">
+
+                            </TextView>
+
+                        </RelativeLayout>
+
+
+                    </androidx.cardview.widget.CardView>
+
+                </LinearLayout>
 
             </LinearLayout>
 
         </ceui.lisa.view.HeadZoomScrollView>
-
-
     </com.scwang.smartrefresh.layout.SmartRefreshLayout>
 </RelativeLayout>
 

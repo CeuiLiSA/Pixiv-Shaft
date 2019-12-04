@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.UserDetailActivity;
+import ceui.lisa.activities.UActivity;
 import ceui.lisa.adapters.UserHorizontalAdapter;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
@@ -21,13 +21,13 @@ import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListUserResponse;
 import ceui.lisa.model.UserPreviewsBean;
 import ceui.lisa.utils.DensityUtil;
+import ceui.lisa.utils.Params;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 import jp.wasabeef.recyclerview.animators.FadeInLeftAnimator;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
-import static ceui.lisa.fragments.FragmentList.animateDuration;
 
 /**
  * 推荐用户
@@ -53,6 +53,7 @@ public class FragmentRecmdUserHorizontal extends BaseFragment {
         mRecyclerView = v.findViewById(R.id.recyclerView);
         mRecyclerView.addItemDecoration(new LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
         FadeInLeftAnimator landingAnimator = new FadeInLeftAnimator();
+        final long animateDuration = 400L;
         landingAnimator.setAddDuration(animateDuration);
         landingAnimator.setRemoveDuration(animateDuration);
         landingAnimator.setMoveDuration(animateDuration);
@@ -65,9 +66,11 @@ public class FragmentRecmdUserHorizontal extends BaseFragment {
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                Intent intent = new Intent(mContext, UserDetailActivity.class);
-                intent.putExtra("user id", allItems.get(position).getUser().getId());
+                Intent intent;
+                intent = new Intent(mContext, UActivity.class);
+                intent.putExtra(Params.USER_ID, allItems.get(position).getUser().getId());
                 startActivity(intent);
+
             }
         });
         mRecyclerView.setAdapter(mAdapter);

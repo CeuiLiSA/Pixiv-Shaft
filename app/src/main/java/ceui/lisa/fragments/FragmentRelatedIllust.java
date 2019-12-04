@@ -1,19 +1,19 @@
 package ceui.lisa.fragments;
 
-import android.content.Intent;
-import android.view.View;
+import android.os.Bundle;
 
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
-import ceui.lisa.activities.ViewPagerActivity;
+import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapter;
+import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.http.Retro;
-import ceui.lisa.interfaces.OnItemClickListener;
+import ceui.lisa.interfaces.NetControl;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
 import ceui.lisa.utils.DensityUtil;
-import ceui.lisa.utils.IllustChannel;
+import ceui.lisa.utils.Params;
 import ceui.lisa.view.SpacesItemDecoration;
 import io.reactivex.Observable;
 
@@ -22,16 +22,25 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 /**
  * 相关插画
  */
-public class FragmentRelatedIllust extends FragmentList<ListIllustResponse, IllustsBean, RecyIllustStaggerBinding> {
+public class FragmentRelatedIllust extends NetListFragment<FragmentBaseListBinding,
+        ListIllustResponse, IllustsBean, RecyIllustStaggerBinding> {
 
     private int illustID;
     private String mTitle;
 
     public static FragmentRelatedIllust newInstance(int id, String title) {
-        FragmentRelatedIllust fragmentRelatedIllust = new FragmentRelatedIllust();
-        fragmentRelatedIllust.setIllustID(id);
-        fragmentRelatedIllust.setTitle(title);
-        return fragmentRelatedIllust;
+        Bundle args = new Bundle();
+        args.putInt(Params.ILLUST_ID, id);
+        args.putString(Params.ILLUST_TITLE, title);
+        FragmentRelatedIllust fragment = new FragmentRelatedIllust();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void initBundle(Bundle bundle) {
+        illustID = bundle.getInt(Params.ILLUST_ID);
+        mTitle = bundle.getString(Params.ILLUST_TITLE);
     }
 
     public void setIllustID(int illustID) {
@@ -51,31 +60,27 @@ public class FragmentRelatedIllust extends FragmentList<ListIllustResponse, Illu
     }
 
     @Override
+    public NetControl<ListIllustResponse> present() {
+        return new NetControl<ListIllustResponse>() {
+            @Override
+            public Observable<ListIllustResponse> initApi() {
+                return Retro.getAppApi().relatedIllust(sUserModel.getResponse().getAccess_token(), illustID);
+            }
+
+            @Override
+            public Observable<ListIllustResponse> initNextApi() {
+                return Retro.getAppApi().getNextIllust(sUserModel.getResponse().getAccess_token(), nextUrl);
+            }
+        };
+    }
+
+    @Override
+    public BaseAdapter<IllustsBean, RecyIllustStaggerBinding> adapter() {
+        return new IAdapter(allItems, mContext);
+    }
+
+    @Override
     public String getToolbarTitle() {
         return mTitle + "的相关作品";
-    }
-
-    @Override
-    public Observable<ListIllustResponse> initApi() {
-        return Retro.getAppApi().relatedIllust(sUserModel.getResponse().getAccess_token(), illustID);
-    }
-
-    @Override
-    public Observable<ListIllustResponse> initNextApi() {
-        return Retro.getAppApi().getNextIllust(sUserModel.getResponse().getAccess_token(), nextUrl);
-    }
-
-    @Override
-    public void initAdapter() {
-        mAdapter = new IAdapter(allItems, mContext);
-        mAdapter.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(View v, int position, int viewType) {
-                IllustChannel.get().setIllustList(allItems);
-                Intent intent = new Intent(mContext, ViewPagerActivity.class);
-                intent.putExtra("position", position);
-                startActivity(intent);
-            }
-        });
     }
 }

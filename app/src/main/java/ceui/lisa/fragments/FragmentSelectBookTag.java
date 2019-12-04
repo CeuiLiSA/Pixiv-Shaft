@@ -17,7 +17,7 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.activities.TemplateFragmentActivity;
+import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.adapters.SelectTagAdapter;
 import ceui.lisa.dialogs.AddTagDialog;
 import ceui.lisa.http.ErrorCtrl;
@@ -64,7 +64,7 @@ public class FragmentSelectBookTag extends BaseListFragment<IllustBookmarkTags, 
     @Override
     View initView(View v) {
         super.initView(v);
-        ((TemplateFragmentActivity) getActivity()).setSupportActionBar(mToolbar);
+        ((TemplateActivity) getActivity()).setSupportActionBar(mToolbar);
         mToolbar.setNavigationOnClickListener(view -> getActivity().finish());
         mToolbar.setTitle(getToolbarTitle());
         mSwitch = v.findViewById(R.id.is_private);

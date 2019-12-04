@@ -1,19 +1,16 @@
 package ceui.lisa.activities
 
-import android.graphics.Color
-import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentPagerAdapter
 import ceui.lisa.R
+import ceui.lisa.databinding.ActivityViewPagerBinding
 import ceui.lisa.fragments.FragmentSingleIllust
 import ceui.lisa.model.IllustsBean
-import ceui.lisa.test.BasicActivity
-import ceui.lisa.utils.IllustChannel
+import ceui.lisa.utils.DataChannel
 import com.ToxicBakery.viewpager.transforms.DrawerTransformer
-import kotlinx.android.synthetic.main.activity_view_pager.*
 import java.util.*
 
-class ViewPagerActivity : BasicActivity() {
+class ViewPagerActivity : BaseActivity<ActivityViewPagerBinding>() {
 
     private val dataList = ArrayList<IllustsBean>()
 
@@ -21,14 +18,10 @@ class ViewPagerActivity : BasicActivity() {
         return true
     }
 
-    override fun layout(): Int {
-        return R.layout.activity_view_pager
-    }
-
     override fun initView() {
-        dataList.addAll(IllustChannel.get().illustList)
-        viewPager.setPageTransformer(true, DrawerTransformer())
-        viewPager.adapter = object : FragmentPagerAdapter(supportFragmentManager) {
+        dataList.addAll(DataChannel.get().illustList)
+        baseBind.viewPager.setPageTransformer(true, DrawerTransformer())
+        baseBind.viewPager.adapter = object : FragmentPagerAdapter(supportFragmentManager) {
             override fun getItem(i: Int): Fragment {
                 return FragmentSingleIllust.newInstance(dataList[i])
             }
@@ -37,6 +30,13 @@ class ViewPagerActivity : BasicActivity() {
                 return dataList.size
             }
         }
-        viewPager.currentItem = intent.getIntExtra("position", 0)
+        baseBind.viewPager.currentItem = intent.getIntExtra("position", 0)
+    }
+
+    override fun initLayout(): Int {
+        return R.layout.activity_view_pager
+    }
+
+    override fun initData() {
     }
 }

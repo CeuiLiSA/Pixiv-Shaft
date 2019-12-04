@@ -17,18 +17,17 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import ceui.lisa.interfaces.Binding;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 
 
-public abstract class BaseBindFragment<T extends ViewDataBinding> extends Fragment implements Binding<T> {
+public abstract class BaseBindFragment<Layout extends ViewDataBinding> extends Fragment {
 
     protected Context mContext;
     protected FragmentActivity mActivity;
     protected int mLayoutID = -1;
     protected String className = getClass().getSimpleName() + " ";
-    protected T baseBind;
+    protected Layout baseBind;
     protected View parentView;
 
     public BaseBindFragment() {
@@ -41,6 +40,11 @@ public abstract class BaseBindFragment<T extends ViewDataBinding> extends Fragme
 
         mContext = getContext();
         mActivity = getActivity();
+
+        Bundle bundle = getArguments();
+        if (bundle != null) {
+            initBundle(bundle);
+        }
 
         if (eventBusEnable()) {
             EventBus.getDefault().register(this);
@@ -63,8 +67,9 @@ public abstract class BaseBindFragment<T extends ViewDataBinding> extends Fragme
                              @Nullable Bundle savedInstanceState) {
         if (parentView == null) {
             initLayout();
-            baseBind = getBind(inflater, container);
+            baseBind = DataBindingUtil.inflate(inflater, mLayoutID, container, false);
             parentView = baseBind.getRoot();
+            initView(parentView);
             initData();
         } else {
             ViewGroup viewGroup = (ViewGroup) parentView.getParent();
@@ -73,6 +78,14 @@ public abstract class BaseBindFragment<T extends ViewDataBinding> extends Fragme
             }
         }
         return parentView;
+    }
+
+    public void initBundle(Bundle bundle) {
+
+    }
+
+    public void initView(View view) {
+
     }
 
     abstract void initLayout();
@@ -105,10 +118,5 @@ public abstract class BaseBindFragment<T extends ViewDataBinding> extends Fragme
     }
 
     public void handleEvent(Channel channel) {
-    }
-
-    @Override
-    public T getBind(LayoutInflater inflater, ViewGroup container) {
-        return DataBindingUtil.inflate(inflater, mLayoutID, container, false);
     }
 }

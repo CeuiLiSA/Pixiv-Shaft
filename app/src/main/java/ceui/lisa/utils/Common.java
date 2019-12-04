@@ -84,6 +84,20 @@ public class Common {
         toast.show();
     }
 
+    public static <T> void showToast(T t, boolean isLong) {
+        if (toast == null) {
+            toast = Toast.makeText(Shaft.getContext(), String.valueOf(t), isLong ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT);
+        } else {
+            toast.cancel();
+            toast = Toast.makeText(Shaft.getContext(), String.valueOf(t), isLong ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT);
+        }
+        View view = LayoutInflater.from(Shaft.getContext()).inflate(R.layout.toast_item, null);
+        TextView textView = view.findViewById(R.id.toast_text);
+        textView.setText(String.valueOf(t));
+        toast.setView(view);
+        toast.show();
+    }
+
 
     public static <T> void showToast(Context context, T t) {
         if (toast == null) {

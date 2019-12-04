@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/tag_title"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_margin="@dimen/four_dp"
+    android:background="@drawable/tag_stroke_bg"
+    android:textSize="13sp"
+    android:paddingStart="@dimen/twelve_dp"
+    android:paddingTop="@dimen/eight_dp"
+    android:paddingEnd="@dimen/twelve_dp"
+    android:paddingBottom="@dimen/eight_dp"
+    android:text="哈哈哈哈哈哈"
+    android:textColor="#737373">
+
+</TextView>

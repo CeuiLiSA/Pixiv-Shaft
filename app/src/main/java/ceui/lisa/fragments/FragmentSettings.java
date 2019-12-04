@@ -11,6 +11,7 @@ import android.widget.LinearLayout;
 
 import androidx.appcompat.app.AlertDialog;
 
+import com.blankj.utilcode.util.LanguageUtils;
 import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringChain;
@@ -21,15 +22,16 @@ import com.scwang.smartrefresh.layout.header.FalsifyHeader;
 
 import java.io.File;
 import java.util.List;
+import java.util.Locale;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.LoginActivity;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.activities.TemplateFragmentActivity;
+import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.FragmentSettingsBinding;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 
+import static ceui.lisa.fragments.FragmentFilter.ALL_LANGUAGE;
 import static ceui.lisa.fragments.FragmentFilter.ALL_SIZE;
 import static ceui.lisa.fragments.FragmentFilter.ALL_SIZE_VALUE;
 
@@ -40,7 +42,6 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
     private static final int gifResultPath_CODE = 10087;
     private static final int gifZipPath_CODE = 10088;
     private static final int gifUnzipPath_CODE = 10089;
-    public static final String[] STRINGS = new String[]{"公开关注", "私人关注"};
 
     @Override
     void initLayout() {
@@ -55,19 +56,20 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
         baseBind.loginOut.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(mContext, LoginActivity.class);
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "登录注册");
                 startActivity(intent);
-                getActivity().finish();
+                mActivity.finish();
             }
         });
 
         baseBind.userManage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "账号管理");
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "账号管理");
                 startActivity(intent);
-                getActivity().finish();
+                mActivity.finish();
             }
         });
 
@@ -96,7 +98,6 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
                 Local.setSettings(Shaft.sSettings);
             }
         });
-
 
         baseBind.autoDns.setChecked(Shaft.sSettings.isAutoFuckChina());
         baseBind.autoDns.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -190,8 +191,8 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
         baseBind.fuckChina.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "网页链接");
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
                 intent.putExtra("url", "https://github.com/Notsfsssf/Pix-EzViewer");
                 intent.putExtra("title", "PxEz项目主页");
                 startActivity(intent);
@@ -216,30 +217,29 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
                 alertDialog.show();
             }
         });
-
-        baseBind.trendingIllust.setText(Shaft.sSettings.isTrendsForPrivate() ? STRINGS[1] : STRINGS[0]);
-        baseBind.trendingIllust.setOnClickListener(new View.OnClickListener() {
+        baseBind.appLanguage.setText(Shaft.sSettings.getAppLanguage());
+        baseBind.appLanguage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                builder.setTitle("动态作品展示");
-                builder.setItems(STRINGS, new DialogInterface.OnClickListener() {
+                builder.setTitle(getString(R.string.language));
+                builder.setItems(ALL_LANGUAGE, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        if(which == 0){
-                            Shaft.sSettings.setTrendsForPrivate(false);
-                        }else {
-                            Shaft.sSettings.setTrendsForPrivate(true);
-                        }
+                        Shaft.sSettings.setAppLanguage(ALL_LANGUAGE[which]);
+                        baseBind.appLanguage.setText(ALL_LANGUAGE[which]);
                         Local.setSettings(Shaft.sSettings);
-                        baseBind.trendingIllust.setText(STRINGS[which]);
+                        if (which == 0) {
+                            LanguageUtils.applyLanguage(Locale.SIMPLIFIED_CHINESE, "");
+                        } else if (which == 1) {
+                            LanguageUtils.applyLanguage(Locale.JAPAN, "");
+                        }
                     }
                 });
                 AlertDialog alertDialog = builder.create();
                 alertDialog.show();
             }
         });
-
         baseBind.refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));
         baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
     }

@@ -26,6 +26,9 @@ public class FragmentFilter extends BaseFragment {
     public static final String[] ALL_SIZE_VALUE = new String[]{"", "500users入り", "1000users入り", "2000users入り",
             "5000users入り", "7500users入り", "10000users入り", "20000users入り", "50000users入り"};
 
+    //, "Русский язык"
+    public static final String[] ALL_LANGUAGE = new String[]{"简体中文", "日本語"};
+
 
     public static final String[] DATE_SORT = new String[]{"最新作品(建议)", "由旧到新"};
     public static final String[] SEARCH_TYPE = new String[]{"标签搜作品", "ID搜作品", "关键字搜画师", "ID搜画师"};

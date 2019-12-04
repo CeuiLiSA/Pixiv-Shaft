@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.activities.ImageDetailActivity;
-import ceui.lisa.activities.UserDetailActivity;
+import ceui.lisa.activities.UActivity;
 import ceui.lisa.adapters.DownlistAdapter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.DownloadEntity;
@@ -23,6 +23,7 @@ import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Params;
 import io.reactivex.Observable;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.Observer;
@@ -41,11 +42,9 @@ public class FragmentDownloadFinish extends BaseAsyncFragment<DownlistAdapter, D
         allItems.clear();
         nowIndex = 0;
         Observable.create((ObservableOnSubscribe<String>) emitter -> {
-            emitter.onNext("开始查询数据库");
             List<DownloadEntity> temp = AppDatabase.getAppDatabase(mContext).downloadDao().getAll(PAGE_SIZE, nowIndex);
             nowIndex += temp.size();
             allItems.addAll(temp);
-            emitter.onNext("开始转换数据类型");
             Thread.sleep(500);
             Gson gson = new Gson();
             allIllusts = new ArrayList<>();
@@ -94,8 +93,8 @@ public class FragmentDownloadFinish extends BaseAsyncFragment<DownlistAdapter, D
                     intent.putExtra("index", position);
                     startActivity(intent);
                 } else if (viewType == 1) {
-                    Intent intent = new Intent(mContext, UserDetailActivity.class);
-                    intent.putExtra("user id", allIllusts.get(position).getUser().getId());
+                    Intent intent = new Intent(mContext, UActivity.class);
+                    intent.putExtra(Params.USER_ID, allIllusts.get(position).getUser().getId());
                     startActivity(intent);
                 }
             }

@@ -1,5 +1,7 @@
 package ceui.lisa.model;
 
+import android.text.TextUtils;
+
 import java.io.Serializable;
 
 public class ImageUrlsBean implements Serializable {
@@ -45,5 +47,19 @@ public class ImageUrlsBean implements Serializable {
 
     public void setOriginal(String original) {
         this.original = original;
+    }
+
+    public String getMaxImage() {
+        if (!TextUtils.isEmpty(original)) {
+            return original;
+        } else if (!TextUtils.isEmpty(large)) {
+            return large;
+        } else if (!TextUtils.isEmpty(medium)) {
+            return medium;
+        } else if (!TextUtils.isEmpty(square_medium)) {
+            return square_medium;
+        } else {
+            return "";
+        }
     }
 }

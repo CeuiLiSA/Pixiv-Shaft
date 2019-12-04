@@ -6,7 +6,7 @@
 
     <TextView
         android:layout_width="wrap_content"
-        android:text="资源解析中"
+        android:text="@string/finding_datas"
         android:textSize="16sp"
         android:id="@+id/text"
         android:layout_centerInParent="true"

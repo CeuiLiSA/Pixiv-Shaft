@@ -5,10 +5,13 @@ import android.view.View;
 
 import androidx.recyclerview.widget.GridLayoutManager;
 
-import ceui.lisa.activities.TemplateFragmentActivity;
+import ceui.lisa.activities.TemplateActivity;
+import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.HAdapter;
+import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyTagGridBinding;
 import ceui.lisa.http.Retro;
+import ceui.lisa.interfaces.NetControl;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.TrendingtagResponse;
 import ceui.lisa.utils.DensityUtil;
@@ -18,21 +21,10 @@ import io.reactivex.Observable;
 import static ceui.lisa.activities.Shaft.sUserModel;
 
 
-public class FragmentHotTag extends FragmentList<TrendingtagResponse, TrendingtagResponse.TrendTagsBean,
-        RecyTagGridBinding> {
+public class FragmentHotTag extends NetListFragment<FragmentBaseListBinding,
+        TrendingtagResponse, TrendingtagResponse.TrendTagsBean, RecyTagGridBinding> {
 
     private boolean isLoad = false;
-
-    @Override
-    public Observable<TrendingtagResponse> initApi() {
-        return Retro.getAppApi().getHotTags(sUserModel.getResponse().getAccess_token());
-    }
-
-    @Override
-    public Observable<TrendingtagResponse> initNextApi() {
-        //热门标签没有下一页
-        return null;
-    }
 
     @Override
     public void initRecyclerView() {
@@ -53,24 +45,38 @@ public class FragmentHotTag extends FragmentList<TrendingtagResponse, Trendingta
     }
 
     @Override
-    public boolean showToolbar() {
-        return false;
+    public NetControl<TrendingtagResponse> present() {
+        return new NetControl<TrendingtagResponse>() {
+            @Override
+            public Observable<TrendingtagResponse> initApi() {
+                return Retro.getAppApi().getHotTags(sUserModel.getResponse().getAccess_token());
+            }
+
+            @Override
+            public Observable<TrendingtagResponse> initNextApi() {
+                return null;
+            }
+        };
     }
 
     @Override
-    public void initAdapter() {
-        mAdapter = new HAdapter(allItems, mContext);
-        mAdapter.setOnItemClickListener(new OnItemClickListener() {
+    public BaseAdapter<TrendingtagResponse.TrendTagsBean, RecyTagGridBinding> adapter() {
+        return new HAdapter(allItems, mContext).setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-                intent.putExtra(TemplateFragmentActivity.EXTRA_KEYWORD,
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_KEYWORD,
                         allItems.get(position).getTag());
-                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT,
                         "搜索结果");
                 startActivity(intent);
             }
         });
+    }
+
+    @Override
+    public boolean showToolbar() {
+        return false;
     }
 
     @Override

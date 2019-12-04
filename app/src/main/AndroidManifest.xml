@@ -45,14 +45,10 @@
         </activity>
         <activity android:name=".activities.ViewPagerActivity" />
         <activity
-            android:name=".activities.TemplateFragmentActivity"
+            android:name=".activities.TemplateActivity"
             android:windowSoftInputMode="adjustPan" />
         <activity android:name=".activities.RankActivity" />
-        <activity android:name=".activities.UserDetailActivity" />
-        <activity android:name=".activities.DownloadManageActivity" />
         <activity android:name=".activities.ImageDetailActivity" />
-        <activity android:name=".activities.CollectionActivity" />
-        <activity android:name=".activities.LoginActivity" />
         <activity android:name=".activities.OutWakeActivity">
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
@@ -60,26 +56,17 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
+
+
                 <data
                     android:host="www.pixiv.net"
-                    android:path="/member.php"
                     android:scheme="http" />
+
                 <data
                     android:host="www.pixiv.net"
-                    android:path="/member.php"
                     android:scheme="https" />
-                <data
-                    android:host="www.pixiv.net"
-                    android:path="/member_illust.php"
-                    android:scheme="https" />
-                <data
-                    android:host="www.pixiv.net"
-                    android:path="/member_illust.php"
-                    android:scheme="http" />
-                <data
-                    android:host="www.pixiv.net"
-                    android:path="/member.php"
-                    android:scheme="https" />
+
+
             </intent-filter>
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
@@ -118,9 +105,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity android:name=".test.BasicActivity" />
-        <activity android:name=".test.TActivity" />
-        <activity android:name=".test.KActivity" />
+        <activity android:name=".activities.UActivity" />
     </application>
 
 </manifest>

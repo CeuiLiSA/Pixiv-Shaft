@@ -9,6 +9,7 @@
     <ImageView
         android:layout_width="match_parent"
         android:id="@+id/pika_bg"
+        android:src="@mipmap/user_bg_main"
         android:scaleType="centerCrop"
         android:layout_height="match_parent" />
 

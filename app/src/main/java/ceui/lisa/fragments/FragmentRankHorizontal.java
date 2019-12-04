@@ -1,16 +1,9 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import android.os.Bundle;
 import android.view.View;
-import android.widget.ProgressBar;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,8 +15,8 @@ import ceui.lisa.databinding.FragmentUserHorizontalBinding;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.Channel;
+import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.DensityUtil;
-import ceui.lisa.utils.IllustChannel;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
 
 /**
@@ -49,7 +42,7 @@ public class FragmentRankHorizontal extends BaseBindFragment<FragmentUserHorizon
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                IllustChannel.get().setIllustList(allItems);
+                DataChannel.get().setIllustList(allItems);
                 Intent intent = new Intent(mContext, ViewPagerActivity.class);
                 intent.putExtra("position", position);
                 startActivity(intent);

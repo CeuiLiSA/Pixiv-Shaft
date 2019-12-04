@@ -41,12 +41,11 @@ import ceui.lisa.fragments.FragmentLeft;
 import ceui.lisa.fragments.FragmentRight;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.model.UserModel;
-import ceui.lisa.test.KActivity;
-import ceui.lisa.test.TActivity;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Local;
+import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseImage;
 import ceui.lisa.utils.ReverseWebviewCallback;
 import io.reactivex.disposables.Disposable;
@@ -65,12 +64,13 @@ public class CoverActivity extends BaseActivity
     private long mExitTime;
 
     @Override
-    protected void initLayout() {
-        getWindow().setStatusBarColor(Color.TRANSPARENT);
-        getWindow().getDecorView().setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
-                        View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
-        mLayoutID = R.layout.activity_cover;
+    protected int initLayout() {
+        return R.layout.activity_cover;
+    }
+
+    @Override
+    public boolean hideStatusBar() {
+        return true;
     }
 
     public void checkPermission(Callback<Object> callback) {
@@ -99,8 +99,8 @@ public class CoverActivity extends BaseActivity
         userHead.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(mContext, UserDetailActivity.class);
-                intent.putExtra("user id", sUserModel.getResponse().getUser().getId());
+                Intent intent = new Intent(mContext, UActivity.class);
+                intent.putExtra(Params.USER_ID, sUserModel.getResponse().getUser().getId());
                 startActivity(intent);
             }
         });
@@ -164,7 +164,8 @@ public class CoverActivity extends BaseActivity
         if (userModel != null && userModel.getResponse().getUser().isIs_login()) {
             checkPermission(t -> initFragment());
         } else {
-            Intent intent = new Intent(mContext, LoginActivity.class);
+            Intent intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "登录注册");
             startActivity(intent);
             finish();
         }
@@ -180,30 +181,32 @@ public class CoverActivity extends BaseActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_camera) {
-            Intent intent = new Intent(mContext, CollectionActivity.class);
+            Intent intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "收藏夹");
+            intent.putExtra("hideStatusBar", false);
             startActivity(intent);
         } else if (id == R.id.nav_gallery) {
-            Intent intent = new Intent(mContext, DownloadManageActivity.class);
+            Intent intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载管理");
+            intent.putExtra("hideStatusBar", false);
             startActivity(intent);
         } else if (id == R.id.nav_slideshow) {
-            Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
-                    mContext.getString(R.string.view_history));
+            Intent intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "浏览记录");
             startActivity(intent);
         } else if (id == R.id.nav_manage) {
-            Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
-                    mContext.getString(R.string.app_settings));
+            Intent intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "设置");
             startActivity(intent);
         } else if (id == R.id.nav_share) {
-            Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT,
-                    mContext.getString(R.string.full_about_app));
+            Intent intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "关于软件");
             startActivity(intent);
 
         } else if (id == R.id.main_page) {
-            Intent intent = new Intent(mContext, UserDetailActivity.class);
-            intent.putExtra("user id", sUserModel.getResponse().getUser().getId());
+            Intent intent;
+            intent = new Intent(mContext, UActivity.class);
+            intent.putExtra(Params.USER_ID, sUserModel.getResponse().getUser().getId());
             startActivity(intent);
 
         } else if (id == R.id.nav_reverse) {
@@ -218,19 +221,18 @@ public class CoverActivity extends BaseActivity
 
         } else if (id == R.id.nav_send) {
 
-            Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-            intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "画廊");
+            Intent intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "画廊");
             startActivity(intent);
         } else if (id == R.id.web_test) {
-            if(Dev.isDev) {
-                Intent intent = new Intent(mContext, KActivity.class);
-                startActivity(intent);
-            }else {
-                Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-                intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "一言");
-                startActivity(intent);
-            }
-
+            Intent intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "一言");
+            startActivity(intent);
+        } else if (id == R.id.nav_new_work) {
+            Intent intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "最新作品");
+            intent.putExtra("hideStatusBar", false);
+            startActivity(intent);
         }
 
         mDrawer.closeDrawer(GravityCompat.START);
@@ -290,7 +292,9 @@ public class CoverActivity extends BaseActivity
                 });
                 builder.setNegativeButton(mContext.getString(R.string.cancel), null);
                 builder.setNeutralButton(getString(R.string.see_download_task), (dialog, which) -> {
-                    Intent intent = new Intent(mContext, DownloadManageActivity.class);
+                    Intent intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载管理");
+                    intent.putExtra("hideStatusBar", false);
                     startActivity(intent);
                 });
                 AlertDialog alertDialog = builder.create();
@@ -307,7 +311,7 @@ public class CoverActivity extends BaseActivity
     @Override
     protected void onResume() {
         super.onResume();
-        if(Dev.refreshUser) {
+        if (Dev.refreshUser) {
             initDrawerHeader();
             Dev.refreshUser = false;
         }

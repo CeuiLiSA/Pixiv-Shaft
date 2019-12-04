@@ -6,6 +6,7 @@ import java.io.File;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.model.IllustsBean;
+import ceui.lisa.utils.Settings;
 
 
 public class FileCreator {
@@ -15,8 +16,8 @@ public class FileCreator {
             return null;
         }
 
-        return new File(Shaft.sSettings.getGifZipPath(),
-                deleteSpecialWords(illustsBean.getTitle() + "_" + illustsBean.getId() + ".zip"));
+        return new File(Shaft.sSettings.getGifZipPath(), deleteSpecialWords(
+                illustsBean.getTitle() + "_" + illustsBean.getId() + ".zip"));
     }
 
 
@@ -25,7 +26,8 @@ public class FileCreator {
             return null;
         }
 
-        return new File(Shaft.sSettings.getGifUnzipPath() + deleteSpecialWords(illustsBean.getTitle() + "_" + illustsBean.getId()));
+        return new File(Shaft.sSettings.getGifUnzipPath() + deleteSpecialWords(
+                illustsBean.getTitle() + "_" + illustsBean.getId()));
     }
 
 
@@ -34,8 +36,8 @@ public class FileCreator {
             return null;
         }
 
-        return new File(Shaft.sSettings.getIllustPath(),
-                deleteSpecialWords(illustsBean.getTitle() + "_" + illustsBean.getId() + ".png"));
+        return new File(Shaft.sSettings.getIllustPath(), deleteSpecialWords(
+                illustsBean.getTitle() + "_" + illustsBean.getId() + ".png"));
     }
 
     public static File createIllustFile(IllustsBean illustsBean, int index) {
@@ -43,29 +45,8 @@ public class FileCreator {
             return null;
         }
 
-//        File parentFile = new File(FILE_PATH_META + illustsBean.getTitle() + "_" + illustsBean.getId());
-//        if(!parentFile.exists()){
-//            try {
-//                if(parentFile.createNewFile()) {
-//                    Common.showToast("父文件夹创建成功");
-//
-//
-//
-//
-//                    File childFile = new File(parentFile.getPath(),
-//                            deleteSpecialWords(illustsBean.getTitle() + "_" + illustsBean.getId() + ".png"))
-//                }else {
-//                    Common.showToast("父文件夹创建失败");
-//                }
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }else {
-//
-//        }
-
-        return new File(Shaft.sSettings.getIllustPath(),
-                deleteSpecialWords(illustsBean.getTitle() + "_" + illustsBean.getId() + "_" + "p" + (index + 1) + ".png"));
+        return new File(Shaft.sSettings.getIllustPath(), deleteSpecialWords(
+                illustsBean.getTitle() + "_" + illustsBean.getId() + "_" + "p" + (index + 1) + ".png"));
     }
 
     private static String deleteSpecialWords(String before) {
@@ -82,6 +63,14 @@ public class FileCreator {
 
     public static File createWebFile(String name) {
         File parent = new File(Shaft.sSettings.getIllustPath());
+        if (!parent.exists()) {
+            parent.mkdir();
+        }
+        return new File(parent, deleteSpecialWords(name));
+    }
+
+    public static File createLogFile(String name) {
+        File parent = new File(Settings.getLogPath());
         if (!parent.exists()) {
             parent.mkdir();
         }

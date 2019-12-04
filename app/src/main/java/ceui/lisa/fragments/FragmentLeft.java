@@ -8,22 +8,26 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
+import com.blankj.utilcode.util.UiMessageUtils;
 import com.google.android.material.tabs.TabLayout;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.CoverActivity;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.activities.TemplateFragmentActivity;
+import ceui.lisa.activities.TemplateActivity;
+import ceui.lisa.model.IllustsBean;
 
 public class FragmentLeft extends BaseFragment {
 
-    private static final String[] TITLES = new String[]{"推荐作品", "热门标签"};
+    private static final String[] TITLES = new String[]{
+            Shaft.getContext().getString(R.string.recommend_illust),
+            Shaft.getContext().getString(R.string.hot_tag)
+    };
 
     @Override
     void initLayout() {
@@ -47,8 +51,8 @@ public class FragmentLeft extends BaseFragment {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 if (item.getItemId() == R.id.action_search) {
-                    Intent intent = new Intent(mContext, TemplateFragmentActivity.class);
-                    intent.putExtra(TemplateFragmentActivity.EXTRA_FRAGMENT, "搜索");
+                    Intent intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "搜索");
                     startActivity(intent);
                     return true;
                 }
@@ -61,7 +65,7 @@ public class FragmentLeft extends BaseFragment {
             @Override
             public Fragment getItem(int i) {
                 if (i == 0) {
-                    return new FragmentR();
+                    return FragmentRecmdManga.newInstance("插画");
                 } else {
                     return new FragmentHotTag();
                 }

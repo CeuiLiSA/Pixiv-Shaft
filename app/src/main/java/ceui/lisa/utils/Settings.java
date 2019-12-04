@@ -2,25 +2,29 @@ package ceui.lisa.utils;
 
 import android.text.TextUtils;
 
+import com.blankj.utilcode.util.PathUtils;
+
+import ceui.lisa.fragments.FragmentFilter;
+
 public class Settings {
 
     //只包含1P图片的下载路径
-    public static final String FILE_PATH_SINGLE = "/storage/emulated/0/Shaft/SingleImages";
-
-    //包含多P文件的下载路径
-    public static final String FILE_PATH_META = "/storage/emulated/0/Shaft/MetaImages";
+    public static final String FILE_PATH_SINGLE = PathUtils.getExternalPicturesPath() + "/ShaftImages";
 
     //下载的GIF 压缩包存放在这里
-    public static final String FILE_GIF_PATH = "/storage/emulated/0/Shaft/gif";
+    public static final String FILE_GIF_PATH = PathUtils.getExternalDownloadsPath();
+
+    //log日志，
+    public static final String FILE_LOG_PATH = PathUtils.getInternalAppFilesPath();
 
     //下载的GIF 压缩包解压之后的结果存放在这里
-    public static final String FILE_GIF_CHILD_PATH = "/storage/emulated/0/Shaft/gifUnzip";
+    public static final String FILE_GIF_CHILD_PATH = PathUtils.getInternalAppCachePath();
 
     //已制作好的GIF存放在这里
-    public static final String FILE_GIF_RESULT_PATH = "/storage/emulated/0/Shaft/gifGenerate";
+    public static final String FILE_GIF_RESULT_PATH = PathUtils.getExternalPicturesPath() + "/ShaftGIFs";
 
     //WEB下载
-    public static final String WEB_DOWNLOAD_PATH = "/storage/emulated/0/Shaft/Web";
+    public static final String WEB_DOWNLOAD_PATH = PathUtils.getExternalPicturesPath() + "/ShaftWeb";
 
 
     //瀑布流List点击动画
@@ -63,6 +67,20 @@ public class Settings {
     private String gifUnzipPath = "";
 
     private String webDownloadPath = "";
+
+    public String getAppLanguage() {
+        if(!TextUtils.isEmpty(appLanguage)){
+            return appLanguage;
+        } else {
+            return FragmentFilter.ALL_LANGUAGE[0];
+        }
+    }
+
+    public void setAppLanguage(String appLanguage) {
+        this.appLanguage = appLanguage;
+    }
+
+    private String appLanguage = "";
 
     //收藏量筛选搜索结果
     private String searchFilter = "";
@@ -212,5 +230,9 @@ public class Settings {
 
     public void setTrendsForPrivate(boolean trendsForPrivate) {
         this.trendsForPrivate = trendsForPrivate;
+    }
+
+    public static String getLogPath(){
+        return FILE_LOG_PATH;
     }
 }

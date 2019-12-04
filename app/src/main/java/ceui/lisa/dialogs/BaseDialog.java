@@ -11,15 +11,18 @@ import android.widget.Button;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.databinding.DataBindingUtil;
+import androidx.databinding.ViewDataBinding;
 import androidx.fragment.app.DialogFragment;
 
 import ceui.lisa.model.UserModel;
 import ceui.lisa.utils.Local;
 
-public abstract class BaseDialog extends DialogFragment {
+public abstract class BaseDialog<Layout extends ViewDataBinding> extends DialogFragment {
 
     protected Context mContext;
     protected Activity mActivity;
+    protected Layout baseBind;
     protected int mLayoutID = -1;
     protected View parentView;
     protected UserModel mUserModel;
@@ -42,6 +45,7 @@ public abstract class BaseDialog extends DialogFragment {
         if (parentView == null) {
             initLayout();
             parentView = LayoutInflater.from(mContext).inflate(mLayoutID, null);
+            baseBind = DataBindingUtil.bind(parentView);
             initView(parentView);
             initData();
         }

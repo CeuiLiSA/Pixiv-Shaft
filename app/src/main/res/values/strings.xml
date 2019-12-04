@@ -55,6 +55,7 @@
     <string name="project_license">License</string>
     <string name="select_inner_storage">请选择本机内置存储</string>
     <string name="walkthrough">画廊</string>
+    <string name="latest_work">最新</string>
     <string name="search">搜索</string>
     <string name="hito">一言</string>
 
@@ -64,10 +65,15 @@
     <string name="image_alredy_exist">图片已存在</string>
     <string name="has_been_added">个项目已加入下载队列</string>
     <string name="one_item_added">1个项目已加入下载队列</string>
+    <string name="type_illust">插画</string>
+    <string name="type_manga">漫画</string>
+    <string name="type_novel">小说</string>
     <string name="public_like_illust">公开收藏</string>
     <string name="private_like_illust">私人收藏</string>
     <string name="public_like_user">公开关注</string>
     <string name="private_like_user">私人关注</string>
+    <string name="private_like_novel">私人收藏小说</string>
+    <string name="public_like_novel">公开收藏小说</string>
     <string name="bookmark">收藏夹</string>
     <string name="filter_by_bookmark">按标签筛选</string>
     <string name="access_denied">请给与足够的权限</string>
@@ -90,4 +96,39 @@
     <string name="like_illust_success">收藏成功</string>
     <string name="how_about_trending">动态页面展示谁的作品？</string>
     <string name="recomment_user">推荐用户</string>
+    <string name="you_mother_fucker_want_to_read_novel">啥？您还想看日语小说？？</string>
+    <string name="user_info">详细信息</string>
+    <string name="how_many_illust_works">%d件作品</string>
+
+
+    <string name="user_main_page">个人主页</string>
+    <string name="user_collections">收藏夹</string>
+    <string name="download_manager">下载管理</string>
+    <string name="recommend_illust">推荐作品</string>
+    <string name="hot_tag">热门标签</string>
+    <string name="ranking_illust">排行榜</string>
+    <string name="see_more">查看更多</string>
+    <string name="recommend_user">推荐用户</string>
+    <string name="recommend">推荐</string>
+    <string name="discover">发现</string>
+    <string name="whats_new">动态</string>
+    <string name="account">账号</string>
+    <string name="account_manage">账号管理</string>
+    <string name="login_out">退出登录</string>
+    <string name="normal">常规</string>
+    <string name="open_direct_connection">开启直连（自行代理或在墙外，可以关闭）</string>
+    <string name="see_pixiv_ez">详见 Notsfsssf/Pix-EzViewer</string>
+    <string name="show_original_image">图片详情展示原图</string>
+    <string name="save_view_history">保存浏览历史</string>
+    <string name="slide_down_endless">相关作品无限下滑（可能出现重复）</string>
+    <string name="other_settings">其他</string>
+    <string name="search_result_filter">搜索结果收藏量筛选</string>
+    <string name="language">语言</string>
+    <string name="download_path">下载路径</string>
+    <string name="illust_download_path">图片下载路径</string>
+    <string name="gif_unzip_path">GIF压缩包解压路径</string>
+    <string name="gif_zip_path">GIF压缩包存放路径</string>
+    <string name="gif_result_path">GIF生成路径</string>
+    <string name="please_restart_app">重启软件后生效</string>
+    <string name="finding_datas">资源解析中</string>
 </resources>

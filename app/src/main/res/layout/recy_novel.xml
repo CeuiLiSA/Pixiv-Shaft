@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+    </data>
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="2dp"
+        app:cardBackgroundColor="@color/white"
+        app:cardElevation="@dimen/four_dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+
+            <ImageView
+                android:layout_width="90dp"
+                android:id="@+id/cover"
+                android:scaleType="centerCrop"
+                android:background="@color/light_bg"
+                android:layout_marginTop="@dimen/eight_dp"
+                android:layout_marginEnd="@dimen/eight_dp"
+                android:layout_alignParentEnd="true"
+                android:layout_marginBottom="@dimen/eight_dp"
+                android:layout_height="120dp">
+
+            </ImageView>
+
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:id="@+id/top_rela"
+                android:layout_marginEnd="@dimen/eight_dp"
+                android:layout_toStartOf="@+id/cover"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:layout_width="2dp"
+                    android:background="@color/colorPrimary"
+                    android:layout_alignTop="@+id/title"
+                    android:layout_alignBottom="@+id/title"
+                    android:layout_height="wrap_content">
+
+                </ImageView>
+
+                <TextView
+                    android:id="@+id/title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:maxLines="2"
+                    android:ellipsize="end"
+                    android:layout_marginTop="@dimen/eight_dp"
+                    android:layout_marginBottom="@dimen/eight_dp"
+                    android:layout_marginStart="@dimen/eight_dp"
+                    android:textColor="@color/black"
+                    android:textSize="16sp">
+
+                </TextView>
+
+            </RelativeLayout>
+
+
+            <TextView
+                android:layout_width="match_parent"
+                android:id="@+id/series"
+                android:layout_below="@+id/top_rela"
+                android:layout_marginEnd="@dimen/eight_dp"
+                android:maxLines="1"
+                android:layout_toStartOf="@+id/cover"
+                android:textSize="13sp"
+                android:layout_marginStart="@dimen/eight_dp"
+                android:ellipsize="end"
+                android:layout_height="wrap_content">
+
+
+            </TextView>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_alignStart="@+id/cover"
+                android:layout_alignEnd="@+id/cover"
+                android:textSize="12sp"
+                android:id="@+id/how_many_word"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:layout_alignBottom="@+id/cover"
+                android:layout_marginBottom="@dimen/four_dp"
+                android:layout_height="wrap_content">
+
+
+            </TextView>
+
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:layout_width="28dp"
+                android:id="@+id/user_head"
+                app:civ_border_color="@color/light_bg"
+                app:civ_border_width="1dp"
+                android:layout_marginStart="@dimen/eight_dp"
+                android:layout_alignBottom="@+id/cover"
+                android:layout_marginTop="@dimen/eight_dp"
+                android:layout_marginEnd="@dimen/four_dp"
+                android:layout_height="28dp" />
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:textSize="13sp"
+                android:shadowColor="#FF000000"
+                android:shadowDx="1.5"
+                android:shadowDy="1.5"
+                android:layout_toStartOf="@+id/like"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:layout_toEndOf="@+id/user_head"
+                android:layout_alignBottom="@+id/cover"
+                android:layout_marginBottom="5dp"
+                android:shadowRadius="1.5"
+                android:layout_marginTop="14dp"
+                android:text="作者名字"
+                android:layout_marginEnd="@dimen/eight_dp"
+                android:textColor="@android:color/white"
+                android:textStyle="bold"
+                android:id="@+id/author"
+                android:layout_height="wrap_content" />
+
+
+            <Button
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="wrap_content"
+                android:textColor="@color/colorPrimary"
+                android:layout_height="wrap_content"
+                android:id="@+id/like"
+                android:layout_marginEnd="@dimen/four_dp"
+                android:layout_alignBaseline="@+id/author"
+                android:layout_toStartOf="@+id/cover"
+                android:text="收藏">
+
+
+            </Button>
+
+
+        </RelativeLayout>
+
+
+    </androidx.cardview.widget.CardView>
+</layout>

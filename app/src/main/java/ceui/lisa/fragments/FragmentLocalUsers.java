@@ -18,8 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.LoginActivity;
-import ceui.lisa.activities.Shaft;
+import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
 import ceui.lisa.http.ErrorCtrl;
@@ -68,7 +67,8 @@ public class FragmentLocalUsers extends BaseFragment {
         loginOut.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(mContext, LoginActivity.class);
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "登录注册");
                 startActivity(intent);
             }
         });
@@ -77,7 +77,8 @@ public class FragmentLocalUsers extends BaseFragment {
         addUser.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(mContext, LoginActivity.class);
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "登录注册");
                 startActivity(intent);
             }
         });

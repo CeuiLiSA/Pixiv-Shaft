@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+    </data>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:background="@color/white"
+        android:layout_height="match_parent">
+
+        <ceui.lisa.view.ZoomNestedView
+            android:layout_width="match_parent"
+            android:id="@+id/scroll_view"
+            android:layout_height="match_parent">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:id="@+id/user_background"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/randomdata_background4"
+                        android:layout_height="240dp">
+
+                    </ImageView>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_alignBottom="@+id/user_background"
+                        android:layout_height="48dp"
+                        android:id="@+id/dark_blank"
+                        android:layout_gravity="bottom"
+                        android:background="@drawable/black_gradient" />
+
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:id="@+id/user_rela"
+                        android:layout_alignTop="@+id/dark_blank"
+                        android:layout_marginTop="@dimen/eight_dp"
+                        android:layout_height="80dp"
+                        android:orientation="horizontal">
+
+                        <de.hdodenhof.circleimageview.CircleImageView
+                            android:layout_width="80dp"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerCrop"
+                            android:id="@+id/user_head"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            app:civ_border_color="#12345678"
+                            app:civ_border_width="1dp">
+
+                        </de.hdodenhof.circleimageview.CircleImageView>
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_toStartOf="@+id/send"
+                            android:layout_toEndOf="@+id/user_head"
+                            android:layout_height="match_parent">
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:id="@+id/center"
+                                android:layout_centerVertical="true"
+                                android:layout_height="1dp">
+
+                            </View>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:id="@+id/user_name"
+                                android:textColor="@color/white"
+                                android:textSize="20sp"
+                                android:layout_marginStart="@dimen/twelve_dip"
+                                android:layout_above="@+id/center"
+                                android:layout_marginBottom="@dimen/six_dp"
+                                android:layout_height="wrap_content">
+
+                            </TextView>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:id="@+id/user_address"
+                                android:gravity="center_vertical"
+                                android:visibility="gone"
+                                android:textColor="@color/dark_text"
+                                android:drawableStart="@drawable/ic_location_on_black_24dp"
+                                android:layout_below="@+id/center"
+                                android:layout_marginTop="@dimen/eight_dp"
+                                android:textSize="14sp"
+                                android:layout_marginStart="@dimen/eight_dp"
+                                android:layout_marginBottom="@dimen/four_dp"
+                                android:layout_height="wrap_content">
+
+                            </TextView>
+
+                        </RelativeLayout>
+
+                        <com.google.android.material.floatingactionbutton.FloatingActionButton
+                            android:layout_width="wrap_content"
+                            android:id="@+id/send"
+                            app:backgroundTint="@color/qmui_config_color_gray_8"
+                            android:layout_centerVertical="true"
+                            android:layout_alignParentEnd="true"
+                            android:layout_marginEnd="@dimen/sixteen_dp"
+                            android:layout_height="wrap_content">
+
+                        </com.google.android.material.floatingactionbutton.FloatingActionButton>
+
+                    </RelativeLayout>
+
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_below="@+id/user_rela"
+                        android:orientation="vertical"
+                        android:layout_height="match_parent">
+
+                        <com.zhy.view.flowlayout.TagFlowLayout
+                            android:id="@+id/tag_type"
+                            android:layout_width="fill_parent"
+                            android:layout_margin="@dimen/sixteen_dp"
+                            android:layout_height="wrap_content">
+                        </com.zhy.view.flowlayout.TagFlowLayout>
+
+                        <FrameLayout
+                            android:layout_width="match_parent"
+                            android:id="@+id/illust_collection"
+                            android:layout_height="wrap_content">
+
+
+                        </FrameLayout>
+
+                        <FrameLayout
+                            android:layout_width="match_parent"
+                            android:id="@+id/illust_works"
+                            android:layout_height="wrap_content">
+
+
+                        </FrameLayout>
+
+                        <FrameLayout
+                            android:layout_width="match_parent"
+                            android:id="@+id/manga_works"
+                            android:layout_height="wrap_content">
+
+
+                        </FrameLayout>
+
+                        <FrameLayout
+                            android:layout_width="match_parent"
+                            android:id="@+id/novel_works"
+                            android:layout_height="wrap_content">
+
+
+                        </FrameLayout>
+
+                        <FrameLayout
+                            android:layout_width="match_parent"
+                            android:id="@+id/like_novel"
+                            android:layout_height="wrap_content">
+
+
+                        </FrameLayout>
+                    </LinearLayout>
+                </RelativeLayout>
+        </ceui.lisa.view.ZoomNestedView>
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fitsSystemWindows="true"
+            android:background="@android:color/transparent"
+            app:titleTextColor="@color/white"
+            app:title=" "
+            app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
+            app:popupTheme="@style/AppTheme.PopupOverlay" />
+    </RelativeLayout>
+</layout>

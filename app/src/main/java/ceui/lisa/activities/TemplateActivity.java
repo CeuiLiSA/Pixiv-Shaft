@@ -1,0 +1,211 @@
+package ceui.lisa.activities;
+
+import android.content.Intent;
+import android.view.KeyEvent;
+
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+
+import com.blankj.utilcode.util.BarUtils;
+
+import ceui.lisa.R;
+import ceui.lisa.databinding.ActivityFragmentBinding;
+import ceui.lisa.fragments.FragmentAbout;
+import ceui.lisa.fragments.FragmentAboutUser;
+import ceui.lisa.fragments.FragmentBlank;
+import ceui.lisa.fragments.FragmentBookTag;
+import ceui.lisa.fragments.FragmentC;
+import ceui.lisa.fragments.FragmentCollection;
+import ceui.lisa.fragments.FragmentD;
+import ceui.lisa.fragments.FragmentFollowUser;
+import ceui.lisa.fragments.FragmentH;
+import ceui.lisa.fragments.FragmentImageDetail;
+import ceui.lisa.fragments.FragmentL;
+import ceui.lisa.fragments.FragmentLicense;
+import ceui.lisa.fragments.FragmentLikeIllust;
+import ceui.lisa.fragments.FragmentLikeNovel;
+import ceui.lisa.fragments.FragmentLocalUsers;
+import ceui.lisa.fragments.FragmentMultiDownload;
+import ceui.lisa.fragments.FragmentNew;
+import ceui.lisa.fragments.FragmentNiceFriend;
+import ceui.lisa.fragments.FragmentNovelHolder;
+import ceui.lisa.fragments.FragmentPivision;
+import ceui.lisa.fragments.FragmentPv;
+import ceui.lisa.fragments.FragmentRecmdManga;
+import ceui.lisa.fragments.FragmentRecmdNovel;
+import ceui.lisa.fragments.FragmentRecmdUser;
+import ceui.lisa.fragments.FragmentRelatedIllust;
+import ceui.lisa.fragments.FragmentSearch;
+import ceui.lisa.fragments.FragmentSearchResult;
+import ceui.lisa.fragments.FragmentSearchUser;
+import ceui.lisa.fragments.FragmentSelectBookTag;
+import ceui.lisa.fragments.FragmentSettings;
+import ceui.lisa.fragments.FragmentUserIllust;
+import ceui.lisa.fragments.FragmentUserManga;
+import ceui.lisa.fragments.FragmentUserNovel;
+import ceui.lisa.fragments.FragmentViewHistory;
+import ceui.lisa.fragments.FragmentWalkThrough;
+import ceui.lisa.fragments.FragmentWebView;
+import ceui.lisa.fragments.FragmentWhoFollowThisUser;
+import ceui.lisa.utils.Params;
+import ceui.lisa.utils.ReverseResult;
+
+public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
+
+    public static final String EXTRA_FRAGMENT = "dataType";
+    public static final String EXTRA_OBJECT = "object";
+    public static final String EXTRA_KEYWORD = "keyword";
+    public static final String EXTRA_ILLUST_TITLE = "illust title";
+    protected Fragment childFragment;
+
+    protected Fragment createNewFragment() {
+        Intent intent = getIntent();
+        String dataType = intent.getStringExtra(EXTRA_FRAGMENT);
+
+        if (dataType != null) {
+            switch (dataType) {
+                case "登录注册":
+                    BarUtils.setNavBarColor(mActivity, getResources().getColor(R.color.colorPrimary));
+                    return new FragmentL();
+                case "搜索结果": {
+                    String keyword = intent.getStringExtra(EXTRA_KEYWORD);
+                    return FragmentSearchResult.newInstance(keyword);
+                }
+                case "相关作品": {
+                    int id = intent.getIntExtra(Params.ILLUST_ID, 0);
+                    String title = intent.getStringExtra(EXTRA_ILLUST_TITLE);
+                    return FragmentRelatedIllust.newInstance(id, title);
+                }
+                case "浏览记录":
+                    return new FragmentViewHistory();
+                case "网页链接": {
+                    String url = intent.getStringExtra("url");
+                    String title = intent.getStringExtra("title");
+                    return FragmentWebView.newInstance(title, url);
+                }
+                case "设置":
+                    return new FragmentSettings();
+                case "推荐用户":
+                    return new FragmentRecmdUser();
+                case "特辑":
+                    return new FragmentPv();
+                case "搜索用户": {
+                    String keyword = intent.getStringExtra(EXTRA_KEYWORD);
+                    return FragmentSearchUser.newInstance(keyword);
+                }
+                case "以图搜图":
+                    ReverseResult result = intent.getParcelableExtra("result");
+                    return FragmentWebView.newInstance(result.getTitle(), result.getUrl(), result.getResponseBody(), result.getMime(), result.getEncoding(), result.getHistory_url());
+                case "相关评论": {
+                    int id = intent.getIntExtra(Params.ILLUST_ID, 0);
+                    String title = intent.getStringExtra(Params.ILLUST_TITLE);
+                    return FragmentC.newInstance(id, title);
+                }
+                case "账号管理":
+                    return new FragmentLocalUsers();
+                case "按标签筛选": {
+                    String keyword = intent.getStringExtra(EXTRA_KEYWORD);
+                    return FragmentBookTag.newInstance(keyword);
+                }
+                case "按标签收藏": {
+                    int id = intent.getIntExtra(Params.ILLUST_ID, 0);
+                    return FragmentSelectBookTag.newInstance(id);
+                }
+                case "关于软件":
+                    return new FragmentAbout();
+                case "批量下载":
+                    return new FragmentMultiDownload();
+                case "画廊":
+                    return new FragmentWalkThrough();
+                case "License":
+                    return new FragmentLicense();
+                case "正在关注":
+                    return FragmentFollowUser.newInstance(
+                            getIntent().getIntExtra(Params.USER_ID, 0),
+                            FragmentLikeIllust.TYPE_PUBLUC, true);
+                case "好P友":
+                    return new FragmentNiceFriend();
+                case "搜索":
+                    return new FragmentSearch();
+                case "详细信息":
+                    return new FragmentAboutUser();
+                case "一言":
+                    return new FragmentH();
+                case "最新作品":
+                    return new FragmentNew();
+                case "粉丝":
+                    return FragmentWhoFollowThisUser.newInstance(intent.getIntExtra(Params.USER_ID, 0));
+                case "插画作品":
+                    return FragmentUserIllust.newInstance(intent.getIntExtra(Params.USER_ID, 0),
+                            true);
+                case "漫画作品":
+                    return FragmentUserManga.newInstance(intent.getIntExtra(Params.USER_ID, 0),
+                            true);
+                case "插画/漫画收藏":
+                    return FragmentLikeIllust.newInstance(intent.getIntExtra(Params.USER_ID, 0),
+                            FragmentLikeIllust.TYPE_PUBLUC, true);
+                case "下载管理":
+                    return new FragmentD();
+                case "收藏夹":
+                    return new FragmentCollection();
+                case "推荐漫画":
+                    return FragmentRecmdManga.newInstance("漫画");
+                case "推荐小说":
+                    return new FragmentRecmdNovel();
+                case "小说收藏":
+                    return FragmentLikeNovel.newInstance(intent.getIntExtra(Params.USER_ID, 0),
+                            FragmentLikeIllust.TYPE_PUBLUC, true);
+                case "小说作品":
+                    return FragmentUserNovel.newInstance(intent.getIntExtra(Params.USER_ID, 0),
+                            true);
+                case "小说详情":
+                    return FragmentNovelHolder.newInstance(intent.getIntExtra(Params.INDEX, 0));
+                case "图片详情":
+                    return FragmentImageDetail.newInstance(intent.getStringExtra(Params.URL));
+                default:
+                    return new FragmentBlank();
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (childFragment instanceof FragmentWebView) {
+            return ((FragmentWebView) childFragment).getAgentWeb().handleKeyEvent(keyCode, event) ||
+                    super.onKeyDown(keyCode, event);
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    protected int initLayout() {
+        return R.layout.activity_fragment;
+    }
+
+    @Override
+    protected void initView() {
+
+    }
+
+    @Override
+    protected void initData() {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        Fragment fragment = fragmentManager.findFragmentById(R.id.fragment_container);
+
+        if (fragment == null) {
+            fragment = createNewFragment();
+            if (fragment != null) {
+                fragmentManager.beginTransaction()
+                        .add(R.id.fragment_container, fragment)
+                        .commit();
+                childFragment = fragment;
+            }
+        }
+    }
+
+    @Override
+    public boolean hideStatusBar() {
+        return getIntent().getBooleanExtra("hideStatusBar", true);
+    }
+}

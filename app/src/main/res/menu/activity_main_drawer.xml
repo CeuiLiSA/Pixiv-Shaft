@@ -5,28 +5,26 @@
 
     <group android:checkableBehavior="single">
 
-
-
         <item
             android:id="@+id/main_page"
             android:icon="@drawable/ic_home_black_24dp"
-            android:title="个人主页" />
+            android:title="@string/user_main_page" />
         <item
             android:id="@+id/nav_camera"
             android:icon="@drawable/ic_collection"
-            android:title="收藏夹" />
+            android:title="@string/user_collections" />
         <item
             android:id="@+id/nav_gallery"
             android:icon="@drawable/ic_file_download_black_24dp"
-            android:title="下载管理" />
+            android:title="@string/download_manager" />
         <item
             android:id="@+id/nav_slideshow"
             android:icon="@drawable/ic_history_black_24dp"
-            android:title="浏览历史" />
+            android:title="@string/view_history" />
         <item
             android:id="@+id/nav_manage"
             android:icon="@drawable/ic_menu_manage"
-            android:title="设置" />
+            android:title="@string/app_settings" />
     </group>
 
     <item android:title="@string/the_others">
@@ -43,6 +41,11 @@
                 android:id="@+id/nav_send"
                 android:icon="@drawable/ic_toys_black_24dp"
                 android:title="@string/walkthrough" />
+
+            <item
+                android:id="@+id/nav_new_work"
+                android:icon="@drawable/ic_fiber_new_black_24dp"
+                android:title="@string/latest_work" />
 
             <item
                 android:id="@+id/web_test"

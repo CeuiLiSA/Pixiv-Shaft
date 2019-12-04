@@ -25,20 +25,19 @@ public class ImageDetailActivity extends BaseActivity {
     private IllustsBean mIllustsBean;
     private List<String> localIllust = new ArrayList<>();
     private TextView currentPage, downloadSingle, currentSize;
-    private String dataType = "";
 
     @Override
-    protected void initLayout() {
+    protected int initLayout() {
         BarUtils.setStatusBarColor(this, ColorUtils.getColor(R.color.qmui_config_color_transparent));
         if (BarUtils.isSupportNavBar()) {
             BarUtils.setNavBarVisibility(this, false);
         }
-        mLayoutID = R.layout.activity_image_detail;
+        return R.layout.activity_image_detail;
     }
 
     @Override
     protected void initView() {
-        dataType = getIntent().getStringExtra("dataType");
+        String dataType = getIntent().getStringExtra("dataType");
         ViewPager viewPager = findViewById(R.id.view_pager);
         viewPager.setPageTransformer(true, new CubeOutTransformer());
         if (dataType.equals("二级详情")) {
