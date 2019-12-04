@@ -7,22 +7,25 @@ import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewAnimationUtils;
 
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.blankj.utilcode.util.BarUtils;
 import com.bumptech.glide.Glide;
 
+import java.util.Arrays;
+import java.util.Collections;
+
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.UActivity;
+import ceui.lisa.adapters.VAdapter;
 import ceui.lisa.databinding.FragmentNovelHolderBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.NovelBean;
 import ceui.lisa.model.NovelDetail;
 import ceui.lisa.utils.DataChannel;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
@@ -105,6 +108,8 @@ public class FragmentNovelHolder extends BaseBindFragment<FragmentNovelHolderBin
         baseBind.userHead.setOnClickListener(seeUser);
         baseBind.userName.setOnClickListener(seeUser);
         baseBind.userName.setText(mNovelBean.getUser().getName());
+        baseBind.viewPager.setLayoutManager(new LinearLayoutManager(mContext));
+        baseBind.viewPager.setHasFixedSize(false);
         baseBind.novelTitle.setText("标题：" + mNovelBean.getTitle());
         if (mNovelBean.getSeries() != null && !TextUtils.isEmpty(mNovelBean.getSeries().getTitle())) {
             baseBind.novelSeries.setText("系列：" + mNovelBean.getSeries().getTitle());
@@ -114,11 +119,9 @@ public class FragmentNovelHolder extends BaseBindFragment<FragmentNovelHolderBin
 
     @Override
     void initData() {
-//        if(novelID >= 1000) {
-//
-//        } else {
-//            novelID = 10900170;
-//        }
+        if (Dev.isDev) {
+            mNovelBean.setId(10900170);
+        }
         Retro.getAppApi().getNovelDetail(Shaft.sUserModel.getResponse().getAccess_token(), mNovelBean.getId())
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -127,31 +130,11 @@ public class FragmentNovelHolder extends BaseBindFragment<FragmentNovelHolderBin
                     public void success(NovelDetail novelDetail) {
                         if (novelDetail.getNovel_text().contains("[newpage]")) {
                             String[] partList = novelDetail.getNovel_text().split("\\[newpage]");
-                            baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
-                                @NonNull
-                                @Override
-                                public Fragment getItem(int position) {
-                                    return FragmentSingleNovel.newInstance(partList[position]);
-                                }
-
-                                @Override
-                                public int getCount() {
-                                    return partList.length;
-                                }
-                            });
+                            baseBind.viewPager.setAdapter(new VAdapter(
+                                    Arrays.asList(partList), mContext));
                         } else {
-                            baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
-                                @NonNull
-                                @Override
-                                public Fragment getItem(int position) {
-                                    return FragmentSingleNovel.newInstance(novelDetail.getNovel_text());
-                                }
-
-                                @Override
-                                public int getCount() {
-                                    return 1;
-                                }
-                            });
+                            baseBind.viewPager.setAdapter(new VAdapter(
+                                    Collections.singletonList(novelDetail.getNovel_text()), mContext));
                         }
                     }
 

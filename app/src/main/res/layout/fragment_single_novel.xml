@@ -6,24 +6,17 @@
 
     </data>
 
-    <androidx.core.widget.NestedScrollView
-        android:orientation="vertical"
+    <TextView
         android:layout_width="match_parent"
+        android:id="@+id/novel_detail"
+        android:textSize="17sp"
+        android:layout_margin="@dimen/sixteen_dp"
         android:background="#000339"
-        android:layout_height="match_parent">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:id="@+id/novel_detail"
-            android:textSize="17sp"
-            android:layout_margin="@dimen/sixteen_dp"
-            android:textColor="@color/white"
-            android:lineSpacingExtra="@dimen/six_dp"
-            android:layout_height="wrap_content">
+        android:textColor="@color/white"
+        android:lineSpacingExtra="@dimen/six_dp"
+        android:layout_height="wrap_content">
 
 
-        </TextView>
-
-    </androidx.core.widget.NestedScrollView>
+    </TextView>
 
 </layout>
