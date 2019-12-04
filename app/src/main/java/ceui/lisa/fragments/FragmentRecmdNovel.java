@@ -21,7 +21,7 @@ import ceui.lisa.adapters.NHAdapter;
 import ceui.lisa.databinding.FragmentRecmdBinding;
 import ceui.lisa.databinding.RecyNovelBinding;
 import ceui.lisa.http.Retro;
-import ceui.lisa.interfaces.NetControl;
+import ceui.lisa.core.NetControl;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListNovelResponse;
 import ceui.lisa.model.NovelBean;

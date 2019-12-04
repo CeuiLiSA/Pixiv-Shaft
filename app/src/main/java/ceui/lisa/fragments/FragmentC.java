@@ -14,7 +14,7 @@ import ceui.lisa.databinding.FragmentCommentBinding;
 import ceui.lisa.databinding.RecyCommentListBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
-import ceui.lisa.interfaces.NetControl;
+import ceui.lisa.core.NetControl;
 import ceui.lisa.model.CommentHolder;
 import ceui.lisa.model.CommentsBean;
 import ceui.lisa.model.IllustCommentsResponse;

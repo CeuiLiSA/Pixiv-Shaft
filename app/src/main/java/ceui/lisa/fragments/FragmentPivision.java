@@ -13,7 +13,7 @@ import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyArticalBinding;
 import ceui.lisa.http.Retro;
-import ceui.lisa.interfaces.NetControl;
+import ceui.lisa.core.NetControl;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ArticleResponse;
 import ceui.lisa.model.SpotlightArticlesBean;
