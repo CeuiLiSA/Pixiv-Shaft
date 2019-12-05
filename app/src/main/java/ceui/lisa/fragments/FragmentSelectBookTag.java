@@ -90,15 +90,13 @@ public class FragmentSelectBookTag extends BaseListFragment<IllustBookmarkTags, 
                         @Override
                         public void onNext(NullResponse nullResponse) {
                             Common.showToast("收藏成功");
+                            setFollowed();
                         }
                     });
         } else {
 
-
             String[] strings = new String[tempList.size()];
-
             tempList.toArray(strings);
-
 
             Retro.getAppApi().postLike(Shaft.sUserModel.getResponse().getAccess_token(), illustID,
                     mSwitch.isChecked() ? FragmentLikeIllust.TYPE_PRIVATE : FragmentLikeIllust.TYPE_PUBLUC, strings)
@@ -108,15 +106,19 @@ public class FragmentSelectBookTag extends BaseListFragment<IllustBookmarkTags, 
                         @Override
                         public void onNext(NullResponse nullResponse) {
                             Common.showToast("收藏成功");
-                            Channel channel = new Channel();
-                            channel.setReceiver("FragmentSingleIllust starIllust");
-                            channel.setObject(illustID);
-                            EventBus.getDefault().post(channel);
-                            getActivity().finish();
+                            setFollowed();
                         }
                     });
         }
 
+    }
+
+    private void setFollowed(){
+        Channel channel = new Channel();
+        channel.setReceiver("FragmentSingleIllust starIllust");
+        channel.setObject(illustID);
+        EventBus.getDefault().post(channel);
+        getActivity().finish();
     }
 
     @Override

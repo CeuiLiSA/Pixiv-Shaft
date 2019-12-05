@@ -25,7 +25,6 @@ import ceui.lisa.utils.GlideUtil;
 public class MultiDownloadAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements MultiDownload {
 
     private Context mContext;
-    private LayoutInflater mLayoutInflater;
     private OnItemClickListener mOnItemClickListener;
     private List<IllustsBean> allIllust;
     private Callback mCallback;
@@ -33,7 +32,6 @@ public class MultiDownloadAdapter extends RecyclerView.Adapter<RecyclerView.View
 
     public MultiDownloadAdapter(List<IllustsBean> list, Context context) {
         mContext = context;
-        mLayoutInflater = LayoutInflater.from(mContext);
         allIllust = list;
         imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
                 mContext.getResources().getDimensionPixelSize(R.dimen.two_dp)) / 3;
@@ -42,8 +40,10 @@ public class MultiDownloadAdapter extends RecyclerView.Adapter<RecyclerView.View
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = mLayoutInflater.inflate(R.layout.recy_multi_download, parent, false);
-        return new TagHolder(view);
+        return new TagHolder(
+                LayoutInflater.from(mContext).inflate(
+                        R.layout.recy_multi_download, parent, false)
+        );
     }
 
     @Override

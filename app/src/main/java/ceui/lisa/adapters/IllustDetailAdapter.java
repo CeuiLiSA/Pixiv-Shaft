@@ -43,7 +43,6 @@ import io.reactivex.schedulers.Schedulers;
 public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private Context mContext;
-    private LayoutInflater mLayoutInflater;
     private OnItemClickListener mOnItemClickListener;
     private IllustsBean allIllust;
     private int imageSize = 0;
@@ -52,7 +51,6 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     public IllustDetailAdapter(IllustsBean list, Context context) {
         mContext = context;
-        mLayoutInflater = LayoutInflater.from(mContext);
         allIllust = list;
         imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
                 2 * mContext.getResources().getDimensionPixelSize(R.dimen.twelve_dp));
@@ -61,8 +59,10 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = mLayoutInflater.inflate(R.layout.recy_illust_grid, parent, false);
-        return new TagHolder(view);
+        return new TagHolder(
+                LayoutInflater.from(mContext).inflate(
+                        R.layout.recy_illust_grid, parent, false)
+        );
     }
 
     @Override

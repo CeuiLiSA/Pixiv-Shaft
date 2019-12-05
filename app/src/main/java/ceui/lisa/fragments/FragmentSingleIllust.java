@@ -1,8 +1,6 @@
 package ceui.lisa.fragments;
 
-import android.content.ComponentName;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -13,11 +11,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.NotificationCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.blankj.utilcode.util.NotificationUtils;
-import com.blankj.utilcode.util.Utils;
 import com.bumptech.glide.Glide;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
@@ -37,7 +32,6 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UActivity;
 import ceui.lisa.adapters.IllustDetailAdapter;
-import ceui.lisa.core.TextWritter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.databinding.FragmentSingleIllustBinding;
@@ -47,22 +41,17 @@ import ceui.lisa.download.GifDownload;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
-import ceui.lisa.interfaces.Callback;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.GifResponse;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.ShareIllust;
 import ceui.lisa.view.LinearItemDecorationNoLRTB;
-import gdut.bsx.share2.FileUtil;
-import gdut.bsx.share2.Share2;
-import gdut.bsx.share2.ShareContentType;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 import jp.wasabeef.glide.transformations.BlurTransformation;
@@ -228,12 +217,6 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
         headParams.height = Shaft.statusHeight + Shaft.toolbarHeight;
         baseBind.head.setLayoutParams(headParams);
 
-
-        if (illust.getUser().isIs_followed()) {
-            baseBind.follow.setText("取消关注");
-        } else {
-            baseBind.follow.setText("+ 关注");
-        }
         Glide.with(mContext)
                 .load(GlideUtil.getMediumImg(illust.getUser().getProfile_image_urls().getMedium()))
                 .into(baseBind.userHead);
@@ -292,27 +275,37 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
         baseBind.recyclerView.addItemDecoration(new LinearItemDecorationNoLRTB(DensityUtil.dp2px(1.0f)));
 
         if (illust.getUser().isIs_followed()) {
-            baseBind.follow.setText("取消關注");
-            baseBind.follow.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    baseBind.follow.setText("+ 關注");
-                    PixivOperate.postUnFollowUser(illust.getUser().getId());
-                }
-            });
+            baseBind.follow.setText("取消关注");
         } else {
-            baseBind.follow.setText("+ 關注");
-            baseBind.follow.setOnClickListener(v1 -> {
-                baseBind.follow.setText("取消關注");
-                PixivOperate.postFollowUser(illust.getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC);
-            });
-            baseBind.follow.setOnLongClickListener(v1 -> {
-                baseBind.follow.setText("取消關注");
-                PixivOperate.postFollowUser(illust.getUser().getId(), FragmentLikeIllust.TYPE_PRIVATE);
-                return true;
-            });
+            baseBind.follow.setText("+ 关注");
         }
 
+
+        baseBind.follow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (illust.getUser().isIs_followed()) {
+                    baseBind.follow.setText("+ 关注");
+                    PixivOperate.postUnFollowUser(illust.getUser().getId());
+                    illust.getUser().setIs_followed(false);
+                } else {
+                    baseBind.follow.setText("取消关注");
+                    PixivOperate.postFollowUser(illust.getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC);
+                    illust.getUser().setIs_followed(true);
+                }
+            }
+        });
+
+        baseBind.follow.setOnLongClickListener(v1 -> {
+            if (illust.getUser().isIs_followed()) {
+
+            } else {
+                baseBind.follow.setText("取消关注");
+                illust.getUser().setIs_followed(true);
+                PixivOperate.postFollowUser(illust.getUser().getId(), FragmentLikeIllust.TYPE_PRIVATE);
+            }
+            return true;
+        });
         SpannableString userString = new SpannableString(String.format("用户ID：%s",
                 String.valueOf(illust.getUser().getId())));
         userString.setSpan(new ForegroundColorSpan(mContext.getResources().getColor(R.color.colorPrimary)),

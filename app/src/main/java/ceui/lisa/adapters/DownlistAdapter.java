@@ -32,7 +32,6 @@ import ceui.lisa.model.IllustsBean;
 public class DownlistAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private Context mContext;
-    private LayoutInflater mLayoutInflater;
     private OnItemClickListener mOnItemClickListener;
     private List<DownloadEntity> allIllust;
     private Gson mGson = new Gson();
@@ -42,7 +41,6 @@ public class DownlistAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     public DownlistAdapter(List<DownloadEntity> list, Context context) {
         mContext = context;
-        mLayoutInflater = LayoutInflater.from(mContext);
         allIllust = list;
         imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
                 mContext.getResources().getDimensionPixelSize(R.dimen.four_dp)) / 2;
@@ -51,8 +49,10 @@ public class DownlistAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = mLayoutInflater.inflate(R.layout.recy_view_history, parent, false);
-        return new TagHolder(view);
+        return new TagHolder(
+                LayoutInflater.from(mContext).inflate(
+                        R.layout.recy_view_history, parent, false)
+        );
     }
 
     @Override
