@@ -25,7 +25,7 @@
             android:layout_marginEnd="@dimen/sixteen_dp"
             android:textColor="@color/dark_text"
             android:textSize="15sp"
-            android:text="本应用为日本插画交流网站Pixiv的安卓客户端第三方重制版，项目已开源且仅做交流和学习使用，不得用于任何商业用途。推荐使用原版Pixiv。"
+            android:text="@string/dont_catch_me"
             android:layout_height="wrap_content">
 
         </TextView>
