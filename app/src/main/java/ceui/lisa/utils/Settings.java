@@ -49,6 +49,9 @@ public class Settings {
     //二级详情FragmentImageDetail 图片显示原图
     private boolean secondImageSize = true;
 
+    //是否显示开屏 dialog
+    private boolean showPixivDialog = true;
+
     //直接下载单个作品所有P
     private boolean directDownloadAllImage = true;
 
@@ -234,5 +237,13 @@ public class Settings {
 
     public static String getLogPath(){
         return FILE_LOG_PATH;
+    }
+
+    public boolean isShowPixivDialog() {
+        return showPixivDialog;
+    }
+
+    public void setShowPixivDialog(boolean showPixivDialog) {
+        this.showPixivDialog = showPixivDialog;
     }
 }

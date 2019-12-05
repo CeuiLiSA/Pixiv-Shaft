@@ -38,7 +38,6 @@
                 app:elevation="@dimen/four_dp"
                 app:menu="@menu/main_activity">
 
-
             </com.google.android.material.bottomnavigation.BottomNavigationView>
 
         </RelativeLayout>

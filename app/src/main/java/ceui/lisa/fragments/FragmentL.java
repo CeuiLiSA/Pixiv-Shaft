@@ -22,6 +22,7 @@ import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
 import ceui.lisa.databinding.ActivityLoginBinding;
+import ceui.lisa.dialogs.Avoid251Dialog;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
@@ -30,6 +31,7 @@ import ceui.lisa.model.SignResponse;
 import ceui.lisa.model.UserModel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
+import ceui.lisa.utils.Params;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 import retrofit2.HttpException;
@@ -110,6 +112,10 @@ public class FragmentL extends BaseBindFragment<ActivityLoginBinding> {
 
     @Override
     void initData() {
+        if(Local.getBoolean(Params.SHOW_DIALOG, true)){
+            Avoid251Dialog avoid251Dialog = new Avoid251Dialog();
+            avoid251Dialog.show(getChildFragmentManager(), "Avoid251Dialog");
+        }
         rotate = springSystem.createSpring();
         rotate.setSpringConfig(SpringConfig.fromOrigamiTensionAndFriction(15, 8));
     }

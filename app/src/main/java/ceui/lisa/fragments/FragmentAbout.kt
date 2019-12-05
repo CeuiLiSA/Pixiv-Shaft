@@ -4,6 +4,7 @@ import android.content.Intent
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.FragmentAboutBinding
+import ceui.lisa.dialogs.Avoid251Dialog
 
 class FragmentAbout : BaseBindFragment<FragmentAboutBinding>() {
 
@@ -45,6 +46,10 @@ class FragmentAbout : BaseBindFragment<FragmentAboutBinding>() {
             val intent = Intent(mContext, TemplateActivity::class.java)
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "License")
             startActivity(intent)
+        }
+        baseBind.dontCatchMe.setOnClickListener{
+            val avoid251Dialog = Avoid251Dialog()
+            avoid251Dialog.show(childFragmentManager, "Avoid251Dialog")
         }
     }
 }

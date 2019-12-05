@@ -35,6 +35,7 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.ActivityCoverBinding;
+import ceui.lisa.dialogs.Avoid251Dialog;
 import ceui.lisa.download.TaskQueue;
 import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentCenter;
@@ -159,6 +160,10 @@ public class CoverActivity extends BaseActivity<ActivityCoverBinding>
     protected void initData() {
         UserModel userModel = Local.getUser();
         if (userModel != null && userModel.getResponse().getUser().isIs_login()) {
+            if(Local.getBoolean(Params.SHOW_DIALOG, true)){
+                Avoid251Dialog avoid251Dialog = new Avoid251Dialog();
+                avoid251Dialog.show(getSupportFragmentManager(), "Avoid251Dialog");
+            }
             checkPermission(t -> initFragment());
         } else {
             Intent intent = new Intent(mContext, TemplateActivity.class);

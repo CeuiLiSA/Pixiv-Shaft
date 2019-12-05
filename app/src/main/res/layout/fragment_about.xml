@@ -221,6 +221,35 @@
                             android:layout_height="wrap_content" />
                     </RelativeLayout>
 
+
+                    <RelativeLayout
+                        android:id="@+id/dont_catch_me"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+
+
+                        <TextView
+                            android:layout_margin="@dimen/sixteen_dp"
+                            android:text="申明"
+                            android:textSize="15sp"
+                            android:textColor="@color/dark_text"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content">
+
+
+                        </TextView>
+
+
+                    </RelativeLayout>
+
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:background="#e6e6e6"
+                        android:layout_marginStart="@dimen/sixteen_dp"
+                        android:layout_height="1dp" />
+
+
                     <RelativeLayout
                         android:id="@+id/project_website"
                         android:layout_width="match_parent"

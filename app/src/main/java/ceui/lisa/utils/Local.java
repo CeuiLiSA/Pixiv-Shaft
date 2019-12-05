@@ -68,4 +68,17 @@ public class Local {
         editor.apply();
         Shaft.sSettings = settings;
     }
+
+    public static boolean getBoolean(String key, boolean defValue){
+        SharedPreferences localData = Shaft.getContext().getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
+        Common.showLog("getBoolean " + key + " " + localData.getBoolean(key, defValue));
+        return localData.getBoolean(key, defValue);
+    }
+
+    public static void setBoolean(String key, boolean value){
+        SharedPreferences localData = Shaft.getContext().getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = localData.edit();
+        editor.putBoolean(key, value);
+        editor.apply();
+    }
 }
