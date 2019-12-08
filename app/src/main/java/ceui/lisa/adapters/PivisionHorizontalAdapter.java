@@ -26,21 +26,21 @@ import ceui.lisa.utils.GlideUtil;
 public class PivisionHorizontalAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private Context mContext;
-    private LayoutInflater mLayoutInflater;
     private OnItemClickListener mOnItemClickListener;
     private List<SpotlightArticlesBean> allIllust;
 
     public PivisionHorizontalAdapter(List<SpotlightArticlesBean> list, Context context) {
         mContext = context;
-        mLayoutInflater = LayoutInflater.from(mContext);
         allIllust = list;
     }
 
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = mLayoutInflater.inflate(R.layout.recy_artical_horizon, parent, false);
-        return new TagHolder(view);
+        return new TagHolder(
+                LayoutInflater.from(mContext).inflate(
+                        R.layout.recy_artical_horizon, parent, false)
+        );
     }
 
     @Override

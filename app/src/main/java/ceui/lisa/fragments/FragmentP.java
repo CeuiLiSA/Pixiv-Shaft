@@ -16,7 +16,7 @@ import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyUserEventBinding;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.http.Retro;
-import ceui.lisa.interfaces.NetControl;
+import ceui.lisa.core.NetControl;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;

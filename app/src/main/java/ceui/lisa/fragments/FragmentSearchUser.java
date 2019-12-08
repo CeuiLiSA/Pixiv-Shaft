@@ -5,7 +5,7 @@ import ceui.lisa.adapters.UAdapter;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyUserPreviewBinding;
 import ceui.lisa.http.Retro;
-import ceui.lisa.interfaces.NetControl;
+import ceui.lisa.core.NetControl;
 import ceui.lisa.model.ListUserResponse;
 import ceui.lisa.model.UserPreviewsBean;
 import io.reactivex.Observable;

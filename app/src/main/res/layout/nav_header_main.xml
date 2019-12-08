@@ -26,10 +26,11 @@
 
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/user_head"
-            app:civ_border_width="2dp"
+            app:civ_border_width="1dp"
             app:civ_border_color="@color/white"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
+            android:src="@mipmap/avatar"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
             android:contentDescription="@string/nav_header_desc" />
 
         <TextView

@@ -2,7 +2,6 @@ package ceui.lisa.fragments;
 
 import android.text.TextUtils;
 import android.view.View;
-import android.view.animation.AnticipateOvershootInterpolator;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
@@ -25,7 +24,7 @@ import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.interfaces.ListShow;
-import ceui.lisa.interfaces.NetControl;
+import ceui.lisa.core.NetControl;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;

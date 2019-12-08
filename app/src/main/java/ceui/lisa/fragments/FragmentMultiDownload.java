@@ -2,6 +2,7 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -134,29 +135,36 @@ public class FragmentMultiDownload extends BaseAsyncFragment<MultiDownloadAdapte
             mAdapter.notifyDataSetChanged();
         } else if (item.getItemId() == R.id.action_3) {
             StringBuilder content = new StringBuilder();
-            for (IllustsBean illustsBean : DataChannel.get().getDownloadList()) {
-                if(illustsBean.getPage_count() == 1) {
-                    content.append(illustsBean.getMeta_single_page().getOriginal_image_url());
-                    content.append("\n");
-                }else {
-                    for (int i = 0; i < illustsBean.getPage_count(); i++) {
-                        content.append(illustsBean.getMeta_pages().get(i).getImage_urls().getMaxImage());
+            for (IllustsBean illustsBean : allItems) {
+                if (illustsBean.isChecked()) {
+                    if (illustsBean.getPage_count() == 1) {
+                        content.append(illustsBean.getMeta_single_page().getOriginal_image_url());
                         content.append("\n");
+                    } else {
+                        for (int i = 0; i < illustsBean.getPage_count(); i++) {
+                            content.append(illustsBean.getMeta_pages().get(i).getImage_urls().getMaxImage());
+                            content.append("\n");
+                        }
                     }
                 }
             }
-            TextWritter.writeToTxt(System.currentTimeMillis() + "_log.txt",
-                    content.toString(), new Callback<File>() {
-                        @Override
-                        public void doSomething(File t) {
-                            new Share2.Builder(mActivity)
-                                    .setContentType(ShareContentType.FILE)
-                                    .setShareFileUri(FileUtil.getFileUri(mContext, ShareContentType.FILE, t))
-                                    .setTitle("Share File")
-                                    .build()
-                                    .shareBySystem();
-                        }
-                    });
+            String result = content.toString();
+            if (TextUtils.isEmpty(result)) {
+                Common.showToast("没有选择任何作品");
+            } else {
+                TextWritter.writeToTxt(System.currentTimeMillis() + "_log.txt",
+                        result, new Callback<File>() {
+                            @Override
+                            public void doSomething(File t) {
+                                new Share2.Builder(mActivity)
+                                        .setContentType(ShareContentType.FILE)
+                                        .setShareFileUri(FileUtil.getFileUri(mContext, ShareContentType.FILE, t))
+                                        .setTitle("Share File")
+                                        .build()
+                                        .shareBySystem();
+                            }
+                        });
+            }
         }
         return super.onOptionsItemSelected(item);
     }

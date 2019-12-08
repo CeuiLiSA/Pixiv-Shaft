@@ -43,5 +43,4 @@ public class TagItemDecoration extends RecyclerView.ItemDecoration {
             outRect.bottom = spacing;
         }
     }
-
 }

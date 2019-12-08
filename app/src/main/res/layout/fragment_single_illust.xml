@@ -126,16 +126,17 @@
                                     android:layout_centerVertical="true"
                                     android:layout_height="wrap_content" />
 
-                                <TextView
-                                    android:layout_width="wrap_content"
+                                <Button
                                     android:id="@+id/follow"
-                                    android:text="+ 关注"
+                                    style="@style/Widget.AppCompat.Button.Borderless"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
                                     android:layout_alignParentEnd="true"
-                                    android:layout_marginEnd="@dimen/sixteen_dp"
-                                    android:textStyle="bold"
-                                    android:textColor="@color/colorPrimary"
                                     android:layout_centerVertical="true"
-                                    android:layout_height="wrap_content" />
+                                    android:layout_marginEnd="@dimen/sixteen_dp"
+                                    android:text="+ 关注"
+                                    android:textColor="@color/colorPrimary"
+                                    android:textStyle="bold" />
 
 
                             </RelativeLayout>

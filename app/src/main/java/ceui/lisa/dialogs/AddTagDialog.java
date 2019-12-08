@@ -6,12 +6,11 @@ import android.view.View;
 import com.rengwuxian.materialedittext.MaterialEditText;
 
 import ceui.lisa.R;
+import ceui.lisa.databinding.DialogAddTagBinding;
 import ceui.lisa.fragments.FragmentSelectBookTag;
 import ceui.lisa.utils.Common;
 
-public class AddTagDialog extends BaseDialog {
-
-    private MaterialEditText tagName;
+public class AddTagDialog extends BaseDialog<DialogAddTagBinding> {
 
     @Override
     void initLayout() {
@@ -20,20 +19,19 @@ public class AddTagDialog extends BaseDialog {
 
     @Override
     View initView(View v) {
-        tagName = v.findViewById(R.id.tag_name);
         sure = v.findViewById(R.id.sure);
         sure.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                if (TextUtils.isEmpty(tagName.getText().toString())) {
+                if (TextUtils.isEmpty(baseBind.tagName.getText().toString())) {
                     Common.showToast("请输入标签名");
                     return;
                 }
 
 
                 if (getParentFragment() instanceof FragmentSelectBookTag) {
-                    ((FragmentSelectBookTag) getParentFragment()).addTag(tagName.getText().toString());
+                    ((FragmentSelectBookTag) getParentFragment()).addTag(baseBind.tagName.getText().toString());
                 }
 
                 dismiss();

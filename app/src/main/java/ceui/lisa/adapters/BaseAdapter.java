@@ -15,7 +15,7 @@ import ceui.lisa.interfaces.Binding;
 import ceui.lisa.interfaces.OnItemClickListener;
 
 public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extends
-        RecyclerView.Adapter<RecyclerView.ViewHolder> implements Binding<BindView> {
+        RecyclerView.Adapter<RecyclerView.ViewHolder>{
 
     protected List<Item> allIllust;
     protected Context mContext;
@@ -42,16 +42,11 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
 
     public abstract void bindData(Item target, ViewHolder<BindView> bindView, int position);
 
-    @Override
-    public BindView getBind(LayoutInflater inflater, ViewGroup container) {
-        return DataBindingUtil.inflate(inflater, mLayoutID,
-                container, false);
-    }
-
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new ViewHolder<>(getBind(LayoutInflater.from(mContext), parent).getRoot());
+        return new ViewHolder<>(DataBindingUtil.inflate(
+                LayoutInflater.from(mContext), mLayoutID, parent, false).getRoot());
     }
 
     public BaseAdapter<Item, BindView> setOnItemClickListener(OnItemClickListener onItemClickListener) {

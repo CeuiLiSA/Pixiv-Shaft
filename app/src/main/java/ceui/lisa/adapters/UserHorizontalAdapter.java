@@ -26,21 +26,21 @@ import de.hdodenhof.circleimageview.CircleImageView;
 public class UserHorizontalAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private Context mContext;
-    private LayoutInflater mLayoutInflater;
     private OnItemClickListener mOnItemClickListener;
     private List<UserPreviewsBean> allIllust;
 
     public UserHorizontalAdapter(List<UserPreviewsBean> list, Context context) {
         mContext = context;
-        mLayoutInflater = LayoutInflater.from(mContext);
         allIllust = list;
     }
 
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = mLayoutInflater.inflate(R.layout.recy_user_preview_horizontal, parent, false);
-        return new TagHolder(view);
+        return new TagHolder(
+                LayoutInflater.from(mContext).inflate(
+                        R.layout.recy_user_preview_horizontal, parent, false)
+        );
     }
 
     @Override

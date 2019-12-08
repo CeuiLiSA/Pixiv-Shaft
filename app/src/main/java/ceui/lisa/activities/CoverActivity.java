@@ -34,6 +34,8 @@ import java.io.File;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.databinding.ActivityCoverBinding;
+import ceui.lisa.dialogs.Avoid251Dialog;
 import ceui.lisa.download.TaskQueue;
 import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentCenter;
@@ -52,12 +54,10 @@ import io.reactivex.disposables.Disposable;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-public class CoverActivity extends BaseActivity
+public class CoverActivity extends BaseActivity<ActivityCoverBinding>
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private static final int REQUEST_CODE_CHOOSE = 10086;
-    private ViewPager mViewPager;
-    private DrawerLayout mDrawer;
     private ImageView userHead;
     private TextView username;
     private TextView user_email;
@@ -73,7 +73,7 @@ public class CoverActivity extends BaseActivity
         return true;
     }
 
-    public void checkPermission(Callback<Object> callback) {
+    public void checkPermission(Callback<Void> callback) {
         final RxPermissions rxPermissions = new RxPermissions((FragmentActivity) mActivity);
         Disposable disposable = rxPermissions
                 .requestEachCombined(Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -88,8 +88,7 @@ public class CoverActivity extends BaseActivity
 
     @Override
     protected void initView() {
-        mDrawer = findViewById(R.id.drawer_layout);
-        mDrawer.setScrimColor(Color.TRANSPARENT);
+        baseBind.drawerLayout.setScrimColor(Color.TRANSPARENT);
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         userHead = navigationView.getHeaderView(0).findViewById(R.id.user_head);
@@ -107,21 +106,20 @@ public class CoverActivity extends BaseActivity
         BottomNavigationView bottomNavigationView = findViewById(R.id.navigation_view);
         bottomNavigationView.setOnNavigationItemSelectedListener(menuItem -> {
             if (menuItem.getItemId() == R.id.action_1) {
-                mViewPager.setCurrentItem(0);
+                baseBind.viewPager.setCurrentItem(0);
                 return true;
             } else if (menuItem.getItemId() == R.id.action_2) {
-                mViewPager.setCurrentItem(1);
+                baseBind.viewPager.setCurrentItem(1);
                 return true;
             } else if (menuItem.getItemId() == R.id.action_3) {
-                mViewPager.setCurrentItem(2);
+                baseBind.viewPager.setCurrentItem(2);
                 return true;
             } else {
                 return false;
             }
         });
-        mViewPager = findViewById(R.id.view_pager);
-        mViewPager.setOffscreenPageLimit(3);
-        mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+        baseBind.viewPager.setOffscreenPageLimit(3);
+        baseBind.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int i, float v, int i1) {
 
@@ -145,7 +143,7 @@ public class CoverActivity extends BaseActivity
                 new FragmentCenter(),
                 new FragmentRight()
         };
-        mViewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
+        baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override
             public Fragment getItem(int i) {
                 return baseFragments[i];
@@ -162,6 +160,10 @@ public class CoverActivity extends BaseActivity
     protected void initData() {
         UserModel userModel = Local.getUser();
         if (userModel != null && userModel.getResponse().getUser().isIs_login()) {
+            if(Local.getBoolean(Params.SHOW_DIALOG, true)){
+                Avoid251Dialog avoid251Dialog = new Avoid251Dialog();
+                avoid251Dialog.show(getSupportFragmentManager(), "Avoid251Dialog");
+            }
             checkPermission(t -> initFragment());
         } else {
             Intent intent = new Intent(mContext, TemplateActivity.class);
@@ -172,7 +174,7 @@ public class CoverActivity extends BaseActivity
     }
 
     public DrawerLayout getDrawer() {
-        return mDrawer;
+        return baseBind.drawerLayout;
     }
 
     @Override
@@ -235,17 +237,19 @@ public class CoverActivity extends BaseActivity
             startActivity(intent);
         }
 
-        mDrawer.closeDrawer(GravityCompat.START);
+        baseBind.drawerLayout.closeDrawer(GravityCompat.START);
         return true;
     }
 
 
     private void initDrawerHeader() {
         if (sUserModel != null && sUserModel.getResponse() != null) {
-            Glide.with(mContext)
-                    .load(GlideUtil.getMediumImg(
-                            sUserModel.getResponse().getUser().getProfile_image_urls().getPx_170x170()))
-                    .into(userHead);
+            if (!Dev.isDev) {
+                Glide.with(mContext)
+                        .load(GlideUtil.getMediumImg(
+                                sUserModel.getResponse().getUser().getProfile_image_urls().getPx_170x170()))
+                        .into(userHead);
+            }
             username.setText(sUserModel.getResponse().getUser().getName());
             user_email.setText(TextUtils.isEmpty(sUserModel.getResponse().getUser().getMail_address()) ?
                     mContext.getString(R.string.no_mail_address) : sUserModel.getResponse().getUser().getMail_address());
@@ -266,8 +270,8 @@ public class CoverActivity extends BaseActivity
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (mDrawer.isDrawerOpen(GravityCompat.START)) {
-            mDrawer.closeDrawer(GravityCompat.START);
+        if (baseBind.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            baseBind.drawerLayout.closeDrawer(GravityCompat.START);
             return true;
         } else {
             if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {

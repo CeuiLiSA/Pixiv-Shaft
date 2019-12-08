@@ -5,7 +5,7 @@ import ceui.lisa.adapters.NAdapter;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyNovelBinding;
 import ceui.lisa.http.Retro;
-import ceui.lisa.interfaces.NetControl;
+import ceui.lisa.core.NetControl;
 import ceui.lisa.model.ListNovelResponse;
 import ceui.lisa.model.NovelBean;
 import io.reactivex.Observable;

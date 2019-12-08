@@ -13,50 +13,49 @@
 
         <TextView
             android:layout_width="wrap_content"
-            android:textSize="16sp"
+            android:textSize="17sp"
             android:layout_margin="@dimen/sixteen_dp"
             android:textColor="@color/dark_text"
-            android:text="添加标签"
+            android:text="欢迎使用！"
             android:layout_height="wrap_content" />
 
-
-        <com.rengwuxian.materialedittext.MaterialEditText
-            android:id="@+id/tag_name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+        <TextView
+            android:layout_width="wrap_content"
             android:layout_marginStart="@dimen/sixteen_dp"
             android:layout_marginEnd="@dimen/sixteen_dp"
-            android:gravity="bottom"
-            android:hint="请输入标签（可视为收藏夹）名"
-            app:met_floatingLabel="highlight"
-            app:met_primaryColor="@color/loginBackground"
-            app:met_singleLineEllipsis="true" />
+            android:textColor="@color/dark_text"
+            android:textSize="15sp"
+            android:text="@string/dont_catch_me"
+            android:layout_height="wrap_content">
+
+        </TextView>
 
 
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <Button
-                android:id="@+id/cancel"
-                style="@style/Widget.AppCompat.Button.Borderless"
+            <CheckBox
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/eight_dp"
-                android:layout_toStartOf="@+id/sure"
-                android:text="取消" />
+                android:text="不再提示"
+                android:id="@+id/checkbox"
+                android:checked="true"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="@dimen/eight_dp"
+                android:layout_height="wrap_content">
+
+            </CheckBox>
 
             <Button
                 android:id="@+id/sure"
+                android:layout_centerVertical="true"
                 style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
                 android:layout_marginEnd="@dimen/sixteen_dp"
                 android:layout_marginBottom="@dimen/eight_dp"
-                android:text="确认" />
-
+                android:text="我知道了" />
         </RelativeLayout>
-
     </LinearLayout>
 </layout>
