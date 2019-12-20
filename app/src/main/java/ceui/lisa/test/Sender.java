@@ -16,7 +16,7 @@ import okhttp3.RequestBody;
 public class Sender implements SendToRemote {
 
     @Override
-    public void send(File file, Callback<File> callback) {
+    public void send(File file) {
         Common.showLog(file.getName() + " 正在上传");
         RequestBody requestFile = RequestBody.create(MediaType.parse("image/jpeg"), file);
         MultipartBody.Part body = MultipartBody.Part.createFormData("image_data", file.getName(), requestFile);
@@ -26,7 +26,6 @@ public class Sender implements SendToRemote {
                 .subscribe(new ErrorCtrl<String>() {
                     @Override
                     public void onNext(String s) {
-                        callback.doSomething(file);
                     }
                 });
     }

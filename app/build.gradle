@@ -112,6 +112,9 @@ dependencies {
     implementation 'me.kaelaela:verticalviewpager:1.0.0@aar'
     implementation 'gdut.bsx:share2:0.9.3'
 
+
+    implementation 'com.aliyun.dpa:oss-android-sdk:2.9.1'
+
     
     annotationProcessor 'com.github.bumptech.glide:compiler:4.9.0'
     annotationProcessor 'androidx.room:room-compiler:2.1.0'

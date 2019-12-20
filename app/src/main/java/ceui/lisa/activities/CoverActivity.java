@@ -8,6 +8,7 @@ import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.net.Uri;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
@@ -22,6 +23,13 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
+import com.alibaba.sdk.android.oss.ClientException;
+import com.alibaba.sdk.android.oss.ServiceException;
+import com.alibaba.sdk.android.oss.callback.OSSCompletedCallback;
+import com.alibaba.sdk.android.oss.callback.OSSProgressCallback;
+import com.alibaba.sdk.android.oss.internal.OSSAsyncTask;
+import com.alibaba.sdk.android.oss.model.PutObjectRequest;
+import com.alibaba.sdk.android.oss.model.PutObjectResult;
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
@@ -44,6 +52,7 @@ import ceui.lisa.fragments.FragmentLeft;
 import ceui.lisa.fragments.FragmentRight;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.model.UserModel;
+import ceui.lisa.test.OssManager;
 import ceui.lisa.test.Upload;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
@@ -78,7 +87,7 @@ public class CoverActivity extends BaseActivity<ActivityCoverBinding>
     public void checkPermission(Callback<Void> callback) {
         final RxPermissions rxPermissions = new RxPermissions((FragmentActivity) mActivity);
         Disposable disposable = rxPermissions
-                .requestEachCombined(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                .requestEachCombined(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_PHONE_STATE)
                 .subscribe(permission -> {
                     if (permission.granted) {
                         callback.doSomething(null);
@@ -157,9 +166,18 @@ public class CoverActivity extends BaseActivity<ActivityCoverBinding>
             }
         });
         if(Dev.isDev) {
-            Upload upload = new Upload();
-            upload.execute();
+
+
+
+            // 构造上传请求。
+
+            // task.cancel(); // 可以取消任务。
+            // task.waitUntilFinished(); // 等待任务完成。
+
         }
+
+        Upload upload = new Upload();
+        upload.execute();
     }
 
     @Override

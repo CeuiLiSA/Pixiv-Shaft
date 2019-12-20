@@ -5,7 +5,7 @@ import androidx.room.PrimaryKey;
 
 
 @Entity(tableName = "upload_image_table")
-public class ImageEntity {
+public final class ImageEntity {
 
     @PrimaryKey()
     private int id;
@@ -44,5 +44,15 @@ public class ImageEntity {
 
     public void setFilePath(String filePath) {
         this.filePath = filePath;
+    }
+
+    @Override
+    public String toString() {
+        return "ImageEntity{" +
+                "id=" + id +
+                ", fileName='" + fileName + '\'' +
+                ", filePath='" + filePath + '\'' +
+                ", uploadTime=" + uploadTime +
+                '}';
     }
 }
