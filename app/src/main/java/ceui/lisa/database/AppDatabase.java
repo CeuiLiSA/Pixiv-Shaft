@@ -6,8 +6,14 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
-@Database(entities = {IllustHistoryEntity.class, IllustRecmdEntity.class,
-        DownloadEntity.class, UserEntity.class, SearchEntity.class}, version = 7, exportSchema = false)
+@Database(
+        entities = {
+                IllustHistoryEntity.class, IllustRecmdEntity.class, DownloadEntity.class,
+                UserEntity.class, SearchEntity.class, ImageEntity.class
+        },
+        version = 8,
+        exportSchema = false
+)
 public abstract class AppDatabase extends RoomDatabase {
 
     public static final String DATABASE_NAME = "roomDemo-database";

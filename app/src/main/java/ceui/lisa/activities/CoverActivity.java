@@ -34,6 +34,7 @@ import java.io.File;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.core.TextWritter;
 import ceui.lisa.databinding.ActivityCoverBinding;
 import ceui.lisa.dialogs.Avoid251Dialog;
 import ceui.lisa.download.TaskQueue;
@@ -43,6 +44,7 @@ import ceui.lisa.fragments.FragmentLeft;
 import ceui.lisa.fragments.FragmentRight;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.model.UserModel;
+import ceui.lisa.test.Upload;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
@@ -154,6 +156,10 @@ public class CoverActivity extends BaseActivity<ActivityCoverBinding>
                 return baseFragments.length;
             }
         });
+        if(Dev.isDev) {
+            Upload upload = new Upload();
+            upload.execute();
+        }
     }
 
     @Override

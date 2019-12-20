@@ -47,6 +47,7 @@ import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
@@ -328,6 +329,16 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
                 Common.copy(mContext, String.valueOf(illust.getId()));
             }
         });
+        if(illust.getPage_count() == 1 || !Dev.isDev){
+            baseBind.darkBlank.setVisibility(View.INVISIBLE);
+            baseBind.seeAll.setVisibility(View.INVISIBLE);
+            baseBind.illustList.setAutoHeight(true);
+        }else {
+            baseBind.darkBlank.setVisibility(View.VISIBLE);
+            baseBind.seeAll.setVisibility(View.VISIBLE);
+            baseBind.illustList.setAutoHeight(false);
+            baseBind.illustList.setExpand(false);
+        }
         loadImage();
     }
 

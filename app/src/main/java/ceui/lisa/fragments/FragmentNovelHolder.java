@@ -30,6 +30,7 @@ import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.view.AnimeListener;
+import ceui.lisa.view.ScrollChange;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
@@ -108,7 +109,7 @@ public class FragmentNovelHolder extends BaseBindFragment<FragmentNovelHolderBin
         baseBind.userHead.setOnClickListener(seeUser);
         baseBind.userName.setOnClickListener(seeUser);
         baseBind.userName.setText(mNovelBean.getUser().getName());
-        baseBind.viewPager.setLayoutManager(new LinearLayoutManager(mContext));
+        baseBind.viewPager.setLayoutManager(new ScrollChange(mContext));
         baseBind.viewPager.setHasFixedSize(false);
         baseBind.novelTitle.setText("标题：" + mNovelBean.getTitle());
         if (mNovelBean.getSeries() != null && !TextUtils.isEmpty(mNovelBean.getSeries().getTitle())) {
@@ -146,6 +147,7 @@ public class FragmentNovelHolder extends BaseBindFragment<FragmentNovelHolderBin
     }
 
     private void open() {
+        ((ScrollChange) baseBind.viewPager.getLayoutManager()).setScrollEnabled(false);
         int centerX = baseBind.awesomeCard.getRight();
         int centerY = baseBind.awesomeCard.getBottom();
         float finalRadius = (float) Math.hypot((double) centerX, (double) centerY);
@@ -163,6 +165,7 @@ public class FragmentNovelHolder extends BaseBindFragment<FragmentNovelHolderBin
     }
 
     private void close() {
+        ((ScrollChange) baseBind.viewPager.getLayoutManager()).setScrollEnabled(true);
         int centerX = baseBind.awesomeCard.getRight();
         int centerY = baseBind.awesomeCard.getBottom();
         float finalRadius = (float) Math.hypot((double) centerX, (double) centerY);

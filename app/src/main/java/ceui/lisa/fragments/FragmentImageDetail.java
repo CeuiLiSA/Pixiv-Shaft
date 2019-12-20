@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 
+import com.blankj.utilcode.util.BarUtils;
 import com.bumptech.glide.Glide;
 import com.github.chrisbanes.photoview.PhotoView;
 
@@ -49,6 +50,7 @@ public class FragmentImageDetail extends BaseBindFragment<FragmentImageDetailBin
 
     @Override
     void initData() {
+        BarUtils.setNavBarVisibility(mActivity, false);
         if(!TextUtils.isEmpty(url)){
             Glide.with(mContext)
                     .load(GlideUtil.getMediumImg(url))

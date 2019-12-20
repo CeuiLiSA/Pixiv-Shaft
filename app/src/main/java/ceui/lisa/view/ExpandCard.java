@@ -1,11 +1,10 @@
 package ceui.lisa.view;
 
 import android.content.Context;
-import android.util.AttributeSet;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.cardview.widget.CardView;
+import android.util.AttributeSet;
 
 import ceui.lisa.utils.Common;
 
@@ -13,7 +12,25 @@ public class ExpandCard extends CardView {
 
     private boolean isExpand = false;
     private int maxHeight = 0;
+
+    public boolean isAutoHeight() {
+        return autoHeight;
+    }
+
+    public void setAutoHeight(boolean autoHeight) {
+        this.autoHeight = autoHeight;
+    }
+
     private boolean autoHeight = true;
+
+    public int getRealHeight() {
+        return realHeight;
+    }
+
+    public void setRealHeight(int realHeight) {
+        this.realHeight = realHeight;
+    }
+
     private int realHeight = 0;
     private Context mContext;
 
@@ -35,33 +52,17 @@ public class ExpandCard extends CardView {
         maxHeight = (mContext.getResources().getDisplayMetrics().heightPixels) * 7 / 10;
     }
 
-    public boolean isAutoHeight() {
-        return autoHeight;
-    }
-
-    public void setAutoHeight(boolean autoHeight) {
-        this.autoHeight = autoHeight;
-    }
-
-    public int getRealHeight() {
-        return realHeight;
-    }
-
-    public void setRealHeight(int realHeight) {
-        this.realHeight = realHeight;
-    }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         if (isAutoHeight()) {
-
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         } else {
             if (isExpand) {
-
+                super.onMeasure(widthMeasureSpec, heightMeasureSpec);
             } else {
-                setMeasuredDimension(widthMeasureSpec, getSize(heightMeasureSpec));
+                setMeasuredDimension(widthMeasureSpec, maxHeight);
             }
         }
     }
