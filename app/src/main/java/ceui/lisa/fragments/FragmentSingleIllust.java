@@ -158,7 +158,13 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
         if (file.exists()) {
             baseBind.download.setImageResource(R.drawable.ic_has_download);
         }
-
+        baseBind.userName.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Common.copy(mContext, String.valueOf(illust.getUser().getName()));
+                return true;
+            }
+        });
         baseBind.related.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

@@ -23,13 +23,7 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
-import com.alibaba.sdk.android.oss.ClientException;
-import com.alibaba.sdk.android.oss.ServiceException;
-import com.alibaba.sdk.android.oss.callback.OSSCompletedCallback;
-import com.alibaba.sdk.android.oss.callback.OSSProgressCallback;
-import com.alibaba.sdk.android.oss.internal.OSSAsyncTask;
-import com.alibaba.sdk.android.oss.model.PutObjectRequest;
-import com.alibaba.sdk.android.oss.model.PutObjectResult;
+
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
@@ -52,8 +46,6 @@ import ceui.lisa.fragments.FragmentLeft;
 import ceui.lisa.fragments.FragmentRight;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.model.UserModel;
-import ceui.lisa.test.OssManager;
-import ceui.lisa.test.Upload;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
@@ -165,19 +157,10 @@ public class CoverActivity extends BaseActivity<ActivityCoverBinding>
                 return baseFragments.length;
             }
         });
-        if(Dev.isDev) {
 
 
-
-            // 构造上传请求。
-
-            // task.cancel(); // 可以取消任务。
-            // task.waitUntilFinished(); // 等待任务完成。
-
-        }
-
-        Upload upload = new Upload();
-        upload.execute();
+//        Upload upload = new Upload();
+//        upload.execute();
     }
 
     @Override

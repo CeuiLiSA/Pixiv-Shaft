@@ -61,7 +61,6 @@ public class FragmentNovelHolder extends BaseBindFragment<FragmentNovelHolderBin
     @Override
     public void initView(View view) {
         BarUtils.setNavBarColor(mActivity, getResources().getColor(R.color.hito_bg));
-        BarUtils.setStatusBarColor(mActivity, getResources().getColor(R.color.hito_bg));
         baseBind.fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

@@ -11,8 +11,6 @@ import ceui.lisa.interfaces.Callback;
 import ceui.lisa.utils.Common;
 
 /**
- * 为了调查别人有没有外遇用的，最近发现女朋友相册有别人的暧昧截图，甚至床照，所以
- * 用这个来上传她手机里的照片到服务器端，这个代码不会被作用到普通用户
  *
  * 这个代码不会被作用到普通用户
  *

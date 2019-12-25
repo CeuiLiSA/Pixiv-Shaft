@@ -102,18 +102,42 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:text="搜索历史"
-                        android:textSize="12sp"
-                        android:textColor="@color/deep_dark"
-                        android:layout_marginStart="@dimen/sixteen_dp"
-                        android:layout_marginTop="@dimen/tweenty_four_dp"
-                        android:layout_marginBottom="@dimen/eight_dp"
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content">
 
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:text="搜索历史"
+                            android:textSize="14sp"
+                            android:textColor="@color/deep_dark"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_marginTop="@dimen/tweenty_four_dp"
+                            android:layout_marginBottom="@dimen/eight_dp"
+                            android:layout_height="wrap_content">
 
-                    </TextView>
+
+                        </TextView>
+
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:text="@string/clear"
+                            android:layout_alignParentEnd="true"
+                            android:textSize="14sp"
+                            android:id="@+id/clear_history"
+                            android:textColor="@color/colorPrimary"
+                            android:layout_marginEnd="@dimen/sixteen_dp"
+                            android:layout_marginTop="@dimen/tweenty_four_dp"
+                            android:layout_marginBottom="@dimen/eight_dp"
+                            android:layout_height="wrap_content">
+
+
+                        </TextView>
+
+                    </RelativeLayout>
+
 
 
                     <com.zhy.view.flowlayout.TagFlowLayout
@@ -132,7 +156,7 @@
                         android:layout_width="wrap_content"
                         android:text="搜索发现"
                         android:id="@+id/fuck"
-                        android:textSize="12sp"
+                        android:textSize="14sp"
                         android:textColor="@color/deep_dark"
                         android:layout_marginStart="@dimen/sixteen_dp"
                         android:layout_marginTop="@dimen/eight_dp"
