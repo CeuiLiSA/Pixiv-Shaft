@@ -11,7 +11,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.appcompat.widget.Toolbar;
-import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -47,12 +46,12 @@ import ceui.lisa.model.IllustsBean;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
-import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.ShareIllust;
 import ceui.lisa.view.LinearItemDecorationNoLRTB;
+import ceui.lisa.view.ScrollChange;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 import jp.wasabeef.glide.transformations.BlurTransformation;
@@ -276,7 +275,7 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
         baseBind.illustView.setText(String.valueOf(illust.getTotal_view()));
         baseBind.illustLike.setText(String.valueOf(illust.getTotal_bookmarks()));
 
-        LinearLayoutManager layoutManager = new LinearLayoutManager(mContext);
+        ScrollChange layoutManager = new ScrollChange(mContext);
         baseBind.recyclerView.setLayoutManager(layoutManager);
         baseBind.recyclerView.setNestedScrollingEnabled(true);
         baseBind.recyclerView.addItemDecoration(new LinearItemDecorationNoLRTB(DensityUtil.dp2px(1.0f)));
@@ -335,15 +334,26 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
                 Common.copy(mContext, String.valueOf(illust.getId()));
             }
         });
-        if(illust.getPage_count() == 1 || !Dev.isDev){
+        if (illust.getPage_count() == 1) {
             baseBind.darkBlank.setVisibility(View.INVISIBLE);
             baseBind.seeAll.setVisibility(View.INVISIBLE);
-            baseBind.illustList.setAutoHeight(true);
-        }else {
+            baseBind.illustList.open();
+        } else {
             baseBind.darkBlank.setVisibility(View.VISIBLE);
             baseBind.seeAll.setVisibility(View.VISIBLE);
-            baseBind.illustList.setAutoHeight(false);
-            baseBind.illustList.setExpand(false);
+            baseBind.illustList.close();
+            baseBind.seeAll.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (baseBind.illustList.isExpand()) {
+                        baseBind.illustList.close();
+                        baseBind.seeAll.setText("点击展开");
+                    } else {
+                        baseBind.illustList.open();
+                        baseBind.seeAll.setText("点击折叠");
+                    }
+                }
+            });
         }
         loadImage();
     }

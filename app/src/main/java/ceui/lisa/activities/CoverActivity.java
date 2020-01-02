@@ -36,6 +36,7 @@ import java.io.File;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.cache.Cache;
 import ceui.lisa.core.TextWritter;
 import ceui.lisa.databinding.ActivityCoverBinding;
 import ceui.lisa.dialogs.Avoid251Dialog;
@@ -79,7 +80,7 @@ public class CoverActivity extends BaseActivity<ActivityCoverBinding>
     public void checkPermission(Callback<Void> callback) {
         final RxPermissions rxPermissions = new RxPermissions((FragmentActivity) mActivity);
         Disposable disposable = rxPermissions
-                .requestEachCombined(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_PHONE_STATE)
+                .requestEachCombined(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 .subscribe(permission -> {
                     if (permission.granted) {
                         callback.doSomething(null);

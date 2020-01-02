@@ -1,6 +1,8 @@
 package ceui.lisa.model;
 
-public class UserModel {
+import java.io.Serializable;
+
+public class UserModel implements Serializable {
 
 
     /**
@@ -17,7 +19,7 @@ public class UserModel {
         this.response = response;
     }
 
-    public static class ResponseBean {
+    public static class ResponseBean implements Serializable {
         /**
          * access_token : ECBLcZ9bp3xQ3IFK353yjn-Es6B4fNSPub21PCKx5x8
          * expires_in : 3600
