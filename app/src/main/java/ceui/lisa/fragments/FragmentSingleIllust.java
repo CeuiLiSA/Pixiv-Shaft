@@ -386,11 +386,11 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
             if (Shaft.sSettings.isSaveViewHistory()) {
                 insertViewHistory();
             }
-            if (illust.getType().equals("ugoira") && mDetailAdapter != null) {
+            if ("ugoira".equals(illust.getType()) && mDetailAdapter != null) {
                 mDetailAdapter.startGif();
             }
         } else {
-            if (illust.getType().equals("ugoira") && mDetailAdapter != null) {
+            if ("ugoira".equals(illust.getType()) && mDetailAdapter != null) {
                 mDetailAdapter.setPlayGif(false);
             }
         }

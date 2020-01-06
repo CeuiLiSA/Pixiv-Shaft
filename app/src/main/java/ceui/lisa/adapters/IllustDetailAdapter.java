@@ -2,6 +2,7 @@ package ceui.lisa.adapters;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -85,7 +86,7 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             }
             Common.showLog("height " + params.height + "width " + params.width);
 
-            if (allIllust.getType().equals("ugoira")) {
+            if (!TextUtils.isEmpty(allIllust.getType()) && allIllust.getType().equals("ugoira")) {
                 gifHolder = currentOne;
                 startGif();
             } else {
