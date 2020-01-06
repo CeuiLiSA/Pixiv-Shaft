@@ -8,7 +8,6 @@ import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.net.Uri;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
@@ -36,8 +35,6 @@ import java.io.File;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.cache.Cache;
-import ceui.lisa.core.TextWritter;
 import ceui.lisa.databinding.ActivityCoverBinding;
 import ceui.lisa.dialogs.Avoid251Dialog;
 import ceui.lisa.download.TaskQueue;

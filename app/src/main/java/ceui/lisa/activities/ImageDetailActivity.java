@@ -18,7 +18,7 @@ import ceui.lisa.R;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.fragments.FragmentImageDetail;
 import ceui.lisa.fragments.FragmentLocalImageDetail;
-import ceui.lisa.model.IllustsBean;
+import ceui.lisa.models.IllustsBean;
 
 public class ImageDetailActivity extends BaseActivity {
 

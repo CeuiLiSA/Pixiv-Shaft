@@ -1,5 +1,7 @@
 package ceui.lisa.model;
 
+import ceui.lisa.models.IllustsBean;
+
 public class IllustSearchResponse {
 
 

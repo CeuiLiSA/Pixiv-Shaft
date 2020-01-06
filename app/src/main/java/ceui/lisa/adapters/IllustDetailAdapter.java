@@ -27,7 +27,7 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.model.IllustsBean;
+import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import io.reactivex.Observable;

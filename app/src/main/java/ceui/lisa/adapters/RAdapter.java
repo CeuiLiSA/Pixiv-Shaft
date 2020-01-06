@@ -8,7 +8,7 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.RecyRankIllustHorizontalBinding;
-import ceui.lisa.model.IllustsBean;
+import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.GlideUtil;
 
 public class RAdapter extends BaseAdapter<IllustsBean, RecyRankIllustHorizontalBinding> {

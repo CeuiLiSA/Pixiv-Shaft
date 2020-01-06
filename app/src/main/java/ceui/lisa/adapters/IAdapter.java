@@ -14,7 +14,7 @@ import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.interfaces.MultiDownload;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.model.IllustsBean;
+import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.GlideUtil;
 

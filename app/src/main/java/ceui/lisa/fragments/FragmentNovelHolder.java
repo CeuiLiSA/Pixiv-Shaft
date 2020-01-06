@@ -23,7 +23,7 @@ import ceui.lisa.databinding.FragmentNovelHolderBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.NovelBean;
-import ceui.lisa.model.NovelDetail;
+import ceui.lisa.models.NovelDetail;
 import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;

@@ -22,7 +22,7 @@ import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListNovelResponse;
 import ceui.lisa.model.NovelBean;
-import ceui.lisa.model.UserDetailResponse;
+import ceui.lisa.models.UserDetailResponse;
 import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Params;
@@ -116,7 +116,7 @@ public class FragmentLikeNovelHorizontal extends BaseBindFragment<FragmentLikeIl
 
     @Override
     void initData() {
-        Observable<ListNovelResponse> mApi = null;
+        Observable<ListNovelResponse> mApi;
         if (type == 0) {
             mApi = Retro.getAppApi().getUserLikeNovel(sUserModel.getResponse().getAccess_token(),
                     mUserDetailResponse.getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC);

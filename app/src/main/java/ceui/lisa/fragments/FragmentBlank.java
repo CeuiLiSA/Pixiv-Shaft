@@ -6,7 +6,7 @@ import android.widget.ImageView;
 import com.bumptech.glide.Glide;
 
 import ceui.lisa.R;
-import ceui.lisa.model.IllustsBean;
+import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.GlideUtil;
 
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;

@@ -6,7 +6,7 @@ import java.io.File;
 
 import ceui.lisa.database.IllustTask;
 import ceui.lisa.model.GifResponse;
-import ceui.lisa.model.IllustsBean;
+import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 
 public class GifDownload {

@@ -9,7 +9,7 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.RecyCardIllustBinding;
-import ceui.lisa.model.IllustsBean;
+import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.GlideUtil;
 
 public class LAdapter extends BaseAdapter<IllustsBean, RecyCardIllustBinding> {

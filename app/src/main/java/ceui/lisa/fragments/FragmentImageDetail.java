@@ -2,16 +2,14 @@ package ceui.lisa.fragments;
 
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.view.View;
 
 import com.blankj.utilcode.util.BarUtils;
 import com.bumptech.glide.Glide;
-import com.github.chrisbanes.photoview.PhotoView;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.FragmentImageDetailBinding;
-import ceui.lisa.model.IllustsBean;
+import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 

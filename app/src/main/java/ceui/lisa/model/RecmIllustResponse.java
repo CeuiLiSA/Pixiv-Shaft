@@ -2,6 +2,8 @@ package ceui.lisa.model;
 
 import java.util.List;
 
+import ceui.lisa.models.IllustsBean;
+
 public class RecmIllustResponse {
 
     /**

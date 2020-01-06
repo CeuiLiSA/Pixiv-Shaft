@@ -5,7 +5,7 @@ import android.text.TextUtils;
 import java.io.File;
 
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.model.IllustsBean;
+import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Settings;
 
 

@@ -1,6 +1,6 @@
 package ceui.lisa.http;
 
-import ceui.lisa.model.TempTokenResponse;
+import ceui.lisa.models.TempTokenResponse;
 import io.reactivex.Observable;
 import okhttp3.MultipartBody;
 import retrofit2.http.GET;

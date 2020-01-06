@@ -15,7 +15,7 @@ import ceui.lisa.activities.UActivity;
 import ceui.lisa.databinding.RecyUserPreviewBinding;
 import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.interfaces.FullClickListener;
-import ceui.lisa.model.UserPreviewsBean;
+import ceui.lisa.models.UserPreviewsBean;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;

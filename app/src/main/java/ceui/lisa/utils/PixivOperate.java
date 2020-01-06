@@ -6,8 +6,6 @@ import android.content.Intent;
 import android.view.View;
 import android.widget.Button;
 
-import com.blankj.utilcode.constant.MemoryConstants;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,10 +16,10 @@ import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.IllustSearchResponse;
-import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.NovelBean;
-import ceui.lisa.model.NullResponse;
+import ceui.lisa.models.NullResponse;
 import ceui.lisa.model.UserModel;
+import ceui.lisa.models.IllustsBean;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;

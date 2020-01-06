@@ -8,8 +8,12 @@ import androidx.room.RoomDatabase;
 
 @Database(
         entities = {
-                IllustHistoryEntity.class, IllustRecmdEntity.class, DownloadEntity.class,
-                UserEntity.class, SearchEntity.class, ImageEntity.class
+                IllustHistoryEntity.class, //浏览历史
+                IllustRecmdEntity.class, //用不到，调试用
+                DownloadEntity.class, //下载历史
+                UserEntity.class, //多用户保存信息
+                SearchEntity.class, //搜索历史
+                ImageEntity.class //用不到
         },
         version = 8,
         exportSchema = false

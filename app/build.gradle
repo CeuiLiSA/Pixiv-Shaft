@@ -117,16 +117,20 @@ dependencies {
     implementation 'com.aliyun.dpa:oss-android-sdk:2.9.1'
 
     
-    annotationProcessor 'com.github.bumptech.glide:compiler:4.9.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.10.0'
     annotationProcessor 'androidx.room:room-compiler:2.1.0'
-    implementation group: 'net.lingala.zip4j', name: 'zip4j', version: '1.3.3'
+
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 
 
-
     implementation project(path: ':cache')
+    implementation project(path: ':models')
+    implementation project(path: ':utils')
+    implementation project(path: ':gif')
+
+
     configurations {
         all*.exclude group: 'com.android.support', module: 'support-v13'
     }
