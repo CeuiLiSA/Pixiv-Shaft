@@ -30,12 +30,13 @@
 
 ## 3.快照
 
-https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-0.jpg
-https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-1.jpg
-https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-2.jpg
-https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-3.jpg
-https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-4.jpg
-https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-5.jpg
+![avatar](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-0.jpg)
+![avatar](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-1.jpg)
+![avatar](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-2.jpg)
+![avatar](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-3.jpg)
+![avatar](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-4.jpg)
+![avatar](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-5.jpg)
+
 
 ## 4.在Google Play上获取
 
