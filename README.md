@@ -31,48 +31,14 @@
 ## 3.快照
 
 
-|FlyRefresh|Classics|hhhhh|
+|作品详情|推荐小说|评论列表|
 |:---:|:---:|:---:|
 |![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-0.jpg)|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-1.jpg)|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-2.jpg)
-|[FlyRefresh](https://github.com/race604/FlyRefresh)|[ClassicsHeader](#1)|[hhheeeeee](#1)|
 
-<img
-        alt="Get it on Google Play"
-        src="https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-0.jpg"
-        width="540"
-        height="1122"
-/>
-<img
-        alt="Get it on Google Play"
-        src="https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-1.jpg"
-        width="540"
-        height="1122"
-/>
-<img
-        alt="Get it on Google Play"
-        src="https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-2.jpg"
-        width="540"
-        height="1122"
-/>
-<img
-        alt="Get it on Google Play"
-        src="https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-3.jpg"
-        width="540"
-        height="1122"
-/>
-<img
-        alt="Get it on Google Play"
-        src="https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-4.jpg"
-        width="540"
-        height="1122"
-/>
-<img
-        alt="Get it on Google Play"
-        src="https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-5.jpg"
-        width="540"
-        height="1122"
-/>
 
+|动态页面|作品详情|热门标签|
+|:---:|:---:|:---:|
+|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-3.jpg)|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-4.jpg)|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-5.jpg)
 
 ## 4.在Google Play上获取
 
