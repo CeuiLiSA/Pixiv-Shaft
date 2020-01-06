@@ -8,6 +8,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.LinearSnapHelper;
 import androidx.recyclerview.widget.PagerSnapHelper;
 
+import com.github.ybq.android.spinkit.style.Wave;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,6 +57,9 @@ public class FragmentLikeIllustHorizontal extends BaseBindFragment<FragmentLikeI
 
     @Override
     public void initView(View view) {
+        Wave wave = new Wave();
+        wave.setColor(getResources().getColor(R.color.colorPrimary));
+        baseBind.progress.setIndeterminateDrawable(wave);
         baseBind.recyclerView.addItemDecoration(new
                 LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
         FadeInLeftAnimator landingAnimator = new FadeInLeftAnimator();
@@ -139,6 +144,11 @@ public class FragmentLikeIllustHorizontal extends BaseBindFragment<FragmentLikeI
                                 allItems.addAll(listIllustResponse.getList());
                             }
                             mAdapter.notifyItemRangeInserted(0, allItems.size());
+                        }
+
+                        @Override
+                        public void must(boolean isSuccess) {
+                            baseBind.progress.setVisibility(View.INVISIBLE);
                         }
                     });
         }

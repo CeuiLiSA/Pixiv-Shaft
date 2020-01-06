@@ -55,6 +55,7 @@ public class FragmentLikeNovelHorizontal extends BaseBindFragment<FragmentLikeIl
 
     @Override
     public void initView(View view) {
+        baseBind.progress.setVisibility(View.INVISIBLE);
         baseBind.rootParentView.setVisibility(View.GONE);
         baseBind.recyclerView.addItemDecoration(new
                 LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));

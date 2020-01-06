@@ -10,6 +10,12 @@ import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.facebook.rebound.SimpleSpringListener;
+import com.facebook.rebound.Spring;
+import com.facebook.rebound.SpringConfig;
+import com.facebook.rebound.SpringSystem;
+
+import ceui.lisa.key.XHAnim;
 import ceui.lisa.utils.Common;
 
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
@@ -20,22 +26,24 @@ public class ExpandCard extends CardView {
     private int maxHeight = 0;
     private Context mContext;
 
+    private void init(Context pContext) {
+        mContext = pContext;
+        maxHeight = (mContext.getResources().getDisplayMetrics().heightPixels) * 7 / 10;
+    }
+
     public ExpandCard(@NonNull Context context) {
         super(context);
-        mContext = context;
-        maxHeight = (mContext.getResources().getDisplayMetrics().heightPixels) * 7 / 10;
+        init(context);
     }
 
     public ExpandCard(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        mContext = context;
-        maxHeight = (mContext.getResources().getDisplayMetrics().heightPixels) * 7 / 10;
+        init(context);
     }
 
     public ExpandCard(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        mContext = context;
-        maxHeight = (mContext.getResources().getDisplayMetrics().heightPixels) * 7 / 10;
+        init(context);
     }
 
     public void open() {
@@ -50,6 +58,7 @@ public class ExpandCard extends CardView {
                 final RecyclerView recyclerView = ((RecyclerView) getChildAt(i));
                 if (recyclerView.getLayoutManager() instanceof ScrollChange) {
                     ((ScrollChange) recyclerView.getLayoutManager()).setScrollEnabled(true);
+                    break;
                 }
             }
         }
@@ -57,7 +66,8 @@ public class ExpandCard extends CardView {
         isExpand = true;
     }
 
-    public void close() {
+    public void close(boolean hasAnime) {
+        hasAnime = false;
         if(isExpand){
             ViewGroup.LayoutParams layoutParams = getLayoutParams();
             layoutParams.height = maxHeight;
@@ -78,7 +88,4 @@ public class ExpandCard extends CardView {
         return isExpand;
     }
 
-    public void setExpand(boolean pExpand) {
-        isExpand = pExpand;
-    }
 }
