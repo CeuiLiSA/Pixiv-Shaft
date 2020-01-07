@@ -1,7 +1,5 @@
 package ceui.lisa.cache;
 
-import com.blankj.utilcode.util.GsonUtils;
-
 /**
  * 使用shared preference 存储
  */
