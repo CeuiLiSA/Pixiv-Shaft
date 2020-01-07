@@ -30,7 +30,7 @@ public class Cache implements IOperate, Proxy{
 
     @Override
     public IOperate create() {
-        return new FileOperator();
+        return new SfOperator();
     }
 
     private static class Holder {

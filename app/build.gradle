@@ -125,9 +125,10 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 
 
+
+
     implementation project(path: ':cache')
     implementation project(path: ':models')
-    implementation project(path: ':utils')
     implementation project(path: ':gif')
 
 

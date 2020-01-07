@@ -14,7 +14,9 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-
+/**
+ * 使用文件系统存储对象
+ */
 public class FileOperator implements IOperate {
 
     @Override

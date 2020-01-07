@@ -14,7 +14,6 @@
             <option value="$PROJECT_DIR$/cache" />
             <option value="$PROJECT_DIR$/gif" />
             <option value="$PROJECT_DIR$/models" />
-            <option value="$PROJECT_DIR$/utils" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

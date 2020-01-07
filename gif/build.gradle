@@ -28,4 +28,5 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     implementation project(path: ':models')
+    api group: 'net.lingala.zip4j', name: 'zip4j', version: '2.2.8'
 }

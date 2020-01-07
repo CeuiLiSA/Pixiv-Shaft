@@ -28,8 +28,8 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     // 一系列工具类
-    api 'com.blankj:utilcodex:1.26.0'
+
 
     // 解压文件用到
-    api group: 'net.lingala.zip4j', name: 'zip4j', version: '2.2.8'
+
 }
