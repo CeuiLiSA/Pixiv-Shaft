@@ -28,7 +28,7 @@ public class GifCreate {
         File parentFile = FileCreator.createGifParentFile(illustsBean);
         if (parentFile.exists()) {
             File realGifFile = new File(Shaft.sSettings.getGifResultPath(), illustsBean.getId() + ".gif");
-            if (realGifFile.exists()) {
+            if (realGifFile.exists() && realGifFile.length() > 1024) {
                 Common.showToast("gif已存在");
             } else {
                 //Common.showToast("暂不支持保存");
@@ -106,37 +106,4 @@ public class GifCreate {
             Common.showToast("请先播放后保存");
         }
     }
-
-    public static int[][] txtString(FileReader file) {
-        BufferedReader br = new BufferedReader(file);//读取文件
-        try {
-            String line = br.readLine();//读取一行数据
-            int lines = Integer.parseInt(line);//将数据转化为int类型
-            System.out.println(lines);
-
-            String[] sp = null;
-            String[][] c = new String[lines][lines];
-            int[][] cc = new int[lines][lines];
-            int count = 0;
-            while ((line = br.readLine()) != null) {//按行读取
-                sp = line.split(" ");//按空格进行分割
-                for (int i = 0; i < sp.length; i++) {
-                    c[count][i] = sp[i];
-                }
-                count++;
-            }
-            for (int i = 0; i < lines; i++) {
-                for (int j = 0; j < lines; j++) {
-                    cc[i][j] = Integer.parseInt(c[i][j]);
-                    System.out.print(cc[i][j]);
-                }
-                System.out.println();
-            }
-            return cc;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return new int[0][];
-    }
-
 }
