@@ -7,7 +7,6 @@ import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.LinearSnapHelper;
 import androidx.recyclerview.widget.PagerSnapHelper;
 
 import java.util.ArrayList;
@@ -21,7 +20,7 @@ import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListNovelResponse;
-import ceui.lisa.model.NovelBean;
+import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.UserDetailResponse;
 import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.DensityUtil;

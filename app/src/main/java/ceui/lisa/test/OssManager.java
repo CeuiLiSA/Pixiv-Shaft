@@ -1,7 +1,5 @@
 package ceui.lisa.test;
 
-import android.content.Context;
-
 import com.alibaba.sdk.android.oss.ClientConfiguration;
 import com.alibaba.sdk.android.oss.OSS;
 import com.alibaba.sdk.android.oss.OSSClient;
@@ -9,8 +7,6 @@ import com.alibaba.sdk.android.oss.common.auth.OSSCredentialProvider;
 import com.alibaba.sdk.android.oss.common.auth.OSSStsTokenCredentialProvider;
 
 import ceui.lisa.activities.Shaft;
-
-import static com.mikepenz.iconics.Iconics.getApplicationContext;
 
 public class OssManager {
 

@@ -23,9 +23,9 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
+import ceui.lisa.core.NetControl;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.interfaces.ListShow;
-import ceui.lisa.core.NetControl;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;

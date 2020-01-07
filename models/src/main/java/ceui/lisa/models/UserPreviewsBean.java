@@ -2,8 +2,6 @@ package ceui.lisa.models;
 
 import java.util.List;
 
-import ceui.lisa.models.IllustsBean;
-
 public class UserPreviewsBean {
     /**
      * user : {"id":22438,"name":"ぽち。","account":"lizhi880423","profile_image_urls":{"medium":"https://i.pximg.net/user-profile/img/2010/11/15/19/56/24/2412747_03f36d63a6d2cd90940ebddea0b031a5_170.png"},"is_followed":false}

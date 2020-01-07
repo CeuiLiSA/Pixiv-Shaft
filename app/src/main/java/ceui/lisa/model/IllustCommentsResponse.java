@@ -2,6 +2,7 @@ package ceui.lisa.model;
 
 import java.util.List;
 
+import ceui.lisa.models.CommentsBean;
 import ceui.lisa.interfaces.ListShow;
 
 public class IllustCommentsResponse implements ListShow<CommentsBean> {

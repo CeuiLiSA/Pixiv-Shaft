@@ -3,8 +3,9 @@ package ceui.lisa.model;
 import java.util.List;
 
 import ceui.lisa.interfaces.ListShow;
+import ceui.lisa.models.BookmarkTagsBean;
 
-public class BookmarkTags implements ListShow<BookmarkTagsBean> {
+public class BookmarkTagsResponse implements ListShow<BookmarkTagsBean> {
 
     /**
      * bookmark_tags : [{"name":"procreate","count":1},{"name":"らくがき","count":1},{"name":"習作","count":1}]

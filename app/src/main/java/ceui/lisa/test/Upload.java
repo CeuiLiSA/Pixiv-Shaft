@@ -7,7 +7,6 @@ import java.util.List;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.ImageEntity;
-import ceui.lisa.interfaces.Callback;
 import ceui.lisa.utils.Common;
 
 /**

@@ -298,7 +298,7 @@ public class FragmentSearch extends BaseBindFragment<FragmentSearchBinding> {
                 return tv;
             }
         });
-        if(history != null && history.size() != 0){
+        if (history != null && history.size() != 0) {
             baseBind.clearHistory.setVisibility(View.VISIBLE);
             baseBind.clearHistory.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -319,7 +319,7 @@ public class FragmentSearch extends BaseBindFragment<FragmentSearchBinding> {
                     alertDialog.show();
                 }
             });
-        }else {
+        } else {
             baseBind.clearHistory.setVisibility(View.INVISIBLE);
         }
         baseBind.searchHistory.setOnTagClickListener(new TagFlowLayout.OnTagClickListener() {

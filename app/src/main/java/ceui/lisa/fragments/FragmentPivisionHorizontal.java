@@ -3,7 +3,6 @@ package ceui.lisa.fragments;
 import android.content.Intent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AnticipateOvershootInterpolator;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -25,7 +24,6 @@ import ceui.lisa.view.LinearItemHorizontalDecoration;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 import jp.wasabeef.recyclerview.animators.FadeInLeftAnimator;
-import jp.wasabeef.recyclerview.animators.LandingAnimator;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static ceui.lisa.activities.Shaft.sUserModel;

@@ -10,7 +10,7 @@ import com.tencent.stat.StatConfig;
 import com.tencent.stat.StatService;
 
 import ceui.lisa.R;
-import ceui.lisa.model.UserModel;
+import ceui.lisa.models.UserModel;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Settings;

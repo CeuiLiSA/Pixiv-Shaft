@@ -9,20 +9,20 @@ import org.greenrobot.eventbus.EventBus;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BAdapter;
 import ceui.lisa.adapters.BaseAdapter;
+import ceui.lisa.core.NetControl;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyBookTagBinding;
 import ceui.lisa.http.Retro;
-import ceui.lisa.core.NetControl;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.model.BookmarkTags;
-import ceui.lisa.model.BookmarkTagsBean;
+import ceui.lisa.model.BookmarkTagsResponse;
+import ceui.lisa.models.BookmarkTagsBean;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
 import io.reactivex.Observable;
 
 public class FragmentBookTag extends NetListFragment<FragmentBaseListBinding,
-        BookmarkTags, BookmarkTagsBean, RecyBookTagBinding> {
+        BookmarkTagsResponse, BookmarkTagsBean, RecyBookTagBinding> {
 
     private String bookType = "";
 
@@ -33,16 +33,16 @@ public class FragmentBookTag extends NetListFragment<FragmentBaseListBinding,
     }
 
     @Override
-    public NetControl<BookmarkTags> present() {
-        return new NetControl<BookmarkTags>() {
+    public NetControl<BookmarkTagsResponse> present() {
+        return new NetControl<BookmarkTagsResponse>() {
             @Override
-            public Observable<BookmarkTags> initApi() {
+            public Observable<BookmarkTagsResponse> initApi() {
                 return Retro.getAppApi().getBookmarkTags(Shaft.sUserModel.getResponse().getAccess_token(),
                         Shaft.sUserModel.getResponse().getUser().getId(), bookType);
             }
 
             @Override
-            public Observable<BookmarkTags> initNextApi() {
+            public Observable<BookmarkTagsResponse> initNextApi() {
                 return Retro.getAppApi().getNextTags(Shaft.sUserModel.getResponse().getAccess_token(), nextUrl);
             }
         };

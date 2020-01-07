@@ -2,9 +2,10 @@ package ceui.lisa.model;
 
 import java.util.List;
 
+import ceui.lisa.models.BookmarkTagsBean;
 import ceui.lisa.interfaces.ListShow;
 
-public class IllustBookmarkTags implements ListShow<BookmarkTagsBean> {
+public class IllustBookmarkTagsResponse implements ListShow<BookmarkTagsBean> {
 
     private BookmarkDetailBean bookmark_detail;
     private String next_url;

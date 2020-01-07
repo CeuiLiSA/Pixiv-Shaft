@@ -10,7 +10,6 @@ import androidx.fragment.app.FragmentPagerAdapter;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.ViewpagerWithTablayoutBinding;
-import ceui.lisa.utils.Dev;
 
 public class FragmentPv extends BaseBindFragment<ViewpagerWithTablayoutBinding> {
 

@@ -2,7 +2,6 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.view.View;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -15,7 +14,6 @@ import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.RankActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.http.NullCtrl;
@@ -66,9 +64,9 @@ public class FragmentCenter extends BaseFragment {
 
     @Override
     void initData() {
-        if(Dev.isDev){
+        if (Dev.isDev) {
 
-        }else {
+        } else {
             Retro.getAppApi().getLoginBg(Shaft.sUserModel.getResponse().getAccess_token())
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())

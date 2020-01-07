@@ -3,7 +3,6 @@ package ceui.lisa.dialogs;
 import android.view.View;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.DialogAvoid251Binding;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;

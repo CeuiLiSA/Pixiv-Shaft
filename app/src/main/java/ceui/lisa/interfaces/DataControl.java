@@ -6,11 +6,11 @@ public abstract class DataControl<T> {
 
     public abstract T next();
 
-    public boolean hasNext(){
+    public boolean hasNext() {
         return false;
     }
 
-    public boolean enableRefresh(){
+    public boolean enableRefresh() {
         return true;
     }
 }

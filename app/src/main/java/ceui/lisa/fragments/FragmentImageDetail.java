@@ -49,7 +49,7 @@ public class FragmentImageDetail extends BaseBindFragment<FragmentImageDetailBin
     @Override
     void initData() {
         BarUtils.setNavBarVisibility(mActivity, false);
-        if(!TextUtils.isEmpty(url)){
+        if (!TextUtils.isEmpty(url)) {
             Glide.with(mContext)
                     .load(GlideUtil.getMediumImg(url))
                     .transition(withCrossFade())
