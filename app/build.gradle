@@ -125,10 +125,9 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 
     implementation 'com.blankj:utilcodex:1.26.0'
-
+    implementation group: 'net.lingala.zip4j', name: 'zip4j', version: '2.2.8'
 
     implementation project(path: ':models')
-    implementation project(path: ':gif')
 
 
     configurations {

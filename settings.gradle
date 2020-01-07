@@ -1,1 +1,1 @@
-include ':app', ':gif', ':models'
+include ':app', ':models'
