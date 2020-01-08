@@ -24,7 +24,6 @@ import ceui.lisa.utils.Common;
 
 public class RankActivity extends BaseActivity implements DatePickerDialog.OnDateSetListener {
 
-    private static final String[] CHINESE_TITLES = new String[]{"日榜", "每周", "每月", "男性向", "女性向", "原创", "新人", "R"};
     private static final String[] CHINESE_TITLES_MANGA = new String[]{"日榜", "每周", "每月", "新人", "R"};
     private static final String[] CHINESE_TITLES_NOVEL = new String[]{"日榜", "每周", "男性向", "女性向", "新人", "R"};
     private ViewPager mViewPager;
@@ -46,6 +45,18 @@ public class RankActivity extends BaseActivity implements DatePickerDialog.OnDat
         mViewPager = findViewById(R.id.view_pager);
         String queryDate = getIntent().getStringExtra("date");
         mViewPager.setPageTransformer(true, new DrawerTransformer());
+
+        final String[] CHINESE_TITLES = new String[]{
+                mContext.getString(R.string.daily_rank),
+                mContext.getString(R.string.weekly_rank),
+                mContext.getString(R.string.monthly_rank),
+                mContext.getString(R.string.man_like),
+                mContext.getString(R.string.woman_like),
+                mContext.getString(R.string.self_done),
+                mContext.getString(R.string.new_fish),
+                mContext.getString(R.string.r_eighteen)
+        };
+
 
         mViewPager.setAdapter(new FragmentStatePagerAdapter(getSupportFragmentManager()) {
             @Override

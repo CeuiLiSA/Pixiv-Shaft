@@ -10,7 +10,7 @@ public class Dev {
      * user_vjkz8285
      * Os6UAt0GvA
      */
-    public static boolean isDev = true;
+    public static boolean isDev = false;
     public static boolean refreshUser = false;
 
     public static final String USER_ACCOUNT = "user_vjkz8285";

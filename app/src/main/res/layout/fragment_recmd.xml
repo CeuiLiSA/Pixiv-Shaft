@@ -113,7 +113,7 @@
                                 android:layout_width="wrap_content"
                                 android:textColor="#2c333c"
                                 android:textSize="15sp"
-                                android:text="为你推荐"
+                                android:text="@string/recmd_for_you"
                                 android:layout_marginTop="@dimen/six_dp"
                                 android:textStyle="bold"
                                 android:layout_toEndOf="@+id/image_recmd"

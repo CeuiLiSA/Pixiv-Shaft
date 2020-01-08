@@ -20,7 +20,7 @@
                 android:elevation="@dimen/six_dp"
                 app:layout_scrollFlags="scroll|enterAlways"
                 app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
-                app:title="排行榜"
+                app:title="@string/ranking_list"
                 app:titleTextColor="@android:color/white" />
 
             <com.google.android.material.tabs.TabLayout
