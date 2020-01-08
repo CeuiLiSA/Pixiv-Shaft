@@ -15,9 +15,11 @@ import androidx.appcompat.widget.Toolbar;
 import com.bumptech.glide.Glide;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
+import com.liulishuo.okdownload.core.listener.DownloadListener1;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
 
+import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
@@ -33,10 +35,13 @@ import ceui.lisa.activities.UActivity;
 import ceui.lisa.adapters.IllustDetailAdapter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustHistoryEntity;
+import ceui.lisa.database.IllustTask;
 import ceui.lisa.databinding.FragmentSingleIllustBinding;
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.download.GifCreate;
 import ceui.lisa.download.GifDownload;
+import ceui.lisa.download.GifListener;
+import ceui.lisa.download.GifQueue;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
@@ -96,8 +101,8 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
                     intent.putExtra("dataType", "二级详情");
                     intent.putExtra("index", position);
                     startActivity(intent);
-                } else if (viewType == 1) {
-                    getGifUrl();
+                } else if(viewType == 1){
+
                 }
             }
         });
@@ -366,18 +371,6 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
         }
     }
 
-    private void getGifUrl() {
-        Common.showToast("获取图组ZIP地址");
-        Retro.getAppApi().getGifPackage(sUserModel.getResponse().getAccess_token(), illust.getId())
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new ErrorCtrl<GifResponse>() {
-                    @Override
-                    public void onNext(GifResponse gifResponse) {
-                        GifDownload.downloadGif(gifResponse, illust);
-                    }
-                });
-    }
 
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
@@ -387,7 +380,7 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
                 insertViewHistory();
             }
             if ("ugoira".equals(illust.getType()) && mDetailAdapter != null) {
-                mDetailAdapter.startGif();
+                mDetailAdapter.gifGo();
             }
         } else {
             if ("ugoira".equals(illust.getType()) && mDetailAdapter != null) {
@@ -412,7 +405,7 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(Channel event) {
         if (className.contains(event.getReceiver())) {
-            mDetailAdapter.startGif();
+            mDetailAdapter.startGif(event.getValue());
             return;
         }
 

@@ -1,6 +1,6 @@
 package ceui.lisa.cache;
 
-public class Cache implements IOperate, Proxy{
+public class Cache implements IOperate, Proxy<IOperate>{
 
     private IOperate mOperate;
 

@@ -22,11 +22,6 @@ import ceui.lisa.activities.TemplateActivity;
 
 public class FragmentLeft extends BaseFragment {
 
-    private static final String[] TITLES = new String[]{
-            Shaft.getContext().getString(R.string.recommend_illust),
-            Shaft.getContext().getString(R.string.hot_tag)
-    };
-
     @Override
     void initLayout() {
         mLayoutID = R.layout.fragment_left;
@@ -34,6 +29,10 @@ public class FragmentLeft extends BaseFragment {
 
     @Override
     View initView(View v) {
+        String[] TITLES = new String[]{
+                Shaft.getContext().getString(R.string.recommend_illust),
+                Shaft.getContext().getString(R.string.hot_tag)
+        };
         Toolbar toolbar = v.findViewById(R.id.toolbar);
         ImageView head = v.findViewById(R.id.head);
         ViewGroup.LayoutParams headParams = head.getLayoutParams();

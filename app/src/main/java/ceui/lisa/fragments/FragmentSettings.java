@@ -233,6 +233,8 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
                             LanguageUtils.applyLanguage(Locale.SIMPLIFIED_CHINESE, "");
                         } else if (which == 1) {
                             LanguageUtils.applyLanguage(Locale.JAPAN, "");
+                        } else if (which == 2) {
+                            LanguageUtils.applyLanguage(Locale.US, "");
                         }
                     }
                 });

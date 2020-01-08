@@ -31,6 +31,7 @@ public class IllustsBean implements Serializable {
      */
 
     private int id;
+    private int gifDelay;
     private String title;
     private String type;
     private ImageUrlsBean image_urls;
@@ -254,6 +255,15 @@ public class IllustsBean implements Serializable {
     public String getSize() {
         return getWidth() + "px * " + getHeight() + "px";
     }
+
+    public int getGifDelay() {
+        return gifDelay;
+    }
+
+    public void setGifDelay(int gifDelay) {
+        this.gifDelay = gifDelay;
+    }
+
 
     @Override
     public String toString() {

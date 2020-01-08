@@ -2,6 +2,8 @@ package ceui.lisa.adapters;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.drawable.AnimationDrawable;
+import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,14 +24,20 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.database.IllustTask;
 import ceui.lisa.download.FileCreator;
+import ceui.lisa.download.GifListener;
+import ceui.lisa.download.GifQueue;
+import ceui.lisa.gif.GifManager;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
@@ -49,6 +57,7 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     private int imageSize = 0;
     private TagHolder gifHolder;
     private boolean playGif = false;
+    private AnimationDrawable animationDrawable;
 
     public IllustDetailAdapter(IllustsBean list, Context context) {
         mContext = context;
@@ -88,7 +97,30 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
             if (!TextUtils.isEmpty(allIllust.getType()) && allIllust.getType().equals("ugoira")) {
                 gifHolder = currentOne;
-                startGif();
+                currentOne.playGif.setVisibility(View.VISIBLE);
+
+                if(GifQueue.get().getTasks() != null &&
+                        GifQueue.get().getTasks().size() != 0) {
+
+                    boolean isDownloading = false;
+
+                    for (IllustTask task : GifQueue.get().getTasks()) {
+                        if (task.getIllustsBean().getId() == allIllust.getId()) {
+                            isDownloading = true;
+                            ((GifListener) task.getDownloadTask().getListener()).bind(currentOne.mProgressBar);
+                            break;
+                        }
+                    }
+                    if(isDownloading){
+                        currentOne.mProgressBar.setVisibility(View.VISIBLE);
+                        currentOne.playGif.setVisibility(View.INVISIBLE);
+                    } else {
+                        currentOne.playGif.setVisibility(View.VISIBLE);
+                    }
+                } else {
+                    currentOne.playGif.setVisibility(View.VISIBLE);
+                }
+
             } else {
                 currentOne.playGif.setVisibility(View.GONE);
             }
@@ -113,8 +145,9 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             currentOne.itemView.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 0));
             currentOne.playGif.setOnClickListener(v -> {
                 currentOne.mProgressBar.setVisibility(View.VISIBLE);
-                currentOne.playGif.setVisibility(View.GONE);
-                mOnItemClickListener.onItemClick(v, position, 1);
+                currentOne.playGif.setVisibility(View.INVISIBLE);
+                new GifManager().getZipUrl(allIllust, currentOne.mProgressBar);
+                //mOnItemClickListener.onItemClick(v, position, 1);
             });
         }
     }
@@ -128,26 +161,26 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         mOnItemClickListener = itemClickListener;
     }
 
-    public boolean isPlayGif() {
-        return playGif;
-    }
-
     public void setPlayGif(boolean playGif) {
-        Common.showLog("IllustDetailAdapter 停止播放gif图");
+        Common.showLog(allIllust.getTitle() + "IllustDetailAdapter 停止播放gif图");
+        if(animationDrawable != null){
+            animationDrawable.stop();
+        }
         this.playGif = playGif;
     }
 
-    public void startGif() {
-        Common.showLog("IllustDetailAdapter 开始播放gif图");
+    public void startGif(int delay) {
+        Common.showLog(allIllust.getTitle() + "IllustDetailAdapter 开始播放gif图 delay " + delay);
         playGif = true;
         File parentFile = FileCreator.createGifParentFile(allIllust);
         if (parentFile.exists()) {
             gifHolder.mProgressBar.setVisibility(View.GONE);
             gifHolder.playGif.setVisibility(View.GONE);
             final File[] listfile = parentFile.listFiles();
-            Observable.create(new ObservableOnSubscribe<File>() {
+            Observable.create(new ObservableOnSubscribe<String>() {
                 @Override
-                public void subscribe(ObservableEmitter<File> emitter) throws Exception {
+                public void subscribe(ObservableEmitter<String> emitter) {
+
                     List<File> allFiles = Arrays.asList(listfile);
                     Collections.sort(allFiles, new Comparator<File>() {
                         @Override
@@ -160,31 +193,29 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                             }
                         }
                     });
-                    int xyz = 0;
-                    int count = allFiles.size();
-                    while (true) {
-                        if (playGif) {
-                            emitter.onNext(allFiles.get(xyz % count));
-                            Thread.sleep(85);
-                            xyz++;
-                        } else {
-                            break;
+
+                    animationDrawable = new AnimationDrawable();
+                    for (int i = 0; i < allFiles.size(); i++) {
+                        try {
+                            Drawable drawable = Glide.with(mContext)
+                                    .load(allFiles.get(i))
+                                    .skipMemoryCache(true)
+                                    .submit().get();
+                            animationDrawable.addFrame(drawable, delay);
+                            emitter.onNext("5");
+                        } catch (ExecutionException | InterruptedException e) {
+                            e.printStackTrace();
                         }
                     }
                 }
-            }).subscribeOn(Schedulers.newThread())
+            }).subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new ErrorCtrl<File>() {
+                    .subscribe(new ErrorCtrl<String>() {
                         @Override
-                        public void onNext(File s) {
-                            Glide.with(mContext)
-                                    .load(s)
-                                    .placeholder(gifHolder.illust.getDrawable())
-                                    .into(gifHolder.illust);
+                        public void onNext(String s) {
+                            gifGo();
                         }
                     });
-        } else {
-            gifHolder.playGif.setVisibility(View.VISIBLE);
         }
     }
 
@@ -197,6 +228,13 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             illust = itemView.findViewById(R.id.illust_image);
             playGif = itemView.findViewById(R.id.play_gif);
             mProgressBar = itemView.findViewById(R.id.gif_progress);
+        }
+    }
+
+    public void gifGo() {
+        if(animationDrawable != null) {
+            gifHolder.illust.setImageDrawable(animationDrawable);
+            animationDrawable.start();
         }
     }
 }

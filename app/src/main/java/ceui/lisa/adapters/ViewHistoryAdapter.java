@@ -70,14 +70,19 @@ public class ViewHistoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
                 .into(currentOne.illust);
         currentOne.title.setText(currentIllust.getTitle());
         currentOne.author.setText("by: " + currentIllust.getUser().getName());
-        if (currentIllust.getPage_count() == 1) {
-            currentOne.pSize.setVisibility(View.GONE);
-        } else {
-            currentOne.pSize.setVisibility(View.VISIBLE);
-            currentOne.pSize.setText(currentIllust.getPage_count() + "P");
-        }
+
         currentOne.time.setText(mTime.format(allIllust.get(position).getTime()));
 
+        if(currentIllust.isGif()){
+            currentOne.pSize.setText("GIF");
+        } else {
+            if (currentIllust.getPage_count() == 1) {
+                currentOne.pSize.setVisibility(View.GONE);
+            } else {
+                currentOne.pSize.setVisibility(View.VISIBLE);
+                currentOne.pSize.setText(currentIllust.getPage_count() + "P");
+            }
+        }
 
         //从-400 丝滑滑动到0
         currentOne.spring.setCurrentValue(-400);
