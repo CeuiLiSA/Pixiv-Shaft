@@ -206,4 +206,23 @@ public class IllustDownload {
         DownloadTask.enqueue(tempList.toArray(taskArray), new QueueListener());
         Common.showToast(tempList.size() + Shaft.getContext().getString(R.string.has_been_added));
     }
+
+    public static void downloadGif(GifResponse response, IllustsBean allIllust, GifListener gifListener) {
+        File file = FileCreator.createGifZipFile(allIllust);
+        DownloadTask.Builder builder = new DownloadTask.Builder(
+                response.getUgoira_metadata().getZip_urls().getMedium(),
+                file.getParentFile())
+                .setFilename(file.getName())
+                .setMinIntervalMillisCallbackProcess(30)
+                .setPassIfAlreadyCompleted(true);
+        builder.addHeader(MAP_KEY, IMAGE_REFERER);
+        DownloadTask task = builder.build();
+
+        IllustTask illustTask = new IllustTask();
+        illustTask.setDownloadTask(task);
+        illustTask.setIllustsBean(allIllust);
+        GifQueue.get().addTask(illustTask);
+        task.enqueue(gifListener);
+        Common.showToast("图组ZIP已加入下载队列");
+    }
 }

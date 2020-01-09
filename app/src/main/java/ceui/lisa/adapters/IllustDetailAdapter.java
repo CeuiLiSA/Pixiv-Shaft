@@ -128,6 +128,7 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                         for (IllustTask task : GifQueue.get().getTasks()) {
                             if (task.getIllustsBean().getId() == allIllust.getId()) {
                                 isDownloading = true;
+                                //如果正在下载，把当前页面的进度条换上去
                                 currentOne.mProgressBar.setVisibility(View.VISIBLE);
                                 GifListener gifListener = (GifListener) task.getDownloadTask().getListener();
                                 gifListener.bindProgress(currentOne.mProgressBar);
@@ -160,7 +161,7 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                                     GifListener gifListener = new GifListener(allIllust, gifResponse.getDelay());
                                     gifListener.bindProgress(currentOne.mProgressBar);
                                     gifListener.bindListener(onGifPrepared);
-                                    downloadGif(gifResponse, gifListener);
+                                    IllustDownload.downloadGif(gifResponse, allIllust, gifListener);
                                 }
                             }
                         });
@@ -270,24 +271,5 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                         }
                     }
                 });
-    }
-
-    public void downloadGif(GifResponse response, GifListener gifListener) {
-        File file = FileCreator.createGifZipFile(allIllust);
-        DownloadTask.Builder builder = new DownloadTask.Builder(
-                response.getUgoira_metadata().getZip_urls().getMedium(),
-                file.getParentFile())
-                .setFilename(file.getName())
-                .setMinIntervalMillisCallbackProcess(30)
-                .setPassIfAlreadyCompleted(true);
-        builder.addHeader(MAP_KEY, IMAGE_REFERER);
-        DownloadTask task = builder.build();
-
-        IllustTask illustTask = new IllustTask();
-        illustTask.setDownloadTask(task);
-        illustTask.setIllustsBean(allIllust);
-        GifQueue.get().addTask(illustTask);
-        task.enqueue(gifListener);
-        Common.showToast("图组ZIP已加入下载队列");
     }
 }

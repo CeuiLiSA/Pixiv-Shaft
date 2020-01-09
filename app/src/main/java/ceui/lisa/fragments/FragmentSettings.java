@@ -171,23 +171,6 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
             }
         });
 
-        baseBind.gifZip.setText(Shaft.sSettings.getGifZipPath());
-        baseBind.gifZip.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Common.showToast("暂不支持修改");
-            }
-        });
-
-        baseBind.gifUnzip.setText(Shaft.sSettings.getGifUnzipPath());
-        baseBind.gifUnzip.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Common.showToast("暂不支持修改");
-            }
-        });
-
-
         baseBind.fuckChina.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
