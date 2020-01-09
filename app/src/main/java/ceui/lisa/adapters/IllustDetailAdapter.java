@@ -128,7 +128,7 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                         for (IllustTask task : GifQueue.get().getTasks()) {
                             if (task.getIllustsBean().getId() == allIllust.getId()) {
                                 isDownloading = true;
-                                //如果正在下载，把当前页面的进度条换上去
+                                //如果正在下载，更新listener
                                 currentOne.mProgressBar.setVisibility(View.VISIBLE);
                                 GifListener gifListener = (GifListener) task.getDownloadTask().getListener();
                                 gifListener.bindProgress(currentOne.mProgressBar);

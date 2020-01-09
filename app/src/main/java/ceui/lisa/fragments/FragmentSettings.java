@@ -11,6 +11,7 @@ import android.widget.LinearLayout;
 
 import androidx.appcompat.app.AlertDialog;
 
+import com.blankj.utilcode.util.FileUtils;
 import com.blankj.utilcode.util.LanguageUtils;
 import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
@@ -225,6 +226,16 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
                 });
                 AlertDialog alertDialog = builder.create();
                 alertDialog.show();
+            }
+        });
+
+        baseBind.clearGifCache.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (FileUtils.delete(Shaft.sSettings.getGifUnzipPath())) {
+                    Common.showLog(className + Shaft.sSettings.getGifUnzipPath());
+                    Common.showToast("GIF缓存清理成功");
+                }
             }
         });
         baseBind.refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));
