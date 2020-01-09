@@ -85,4 +85,8 @@ public class GifResponse {
             }
         }
     }
+
+    public int getDelay() {
+        return ugoira_metadata.frames.get(0).delay;
+    }
 }

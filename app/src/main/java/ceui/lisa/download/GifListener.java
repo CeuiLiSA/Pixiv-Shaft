@@ -28,16 +28,22 @@ public class GifListener extends DownloadListener1 {
 
     private ProgressBar mProgressBar;
     private IllustsBean mIllustsBean;
+    private OnGifPrepared mOnGifPrepared;
     private int maxValue;
+    private int delay;
 
-    public GifListener(IllustsBean illustsBean, ProgressBar progressBar) {
-        mProgressBar = progressBar;
+    public GifListener(IllustsBean illustsBean, int paramDelay) {
         mIllustsBean = illustsBean;
+        delay = paramDelay;
     }
 
-    public void bind(ProgressBar progressBar) {
+    public void bindProgress(ProgressBar progressBar) {
         mProgressBar = progressBar;
         mProgressBar.setMax(maxValue);
+    }
+
+    public void bindListener(OnGifPrepared onGifPrepared) {
+        mOnGifPrepared = onGifPrepared;
     }
 
     @Override
@@ -89,13 +95,9 @@ public class GifListener extends DownloadListener1 {
                             task.getFilename().substring(0, task.getFilename().length() - 4));
                     Common.showToast("图组ZIP解压完成");
 
-
-                    //通知FragmentSingleIllust 开始播放gif
-                    Channel channel = new Channel();
-                    channel.setReceiver("FragmentSingleIllust");
-                    channel.setObject(mIllustsBean.getId());
-                    channel.setValue(mIllustsBean.getGifDelay());
-                    EventBus.getDefault().post(channel);
+                    if(mOnGifPrepared != null){
+                        mOnGifPrepared.play(delay);
+                    }
 
                     task.getFile().delete();
                 } catch (ZipException e) {
@@ -107,5 +109,9 @@ public class GifListener extends DownloadListener1 {
         }
 
         GifQueue.get().removeTask(illustTask);
+    }
+
+    public interface OnGifPrepared{
+        void play(int delay);
     }
 }

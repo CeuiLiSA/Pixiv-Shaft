@@ -39,7 +39,6 @@ import ceui.lisa.database.IllustTask;
 import ceui.lisa.databinding.FragmentSingleIllustBinding;
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.download.GifCreate;
-import ceui.lisa.download.GifDownload;
 import ceui.lisa.download.GifListener;
 import ceui.lisa.download.GifQueue;
 import ceui.lisa.download.IllustDownload;
@@ -76,7 +75,7 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
 
     public static FragmentSingleIllust newInstance(IllustsBean illustsBean) {
         FragmentSingleIllust fragmentSingleIllust = new FragmentSingleIllust();
-        fragmentSingleIllust.setIllust(illustsBean);
+        fragmentSingleIllust.illust = illustsBean;
         return fragmentSingleIllust;
     }
 
@@ -366,11 +365,11 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
     @Override
     public void onPause() {
         super.onPause();
+        //如果是GIF，停止播放
         if (illust.getType().equals("ugoira") && mDetailAdapter != null) {
-            mDetailAdapter.setPlayGif(false);
+            mDetailAdapter.nowStopGif();
         }
     }
-
 
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
@@ -380,17 +379,13 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
                 insertViewHistory();
             }
             if ("ugoira".equals(illust.getType()) && mDetailAdapter != null) {
-                mDetailAdapter.gifGo();
+                mDetailAdapter.nowPlayGif();
             }
         } else {
             if ("ugoira".equals(illust.getType()) && mDetailAdapter != null) {
-                mDetailAdapter.setPlayGif(false);
+                mDetailAdapter.nowStopGif();
             }
         }
-    }
-
-    public void setIllust(IllustsBean illust) {
-        this.illust = illust;
     }
 
     private void insertViewHistory() {
@@ -404,11 +399,6 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(Channel event) {
-        if (className.contains(event.getReceiver())) {
-            mDetailAdapter.startGif(event.getValue());
-            return;
-        }
-
         if (event.getReceiver().contains("FragmentSingleIllust starIllust")) {
             illust.setIs_bookmarked(true);
             ((FloatingActionButton) parentView.findViewById(R.id.post_like))
@@ -420,12 +410,6 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
                 baseBind.download.setImageResource(R.drawable.ic_has_download);
             }
         }
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
     }
 
     @Override

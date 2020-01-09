@@ -1,5 +1,7 @@
 package ceui.lisa.download;
 
+import android.widget.ProgressBar;
+
 import com.liulishuo.okdownload.DownloadTask;
 import com.liulishuo.okdownload.core.dispatcher.DownloadDispatcher;
 
@@ -10,13 +12,14 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.IllustTask;
+import ceui.lisa.model.GifResponse;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 
 public class IllustDownload {
 
-    private static final String MAP_KEY = "Referer";
-    private static final String IMAGE_REFERER = "https://app-api.pixiv.net/";
+    public static final String MAP_KEY = "Referer";
+    public static final String IMAGE_REFERER = "https://app-api.pixiv.net/";
 
     public static void downloadIllust(IllustsBean illustsBean) {
         if (illustsBean == null) {

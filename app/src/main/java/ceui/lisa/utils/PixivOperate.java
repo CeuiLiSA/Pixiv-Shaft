@@ -5,16 +5,22 @@ import android.content.Context;
 import android.content.Intent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 
+import org.greenrobot.eventbus.EventBus;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.ViewPagerActivity;
+import ceui.lisa.download.FileCreator;
 import ceui.lisa.fragments.FragmentL;
 import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
+import ceui.lisa.model.GifResponse;
 import ceui.lisa.model.IllustSearchResponse;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.NullResponse;
@@ -25,6 +31,7 @@ import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
 import retrofit2.Callback;
 
+import static ceui.lisa.activities.Shaft.sUserModel;
 import static com.blankj.utilcode.util.StringUtils.getString;
 
 
@@ -190,5 +197,12 @@ public class PixivOperate {
                         }
                     }
                 });
+    }
+
+    public static void getGifInfo(IllustsBean illust, ErrorCtrl<GifResponse> errorCtrl) {
+        Retro.getAppApi().getGifPackage(sUserModel.getResponse().getAccess_token(), illust.getId())
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(errorCtrl);
     }
 }

@@ -21,14 +21,12 @@ import io.reactivex.schedulers.Schedulers;
 public class GifCreate {
 
     public static void createGif(IllustsBean illustsBean) {
-
         File parentFile = FileCreator.createGifParentFile(illustsBean);
-        if (parentFile.exists()) {
-            File realGifFile = new File(Shaft.sSettings.getGifResultPath(), illustsBean.getId() + ".gif");
+        if (parentFile.exists() && parentFile.length() > 1024) {
+            File realGifFile = FileCreator.createGifFile(illustsBean);
             if (realGifFile.exists() && realGifFile.length() > 1024) {
                 Common.showToast("gif已存在");
             } else {
-                //Common.showToast("暂不支持保存");
                 Common.showToast("开始生成gif图");
                 final File[] listfile = parentFile.listFiles();
                 try {

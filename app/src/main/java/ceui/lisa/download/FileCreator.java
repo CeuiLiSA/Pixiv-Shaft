@@ -11,13 +11,22 @@ import ceui.lisa.utils.Settings;
 
 public class FileCreator {
 
-    public static File createGifFile(IllustsBean illustsBean) {
+    public static File createGifZipFile(IllustsBean illustsBean) {
         if (illustsBean == null) {
             return null;
         }
 
         return new File(Shaft.sSettings.getGifZipPath(), deleteSpecialWords(
                 illustsBean.getTitle() + "_" + illustsBean.getId() + ".zip"));
+    }
+
+    public static File createGifFile(IllustsBean illustsBean) {
+        if (illustsBean == null) {
+            return null;
+        }
+
+        return new File(Shaft.sSettings.getGifResultPath(), deleteSpecialWords(
+                illustsBean.getTitle() + "_" + illustsBean.getId() + ".gif"));
     }
 
 

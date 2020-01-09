@@ -15,7 +15,7 @@
     <ImageView
         android:layout_width="40dp"
         android:id="@+id/play_gif"
-        android:visibility="gone"
+        android:visibility="invisible"
         android:layout_centerInParent="true"
         android:src="@drawable/ic_play_gif"
         android:layout_height="40dp" />
