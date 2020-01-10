@@ -11,6 +11,7 @@ import android.widget.LinearLayout;
 
 import androidx.appcompat.app.AlertDialog;
 
+import com.blankj.utilcode.util.FileUtils;
 import com.blankj.utilcode.util.LanguageUtils;
 import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
@@ -171,23 +172,6 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
             }
         });
 
-        baseBind.gifZip.setText(Shaft.sSettings.getGifZipPath());
-        baseBind.gifZip.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Common.showToast("暂不支持修改");
-            }
-        });
-
-        baseBind.gifUnzip.setText(Shaft.sSettings.getGifUnzipPath());
-        baseBind.gifUnzip.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Common.showToast("暂不支持修改");
-            }
-        });
-
-
         baseBind.fuckChina.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -233,11 +217,25 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
                             LanguageUtils.applyLanguage(Locale.SIMPLIFIED_CHINESE, "");
                         } else if (which == 1) {
                             LanguageUtils.applyLanguage(Locale.JAPAN, "");
+                        } else if (which == 2) {
+                            LanguageUtils.applyLanguage(Locale.US, "");
+                        } else if (which == 3) {
+                            LanguageUtils.applyLanguage(Locale.TRADITIONAL_CHINESE, "");
                         }
                     }
                 });
                 AlertDialog alertDialog = builder.create();
                 alertDialog.show();
+            }
+        });
+
+        baseBind.clearGifCache.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (FileUtils.delete(Shaft.sSettings.getGifUnzipPath())) {
+                    Common.showLog(className + Shaft.sSettings.getGifUnzipPath());
+                    Common.showToast("GIF缓存清理成功");
+                }
             }
         });
         baseBind.refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));

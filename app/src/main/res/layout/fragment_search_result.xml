@@ -88,10 +88,10 @@
 
         <ImageView
             android:layout_width="wrap_content"
-            android:id="@+id/result"
+            android:id="@+id/no_data"
             android:src="@mipmap/no_data"
             android:scaleType="centerCrop"
-            android:visibility="gone"
+            android:visibility="invisible"
             android:layout_centerInParent="true"
             android:layout_height="wrap_content" />
 

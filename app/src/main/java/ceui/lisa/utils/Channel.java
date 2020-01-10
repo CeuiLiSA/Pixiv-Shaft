@@ -4,6 +4,7 @@ public final class Channel<Target> {
 
     private String receiver;
     private Target object;
+    private int value;
 
     public String getReceiver() {
         return receiver;
@@ -19,5 +20,13 @@ public final class Channel<Target> {
 
     public void setObject(Target target) {
         object = target;
+    }
+
+    public int getValue() {
+        return value;
+    }
+
+    public void setValue(int value) {
+        this.value = value;
     }
 }

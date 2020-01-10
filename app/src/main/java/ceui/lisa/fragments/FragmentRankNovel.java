@@ -9,12 +9,12 @@ import com.scwang.smartrefresh.layout.api.RefreshHeader;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.NAdapter;
+import ceui.lisa.core.NetControl;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyNovelBinding;
 import ceui.lisa.http.Retro;
-import ceui.lisa.core.NetControl;
 import ceui.lisa.model.ListNovelResponse;
-import ceui.lisa.model.NovelBean;
+import ceui.lisa.models.NovelBean;
 import ceui.lisa.utils.Params;
 import io.reactivex.Observable;
 

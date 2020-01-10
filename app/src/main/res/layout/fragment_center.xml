@@ -75,7 +75,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:textColor="@color/white"
-                                android:text="漫画"
+                                android:text="@string/type_manga"
                                 android:shadowColor="#FF000000"
                                 android:shadowDx="2"
                                 android:shadowDy="2"
@@ -124,7 +124,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:textColor="@color/white"
-                                android:text="小说"
+                                android:text="@string/type_novel"
                                 android:layout_margin="10dp"
                                 android:layout_alignParentEnd="true"
                                 android:shadowColor="#FF000000"

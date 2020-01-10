@@ -13,21 +13,14 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
-import com.blankj.utilcode.util.UiMessageUtils;
 import com.google.android.material.tabs.TabLayout;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.CoverActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
-import ceui.lisa.model.IllustsBean;
 
 public class FragmentLeft extends BaseFragment {
-
-    private static final String[] TITLES = new String[]{
-            Shaft.getContext().getString(R.string.recommend_illust),
-            Shaft.getContext().getString(R.string.hot_tag)
-    };
 
     @Override
     void initLayout() {
@@ -36,6 +29,10 @@ public class FragmentLeft extends BaseFragment {
 
     @Override
     View initView(View v) {
+        String[] TITLES = new String[]{
+                Shaft.getContext().getString(R.string.recommend_illust),
+                Shaft.getContext().getString(R.string.hot_tag)
+        };
         Toolbar toolbar = v.findViewById(R.id.toolbar);
         ImageView head = v.findViewById(R.id.head);
         ViewGroup.LayoutParams headParams = head.getLayoutParams();

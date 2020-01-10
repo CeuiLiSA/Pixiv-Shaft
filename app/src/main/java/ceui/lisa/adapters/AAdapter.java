@@ -1,7 +1,6 @@
 package ceui.lisa.adapters;
 
 import android.content.Context;
-import android.text.TextUtils;
 import android.view.ViewGroup;
 
 import com.bumptech.glide.Glide;
@@ -10,8 +9,6 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.RecyArticalBinding;
-import ceui.lisa.databinding.RecyUserEventBinding;
-import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.SpotlightArticlesBean;
 import ceui.lisa.utils.GlideUtil;
 

@@ -8,7 +8,7 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.RecyRankNovelHorizontalBinding;
-import ceui.lisa.model.NovelBean;
+import ceui.lisa.models.NovelBean;
 import ceui.lisa.utils.GlideUtil;
 
 public class NHAdapter extends BaseAdapter<NovelBean, RecyRankNovelHorizontalBinding> {

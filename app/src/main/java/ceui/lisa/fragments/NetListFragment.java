@@ -2,6 +2,7 @@ package ceui.lisa.fragments;
 
 import android.text.TextUtils;
 import android.view.View;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
@@ -22,9 +23,9 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
+import ceui.lisa.core.NetControl;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.interfaces.ListShow;
-import ceui.lisa.core.NetControl;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
@@ -47,6 +48,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
     protected NetControl<Response> mNetControl;
     protected RecyclerView mRecyclerView;
     protected RefreshLayout mRefreshLayout;
+    protected ImageView noData;
     protected Response mResponse;
     protected BaseAdapter<Item, ItemLayout> mAdapter;
     protected List<Item> allItems = new ArrayList<>();
@@ -76,12 +78,20 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
         }
         mRecyclerView = view.findViewById(R.id.recyclerView);
         mRefreshLayout = view.findViewById(R.id.refreshLayout);
+        noData = view.findViewById(R.id.no_data);
         initRecyclerView();
         mNetControl = present();
         mRefreshLayout.setRefreshHeader(mNetControl.enableRefresh() ?
                 mNetControl.getHeader(mContext) : new FalsifyHeader(mContext));
         mRefreshLayout.setRefreshFooter(mNetControl.hasNext() ?
                 mNetControl.getFooter(mContext) : new FalsifyFooter(mContext));
+        noData.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                noData.setVisibility(View.INVISIBLE);
+                mRefreshLayout.autoRefresh();
+            }
+        });
         mRefreshLayout.setOnRefreshListener(new OnRefreshListener() {
             @Override
             public void onRefresh(@NonNull RefreshLayout refreshLayout) {
@@ -93,9 +103,15 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                         public void success(Response response) {
                             mResponse = response;
                             if (response.getList() != null && response.getList().size() != 0) {
+                                mRecyclerView.setVisibility(View.VISIBLE);
+                                noData.setVisibility(View.INVISIBLE);
                                 int lastSize = allItems.size();
                                 allItems.addAll(response.getList());
                                 mAdapter.notifyItemRangeInserted(lastSize, response.getList().size());
+                            } else {
+                                mRecyclerView.setVisibility(View.INVISIBLE);
+                                noData.setVisibility(View.VISIBLE);
+                                noData.setImageResource(R.mipmap.no_data);
                             }
                             nextUrl = response.getNextUrl();
                             if (!TextUtils.isEmpty(nextUrl)) {
@@ -109,6 +125,14 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                         @Override
                         public void must(boolean isSuccess) {
                             mRefreshLayout.finishRefresh(isSuccess);
+                        }
+
+                        @Override
+                        public void onError(Throwable e) {
+                            super.onError(e);
+                            mRecyclerView.setVisibility(View.INVISIBLE);
+                            noData.setVisibility(View.VISIBLE);
+                            noData.setImageResource(R.mipmap.load_error);
                         }
                     });
                 } else {
@@ -140,6 +164,8 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                             mRefreshLayout.finishLoadMore(isSuccess);
                         }
                     });
+                } else {
+                    Common.showToast("没有更多数据啦");
                 }
             }
         });

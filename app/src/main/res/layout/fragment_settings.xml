@@ -643,15 +643,28 @@
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="#e6e6e6"
-                            android:layout_marginStart="@dimen/sixteen_dp"
-                            android:layout_height="1dp">
-
+                            android:background="@color/light_bg"
+                            android:layout_height="20dp">
 
                         </View>
 
                         <RelativeLayout
-                            android:id="@+id/gif_result_path"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:text="缓存"
+                                android:textSize="13sp"
+                                android:textColor="@color/colorPrimary"
+                                android:layout_marginTop="@dimen/eight_dp"
+                                android:layout_marginBottom="@dimen/eight_dp"
+                                android:layout_marginStart="@dimen/sixteen_dp"
+                                android:layout_height="wrap_content" />
+                        </RelativeLayout>
+
+
+                        <RelativeLayout
                             android:layout_width="match_parent"
                             android:background="?android:attr/selectableItemBackground"
                             android:clickable="true"
@@ -659,12 +672,11 @@
 
 
                             <TextView
-                                android:layout_marginStart="@dimen/sixteen_dp"
-                                android:layout_marginTop="@dimen/sixteen_dp"
-                                android:layout_marginBottom="@dimen/six_dp"
-                                android:text="@string/gif_unzip_path"
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="清除图片缓存"
                                 android:textSize="15sp"
-                                android:id="@+id/gif_unzip_s"
+                                android:layout_centerVertical="true"
+                                android:id="@+id/clear_image_cache"
                                 android:textColor="@color/dark_text"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content">
@@ -674,17 +686,17 @@
 
 
                             <TextView
-                                android:layout_marginStart="@dimen/sixteen_dp"
-                                android:layout_marginBottom="@dimen/sixteen_dp"
-                                android:text="/storage/emulated/0/Shaft/SingleImages"
-                                android:layout_below="@+id/gif_unzip_s"
-                                android:textSize="13sp"
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="50M"
+                                android:textSize="14sp"
+                                android:id="@+id/real_image_cache"
+                                android:layout_alignParentEnd="true"
                                 android:textColor="@color/colorPrimary"
-                                android:singleLine="true"
-                                android:ellipsize="start"
-                                android:id="@+id/gif_unzip"
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
+                                android:layout_height="wrap_content">
+
+
+                            </TextView>
 
 
                         </RelativeLayout>
@@ -692,6 +704,7 @@
 
                         <View
                             android:layout_width="match_parent"
+                            android:visibility="visible"
                             android:background="#e6e6e6"
                             android:layout_marginStart="@dimen/sixteen_dp"
                             android:layout_height="1dp">
@@ -701,18 +714,18 @@
 
 
                         <RelativeLayout
-                            android:id="@+id/gif_zip_path"
-                            android:background="?android:attr/selectableItemBackground"
-                            android:clickable="true"
                             android:layout_width="match_parent"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:id="@+id/clear_gif_cache"
+                            android:clickable="true"
                             android:layout_height="match_parent">
 
 
                             <TextView
                                 android:layout_margin="@dimen/sixteen_dp"
-                                android:text="@string/gif_zip_path"
+                                android:text="清除GIF缓存"
                                 android:textSize="15sp"
-                                android:id="@+id/gif_zip_s"
+                                android:layout_centerVertical="true"
                                 android:textColor="@color/dark_text"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content">
@@ -720,18 +733,19 @@
 
                             </TextView>
 
+
                             <TextView
-                                android:layout_marginStart="@dimen/sixteen_dp"
-                                android:layout_marginBottom="@dimen/sixteen_dp"
-                                android:text="/storage/emulated/0/Shaft/SingleImages"
-                                android:layout_below="@+id/gif_zip_s"
-                                android:textSize="13sp"
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="200M"
+                                android:textSize="14sp"
+                                android:id="@+id/real_gif_cache"
+                                android:layout_alignParentEnd="true"
                                 android:textColor="@color/colorPrimary"
-                                android:singleLine="true"
-                                android:ellipsize="start"
-                                android:id="@+id/gif_zip"
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
+                                android:layout_height="wrap_content">
+
+
+                            </TextView>
 
 
                         </RelativeLayout>

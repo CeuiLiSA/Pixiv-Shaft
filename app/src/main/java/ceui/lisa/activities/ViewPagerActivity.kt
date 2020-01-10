@@ -5,7 +5,7 @@ import androidx.fragment.app.FragmentPagerAdapter
 import ceui.lisa.R
 import ceui.lisa.databinding.ActivityViewPagerBinding
 import ceui.lisa.fragments.FragmentSingleIllust
-import ceui.lisa.model.IllustsBean
+import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.DataChannel
 import com.ToxicBakery.viewpager.transforms.DrawerTransformer
 import java.util.*

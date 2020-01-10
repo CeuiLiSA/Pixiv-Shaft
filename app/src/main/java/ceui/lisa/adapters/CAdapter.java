@@ -15,7 +15,7 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.RecyCommentListBinding;
-import ceui.lisa.model.CommentsBean;
+import ceui.lisa.models.CommentsBean;
 import ceui.lisa.utils.GlideUtil;
 
 /**

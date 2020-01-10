@@ -13,4 +13,5 @@ public class Params {
     public static final String URL              = "url";
     public static final String MANGA              = "is manga";
     public static final String SHOW_DIALOG              = "show dialog";
+    public static final String USER_MODEL              = "user model";
 }

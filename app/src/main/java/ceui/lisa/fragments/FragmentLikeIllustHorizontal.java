@@ -5,8 +5,9 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.LinearSnapHelper;
 import androidx.recyclerview.widget.PagerSnapHelper;
+
+import com.github.ybq.android.spinkit.style.Wave;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,9 +20,9 @@ import ceui.lisa.databinding.FragmentLikeIllustHorizontalBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
-import ceui.lisa.model.UserDetailResponse;
+import ceui.lisa.models.IllustsBean;
+import ceui.lisa.models.UserDetailResponse;
 import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Params;
@@ -55,6 +56,9 @@ public class FragmentLikeIllustHorizontal extends BaseBindFragment<FragmentLikeI
 
     @Override
     public void initView(View view) {
+        Wave wave = new Wave();
+        wave.setColor(getResources().getColor(R.color.colorPrimary));
+        baseBind.progress.setIndeterminateDrawable(wave);
         baseBind.recyclerView.addItemDecoration(new
                 LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
         FadeInLeftAnimator landingAnimator = new FadeInLeftAnimator();
@@ -139,6 +143,11 @@ public class FragmentLikeIllustHorizontal extends BaseBindFragment<FragmentLikeI
                                 allItems.addAll(listIllustResponse.getList());
                             }
                             mAdapter.notifyItemRangeInserted(0, allItems.size());
+                        }
+
+                        @Override
+                        public void must(boolean isSuccess) {
+                            baseBind.progress.setVisibility(View.INVISIBLE);
                         }
                     });
         }

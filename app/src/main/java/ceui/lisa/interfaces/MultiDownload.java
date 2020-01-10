@@ -6,7 +6,7 @@ import android.content.Intent;
 import java.util.List;
 
 import ceui.lisa.activities.TemplateActivity;
-import ceui.lisa.model.IllustsBean;
+import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.DataChannel;
 
 public interface MultiDownload {

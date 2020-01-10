@@ -33,12 +33,14 @@
         <com.scwang.smartrefresh.layout.SmartRefreshLayout
             android:layout_width="match_parent"
             android:id="@+id/refreshLayout"
+            android:background="@color/white"
             android:layout_above="@+id/bottom_rela"
             android:layout_below="@+id/toolbar"
             android:layout_height="match_parent">
 
             <androidx.recyclerview.widget.RecyclerView
                 android:layout_width="match_parent"
+                android:background="@color/white"
                 android:id="@+id/recyclerView"
                 android:layout_height="match_parent">
 
@@ -110,6 +112,15 @@
             android:layout_height="wrap_content">
 
         </ProgressBar>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:id="@+id/no_data"
+            android:visibility="invisible"
+            android:src="@mipmap/no_data"
+            android:layout_centerInParent="true"
+            android:scaleType="centerCrop"
+            android:layout_height="wrap_content" />
 
     </RelativeLayout>
 </layout>

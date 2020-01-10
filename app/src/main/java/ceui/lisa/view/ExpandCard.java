@@ -2,108 +2,90 @@ package ceui.lisa.view;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.cardview.widget.CardView;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.facebook.rebound.SimpleSpringListener;
+import com.facebook.rebound.Spring;
+import com.facebook.rebound.SpringConfig;
+import com.facebook.rebound.SpringSystem;
+
+import ceui.lisa.key.XHAnim;
 import ceui.lisa.utils.Common;
+
+import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
 public class ExpandCard extends CardView {
 
-    private boolean isExpand = false;
+    private boolean isExpand = true;//默认展开
     private int maxHeight = 0;
-    private boolean autoHeight = true;
-    private int realHeight = 0;
     private Context mContext;
+
+    private void init(Context pContext) {
+        mContext = pContext;
+        maxHeight = (mContext.getResources().getDisplayMetrics().heightPixels) * 7 / 10;
+    }
 
     public ExpandCard(@NonNull Context context) {
         super(context);
-        mContext = context;
-        maxHeight = (mContext.getResources().getDisplayMetrics().heightPixels) * 7 / 10;
+        init(context);
     }
 
     public ExpandCard(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        mContext = context;
-        maxHeight = (mContext.getResources().getDisplayMetrics().heightPixels) * 7 / 10;
+        init(context);
     }
 
     public ExpandCard(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        mContext = context;
-        maxHeight = (mContext.getResources().getDisplayMetrics().heightPixels) * 7 / 10;
+        init(context);
     }
 
-    public boolean isAutoHeight() {
-        return autoHeight;
-    }
+    public void open() {
+        if(isExpand){
+            return;
+        }
 
-    public void setAutoHeight(boolean autoHeight) {
-        this.autoHeight = autoHeight;
-    }
-
-    public int getRealHeight() {
-        return realHeight;
-    }
-
-    public void setRealHeight(int realHeight) {
-        this.realHeight = realHeight;
-    }
-
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        if (isAutoHeight()) {
-
-        } else {
-            if (isExpand) {
-
-            } else {
-                setMeasuredDimension(widthMeasureSpec, getSize(heightMeasureSpec));
+        ViewGroup.LayoutParams layoutParams = getLayoutParams();
+        layoutParams.height = WRAP_CONTENT;
+        for (int i = 0; i < getChildCount(); i++) {
+            if (getChildAt(i) instanceof RecyclerView) {
+                final RecyclerView recyclerView = ((RecyclerView) getChildAt(i));
+                if (recyclerView.getLayoutManager() instanceof ScrollChange) {
+                    ((ScrollChange) recyclerView.getLayoutManager()).setScrollEnabled(true);
+                    break;
+                }
             }
         }
+        setLayoutParams(layoutParams);
+        isExpand = true;
     }
 
-    private int getSize(int measureSpec) {
-        int result = 0;
-        int specMode = MeasureSpec.getMode(measureSpec);
-        int specSize = MeasureSpec.getSize(measureSpec);
-        switch (specMode) {
-            case MeasureSpec.EXACTLY:
-                //当layout_width与layout_height　match_parent 为固定数值走这里
-                result = maxHeight;
-                Common.showLog("ExpandCard EXACTLY ");
-                break;
-            case MeasureSpec.AT_MOST:
-                //当layout_width与layout_height定义为 wrap_content　就走这里
-                result = Math.min(maxHeight, specSize);
-                Common.showLog("ExpandCard AT_MOST ");
-                break;
-            case MeasureSpec.UNSPECIFIED:
-                //如果没有指定大小
-                result = Math.min(maxHeight, realHeight);
-                Common.showLog("ExpandCard UNSPECIFIED ");
-                break;
+    public void close(boolean hasAnime) {
+        hasAnime = false;
+        if(isExpand){
+            ViewGroup.LayoutParams layoutParams = getLayoutParams();
+            layoutParams.height = maxHeight;
+            for (int i = 0; i < getChildCount(); i++) {
+                if (getChildAt(i) instanceof RecyclerView) {
+                    final RecyclerView recyclerView = ((RecyclerView) getChildAt(i));
+                    if (recyclerView.getLayoutManager() instanceof ScrollChange) {
+                        ((ScrollChange) recyclerView.getLayoutManager()).setScrollEnabled(false);
+                    }
+                }
+            }
+            setLayoutParams(layoutParams);
+            isExpand = false;
         }
-        return result;
     }
 
     public boolean isExpand() {
         return isExpand;
     }
 
-    public void setExpand(boolean expand) {
-        isExpand = expand;
-    }
-
-
-    public int getMaxHeight() {
-        return maxHeight;
-    }
-
-    public void setMaxHeight(int maxHeight) {
-        this.maxHeight = maxHeight;
-    }
 }

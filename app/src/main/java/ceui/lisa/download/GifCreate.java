@@ -2,10 +2,7 @@ package ceui.lisa.download;
 
 import com.lchad.gifflen.Gifflen;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -13,7 +10,7 @@ import java.util.List;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.http.ErrorCtrl;
-import ceui.lisa.model.IllustsBean;
+import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
@@ -24,19 +21,19 @@ import io.reactivex.schedulers.Schedulers;
 public class GifCreate {
 
     public static void createGif(IllustsBean illustsBean) {
-
         File parentFile = FileCreator.createGifParentFile(illustsBean);
-        if (parentFile.exists()) {
-            File realGifFile = new File(Shaft.sSettings.getGifResultPath(), illustsBean.getId() + ".gif");
-            if (realGifFile.exists()) {
+        if (parentFile.exists() && parentFile.length() > 1024) {
+            File realGifFile = FileCreator.createGifFile(illustsBean);
+            if (realGifFile.exists() && realGifFile.length() > 1024) {
                 Common.showToast("gif已存在");
             } else {
                 Common.showToast("开始生成gif图");
                 final File[] listfile = parentFile.listFiles();
-                Observable.create(new ObservableOnSubscribe<String>() {
-                    @Override
-                    public void subscribe(ObservableEmitter<String> emitter) throws Exception {
-                        try {
+                try {
+                    Observable.create(new ObservableOnSubscribe<String>() {
+                        @Override
+                        public void subscribe(ObservableEmitter<String> emitter) throws Exception {
+
                             Gifflen mGiffle = new Gifflen.Builder()
                                     .delay(85) //每相邻两帧之间播放的时间间隔.
                                     .listener(new Gifflen.OnEncodeFinishListener() {  //创建完毕的回调
@@ -87,56 +84,21 @@ public class GifCreate {
                             } else {
                                 mGiffle.encode(illustsBean.getWidth(), illustsBean.getHeight(), realGifFile.getPath(), allFiles);
                             }
-
-                        } catch (Exception e) {
-                            e.printStackTrace();
                         }
+                    }).subscribeOn(Schedulers.newThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new ErrorCtrl<String>() {
+                                @Override
+                                public void onNext(String s) {
 
-                    }
-                }).subscribeOn(Schedulers.newThread())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(new ErrorCtrl<String>() {
-                            @Override
-                            public void onNext(String s) {
-
-                            }
-                        });
+                                }
+                            });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         } else {
             Common.showToast("请先播放后保存");
         }
     }
-
-    public static int[][] txtString(FileReader file) {
-        BufferedReader br = new BufferedReader(file);//读取文件
-        try {
-            String line = br.readLine();//读取一行数据
-            int lines = Integer.parseInt(line);//将数据转化为int类型
-            System.out.println(lines);
-
-            String[] sp = null;
-            String[][] c = new String[lines][lines];
-            int[][] cc = new int[lines][lines];
-            int count = 0;
-            while ((line = br.readLine()) != null) {//按行读取
-                sp = line.split(" ");//按空格进行分割
-                for (int i = 0; i < sp.length; i++) {
-                    c[count][i] = sp[i];
-                }
-                count++;
-            }
-            for (int i = 0; i < lines; i++) {
-                for (int j = 0; j < lines; j++) {
-                    cc[i][j] = Integer.parseInt(c[i][j]);
-                    System.out.print(cc[i][j]);
-                }
-                System.out.println();
-            }
-            return cc;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return new int[0][];
-    }
-
 }

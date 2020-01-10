@@ -3,6 +3,7 @@ package ceui.lisa.model;
 import java.util.List;
 
 import ceui.lisa.interfaces.ListShow;
+import ceui.lisa.models.UserPreviewsBean;
 
 public class ListUserResponse implements ListShow<UserPreviewsBean> {
 

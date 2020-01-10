@@ -25,7 +25,7 @@ import ceui.lisa.fragments.FragmentLikeNovelHorizontal;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.Display;
-import ceui.lisa.model.UserDetailResponse;
+import ceui.lisa.models.UserDetailResponse;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;

@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.fragments.FragmentL;
-import ceui.lisa.model.UserModel;
+import ceui.lisa.models.UserModel;
 import ceui.lisa.utils.Local;
 import okhttp3.Interceptor;
 import okhttp3.Request;

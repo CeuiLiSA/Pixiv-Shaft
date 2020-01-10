@@ -298,6 +298,30 @@ public class FragmentSearch extends BaseBindFragment<FragmentSearchBinding> {
                 return tv;
             }
         });
+        if (history != null && history.size() != 0) {
+            baseBind.clearHistory.setVisibility(View.VISIBLE);
+            baseBind.clearHistory.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+                    builder.setTitle("Shaft 提示");
+                    builder.setMessage("这将会删除所有的本地搜索历史");
+                    builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().deleteAll();
+                            Common.showToast("搜索历史删除成功");
+                            onResume();
+                        }
+                    });
+                    builder.setNegativeButton("取消", null);
+                    AlertDialog alertDialog = builder.create();
+                    alertDialog.show();
+                }
+            });
+        } else {
+            baseBind.clearHistory.setVisibility(View.INVISIBLE);
+        }
         baseBind.searchHistory.setOnTagClickListener(new TagFlowLayout.OnTagClickListener() {
             @Override
             public boolean onTagClick(View view, int position, FlowLayout parent) {

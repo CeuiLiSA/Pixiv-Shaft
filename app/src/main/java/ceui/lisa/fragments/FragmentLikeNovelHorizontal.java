@@ -7,7 +7,6 @@ import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.LinearSnapHelper;
 import androidx.recyclerview.widget.PagerSnapHelper;
 
 import java.util.ArrayList;
@@ -21,8 +20,8 @@ import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListNovelResponse;
-import ceui.lisa.model.NovelBean;
-import ceui.lisa.model.UserDetailResponse;
+import ceui.lisa.models.NovelBean;
+import ceui.lisa.models.UserDetailResponse;
 import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Params;
@@ -55,6 +54,7 @@ public class FragmentLikeNovelHorizontal extends BaseBindFragment<FragmentLikeIl
 
     @Override
     public void initView(View view) {
+        baseBind.progress.setVisibility(View.INVISIBLE);
         baseBind.rootParentView.setVisibility(View.GONE);
         baseBind.recyclerView.addItemDecoration(new
                 LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
@@ -98,7 +98,7 @@ public class FragmentLikeNovelHorizontal extends BaseBindFragment<FragmentLikeIl
                 Intent intent = new Intent(mContext, TemplateActivity.class);
                 intent.putExtra(Params.INDEX, position);
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情");
-                intent.putExtra("hideStatusBar", false);
+                intent.putExtra("hideStatusBar", true);
                 startActivity(intent);
             }
         });
@@ -115,7 +115,7 @@ public class FragmentLikeNovelHorizontal extends BaseBindFragment<FragmentLikeIl
 
     @Override
     void initData() {
-        Observable<ListNovelResponse> mApi = null;
+        Observable<ListNovelResponse> mApi;
         if (type == 0) {
             mApi = Retro.getAppApi().getUserLikeNovel(sUserModel.getResponse().getAccess_token(),
                     mUserDetailResponse.getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC);

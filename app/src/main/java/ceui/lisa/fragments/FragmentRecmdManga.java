@@ -23,16 +23,16 @@ import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapter;
 import ceui.lisa.adapters.RAdapter;
+import ceui.lisa.core.NetControl;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustRecmdEntity;
 import ceui.lisa.databinding.FragmentRecmdBinding;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
-import ceui.lisa.core.NetControl;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.model.IllustsBean;
 import ceui.lisa.model.ListIllustResponse;
+import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Dev;
@@ -69,9 +69,9 @@ public class FragmentRecmdManga extends NetListFragment<FragmentRecmdBinding,
         return new NetControl<ListIllustResponse>() {
             @Override
             public Observable<ListIllustResponse> initApi() {
-                if(Dev.isDev){
+                if (Dev.isDev) {
                     return null;
-                }else {
+                } else {
                     adapter.clear();
                     if ("漫画".equals(dataType)) {
                         return Retro.getAppApi().getRecmdManga(Shaft.sUserModel.getResponse().getAccess_token());

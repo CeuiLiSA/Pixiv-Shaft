@@ -56,28 +56,40 @@
                         android:layout_marginBottom="@dimen/eight_dp"
                         android:layout_height="wrap_content">
 
-                        <androidx.recyclerview.widget.RecyclerView
-                            android:layout_width="match_parent"
-                            android:id="@+id/recyclerView"
-                            android:background="@color/light_bg"
-                            android:layout_height="match_parent">
-
-                        </androidx.recyclerview.widget.RecyclerView>
 
 
-                        <TextView
+                            <androidx.recyclerview.widget.RecyclerView
+                                android:layout_width="match_parent"
+                                android:id="@+id/recyclerView"
+                                android:background="@color/light_bg"
+                                android:layout_height="match_parent">
+
+                            </androidx.recyclerview.widget.RecyclerView>
+
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_alignBottom="@+id/user_background"
+                                android:layout_height="48dp"
+                                android:layout_alignParentBottom="true"
+                                android:id="@+id/dark_blank"
+                                android:layout_gravity="bottom"
+                                android:background="@drawable/black_gradient" />
+
+                        <Button
+                            android:id="@+id/see_all"
+                            style="@android:style/Widget.DeviceDefault.Button.Borderless.Small"
                             android:layout_width="wrap_content"
-                            android:textSize="14sp"
-                            android:layout_margin="@dimen/twelve_dp"
-                            android:textColor="@android:color/white"
-                            android:textStyle="bold"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="end|bottom"
                             android:shadowColor="#FF000000"
                             android:shadowDx="1.5"
                             android:shadowDy="1.5"
                             android:shadowRadius="1.5"
-                            android:layout_gravity="bottom|end"
-                            android:id="@+id/see_all"
-                            android:layout_height="wrap_content" />
+                            android:text="点击展开"
+                            android:textColor="@android:color/white"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
 
                     </ceui.lisa.view.ExpandCard>
 

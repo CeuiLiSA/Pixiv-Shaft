@@ -23,9 +23,9 @@ import ceui.lisa.dialogs.AddTagDialog;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.model.BookmarkTagsBean;
-import ceui.lisa.model.IllustBookmarkTags;
-import ceui.lisa.model.NullResponse;
+import ceui.lisa.model.IllustBookmarkTagsResponse;
+import ceui.lisa.models.BookmarkTagsBean;
+import ceui.lisa.models.NullResponse;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
@@ -34,7 +34,7 @@ import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
-public class FragmentSelectBookTag extends BaseListFragment<IllustBookmarkTags, SelectTagAdapter, BookmarkTagsBean> {
+public class FragmentSelectBookTag extends BaseListFragment<IllustBookmarkTagsResponse, SelectTagAdapter, BookmarkTagsBean> {
 
     private int illustID;
     private Switch mSwitch;
@@ -113,7 +113,7 @@ public class FragmentSelectBookTag extends BaseListFragment<IllustBookmarkTags, 
 
     }
 
-    private void setFollowed(){
+    private void setFollowed() {
         Channel channel = new Channel();
         channel.setReceiver("FragmentSingleIllust starIllust");
         channel.setObject(illustID);
@@ -128,12 +128,12 @@ public class FragmentSelectBookTag extends BaseListFragment<IllustBookmarkTags, 
     }
 
     @Override
-    Observable<IllustBookmarkTags> initApi() {
+    Observable<IllustBookmarkTagsResponse> initApi() {
         return Retro.getAppApi().getIllustBookmarkTags(Shaft.sUserModel.getResponse().getAccess_token(), illustID);
     }
 
     @Override
-    Observable<IllustBookmarkTags> initNextApi() {
+    Observable<IllustBookmarkTagsResponse> initNextApi() {
         return null;
     }
 

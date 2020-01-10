@@ -15,18 +15,19 @@
     <ImageView
         android:layout_width="40dp"
         android:id="@+id/play_gif"
-        android:visibility="gone"
+        android:visibility="invisible"
         android:layout_centerInParent="true"
         android:src="@drawable/ic_play_gif"
         android:layout_height="40dp" />
 
 
     <ProgressBar
-        android:layout_width="wrap_content"
         android:id="@+id/gif_progress"
-        android:visibility="gone"
-        android:layout_centerInParent="true"
-        android:layout_height="wrap_content" />
+        android:visibility="invisible"
+        style="@android:style/Widget.DeviceDefault.Light.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true" />
 
 
 </RelativeLayout>

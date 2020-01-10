@@ -19,7 +19,7 @@ import ceui.lisa.R;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.interfaces.MultiDownload;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.model.IllustsBean;
+import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.GlideUtil;
 
 public class MultiDownloadAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements MultiDownload {

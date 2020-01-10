@@ -2,12 +2,12 @@ package ceui.lisa.fragments;
 
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.NAdapter;
+import ceui.lisa.core.NetControl;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyNovelBinding;
 import ceui.lisa.http.Retro;
-import ceui.lisa.core.NetControl;
 import ceui.lisa.model.ListNovelResponse;
-import ceui.lisa.model.NovelBean;
+import ceui.lisa.models.NovelBean;
 import io.reactivex.Observable;
 
 import static ceui.lisa.activities.Shaft.sUserModel;

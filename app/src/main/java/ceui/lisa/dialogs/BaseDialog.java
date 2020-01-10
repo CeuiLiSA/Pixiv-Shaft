@@ -15,7 +15,7 @@ import androidx.databinding.DataBindingUtil;
 import androidx.databinding.ViewDataBinding;
 import androidx.fragment.app.DialogFragment;
 
-import ceui.lisa.model.UserModel;
+import ceui.lisa.models.UserModel;
 import ceui.lisa.utils.Local;
 
 public abstract class BaseDialog<Layout extends ViewDataBinding> extends DialogFragment {

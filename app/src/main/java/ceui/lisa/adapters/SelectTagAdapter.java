@@ -15,7 +15,7 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.model.BookmarkTagsBean;
+import ceui.lisa.models.BookmarkTagsBean;
 
 
 /**

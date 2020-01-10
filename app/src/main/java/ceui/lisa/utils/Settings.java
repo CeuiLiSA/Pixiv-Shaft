@@ -18,7 +18,7 @@ public class Settings {
     public static final String FILE_LOG_PATH = PathUtils.getInternalAppFilesPath();
 
     //下载的GIF 压缩包解压之后的结果存放在这里
-    public static final String FILE_GIF_CHILD_PATH = PathUtils.getInternalAppCachePath();
+    public static final String FILE_GIF_CHILD_PATH = PathUtils.getExternalAppCachePath();
 
     //已制作好的GIF存放在这里
     public static final String FILE_GIF_RESULT_PATH = PathUtils.getExternalPicturesPath() + "/ShaftGIFs";

@@ -4,7 +4,7 @@ import ceui.lisa.R;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.FragmentAboutUserBinding;
 import ceui.lisa.interfaces.Display;
-import ceui.lisa.model.UserDetailResponse;
+import ceui.lisa.models.UserDetailResponse;
 import ceui.lisa.utils.Common;
 
 public class FragmentAboutUser extends BaseBindFragment<FragmentAboutUserBinding> implements

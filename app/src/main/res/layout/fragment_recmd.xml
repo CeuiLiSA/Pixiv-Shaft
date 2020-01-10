@@ -31,6 +31,7 @@
             android:layout_width="match_parent"
             android:id="@+id/refreshLayout"
             android:layout_below="@+id/toolbar"
+            android:background="@color/white"
             android:layout_height="match_parent">
 
             <androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -112,7 +113,7 @@
                                 android:layout_width="wrap_content"
                                 android:textColor="#2c333c"
                                 android:textSize="15sp"
-                                android:text="为你推荐"
+                                android:text="@string/recmd_for_you"
                                 android:layout_marginTop="@dimen/six_dp"
                                 android:textStyle="bold"
                                 android:layout_toEndOf="@+id/image_recmd"
@@ -134,10 +135,25 @@
                     android:layout_width="match_parent"
                     app:layout_behavior="@string/appbar_scrolling_view_behavior"
                     android:fadeScrollbars="false"
+                    android:background="@color/white"
                     android:id="@+id/recyclerView"
                     android:layout_height="match_parent">
 
                 </androidx.recyclerview.widget.RecyclerView>
+
+
+                <ImageView
+                    android:id="@+id/no_data"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:scaleType="centerCrop"
+                    android:src="@mipmap/no_data"
+                    android:visibility="invisible"
+                    app:layout_anchor="@+id/recyclerView"
+                    app:layout_anchorGravity="center" />
+
+
             </androidx.coordinatorlayout.widget.CoordinatorLayout>
         </com.scwang.smartrefresh.layout.SmartRefreshLayout>
     </RelativeLayout>

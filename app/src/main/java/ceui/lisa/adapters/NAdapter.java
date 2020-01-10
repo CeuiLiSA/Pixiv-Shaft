@@ -15,7 +15,7 @@ import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.RecyNovelBinding;
 import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.model.NovelBean;
+import ceui.lisa.models.NovelBean;
 import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
@@ -86,7 +86,7 @@ public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
                     Intent intent = new Intent(mContext, TemplateActivity.class);
                     intent.putExtra(Params.INDEX, position);
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情");
-                    intent.putExtra("hideStatusBar", false);
+                    intent.putExtra("hideStatusBar", true);
                     mContext.startActivity(intent);
                 } else if (viewType == 1) {
                     PixivOperate.postLikeNovel(allIllust.get(position), Shaft.sUserModel,

@@ -10,7 +10,7 @@ import java.util.Collections;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.ViewPagerActivity;
-import ceui.lisa.model.IllustsBean;
+import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.GlideUtil;
 

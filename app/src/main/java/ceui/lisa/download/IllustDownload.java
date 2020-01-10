@@ -1,5 +1,7 @@
 package ceui.lisa.download;
 
+import android.widget.ProgressBar;
+
 import com.liulishuo.okdownload.DownloadTask;
 import com.liulishuo.okdownload.core.dispatcher.DownloadDispatcher;
 
@@ -10,13 +12,14 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.IllustTask;
-import ceui.lisa.model.IllustsBean;
+import ceui.lisa.model.GifResponse;
+import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 
 public class IllustDownload {
 
-    private static final String MAP_KEY = "Referer";
-    private static final String IMAGE_REFERER = "https://app-api.pixiv.net/";
+    public static final String MAP_KEY = "Referer";
+    public static final String IMAGE_REFERER = "https://app-api.pixiv.net/";
 
     public static void downloadIllust(IllustsBean illustsBean) {
         if (illustsBean == null) {
@@ -202,5 +205,24 @@ public class IllustDownload {
         DownloadTask[] taskArray = new DownloadTask[tempList.size()];
         DownloadTask.enqueue(tempList.toArray(taskArray), new QueueListener());
         Common.showToast(tempList.size() + Shaft.getContext().getString(R.string.has_been_added));
+    }
+
+    public static void downloadGif(GifResponse response, IllustsBean allIllust, GifListener gifListener) {
+        File file = FileCreator.createGifZipFile(allIllust);
+        DownloadTask.Builder builder = new DownloadTask.Builder(
+                response.getUgoira_metadata().getZip_urls().getMedium(),
+                file.getParentFile())
+                .setFilename(file.getName())
+                .setMinIntervalMillisCallbackProcess(30)
+                .setPassIfAlreadyCompleted(true);
+        builder.addHeader(MAP_KEY, IMAGE_REFERER);
+        DownloadTask task = builder.build();
+
+        IllustTask illustTask = new IllustTask();
+        illustTask.setDownloadTask(task);
+        illustTask.setIllustsBean(allIllust);
+        GifQueue.get().addTask(illustTask);
+        task.enqueue(gifListener);
+        Common.showToast("图组ZIP已加入下载队列");
     }
 }

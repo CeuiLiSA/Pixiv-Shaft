@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.List;
 
 import ceui.lisa.interfaces.ListShow;
+import ceui.lisa.models.NovelBean;
 
 public class ListNovelResponse implements ListShow<NovelBean>, Serializable {
 

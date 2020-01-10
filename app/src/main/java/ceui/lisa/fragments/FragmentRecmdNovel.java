@@ -18,13 +18,13 @@ import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.NAdapter;
 import ceui.lisa.adapters.NHAdapter;
+import ceui.lisa.core.NetControl;
 import ceui.lisa.databinding.FragmentRecmdBinding;
 import ceui.lisa.databinding.RecyNovelBinding;
 import ceui.lisa.http.Retro;
-import ceui.lisa.core.NetControl;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListNovelResponse;
-import ceui.lisa.model.NovelBean;
+import ceui.lisa.models.NovelBean;
 import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Params;
@@ -94,7 +94,7 @@ public class FragmentRecmdNovel extends NetListFragment<FragmentRecmdBinding,
                 Intent intent = new Intent(mContext, TemplateActivity.class);
                 intent.putExtra(Params.INDEX, position);
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情");
-                intent.putExtra("hideStatusBar", false);
+                intent.putExtra("hideStatusBar", true);
                 startActivity(intent);
             }
         });

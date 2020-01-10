@@ -27,9 +27,10 @@ import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ErrorResponse;
-import ceui.lisa.model.SignResponse;
-import ceui.lisa.model.UserModel;
+import ceui.lisa.models.SignResponse;
+import ceui.lisa.models.UserModel;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -72,6 +73,10 @@ public class FragmentL extends BaseBindFragment<ActivityLoginBinding> {
             baseBind.userName.setText(Shaft.sUserModel.getResponse().getUser().getAccount());
             baseBind.password.requestFocus();
         }
+        if (Dev.isDev) {
+            baseBind.userName.setText(Dev.USER_ACCOUNT);
+            baseBind.password.setText(Dev.USER_PWD);
+        }
         baseBind.login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -112,7 +117,7 @@ public class FragmentL extends BaseBindFragment<ActivityLoginBinding> {
 
     @Override
     void initData() {
-        if(Local.getBoolean(Params.SHOW_DIALOG, true)){
+        if (Local.getBoolean(Params.SHOW_DIALOG, true)) {
             Avoid251Dialog avoid251Dialog = new Avoid251Dialog();
             avoid251Dialog.show(getChildFragmentManager(), "Avoid251Dialog");
         }

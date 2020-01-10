@@ -7,7 +7,7 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.RecyBookTagBinding;
-import ceui.lisa.model.BookmarkTagsBean;
+import ceui.lisa.models.BookmarkTagsBean;
 
 public class BAdapter extends BaseAdapter<BookmarkTagsBean, RecyBookTagBinding> {
 

@@ -19,11 +19,11 @@ import ceui.lisa.R;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.MultiDownloadAdapter;
-import ceui.lisa.core.TextWritter;
+import ceui.lisa.core.TextWriter;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.model.IllustsBean;
+import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.DensityUtil;
@@ -152,7 +152,7 @@ public class FragmentMultiDownload extends BaseAsyncFragment<MultiDownloadAdapte
             if (TextUtils.isEmpty(result)) {
                 Common.showToast("没有选择任何作品");
             } else {
-                TextWritter.writeToTxt(System.currentTimeMillis() + "_log.txt",
+                TextWriter.writeToTxt(System.currentTimeMillis() + "_download_tasks.txt",
                         result, new Callback<File>() {
                             @Override
                             public void doSomething(File t) {

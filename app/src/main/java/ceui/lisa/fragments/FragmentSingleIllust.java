@@ -11,14 +11,15 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.appcompat.widget.Toolbar;
-import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
+import com.liulishuo.okdownload.core.listener.DownloadListener1;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
 
+import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
@@ -34,16 +35,18 @@ import ceui.lisa.activities.UActivity;
 import ceui.lisa.adapters.IllustDetailAdapter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustHistoryEntity;
+import ceui.lisa.database.IllustTask;
 import ceui.lisa.databinding.FragmentSingleIllustBinding;
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.download.GifCreate;
-import ceui.lisa.download.GifDownload;
+import ceui.lisa.download.GifListener;
+import ceui.lisa.download.GifQueue;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.GifResponse;
-import ceui.lisa.model.IllustsBean;
+import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
@@ -52,6 +55,7 @@ import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.ShareIllust;
 import ceui.lisa.view.LinearItemDecorationNoLRTB;
+import ceui.lisa.view.ScrollChange;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 import jp.wasabeef.glide.transformations.BlurTransformation;
@@ -71,7 +75,7 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
 
     public static FragmentSingleIllust newInstance(IllustsBean illustsBean) {
         FragmentSingleIllust fragmentSingleIllust = new FragmentSingleIllust();
-        fragmentSingleIllust.setIllust(illustsBean);
+        fragmentSingleIllust.illust = illustsBean;
         return fragmentSingleIllust;
     }
 
@@ -96,8 +100,8 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
                     intent.putExtra("dataType", "二级详情");
                     intent.putExtra("index", position);
                     startActivity(intent);
-                } else if (viewType == 1) {
-                    getGifUrl();
+                } else if(viewType == 1){
+
                 }
             }
         });
@@ -157,7 +161,13 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
         if (file.exists()) {
             baseBind.download.setImageResource(R.drawable.ic_has_download);
         }
-
+        baseBind.userName.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Common.copy(mContext, String.valueOf(illust.getUser().getName()));
+                return true;
+            }
+        });
         baseBind.related.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -269,7 +279,7 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
         baseBind.illustView.setText(String.valueOf(illust.getTotal_view()));
         baseBind.illustLike.setText(String.valueOf(illust.getTotal_bookmarks()));
 
-        LinearLayoutManager layoutManager = new LinearLayoutManager(mContext);
+        ScrollChange layoutManager = new ScrollChange(mContext);
         baseBind.recyclerView.setLayoutManager(layoutManager);
         baseBind.recyclerView.setNestedScrollingEnabled(true);
         baseBind.recyclerView.addItemDecoration(new LinearItemDecorationNoLRTB(DensityUtil.dp2px(1.0f)));
@@ -328,28 +338,37 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
                 Common.copy(mContext, String.valueOf(illust.getId()));
             }
         });
+        if (illust.getPage_count() == 1) {
+            baseBind.darkBlank.setVisibility(View.INVISIBLE);
+            baseBind.seeAll.setVisibility(View.INVISIBLE);
+            baseBind.illustList.open();
+        } else {
+            baseBind.darkBlank.setVisibility(View.VISIBLE);
+            baseBind.seeAll.setVisibility(View.VISIBLE);
+            baseBind.illustList.close(false);
+            baseBind.seeAll.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (baseBind.illustList.isExpand()) {
+                        baseBind.illustList.close(true);
+                        baseBind.seeAll.setText("点击展开");
+                    } else {
+                        baseBind.illustList.open();
+                        baseBind.seeAll.setText("点击折叠");
+                    }
+                }
+            });
+        }
         loadImage();
     }
 
     @Override
     public void onPause() {
         super.onPause();
+        //如果是GIF，停止播放
         if (illust.getType().equals("ugoira") && mDetailAdapter != null) {
-            mDetailAdapter.setPlayGif(false);
+            mDetailAdapter.nowStopGif();
         }
-    }
-
-    private void getGifUrl() {
-        Common.showToast("获取图组ZIP地址");
-        Retro.getAppApi().getGifPackage(sUserModel.getResponse().getAccess_token(), illust.getId())
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new ErrorCtrl<GifResponse>() {
-                    @Override
-                    public void onNext(GifResponse gifResponse) {
-                        GifDownload.downloadGif(gifResponse, illust);
-                    }
-                });
     }
 
     @Override
@@ -359,18 +378,14 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
             if (Shaft.sSettings.isSaveViewHistory()) {
                 insertViewHistory();
             }
-            if (illust.getType().equals("ugoira") && mDetailAdapter != null) {
-                mDetailAdapter.startGif();
+            if ("ugoira".equals(illust.getType()) && mDetailAdapter != null) {
+                mDetailAdapter.nowPlayGif();
             }
         } else {
-            if (illust.getType().equals("ugoira") && mDetailAdapter != null) {
-                mDetailAdapter.setPlayGif(false);
+            if ("ugoira".equals(illust.getType()) && mDetailAdapter != null) {
+                mDetailAdapter.nowStopGif();
             }
         }
-    }
-
-    public void setIllust(IllustsBean illust) {
-        this.illust = illust;
     }
 
     private void insertViewHistory() {
@@ -384,11 +399,6 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(Channel event) {
-        if (className.contains(event.getReceiver())) {
-            mDetailAdapter.startGif();
-            return;
-        }
-
         if (event.getReceiver().contains("FragmentSingleIllust starIllust")) {
             illust.setIs_bookmarked(true);
             ((FloatingActionButton) parentView.findViewById(R.id.post_like))
@@ -400,12 +410,6 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
                 baseBind.download.setImageResource(R.drawable.ic_has_download);
             }
         }
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
     }
 
     @Override

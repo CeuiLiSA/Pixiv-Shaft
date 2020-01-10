@@ -47,7 +47,7 @@ class FragmentAbout : BaseBindFragment<FragmentAboutBinding>() {
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "License")
             startActivity(intent)
         }
-        baseBind.dontCatchMe.setOnClickListener{
+        baseBind.dontCatchMe.setOnClickListener {
             val avoid251Dialog = Avoid251Dialog()
             avoid251Dialog.show(childFragmentManager, "Avoid251Dialog")
         }
