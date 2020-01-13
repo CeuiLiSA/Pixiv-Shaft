@@ -44,7 +44,7 @@ public class FragmentD extends BaseBindFragment<ViewpagerWithTablayoutBinding> {
             public boolean onMenuItemClick(MenuItem item) {
                 if (item.getItemId() == R.id.action_delete) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                    builder.setTitle("Shaft 提示");
+                    builder.setTitle("PixShaft 提示");
                     builder.setMessage("这将会删除所有的下载记录，但是已下载的文件不会被删除");
                     builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
                         @Override

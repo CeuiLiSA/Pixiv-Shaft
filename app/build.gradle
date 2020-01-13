@@ -7,19 +7,12 @@ android {
     compileSdkVersion 28
 
     defaultConfig {
-        applicationId "ceui.lisa"
+        applicationId "ceui.lisa.pixiv"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 60
-        versionName "1.1.3"
+        versionCode 61
+        versionName "1.1.4"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-
-        manifestPlaceholders = [
-                //AY1W99A3DTAF 属于应用"Shaft"独有的 Android AppKey, 用于配置SDK
-                MTA_APPKEY : "AY1W99A3DTAF",
-                //标注应用推广渠道用以区分新用户来源，可填写如应用宝，豌豆荚等
-                MTA_CHANNEL: "google play"
-        ]
     }
 
     buildTypes {
@@ -92,7 +85,7 @@ dependencies {
     implementation 'org.sufficientlysecure:html-textview:3.6'
     implementation 'com.github.mancj:MaterialSearchBar:0.8.2'
     implementation 'com.qiniu:happy-dns:0.2.13'
-    implementation 'com.qq.mta:mta:3.4.2'
+
     implementation 'com.tencent.mid:mid:3.73-release'
     implementation 'com.wdullaer:materialdatetimepicker:3.5.0'
     implementation 'com.zhihu.android:matisse:0.5.2-beta4'

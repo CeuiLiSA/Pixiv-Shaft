@@ -220,7 +220,7 @@ public class FragmentViewHistory extends BaseFragment {
                 Common.showToast("没有浏览历史");
             } else {
                 AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                builder.setTitle("Shaft 提示");
+                builder.setTitle("PixShaft 提示");
                 builder.setMessage("这将会删除所有的本地浏览历史");
                 builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
                     @Override
