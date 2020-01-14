@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
@@ -159,6 +160,7 @@ public class FragmentLocalUsers extends BaseFragment {
                     public void onResponse(Call<UserModel> call, Response<UserModel> response) {
                         if (response != null) {
                             UserModel newUser = response.body();
+                            newUser.getResponse().getUser().setPassword(sUserModel.getResponse().getUser().getPassword());
 //                            if (newUser != null) {
 //                                newUser.getResponse().setUser(Shaft.sUserModel.getResponse().getUser());
 //                            }

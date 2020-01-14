@@ -105,18 +105,19 @@
 
                         <RelativeLayout
                             android:layout_width="match_parent"
-                            android:visibility="gone"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:id="@+id/edit_account"
                             android:layout_height="match_parent">
 
 
                             <TextView
                                 android:layout_margin="@dimen/sixteen_dp"
-                                android:text="用户信息"
+                                android:text="编辑账号信息与邮箱绑定"
                                 android:textSize="15sp"
                                 android:textColor="@color/dark_text"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content">
-
 
                             </TextView>
 
@@ -126,7 +127,6 @@
 
                         <View
                             android:layout_width="match_parent"
-                            android:visibility="gone"
                             android:background="#e6e6e6"
                             android:layout_marginStart="@dimen/sixteen_dp"
                             android:layout_height="1dp">

@@ -1,12 +1,15 @@
 package ceui.lisa.fragments;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.view.View;
+import android.widget.Button;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.CAdapter;
@@ -122,6 +125,28 @@ public class FragmentC extends NetListFragment<FragmentCommentBinding,
         baseBind.post.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (!sUserModel.getResponse().getUser().isIs_mail_authorized()) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+                    builder.setMessage("发布评论需要先绑定邮箱");
+                    builder.setPositiveButton("立即绑定", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Intent intent = new Intent(mContext, TemplateActivity.class);
+                            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "绑定邮箱");
+                            startActivity(intent);
+                        }
+                    });
+                    builder.setNegativeButton("取消", null);
+                    AlertDialog alertDialog = builder.create();
+                    alertDialog.show();
+                    alertDialog
+                            .getButton(AlertDialog.BUTTON_POSITIVE)
+                            .setTextColor(
+                                    getResources().getColor(R.color.colorPrimary)
+                            );
+                    return;
+                }
+
                 if (baseBind.inputBox.getText().toString().length() == 0) {
                     Common.showToast("请输入评论内容");
                     return;

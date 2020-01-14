@@ -151,4 +151,5 @@
     <string name="r_eighteen">R</string>
     <string name="ranking_list">排行榜</string>
     <string name="recmd_for_you">为你推荐</string>
+    <string name="email_address">邮箱地址</string>
 </resources>

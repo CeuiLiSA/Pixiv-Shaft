@@ -5,6 +5,7 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
@@ -15,6 +16,8 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
@@ -118,5 +121,29 @@ public class Common {
 
     public static String checkEmpty(String before) {
         return TextUtils.isEmpty(before) ? Shaft.getContext().getString(R.string.no_info) : before;
+    }
+
+    public static void createDialog(Context context){
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("欢迎使用！");
+        builder.setMessage(context.getString(R.string.dont_catch_me));
+        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Local.setBoolean(Params.SHOW_DIALOG, true);
+            }
+        });
+        builder.setNegativeButton("确定且不再提示", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Local.setBoolean(Params.SHOW_DIALOG, false);
+            }
+        });
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+        alertDialog.getButton(AlertDialog.BUTTON_POSITIVE)
+                .setTextColor(context.getResources().getColor(R.color.colorPrimary));
+        alertDialog.getButton(AlertDialog.BUTTON_NEGATIVE)
+                .setTextColor(context.getResources().getColor(R.color.colorPrimary));
     }
 }

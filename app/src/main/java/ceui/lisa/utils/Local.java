@@ -17,7 +17,9 @@ public class Local {
         if (userModel != null) {
             userModel.getResponse().getUser().setIs_login(true);
             String token = userModel.getResponse().getAccess_token();
-            userModel.getResponse().setAccess_token("Bearer " + token);
+            if (!token.contains("Bearer ")) {
+                userModel.getResponse().setAccess_token("Bearer " + token);
+            }
             Gson gson = new Gson();
             String userString = gson.toJson(userModel, UserModel.class);
             SharedPreferences localData = Shaft.getContext().getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);

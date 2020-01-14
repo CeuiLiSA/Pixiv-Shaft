@@ -75,6 +75,16 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
             }
         });
 
+        baseBind.editAccount.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "绑定邮箱");
+                startActivity(intent);
+                mActivity.finish();
+            }
+        });
+
         baseBind.saveHistory.setChecked(Shaft.sSettings.isSaveViewHistory());
         baseBind.saveHistory.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override

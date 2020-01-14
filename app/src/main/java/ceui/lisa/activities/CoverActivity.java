@@ -166,8 +166,7 @@ public class CoverActivity extends BaseActivity<ActivityCoverBinding>
         UserModel userModel = Local.getUser();
         if (userModel != null && userModel.getResponse().getUser().isIs_login()) {
             if(Local.getBoolean(Params.SHOW_DIALOG, true)){
-                Avoid251Dialog avoid251Dialog = new Avoid251Dialog();
-                avoid251Dialog.show(getSupportFragmentManager(), "Avoid251Dialog");
+                Common.createDialog(mContext);
             }
             checkPermission(t -> initFragment());
         } else {

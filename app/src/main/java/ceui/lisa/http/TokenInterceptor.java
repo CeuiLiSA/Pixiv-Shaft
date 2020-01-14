@@ -1,10 +1,13 @@
 package ceui.lisa.http;
 
+import android.util.Log;
+
 import java.io.IOException;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.fragments.FragmentL;
 import ceui.lisa.models.UserModel;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import okhttp3.Interceptor;
 import okhttp3.Request;
@@ -25,26 +28,6 @@ public class TokenInterceptor implements Interceptor {
         Response response = chain.proceed(request);
 
         if (isTokenExpired(response)) {
-
-            //isTokenNew = false
-//            response.close();
-//            Common.showLog("有一个请求被拦截");
-//
-//            if (isTokenNew) {
-//                Request newRequest = chain.request()
-//                        .newBuilder()
-//                        .header("Authorization", Local.getUser().getResponse().getAccess_token())
-//                        .build();
-//                return chain.proceed(newRequest);
-//            } else {
-//                String newToken = getNewToken();
-//                Request newRequest = chain.request()
-//                        .newBuilder()
-//                        .header("Authorization", newToken)
-//                        .build();
-//                return chain.proceed(newRequest);
-//            }
-
             response.close();
             String newToken = getNewToken();
             Request newRequest = chain.request()
@@ -64,12 +47,21 @@ public class TokenInterceptor implements Interceptor {
      * @return
      */
     private boolean isTokenExpired(Response response) {
-        if (response.code() == 400) {
+        try {
+            if (response.code() == 400 &&
+                    response.body() != null &&
+                    response.body().string().contains("Error occurred at the OAuth process")) {
+                isTokenNew = false;
+                return true;
+            } else {
+                isTokenNew = true;
+                return false;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
             isTokenNew = false;
             return true;
         }
-        isTokenNew = true;
-        return false;
     }
 
     /**

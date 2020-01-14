@@ -21,16 +21,11 @@ import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+import static ceui.lisa.http.AccountApi.ACCOUNT_BASE_URL;
+import static ceui.lisa.http.AppApi.API_BASE_URL;
+import static ceui.lisa.http.SignApi.SIGN_API;
+
 public class Retro {
-
-    //用作登录，刷新token
-    private static final String ACCOUNT_BASE_URL = "https://oauth.secure.pixiv.net/";
-
-    //用作各个页面请求数据
-    private static final String API_BASE_URL = "https://app-api.pixiv.net/";
-
-    //用作注册账号
-    private static final String SIGN_API = "https://accounts.pixiv.net/";
 
     public static AppApi getAppApi() {
         return get().create(AppApi.class);

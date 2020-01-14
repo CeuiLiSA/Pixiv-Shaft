@@ -1,10 +1,12 @@
 package ceui.lisa.fragments;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 
 import com.facebook.rebound.SimpleSpringListener;
@@ -118,8 +120,7 @@ public class FragmentL extends BaseBindFragment<ActivityLoginBinding> {
     @Override
     void initData() {
         if (Local.getBoolean(Params.SHOW_DIALOG, true)) {
-            Avoid251Dialog avoid251Dialog = new Avoid251Dialog();
-            avoid251Dialog.show(getChildFragmentManager(), "Avoid251Dialog");
+            Common.createDialog(mContext);
         }
         rotate = springSystem.createSpring();
         rotate.setSpringConfig(SpringConfig.fromOrigamiTensionAndFriction(15, 8));

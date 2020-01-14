@@ -17,6 +17,7 @@ import ceui.lisa.fragments.FragmentBookTag;
 import ceui.lisa.fragments.FragmentC;
 import ceui.lisa.fragments.FragmentCollection;
 import ceui.lisa.fragments.FragmentD;
+import ceui.lisa.fragments.FragmentEditAccount;
 import ceui.lisa.fragments.FragmentFollowUser;
 import ceui.lisa.fragments.FragmentH;
 import ceui.lisa.fragments.FragmentImageDetail;
@@ -162,6 +163,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                     return FragmentNovelHolder.newInstance(intent.getIntExtra(Params.INDEX, 0));
                 case "图片详情":
                     return FragmentImageDetail.newInstance(intent.getStringExtra(Params.URL));
+                case "绑定邮箱":
+                    return new FragmentEditAccount();
                 default:
                     return new FragmentBlank();
             }

@@ -15,6 +15,7 @@ import ceui.lisa.models.MutedHistory;
 import ceui.lisa.models.NovelDetail;
 import ceui.lisa.models.NullResponse;
 import ceui.lisa.models.UserDetailResponse;
+import ceui.lisa.models.UserState;
 import io.reactivex.Observable;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
@@ -25,6 +26,9 @@ import retrofit2.http.Query;
 import retrofit2.http.Url;
 
 public interface AppApi {
+
+    //用作各个页面请求数据
+    String API_BASE_URL = "https://app-api.pixiv.net/";
 
     /**
      * 获取排行榜
@@ -322,4 +326,10 @@ public interface AppApi {
     @GET("v1/novel/text")
     Observable<NovelDetail> getNovelDetail(@Header("Authorization") String token,
                                            @Query("novel_id") int novel_id);
+
+
+    //获取好P友
+    @GET("v1/user/me/state")
+    Observable<UserState> getAccountState(@Header("Authorization") String token);
+
 }
