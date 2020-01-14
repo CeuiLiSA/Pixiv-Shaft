@@ -144,6 +144,11 @@ public class FragmentC extends NetListFragment<FragmentCommentBinding,
                             .setTextColor(
                                     getResources().getColor(R.color.colorPrimary)
                             );
+                    alertDialog
+                            .getButton(AlertDialog.BUTTON_NEGATIVE)
+                            .setTextColor(
+                                    getResources().getColor(R.color.colorPrimary)
+                            );
                     return;
                 }
 
