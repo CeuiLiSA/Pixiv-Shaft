@@ -20,7 +20,7 @@ import ceui.lisa.databinding.FragmentLikeIllustHorizontalBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.model.ListIllustResponse;
+import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.UserDetailResponse;
 import ceui.lisa.utils.DataChannel;
@@ -118,7 +118,7 @@ public class FragmentLikeIllustHorizontal extends BaseBindFragment<FragmentLikeI
 
     @Override
     void initData() {
-        Observable<ListIllustResponse> api = null;
+        Observable<ListIllust> api = null;
         if (type == 1) {
             api = Retro.getAppApi().getUserLikeIllust(sUserModel.getResponse().getAccess_token(),
                     mUserDetailResponse.getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC);
@@ -133,14 +133,14 @@ public class FragmentLikeIllustHorizontal extends BaseBindFragment<FragmentLikeI
         if (api != null) {
             api.subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new NullCtrl<ListIllustResponse>() {
+                    .subscribe(new NullCtrl<ListIllust>() {
                         @Override
-                        public void success(ListIllustResponse listIllustResponse) {
+                        public void success(ListIllust listIllust) {
                             allItems.clear();
-                            if (listIllustResponse.getList().size() > 10) {
-                                allItems.addAll(listIllustResponse.getList().subList(0, 10));
+                            if (listIllust.getList().size() > 10) {
+                                allItems.addAll(listIllust.getList().subList(0, 10));
                             } else {
-                                allItems.addAll(listIllustResponse.getList());
+                                allItems.addAll(listIllust.getList());
                             }
                             mAdapter.notifyItemRangeInserted(0, allItems.size());
                         }

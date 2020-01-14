@@ -26,7 +26,7 @@ import ceui.lisa.dialogs.Avoid251Dialog;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
-import ceui.lisa.model.ErrorResponse;
+import ceui.lisa.models.ErrorResponse;
 import ceui.lisa.models.SignResponse;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.utils.Common;

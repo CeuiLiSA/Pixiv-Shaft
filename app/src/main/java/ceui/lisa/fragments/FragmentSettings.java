@@ -31,6 +31,7 @@ import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.FragmentSettingsBinding;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
+import ceui.lisa.utils.Params;
 
 import static ceui.lisa.fragments.FragmentFilter.ALL_LANGUAGE;
 import static ceui.lisa.fragments.FragmentFilter.ALL_SIZE;
@@ -177,8 +178,8 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, TemplateActivity.class);
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
-                intent.putExtra("url", "https://github.com/Notsfsssf/Pix-EzViewer");
-                intent.putExtra("title", "PxEz项目主页");
+                intent.putExtra(Params.URL, "https://github.com/Notsfsssf/Pix-EzViewer");
+                intent.putExtra(Params.TITLE, "PxEz项目主页");
                 startActivity(intent);
             }
         });

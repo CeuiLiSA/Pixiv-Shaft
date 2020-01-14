@@ -18,7 +18,7 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
-import ceui.lisa.model.ListIllustResponse;
+import ceui.lisa.model.ListIllust;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -70,16 +70,16 @@ public class FragmentCenter extends BaseFragment {
             Retro.getAppApi().getLoginBg(Shaft.sUserModel.getResponse().getAccess_token())
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new NullCtrl<ListIllustResponse>() {
+                    .subscribe(new NullCtrl<ListIllust>() {
                         @Override
-                        public void success(ListIllustResponse listIllustResponse) {
+                        public void success(ListIllust listIllust) {
                             mViewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
                                 @NonNull
                                 @Override
                                 public Fragment getItem(int position) {
-                                    int index = position % listIllustResponse.getList().size();
+                                    int index = position % listIllust.getList().size();
                                     Common.showLog(className + index);
-                                    return FragmentImage.newInstance(listIllustResponse.getIllusts()
+                                    return FragmentImage.newInstance(listIllust.getIllusts()
                                             .get(index));
                                 }
 
@@ -88,7 +88,7 @@ public class FragmentCenter extends BaseFragment {
                                     return Integer.MAX_VALUE;
                                 }
                             });
-                            mViewPager.setCurrentItem(listIllustResponse.getList().size());
+                            mViewPager.setCurrentItem(listIllust.getList().size());
 
                         }
                     });

@@ -5,7 +5,7 @@ import java.util.List;
 import ceui.lisa.models.CommentsBean;
 import ceui.lisa.interfaces.ListShow;
 
-public class IllustCommentsResponse implements ListShow<CommentsBean> {
+public class ListComment implements ListShow<CommentsBean> {
     private List<CommentsBean> comments;
     private String next_url;
     private int total_comments;

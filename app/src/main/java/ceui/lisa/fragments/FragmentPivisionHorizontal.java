@@ -17,8 +17,8 @@ import ceui.lisa.adapters.PivisionHorizontalAdapter;
 import ceui.lisa.databinding.FragmentPivisionHorizontalBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
-import ceui.lisa.model.ArticleResponse;
-import ceui.lisa.model.SpotlightArticlesBean;
+import ceui.lisa.model.ListArticle;
+import ceui.lisa.models.SpotlightArticlesBean;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -79,12 +79,12 @@ public class FragmentPivisionHorizontal extends BaseBindFragment<FragmentPivisio
         Retro.getAppApi().getArticles(sUserModel.getResponse().getAccess_token(), "all")
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new NullCtrl<ArticleResponse>() {
+                .subscribe(new NullCtrl<ListArticle>() {
                     @Override
-                    public void success(ArticleResponse articleResponse) {
+                    public void success(ListArticle listArticle) {
                         allItems.clear();
-                        allItems.addAll(articleResponse.getList());
-                        mAdapter.notifyItemRangeInserted(0, articleResponse.getList().size());
+                        allItems.addAll(listArticle.getList());
+                        mAdapter.notifyItemRangeInserted(0, listArticle.getList().size());
                     }
 
                     @Override

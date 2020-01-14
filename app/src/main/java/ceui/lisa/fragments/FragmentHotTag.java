@@ -13,7 +13,7 @@ import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyTagGridBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.model.TrendingtagResponse;
+import ceui.lisa.model.ListTrendingtag;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.TagItemDecoration;
 import io.reactivex.Observable;
@@ -22,7 +22,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 
 
 public class FragmentHotTag extends NetListFragment<FragmentBaseListBinding,
-        TrendingtagResponse, TrendingtagResponse.TrendTagsBean, RecyTagGridBinding> {
+        ListTrendingtag, ListTrendingtag.TrendTagsBean, RecyTagGridBinding> {
 
     private boolean isLoad = false;
 
@@ -45,22 +45,22 @@ public class FragmentHotTag extends NetListFragment<FragmentBaseListBinding,
     }
 
     @Override
-    public NetControl<TrendingtagResponse> present() {
-        return new NetControl<TrendingtagResponse>() {
+    public NetControl<ListTrendingtag> present() {
+        return new NetControl<ListTrendingtag>() {
             @Override
-            public Observable<TrendingtagResponse> initApi() {
+            public Observable<ListTrendingtag> initApi() {
                 return Retro.getAppApi().getHotTags(sUserModel.getResponse().getAccess_token());
             }
 
             @Override
-            public Observable<TrendingtagResponse> initNextApi() {
+            public Observable<ListTrendingtag> initNextApi() {
                 return null;
             }
         };
     }
 
     @Override
-    public BaseAdapter<TrendingtagResponse.TrendTagsBean, RecyTagGridBinding> adapter() {
+    public BaseAdapter<ListTrendingtag.TrendTagsBean, RecyTagGridBinding> adapter() {
         return new HAdapter(allItems, mContext).setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {

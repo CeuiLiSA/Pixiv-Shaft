@@ -16,7 +16,7 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.model.SpotlightArticlesBean;
+import ceui.lisa.models.SpotlightArticlesBean;
 import ceui.lisa.utils.GlideUtil;
 
 

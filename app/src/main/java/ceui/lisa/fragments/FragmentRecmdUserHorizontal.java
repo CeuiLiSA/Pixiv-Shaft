@@ -18,7 +18,7 @@ import ceui.lisa.adapters.UserHorizontalAdapter;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.model.ListUserResponse;
+import ceui.lisa.model.ListUser;
 import ceui.lisa.models.UserPreviewsBean;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Params;
@@ -86,12 +86,12 @@ public class FragmentRecmdUserHorizontal extends BaseFragment {
         Retro.getAppApi().getRecmdUser(sUserModel.getResponse().getAccess_token())
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new NullCtrl<ListUserResponse>() {
+                .subscribe(new NullCtrl<ListUser>() {
                     @Override
-                    public void success(ListUserResponse listUserResponse) {
+                    public void success(ListUser listUser) {
                         allItems.clear();
-                        allItems.addAll(listUserResponse.getList());
-                        mAdapter.notifyItemRangeInserted(0, listUserResponse.getList().size());
+                        allItems.addAll(listUser.getList());
+                        mAdapter.notifyItemRangeInserted(0, listUser.getList().size());
                     }
 
                     @Override

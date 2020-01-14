@@ -8,7 +8,7 @@ import java.util.List;
 import ceui.lisa.interfaces.ListShow;
 import ceui.lisa.models.IllustsBean;
 
-public class TrendingtagResponse implements ListShow<TrendingtagResponse.TrendTagsBean>, Serializable {
+public class ListTrendingtag implements ListShow<ListTrendingtag.TrendTagsBean>, Serializable {
     private List<TrendTagsBean> trend_tags;
     private List<TrendTagsBean> tags;
 

@@ -9,9 +9,6 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.FragmentSingleNovelBinding;
-import ceui.lisa.databinding.RecyArticalBinding;
-import ceui.lisa.model.SpotlightArticlesBean;
-import ceui.lisa.utils.GlideUtil;
 
 public class VAdapter extends BaseAdapter<String, FragmentSingleNovelBinding> {
 

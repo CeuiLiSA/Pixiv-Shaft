@@ -56,8 +56,6 @@
                         android:layout_marginBottom="@dimen/eight_dp"
                         android:layout_height="wrap_content">
 
-
-
                             <androidx.recyclerview.widget.RecyclerView
                                 android:layout_width="match_parent"
                                 android:id="@+id/recyclerView"
@@ -90,6 +88,19 @@
                             android:textColor="@android:color/white"
                             android:textSize="13sp"
                             android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/p_size"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/tag_stroke"
+                            android:paddingStart="@dimen/four_dp"
+                            android:paddingTop="2dp"
+                            android:paddingEnd="@dimen/four_dp"
+                            android:layout_margin="@dimen/twelve_dp"
+                            android:paddingBottom="2dp"
+                            android:textColor="@color/white"
+                            android:textSize="12sp" />
 
                     </ceui.lisa.view.ExpandCard>
 

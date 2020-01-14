@@ -19,7 +19,7 @@ import ceui.lisa.databinding.FragmentLikeIllustHorizontalBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.model.ListNovelResponse;
+import ceui.lisa.model.ListNovel;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.UserDetailResponse;
 import ceui.lisa.utils.DataChannel;
@@ -115,7 +115,7 @@ public class FragmentLikeNovelHorizontal extends BaseBindFragment<FragmentLikeIl
 
     @Override
     void initData() {
-        Observable<ListNovelResponse> mApi;
+        Observable<ListNovel> mApi;
         if (type == 0) {
             mApi = Retro.getAppApi().getUserLikeNovel(sUserModel.getResponse().getAccess_token(),
                     mUserDetailResponse.getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC);
@@ -125,15 +125,15 @@ public class FragmentLikeNovelHorizontal extends BaseBindFragment<FragmentLikeIl
         }
         mApi.subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new NullCtrl<ListNovelResponse>() {
+                .subscribe(new NullCtrl<ListNovel>() {
                     @Override
-                    public void success(ListNovelResponse listNovelResponse) {
-                        if (listNovelResponse.getList().size() > 0) {
+                    public void success(ListNovel listNovel) {
+                        if (listNovel.getList().size() > 0) {
                             allItems.clear();
-                            if (listNovelResponse.getList().size() > 10) {
-                                allItems.addAll(listNovelResponse.getList().subList(0, 10));
+                            if (listNovel.getList().size() > 10) {
+                                allItems.addAll(listNovel.getList().subList(0, 10));
                             } else {
-                                allItems.addAll(listNovelResponse.getList());
+                                allItems.addAll(listNovel.getList());
                             }
                             mAdapter.notifyItemRangeInserted(0, allItems.size());
                             baseBind.rootParentView.setVisibility(View.VISIBLE);

@@ -6,7 +6,7 @@ import ceui.lisa.core.NetControl;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyNovelBinding;
 import ceui.lisa.http.Retro;
-import ceui.lisa.model.ListNovelResponse;
+import ceui.lisa.model.ListNovel;
 import ceui.lisa.models.NovelBean;
 import io.reactivex.Observable;
 
@@ -16,7 +16,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
  * 某人创作的小说
  */
 public class FragmentUserNovel extends NetListFragment<FragmentBaseListBinding,
-        ListNovelResponse, NovelBean, RecyNovelBinding> {
+        ListNovel, NovelBean, RecyNovelBinding> {
 
     private int userID;
     private boolean showToolbar = false;
@@ -29,16 +29,16 @@ public class FragmentUserNovel extends NetListFragment<FragmentBaseListBinding,
     }
 
     @Override
-    public NetControl<ListNovelResponse> present() {
-        return new NetControl<ListNovelResponse>() {
+    public NetControl<ListNovel> present() {
+        return new NetControl<ListNovel>() {
             @Override
-            public Observable<ListNovelResponse> initApi() {
+            public Observable<ListNovel> initApi() {
                 return Retro.getAppApi().getUserSubmitNovel(sUserModel
                         .getResponse().getAccess_token(), userID);
             }
 
             @Override
-            public Observable<ListNovelResponse> initNextApi() {
+            public Observable<ListNovel> initNextApi() {
                 return Retro.getAppApi().getNextNovel(sUserModel.getResponse().getAccess_token(), nextUrl);
             }
         };

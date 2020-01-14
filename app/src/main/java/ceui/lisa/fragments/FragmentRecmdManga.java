@@ -31,7 +31,7 @@ import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.model.ListIllustResponse;
+import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.DensityUtil;
@@ -45,7 +45,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
 public class FragmentRecmdManga extends NetListFragment<FragmentRecmdBinding,
-        ListIllustResponse, IllustsBean, RecyIllustStaggerBinding> {
+        ListIllust, IllustsBean, RecyIllustStaggerBinding> {
 
     private String dataType;
     private RAdapter adapter;
@@ -65,10 +65,10 @@ public class FragmentRecmdManga extends NetListFragment<FragmentRecmdBinding,
     }
 
     @Override
-    public NetControl<ListIllustResponse> present() {
-        return new NetControl<ListIllustResponse>() {
+    public NetControl<ListIllust> present() {
+        return new NetControl<ListIllust>() {
             @Override
-            public Observable<ListIllustResponse> initApi() {
+            public Observable<ListIllust> initApi() {
                 if (Dev.isDev) {
                     return null;
                 } else {
@@ -82,7 +82,7 @@ public class FragmentRecmdManga extends NetListFragment<FragmentRecmdBinding,
             }
 
             @Override
-            public Observable<ListIllustResponse> initNextApi() {
+            public Observable<ListIllust> initNextApi() {
                 return Retro.getAppApi().getNextIllust(Shaft.sUserModel.getResponse().getAccess_token(), nextUrl);
             }
         };

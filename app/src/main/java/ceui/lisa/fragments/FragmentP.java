@@ -18,7 +18,7 @@ import ceui.lisa.databinding.RecyUserEventBinding;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.model.ListIllustResponse;
+import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.Params;
@@ -28,18 +28,18 @@ import io.reactivex.Observable;
 import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class FragmentP extends NetListFragment<FragmentBaseListBinding,
-        ListIllustResponse, IllustsBean, RecyUserEventBinding> {
+        ListIllust, IllustsBean, RecyUserEventBinding> {
 
     @Override
-    public NetControl<ListIllustResponse> present() {
-        return new NetControl<ListIllustResponse>() {
+    public NetControl<ListIllust> present() {
+        return new NetControl<ListIllust>() {
             @Override
-            public Observable<ListIllustResponse> initApi() {
+            public Observable<ListIllust> initApi() {
                 return Retro.getAppApi().getFollowUserIllust(sUserModel.getResponse().getAccess_token());
             }
 
             @Override
-            public Observable<ListIllustResponse> initNextApi() {
+            public Observable<ListIllust> initNextApi() {
                 return Retro.getAppApi().getNextIllust(sUserModel.getResponse().getAccess_token(), nextUrl);
             }
 

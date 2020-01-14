@@ -31,7 +31,7 @@ import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.model.ListIllustResponse;
+import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DataChannel;
@@ -134,9 +134,9 @@ public class FragmentViewHistory extends BaseFragment {
             allItems.addAll(temp);
             emitter.onNext(temp);
         })
-                .map(new Function<List<IllustHistoryEntity>, ListIllustResponse>() {
+                .map(new Function<List<IllustHistoryEntity>, ListIllust>() {
                     @Override
-                    public ListIllustResponse apply(List<IllustHistoryEntity> illustHistoryEntities) throws Exception {
+                    public ListIllust apply(List<IllustHistoryEntity> illustHistoryEntities) throws Exception {
                         Thread.sleep(500);
                         Gson gson = new Gson();
 
@@ -145,15 +145,15 @@ public class FragmentViewHistory extends BaseFragment {
                             allIllusts.add(gson.fromJson(allItems.get(i).getIllustJson(), IllustsBean.class));
                         }
 
-                        ListIllustResponse response = new ListIllustResponse();
+                        ListIllust response = new ListIllust();
                         response.setIllusts(allIllusts);
                         return response;
                     }
                 }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new ListObserver<ListIllustResponse>() {
+                .subscribe(new ListObserver<ListIllust>() {
                     @Override
-                    public void success(ListIllustResponse listIllustResponse) {
+                    public void success(ListIllust listIllust) {
                         mAdapter = new ViewHistoryAdapter(allItems, mContext);
                         mAdapter.setOnItemClickListener(new OnItemClickListener() {
                             @Override

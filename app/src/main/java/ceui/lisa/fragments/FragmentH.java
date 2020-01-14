@@ -7,7 +7,7 @@ import ceui.lisa.databinding.FragmentHBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.Display;
-import ceui.lisa.model.HitoResponse;
+import ceui.lisa.models.HitoResponse;
 import ceui.lisa.utils.ClipBoardUtils;
 import ceui.lisa.utils.Common;
 import io.reactivex.android.schedulers.AndroidSchedulers;

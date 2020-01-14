@@ -15,7 +15,7 @@ import ceui.lisa.databinding.FragmentCommentBinding;
 import ceui.lisa.databinding.RecyCommentListBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
-import ceui.lisa.model.IllustCommentsResponse;
+import ceui.lisa.model.ListComment;
 import ceui.lisa.models.CommentHolder;
 import ceui.lisa.models.CommentsBean;
 import ceui.lisa.utils.Common;
@@ -28,7 +28,7 @@ import io.reactivex.schedulers.Schedulers;
 import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class FragmentC extends NetListFragment<FragmentCommentBinding,
-        IllustCommentsResponse, CommentsBean, RecyCommentListBinding> {
+        ListComment, CommentsBean, RecyCommentListBinding> {
 
     private static final String[] OPTIONS = new String[]{"回复评论", "复制评论"};
     private int illustID;
@@ -48,15 +48,15 @@ public class FragmentC extends NetListFragment<FragmentCommentBinding,
     }
 
     @Override
-    public NetControl<IllustCommentsResponse> present() {
-        return new NetControl<IllustCommentsResponse>() {
+    public NetControl<ListComment> present() {
+        return new NetControl<ListComment>() {
             @Override
-            public Observable<IllustCommentsResponse> initApi() {
+            public Observable<ListComment> initApi() {
                 return Retro.getAppApi().getComment(sUserModel.getResponse().getAccess_token(), illustID);
             }
 
             @Override
-            public Observable<IllustCommentsResponse> initNextApi() {
+            public Observable<ListComment> initNextApi() {
                 return Retro.getAppApi().getNextComment(sUserModel.getResponse().getAccess_token(), nextUrl);
             }
         };

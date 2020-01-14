@@ -7,7 +7,7 @@ import ceui.lisa.core.NetControl;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyUserPreviewBinding;
 import ceui.lisa.http.Retro;
-import ceui.lisa.model.ListUserResponse;
+import ceui.lisa.model.ListUser;
 import ceui.lisa.models.UserPreviewsBean;
 import io.reactivex.Observable;
 
@@ -17,18 +17,18 @@ import static ceui.lisa.activities.Shaft.sUserModel;
  * 推荐用户
  */
 public class FragmentRecmdUser extends NetListFragment<FragmentBaseListBinding,
-        ListUserResponse, UserPreviewsBean, RecyUserPreviewBinding> {
+        ListUser, UserPreviewsBean, RecyUserPreviewBinding> {
 
     @Override
-    public NetControl<ListUserResponse> present() {
-        return new NetControl<ListUserResponse>() {
+    public NetControl<ListUser> present() {
+        return new NetControl<ListUser>() {
             @Override
-            public Observable<ListUserResponse> initApi() {
+            public Observable<ListUser> initApi() {
                 return Retro.getAppApi().getRecmdUser(sUserModel.getResponse().getAccess_token());
             }
 
             @Override
-            public Observable<ListUserResponse> initNextApi() {
+            public Observable<ListUser> initNextApi() {
                 return Retro.getAppApi().getNextUser(sUserModel.getResponse().getAccess_token(), nextUrl);
             }
         };

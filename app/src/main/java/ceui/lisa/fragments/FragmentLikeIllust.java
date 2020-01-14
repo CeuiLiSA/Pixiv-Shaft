@@ -13,7 +13,7 @@ import ceui.lisa.core.NetControl;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.http.Retro;
-import ceui.lisa.model.ListIllustResponse;
+import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.DensityUtil;
@@ -26,7 +26,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
  * 某人收藏的插畫
  */
 public class FragmentLikeIllust extends NetListFragment<FragmentBaseListBinding,
-        ListIllustResponse, IllustsBean, RecyIllustStaggerBinding> {
+        ListIllust, IllustsBean, RecyIllustStaggerBinding> {
 
     public static final String TYPE_PUBLUC = "public";
     public static final String TYPE_PRIVATE = "private";
@@ -50,10 +50,10 @@ public class FragmentLikeIllust extends NetListFragment<FragmentBaseListBinding,
     }
 
     @Override
-    public NetControl<ListIllustResponse> present() {
-        return new NetControl<ListIllustResponse>() {
+    public NetControl<ListIllust> present() {
+        return new NetControl<ListIllust>() {
             @Override
-            public Observable<ListIllustResponse> initApi() {
+            public Observable<ListIllust> initApi() {
                 return TextUtils.isEmpty(tag) ?
                         Retro.getAppApi().getUserLikeIllust(sUserModel
                                 .getResponse().getAccess_token(), userID, starType) :
@@ -62,7 +62,7 @@ public class FragmentLikeIllust extends NetListFragment<FragmentBaseListBinding,
             }
 
             @Override
-            public Observable<ListIllustResponse> initNextApi() {
+            public Observable<ListIllust> initNextApi() {
                 return Retro.getAppApi().getNextIllust(sUserModel.getResponse().getAccess_token(), nextUrl);
             }
         };

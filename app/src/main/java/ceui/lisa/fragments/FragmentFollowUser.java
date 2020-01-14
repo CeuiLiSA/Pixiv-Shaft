@@ -6,14 +6,14 @@ import ceui.lisa.core.NetControl;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyUserPreviewBinding;
 import ceui.lisa.http.Retro;
-import ceui.lisa.model.ListUserResponse;
+import ceui.lisa.model.ListUser;
 import ceui.lisa.models.UserPreviewsBean;
 import io.reactivex.Observable;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class FragmentFollowUser extends NetListFragment<FragmentBaseListBinding,
-        ListUserResponse, UserPreviewsBean, RecyUserPreviewBinding> {
+        ListUser, UserPreviewsBean, RecyUserPreviewBinding> {
 
     private int userID;
     private String starType;
@@ -28,15 +28,15 @@ public class FragmentFollowUser extends NetListFragment<FragmentBaseListBinding,
     }
 
     @Override
-    public NetControl<ListUserResponse> present() {
-        return new NetControl<ListUserResponse>() {
+    public NetControl<ListUser> present() {
+        return new NetControl<ListUser>() {
             @Override
-            public Observable<ListUserResponse> initApi() {
+            public Observable<ListUser> initApi() {
                 return Retro.getAppApi().getFollowUser(sUserModel.getResponse().getAccess_token(), userID, starType);
             }
 
             @Override
-            public Observable<ListUserResponse> initNextApi() {
+            public Observable<ListUser> initNextApi() {
                 return Retro.getAppApi().getNextUser(sUserModel.getResponse().getAccess_token(), nextUrl);
             }
         };

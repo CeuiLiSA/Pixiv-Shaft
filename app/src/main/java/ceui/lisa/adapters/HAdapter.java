@@ -13,15 +13,15 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.databinding.RecyTagGridBinding;
 import ceui.lisa.interfaces.MultiDownload;
-import ceui.lisa.model.TrendingtagResponse;
+import ceui.lisa.model.ListTrendingtag;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.GlideUtil;
 
-public class HAdapter extends BaseAdapter<TrendingtagResponse.TrendTagsBean, RecyTagGridBinding> implements MultiDownload {
+public class HAdapter extends BaseAdapter<ListTrendingtag.TrendTagsBean, RecyTagGridBinding> implements MultiDownload {
 
     private int imageSize;
 
-    public HAdapter(List<TrendingtagResponse.TrendTagsBean> targetList, Context context) {
+    public HAdapter(List<ListTrendingtag.TrendTagsBean> targetList, Context context) {
         super(targetList, context);
         imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
                 mContext.getResources().getDimensionPixelSize(R.dimen.two_dp)) / 3;
@@ -33,7 +33,7 @@ public class HAdapter extends BaseAdapter<TrendingtagResponse.TrendTagsBean, Rec
     }
 
     @Override
-    public void bindData(TrendingtagResponse.TrendTagsBean target, ViewHolder<RecyTagGridBinding> bindView, int position) {
+    public void bindData(ListTrendingtag.TrendTagsBean target, ViewHolder<RecyTagGridBinding> bindView, int position) {
         if (position == 0) {
             ViewGroup.LayoutParams params = bindView.baseBind.illustImage.getLayoutParams();
             params.height = imageSize * 2;

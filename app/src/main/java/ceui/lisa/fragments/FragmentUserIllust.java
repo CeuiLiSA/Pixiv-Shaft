@@ -8,7 +8,7 @@ import ceui.lisa.core.NetControl;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.http.Retro;
-import ceui.lisa.model.ListIllustResponse;
+import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.SpacesItemDecoration;
@@ -19,7 +19,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 /**
  * 某人創作的插畫
  */
-public class FragmentUserIllust extends NetListFragment<FragmentBaseListBinding, ListIllustResponse, IllustsBean, RecyIllustStaggerBinding> {
+public class FragmentUserIllust extends NetListFragment<FragmentBaseListBinding, ListIllust, IllustsBean, RecyIllustStaggerBinding> {
 
     private int userID;
     private boolean showToolbar = false;
@@ -38,15 +38,15 @@ public class FragmentUserIllust extends NetListFragment<FragmentBaseListBinding,
     }
 
     @Override
-    public NetControl<ListIllustResponse> present() {
-        return new NetControl<ListIllustResponse>() {
+    public NetControl<ListIllust> present() {
+        return new NetControl<ListIllust>() {
             @Override
-            public Observable<ListIllustResponse> initApi() {
+            public Observable<ListIllust> initApi() {
                 return Retro.getAppApi().getUserSubmitIllust(sUserModel.getResponse().getAccess_token(), userID, "illust");
             }
 
             @Override
-            public Observable<ListIllustResponse> initNextApi() {
+            public Observable<ListIllust> initNextApi() {
                 return Retro.getAppApi().getNextIllust(sUserModel.getResponse().getAccess_token(), nextUrl);
             }
         };

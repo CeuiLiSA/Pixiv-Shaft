@@ -12,7 +12,7 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.IllustTask;
-import ceui.lisa.model.GifResponse;
+import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 

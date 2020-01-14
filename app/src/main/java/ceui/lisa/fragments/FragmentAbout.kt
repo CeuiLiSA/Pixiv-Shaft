@@ -5,6 +5,7 @@ import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.FragmentAboutBinding
 import ceui.lisa.dialogs.Avoid251Dialog
+import ceui.lisa.utils.Params
 
 class FragmentAbout : BaseBindFragment<FragmentAboutBinding>() {
 
@@ -17,29 +18,29 @@ class FragmentAbout : BaseBindFragment<FragmentAboutBinding>() {
         baseBind.pixivProblem.setOnClickListener {
             val intent = Intent(mContext, TemplateActivity::class.java)
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接")
-            intent.putExtra("url", "https://app.pixiv.help/hc/zh-cn")
-            intent.putExtra("title", "常见问题")
+            intent.putExtra(Params.URL, "https://app.pixiv.help/hc/zh-cn")
+            intent.putExtra(Params.TITLE, "常见问题")
             startActivity(intent)
         }
         baseBind.pixivUseDetail.setOnClickListener {
             val intent = Intent(mContext, TemplateActivity::class.java)
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接")
-            intent.putExtra("url", "https://www.pixiv.net/terms/?page=term&appname=pixiv_ios")
-            intent.putExtra("title", "服务条款")
+            intent.putExtra(Params.URL, "https://www.pixiv.net/terms/?page=term&appname=pixiv_ios")
+            intent.putExtra(Params.TITLE, "服务条款")
             startActivity(intent)
         }
         baseBind.pixivPrivacy.setOnClickListener {
             val intent = Intent(mContext, TemplateActivity::class.java)
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接")
-            intent.putExtra("url", "https://www.pixiv.net/terms/?page=privacy&appname=pixiv_ios")
-            intent.putExtra("title", "隐私政策")
+            intent.putExtra(Params.URL, "https://www.pixiv.net/terms/?page=privacy&appname=pixiv_ios")
+            intent.putExtra(Params.TITLE, "隐私政策")
             startActivity(intent)
         }
         baseBind.projectWebsite.setOnClickListener {
             val intent = Intent(mContext, TemplateActivity::class.java)
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接")
-            intent.putExtra("url", "https://github.com/CeuiLiSA/Pixiv-Shaft")
-            intent.putExtra("title", "项目主页")
+            intent.putExtra(Params.URL, "https://github.com/CeuiLiSA/Pixiv-Shaft")
+            intent.putExtra(Params.TITLE, "项目主页")
             startActivity(intent)
         }
         baseBind.projectLicense.setOnClickListener {

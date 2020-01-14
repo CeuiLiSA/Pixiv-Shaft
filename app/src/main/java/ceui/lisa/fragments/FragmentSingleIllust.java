@@ -45,7 +45,7 @@ import ceui.lisa.download.IllustDownload;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.model.GifResponse;
+import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
@@ -339,10 +339,13 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
             }
         });
         if (illust.getPage_count() == 1) {
+            baseBind.pSize.setVisibility(View.GONE);
             baseBind.darkBlank.setVisibility(View.INVISIBLE);
             baseBind.seeAll.setVisibility(View.INVISIBLE);
             baseBind.illustList.open();
         } else {
+            baseBind.pSize.setVisibility(View.VISIBLE);
+            baseBind.pSize.setText(illust.getPage_count() + "P");
             baseBind.darkBlank.setVisibility(View.VISIBLE);
             baseBind.seeAll.setVisibility(View.VISIBLE);
             baseBind.illustList.close(false);

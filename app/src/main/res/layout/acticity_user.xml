@@ -131,7 +131,7 @@
 
                         <FrameLayout
                             android:layout_width="match_parent"
-                            android:id="@+id/illust_collection"
+                            android:id="@+id/container1"
                             android:layout_height="wrap_content">
 
 
@@ -139,7 +139,7 @@
 
                         <FrameLayout
                             android:layout_width="match_parent"
-                            android:id="@+id/illust_works"
+                            android:id="@+id/container2"
                             android:layout_height="wrap_content">
 
 
@@ -147,7 +147,7 @@
 
                         <FrameLayout
                             android:layout_width="match_parent"
-                            android:id="@+id/manga_works"
+                            android:id="@+id/container3"
                             android:layout_height="wrap_content">
 
 
@@ -155,7 +155,7 @@
 
                         <FrameLayout
                             android:layout_width="match_parent"
-                            android:id="@+id/novel_works"
+                            android:id="@+id/container4"
                             android:layout_height="wrap_content">
 
 
@@ -163,7 +163,7 @@
 
                         <FrameLayout
                             android:layout_width="match_parent"
-                            android:id="@+id/like_novel"
+                            android:id="@+id/container5"
                             android:layout_height="wrap_content">
 
 

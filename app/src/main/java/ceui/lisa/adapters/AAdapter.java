@@ -9,7 +9,7 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.RecyArticalBinding;
-import ceui.lisa.model.SpotlightArticlesBean;
+import ceui.lisa.models.SpotlightArticlesBean;
 import ceui.lisa.utils.GlideUtil;
 
 public class AAdapter extends BaseAdapter<SpotlightArticlesBean, RecyArticalBinding> {

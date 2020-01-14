@@ -36,7 +36,7 @@ import ceui.lisa.download.GifQueue;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.model.GifResponse;
+import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;

@@ -24,7 +24,7 @@ import ceui.lisa.databinding.FragmentSearchResultBinding;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
-import ceui.lisa.model.ListIllustResponse;
+import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.TempTokenResponse;
 import ceui.lisa.utils.Common;
@@ -40,7 +40,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
  * 搜索插画结果，
  */
 public class FragmentSearchResult extends NetListFragment<FragmentSearchResultBinding,
-        ListIllustResponse, IllustsBean, RecyIllustStaggerBinding> {
+        ListIllust, IllustsBean, RecyIllustStaggerBinding> {
 
     private String token = "";
     private String keyWord = "";
@@ -73,15 +73,15 @@ public class FragmentSearchResult extends NetListFragment<FragmentSearchResultBi
     }
 
     @Override
-    public NetControl<ListIllustResponse> present() {
-        return new NetControl<ListIllustResponse>() {
+    public NetControl<ListIllust> present() {
+        return new NetControl<ListIllust>() {
             @Override
-            public Observable<ListIllustResponse> initApi() {
+            public Observable<ListIllust> initApi() {
                 return Retro.getAppApi().searchIllust(token, baseBind.searchBox.getText().toString(), sort, searchTarget);
             }
 
             @Override
-            public Observable<ListIllustResponse> initNextApi() {
+            public Observable<ListIllust> initNextApi() {
                 return Retro.getAppApi().getNextIllust(token, nextUrl);
             }
         };

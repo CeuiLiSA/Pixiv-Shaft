@@ -11,6 +11,7 @@ public class Params {
     public static final String CONTENT            = "content";
     public static final String DAY              = "day";
     public static final String URL              = "url";
+    public static final String TITLE              = "title";
     public static final String MANGA              = "is manga";
     public static final String SHOW_DIALOG              = "show dialog";
     public static final String USER_MODEL              = "user model";

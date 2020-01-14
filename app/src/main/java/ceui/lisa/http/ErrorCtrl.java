@@ -6,7 +6,7 @@ import com.google.gson.Gson;
 
 import java.io.IOException;
 
-import ceui.lisa.model.ErrorResponse;
+import ceui.lisa.models.ErrorResponse;
 import ceui.lisa.utils.Common;
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;

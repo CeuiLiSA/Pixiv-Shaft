@@ -23,7 +23,7 @@ import ceui.lisa.dialogs.AddTagDialog;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.model.IllustBookmarkTagsResponse;
+import ceui.lisa.model.ListBookmarkTag;
 import ceui.lisa.models.BookmarkTagsBean;
 import ceui.lisa.models.NullResponse;
 import ceui.lisa.utils.Channel;
@@ -34,7 +34,7 @@ import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
-public class FragmentSelectBookTag extends BaseListFragment<IllustBookmarkTagsResponse, SelectTagAdapter, BookmarkTagsBean> {
+public class FragmentSelectBookTag extends BaseListFragment<ListBookmarkTag, SelectTagAdapter, BookmarkTagsBean> {
 
     private int illustID;
     private Switch mSwitch;
@@ -128,12 +128,12 @@ public class FragmentSelectBookTag extends BaseListFragment<IllustBookmarkTagsRe
     }
 
     @Override
-    Observable<IllustBookmarkTagsResponse> initApi() {
+    Observable<ListBookmarkTag> initApi() {
         return Retro.getAppApi().getIllustBookmarkTags(Shaft.sUserModel.getResponse().getAccess_token(), illustID);
     }
 
     @Override
-    Observable<IllustBookmarkTagsResponse> initNextApi() {
+    Observable<ListBookmarkTag> initNextApi() {
         return null;
     }
 
