@@ -160,14 +160,11 @@ public class FragmentLocalUsers extends BaseFragment {
                     public void onResponse(Call<UserModel> call, Response<UserModel> response) {
                         if (response != null) {
                             UserModel newUser = response.body();
-                            newUser.getResponse().getUser().setPassword(sUserModel.getResponse().getUser().getPassword());
-//                            if (newUser != null) {
-//                                newUser.getResponse().setUser(Shaft.sUserModel.getResponse().getUser());
-//                            }
+                            newUser.getResponse().getUser().setPassword(userModel.getResponse().getUser().getPassword());
                             Local.saveUser(newUser);
                             Dev.refreshUser = true;
                             mProgressBar.setVisibility(View.INVISIBLE);
-                            getActivity().finish();
+                            mActivity.finish();
                         }
                     }
 

@@ -1,14 +1,10 @@
 package ceui.lisa.fragments
 
-import android.content.DialogInterface
 import android.content.Intent
-import androidx.appcompat.app.AlertDialog
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.FragmentAboutBinding
-import ceui.lisa.dialogs.Avoid251Dialog
 import ceui.lisa.utils.Common
-import ceui.lisa.utils.Local
 import ceui.lisa.utils.Params
 
 class FragmentAbout : BaseBindFragment<FragmentAboutBinding>() {

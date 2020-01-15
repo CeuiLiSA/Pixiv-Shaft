@@ -98,8 +98,8 @@ public interface SignApi {
      */
     @FormUrlEncoded
     @POST("/api/account/edit")
-    Observable<AccountEditResponse> changeEmailAndAddress(@Header("Authorization") String token,
-                                                @Field("new_mail_address") String new_mail_address,
-                                                @Field("current_password") String current_password,
-                                                @Field("new_password") String new_password);
+    Observable<AccountEditResponse> changeEmailAndPassword(@Header("Authorization") String token,
+                                                           @Field("new_mail_address") String new_mail_address,
+                                                           @Field("current_password") String current_password,
+                                                           @Field("new_password") String new_password);
 }

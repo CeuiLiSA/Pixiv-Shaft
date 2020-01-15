@@ -51,7 +51,7 @@ public class PixivOperate {
 
     public static void postFollowUser(int userID, String followType) {
         Retro.getAppApi().postFollow(
-                Local.getUser().getResponse().getAccess_token(), userID, followType)
+                sUserModel.getResponse().getAccess_token(), userID, followType)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ErrorCtrl<NullResponse>() {
@@ -68,7 +68,7 @@ public class PixivOperate {
 
     public static void postUnFollowUser(int userID) {
         Retro.getAppApi().postUnFollow(
-                Local.getUser().getResponse().getAccess_token(), userID)
+                sUserModel.getResponse().getAccess_token(), userID)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ErrorCtrl<NullResponse>() {

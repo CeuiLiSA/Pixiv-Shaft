@@ -11,8 +11,8 @@ public class Dev {
      * user_vjkz8285
      * Os6UAt0GvA
      */
-    public static final String USER_ACCOUNT = "user_vjkz8285";
-    public static final String USER_PWD = "Os6UAt0GvA";
+    public static final String USER_ACCOUNT = "user_ttdc4483";
+    public static final String USER_PWD = "tbGu30CS6e";
 
 
 

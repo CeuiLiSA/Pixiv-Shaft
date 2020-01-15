@@ -24,7 +24,7 @@ public class FragmentWalkThrough extends NetListFragment<FragmentBaseListBinding
         return new NetControl<ListIllust>() {
             @Override
             public Observable<ListIllust> initApi() {
-                return Retro.getAppApi().getLoginBg(sUserModel.getResponse().getAccess_token());
+                return Retro.getAppApi().getLoginBg(sUserModel.getResponse().getAccess_token() + "123456");
             }
 
             @Override

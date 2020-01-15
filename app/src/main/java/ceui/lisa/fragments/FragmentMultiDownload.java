@@ -49,7 +49,7 @@ public class FragmentMultiDownload extends BaseAsyncFragment<MultiDownloadAdapte
         download.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                IllustDownload.downloadAllIllust(allItems);
+                IllustDownload.downloadAllIllust(mActivity, allItems);
             }
         });
         return v;

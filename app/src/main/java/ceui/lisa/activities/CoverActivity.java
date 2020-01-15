@@ -36,14 +36,12 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.ActivityCoverBinding;
-import ceui.lisa.dialogs.Avoid251Dialog;
 import ceui.lisa.download.TaskQueue;
 import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentCenter;
 import ceui.lisa.fragments.FragmentLeft;
 import ceui.lisa.fragments.FragmentRight;
 import ceui.lisa.interfaces.Callback;
-import ceui.lisa.models.UserModel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
@@ -72,19 +70,6 @@ public class CoverActivity extends BaseActivity<ActivityCoverBinding>
     @Override
     public boolean hideStatusBar() {
         return true;
-    }
-
-    public void checkPermission(Callback<Void> callback) {
-        final RxPermissions rxPermissions = new RxPermissions((FragmentActivity) mActivity);
-        Disposable disposable = rxPermissions
-                .requestEachCombined(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                .subscribe(permission -> {
-                    if (permission.granted) {
-                        callback.doSomething(null);
-                    } else {
-                        Common.showToast(mContext.getString(R.string.access_denied));
-                    }
-                });
     }
 
     @Override
@@ -155,20 +140,12 @@ public class CoverActivity extends BaseActivity<ActivityCoverBinding>
                 return baseFragments.length;
             }
         });
-
-
-//        Upload upload = new Upload();
-//        upload.execute();
     }
 
     @Override
     protected void initData() {
-        UserModel userModel = Local.getUser();
-        if (userModel != null && userModel.getResponse().getUser().isIs_login()) {
-            if(Local.getBoolean(Params.SHOW_DIALOG, true)){
-                Common.createDialog(mContext);
-            }
-            checkPermission(t -> initFragment());
+        if (sUserModel != null) {
+            initFragment();
         } else {
             Intent intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "登录注册");

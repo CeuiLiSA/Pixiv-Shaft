@@ -68,9 +68,9 @@ public class FragmentP extends NetListFragment<FragmentBaseListBinding,
                     startActivity(intent);
                 } else if (viewType == 2) {
                     if (allItems.get(position).getPage_count() == 1) {
-                        IllustDownload.downloadIllust(allItems.get(position));
+                        IllustDownload.downloadIllust(mActivity, allItems.get(position));
                     } else {
-                        IllustDownload.downloadAllIllust(allItems.get(position));
+                        IllustDownload.downloadAllIllust(mActivity, allItems.get(position));
                     }
                 } else if (viewType == 3) {
                     PixivOperate.postLike(allItems.get(position), sUserModel, FragmentLikeIllust.TYPE_PUBLUC);

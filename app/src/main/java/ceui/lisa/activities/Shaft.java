@@ -3,12 +3,14 @@ package ceui.lisa.activities;
 import android.app.Application;
 import android.content.Context;
 
+import com.google.gson.Gson;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 import com.scwang.smartrefresh.layout.header.ClassicsHeader;
 
 import ceui.lisa.R;
 import ceui.lisa.models.UserModel;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Settings;
@@ -17,6 +19,7 @@ public class Shaft extends Application {
 
     public static UserModel sUserModel;
     public static Settings sSettings;
+    public static Gson sGson;
     /**
      * 状态栏高度，初始化
      */
@@ -50,7 +53,19 @@ public class Shaft extends Application {
 
         //初始化context
         sContext = this;
+        sGson = new Gson();
+        //0.0127254
+
+        final long before = System.nanoTime();
+        Common.showLog("获取user 之前 " + before);
+
         sUserModel = Local.getUser();
+
+        final long after = System.nanoTime();
+
+        Common.showLog("获取user 之后 " + after);
+        Common.showLog("一共耗时 " + (after - before));
+
         sSettings = Local.getSettings();
 
 

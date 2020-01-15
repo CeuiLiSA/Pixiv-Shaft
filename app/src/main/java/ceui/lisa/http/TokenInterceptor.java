@@ -21,6 +21,7 @@ public class TokenInterceptor implements Interceptor {
 
 
     public static boolean isTokenNew = true;
+    private static final String TOKEN_ERROR = "Error occurred at the OAuth process";
 
     @Override
     public Response intercept(Chain chain) throws IOException {
@@ -47,20 +48,13 @@ public class TokenInterceptor implements Interceptor {
      * @return
      */
     private boolean isTokenExpired(Response response) {
-        try {
-            if (response.code() == 400 &&
-                    response.body() != null &&
-                    response.body().string().contains("Error occurred at the OAuth process")) {
-                isTokenNew = false;
-                return true;
-            } else {
-                isTokenNew = true;
-                return false;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (response.code() == 400 &&
+                Common.getResponseBody(response).contains(TOKEN_ERROR)) {
             isTokenNew = false;
             return true;
+        } else {
+            isTokenNew = true;
+            return false;
         }
     }
 
@@ -81,7 +75,9 @@ public class TokenInterceptor implements Interceptor {
                 true);
         UserModel newUser = call.execute().body();
         if (newUser != null) {
-            newUser.getResponse().setUser(Shaft.sUserModel.getResponse().getUser());
+            newUser.getResponse().getUser().setPassword(
+                    Shaft.sUserModel.getResponse().getUser().getPassword()
+            );
         }
         Local.saveUser(newUser);
         isTokenNew = true;

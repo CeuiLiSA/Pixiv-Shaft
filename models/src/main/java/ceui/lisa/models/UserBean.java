@@ -56,14 +56,6 @@ public class UserBean implements Serializable {
         this.lastTokenTime = lastTokenTime;
     }
 
-    public boolean isIs_login() {
-        return is_login;
-    }
-
-    public void setIs_login(boolean is_login) {
-        this.is_login = is_login;
-    }
-
     public ProfileImageUrlsBean getProfile_image_urls() {
         return profile_image_urls;
     }

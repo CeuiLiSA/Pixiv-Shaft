@@ -3,6 +3,10 @@ package ceui.lisa.database;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
+import com.google.gson.Gson;
+
+import ceui.lisa.models.UserModel;
+
 @Entity(tableName = "user_table")
 public final class UserEntity {
 
@@ -42,5 +46,9 @@ public final class UserEntity {
 
     public void setUserGson(String userGson) {
         this.userGson = userGson;
+    }
+
+    public UserModel getUser(Gson gson) {
+        return gson.fromJson(userGson, UserModel.class);
     }
 }

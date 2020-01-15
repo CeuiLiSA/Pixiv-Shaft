@@ -35,7 +35,6 @@ public abstract class BaseDialog<Layout extends ViewDataBinding> extends DialogF
 
         mContext = getContext();
         mActivity = getActivity();
-        mUserModel = Local.getUser();
     }
 
     @NonNull

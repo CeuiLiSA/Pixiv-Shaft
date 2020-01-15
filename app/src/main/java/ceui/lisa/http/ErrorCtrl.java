@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 
 import java.io.IOException;
 
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.models.Error500;
 import ceui.lisa.models.Error500Obj;
 import ceui.lisa.models.ErrorResponse;
@@ -34,8 +35,8 @@ public abstract class ErrorCtrl<T> implements Observer<T> {
                         responseString.contains("}") &&
                         responseString.contains(":")) {
                     Gson gson = new Gson();
-                    if(responseString.contains("validation_errors") || httpException.code() == 500){
-                        if(responseString.contains("body\":{")){
+                    if (responseString.contains("validation_errors") || httpException.code() == 500) {
+                        if (responseString.contains("body\":{")) {
                             Error500Obj response = gson.fromJson(responseString, Error500Obj.class);
                             if (response != null && response.getBody() != null) {
                                 if (!TextUtils.isEmpty(response.getBody().getValidation_errors().getMail_address())) {

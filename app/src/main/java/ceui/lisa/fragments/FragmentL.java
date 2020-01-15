@@ -1,21 +1,16 @@
 package ceui.lisa.fragments;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 
 import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringConfig;
 import com.facebook.rebound.SpringSystem;
-import com.google.gson.Gson;
-
-import java.io.IOException;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.CoverActivity;
@@ -24,11 +19,9 @@ import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
 import ceui.lisa.databinding.ActivityLoginBinding;
-import ceui.lisa.dialogs.Avoid251Dialog;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
-import ceui.lisa.models.ErrorResponse;
 import ceui.lisa.models.SignResponse;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.utils.Common;
@@ -37,13 +30,13 @@ import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
-import retrofit2.HttpException;
 
 public class FragmentL extends BaseBindFragment<ActivityLoginBinding> {
 
     public static final String CLIENT_ID = "MOBrBDS8blbauoSck0ZfDbtuzpyT";
     public static final String CLIENT_SECRET = "lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj";
     public static final String DEVICE_TOKEN = "pixiv";
+    public static final String TYPE_PASSWORD = "password";
     private static final String SIGN_TOKEN = "Bearer l-f9qZ0ZyqSwRyZs8-MymbtWBbSxmCu1pmbOlyisou8";
     private static final String SIGN_REF = "pixiv_android_app_provisional_account";
     private SpringSystem springSystem = SpringSystem.create();
@@ -197,7 +190,7 @@ public class FragmentL extends BaseBindFragment<ActivityLoginBinding> {
                 CLIENT_SECRET,
                 DEVICE_TOKEN,
                 true,
-                "password",
+                TYPE_PASSWORD,
                 true,
                 pwd,
                 username).subscribeOn(Schedulers.newThread())
@@ -210,7 +203,7 @@ public class FragmentL extends BaseBindFragment<ActivityLoginBinding> {
                         UserEntity userEntity = new UserEntity();
                         userEntity.setLoginTime(System.currentTimeMillis());
                         userEntity.setUserID(userModel.getResponse().getUser().getId());
-                        userEntity.setUserGson(new Gson().toJson(userModel));
+                        userEntity.setUserGson(Shaft.sGson.toJson(userModel));
                         AppDatabase.getAppDatabase(mContext).downloadDao().insertUser(userEntity);
                         baseBind.progress.setVisibility(View.INVISIBLE);
                         Intent intent = new Intent(mContext, CoverActivity.class);
@@ -220,21 +213,8 @@ public class FragmentL extends BaseBindFragment<ActivityLoginBinding> {
 
                     @Override
                     public void onError(Throwable e) {
+                        super.onError(e);
                         baseBind.progress.setVisibility(View.INVISIBLE);
-                        e.printStackTrace();
-                        if (e instanceof HttpException) {
-                            try {
-                                HttpException httpException = (HttpException) e;
-                                String responseString = httpException.response().errorBody().string();
-                                Gson gson = new Gson();  //这个errorBody().string()只能获取一次，下一次就为空了
-                                ErrorResponse response = gson.fromJson(responseString, ErrorResponse.class);
-                                if (response != null) {
-                                    Common.showToast(response.getErrors().getSystem().getMessage());
-                                }
-                            } catch (IOException ex) {
-                                ex.printStackTrace();
-                            }
-                        }
                     }
                 });
     }

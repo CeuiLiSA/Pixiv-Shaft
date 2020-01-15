@@ -15,7 +15,7 @@ import androidx.room.RoomDatabase;
                 SearchEntity.class, //搜索历史
                 ImageEntity.class //用不到
         },
-        version = 8,
+        version = 9,
         exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {

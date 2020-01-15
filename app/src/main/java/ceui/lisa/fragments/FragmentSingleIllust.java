@@ -90,7 +90,7 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
                 .apply(bitmapTransform(new BlurTransformation(25, 3)))
                 .transition(withCrossFade())
                 .into(baseBind.bgImage);
-        mDetailAdapter = new IllustDetailAdapter(illust, mContext);
+        mDetailAdapter = new IllustDetailAdapter(illust, mActivity);
         mDetailAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
@@ -150,9 +150,9 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
                     GifCreate.createGif(illust);
                 } else {
                     if (illust.getPage_count() == 1) {
-                        IllustDownload.downloadIllust(illust);
+                        IllustDownload.downloadIllust(mActivity, illust);
                     } else {
-                        IllustDownload.downloadAllIllust(illust);
+                        IllustDownload.downloadAllIllust(mActivity, illust);
                     }
                 }
             }

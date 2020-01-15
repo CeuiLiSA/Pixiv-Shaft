@@ -1,5 +1,6 @@
 package ceui.lisa.adapters;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.AnimationDrawable;
@@ -56,14 +57,14 @@ import static ceui.lisa.download.IllustDownload.MAP_KEY;
  */
 public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    private Context mContext;
+    private Activity mContext;
     private OnItemClickListener mOnItemClickListener;
     private IllustsBean allIllust;
     private int imageSize = 0;
     private TagHolder gifHolder;
     private AnimationDrawable animationDrawable;
 
-    public IllustDetailAdapter(IllustsBean list, Context context) {
+    public IllustDetailAdapter(IllustsBean list, Activity context) {
         mContext = context;
         allIllust = list;
         imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
@@ -161,7 +162,7 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                                     GifListener gifListener = new GifListener(allIllust, gifResponse.getDelay());
                                     gifListener.bindProgress(currentOne.mProgressBar);
                                     gifListener.bindListener(onGifPrepared);
-                                    IllustDownload.downloadGif(gifResponse, allIllust, gifListener);
+                                    IllustDownload.downloadGif(mContext, gifResponse, allIllust, gifListener);
                                 }
                             }
                         });
