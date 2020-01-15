@@ -81,7 +81,6 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
                 Intent intent = new Intent(mContext, TemplateActivity.class);
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "绑定邮箱");
                 startActivity(intent);
-                mActivity.finish();
             }
         });
 

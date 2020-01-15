@@ -2,8 +2,6 @@ package ceui.lisa.download;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.Context;
-import android.widget.ProgressBar;
 
 import androidx.fragment.app.FragmentActivity;
 
@@ -30,7 +28,7 @@ public class IllustDownload {
     public static final String IMAGE_REFERER = "https://app-api.pixiv.net/";
 
     public static void downloadIllust(Activity activity, IllustsBean illustsBean) {
-        checkP(activity, new Callback() {
+        checkPermission(activity, new Callback() {
             @Override
             public void doSomething(Object t) {
                 if (illustsBean == null) {
@@ -70,7 +68,7 @@ public class IllustDownload {
 
 
     public static void downloadIllust(Activity activity, IllustsBean illustsBean, int index) {
-        checkP(activity, new Callback() {
+        checkPermission(activity, new Callback() {
             @Override
             public void doSomething(Object t) {
                 if (illustsBean == null) {
@@ -108,7 +106,7 @@ public class IllustDownload {
 
 
     public static void downloadAllIllust(Activity activity, IllustsBean illustsBean) {
-        checkP(activity, new Callback() {
+        checkPermission(activity, new Callback() {
             @Override
             public void doSomething(Object t) {
                 if (illustsBean == null) {
@@ -153,7 +151,7 @@ public class IllustDownload {
 
 
     public static void downloadAllIllust(Activity activity, List<IllustsBean> beans) {
-        checkP(activity, new Callback() {
+        checkPermission(activity, new Callback() {
             @Override
             public void doSomething(Object t) {
                 if (beans == null) {
@@ -236,7 +234,7 @@ public class IllustDownload {
     }
 
     public static void downloadGif(Activity activity, GifResponse response, IllustsBean allIllust, GifListener gifListener) {
-        checkP(activity, new Callback() {
+        checkPermission(activity, new Callback() {
             @Override
             public void doSomething(Object t) {
                 File file = FileCreator.createGifZipFile(allIllust);
@@ -259,7 +257,7 @@ public class IllustDownload {
         });
     }
 
-    private static void checkP(Activity mActivity, Callback callback) {
+    private static void checkPermission(Activity mActivity, Callback callback) {
         final RxPermissions rxPermissions = new RxPermissions((FragmentActivity) mActivity);
         Disposable disposable = rxPermissions
                 .requestEachCombined(Manifest.permission.WRITE_EXTERNAL_STORAGE)

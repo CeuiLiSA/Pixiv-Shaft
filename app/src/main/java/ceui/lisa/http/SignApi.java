@@ -68,10 +68,16 @@ public interface SignApi {
      */
     @FormUrlEncoded
     @POST("/api/account/edit")
-    Observable<AccountEditResponse> changePasswordAndAddress(@Header("Authorization") String token,
+    Observable<AccountEditResponse> changePasswordPixivID(@Header("Authorization") String token,
                                                    @Field("new_user_account") String new_user_account,
                                                    @Field("current_password") String current_password,
                                                    @Field("new_password") String new_password);
+
+    @FormUrlEncoded
+    @POST("/api/account/edit")
+    Observable<AccountEditResponse> changePixivID(@Header("Authorization") String token,
+                                                          @Field("new_user_account") String new_user_account,
+                                                          @Field("current_password") String current_password);
 
     /**
      * 只改邮箱
@@ -86,6 +92,13 @@ public interface SignApi {
     Observable<AccountEditResponse> changeEmail(@Header("Authorization") String token,
                                                    @Field("new_mail_address") String new_mail_address,
                                                    @Field("current_password") String current_password);
+
+    @FormUrlEncoded
+    @POST("/api/account/edit")
+    Observable<AccountEditResponse> changeEmailAndPixivID(@Header("Authorization") String token,
+                                                @Field("new_mail_address") String new_mail_address,
+                                                @Field("new_user_account") String new_user_account,
+                                                @Field("current_password") String current_password);
 
     /**
      * 改邮箱还改密码

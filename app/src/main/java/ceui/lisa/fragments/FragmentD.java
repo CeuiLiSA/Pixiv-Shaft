@@ -50,10 +50,10 @@ public class FragmentD extends BaseBindFragment<ViewpagerWithTablayoutBinding> {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             AppDatabase.getAppDatabase(mContext).downloadDao().deleteAllDownload();
-                            Common.showToast("下载记录清除成功");
                             if (allPages[1] instanceof FragmentDownloadFinish) {
                                 ((FragmentDownloadFinish) allPages[1]).getFirstData();
                             }
+                            Common.showToast("下载记录清除成功");
                         }
                     });
                     builder.setNegativeButton("取消", null);

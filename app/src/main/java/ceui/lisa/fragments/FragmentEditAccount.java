@@ -4,6 +4,8 @@ import android.text.TextUtils;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.database.AppDatabase;
+import ceui.lisa.database.UserEntity;
 import ceui.lisa.databinding.FragmentEditAccountBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
@@ -17,6 +19,8 @@ import io.reactivex.schedulers.Schedulers;
 import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class FragmentEditAccount extends BaseBindFragment<FragmentEditAccountBinding> {
+
+    private boolean canChangePixivID = false;
 
     @Override
     void initLayout() {
@@ -32,7 +36,8 @@ public class FragmentEditAccount extends BaseBindFragment<FragmentEditAccountBin
                     @Override
                     public void success(UserState novelDetail) {
                         if (novelDetail.getUser_state() != null) {
-                            baseBind.pixivId.setEnabled(novelDetail.getUser_state().isCan_change_pixiv_id());
+                            canChangePixivID = novelDetail.getUser_state().isCan_change_pixiv_id();
+                            baseBind.pixivId.setEnabled(canChangePixivID);
                         }
                     }
                 });
@@ -46,299 +51,252 @@ public class FragmentEditAccount extends BaseBindFragment<FragmentEditAccountBin
     }
 
     private void submit() {
+        if(canChangePixivID){
+            //可以修改pixivID
+            if (TextUtils.isEmpty(baseBind.pixivId.getText().toString())) {
+                //pixiv ID为空
+                Common.showToast("pixiv ID不能为空");
+                return;
+            }
+            if (TextUtils.isEmpty(baseBind.userPassword.getText().toString())) {
+                //新密码为空
+                Common.showToast("新密码不能为空");
+                return;
+            }
+            if (TextUtils.isEmpty(baseBind.emailAddress.getText().toString())) {
+                //邮箱地址为空
+                if (baseBind.pixivId.getText().toString().equals(sUserModel.getResponse().getUser().getAccount()) &&
+                        baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())) {
+                    Common.showToast("你还没有做任何修改");
+                } else if(baseBind.pixivId.getText().toString().equals(sUserModel.getResponse().getUser().getAccount()) &&
+                        !baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())){
+                    Common.showToast("正在修改密码");
+                    Retro.getSignApi().changePassword(sUserModel.getResponse().getAccess_token(),
+                            sUserModel.getResponse().getUser().getPassword(),
+                            baseBind.userPassword.getText().toString())
+                            .subscribeOn(Schedulers.newThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new NullCtrl<AccountEditResponse>() {
+                                @Override
+                                public void success(AccountEditResponse accountEditResponse) {
+                                    sUserModel.getResponse().getUser().setPassword(baseBind.userPassword.getText().toString());
+                                    saveUser();
+                                    mActivity.finish();
+                                    Common.showToast("密码修改成功");
+                                }
+                            });
+                } else if(!baseBind.pixivId.getText().toString().equals(sUserModel.getResponse().getUser().getAccount()) &&
+                        baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())){
+                    Common.showToast("正在修改PixivID");
+                    Retro.getSignApi().changePixivID(sUserModel.getResponse().getAccess_token(),
+                            baseBind.pixivId.getText().toString(),
+                            sUserModel.getResponse().getUser().getPassword())
+                            .subscribeOn(Schedulers.newThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new NullCtrl<AccountEditResponse>() {
+                                @Override
+                                public void success(AccountEditResponse accountEditResponse) {
+                                    sUserModel.getResponse().getUser().setAccount(baseBind.pixivId.getText().toString());
+                                    saveUser();
+                                    mActivity.finish();
+                                    Common.showToast("PixivID修改成功");
+                                }
+                            });
+                } else if(!baseBind.pixivId.getText().toString().equals(sUserModel.getResponse().getUser().getAccount()) &&
+                        !baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())){
+                    Common.showToast("正在修改PixivID 和密码");
+                    Retro.getSignApi().changePasswordPixivID(sUserModel.getResponse().getAccess_token(),
+                            baseBind.pixivId.getText().toString(),
+                            sUserModel.getResponse().getUser().getPassword(),
+                            baseBind.userPassword.getText().toString())
+                            .subscribeOn(Schedulers.newThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new NullCtrl<AccountEditResponse>() {
+                                @Override
+                                public void success(AccountEditResponse accountEditResponse) {
+                                    sUserModel.getResponse().getUser().setAccount(baseBind.pixivId.getText().toString());
+                                    sUserModel.getResponse().getUser().setPassword(baseBind.userPassword.getText().toString());
+                                    saveUser();
+                                    mActivity.finish();
+                                    Common.showToast("PixivID 和密码修改成功");
+                                }
+                            });
+                }
+            } else {
+                if (TextUtils.isEmpty(baseBind.pixivId.getText().toString())) {
+                    //pixiv ID为空
+                    Common.showToast("pixiv ID不能为空");
+                    return;
+                }
+                if (TextUtils.isEmpty(baseBind.userPassword.getText().toString())) {
+                    //新密码为空
+                    Common.showToast("新密码不能为空");
+                    return;
+                }
 
+                if (baseBind.pixivId.getText().toString().equals(sUserModel.getResponse().getUser().getAccount()) &&
+                        baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())) {
+                    Retro.getSignApi().changeEmail(sUserModel.getResponse().getAccess_token(),
+                            baseBind.emailAddress.getText().toString(),
+                            sUserModel.getResponse().getUser().getPassword())
+                            .subscribeOn(Schedulers.newThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new NullCtrl<AccountEditResponse>() {
+                                @Override
+                                public void success(AccountEditResponse accountEditResponse) {
+                                    mActivity.finish();
+                                    Common.showToast("验证邮件发送成功！", true);
+                                }
+                            });
+                }else if (!baseBind.pixivId.getText().toString().equals(sUserModel.getResponse().getUser().getAccount()) &&
+                        baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())) {
+                    Retro.getSignApi().changeEmailAndPixivID(sUserModel.getResponse().getAccess_token(),
+                            baseBind.emailAddress.getText().toString(),
+                            baseBind.pixivId.getText().toString(),
+                            sUserModel.getResponse().getUser().getPassword())
+                            .subscribeOn(Schedulers.newThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new NullCtrl<AccountEditResponse>() {
+                                @Override
+                                public void success(AccountEditResponse accountEditResponse) {
+                                    sUserModel.getResponse().getUser().setAccount(baseBind.pixivId.getText().toString());
+                                    saveUser();
+                                    mActivity.finish();
+                                    Common.showToast("验证邮件发送成功！", true);
+                                }
+                            });
+                }else if (baseBind.pixivId.getText().toString().equals(sUserModel.getResponse().getUser().getAccount()) &&
+                        !baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())) {
+                    Retro.getSignApi().changeEmailAndPassword(sUserModel.getResponse().getAccess_token(),
+                            baseBind.emailAddress.getText().toString(),
+                            sUserModel.getResponse().getUser().getPassword(),
+                            baseBind.userPassword.getText().toString())
+                            .subscribeOn(Schedulers.newThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new NullCtrl<AccountEditResponse>() {
+                                @Override
+                                public void success(AccountEditResponse accountEditResponse) {
+                                    sUserModel.getResponse().getUser().setPassword(baseBind.userPassword.getText().toString());
+                                    saveUser();
+                                    mActivity.finish();
+                                    Common.showToast("验证邮件发送成功！", true);
+                                }
+                            });
+                }else if (!baseBind.pixivId.getText().toString().equals(sUserModel.getResponse().getUser().getAccount()) &&
+                        !baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())) {
+                    Retro.getSignApi().edit(
+                            sUserModel.getResponse().getAccess_token(),
+                            baseBind.emailAddress.getText().toString(),
+                            baseBind.pixivId.getText().toString(),
+                            sUserModel.getResponse().getUser().getPassword(),
+                            baseBind.userPassword.getText().toString())
+                            .subscribeOn(Schedulers.newThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new NullCtrl<AccountEditResponse>() {
+                                @Override
+                                public void success(AccountEditResponse accountEditResponse) {
+                                    sUserModel.getResponse().getUser().setPassword(baseBind.userPassword.getText().toString());
+                                    sUserModel.getResponse().getUser().setAccount(baseBind.pixivId.getText().toString());
+                                    saveUser();
+                                    mActivity.finish();
+                                    Common.showToast("验证邮件发送成功！", true);
+                                }
+                            });
+                }
+            }
+        } else {
+            //不可以修改pixivID
+            if (TextUtils.isEmpty(baseBind.userPassword.getText().toString())) {
+                //新密码为空
+                Common.showToast("新密码不能为空");
+                return;
+            }
+            if (TextUtils.isEmpty(baseBind.emailAddress.getText().toString())) {
+                //邮箱地址为空
+                if (baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())) {
+                    Common.showToast("你还没有做任何修改");
+                } else {
+                    Common.showToast("正在修改密码");
+                    Retro.getSignApi().changePassword(sUserModel.getResponse().getAccess_token(),
+                            sUserModel.getResponse().getUser().getPassword(),
+                            baseBind.userPassword.getText().toString())
+                            .subscribeOn(Schedulers.newThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new NullCtrl<AccountEditResponse>() {
+                                @Override
+                                public void success(AccountEditResponse accountEditResponse) {
+                                    sUserModel.getResponse().getUser().setPassword(baseBind.userPassword.getText().toString());
+                                    saveUser();
+                                    mActivity.finish();
+                                    Common.showToast("密码修改成功");
+                                }
+                            });
+                }
+            } else {
+                //邮箱地址不为空
+                if (baseBind.emailAddress.getText().toString().equals(sUserModel.getResponse().getUser().getMail_address())) {
+                    if (baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())) {
+                        Common.showToast("你还没有做任何修改");
+                    } else {
+                        Common.showToast("正在修改密码");
+                        Retro.getSignApi().changePassword(sUserModel.getResponse().getAccess_token(),
+                                sUserModel.getResponse().getUser().getPassword(),
+                                baseBind.userPassword.getText().toString())
+                                .subscribeOn(Schedulers.newThread())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new NullCtrl<AccountEditResponse>() {
+                                    @Override
+                                    public void success(AccountEditResponse accountEditResponse) {
+                                        sUserModel.getResponse().getUser().setPassword(baseBind.userPassword.getText().toString());
+                                        saveUser();
+                                        mActivity.finish();
+                                        Common.showToast("密码修改成功");
+                                    }
+                                });
+                    }
+                } else {
+                    if (baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())) {
+                        Retro.getSignApi().changeEmail(sUserModel.getResponse().getAccess_token(),
+                                baseBind.emailAddress.getText().toString(),
+                                sUserModel.getResponse().getUser().getPassword())
+                                .subscribeOn(Schedulers.newThread())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new NullCtrl<AccountEditResponse>() {
+                                    @Override
+                                    public void success(AccountEditResponse accountEditResponse) {
+                                        mActivity.finish();
+                                        Common.showToast("验证邮件发送成功！", true);
+                                    }
+                                });
+                    } else {
+                        Retro.getSignApi().changeEmailAndPassword(
+                                sUserModel.getResponse().getAccess_token(),
+                                baseBind.emailAddress.getText().toString(),
+                                sUserModel.getResponse().getUser().getPassword(),
+                                baseBind.userPassword.getText().toString())
+                                .subscribeOn(Schedulers.newThread())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new NullCtrl<AccountEditResponse>() {
+                                    @Override
+                                    public void success(AccountEditResponse accountEditResponse) {
+                                        sUserModel.getResponse().getUser().setPassword(baseBind.userPassword.getText().toString());
+                                        saveUser();
+                                        mActivity.finish();
+                                        Common.showToast("验证邮件发送成功！", true);
+                                    }
+                                });
+                    }
+                }
+            }
+        }
     }
 
-    /**
-     * if (!TextUtils.isEmpty(Shaft.sUserModel.getResponse().getUser().getMail_address())) {
-     *             if (Shaft.sUserModel.getResponse().getUser().isIs_mail_authorized()) {
-     *                 if (Shaft.sUserModel.getResponse().getUser().getPassword().equals(
-     *                         baseBind.userPassword.getText().toString()) &&
-     *                         Shaft.sUserModel.getResponse().getUser().getMail_address().equals(
-     *                                 baseBind.emailAddress.getText().toString())) {
-     *                     Common.showToast("你还没有做任何修改");
-     *                 } else if (!Shaft.sUserModel.getResponse().getUser().getPassword().equals(
-     *                         baseBind.userPassword.getText().toString()) &&
-     *                         !Shaft.sUserModel.getResponse().getUser().getMail_address().equals(
-     *                                 baseBind.emailAddress.getText().toString())) {
-     *                     //改邮箱 + 改密码
-     *                     Retro.getSignApi().changeEmailAndPassword(
-     *                             Shaft.sUserModel.getResponse().getAccess_token(),
-     *                             baseBind.emailAddress.getText().toString(),
-     *                             Shaft.sUserModel.getResponse().getUser().getPassword(),
-     *                             baseBind.userPassword.getText().toString())
-     *                             .subscribeOn(Schedulers.newThread())
-     *                             .observeOn(AndroidSchedulers.mainThread())
-     *                             .subscribe(new NullCtrl<AccountEditResponse>() {
-     *                                 @Override
-     *                                 public void success(AccountEditResponse accountEditResponse) {
-     *                                     if (!accountEditResponse.isError() &&
-     *                                             accountEditResponse.getBody() != null &&
-     *                                             accountEditResponse.getBody().isIs_succeed()) {
-     *                                         Common.showToast("验证邮件发送成功!", true);
-     *                                         mActivity.finish();
-     *                                     }
-     *                                 }
-     *                             });
-     *                 } else if (!Shaft.sUserModel.getResponse().getUser().getPassword().equals(
-     *                         baseBind.userPassword.getText().toString()) &&
-     *                         Shaft.sUserModel.getResponse().getUser().getMail_address().equals(
-     *                                 baseBind.emailAddress.getText().toString())) {
-     *                     //只改密码
-     *                     Retro.getSignApi().changePassword(
-     *                             Shaft.sUserModel.getResponse().getAccess_token(),
-     *                             Shaft.sUserModel.getResponse().getUser().getPassword(),
-     *                             baseBind.userPassword.getText().toString())
-     *                             .subscribeOn(Schedulers.newThread())
-     *                             .observeOn(AndroidSchedulers.mainThread())
-     *                             .subscribe(new NullCtrl<AccountEditResponse>() {
-     *                                 @Override
-     *                                 public void success(AccountEditResponse accountEditResponse) {
-     *                                     if (!accountEditResponse.isError() &&
-     *                                             accountEditResponse.getBody() != null &&
-     *                                             accountEditResponse.getBody().isIs_succeed()) {
-     *                                         Common.showToast("密码修改成功!");
-     *                                         mActivity.finish();
-     *                                     }
-     *                                 }
-     *                             });
-     *                 } else if (Shaft.sUserModel.getResponse().getUser().getPassword().equals(
-     *                         baseBind.userPassword.getText().toString()) &&
-     *                         !Shaft.sUserModel.getResponse().getUser().getMail_address().equals(
-     *                                 baseBind.emailAddress.getText().toString())) {
-     *                     //只改邮箱
-     *                     Retro.getSignApi().changeEmail(
-     *                             Shaft.sUserModel.getResponse().getAccess_token(),
-     *                             baseBind.emailAddress.getText().toString(),
-     *                             Shaft.sUserModel.getResponse().getUser().getPassword())
-     *                             .subscribeOn(Schedulers.newThread())
-     *                             .observeOn(AndroidSchedulers.mainThread())
-     *                             .subscribe(new NullCtrl<AccountEditResponse>() {
-     *                                 @Override
-     *                                 public void success(AccountEditResponse accountEditResponse) {
-     *                                     if (!accountEditResponse.isError() &&
-     *                                             accountEditResponse.getBody() != null &&
-     *                                             accountEditResponse.getBody().isIs_succeed()) {
-     *                                         Common.showToast("验证邮件发送成功!", true);
-     *                                         mActivity.finish();
-     *                                     }
-     *                                 }
-     *                             });
-     *                 }
-     *             } else {
-     *                 if (TextUtils.isEmpty(baseBind.emailAddress.getText().toString())) {
-     *                     Common.showToast("邮箱地址不能为空");
-     *                     return;
-     *                 }
-     *                 if (TextUtils.isEmpty(baseBind.userPassword.getText().toString())) {
-     *                     Common.showToast("新密码不能为空");
-     *                     return;
-     *                 }
-     *                 if (TextUtils.isEmpty(baseBind.pixivId.getText().toString())) {
-     *                     Common.showToast("pixiv ID不能为空");
-     *                     return;
-     *                 }
-     *
-     *                 if (baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())) {
-     *                     Retro.getSignApi().changeEmail(
-     *                             Shaft.sUserModel.getResponse().getAccess_token(),
-     *                             baseBind.emailAddress.getText().toString(),
-     *                             Shaft.sUserModel.getResponse().getUser().getPassword())
-     *                             .subscribeOn(Schedulers.newThread())
-     *                             .observeOn(AndroidSchedulers.mainThread())
-     *                             .subscribe(new NullCtrl<AccountEditResponse>() {
-     *                                 @Override
-     *                                 public void success(AccountEditResponse accountEditResponse) {
-     *                                     if (!accountEditResponse.isError() &&
-     *                                             accountEditResponse.getBody() != null &&
-     *                                             accountEditResponse.getBody().isIs_succeed()) {
-     *                                         Common.showToast("验证邮件发送成功!", true);
-     *                                         mActivity.finish();
-     *                                     }
-     *                                 }
-     *                             });
-     *                 } else {
-     *                     Retro.getSignApi().edit(
-     *                             sUserModel.getResponse().getAccess_token(),
-     *                             baseBind.emailAddress.getText().toString(),
-     *                             baseBind.pixivId.getText().toString(),
-     *                             Shaft.sUserModel.getResponse().getUser().getPassword(),
-     *                             baseBind.userPassword.getText().toString())
-     *                             .subscribeOn(Schedulers.newThread())
-     *                             .observeOn(AndroidSchedulers.mainThread())
-     *                             .subscribe(new NullCtrl<AccountEditResponse>() {
-     *                                 @Override
-     *                                 public void success(AccountEditResponse accountEditResponse) {
-     *                                     if (!accountEditResponse.isError() &&
-     *                                             accountEditResponse.getBody() != null &&
-     *                                             accountEditResponse.getBody().isIs_succeed()) {
-     *                                         Common.showToast("验证邮件发送成功!", true);
-     *                                         mActivity.finish();
-     *                                     }
-     *                                 }
-     *                             });
-     *                 }
-     *             }
-     *         } else {
-     *             if (TextUtils.isEmpty(baseBind.emailAddress.getText().toString())) {
-     *                 if (Shaft.sUserModel.getResponse().getUser().getAccount().equals(baseBind.pixivId.getText().toString())) {
-     *                     if (TextUtils.isEmpty(baseBind.userPassword.getText().toString())) {
-     *                         Common.showToast("新密码不能为空");
-     *                         return;
-     *                     }
-     *                     if (baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())) {
-     *                         Common.showToast("你还没有做任何改变");
-     *                         return;
-     *                     }
-     *                     Retro.getSignApi().changePassword(
-     *                             Shaft.sUserModel.getResponse().getAccess_token(),
-     *                             Shaft.sUserModel.getResponse().getUser().getPassword(),
-     *                             baseBind.userPassword.getText().toString())
-     *                             .subscribeOn(Schedulers.newThread())
-     *                             .observeOn(AndroidSchedulers.mainThread())
-     *                             .subscribe(new NullCtrl<AccountEditResponse>() {
-     *                                 @Override
-     *                                 public void success(AccountEditResponse accountEditResponse) {
-     *                                     if (!accountEditResponse.isError() &&
-     *                                             accountEditResponse.getBody() != null &&
-     *                                             accountEditResponse.getBody().isIs_succeed()) {
-     *                                         sUserModel.getResponse().getUser().setPassword(baseBind.userPassword.getText().toString());
-     *                                         Local.saveUser(sUserModel);
-     *                                         Common.showToast("密码修改成功!");
-     *                                         mActivity.finish();
-     *                                     }
-     *                                 }
-     *                             });
-     *                 } else {
-     *                     if (TextUtils.isEmpty(baseBind.emailAddress.getText().toString())) {
-     *                         Common.showToast("邮箱地址不能为空");
-     *                         return;
-     *                     }
-     *                     if (TextUtils.isEmpty(baseBind.userPassword.getText().toString())) {
-     *                         Common.showToast("新密码不能为空");
-     *                         return;
-     *                     }
-     *                     if (TextUtils.isEmpty(baseBind.pixivId.getText().toString())) {
-     *                         Common.showToast("pixiv ID不能为空");
-     *                         return;
-     *                     }
-     *
-     *                     if (baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())) {
-     *                         Retro.getSignApi().changeEmail(
-     *                                 Shaft.sUserModel.getResponse().getAccess_token(),
-     *                                 baseBind.emailAddress.getText().toString(),
-     *                                 Shaft.sUserModel.getResponse().getUser().getPassword())
-     *                                 .subscribeOn(Schedulers.newThread())
-     *                                 .observeOn(AndroidSchedulers.mainThread())
-     *                                 .subscribe(new NullCtrl<AccountEditResponse>() {
-     *                                     @Override
-     *                                     public void success(AccountEditResponse accountEditResponse) {
-     *                                         if (!accountEditResponse.isError() &&
-     *                                                 accountEditResponse.getBody() != null &&
-     *                                                 accountEditResponse.getBody().isIs_succeed()) {
-     *                                             Common.showToast("验证邮件发送成功!", true);
-     *                                             mActivity.finish();
-     *                                         }
-     *                                     }
-     *                                 });
-     *                     } else {
-     *                         Retro.getSignApi().edit(
-     *                                 sUserModel.getResponse().getAccess_token(),
-     *                                 baseBind.emailAddress.getText().toString(),
-     *                                 baseBind.pixivId.getText().toString(),
-     *                                 Shaft.sUserModel.getResponse().getUser().getPassword(),
-     *                                 baseBind.userPassword.getText().toString())
-     *                                 .subscribeOn(Schedulers.newThread())
-     *                                 .observeOn(AndroidSchedulers.mainThread())
-     *                                 .subscribe(new NullCtrl<AccountEditResponse>() {
-     *                                     @Override
-     *                                     public void success(AccountEditResponse accountEditResponse) {
-     *                                         if (!accountEditResponse.isError() &&
-     *                                                 accountEditResponse.getBody() != null &&
-     *                                                 accountEditResponse.getBody().isIs_succeed()) {
-     *                                             Common.showToast("验证邮件发送成功!", true);
-     *                                             mActivity.finish();
-     *                                         }
-     *                                     }
-     *                                 });
-     *                     }
-     *                 }
-     *             } else {
-     *                 if (TextUtils.isEmpty(baseBind.emailAddress.getText().toString())) {
-     *                     Common.showToast("邮箱地址不能为空");
-     *                     return;
-     *                 }
-     *                 if (TextUtils.isEmpty(baseBind.userPassword.getText().toString())) {
-     *                     Common.showToast("新密码不能为空");
-     *                     return;
-     *                 }
-     *                 if (TextUtils.isEmpty(baseBind.pixivId.getText().toString())) {
-     *                     Common.showToast("pixiv ID不能为空");
-     *                     return;
-     *                 }
-     *
-     *                 if (baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())) {
-     *                     if (sUserModel.getResponse().getUser().getAccount().equals(baseBind.pixivId.getText().toString())) {
-     *                         Retro.getSignApi().changeEmail(
-     *                                 Shaft.sUserModel.getResponse().getAccess_token(),
-     *                                 baseBind.emailAddress.getText().toString(),
-     *                                 Shaft.sUserModel.getResponse().getUser().getPassword())
-     *                                 .subscribeOn(Schedulers.newThread())
-     *                                 .observeOn(AndroidSchedulers.mainThread())
-     *                                 .subscribe(new NullCtrl<AccountEditResponse>() {
-     *                                     @Override
-     *                                     public void success(AccountEditResponse accountEditResponse) {
-     *                                         if (!accountEditResponse.isError() &&
-     *                                                 accountEditResponse.getBody() != null &&
-     *                                                 accountEditResponse.getBody().isIs_succeed()) {
-     *                                             Common.showToast("验证邮件发送成功!", true);
-     *                                             mActivity.finish();
-     *                                         }
-     *                                     }
-     *                                 });
-     *                     }else {
-     *                         Retro.getSignApi().edit(
-     *                                 sUserModel.getResponse().getAccess_token(),
-     *                                 baseBind.emailAddress.getText().toString(),
-     *                                 baseBind.pixivId.getText().toString(),
-     *                                 Shaft.sUserModel.getResponse().getUser().getPassword(),
-     *                                 baseBind.userPassword.getText().toString())
-     *                                 .subscribeOn(Schedulers.newThread())
-     *                                 .observeOn(AndroidSchedulers.mainThread())
-     *                                 .subscribe(new NullCtrl<AccountEditResponse>() {
-     *                                     @Override
-     *                                     public void success(AccountEditResponse accountEditResponse) {
-     *                                         if (!accountEditResponse.isError() &&
-     *                                                 accountEditResponse.getBody() != null &&
-     *                                                 accountEditResponse.getBody().isIs_succeed()) {
-     *                                             Common.showToast("验证邮件发送成功!", true);
-     *                                             mActivity.finish();
-     *                                         }
-     *                                     }
-     *                                 });
-     *                     }
-     *                 } else {
-     *                     Retro.getSignApi().edit(
-     *                             sUserModel.getResponse().getAccess_token(),
-     *                             baseBind.emailAddress.getText().toString(),
-     *                             baseBind.pixivId.getText().toString(),
-     *                             Shaft.sUserModel.getResponse().getUser().getPassword(),
-     *                             baseBind.userPassword.getText().toString())
-     *                             .subscribeOn(Schedulers.newThread())
-     *                             .observeOn(AndroidSchedulers.mainThread())
-     *                             .subscribe(new NullCtrl<AccountEditResponse>() {
-     *                                 @Override
-     *                                 public void success(AccountEditResponse accountEditResponse) {
-     *                                     if (!accountEditResponse.isError() &&
-     *                                             accountEditResponse.getBody() != null &&
-     *                                             accountEditResponse.getBody().isIs_succeed()) {
-     *                                         Common.showToast("验证邮件发送成功!", true);
-     *                                         mActivity.finish();
-     *                                     }
-     *                                 }
-     *                             });
-     *                 }
-     *             }
-     *         }
-     */
+    private void saveUser() {
+        Local.saveUser(sUserModel);
+        UserEntity userEntity = new UserEntity();
+        userEntity.setLoginTime(System.currentTimeMillis());
+        userEntity.setUserID(sUserModel.getResponse().getUser().getId());
+        userEntity.setUserGson(Shaft.sGson.toJson(sUserModel));
+        AppDatabase.getAppDatabase(mContext).downloadDao().insertUser(userEntity);
+    }
 }

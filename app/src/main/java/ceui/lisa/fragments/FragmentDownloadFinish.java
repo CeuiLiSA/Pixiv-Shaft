@@ -158,7 +158,6 @@ public class FragmentDownloadFinish extends BaseAsyncFragment<DownlistAdapter, D
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(Channel event) {
         if (className.contains(event.getReceiver())) {
-
             nowIndex++;
             mRecyclerView.setVisibility(View.VISIBLE);
             noData.setVisibility(View.INVISIBLE);
