@@ -50,7 +50,7 @@ public class Local {
         String settingsGson = gson.toJson(settings);
         SharedPreferences.Editor editor = localData.edit();
         editor.putString("settings", settingsGson);
-        editor.apply();
+        editor.commit();
         Shaft.sSettings = settings;
     }
 
@@ -64,6 +64,6 @@ public class Local {
         SharedPreferences localData = Shaft.getContext().getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = localData.edit();
         editor.putBoolean(key, value);
-        editor.apply();
+        editor.commit();
     }
 }

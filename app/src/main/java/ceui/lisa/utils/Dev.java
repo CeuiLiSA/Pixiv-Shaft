@@ -8,11 +8,11 @@ public class Dev {
 
     /**
      * 测试账号：
-     * user_vjkz8285
-     * Os6UAt0GvA
      */
     public static final String USER_ACCOUNT = "user_pluto";
-    public static final String USER_PWD = "Mercis09bv";
+    public static final String USER_ACCOUNT_2 = "user_shaft";
+
+    public static final String USER_PWD = "Mercis09v";
 
 
 }

@@ -74,6 +74,7 @@ public class CoverActivity extends BaseActivity<ActivityCoverBinding>
 
     @Override
     protected void initView() {
+        Dev.isDev = Local.getBoolean(Params.USE_DEBUG, false);
         baseBind.drawerLayout.setScrimColor(Color.TRANSPARENT);
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);

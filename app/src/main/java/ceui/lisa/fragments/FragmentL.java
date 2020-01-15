@@ -1,16 +1,21 @@
 package ceui.lisa.fragments;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 
 import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringConfig;
 import com.facebook.rebound.SpringSystem;
+
+import java.util.Locale;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.CoverActivity;
@@ -41,7 +46,16 @@ public class FragmentL extends BaseBindFragment<ActivityLoginBinding> {
     private static final String SIGN_REF = "pixiv_android_app_provisional_account";
     private SpringSystem springSystem = SpringSystem.create();
     private Spring rotate;
+    private int mHitCountDown;//
+    private static final int TAPS_TO_BE_A_DEVELOPER = 7;
+    private Toast mHitToast;
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        mHitCountDown = TAPS_TO_BE_A_DEVELOPER;
+
+    }
 
     @Override
     void initLayout() {
@@ -64,6 +78,27 @@ public class FragmentL extends BaseBindFragment<ActivityLoginBinding> {
                 return false;
             }
         });
+        setTitle();
+        baseBind.title.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mHitCountDown > 0) {
+                    mHitCountDown--;
+                    if (mHitCountDown == 0) {
+                        showDialog();
+                    } else if (mHitCountDown > 0 && mHitCountDown < TAPS_TO_BE_A_DEVELOPER - 2) {
+                        if (mHitToast != null) {
+                            mHitToast.cancel();
+                        }
+                        mHitToast = Toast.makeText(getActivity(), String.format(Locale.getDefault(),
+                                "点击%d次切换版本", mHitCountDown), Toast.LENGTH_SHORT);
+                        mHitToast.show();
+                    }
+                } else {
+                    showDialog();
+                }
+            }
+        });
         if (Shaft.sUserModel != null) {
             baseBind.userName.setText(Shaft.sUserModel.getResponse().getUser().getAccount());
             baseBind.password.requestFocus();
@@ -71,6 +106,7 @@ public class FragmentL extends BaseBindFragment<ActivityLoginBinding> {
         if (Dev.isDev) {
             baseBind.userName.setText(Dev.USER_ACCOUNT);
             baseBind.password.setText(Dev.USER_PWD);
+            baseBind.password.setSelection(Dev.USER_PWD.length());
         }
         baseBind.login.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -108,6 +144,35 @@ public class FragmentL extends BaseBindFragment<ActivityLoginBinding> {
                 showLoginCard();
             }
         });
+    }
+
+    private void setTitle() {
+        if (Local.getBoolean(Params.USE_DEBUG, false)) {
+            baseBind.title.setText("Shaft(测试版)");
+        }else {
+            baseBind.title.setText("Shaft");
+        }
+    }
+
+    private void showDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+        String[] titles = new String[]{"使用正式版", "使用测试版"};
+        builder.setItems(titles, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if(which == 0){
+                    Local.setBoolean(Params.USE_DEBUG, false);
+                    Dev.isDev = false;
+                } else if (which == 1) {
+                    Local.setBoolean(Params.USE_DEBUG, true);
+                    Dev.isDev = true;
+                }
+                mHitCountDown = TAPS_TO_BE_A_DEVELOPER;
+                setTitle();
+            }
+        });
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
     }
 
     @Override

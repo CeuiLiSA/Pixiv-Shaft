@@ -12,7 +12,9 @@ import ceui.lisa.R;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Local;
+import ceui.lisa.utils.Params;
 import ceui.lisa.utils.Settings;
 
 public class Shaft extends Application {
@@ -60,6 +62,7 @@ public class Shaft extends Application {
         Common.showLog("获取user 之前 " + before);
 
         sUserModel = Local.getUser();
+        Dev.isDev = Local.getBoolean(Params.USE_DEBUG, false);
 
         final long after = System.nanoTime();
 
