@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
@@ -155,17 +154,18 @@ public class FragmentLocalUsers extends BaseFragment {
             @Override
             public void onClick(View v) {
                 mProgressBar.setVisibility(View.VISIBLE);
-                PixivOperate.changeUser(userModel, new Callback<UserModel>() {
+                PixivOperate.refreshUserData(userModel, new Callback<UserModel>() {
                     @Override
                     public void onResponse(Call<UserModel> call, Response<UserModel> response) {
                         if (response != null) {
                             UserModel newUser = response.body();
                             newUser.getResponse().getUser().setPassword(userModel.getResponse().getUser().getPassword());
+                            newUser.getResponse().getUser().setIs_login(true);
                             Local.saveUser(newUser);
                             Dev.refreshUser = true;
-                            mProgressBar.setVisibility(View.INVISIBLE);
                             mActivity.finish();
                         }
+                        mProgressBar.setVisibility(View.INVISIBLE);
                     }
 
                     @Override

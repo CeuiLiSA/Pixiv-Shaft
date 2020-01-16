@@ -54,7 +54,6 @@ public class FragmentL extends BaseBindFragment<ActivityLoginBinding> {
     public void onResume() {
         super.onResume();
         mHitCountDown = TAPS_TO_BE_A_DEVELOPER;
-
     }
 
     @Override
@@ -264,6 +263,7 @@ public class FragmentL extends BaseBindFragment<ActivityLoginBinding> {
                     @Override
                     public void success(UserModel userModel) {
                         userModel.getResponse().getUser().setPassword(pwd);
+                        userModel.getResponse().getUser().setIs_login(true);
                         Local.saveUser(userModel);
                         UserEntity userEntity = new UserEntity();
                         userEntity.setLoginTime(System.currentTimeMillis());

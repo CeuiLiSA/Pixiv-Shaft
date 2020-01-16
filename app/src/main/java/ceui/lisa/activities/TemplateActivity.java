@@ -3,6 +3,7 @@ package ceui.lisa.activities;
 import android.content.Intent;
 import android.view.KeyEvent;
 
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
@@ -18,6 +19,7 @@ import ceui.lisa.fragments.FragmentC;
 import ceui.lisa.fragments.FragmentCollection;
 import ceui.lisa.fragments.FragmentD;
 import ceui.lisa.fragments.FragmentEditAccount;
+import ceui.lisa.fragments.FragmentEditFile;
 import ceui.lisa.fragments.FragmentFollowUser;
 import ceui.lisa.fragments.FragmentH;
 import ceui.lisa.fragments.FragmentImageDetail;
@@ -165,6 +167,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                     return FragmentImageDetail.newInstance(intent.getStringExtra(Params.URL));
                 case "绑定邮箱":
                     return new FragmentEditAccount();
+                case "编辑个人资料":
+                    return new FragmentEditFile();
                 default:
                     return new FragmentBlank();
             }
@@ -204,6 +208,14 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                         .commit();
                 childFragment = fragment;
             }
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (childFragment != null) {
+            childFragment.onActivityResult(requestCode, resultCode, data);
         }
     }
 

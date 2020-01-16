@@ -24,8 +24,8 @@ public class UserBean implements Serializable {
     private String account;
     private String password;
     private String mail_address;
-    private boolean is_premium;
     private boolean is_login;
+    private boolean is_premium;
     private boolean is_followed;
     private long lastTokenTime = -1;
     private int x_restrict;
@@ -132,6 +132,14 @@ public class UserBean implements Serializable {
         return password;
     }
 
+    public boolean isIs_login() {
+        return is_login;
+    }
+
+    public void setIs_login(boolean is_login) {
+        this.is_login = is_login;
+    }
+
     public void setPassword(String password) {
         this.password = password;
     }
@@ -193,6 +201,34 @@ public class UserBean implements Serializable {
                 return "";
             }
         }
+
+        @Override
+        public String toString() {
+            return "ProfileImageUrlsBean{" +
+                    "px_16x16='" + px_16x16 + '\'' +
+                    ", px_50x50='" + px_50x50 + '\'' +
+                    ", px_170x170='" + px_170x170 + '\'' +
+                    ", medium='" + medium + '\'' +
+                    '}';
+        }
     }
 
+    @Override
+    public String toString() {
+        return "UserBean{" +
+                "profile_image_urls=" + profile_image_urls +
+                ", id=" + id +
+                ", name='" + name + '\'' +
+                ", comment='" + comment + '\'' +
+                ", account='" + account + '\'' +
+                ", password='" + password + '\'' +
+                ", mail_address='" + mail_address + '\'' +
+                ", is_premium=" + is_premium +
+                ", is_followed=" + is_followed +
+                ", lastTokenTime=" + lastTokenTime +
+                ", x_restrict=" + x_restrict +
+                ", is_mail_authorized=" + is_mail_authorized +
+                ", require_policy_agreement=" + require_policy_agreement +
+                '}';
+    }
 }

@@ -59,14 +59,14 @@ public class Shaft extends Application {
         //0.0127254
 
         final long before = System.nanoTime();
-        Common.showLog("获取user 之前 " + before);
 
         sUserModel = Local.getUser();
+
         Dev.isDev = Local.getBoolean(Params.USE_DEBUG, false);
 
         final long after = System.nanoTime();
 
-        Common.showLog("获取user 之后 " + after);
+        Common.showLog("获取user 之后 " + sUserModel.toString());
         Common.showLog("一共耗时 " + (after - before));
 
         sSettings = Local.getSettings();

@@ -73,6 +73,9 @@ public abstract class ErrorCtrl<T> implements Observer<T> {
                                         Common.showToast(response.getError().getReason(), true);
                                     } else if (!TextUtils.isEmpty(response.getError().getUser_message())) {
                                         Common.showToast(response.getError().getUser_message(), true);
+                                    } else if (response.getError().getUser_message_details() != null &&
+                                            !TextUtils.isEmpty(response.getError().getUser_message_details().getProfile_image())) {
+                                        Common.showToast(response.getError().getUser_message_details().getProfile_image(), true);
                                     }
                                 }
                             }

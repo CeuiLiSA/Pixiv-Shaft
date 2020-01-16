@@ -78,6 +78,7 @@ public class TokenInterceptor implements Interceptor {
             newUser.getResponse().getUser().setPassword(
                     Shaft.sUserModel.getResponse().getUser().getPassword()
             );
+            newUser.getResponse().getUser().setIs_login(true);
         }
         Local.saveUser(newUser);
         isTokenNew = true;

@@ -134,6 +134,37 @@
 
                         </View>
 
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:id="@+id/edit_file"
+                            android:layout_height="match_parent">
+
+
+                            <TextView
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="个人资料设置"
+                                android:textSize="15sp"
+                                android:textColor="@color/dark_text"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+                            </TextView>
+
+
+                        </RelativeLayout>
+
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="#e6e6e6"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_height="1dp">
+
+
+                        </View>
+
 
                         <RelativeLayout
                             android:id="@+id/login_out"

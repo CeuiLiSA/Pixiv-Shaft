@@ -79,7 +79,7 @@ dependencies {
     implementation 'jp.wasabeef:glide-transformations:4.0.1'
     implementation 'jp.co.cyberagent.android:gpuimage:2.0.3'
     implementation 'com.sackcentury:shinebutton:0.2.0'
-    implementation 'de.hdodenhof:circleimageview:3.0.0'
+    implementation 'de.hdodenhof:circleimageview:3.0.1'
     implementation 'com.github.ybq:Android-SpinKit:1.2.0'
     implementation 'androidx.room:room-runtime:2.1.0'
     implementation 'org.greenrobot:eventbus:3.1.1'
@@ -95,7 +95,7 @@ dependencies {
 
     implementation 'com.tencent.mid:mid:3.73-release'
     implementation 'com.wdullaer:materialdatetimepicker:3.5.0'
-    implementation 'com.zhihu.android:matisse:0.5.2-beta4'
+    implementation 'com.zhihu.android:matisse:0.5.3-beta3'
     implementation 'com.squareup.picasso:picasso:2.5.2'
     implementation 'com.nononsenseapps:filepicker:4.1.0'
     implementation 'com.qmuiteam:qmui:1.4.0'

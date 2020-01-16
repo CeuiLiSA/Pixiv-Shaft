@@ -91,6 +91,7 @@ public class ErrorResponse {
         private String user_message;
         private String message;
         private String reason;
+        private User_message_details user_message_details;
 
         public String getUser_message() {
             return user_message;
@@ -114,6 +115,26 @@ public class ErrorResponse {
 
         public void setReason(String reason) {
             this.reason = reason;
+        }
+
+        public static class User_message_details {
+            private String profile_image;
+
+            public String getProfile_image() {
+                return profile_image;
+            }
+
+            public void setProfile_image(String profile_image) {
+                this.profile_image = profile_image;
+            }
+        }
+
+        public User_message_details getUser_message_details() {
+            return user_message_details;
+        }
+
+        public void setUser_message_details(User_message_details user_message_details) {
+            this.user_message_details = user_message_details;
         }
     }
 

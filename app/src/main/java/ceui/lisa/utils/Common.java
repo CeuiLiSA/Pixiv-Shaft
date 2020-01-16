@@ -26,6 +26,7 @@ import java.nio.charset.UnsupportedCharsetException;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.activities.TemplateActivity;
 import okhttp3.MediaType;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
@@ -52,6 +53,16 @@ public class Common {
             if (activity.getCurrentFocus().getWindowToken() != null) {
                 imm.hideSoftInputFromWindow(activity.getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
             }
+        }
+    }
+
+    public static void logOut(Context context) {
+        if (Shaft.sUserModel != null) {
+            Shaft.sUserModel.getResponse().getUser().setIs_login(false);
+            Local.saveUser(Shaft.sUserModel);
+            Intent intent = new Intent(context, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "登录注册");
+            context.startActivity(intent);
         }
     }
 

@@ -42,8 +42,8 @@ public class Retro {
     private static Request.Builder addHeader(Request.Builder before) {
         PixivHeaders pixivHeaders = new PixivHeaders();
         return before
-                .addHeader("User-Agent", "PixivAndroidApp/5.0.134 (Android 6.0.1; D6653)")
-                .addHeader("Accept-Language", "zh_CN")
+                .addHeader("User-Agent:", "PixivAndroidApp/5.0.175 (Android 6.0.1; D6653)")
+                .addHeader("Accept-Language:", "zh_CN")
                 .addHeader("X-Client-Time", pixivHeaders.getXClientTime())
                 .addHeader("X-Client-Hash", pixivHeaders.getXClientHash());
     }
@@ -58,7 +58,9 @@ public class Retro {
         try {
             builder.addInterceptor(loggingInterceptor)
                     .protocols(Collections.singletonList(Protocol.HTTP_1_1))
-                    .addInterceptor(chain -> chain.proceed(addHeader(chain.request().newBuilder()).build()))
+                    .addInterceptor(chain -> chain.proceed(
+                            addHeader(chain.request().newBuilder()).build())
+                    )
                     .build();
             if (!baseUrl.equals(ACCOUNT_BASE_URL)) {
                 builder.addInterceptor(new TokenInterceptor());

@@ -58,9 +58,7 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
         baseBind.loginOut.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "登录注册");
-                startActivity(intent);
+                Common.logOut(mContext);
                 mActivity.finish();
             }
         });
@@ -80,6 +78,15 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, TemplateActivity.class);
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "绑定邮箱");
+                startActivity(intent);
+            }
+        });
+
+        baseBind.editFile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "编辑个人资料");
                 startActivity(intent);
             }
         });

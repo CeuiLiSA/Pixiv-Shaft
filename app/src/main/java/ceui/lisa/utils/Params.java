@@ -18,4 +18,9 @@ public class Params {
     public static final String USE_DEBUG              = "use debug mode";
 
     public static final String IMAGE_UNKNOWN = "https://s.pximg.net/common/images/limit_unknown_360.png";
+    public static final String HEAD_UNKNOWN = "https://s.pximg.net/common/images/no_profile.png";
+
+
+    public static final int REQUEST_CODE_CHOOSE = 10086;
+
 }

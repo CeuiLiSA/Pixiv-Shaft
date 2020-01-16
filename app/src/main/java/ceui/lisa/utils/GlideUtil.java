@@ -40,27 +40,19 @@ public class GlideUtil {
 
     public static GlideUrl getHead(UserBean userBean) {
         if (userBean == null) {
+            Common.showLog("getHead userBean == null");
             return null;
         }
 
         if (userBean.getProfile_image_urls() == null) {
+            Common.showLog("getHead userBean.getProfile_image_urls == null");
             return null;
         }
 
-        if (!TextUtils.isEmpty(userBean.getProfile_image_urls().getPx_170x170())) {
-            return new GlideUrl(userBean.getProfile_image_urls().getPx_170x170(), sHeaders);
-        }
-
-        if (!TextUtils.isEmpty(userBean.getProfile_image_urls().getMedium())) {
-            return new GlideUrl(userBean.getProfile_image_urls().getMedium(), sHeaders);
-        }
-
-        if (!TextUtils.isEmpty(userBean.getProfile_image_urls().getPx_50x50())) {
-            return new GlideUrl(userBean.getProfile_image_urls().getPx_50x50(), sHeaders);
-        }
-
-        if (!TextUtils.isEmpty(userBean.getProfile_image_urls().getPx_16x16())) {
-            return new GlideUrl(userBean.getProfile_image_urls().getPx_16x16(), sHeaders);
+        if (!TextUtils.isEmpty(userBean.getProfile_image_urls().getMaxImage())) {
+            Common.showLog("getHead userBean.getProfile_image_urls.getMaxImage " +
+                    userBean.getProfile_image_urls().getMaxImage());
+            return new GlideUrl(userBean.getProfile_image_urls().getMaxImage(), sHeaders);
         }
 
         return null;

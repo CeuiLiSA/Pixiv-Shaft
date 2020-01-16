@@ -37,7 +37,7 @@ import static com.blankj.utilcode.util.StringUtils.getString;
 
 public class PixivOperate {
 
-    public static void changeUser(UserModel userModel, Callback<UserModel> callback) {
+    public static void refreshUserData(UserModel userModel, Callback<UserModel> callback) {
         Call<UserModel> call = Retro.getAccountApi().refreshToken(
                 FragmentL.CLIENT_ID,
                 FragmentL.CLIENT_SECRET,

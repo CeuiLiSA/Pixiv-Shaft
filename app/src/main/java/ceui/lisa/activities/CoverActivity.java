@@ -56,7 +56,6 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 public class CoverActivity extends BaseActivity<ActivityCoverBinding>
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    private static final int REQUEST_CODE_CHOOSE = 10086;
     private ImageView userHead;
     private TextView username;
     private TextView user_email;
@@ -145,7 +144,7 @@ public class CoverActivity extends BaseActivity<ActivityCoverBinding>
 
     @Override
     protected void initData() {
-        if (sUserModel != null) {
+        if (sUserModel != null && sUserModel.getResponse().getUser().isIs_login()) {
             initFragment();
         } else {
             Intent intent = new Intent(mContext, TemplateActivity.class);
@@ -201,7 +200,7 @@ public class CoverActivity extends BaseActivity<ActivityCoverBinding>
                     .restrictOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED)
                     .thumbnailScale(1.0f) // 缩略图的比例
                     .imageEngine(new PicassoEngine()) // 使用的图片加载引擎
-                    .forResult(REQUEST_CODE_CHOOSE);
+                    .forResult(Params.REQUEST_CODE_CHOOSE);
 
         } else if (id == R.id.nav_send) {
 
@@ -226,12 +225,9 @@ public class CoverActivity extends BaseActivity<ActivityCoverBinding>
 
     private void initDrawerHeader() {
         if (sUserModel != null && sUserModel.getResponse() != null) {
-            if (!Dev.isDev) {
-                Glide.with(mContext)
-                        .load(GlideUtil.getMediumImg(
-                                sUserModel.getResponse().getUser().getProfile_image_urls().getPx_170x170()))
-                        .into(userHead);
-            }
+            Glide.with(mContext)
+                    .load(GlideUtil.getHead(sUserModel.getResponse().getUser()))
+                    .into(userHead);
             username.setText(sUserModel.getResponse().getUser().getName());
             user_email.setText(TextUtils.isEmpty(sUserModel.getResponse().getUser().getMail_address()) ?
                     mContext.getString(R.string.no_mail_address) : sUserModel.getResponse().getUser().getMail_address());
@@ -241,7 +237,7 @@ public class CoverActivity extends BaseActivity<ActivityCoverBinding>
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_CODE_CHOOSE && resultCode == RESULT_OK) {
+        if (requestCode == Params.REQUEST_CODE_CHOOSE && resultCode == RESULT_OK) {
             List<Uri> result = Matisse.obtainResult(data);
             if (result != null && result.size() != 0) {
                 ReverseImage.reverse(new File(Common.getRealFilePath(mContext, result.get(0))),
