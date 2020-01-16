@@ -51,7 +51,7 @@ public class FragmentEditAccount extends BaseBindFragment<FragmentEditAccountBin
     }
 
     private void submit() {
-        if(canChangePixivID){
+        if (canChangePixivID) {
             //可以修改pixivID
             if (TextUtils.isEmpty(baseBind.pixivId.getText().toString())) {
                 //pixiv ID为空
@@ -68,8 +68,8 @@ public class FragmentEditAccount extends BaseBindFragment<FragmentEditAccountBin
                 if (baseBind.pixivId.getText().toString().equals(sUserModel.getResponse().getUser().getAccount()) &&
                         baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())) {
                     Common.showToast("你还没有做任何修改");
-                } else if(baseBind.pixivId.getText().toString().equals(sUserModel.getResponse().getUser().getAccount()) &&
-                        !baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())){
+                } else if (baseBind.pixivId.getText().toString().equals(sUserModel.getResponse().getUser().getAccount()) &&
+                        !baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())) {
                     Common.showToast("正在修改密码");
                     Retro.getSignApi().changePassword(sUserModel.getResponse().getAccess_token(),
                             sUserModel.getResponse().getUser().getPassword(),
@@ -85,8 +85,8 @@ public class FragmentEditAccount extends BaseBindFragment<FragmentEditAccountBin
                                     Common.showToast("密码修改成功");
                                 }
                             });
-                } else if(!baseBind.pixivId.getText().toString().equals(sUserModel.getResponse().getUser().getAccount()) &&
-                        baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())){
+                } else if (!baseBind.pixivId.getText().toString().equals(sUserModel.getResponse().getUser().getAccount()) &&
+                        baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())) {
                     Common.showToast("正在修改PixivID");
                     Retro.getSignApi().changePixivID(sUserModel.getResponse().getAccess_token(),
                             baseBind.pixivId.getText().toString(),
@@ -102,8 +102,8 @@ public class FragmentEditAccount extends BaseBindFragment<FragmentEditAccountBin
                                     Common.showToast("PixivID修改成功");
                                 }
                             });
-                } else if(!baseBind.pixivId.getText().toString().equals(sUserModel.getResponse().getUser().getAccount()) &&
-                        !baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())){
+                } else if (!baseBind.pixivId.getText().toString().equals(sUserModel.getResponse().getUser().getAccount()) &&
+                        !baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())) {
                     Common.showToast("正在修改PixivID 和密码");
                     Retro.getSignApi().changePasswordPixivID(sUserModel.getResponse().getAccess_token(),
                             baseBind.pixivId.getText().toString(),
@@ -148,7 +148,7 @@ public class FragmentEditAccount extends BaseBindFragment<FragmentEditAccountBin
                                     Common.showToast("验证邮件发送成功！", true);
                                 }
                             });
-                }else if (!baseBind.pixivId.getText().toString().equals(sUserModel.getResponse().getUser().getAccount()) &&
+                } else if (!baseBind.pixivId.getText().toString().equals(sUserModel.getResponse().getUser().getAccount()) &&
                         baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())) {
                     Retro.getSignApi().changeEmailAndPixivID(sUserModel.getResponse().getAccess_token(),
                             baseBind.emailAddress.getText().toString(),
@@ -165,7 +165,7 @@ public class FragmentEditAccount extends BaseBindFragment<FragmentEditAccountBin
                                     Common.showToast("验证邮件发送成功！", true);
                                 }
                             });
-                }else if (baseBind.pixivId.getText().toString().equals(sUserModel.getResponse().getUser().getAccount()) &&
+                } else if (baseBind.pixivId.getText().toString().equals(sUserModel.getResponse().getUser().getAccount()) &&
                         !baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())) {
                     Retro.getSignApi().changeEmailAndPassword(sUserModel.getResponse().getAccess_token(),
                             baseBind.emailAddress.getText().toString(),
@@ -182,7 +182,7 @@ public class FragmentEditAccount extends BaseBindFragment<FragmentEditAccountBin
                                     Common.showToast("验证邮件发送成功！", true);
                                 }
                             });
-                }else if (!baseBind.pixivId.getText().toString().equals(sUserModel.getResponse().getUser().getAccount()) &&
+                } else if (!baseBind.pixivId.getText().toString().equals(sUserModel.getResponse().getUser().getAccount()) &&
                         !baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())) {
                     Retro.getSignApi().edit(
                             sUserModel.getResponse().getAccess_token(),

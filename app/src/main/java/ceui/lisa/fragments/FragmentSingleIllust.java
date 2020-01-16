@@ -1,7 +1,6 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
@@ -15,11 +14,9 @@ import androidx.appcompat.widget.Toolbar;
 import com.bumptech.glide.Glide;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
-import com.liulishuo.okdownload.core.listener.DownloadListener1;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
 
-import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
@@ -35,17 +32,11 @@ import ceui.lisa.activities.UActivity;
 import ceui.lisa.adapters.IllustDetailAdapter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustHistoryEntity;
-import ceui.lisa.database.IllustTask;
 import ceui.lisa.databinding.FragmentSingleIllustBinding;
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.download.GifCreate;
-import ceui.lisa.download.GifListener;
-import ceui.lisa.download.GifQueue;
 import ceui.lisa.download.IllustDownload;
-import ceui.lisa.http.ErrorCtrl;
-import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
@@ -56,8 +47,6 @@ import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.ShareIllust;
 import ceui.lisa.view.LinearItemDecorationNoLRTB;
 import ceui.lisa.view.ScrollChange;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
 import jp.wasabeef.glide.transformations.BlurTransformation;
 import me.next.tagview.TagCloudView;
 
@@ -100,7 +89,7 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
                     intent.putExtra("dataType", "二级详情");
                     intent.putExtra("index", position);
                     startActivity(intent);
-                } else if(viewType == 1){
+                } else if (viewType == 1) {
 
                 }
             }

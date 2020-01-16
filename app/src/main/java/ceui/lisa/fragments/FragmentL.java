@@ -44,10 +44,10 @@ public class FragmentL extends BaseBindFragment<ActivityLoginBinding> {
     public static final String TYPE_PASSWORD = "password";
     private static final String SIGN_TOKEN = "Bearer l-f9qZ0ZyqSwRyZs8-MymbtWBbSxmCu1pmbOlyisou8";
     private static final String SIGN_REF = "pixiv_android_app_provisional_account";
+    private static final int TAPS_TO_BE_A_DEVELOPER = 7;
     private SpringSystem springSystem = SpringSystem.create();
     private Spring rotate;
     private int mHitCountDown;//
-    private static final int TAPS_TO_BE_A_DEVELOPER = 7;
     private Toast mHitToast;
 
     @Override
@@ -148,7 +148,7 @@ public class FragmentL extends BaseBindFragment<ActivityLoginBinding> {
     private void setTitle() {
         if (Local.getBoolean(Params.USE_DEBUG, false)) {
             baseBind.title.setText("Shaft(测试版)");
-        }else {
+        } else {
             baseBind.title.setText("Shaft");
         }
     }
@@ -159,7 +159,7 @@ public class FragmentL extends BaseBindFragment<ActivityLoginBinding> {
         builder.setItems(titles, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                if(which == 0){
+                if (which == 0) {
                     Local.setBoolean(Params.USE_DEBUG, false);
                     Dev.isDev = false;
                 } else if (which == 1) {

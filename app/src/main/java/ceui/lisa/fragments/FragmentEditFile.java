@@ -41,7 +41,6 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
-import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
 public class FragmentEditFile extends BaseBindFragment<FragmentEditFileBinding> {
 
@@ -54,7 +53,7 @@ public class FragmentEditFile extends BaseBindFragment<FragmentEditFileBinding> 
 
     @Override
     void initData() {
-        if(sUserModel != null) {
+        if (sUserModel != null) {
             Glide.with(mContext)
                     .load(GlideUtil.getHead(sUserModel.getResponse().getUser()))
                     .into(baseBind.userHead);
@@ -82,7 +81,7 @@ public class FragmentEditFile extends BaseBindFragment<FragmentEditFileBinding> 
             return;
         }
 
-        if(imageFile.length() >= 5 * 1024 * 1024){
+        if (imageFile.length() >= 5 * 1024 * 1024) {
             Common.showToast("照片不能大于5M，本张照片大小：" +
                     FileSizeUtil.getFileOrFilesSize(imageFile, FileSizeUtil.SIZETYPE_MB) + "M");
             return;
@@ -91,11 +90,10 @@ public class FragmentEditFile extends BaseBindFragment<FragmentEditFileBinding> 
         baseBind.progress.setVisibility(View.VISIBLE);
 
         RequestBody imageBody = RequestBody.create(MediaType.parse("image/jpeg"), imageFile);
-        MultipartBody.Part imagePart = MultipartBody.Part.createFormData("profile_image",imageFile.getName(),imageBody);
+        MultipartBody.Part imagePart = MultipartBody.Part.createFormData("profile_image", imageFile.getName(), imageBody);
 
 
-
-        List<MultipartBody.Part> parts=new ArrayList<>();
+        List<MultipartBody.Part> parts = new ArrayList<>();
         parts.add(imagePart);
         //MultipartBody.Part webpagePart = MultipartBody.Part.createFormData("webpage", "https://github.com/CeuiLiSA/Pixiv-Shaft");
         //MultipartBody.Part twitterPart = MultipartBody.Part.createFormData("twitter","CeuiLiSA");
@@ -115,7 +113,7 @@ public class FragmentEditFile extends BaseBindFragment<FragmentEditFileBinding> 
                             public void onResponse(Call<UserModel> call, Response<UserModel> response) {
                                 if (response != null) {
                                     UserModel newUser = response.body();
-                                    if(newUser != null) {
+                                    if (newUser != null) {
                                         newUser.getResponse().getUser().setPassword(sUserModel.getResponse().getUser().getPassword());
                                         newUser.getResponse().getUser().setIs_login(true);
                                         Local.saveUser(newUser);
@@ -140,7 +138,7 @@ public class FragmentEditFile extends BaseBindFragment<FragmentEditFileBinding> 
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         Common.showLog(className + "activity result");
         if (requestCode == Params.REQUEST_CODE_CHOOSE) {
-            if(resultCode == Activity.RESULT_OK && data != null){
+            if (resultCode == Activity.RESULT_OK && data != null) {
                 List<Uri> result = Matisse.obtainResult(data);
                 if (result != null && result.size() == 1) {
                     imageFile = UriUtils.uri2File(result.get(0));
