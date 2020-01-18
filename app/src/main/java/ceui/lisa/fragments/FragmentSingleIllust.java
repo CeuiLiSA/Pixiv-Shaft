@@ -337,12 +337,12 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
             baseBind.pSize.setText(illust.getPage_count() + "P");
             baseBind.darkBlank.setVisibility(View.VISIBLE);
             baseBind.seeAll.setVisibility(View.VISIBLE);
-            baseBind.illustList.close(false);
+            baseBind.illustList.close();
             baseBind.seeAll.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     if (baseBind.illustList.isExpand()) {
-                        baseBind.illustList.close(true);
+                        baseBind.illustList.close();
                         baseBind.seeAll.setText("点击展开");
                     } else {
                         baseBind.illustList.open();

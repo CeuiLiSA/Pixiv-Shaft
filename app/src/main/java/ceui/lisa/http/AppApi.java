@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import ceui.lisa.model.ListArticle;
+import ceui.lisa.model.ListLive;
 import ceui.lisa.model.ListTag;
 import ceui.lisa.models.GifResponse;
 import ceui.lisa.model.ListBookmarkTag;
@@ -346,4 +347,9 @@ public interface AppApi {
     Observable<NullResponse> updateUserProfile(@Header("Authorization") String token,
                                                @Part List<MultipartBody.Part> parts);
 
+
+
+    @GET("v1/live/list")
+    Observable<ListLive> getLiveList(@Header("Authorization") String token,
+                                     @Query("list_type") String list_type);
 }

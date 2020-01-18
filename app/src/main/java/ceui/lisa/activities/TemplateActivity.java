@@ -27,6 +27,7 @@ import ceui.lisa.fragments.FragmentL;
 import ceui.lisa.fragments.FragmentLicense;
 import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.fragments.FragmentLikeNovel;
+import ceui.lisa.fragments.FragmentLive;
 import ceui.lisa.fragments.FragmentLocalUsers;
 import ceui.lisa.fragments.FragmentMultiDownload;
 import ceui.lisa.fragments.FragmentNew;
@@ -50,6 +51,7 @@ import ceui.lisa.fragments.FragmentViewHistory;
 import ceui.lisa.fragments.FragmentWalkThrough;
 import ceui.lisa.fragments.FragmentWebView;
 import ceui.lisa.fragments.FragmentWhoFollowThisUser;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseResult;
 
@@ -133,7 +135,11 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                 case "详细信息":
                     return new FragmentAboutUser();
                 case "一言":
-                    return new FragmentH();
+                    if(Dev.isDev){
+                        return new FragmentLive();
+                    }else {
+                        return new FragmentH();
+                    }
                 case "最新作品":
                     return new FragmentNew();
                 case "粉丝":
@@ -169,6 +175,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                     return new FragmentEditAccount();
                 case "编辑个人资料":
                     return new FragmentEditFile();
+                case "热门直播":
+                    return new FragmentLive();
                 default:
                     return new FragmentBlank();
             }

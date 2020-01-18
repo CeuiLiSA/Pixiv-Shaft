@@ -57,8 +57,7 @@ public class ExpandCard extends CardView {
         isExpand = true;
     }
 
-    public void close(boolean hasAnime) {
-        hasAnime = false;
+    public void close() {
         if(isExpand){
             ViewGroup.LayoutParams layoutParams = getLayoutParams();
             layoutParams.height = maxHeight;

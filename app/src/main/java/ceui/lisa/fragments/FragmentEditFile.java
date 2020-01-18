@@ -108,6 +108,7 @@ public class FragmentEditFile extends BaseBindFragment<FragmentEditFileBinding> 
                     @Override
                     public void success(NullResponse nullResponse) {
                         Common.showToast("修改成功！");
+                        //修改好了之后刷新用户信息
                         PixivOperate.refreshUserData(sUserModel, new Callback<UserModel>() {
                             @Override
                             public void onResponse(Call<UserModel> call, Response<UserModel> response) {
