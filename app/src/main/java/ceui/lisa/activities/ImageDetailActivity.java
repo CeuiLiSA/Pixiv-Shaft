@@ -1,6 +1,8 @@
 package ceui.lisa.activities;
 
+import android.os.Build;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
@@ -15,16 +17,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.databinding.ActivityImageDetailBinding;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.fragments.FragmentImageDetail;
 import ceui.lisa.fragments.FragmentLocalImageDetail;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.utils.Common;
 
-public class ImageDetailActivity extends BaseActivity {
+public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding> {
 
     private IllustsBean mIllustsBean;
     private List<String> localIllust = new ArrayList<>();
     private TextView currentPage, downloadSingle, currentSize;
+    private int index;
 
     @Override
     protected int initLayout() {
@@ -38,18 +43,17 @@ public class ImageDetailActivity extends BaseActivity {
     @Override
     protected void initView() {
         String dataType = getIntent().getStringExtra("dataType");
-        ViewPager viewPager = findViewById(R.id.view_pager);
-        viewPager.setPageTransformer(true, new CubeOutTransformer());
+        baseBind.viewPager.setPageTransformer(true, new CubeOutTransformer());
         if (dataType.equals("二级详情")) {
             currentSize = findViewById(R.id.current_size);
             currentPage = findViewById(R.id.current_page);
             downloadSingle = findViewById(R.id.download_this_one);
             mIllustsBean = (IllustsBean) getIntent().getSerializableExtra("illust");
-            int index = getIntent().getIntExtra("index", 0);
+            index = getIntent().getIntExtra("index", 0);
             if (mIllustsBean == null) {
                 return;
             }
-            viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
+            baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
                 @Override
                 public Fragment getItem(int i) {
                     return FragmentImageDetail.newInstance(mIllustsBean, i);
@@ -60,14 +64,14 @@ public class ImageDetailActivity extends BaseActivity {
                     return mIllustsBean.getPage_count();
                 }
             });
-            viewPager.setCurrentItem(index);
+            baseBind.viewPager.setCurrentItem(index);
             downloadSingle.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    IllustDownload.downloadIllust(mActivity, mIllustsBean, viewPager.getCurrentItem());
+                    IllustDownload.downloadIllust(mActivity, mIllustsBean, baseBind.viewPager.getCurrentItem());
                 }
             });
-            viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            baseBind.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
                 @Override
                 public void onPageScrolled(int i, float v, int i1) {
 
@@ -90,9 +94,9 @@ public class ImageDetailActivity extends BaseActivity {
             currentPage = findViewById(R.id.current_page);
             downloadSingle = findViewById(R.id.download_this_one);
             localIllust = (List<String>) getIntent().getSerializableExtra("illust");
-            int index = getIntent().getIntExtra("index", 0);
+            index = getIntent().getIntExtra("index", 0);
 
-            viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
+            baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
                 @Override
                 public Fragment getItem(int i) {
                     return FragmentLocalImageDetail.newInstance(localIllust.get(i));
@@ -104,8 +108,8 @@ public class ImageDetailActivity extends BaseActivity {
                 }
             });
             currentPage.setVisibility(View.GONE);
-            viewPager.setCurrentItem(index);
-            viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            baseBind.viewPager.setCurrentItem(index);
+            baseBind.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
                 @Override
                 public void onPageScrolled(int i, float v, int i1) {
 
@@ -130,6 +134,17 @@ public class ImageDetailActivity extends BaseActivity {
 
     @Override
     protected void initData() {
+        postponeEnterTransition();
+    }
 
+    @Override
+    public void onBackPressed() {
+        if(index == baseBind.viewPager.getCurrentItem()){
+            Common.showLog(className + "没有滑动");
+            super.onBackPressed();
+        }else {
+            Common.showLog(className + "滑动到其他页面不做动画");
+            mActivity.finish();
+        }
     }
 }

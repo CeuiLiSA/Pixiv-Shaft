@@ -1,16 +1,24 @@
 package ceui.lisa.fragments;
 
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.ImageView;
 
+import androidx.annotation.Nullable;
+
 import com.blankj.utilcode.util.BarUtils;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 import com.github.chrisbanes.photoview.OnOutsidePhotoTapListener;
 import com.github.chrisbanes.photoview.OnPhotoTapListener;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.ImageDetailActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.FragmentImageDetailBinding;
 import ceui.lisa.models.IllustsBean;
@@ -58,17 +66,53 @@ public class FragmentImageDetail extends BaseBindFragment<FragmentImageDetailBin
             Glide.with(mContext)
                     .load(GlideUtil.getMediumImg(url))
                     .transition(withCrossFade())
+                    .listener(new RequestListener<Drawable>() {
+                        @Override
+                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                            return false;
+                        }
+
+                        @Override
+                        public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                            mActivity.startPostponedEnterTransition();
+                            return false;
+                        }
+                    })
                     .into(baseBind.illustImage);
         } else {
             if (Shaft.sSettings.isFirstImageSize()) {
                 Glide.with(mContext)
                         .load(GlideUtil.getOriginal(mIllustsBean, index))
                         .transition(withCrossFade())
+                        .listener(new RequestListener<Drawable>() {
+                            @Override
+                            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                                return false;
+                            }
+
+                            @Override
+                            public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                                mActivity.startPostponedEnterTransition();
+                                return false;
+                            }
+                        })
                         .into(baseBind.illustImage);
             } else {
                 Glide.with(mContext)
                         .load(GlideUtil.getLargeImage(mIllustsBean, index))
                         .transition(withCrossFade())
+                        .listener(new RequestListener<Drawable>() {
+                            @Override
+                            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                                return false;
+                            }
+
+                            @Override
+                            public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                                mActivity.startPostponedEnterTransition();
+                                return false;
+                            }
+                        })
                         .into(baseBind.illustImage);
             }
         }

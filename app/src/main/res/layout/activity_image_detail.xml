@@ -1,65 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:background="@color/black"
-    android:layout_height="match_parent">
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <data>
 
-    <androidx.viewpager.widget.ViewPager
-        android:layout_width="match_parent"
-        android:id="@+id/view_pager"
-        android:layout_height="match_parent">
-
-
-    </androidx.viewpager.widget.ViewPager>
-
+    </data>
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_alignParentBottom="true"
-        android:id="@+id/bottom_rela"
-        android:layout_height="wrap_content">
+        android:background="@color/black"
+        android:layout_height="match_parent">
 
-        <TextView
+
+        <androidx.viewpager.widget.ViewPager
             android:layout_width="match_parent"
-            android:layout_toStartOf="@+id/download_this_one"
-            android:textColor="@android:color/white"
-            android:layout_centerVertical="true"
-            android:gravity="start"
-            android:layout_marginEnd="@dimen/eight_dp"
-            android:layout_marginStart="@dimen/sixteen_dp"
-            android:singleLine="true"
-            android:ellipsize="end"
-            android:id="@+id/current_size"
-            android:layout_height="wrap_content" />
-
-        <TextView
-            android:textColor="@android:color/white"
-            android:id="@+id/download_this_one"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/follow_user_bg"
-            android:paddingStart="@dimen/sixteen_dp"
-            android:paddingEnd="@dimen/sixteen_dp"
-            android:paddingTop="@dimen/six_dp"
-            android:paddingBottom="@dimen/six_dp"
-            android:layout_centerHorizontal="true"
-            android:layout_margin="@dimen/twelve_dip"
-            android:text="下载图片" />
+            android:id="@+id/view_pager"
+            android:layout_height="match_parent">
 
 
-        <TextView
+        </androidx.viewpager.widget.ViewPager>
+
+
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_toEndOf="@+id/download_this_one"
-            android:textColor="@android:color/white"
-            android:layout_centerVertical="true"
-            android:gravity="end"
-            android:layout_marginEnd="@dimen/sixteen_dp"
-            android:id="@+id/current_page"
-            android:layout_height="wrap_content" />
+            android:layout_alignParentBottom="true"
+            android:id="@+id/bottom_rela"
+            android:layout_height="wrap_content">
 
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_toStartOf="@+id/download_this_one"
+                android:textColor="@android:color/white"
+                android:layout_centerVertical="true"
+                android:gravity="start"
+                android:layout_marginEnd="@dimen/eight_dp"
+                android:layout_marginStart="@dimen/sixteen_dp"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:id="@+id/current_size"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:textColor="@android:color/white"
+                android:id="@+id/download_this_one"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/follow_user_bg"
+                android:paddingStart="@dimen/sixteen_dp"
+                android:paddingEnd="@dimen/sixteen_dp"
+                android:paddingTop="@dimen/six_dp"
+                android:paddingBottom="@dimen/six_dp"
+                android:layout_centerHorizontal="true"
+                android:layout_margin="@dimen/twelve_dip"
+                android:text="下载图片" />
+
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_toEndOf="@+id/download_this_one"
+                android:textColor="@android:color/white"
+                android:layout_centerVertical="true"
+                android:gravity="end"
+                android:layout_marginEnd="@dimen/sixteen_dp"
+                android:id="@+id/current_page"
+                android:layout_height="wrap_content" />
+
+
+        </RelativeLayout>
 
     </RelativeLayout>
-
-</RelativeLayout>
+</layout>
