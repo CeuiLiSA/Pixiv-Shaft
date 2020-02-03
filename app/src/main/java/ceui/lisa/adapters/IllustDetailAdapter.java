@@ -189,7 +189,10 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         }
 
         if (mOnItemClickListener != null) {
-            currentOne.itemView.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 0));
+            currentOne.itemView.setOnClickListener(v -> {
+                currentOne.illust.setTransitionName("big_image_" + position);
+                mOnItemClickListener.onItemClick(currentOne.illust, position, 0);
+            });
         }
     }
 

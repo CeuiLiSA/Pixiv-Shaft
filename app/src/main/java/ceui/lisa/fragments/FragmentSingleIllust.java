@@ -1,6 +1,7 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
@@ -10,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityOptionsCompat;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -84,11 +86,24 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
             @Override
             public void onItemClick(View v, int position, int viewType) {
                 if (viewType == 0) {
+//                    Intent intent = new Intent(mContext, ImageDetailActivity.class);
+//                    intent.putExtra("illust", illust);
+//                    intent.putExtra("dataType", "二级详情");
+//                    intent.putExtra("index", position);
+//                    startActivity(intent);
+
+
+
                     Intent intent = new Intent(mContext, ImageDetailActivity.class);
                     intent.putExtra("illust", illust);
                     intent.putExtra("dataType", "二级详情");
                     intent.putExtra("index", position);
-                    startActivity(intent);
+                    Bundle bundle = ActivityOptionsCompat.makeSceneTransitionAnimation(mActivity,
+                            v, "big_image_" + position).toBundle();
+                    startActivity(intent,bundle);
+
+
+
                 } else if (viewType == 1) {
 
                 }

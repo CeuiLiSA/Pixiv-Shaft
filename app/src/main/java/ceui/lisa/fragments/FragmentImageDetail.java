@@ -2,9 +2,13 @@ package ceui.lisa.fragments;
 
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.View;
+import android.widget.ImageView;
 
 import com.blankj.utilcode.util.BarUtils;
 import com.bumptech.glide.Glide;
+import com.github.chrisbanes.photoview.OnOutsidePhotoTapListener;
+import com.github.chrisbanes.photoview.OnPhotoTapListener;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
@@ -48,6 +52,7 @@ public class FragmentImageDetail extends BaseBindFragment<FragmentImageDetailBin
 
     @Override
     void initData() {
+        baseBind.illustImage.setTransitionName("big_image_" + index);
         BarUtils.setNavBarVisibility(mActivity, false);
         if (!TextUtils.isEmpty(url)) {
             Glide.with(mContext)
@@ -68,4 +73,22 @@ public class FragmentImageDetail extends BaseBindFragment<FragmentImageDetailBin
             }
         }
     }
+
+    @Override
+    public void initView(View view) {
+        baseBind.illustImage.setOnPhotoTapListener(new OnPhotoTapListener() {
+            @Override
+            public void onPhotoTap(ImageView view, float x, float y) {
+                mActivity.onBackPressed();
+            }
+        });
+        baseBind.illustImage.setOnOutsidePhotoTapListener(new OnOutsidePhotoTapListener() {
+            @Override
+            public void onOutsidePhotoTap(ImageView imageView) {
+                mActivity.onBackPressed();
+            }
+        });
+    }
+
+
 }

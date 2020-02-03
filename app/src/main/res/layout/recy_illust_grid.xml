@@ -8,6 +8,7 @@
     <ImageView
         android:id="@+id/illust_image"
         android:layout_width="match_parent"
+        android:transitionName="big_image"
         android:layout_height="240dp"
         android:scaleType="centerCrop" />
 
