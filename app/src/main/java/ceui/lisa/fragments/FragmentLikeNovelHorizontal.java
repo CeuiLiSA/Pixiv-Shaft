@@ -1,11 +1,13 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 
+import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.PagerSnapHelper;
 
@@ -26,6 +28,7 @@ import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
+import ceui.lisa.viewmodel.UserViewModel;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
@@ -40,11 +43,19 @@ public class FragmentLikeNovelHorizontal extends BaseBindFragment<FragmentLikeIl
     private NHAdapter mAdapter;
     private int type; // 0某人收藏的小说，1某人创作的小说
 
-    public static FragmentLikeNovelHorizontal newInstance(UserDetailResponse userDetailResponse, int pType) {
-        FragmentLikeNovelHorizontal fragmentLikeIllustHorizontal = new FragmentLikeNovelHorizontal();
-        fragmentLikeIllustHorizontal.mUserDetailResponse = userDetailResponse;
-        fragmentLikeIllustHorizontal.type = pType;
-        return fragmentLikeIllustHorizontal;
+    public static FragmentLikeNovelHorizontal newInstance(int pType) {
+        Bundle args = new Bundle();
+        args.putInt(Params.DATA_TYPE, pType);
+        FragmentLikeNovelHorizontal fragment = new FragmentLikeNovelHorizontal();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void initBundle(Bundle bundle) {
+        type = bundle.getInt(Params.DATA_TYPE);
+        UserViewModel userViewModel = ViewModelProviders.of(mActivity).get(UserViewModel.class);
+        mUserDetailResponse = userViewModel.getUser().getValue();
     }
 
     @Override

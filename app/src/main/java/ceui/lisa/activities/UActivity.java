@@ -6,8 +6,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 
+import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 
 import com.bumptech.glide.Glide;
 import com.zhy.view.flowlayout.FlowLayout;
@@ -30,6 +33,7 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
+import ceui.lisa.viewmodel.UserViewModel;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
@@ -41,7 +45,7 @@ import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOption
  */
 public class UActivity extends BaseActivity<ActicityUserBinding> implements Display<UserDetailResponse> {
 
-    private UserDetailResponse currentUser;
+    private UserViewModel mUserViewModel;
 
     @Override
     protected int initLayout() {
@@ -57,13 +61,20 @@ public class UActivity extends BaseActivity<ActicityUserBinding> implements Disp
     @Override
     protected void initData() {
         int userID = getIntent().getIntExtra(Params.USER_ID, 0);
+        mUserViewModel = ViewModelProviders.of(this).get(UserViewModel.class);
+        mUserViewModel.getUser().observe(this, new Observer<UserDetailResponse>() {
+            @Override
+            public void onChanged(UserDetailResponse userDetailResponse) {
+                invoke(userDetailResponse);
+            }
+        });
         Retro.getAppApi().getUserDetail(sUserModel.getResponse().getAccess_token(), userID)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ErrorCtrl<UserDetailResponse>() {
                     @Override
                     public void onNext(UserDetailResponse user) {
-                        invoke(user);
+                        mUserViewModel.getUser().setValue(user);
                     }
                 });
     }
@@ -74,8 +85,7 @@ public class UActivity extends BaseActivity<ActicityUserBinding> implements Disp
     }
 
     @Override
-    public void invoke(UserDetailResponse pUserDetailResponse) {
-        currentUser = pUserDetailResponse;
+    public void invoke(UserDetailResponse currentUser) {
         Glide.with(mContext).load(GlideUtil.getMediumImg(currentUser
                 .getUser().getProfile_image_urls().getMaxImage()))
                 .placeholder(R.color.light_bg).into(baseBind.userHead);
@@ -204,11 +214,11 @@ public class UActivity extends BaseActivity<ActicityUserBinding> implements Disp
 
         if (currentUser.getProfile().getTotal_novels() > 0) {
             transaction.replace(R.id.container4, FragmentLikeNovelHorizontal
-                    .newInstance(currentUser, 1));// 0收藏的小说， 1创作的小说
+                    .newInstance(1));// 0收藏的小说， 1创作的小说
         }
 
         transaction.replace(R.id.container5, FragmentLikeNovelHorizontal
-                .newInstance(currentUser, 0));// 0收藏的小说， 1创作的小说
+                .newInstance(0));// 0收藏的小说， 1创作的小说
 
         transaction.commit();
 

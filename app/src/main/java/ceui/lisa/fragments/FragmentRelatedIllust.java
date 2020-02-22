@@ -43,14 +43,6 @@ public class FragmentRelatedIllust extends NetListFragment<FragmentBaseListBindi
         mTitle = bundle.getString(Params.ILLUST_TITLE);
     }
 
-    public void setIllustID(int illustID) {
-        this.illustID = illustID;
-    }
-
-    public void setTitle(String title) {
-        mTitle = title;
-    }
-
     @Override
     public void initRecyclerView() {
         StaggeredGridLayoutManager layoutManager =

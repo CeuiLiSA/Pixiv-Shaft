@@ -53,7 +53,6 @@ import ceui.lisa.utils.ShareIllust;
 import ceui.lisa.view.LinearItemDecorationNoLRTB;
 import ceui.lisa.view.ScrollChange;
 import ceui.lisa.viewmodel.Dust;
-import ceui.lisa.viewmodel.Lust;
 import jp.wasabeef.glide.transformations.BlurTransformation;
 import me.next.tagview.TagCloudView;
 
@@ -68,7 +67,6 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
 
     private IllustsBean illust;
     private IllustDetailAdapter mDetailAdapter;
-    private Dust mDust;
     private int index;
 
     public static FragmentSingleIllust newInstance(int index) {
@@ -129,8 +127,8 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
 
     @Override
     void initData() {
-        mDust = ViewModelProviders.of(mActivity).get(Dust.class);
-        illust = mDust.getDust().getValue().get(index);
+        Dust dust = ViewModelProviders.of(mActivity).get(Dust.class);
+        illust = dust.getDust().getValue().get(index);
         baseBind.refreshLayout.setEnableLoadMore(true);
         baseBind.refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));
         baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
