@@ -25,7 +25,6 @@ public abstract class BaseDialog<Layout extends ViewDataBinding> extends DialogF
     protected Layout baseBind;
     protected int mLayoutID = -1;
     protected View parentView;
-    protected UserModel mUserModel;
     protected Button sure, cancel;
     protected String className = this.getClass().getSimpleName() + " ";
 
@@ -54,7 +53,7 @@ public abstract class BaseDialog<Layout extends ViewDataBinding> extends DialogF
 
     abstract void initLayout();
 
-    abstract View initView(View v);
+    abstract void initView(View v);
 
     abstract void initData();
 }

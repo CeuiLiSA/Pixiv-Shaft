@@ -18,17 +18,15 @@ public class AddTagDialog extends BaseDialog<DialogAddTagBinding> {
     }
 
     @Override
-    View initView(View v) {
+    void initView(View v) {
         sure = v.findViewById(R.id.sure);
         sure.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 if (TextUtils.isEmpty(baseBind.tagName.getText().toString())) {
                     Common.showToast("请输入标签名");
                     return;
                 }
-
 
                 if (getParentFragment() instanceof FragmentSelectBookTag) {
                     ((FragmentSelectBookTag) getParentFragment()).addTag(baseBind.tagName.getText().toString());
@@ -39,7 +37,6 @@ public class AddTagDialog extends BaseDialog<DialogAddTagBinding> {
         });
         cancel = v.findViewById(R.id.cancel);
         cancel.setOnClickListener(view -> dismiss());
-        return v;
     }
 
     @Override

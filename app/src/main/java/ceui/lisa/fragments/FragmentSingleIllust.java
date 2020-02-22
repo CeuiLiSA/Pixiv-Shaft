@@ -12,6 +12,9 @@ import android.view.ViewGroup;
 
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityOptionsCompat;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelProviders;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -49,6 +52,8 @@ import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.ShareIllust;
 import ceui.lisa.view.LinearItemDecorationNoLRTB;
 import ceui.lisa.view.ScrollChange;
+import ceui.lisa.viewmodel.Dust;
+import ceui.lisa.viewmodel.Lust;
 import jp.wasabeef.glide.transformations.BlurTransformation;
 import me.next.tagview.TagCloudView;
 
@@ -63,11 +68,21 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
 
     private IllustsBean illust;
     private IllustDetailAdapter mDetailAdapter;
+    private Dust mDust;
+    private int index;
 
-    public static FragmentSingleIllust newInstance(IllustsBean illustsBean) {
-        FragmentSingleIllust fragmentSingleIllust = new FragmentSingleIllust();
-        fragmentSingleIllust.illust = illustsBean;
-        return fragmentSingleIllust;
+    public static FragmentSingleIllust newInstance(int index) {
+        Common.showLog("FragmentSingleIllust " + " newInstance " + index);
+        Bundle args = new Bundle();
+        args.putInt(Params.INDEX, index);
+        FragmentSingleIllust fragment = new FragmentSingleIllust();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void initBundle(Bundle bundle) {
+        index = bundle.getInt(Params.INDEX);
     }
 
     @Override
@@ -114,6 +129,8 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
 
     @Override
     void initData() {
+        mDust = ViewModelProviders.of(mActivity).get(Dust.class);
+        illust = mDust.getDust().getValue().get(index);
         baseBind.refreshLayout.setEnableLoadMore(true);
         baseBind.refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));
         baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
@@ -373,7 +390,7 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
     public void onPause() {
         super.onPause();
         //如果是GIF，停止播放
-        if (illust.getType().equals("ugoira") && mDetailAdapter != null) {
+        if (illust != null && illust.getType().equals("ugoira") && mDetailAdapter != null) {
             mDetailAdapter.nowStopGif();
         }
     }
@@ -381,16 +398,18 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
-        if (isVisibleToUser) {
-            if (Shaft.sSettings.isSaveViewHistory()) {
-                insertViewHistory();
-            }
-            if ("ugoira".equals(illust.getType()) && mDetailAdapter != null) {
-                mDetailAdapter.nowPlayGif();
-            }
-        } else {
-            if ("ugoira".equals(illust.getType()) && mDetailAdapter != null) {
-                mDetailAdapter.nowStopGif();
+        if (illust != null) {
+            if (isVisibleToUser) {
+                if (Shaft.sSettings.isSaveViewHistory()) {
+                    insertViewHistory();
+                }
+                if ("ugoira".equals(illust.getType()) && mDetailAdapter != null) {
+                    mDetailAdapter.nowPlayGif();
+                }
+            } else {
+                if ("ugoira".equals(illust.getType()) && mDetailAdapter != null) {
+                    mDetailAdapter.nowStopGif();
+                }
             }
         }
     }
