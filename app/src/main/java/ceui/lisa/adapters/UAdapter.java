@@ -16,6 +16,7 @@ import ceui.lisa.databinding.RecyUserPreviewBinding;
 import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.interfaces.FullClickListener;
 import ceui.lisa.models.UserPreviewsBean;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
@@ -106,9 +107,7 @@ public class UAdapter extends BaseAdapter<UserPreviewsBean, RecyUserPreviewBindi
             @Override
             public void onItemClick(View v, int position, int viewType) {
                 if (viewType == 0) { //普通item
-                    Intent intent = new Intent(mContext, UActivity.class);
-                    intent.putExtra(Params.USER_ID, allIllust.get(position).getUser().getId());
-                    mContext.startActivity(intent);
+                    Common.showUser(mContext, allIllust.get(position));
                 } else if (viewType == 1) { //关注按钮
                     if (allIllust.get(position).getUser().isIs_followed()) {
                         PixivOperate.postUnFollowUser(allIllust.get(position).getUser().getId());

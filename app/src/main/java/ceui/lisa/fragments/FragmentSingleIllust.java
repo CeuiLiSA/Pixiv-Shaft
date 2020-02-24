@@ -99,14 +99,6 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
             @Override
             public void onItemClick(View v, int position, int viewType) {
                 if (viewType == 0) {
-//                    Intent intent = new Intent(mContext, ImageDetailActivity.class);
-//                    intent.putExtra("illust", illust);
-//                    intent.putExtra("dataType", "二级详情");
-//                    intent.putExtra("index", position);
-//                    startActivity(intent);
-
-
-
                     Intent intent = new Intent(mContext, ImageDetailActivity.class);
                     intent.putExtra("illust", illust);
                     intent.putExtra("dataType", "二级详情");
@@ -114,9 +106,6 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
                     Bundle bundle = ActivityOptionsCompat.makeSceneTransitionAnimation(mActivity,
                             v, "big_image_" + position).toBundle();
                     startActivity(intent,bundle);
-
-
-
                 } else if (viewType == 1) {
 
                 }
@@ -158,7 +147,6 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
                 return false;
             }
         });
-        baseBind.toolbar.setPadding(0, Shaft.statusHeight, 0, 0);
         baseBind.toolbar.setTitle(illust.getTitle() + "  ");
         baseBind.toolbar.setTitleTextAppearance(mContext, R.style.shadowText);
         baseBind.toolbar.setNavigationOnClickListener(view -> getActivity().finish());

@@ -22,6 +22,7 @@ import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.NovelDetail;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
@@ -98,9 +99,7 @@ public class FragmentNovelHolder extends BaseBindFragment<FragmentNovelHolderBin
         View.OnClickListener seeUser = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(mContext, UActivity.class);
-                intent.putExtra(Params.USER_ID, mNovelBean.getUser().getId());
-                startActivity(intent);
+                Common.showUser(mContext, mNovelBean.getUser());
             }
         };
         baseBind.userHead.setOnClickListener(seeUser);

@@ -2,7 +2,7 @@ package ceui.lisa.models;
 
 import java.io.Serializable;
 
-public class UserModel implements Serializable {
+public class UserModel implements Serializable, UserContainer {
 
 
     /**
@@ -17,6 +17,11 @@ public class UserModel implements Serializable {
 
     public void setResponse(ResponseBean response) {
         this.response = response;
+    }
+
+    @Override
+    public int getUserId() {
+        return response.user.getId();
     }
 
     public static class ResponseBean implements Serializable {

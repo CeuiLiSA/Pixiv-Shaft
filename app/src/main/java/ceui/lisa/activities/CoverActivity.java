@@ -84,9 +84,7 @@ public class CoverActivity extends BaseActivity<ActivityCoverBinding>
         userHead.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(mContext, UActivity.class);
-                intent.putExtra(Params.USER_ID, sUserModel.getResponse().getUser().getId());
-                startActivity(intent);
+                Common.showUser(mContext, sUserModel);
             }
         });
         BottomNavigationView bottomNavigationView = findViewById(R.id.navigation_view);

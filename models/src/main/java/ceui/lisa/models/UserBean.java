@@ -4,7 +4,7 @@ import android.text.TextUtils;
 
 import java.io.Serializable;
 
-public class UserBean implements Serializable {
+public class UserBean implements Serializable, UserContainer {
     /**
      * profile_image_urls : {"px_16x16":"https://i.pximg.net/user-profile/img/2018/06/20/23/27/47/14384932_69771f95cafdac1a1d3da88fcfe4ecab_16.jpg","px_50x50":"https://i.pximg.net/user-profile/img/2018/06/20/23/27/47/14384932_69771f95cafdac1a1d3da88fcfe4ecab_50.jpg","px_170x170":"https://i.pximg.net/user-profile/img/2018/06/20/23/27/47/14384932_69771f95cafdac1a1d3da88fcfe4ecab_170.jpg"}
      * id : 31655571
@@ -142,6 +142,11 @@ public class UserBean implements Serializable {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    @Override
+    public int getUserId() {
+        return id;
     }
 
     public static class ProfileImageUrlsBean implements Serializable {

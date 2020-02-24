@@ -27,6 +27,11 @@ import java.nio.charset.UnsupportedCharsetException;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
+import ceui.lisa.activities.UActivity;
+import ceui.lisa.models.UserBean;
+import ceui.lisa.models.UserContainer;
+import ceui.lisa.models.UserModel;
+import ceui.lisa.models.UserPreviewsBean;
 import okhttp3.MediaType;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
@@ -192,4 +197,13 @@ public class Common {
         return buffer.clone().readString(charset);
     }
 
+    public static void showUser(Context context, int userID) {
+
+    }
+
+    public static void showUser(Context context, UserContainer userContainer) {
+        Intent intent = new Intent(context, UActivity.class);
+        intent.putExtra(Params.USER_ID, userContainer.getUserId());
+        context.startActivity(intent);
+    }
 }
