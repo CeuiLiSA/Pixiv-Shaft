@@ -69,7 +69,6 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
                 Intent intent = new Intent(mContext, TemplateActivity.class);
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "账号管理");
                 startActivity(intent);
-                mActivity.finish();
             }
         });
 

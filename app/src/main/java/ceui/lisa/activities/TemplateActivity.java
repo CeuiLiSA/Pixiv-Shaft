@@ -33,7 +33,6 @@ import ceui.lisa.fragments.FragmentMultiDownload;
 import ceui.lisa.fragments.FragmentNew;
 import ceui.lisa.fragments.FragmentNiceFriend;
 import ceui.lisa.fragments.FragmentNovelHolder;
-import ceui.lisa.fragments.FragmentPivision;
 import ceui.lisa.fragments.FragmentPv;
 import ceui.lisa.fragments.FragmentRecmdManga;
 import ceui.lisa.fragments.FragmentRecmdNovel;

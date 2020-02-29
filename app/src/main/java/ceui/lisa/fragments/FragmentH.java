@@ -25,13 +25,13 @@ public class FragmentH extends BaseBindFragment<FragmentHBinding> implements Dis
     @Override
     void initData() {
         BarUtils.setNavBarColor(mActivity, getResources().getColor(R.color.hito_bg));
-        freshData();
         baseBind.next.setOnClickListener(v -> freshData());
         baseBind.hitoText.setOnLongClickListener(v -> {
             ClipBoardUtils.putTextIntoClipboard(mContext, baseBind.hitoText.getText().toString());
             return true;
         });
         baseBind.like.setOnClickListener(v -> Common.showToast("下版本更新再做吧？"));
+        freshData();
     }
 
     private void freshData() {

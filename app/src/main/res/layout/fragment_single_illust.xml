@@ -351,13 +351,18 @@
 
         </com.scwang.smartrefresh.layout.SmartRefreshLayout>
 
+<!--        <ImageView-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:id="@+id/toolbar_head"-->
+<!--            android:layout_height="24dp" />-->
+
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
+            android:layout_below="@+id/toolbar_head"
             android:layout_height="wrap_content"
             android:background="@android:color/transparent"
             android:elevation="@dimen/six_dp"
-            android:fitsSystemWindows="true"
             app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
             app:title=" "
             app:titleTextColor="@android:color/white">

@@ -156,31 +156,40 @@ public class FragmentC extends NetListFragment<FragmentCommentBinding,
                     return;
                 }
 
-                Retro.getAppApi().postComment(sUserModel.getResponse().getAccess_token(), illustID,
-                        baseBind.inputBox.getText().toString(), parentCommentID)
-                        .subscribeOn(Schedulers.newThread())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(new NullCtrl<CommentHolder>() {
-                            @Override
-                            public void onSubscribe(Disposable d) {
-                                Common.hideKeyboard(mActivity);
-                                baseBind.inputBox.setHint("请输入评论内容");
-                                baseBind.inputBox.setText("");
-                                baseBind.progress.setVisibility(View.VISIBLE);
-                            }
+                NullCtrl<CommentHolder> nullCtrl = new NullCtrl<CommentHolder>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+                        Common.hideKeyboard(mActivity);
+                        baseBind.inputBox.setHint("请输入评论内容");
+                        baseBind.inputBox.setText("");
+                        baseBind.progress.setVisibility(View.VISIBLE);
+                    }
 
-                            @Override
-                            public void success(CommentHolder commentHolder) {
-                                allItems.add(0, commentHolder.getComment());
-                                mAdapter.notifyItemInserted(0);
-                                baseBind.recyclerView.scrollToPosition(0);
-                            }
+                    @Override
+                    public void success(CommentHolder commentHolder) {
+                        allItems.add(0, commentHolder.getComment());
+                        mAdapter.notifyItemInserted(0);
+                        baseBind.recyclerView.scrollToPosition(0);
+                    }
 
-                            @Override
-                            public void must(boolean isSuccess) {
-                                baseBind.progress.setVisibility(View.GONE);
-                            }
-                        });
+                    @Override
+                    public void must(boolean isSuccess) {
+                        baseBind.progress.setVisibility(View.GONE);
+                    }
+                };
+                if (parentCommentID != 0) {
+                    Retro.getAppApi().postComment(sUserModel.getResponse().getAccess_token(), illustID,
+                            baseBind.inputBox.getText().toString(), parentCommentID)
+                            .subscribeOn(Schedulers.newThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(nullCtrl);
+                } else {
+                    Retro.getAppApi().postComment(sUserModel.getResponse().getAccess_token(), illustID,
+                            baseBind.inputBox.getText().toString())
+                            .subscribeOn(Schedulers.newThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(nullCtrl);
+                }
             }
         });
         baseBind.clear.setOnClickListener(new View.OnClickListener() {

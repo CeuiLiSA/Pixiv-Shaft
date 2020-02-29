@@ -1,6 +1,7 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -12,9 +13,7 @@ import android.view.ViewGroup;
 
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityOptionsCompat;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.lifecycle.ViewModelProviders;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -105,7 +104,7 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
                     intent.putExtra("index", position);
                     Bundle bundle = ActivityOptionsCompat.makeSceneTransitionAnimation(mActivity,
                             v, "big_image_" + position).toBundle();
-                    startActivity(intent,bundle);
+                    startActivity(intent, bundle);
                 } else if (viewType == 1) {
 
                 }
@@ -116,7 +115,7 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
 
     @Override
     void initData() {
-        Dust dust = ViewModelProviders.of(mActivity).get(Dust.class);
+        Dust dust = new ViewModelProvider(mActivity).get(Dust.class);
         illust = dust.getDust().getValue().get(index);
         baseBind.refreshLayout.setEnableLoadMore(true);
         baseBind.refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));
@@ -214,9 +213,7 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
         baseBind.postLike.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                if (illust.isIs_bookmarked()) {
-
-                } else {
+                if (!illust.isIs_bookmarked()) {
                     Intent intent = new Intent(mContext, TemplateActivity.class);
                     intent.putExtra(Params.ILLUST_ID, illust.getId());
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏");
@@ -230,9 +227,34 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
          * 设置一个空白的imageview作为头部，作为占位,
          * 这样原图就会刚好在toolbar 下方，不会被toolbar遮住
          */
-        ViewGroup.LayoutParams headParams = baseBind.head.getLayoutParams();
-        headParams.height = Shaft.statusHeight + Shaft.toolbarHeight;
-        baseBind.head.setLayoutParams(headParams);
+
+
+//        ViewGroup.LayoutParams toolbarHead = baseBind.toolbarHead.getLayoutParams();
+//        toolbarHead.height = Shaft.statusHeight;
+//        baseBind.toolbarHead.setLayoutParams(toolbarHead);
+
+
+        Configuration mConfiguration = this.getResources().getConfiguration(); //获取设置的配置信息
+        int ori = mConfiguration.orientation; //获取屏幕方向
+        if (ori == Configuration.ORIENTATION_LANDSCAPE) {
+            //横屏
+            Common.showLog(illust.getTitle() + "screen 横屏");
+
+            ViewGroup.LayoutParams headParams = baseBind.head.getLayoutParams();
+            headParams.height = Shaft.statusHeight * 3 / 5 + Shaft.toolbarHeight;
+            baseBind.head.setLayoutParams(headParams);
+
+
+        } else if (ori == Configuration.ORIENTATION_PORTRAIT) {
+            //竖屏
+            ViewGroup.LayoutParams headParams = baseBind.head.getLayoutParams();
+            headParams.height = Shaft.statusHeight + Shaft.toolbarHeight;
+            baseBind.head.setLayoutParams(headParams);
+
+            baseBind.toolbar.setPadding(0, Shaft.statusHeight, 0, 0);
+            Common.showLog(illust.getTitle() + "screen 竖屏");
+        }
+
 
         Glide.with(mContext)
                 .load(GlideUtil.getMediumImg(illust.getUser().getProfile_image_urls().getMedium()))
@@ -376,7 +398,7 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
     public void onPause() {
         super.onPause();
         //如果是GIF，停止播放
-        if (illust != null && illust.getType().equals("ugoira") && mDetailAdapter != null) {
+        if (illust != null && "ugoira".equals(illust.getType()) && mDetailAdapter != null) {
             mDetailAdapter.nowStopGif();
         }
     }

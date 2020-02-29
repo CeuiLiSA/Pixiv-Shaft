@@ -10,8 +10,8 @@ android {
         applicationId "ceui.lisa.pixiv"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 61
-        versionName "1.1.4"
+        versionCode 63
+        versionName "1.2.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -107,7 +107,7 @@ dependencies {
     implementation 'com.hyman:flowlayout-lib:1.1.2'
     implementation 'com.github.razerdp:BasePopup:2.2.1'
     implementation 'android.arch.persistence.room:runtime:1.1.1'
-    implementation 'androidx.lifecycle:lifecycle-extensions:2.0.0'
+    implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
     kapt 'android.arch.persistence.room:compiler:1.1.1'
     implementation 'jp.wasabeef:recyclerview-animators:3.0.0'
     implementation 'me.kaelaela:verticalviewpager:1.0.0@aar'

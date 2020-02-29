@@ -214,6 +214,12 @@ public interface AppApi {
     @POST("v1/illust/comment/add")
     Observable<CommentHolder> postComment(@Header("Authorization") String token,
                                           @Field("illust_id") int illust_id,
+                                          @Field("comment") String comment);
+
+    @FormUrlEncoded
+    @POST("v1/illust/comment/add")
+    Observable<CommentHolder> postComment(@Header("Authorization") String token,
+                                          @Field("illust_id") int illust_id,
                                           @Field("comment") String comment,
                                           @Field("parent_comment_id") int parent_comment_id);
 
