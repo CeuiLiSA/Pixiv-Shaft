@@ -45,7 +45,8 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 
-import static ceui.lisa.fragments.BaseListFragment.PAGE_SIZE;
+import static ceui.lisa.fragments.BaseAsyncFragment.PAGE_SIZE;
+
 
 public class FragmentViewHistory extends BaseFragment {
 

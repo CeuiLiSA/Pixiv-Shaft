@@ -36,6 +36,7 @@ import ceui.lisa.utils.Params;
 import static ceui.lisa.fragments.FragmentFilter.ALL_LANGUAGE;
 import static ceui.lisa.fragments.FragmentFilter.ALL_SIZE;
 import static ceui.lisa.fragments.FragmentFilter.ALL_SIZE_VALUE;
+import static ceui.lisa.fragments.FragmentFilter.FILE_NAME;
 
 
 public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> {
@@ -238,6 +239,26 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
                         } else if (which == 3) {
                             LanguageUtils.applyLanguage(Locale.TRADITIONAL_CHINESE, "");
                         }
+                    }
+                });
+                AlertDialog alertDialog = builder.create();
+                alertDialog.show();
+            }
+        });
+
+        baseBind.fileName.setText(Shaft.sSettings.getFileNameType());
+        baseBind.fileName.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+                builder.setTitle(getString(R.string.file_name_type));
+                builder.setSingleChoiceItems(FILE_NAME, Common.getFileNameType(), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Shaft.sSettings.setFileNameType(FILE_NAME[which]);
+                        baseBind.fileName.setText(FILE_NAME[which]);
+                        Local.setSettings(Shaft.sSettings);
+                        dialog.dismiss();
                     }
                 });
                 AlertDialog alertDialog = builder.create();

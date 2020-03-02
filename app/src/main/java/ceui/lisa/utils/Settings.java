@@ -79,11 +79,25 @@ public class Settings {
         }
     }
 
+    public String getFileNameType() {
+        if(!TextUtils.isEmpty(fileNameType)){
+            return fileNameType;
+        } else {
+            return FragmentFilter.FILE_NAME[0];
+        }
+    }
+
     public void setAppLanguage(String appLanguage) {
         this.appLanguage = appLanguage;
     }
 
+    public void setFileNameType(String fileNameType) {
+        this.fileNameType = fileNameType;
+    }
+
     private String appLanguage = "";
+
+    private String fileNameType = "";
 
     //收藏量筛选搜索结果
     private String searchFilter = "";

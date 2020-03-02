@@ -38,6 +38,8 @@ import okhttp3.ResponseBody;
 import okio.Buffer;
 import okio.BufferedSource;
 
+import static ceui.lisa.fragments.FragmentFilter.FILE_NAME;
+
 public class Common {
 
     private static Toast toast = null;
@@ -205,5 +207,17 @@ public class Common {
         Intent intent = new Intent(context, UActivity.class);
         intent.putExtra(Params.USER_ID, userContainer.getUserId());
         context.startActivity(intent);
+    }
+
+    public static int getFileNameType() {
+        String currentType = Shaft.sSettings.getFileNameType();
+        int index = 0;
+        for (int i = 0; i < FILE_NAME.length; i++) {
+            if (FILE_NAME[i].equals(currentType)) {
+                index = i;
+                break;
+            }
+        }
+        return index;
     }
 }

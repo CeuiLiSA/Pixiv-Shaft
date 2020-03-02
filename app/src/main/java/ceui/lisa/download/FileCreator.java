@@ -6,6 +6,7 @@ import java.io.File;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Settings;
 
 
@@ -39,23 +40,70 @@ public class FileCreator {
                 illustsBean.getTitle() + "_" + illustsBean.getId()));
     }
 
-
+    /**
+     *
+     * index 0 "title_123456789_p0.png"
+     * index 1 "title_123456789_p0.jpg"
+     * index 2 "123456789_title_p0.png"
+     * index 3 "123456789_title_p0.jpg"
+     *
+     * @param illustsBean illustsBean
+     * @return file
+     */
     public static File createIllustFile(IllustsBean illustsBean) {
         if (illustsBean == null) {
             return null;
         }
 
-        return new File(Shaft.sSettings.getIllustPath(), deleteSpecialWords(
-                illustsBean.getTitle() + "_" + illustsBean.getId() + ".png"));
+        int index = Common.getFileNameType();
+        switch (index) {
+            case 0:
+                return new File(Shaft.sSettings.getIllustPath(), deleteSpecialWords(
+                        illustsBean.getTitle() + "_" + illustsBean.getId() + ".png"));
+            case 1:
+                return new File(Shaft.sSettings.getIllustPath(), deleteSpecialWords(
+                        illustsBean.getTitle() + "_" + illustsBean.getId() + ".jpg"));
+            case 2:
+                return new File(Shaft.sSettings.getIllustPath(), deleteSpecialWords(
+                        illustsBean.getId() + "_" + illustsBean.getTitle() + ".png"));
+            case 3:
+                return new File(Shaft.sSettings.getIllustPath(), deleteSpecialWords(
+                        illustsBean.getId() + "_" + illustsBean.getTitle() + ".jpg"));
+            default:
+                return new File(Shaft.sSettings.getIllustPath(), deleteSpecialWords(null));
+        }
     }
 
+    /**
+     *
+     * index 0 "title_123456789_p0.png"
+     * index 1 "title_123456789_p0.jpg"
+     * index 2 "123456789_title_p0.png"
+     * index 3 "123456789_title_p0.jpg"
+     *
+     */
     public static File createIllustFile(IllustsBean illustsBean, int index) {
         if (illustsBean == null) {
             return null;
         }
 
-        return new File(Shaft.sSettings.getIllustPath(), deleteSpecialWords(
-                illustsBean.getTitle() + "_" + illustsBean.getId() + "_" + "p" + (index + 1) + ".png"));
+        int fileType = Common.getFileNameType();
+        switch (index) {
+            case 0:
+                return new File(Shaft.sSettings.getIllustPath(), deleteSpecialWords(
+                        illustsBean.getTitle() + "_" + illustsBean.getId() + "_p" + (index + 1) + ".png"));
+            case 1:
+                return new File(Shaft.sSettings.getIllustPath(), deleteSpecialWords(
+                        illustsBean.getTitle() + "_" + illustsBean.getId() + "_p" + (index + 1) + ".jpg"));
+            case 2:
+                return new File(Shaft.sSettings.getIllustPath(), deleteSpecialWords(
+                        illustsBean.getId() + "_" + illustsBean.getTitle() + "_p" + (index + 1) + ".png"));
+            case 3:
+                return new File(Shaft.sSettings.getIllustPath(), deleteSpecialWords(
+                        illustsBean.getId() + "_" + illustsBean.getTitle() + "_p" + (index + 1) + ".jpg"));
+            default:
+                return new File(Shaft.sSettings.getIllustPath(), deleteSpecialWords(null));
+        }
     }
 
     private static String deleteSpecialWords(String before) {

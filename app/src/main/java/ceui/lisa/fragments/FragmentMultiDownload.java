@@ -113,7 +113,6 @@ public class FragmentMultiDownload extends BaseAsyncFragment<MultiDownloadAdapte
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.download_menu, menu);
     }
 
