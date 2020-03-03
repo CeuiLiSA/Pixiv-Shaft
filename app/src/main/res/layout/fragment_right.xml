@@ -64,18 +64,13 @@
                 android:layout_width="match_parent"
                 android:layout_below="@+id/see_more"
                 android:id="@+id/fragment_container"
-                android:layout_height="146dp">
+                android:layout_height="148dp">
 
 
             </FrameLayout>
         </RelativeLayout>
 
-
-
-
     </com.google.android.material.appbar.AppBarLayout>
-
-
 
     <FrameLayout
         android:layout_width="match_parent"

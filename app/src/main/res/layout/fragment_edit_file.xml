@@ -24,7 +24,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fitsSystemWindows="true"
-                android:background="@color/loginBackground"
+                android:background="@color/colorPrimary"
                 android:elevation="@dimen/six_dp"
                 app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
                 app:title="个人资料设置"

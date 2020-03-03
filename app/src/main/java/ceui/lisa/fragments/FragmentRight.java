@@ -48,13 +48,16 @@ public class FragmentRight extends BaseFragment {
         super.setUserVisibleHint(isVisibleToUser);
 
         if (isVisibleToUser && !isLoad && isAdded()) {
-            FragmentRecmdUserHorizontal recmdUser = new FragmentRecmdUserHorizontal();
             FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
-            transaction.add(R.id.fragment_container, recmdUser).commit();
+
+            FragmentRecmdUserHorizontal recmdUser = new FragmentRecmdUserHorizontal();
+            transaction.add(R.id.fragment_container, recmdUser);
 
             FragmentP fragmentFollowIllust = new FragmentP();
-            transaction = getChildFragmentManager().beginTransaction();
-            transaction.add(R.id.fragment_recy, fragmentFollowIllust).commit();
+            transaction.add(R.id.fragment_recy, fragmentFollowIllust);
+
+            transaction.commitNow();
+
             isLoad = true;
         }
     }

@@ -29,7 +29,7 @@
             android:gravity="bottom"
             android:hint="请输入标签（可视为收藏夹）名"
             app:met_floatingLabel="highlight"
-            app:met_primaryColor="@color/loginBackground"
+            app:met_primaryColor="@color/colorPrimary"
             app:met_singleLineEllipsis="true" />
 
 

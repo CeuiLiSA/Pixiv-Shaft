@@ -22,16 +22,16 @@
             android:layout_marginTop="@dimen/eight_dp"
             android:layout_marginBottom="@dimen/eight_dp"
             android:layout_gravity="center_horizontal"
-            android:layout_height="70dp"></de.hdodenhof.circleimageview.CircleImageView>
+            android:layout_height="70dp" />
 
         <TextView
             android:layout_width="wrap_content"
-            android:textStyle="bold"
             android:textColor="#333333"
             android:maxLines="2"
             android:id="@+id/user_name"
             android:ellipsize="end"
             android:gravity="bottom"
+            android:textSize="13sp"
             android:layout_marginBottom="@dimen/eight_dp"
             android:layout_gravity="center_horizontal"
             android:layout_marginStart="@dimen/eight_dp"

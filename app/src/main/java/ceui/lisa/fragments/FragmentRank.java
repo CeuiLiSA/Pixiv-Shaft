@@ -25,7 +25,7 @@ import io.reactivex.Observable;
 import static ceui.lisa.activities.Shaft.sUserModel;
 
 /**
- * illust / manga 排行榜都用这个类
+ * illust / manga 排行榜都用这个
  */
 public class FragmentRank extends NetListFragment<FragmentBaseListBinding,
         ListIllust, IllustsBean, RecyIllustStaggerBinding> {
@@ -75,11 +75,6 @@ public class FragmentRank extends NetListFragment<FragmentBaseListBinding,
             @Override
             public Observable<ListIllust> initNextApi() {
                 return Retro.getAppApi().getNextIllust(sUserModel.getResponse().getAccess_token(), nextUrl);
-            }
-
-            @Override
-            public RefreshHeader getHeader(Context context) {
-                return new MaterialHeader(context);
             }
         };
     }

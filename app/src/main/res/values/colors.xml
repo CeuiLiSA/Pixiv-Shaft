@@ -3,14 +3,14 @@
 <!--    <color name="colorPrimary">#56baec</color>-->
 <!--    <color name="colorPrimaryDark">#56baec</color>-->
 <!--    <color name="colorAccent">#D81B60</color>-->
+<!--    <color name="light_primary_color">#B3E5FC</color>-->
 
     <color name="colorPrimary">#00BCD4</color>
     <color name="colorPrimaryDark">#0097A7</color>
     <color name="colorAccent">#CDDC39</color>
-    <color name="loginBackground">#00BCD4</color>
+    <color name="light_primary_color">#B2EBF2</color>
 
 
-    <color name="light_primary_color">#B3E5FC</color>
     <color name="background">#f2f2f2</color>
     <color name="dark_bg">#999999</color>
     <color name="light_bg">#f2f2f2</color>

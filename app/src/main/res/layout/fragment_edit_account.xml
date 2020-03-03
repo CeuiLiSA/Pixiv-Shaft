@@ -24,7 +24,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fitsSystemWindows="true"
-                android:background="@color/loginBackground"
+                android:background="@color/colorPrimary"
                 android:elevation="@dimen/six_dp"
                 app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
                 app:title="编辑账号信息"
@@ -41,7 +41,7 @@
                 android:layout_marginEnd="@dimen/tweenty_four_dp"
                 android:hint="@string/email_address"
                 app:met_floatingLabel="highlight"
-                app:met_primaryColor="@color/loginBackground"
+                app:met_primaryColor="@color/colorPrimary"
                 app:met_singleLineEllipsis="true" />
 
 
@@ -54,7 +54,7 @@
                 android:layout_marginEnd="@dimen/tweenty_four_dp"
                 android:hint="pixiv ID (限小写英文和数字)"
                 app:met_floatingLabel="highlight"
-                app:met_primaryColor="@color/loginBackground"
+                app:met_primaryColor="@color/colorPrimary"
                 app:met_singleLineEllipsis="true" />
 
 
@@ -67,7 +67,7 @@
                 android:layout_marginEnd="@dimen/tweenty_four_dp"
                 android:hint="新密码"
                 app:met_floatingLabel="highlight"
-                app:met_primaryColor="@color/loginBackground"
+                app:met_primaryColor="@color/colorPrimary"
                 app:met_singleLineEllipsis="true" />
 
         </LinearLayout>

@@ -3,7 +3,7 @@ package ceui.lisa.activities
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentPagerAdapter
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.ViewModelProvider
 import androidx.viewpager.widget.ViewPager
 import ceui.lisa.R
 import ceui.lisa.databinding.ActivityViewPagerBinding
@@ -23,7 +23,7 @@ class ViewPagerActivity : BaseActivity<ActivityViewPagerBinding>() {
     }
 
     override fun initView() {
-        holder = ViewModelProviders.of(this).get(Dust::class.java)
+        holder = ViewModelProvider(this).get(Dust::class.java)
 
         holder.dust.observe(this, Observer<List<IllustsBean>> { dust: List<IllustsBean> ->
             baseBind.viewPager.adapter = object : FragmentPagerAdapter(supportFragmentManager) {
