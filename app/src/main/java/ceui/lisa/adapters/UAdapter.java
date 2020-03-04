@@ -112,9 +112,11 @@ public class UAdapter extends BaseAdapter<UserPreviewsBean, RecyUserPreviewBindi
                     if (allIllust.get(position).getUser().isIs_followed()) {
                         PixivOperate.postUnFollowUser(allIllust.get(position).getUser().getId());
                         Button postFollow = ((Button) v);
+                        allIllust.get(position).getUser().setIs_followed(false);
                         postFollow.setText(mContext.getString(R.string.post_follow));
                     } else {
                         PixivOperate.postFollowUser(allIllust.get(position).getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC);
+                        allIllust.get(position).getUser().setIs_followed(true);
                         Button postFollow = ((Button) v);
                         postFollow.setText(mContext.getString(R.string.post_unfollow));
                     }

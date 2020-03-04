@@ -174,8 +174,12 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
     @Override
     public void initData() {
         mAdapter = adapter();
-        mRecyclerView.setAdapter(mAdapter);
-        if (!(mRecyclerView.getLayoutManager() instanceof StaggeredGridLayoutManager)) {
+        if (mAdapter != null) {
+            mRecyclerView.setAdapter(mAdapter);
+        }
+        if (mRecyclerView.getLayoutManager() instanceof StaggeredGridLayoutManager) {
+            //do nothing
+        } else {
             BaseItemAnimator baseItemAnimator = new LandingAnimator();
             baseItemAnimator.setAddDuration(animateDuration);
             baseItemAnimator.setRemoveDuration(animateDuration);

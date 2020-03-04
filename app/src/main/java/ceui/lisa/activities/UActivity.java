@@ -10,6 +10,7 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelProviders;
 
 import com.bumptech.glide.Glide;
@@ -61,7 +62,7 @@ public class UActivity extends BaseActivity<ActicityUserBinding> implements Disp
     @Override
     protected void initData() {
         int userID = getIntent().getIntExtra(Params.USER_ID, 0);
-        mUserViewModel = ViewModelProviders.of(this).get(UserViewModel.class);
+        mUserViewModel = new ViewModelProvider(this).get(UserViewModel.class);
         mUserViewModel.getUser().observe(this, new Observer<UserDetailResponse>() {
             @Override
             public void onChanged(UserDetailResponse userDetailResponse) {

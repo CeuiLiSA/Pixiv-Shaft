@@ -42,8 +42,8 @@ public class Retro {
     private static Request.Builder addHeader(Request.Builder before) {
         PixivHeaders pixivHeaders = new PixivHeaders();
         return before
-                .addHeader("User-Agent:", "PixivAndroidApp/5.0.175 (Android 6.0.1; D6653)")
-                .addHeader("Accept-Language:", "zh_CN")
+                .addHeader("User-Agent", "PixivAndroidApp/5.0.175 (Android 6.0.1; D6653)")
+                .addHeader("Accept-Language", "zh_CN")
                 .addHeader("X-Client-Time", pixivHeaders.getXClientTime())
                 .addHeader("X-Client-Hash", pixivHeaders.getXClientHash());
     }
@@ -131,7 +131,7 @@ public class Retro {
                 .protocols(Collections.singletonList(Protocol.HTTP_1_1))
                 .addInterceptor(chain -> {
                     Request localRequest = chain.request().newBuilder()
-                            .addHeader("User-Agent:", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.80 Safari/537.36")
+                            .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.80 Safari/537.36")
                             .addHeader("Accept-Encoding:", "gzip, deflate")
                             .addHeader("Accept:", "text/html")
                             .build();

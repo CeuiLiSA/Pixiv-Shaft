@@ -43,6 +43,7 @@ import ceui.lisa.fragments.FragmentSearchResult;
 import ceui.lisa.fragments.FragmentSearchUser;
 import ceui.lisa.fragments.FragmentSelectBookTag;
 import ceui.lisa.fragments.FragmentSettings;
+import ceui.lisa.fragments.FragmentTest;
 import ceui.lisa.fragments.FragmentUserIllust;
 import ceui.lisa.fragments.FragmentUserManga;
 import ceui.lisa.fragments.FragmentUserNovel;
@@ -135,7 +136,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                     return new FragmentAboutUser();
                 case "一言":
                     if(Dev.isDev){
-                        return new FragmentLive();
+                        return new FragmentTest();
                     }else {
                         return new FragmentH();
                     }
@@ -155,6 +156,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                 case "下载管理":
                     return new FragmentD();
                 case "收藏夹":
+                    getWindow().setStatusBarColor(getResources().getColor(R.color.colorPrimary));
                     return new FragmentCollection();
                 case "推荐漫画":
                     return FragmentRecmdManga.newInstance("漫画");

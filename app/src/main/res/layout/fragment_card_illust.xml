@@ -6,11 +6,23 @@
 
     </data>
 
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        app:cardCornerRadius="@dimen/six_dp"
+        app:cardElevation="@dimen/six_dp"
+        android:layout_height="match_parent">
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:layout_height="match_parent">
+
+
+
+
+
+
 
 
         <ImageView
@@ -365,4 +377,7 @@
         </androidx.appcompat.widget.Toolbar>
 
     </RelativeLayout>
+
+    </androidx.cardview.widget.CardView>
+
 </layout>

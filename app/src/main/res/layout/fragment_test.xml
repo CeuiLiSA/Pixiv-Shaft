@@ -5,17 +5,32 @@
 
     </data>
 
-    <LinearLayout
+    <RelativeLayout
         android:orientation="vertical"
+        android:clipChildren="false"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <androidx.recyclerview.widget.RecyclerView
+        <ImageView
             android:layout_width="match_parent"
-            android:id="@+id/recyclerView"
+            android:id="@+id/image_bg"
+            android:scaleType="centerCrop"
             android:layout_height="match_parent">
 
-        </androidx.recyclerview.widget.RecyclerView>
 
-    </LinearLayout>
+        </ImageView>
+
+        <androidx.viewpager.widget.ViewPager
+            android:layout_width="match_parent"
+            android:id="@+id/viewPager"
+            android:layout_marginTop="55dp"
+            android:layout_marginBottom="75dp"
+            android:layout_marginStart="42dp"
+            android:layout_marginEnd="42dp"
+            android:clipChildren="false"
+            android:layout_height="match_parent">
+
+        </androidx.viewpager.widget.ViewPager>
+
+    </RelativeLayout>
 </layout>

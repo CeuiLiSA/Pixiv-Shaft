@@ -48,6 +48,7 @@ public class EAdapter extends BaseAdapter<IllustsBean, RecyUserEventBinding> {
             bindView.itemView.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 0));
             bindView.baseBind.userHead.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 1));
             bindView.baseBind.download.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 2));
+            bindView.baseBind.more.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 4));
             bindView.baseBind.star.setOnClickListener(v -> {
                 bindView.baseBind.star.setText(allIllust.get(position).isIs_bookmarked() ? "收藏" : "取消收藏");
                 mOnItemClickListener.onItemClick(v, position, 3);

@@ -68,7 +68,6 @@ public class FragmentPivisionHorizontal extends BaseBindFragment<FragmentPivisio
         baseBind.seeMore.setOnClickListener(view -> {
             Intent intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "特辑");
-            intent.putExtra("hideStatusBar", false);
             startActivity(intent);
         });
         getFirstData();

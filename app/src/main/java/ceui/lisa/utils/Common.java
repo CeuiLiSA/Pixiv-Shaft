@@ -20,6 +20,8 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 
+import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
+
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
@@ -115,6 +117,20 @@ public class Common {
         toast.show();
     }
 
+    public static void success(Context context, String s, View view) {
+        QMUITipDialog dialog = new QMUITipDialog.Builder(context)
+                .setIconType(QMUITipDialog.Builder.ICON_TYPE_SUCCESS)
+                .setTipWord(s)
+                .create();
+        dialog.show();
+        view.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                dialog.dismiss();
+            }
+        }, 1500);
+    }
+
     public static <T> void showToast(T t, boolean isLong) {
         if (toast == null) {
             toast = Toast.makeText(Shaft.getContext(), String.valueOf(t), isLong ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT);
@@ -126,17 +142,6 @@ public class Common {
         TextView textView = view.findViewById(R.id.toast_text);
         textView.setText(String.valueOf(t));
         toast.setView(view);
-        toast.show();
-    }
-
-
-    public static <T> void showToast(Context context, T t) {
-        if (toast == null) {
-            toast = Toast.makeText(context, String.valueOf(t), Toast.LENGTH_SHORT);
-        } else {
-            toast.setText(String.valueOf(t));
-            toast.setDuration(Toast.LENGTH_SHORT);
-        }
         toast.show();
     }
 

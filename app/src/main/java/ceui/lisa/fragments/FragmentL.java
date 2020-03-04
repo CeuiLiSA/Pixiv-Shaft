@@ -18,7 +18,7 @@ import com.facebook.rebound.SpringSystem;
 import java.util.Locale;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.CoverActivity;
+import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.database.AppDatabase;
@@ -271,7 +271,7 @@ public class FragmentL extends BaseBindFragment<ActivityLoginBinding> {
                         userEntity.setUserGson(Shaft.sGson.toJson(userModel));
                         AppDatabase.getAppDatabase(mContext).downloadDao().insertUser(userEntity);
                         baseBind.progress.setVisibility(View.INVISIBLE);
-                        Intent intent = new Intent(mContext, CoverActivity.class);
+                        Intent intent = new Intent(mContext, MainActivity.class);
                         startActivity(intent);
                         mActivity.finish();
                     }

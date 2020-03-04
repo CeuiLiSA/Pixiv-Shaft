@@ -10,6 +10,7 @@ import com.bumptech.glide.Glide;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.VActivity;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.interfaces.MultiDownload;
@@ -113,7 +114,7 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
             @Override
             public void onItemClick(View v, int position, int viewType) {
                 DataChannel.get().setIllustList(allIllust);
-                Intent intent = new Intent(mContext, ViewPagerActivity.class);
+                Intent intent = new Intent(mContext, VActivity.class);
                 intent.putExtra("position", position);
                 mContext.startActivity(intent);
             }

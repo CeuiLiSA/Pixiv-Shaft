@@ -24,7 +24,7 @@
         android:roundIcon="@mipmap/logo_final_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activities.CoverActivity">
+        <activity android:name=".activities.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -108,6 +108,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".activities.UActivity" />
+        <activity android:name=".activities.VActivity" />
     </application>
 
 </manifest>

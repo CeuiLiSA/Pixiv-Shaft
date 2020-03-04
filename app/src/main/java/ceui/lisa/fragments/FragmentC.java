@@ -167,6 +167,11 @@ public class FragmentC extends NetListFragment<FragmentCommentBinding,
 
                     @Override
                     public void success(CommentHolder commentHolder) {
+                        if (allItems.size() == 0) {
+                            mRecyclerView.setVisibility(View.VISIBLE);
+                            noData.setVisibility(View.INVISIBLE);
+                        }
+
                         allItems.add(0, commentHolder.getComment());
                         mAdapter.notifyItemInserted(0);
                         baseBind.recyclerView.scrollToPosition(0);

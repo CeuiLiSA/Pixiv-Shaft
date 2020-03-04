@@ -11,7 +11,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityOptionsCompat;
 import androidx.lifecycle.ViewModelProvider;
@@ -19,10 +18,8 @@ import androidx.lifecycle.ViewModelProvider;
 import com.bumptech.glide.Glide;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.gson.Gson;
-import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
-import com.scwang.smartrefresh.layout.listener.OnLoadMoreListener;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -39,6 +36,7 @@ import ceui.lisa.activities.UActivity;
 import ceui.lisa.adapters.IllustDetailAdapter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustHistoryEntity;
+import ceui.lisa.databinding.FragmentCardIllustBinding;
 import ceui.lisa.databinding.FragmentSingleIllustBinding;
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.download.GifCreate;
@@ -65,17 +63,17 @@ import static com.bumptech.glide.request.RequestOptions.bitmapTransform;
 /**
  * 插画详情
  */
-public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustBinding> {
+public class FragmentCardIllust extends BaseBindFragment<FragmentCardIllustBinding> {
 
     private IllustsBean illust;
     private IllustDetailAdapter mDetailAdapter;
     private int index;
 
-    public static FragmentSingleIllust newInstance(int index) {
+    public static FragmentCardIllust newInstance(int index) {
         Common.showLog("FragmentSingleIllust " + " newInstance " + index);
         Bundle args = new Bundle();
         args.putInt(Params.INDEX, index);
-        FragmentSingleIllust fragment = new FragmentSingleIllust();
+        FragmentCardIllust fragment = new FragmentCardIllust();
         fragment.setArguments(args);
         return fragment;
     }
@@ -87,7 +85,7 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
 
     @Override
     void initLayout() {
-        mLayoutID = R.layout.fragment_single_illust;
+        mLayoutID = R.layout.fragment_card_illust;
     }
 
     private void loadImage() {
@@ -242,28 +240,6 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
 //        ViewGroup.LayoutParams toolbarHead = baseBind.toolbarHead.getLayoutParams();
 //        toolbarHead.height = Shaft.statusHeight;
 //        baseBind.toolbarHead.setLayoutParams(toolbarHead);
-
-
-        Configuration mConfiguration = this.getResources().getConfiguration(); //获取设置的配置信息
-        int ori = mConfiguration.orientation; //获取屏幕方向
-        if (ori == Configuration.ORIENTATION_LANDSCAPE) {
-            //横屏
-            Common.showLog(illust.getTitle() + "screen 横屏");
-
-            ViewGroup.LayoutParams headParams = baseBind.head.getLayoutParams();
-            headParams.height = Shaft.statusHeight * 3 / 5 + Shaft.toolbarHeight;
-            baseBind.head.setLayoutParams(headParams);
-
-
-        } else if (ori == Configuration.ORIENTATION_PORTRAIT) {
-            //竖屏
-            ViewGroup.LayoutParams headParams = baseBind.head.getLayoutParams();
-            headParams.height = Shaft.statusHeight + Shaft.toolbarHeight;
-            baseBind.head.setLayoutParams(headParams);
-
-            baseBind.toolbar.setPadding(0, Shaft.statusHeight, 0, 0);
-            Common.showLog(illust.getTitle() + "screen 竖屏");
-        }
 
 
         Glide.with(mContext)

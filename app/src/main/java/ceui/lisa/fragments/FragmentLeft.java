@@ -16,7 +16,7 @@ import androidx.viewpager.widget.ViewPager;
 import com.google.android.material.tabs.TabLayout;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.CoverActivity;
+import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 
@@ -39,8 +39,8 @@ public class FragmentLeft extends BaseFragment {
         headParams.height = Shaft.statusHeight;
         head.setLayoutParams(headParams);
         toolbar.setNavigationOnClickListener(view -> {
-            if (getActivity() instanceof CoverActivity) {
-                ((CoverActivity) getActivity()).getDrawer().openDrawer(Gravity.START);
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).getDrawer().openDrawer(Gravity.START);
             }
         });
         toolbar.inflateMenu(R.menu.fragment_left);

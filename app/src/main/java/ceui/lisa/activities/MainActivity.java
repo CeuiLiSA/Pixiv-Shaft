@@ -47,7 +47,7 @@ import ceui.lisa.utils.ReverseWebviewCallback;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-public class CoverActivity extends BaseActivity<ActivityCoverBinding>
+public class MainActivity extends BaseActivity<ActivityCoverBinding>
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private ImageView userHead;
