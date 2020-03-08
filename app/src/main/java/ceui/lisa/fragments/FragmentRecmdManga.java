@@ -22,11 +22,13 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapter;
+import ceui.lisa.adapters.IAdapterWithHead;
 import ceui.lisa.adapters.RAdapter;
 import ceui.lisa.core.NetControl;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustRecmdEntity;
 import ceui.lisa.databinding.FragmentRecmdBinding;
+import ceui.lisa.databinding.FragmentRecmdFinalBinding;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
@@ -41,16 +43,16 @@ import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
 import ceui.lisa.view.SpacesItemDecoration;
+import ceui.lisa.view.SpacesItemWithHeadDecoration;
 import io.reactivex.Observable;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
-public class FragmentRecmdManga extends NetListFragment<FragmentRecmdBinding,
+public class FragmentRecmdManga extends NetListFragment<FragmentRecmdFinalBinding,
         ListIllust, IllustsBean, RecyIllustStaggerBinding> {
 
     private String dataType;
-    private RAdapter adapter;
     private List<IllustsBean> ranking = new ArrayList<>();
 
     public static FragmentRecmdManga newInstance(String dataType) {
@@ -74,7 +76,6 @@ public class FragmentRecmdManga extends NetListFragment<FragmentRecmdBinding,
                 if (Dev.isDev) {
                     return null;
                 } else {
-                    adapter.clear();
                     if ("漫画".equals(dataType)) {
                         return Retro.getAppApi().getRecmdManga(Shaft.sUserModel.getResponse().getAccess_token());
                     } else {
@@ -92,51 +93,21 @@ public class FragmentRecmdManga extends NetListFragment<FragmentRecmdBinding,
 
     @Override
     public BaseAdapter<IllustsBean, RecyIllustStaggerBinding> adapter() {
-        return new IAdapter(allItems, mContext);
-    }
-
-    @Override
-    public void initView(View view) {
-        super.initView(view);
-        baseBind.seeMore.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(mContext, RankActivity.class);
-                intent.putExtra("dataType", dataType);
-                startActivity(intent);
-            }
-        });
-        baseBind.ranking.addItemDecoration(new LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
-        LinearLayoutManager manager = new LinearLayoutManager(mContext, LinearLayoutManager.HORIZONTAL, false);
-        baseBind.ranking.setLayoutManager(manager);
-        baseBind.ranking.setHasFixedSize(true);
-        PagerSnapHelper snapHelper = new PagerSnapHelper();
-        snapHelper.attachToRecyclerView(baseBind.ranking);
-        adapter = new RAdapter(ranking, mContext);
-        adapter.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(View v, int position, int viewType) {
-                DataChannel.get().setIllustList(ranking);
-                Intent intent = new Intent(mContext, ViewPagerActivity.class);
-                intent.putExtra("position", position);
-                startActivity(intent);
-            }
-        });
-        baseBind.ranking.setAdapter(adapter);
+        return new IAdapterWithHead(allItems, mContext);
     }
 
     @Override
     public void initRecyclerView() {
         StaggeredGridLayoutManager layoutManager =
                 new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
+        layoutManager.setGapStrategy(StaggeredGridLayoutManager.GAP_HANDLING_NONE);
         baseBind.recyclerView.setLayoutManager(layoutManager);
-        baseBind.recyclerView.addItemDecoration(new SpacesItemDecoration(DensityUtil.dp2px(8.0f)));
+        baseBind.recyclerView.addItemDecoration(new SpacesItemWithHeadDecoration(DensityUtil.dp2px(8.0f)));
     }
-
 
     @Override
     public void initLayout() {
-        mLayoutID = R.layout.fragment_recmd;
+        mLayoutID = R.layout.fragment_recmd_final;
     }
 
     @Override
@@ -151,10 +122,6 @@ public class FragmentRecmdManga extends NetListFragment<FragmentRecmdBinding,
 
     @Override
     public void firstSuccess() {
-        baseBind.topRela.setVisibility(View.VISIBLE);
-        Animation animation = new AlphaAnimation(0.0f, 1.0f);
-        animation.setDuration(800L);
-        baseBind.topRela.startAnimation(animation);
         Observable.create((ObservableOnSubscribe<String>) emitter -> {
             emitter.onNext("开始写入数据库");
             if (allItems != null) {
@@ -178,7 +145,7 @@ public class FragmentRecmdManga extends NetListFragment<FragmentRecmdBinding,
                     }
                 });
         ranking.addAll(mResponse.getRanking_illusts());
-        adapter.notifyItemRangeInserted(0, ranking.size());
+        ((IAdapterWithHead) mAdapter).setHeadData(ranking);
     }
 
     private void insertViewHistory(IllustsBean illustsBean) {
@@ -211,7 +178,9 @@ public class FragmentRecmdManga extends NetListFragment<FragmentRecmdBinding,
                     @Override
                     public void success(List<IllustsBean> illustsBeans) {
                         allItems.addAll(illustsBeans);
-                        mAdapter.notifyItemRangeInserted(0, allItems.size());
+                        ranking.addAll(illustsBeans);
+                        ((IAdapterWithHead) mAdapter).setHeadData(ranking);
+                        mAdapter.notifyItemRangeInserted(mAdapter.headerSize(), allItems.size());
                     }
 
                     @Override

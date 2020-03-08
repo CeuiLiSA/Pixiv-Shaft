@@ -49,7 +49,7 @@
                     <RelativeLayout
                         app:layout_scrollFlags="scroll"
                         android:id="@+id/top_rela"
-                        android:background="#000666"
+                        android:visibility="invisible"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content">
 

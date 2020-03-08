@@ -36,11 +36,10 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         int viewType = getItemViewType(position);
         if (viewType == ITEM_NORMAL) {
-            Common.showLog("BaseAdapter 生成了一个NORMAL");
-            bindData(allIllust.get(position), (ViewHolder<BindView>) holder, position);
+            int index = position - headerSize();
+            bindData(allIllust.get(index), (ViewHolder<BindView>) holder, index);
         } else if(viewType == ITEM_HEAD){
-            Common.showLog("BaseAdapter 生成了一个HEADER");
-            bindHeadData();
+
         }
     }
 
@@ -52,10 +51,6 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
     public abstract void initLayout();
 
     public abstract void bindData(Item target, ViewHolder<BindView> bindView, int position);
-
-    public void bindHeadData(){
-
-    }
 
     @NonNull
     @Override
