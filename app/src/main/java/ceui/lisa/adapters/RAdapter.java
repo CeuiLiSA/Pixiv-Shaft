@@ -1,12 +1,17 @@
 package ceui.lisa.adapters;
 
 import android.content.Context;
+import android.view.LayoutInflater;
+import android.view.ViewGroup;
+
+import androidx.databinding.DataBindingUtil;
 
 import com.bumptech.glide.Glide;
 
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.core.RecmdHeader;
 import ceui.lisa.databinding.RecyRankIllustHorizontalBinding;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.GlideUtil;
@@ -36,4 +41,17 @@ public class RAdapter extends BaseAdapter<IllustsBean, RecyRankIllustHorizontalB
             bindView.itemView.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 0));
         }
     }
+
+    @Override
+    public int headerSize() {
+        return 1;
+    }
+
+    @Override
+    public ViewHolder getHeader(ViewGroup parent) {
+        return new RecmdHeader(DataBindingUtil.inflate(
+                LayoutInflater.from(mContext), R.layout.recy_recmd_header,
+                parent, false).getRoot());
+    }
+
 }

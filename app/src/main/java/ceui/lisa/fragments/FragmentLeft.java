@@ -22,6 +22,8 @@ import ceui.lisa.activities.TemplateActivity;
 
 public class FragmentLeft extends BaseFragment {
 
+    private ViewPager viewPager = null;
+
     @Override
     void initLayout() {
         mLayoutID = R.layout.fragment_left;
@@ -56,7 +58,7 @@ public class FragmentLeft extends BaseFragment {
                 return false;
             }
         });
-        ViewPager viewPager = v.findViewById(R.id.view_pager);
+        viewPager = v.findViewById(R.id.view_pager);
         viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
             @NonNull
             @Override
@@ -87,5 +89,9 @@ public class FragmentLeft extends BaseFragment {
     @Override
     void initData() {
 
+    }
+
+    public ViewPager getViewPager() {
+        return viewPager;
     }
 }

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+
+    </data>
+
+    <RelativeLayout
+        android:background="#112233"
+        android:id="@+id/top_rela"
+        android:layout_width="match_parent"
+        android:layout_height="100dp">
+
+
+
+
+    </RelativeLayout>
+</layout>

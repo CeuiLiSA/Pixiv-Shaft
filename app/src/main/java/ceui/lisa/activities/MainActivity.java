@@ -13,6 +13,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -27,6 +28,8 @@ import com.zhihu.matisse.Matisse;
 import com.zhihu.matisse.MimeType;
 import com.zhihu.matisse.engine.impl.PicassoEngine;
 
+import org.greenrobot.eventbus.EventBus;
+
 import java.io.File;
 import java.util.List;
 
@@ -37,6 +40,7 @@ import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentCenter;
 import ceui.lisa.fragments.FragmentLeft;
 import ceui.lisa.fragments.FragmentRight;
+import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
@@ -54,6 +58,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     private TextView username;
     private TextView user_email;
     private long mExitTime;
+    private BaseFragment[] baseFragments = null;
 
     @Override
     protected int initLayout() {
@@ -96,6 +101,21 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 return false;
             }
         });
+        bottomNavigationView.setOnNavigationItemReselectedListener(new BottomNavigationView.OnNavigationItemReselectedListener() {
+            @Override
+            public void onNavigationItemReselected(@NonNull MenuItem item) {
+                //重复点击底部导航栏，刷新当前页面
+                if (item.getItemId() == R.id.action_1) {
+                    Channel channel = new Channel();
+                    if (((FragmentLeft) baseFragments[0]).getViewPager().getCurrentItem() == 0) {
+                        channel.setReceiver("FragmentRecmdManga");//刷新推荐
+                    } else {
+                        channel.setReceiver("FragmentHotTag");//刷新热门标签
+                    }
+                    EventBus.getDefault().post(channel);
+                }
+            }
+        });
         baseBind.viewPager.setOffscreenPageLimit(3);
         baseBind.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
@@ -116,7 +136,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     }
 
     private void initFragment() {
-        BaseFragment[] baseFragments = new BaseFragment[]{
+        baseFragments = new BaseFragment[]{
                 new FragmentLeft(),
                 new FragmentCenter(),
                 new FragmentRight()

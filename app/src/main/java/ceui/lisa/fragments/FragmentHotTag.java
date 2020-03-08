@@ -14,6 +14,8 @@ import ceui.lisa.databinding.RecyTagGridBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListTrendingtag;
+import ceui.lisa.utils.Channel;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.TagItemDecoration;
 import io.reactivex.Observable;
@@ -92,5 +94,16 @@ public class FragmentHotTag extends NetListFragment<FragmentBaseListBinding,
     @Override
     public boolean autoRefresh() {
         return false;
+    }
+
+    @Override
+    public boolean eventBusEnable() {
+        return true;
+    }
+
+    @Override
+    public void handleEvent(Channel channel) {
+        Common.showLog(className + "正在刷新");
+        nowRefresh();
     }
 }

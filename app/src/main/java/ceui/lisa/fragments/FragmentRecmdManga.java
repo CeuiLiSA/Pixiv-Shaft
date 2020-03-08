@@ -33,6 +33,8 @@ import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.utils.Channel;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Dev;
@@ -218,5 +220,16 @@ public class FragmentRecmdManga extends NetListFragment<FragmentRecmdBinding,
                         baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
                     }
                 });
+    }
+
+    @Override
+    public boolean eventBusEnable() {
+        return true;
+    }
+
+    @Override
+    public void handleEvent(Channel channel) {
+        Common.showLog(className + "正在刷新");
+        nowRefresh();
     }
 }

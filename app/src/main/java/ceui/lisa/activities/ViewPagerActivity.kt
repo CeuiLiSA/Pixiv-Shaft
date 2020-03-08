@@ -1,5 +1,6 @@
 package ceui.lisa.activities
 
+import androidx.core.view.marginTop
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentPagerAdapter
 import androidx.lifecycle.Observer
@@ -9,8 +10,10 @@ import ceui.lisa.R
 import ceui.lisa.databinding.ActivityViewPagerBinding
 import ceui.lisa.fragments.FragmentSingleIllust
 import ceui.lisa.models.IllustsBean
+import ceui.lisa.transformer.GalleryTransformer
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.DataChannel
+import ceui.lisa.utils.DensityUtil
 import ceui.lisa.viewmodel.Dust
 import com.ToxicBakery.viewpager.transforms.DrawerTransformer
 
@@ -70,5 +73,10 @@ class ViewPagerActivity : BaseActivity<ActivityViewPagerBinding>() {
     }
 
     override fun initData() {
+    }
+
+    fun rise() {
+        baseBind.viewPager.setPageTransformer(true, GalleryTransformer())
+        baseBind.viewPager.offscreenPageLimit = 3
     }
 }

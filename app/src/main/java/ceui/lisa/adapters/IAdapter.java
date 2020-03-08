@@ -114,7 +114,7 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
             @Override
             public void onItemClick(View v, int position, int viewType) {
                 DataChannel.get().setIllustList(allIllust);
-                Intent intent = new Intent(mContext, VActivity.class);
+                Intent intent = new Intent(mContext, ViewPagerActivity.class);
                 intent.putExtra("position", position);
                 mContext.startActivity(intent);
             }

@@ -89,11 +89,6 @@ public class FragmentCardIllust extends BaseBindFragment<FragmentCardIllustBindi
     }
 
     private void loadImage() {
-        Glide.with(mContext)
-                .load(GlideUtil.getSquare(illust))
-                .apply(bitmapTransform(new BlurTransformation(25, 3)))
-                .transition(withCrossFade())
-                .into(baseBind.bgImage);
         mDetailAdapter = new IllustDetailAdapter(illust, mActivity);
         mDetailAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override

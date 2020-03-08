@@ -6,30 +6,12 @@
 
     </data>
 
-    <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        app:cardCornerRadius="@dimen/six_dp"
-        app:cardElevation="@dimen/six_dp"
-        android:layout_height="match_parent">
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:layout_height="match_parent">
-
-
-
-
-
-
-
-
-        <ImageView
-            android:layout_width="match_parent"
-            android:id="@+id/bg_image"
-            android:scaleType="centerCrop"
-            android:layout_height="match_parent" />
 
 
         <com.scwang.smartrefresh.layout.SmartRefreshLayout
@@ -63,8 +45,8 @@
                         android:id="@+id/illust_list"
                         android:background="@drawable/side_rank_horizon"
                         app:cardCornerRadius="@dimen/four_dp"
-                        android:layout_marginStart="@dimen/twelve_dp"
-                        android:layout_marginEnd="@dimen/twelve_dp"
+                        android:layout_marginStart="@dimen/six_dp"
+                        android:layout_marginEnd="@dimen/six_dp"
                         android:layout_marginBottom="@dimen/eight_dp"
                         android:layout_height="wrap_content">
 
@@ -119,8 +101,8 @@
 
                     <androidx.cardview.widget.CardView
                         android:layout_width="match_parent"
-                        android:layout_marginStart="@dimen/twelve_dp"
-                        android:layout_marginEnd="@dimen/twelve_dp"
+                        android:layout_marginStart="@dimen/six_dp"
+                        android:layout_marginEnd="@dimen/six_dp"
                         app:cardElevation="@dimen/four_dp"
                         android:layout_marginBottom="@dimen/eight_dp"
                         app:cardCornerRadius="@dimen/four_dp"
@@ -290,8 +272,8 @@
 
                     <androidx.cardview.widget.CardView
                         android:layout_width="match_parent"
-                        android:layout_marginStart="@dimen/twelve_dp"
-                        android:layout_marginEnd="@dimen/twelve_dp"
+                        android:layout_marginStart="@dimen/six_dp"
+                        android:layout_marginEnd="@dimen/six_dp"
                         app:cardElevation="0dp"
                         android:layout_marginBottom="@dimen/twelve_dp"
                         app:cardBackgroundColor="#33FFFFFF"
@@ -311,6 +293,7 @@
                                 android:layout_alignParentBottom="true"
                                 android:layout_marginStart="@dimen/twelve_dp"
                                 android:layout_marginTop="@dimen/eight_dp"
+                                android:scaleType="centerInside"
                                 android:layout_marginEnd="@dimen/twelve_dp"
                                 android:layout_marginBottom="@dimen/eight_dp"
                                 android:layout_weight="1"
@@ -323,6 +306,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="@dimen/twelve_dp"
                                 android:layout_marginTop="@dimen/eight_dp"
+                                android:scaleType="centerCrop"
                                 android:layout_marginEnd="@dimen/twelve_dp"
                                 android:layout_marginBottom="@dimen/eight_dp"
                                 android:layout_weight="1"
@@ -334,6 +318,7 @@
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="@dimen/twelve_dp"
+                                android:scaleType="center"
                                 android:layout_marginTop="@dimen/eight_dp"
                                 android:layout_marginEnd="@dimen/twelve_dp"
                                 android:layout_marginBottom="@dimen/eight_dp"
@@ -346,6 +331,7 @@
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="@dimen/twelve_dp"
+                                android:scaleType="fitCenter"
                                 android:layout_marginTop="@dimen/eight_dp"
                                 android:layout_marginEnd="@dimen/twelve_dp"
                                 android:layout_marginBottom="@dimen/eight_dp"
@@ -378,6 +364,5 @@
 
     </RelativeLayout>
 
-    </androidx.cardview.widget.CardView>
 
 </layout>

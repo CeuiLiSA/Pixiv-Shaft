@@ -49,6 +49,7 @@ public class VActivity extends BaseActivity<FragmentTestBinding> {
 
     @Override
     protected void initData() {
+        int index = getIntent().getIntExtra("position", -1);
         wtf.addAll(DataChannel.get().getIllustList());
         mDust = new ViewModelProvider(this).get(Dust.class);
         mFragments = new FragmentCardIllust[wtf.size()];
@@ -70,37 +71,19 @@ public class VActivity extends BaseActivity<FragmentTestBinding> {
                         return mFragments.length;
                     }
                 });
-                baseBind.viewPager.setCurrentItem(mFragments.length / 2);
+                if (index >= 0) {
+                    baseBind.viewPager.setCurrentItem(index);
+                    Glide.with(mContext)
+                            .load(GlideUtil.getSquare(wtf.get(index)))
+                            .placeholder(baseBind.imageBg.getDrawable())
+                            .apply(bitmapTransform(new BlurTransformation(25, 3)))
+                            .transition(withCrossFade())
+                            .into(baseBind.imageBg);
+                }
             }
         });
         baseBind.viewPager.setPageTransformer(true, new GalleryTransformer());
         baseBind.viewPager.setOffscreenPageLimit(3);
-        baseBind.viewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-            @Override
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
-            }
-
-            @Override
-            public void onPageSelected(int position) {
-                baseBind.viewPager.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        Glide.with(mContext)
-                                .load(GlideUtil.getSquare(wtf.get(position)))
-                                .placeholder(baseBind.imageBg.getDrawable())
-                                .apply(bitmapTransform(new BlurTransformation(25, 3)))
-                                .transition(withCrossFade())
-                                .into(baseBind.imageBg);
-                    }
-                }, 200L);
-            }
-
-            @Override
-            public void onPageScrollStateChanged(int state) {
-
-            }
-        });
         mDust.getDust().setValue(wtf);
     }
 }

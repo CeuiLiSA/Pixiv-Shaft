@@ -228,6 +228,11 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
         return true;
     }
 
+    public void nowRefresh() {
+        mRecyclerView.smoothScrollToPosition(0);
+        mRefreshLayout.autoRefresh();
+    }
+
     /**
      * 第一波数据加载成功之后，FragmentR页面将数据写入到数据库，方法实际上没啥用，只是为了方便测试
      */
