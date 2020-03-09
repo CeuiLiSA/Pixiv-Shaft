@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+
+    </data>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:textSize="16sp"
+            android:layout_margin="@dimen/sixteen_dp"
+            android:textColor="@color/dark_text"
+            android:text="屏蔽标签"
+            android:layout_height="wrap_content" />
+
+        <com.zhy.view.flowlayout.TagFlowLayout
+            android:layout_width="match_parent"
+            android:id="@+id/tag_layout"
+            android:layout_marginStart="@dimen/eight_dp"
+            android:layout_marginEnd="@dimen/eight_dp"
+            android:layout_height="wrap_content">
+
+        </com.zhy.view.flowlayout.TagFlowLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/cancel"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toStartOf="@+id/sure"
+                android:text="取消" />
+
+            <Button
+                android:id="@+id/sure"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="@dimen/sixteen_dp"
+                android:layout_marginBottom="@dimen/eight_dp"
+                android:text="添加屏蔽" />
+
+        </RelativeLayout>
+    </LinearLayout>
+</layout>

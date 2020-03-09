@@ -15,14 +15,14 @@ import ceui.lisa.databinding.RecyBookTagBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListTag;
-import ceui.lisa.models.BookmarkTagsBean;
+import ceui.lisa.models.TagsBean;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
 import io.reactivex.Observable;
 
 public class FragmentBookTag extends NetListFragment<FragmentBaseListBinding,
-        ListTag, BookmarkTagsBean, RecyBookTagBinding> {
+        ListTag, TagsBean, RecyBookTagBinding> {
 
     private String bookType = "";
 
@@ -49,8 +49,8 @@ public class FragmentBookTag extends NetListFragment<FragmentBaseListBinding,
     }
 
     @Override
-    public BaseAdapter<BookmarkTagsBean, RecyBookTagBinding> adapter() {
-        return new BAdapter(allItems, mContext).setOnItemClickListener(new OnItemClickListener() {
+    public BaseAdapter<TagsBean, RecyBookTagBinding> adapter() {
+        return new BAdapter(allItems, mContext, false).setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
                 Channel channel = new Channel();
@@ -77,13 +77,13 @@ public class FragmentBookTag extends NetListFragment<FragmentBaseListBinding,
     @Override
     public void firstSuccess() {
         //全部
-        BookmarkTagsBean all = new BookmarkTagsBean();
+        TagsBean all = new TagsBean();
         all.setCount(-1);
         all.setName("");
         allItems.add(0, all);
 
         //未分类
-        BookmarkTagsBean unSeparated = new BookmarkTagsBean();
+        TagsBean unSeparated = new TagsBean();
         unSeparated.setCount(-1);
         unSeparated.setName("未分類");
         allItems.add(0, unSeparated);

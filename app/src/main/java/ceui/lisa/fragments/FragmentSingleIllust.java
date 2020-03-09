@@ -42,6 +42,7 @@ import ceui.lisa.adapters.IllustDetailAdapter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.databinding.FragmentSingleIllustBinding;
+import ceui.lisa.dialogs.MuteDialog;
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.download.GifCreate;
 import ceui.lisa.download.IllustDownload;
@@ -126,15 +127,6 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
         baseBind.refreshLayout.setEnableLoadMore(true);
         baseBind.refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));
         baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
-        baseBind.comment.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                Intent intent = new Intent(mContext, VActivity.class);
-                intent.putExtra("position", index);
-                mContext.startActivity(intent);
-                return true;
-            }
-        });
         baseBind.toolbar.inflateMenu(R.menu.share);
         baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
@@ -157,6 +149,13 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
                         }
                     }.execute();
                     return true;
+                } else if (menuItem.getItemId() == R.id.action_dislike) {
+                    MuteDialog muteDialog = MuteDialog.newInstance(illust);
+                    muteDialog.show(getChildFragmentManager(), "MuteDialog");
+                } else if (menuItem.getItemId() == R.id.action_preview) {
+                    Intent intent = new Intent(mContext, VActivity.class);
+                    intent.putExtra("position", index);
+                    mContext.startActivity(intent);
                 }
                 return false;
             }

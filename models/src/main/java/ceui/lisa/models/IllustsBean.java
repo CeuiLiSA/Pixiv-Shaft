@@ -1,5 +1,7 @@
 package ceui.lisa.models;
 
+import android.text.TextUtils;
+
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;
@@ -56,6 +58,7 @@ public class IllustsBean implements Serializable {
     private List<TagsBean> tags;
     private List<?> tools;
     private List<MetaPagesBean> meta_pages;
+    private boolean isShield; //是否被屏蔽
 
     public int getId() {
         return id;
@@ -293,6 +296,27 @@ public class IllustsBean implements Serializable {
                 ", tools=" + tools +
                 ", meta_pages=" + meta_pages +
                 '}';
+    }
+
+    public boolean isShield() {
+        return isShield;
+    }
+
+    public void setShield(boolean shield) {
+        isShield = shield;
+    }
+
+    public String getTagString() {
+        String result = "";
+        if (tags == null || tags.size() == 0) {
+            return result;
+        }
+
+        for (int i = 0; i < tags.size(); i++) {
+            result = result + "*#" + tags.get(i).getName() + ",";
+        }
+
+        return result;
     }
 
     public static class MetaPagesBean implements Serializable {

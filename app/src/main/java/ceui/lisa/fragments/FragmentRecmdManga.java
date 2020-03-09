@@ -1,13 +1,7 @@
 package ceui.lisa.fragments;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
 
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.PagerSnapHelper;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import com.google.gson.Gson;
@@ -17,32 +11,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.RankActivity;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.BaseAdapter;
-import ceui.lisa.adapters.IAdapter;
-import ceui.lisa.adapters.IAdapterWithHead;
-import ceui.lisa.adapters.RAdapter;
+import ceui.lisa.adapters.IAdapterWithHeadView;
 import ceui.lisa.core.NetControl;
+import ceui.lisa.core.TagFilter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustRecmdEntity;
-import ceui.lisa.databinding.FragmentRecmdBinding;
 import ceui.lisa.databinding.FragmentRecmdFinalBinding;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
-import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
-import ceui.lisa.view.LinearItemHorizontalDecoration;
-import ceui.lisa.view.SpacesItemDecoration;
 import ceui.lisa.view.SpacesItemWithHeadDecoration;
 import io.reactivex.Observable;
 import io.reactivex.ObservableOnSubscribe;
@@ -93,7 +79,7 @@ public class FragmentRecmdManga extends NetListFragment<FragmentRecmdFinalBindin
 
     @Override
     public BaseAdapter<IllustsBean, RecyIllustStaggerBinding> adapter() {
-        return new IAdapterWithHead(allItems, mContext);
+        return new IAdapterWithHeadView(allItems, mContext);
     }
 
     @Override
@@ -145,7 +131,7 @@ public class FragmentRecmdManga extends NetListFragment<FragmentRecmdFinalBindin
                     }
                 });
         ranking.addAll(mResponse.getRanking_illusts());
-        ((IAdapterWithHead) mAdapter).setHeadData(ranking);
+        ((IAdapterWithHeadView) mAdapter).setHeadData(ranking);
     }
 
     private void insertViewHistory(IllustsBean illustsBean) {
@@ -179,7 +165,7 @@ public class FragmentRecmdManga extends NetListFragment<FragmentRecmdFinalBindin
                     public void success(List<IllustsBean> illustsBeans) {
                         allItems.addAll(illustsBeans);
                         ranking.addAll(illustsBeans);
-                        ((IAdapterWithHead) mAdapter).setHeadData(ranking);
+                        ((IAdapterWithHeadView) mAdapter).setHeadData(ranking);
                         mAdapter.notifyItemRangeInserted(mAdapter.headerSize(), allItems.size());
                     }
 

@@ -66,7 +66,20 @@
 
             </LinearLayout>
 
-
+            <Button
+                android:id="@+id/hide"
+                style="@android:style/Widget.DeviceDefault.Button.Borderless.Small"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|bottom"
+                android:shadowColor="#FF000000"
+                android:shadowDx="1.5"
+                android:layout_centerInParent="true"
+                android:shadowDy="1.5"
+                android:visibility="invisible"
+                android:shadowRadius="1.5"
+                android:text="取消屏蔽"
+                android:textColor="@android:color/white"/>
 
         </RelativeLayout>
     </androidx.cardview.widget.CardView>

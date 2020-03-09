@@ -14,7 +14,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.ViewPagerActivity;
+import ceui.lisa.database.AppDatabase;
+import ceui.lisa.database.TagMuteEntity;
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.fragments.FragmentL;
 import ceui.lisa.fragments.FragmentLikeIllust;
@@ -24,6 +27,7 @@ import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.IllustSearchResponse;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.NullResponse;
+import ceui.lisa.models.TagsBean;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.models.IllustsBean;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -204,5 +208,35 @@ public class PixivOperate {
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(errorCtrl);
+    }
+
+    public static void muteTag(TagsBean tagsBean) {
+        TagMuteEntity tagMuteEntity = new TagMuteEntity();
+        String tagName = tagsBean.getName();
+        tagMuteEntity.setId(tagName.hashCode());
+        tagMuteEntity.setTagJson(Shaft.sGson.toJson(tagsBean));
+        tagMuteEntity.setSearchTime(System.currentTimeMillis());
+        AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().insertMuteTag(tagMuteEntity);
+        Common.showLog("屏蔽了一个标签 " + tagsBean.getName());
+    }
+
+    public static void muteTags(List<TagsBean> tagsBeans) {
+        if (tagsBeans == null || tagsBeans.size() == 0) {
+            return;
+        }
+
+        for (TagsBean tagsBean : tagsBeans) {
+            muteTag(tagsBean);
+        }
+    }
+
+    public static void unMuteTag(TagsBean tagsBean) {
+        TagMuteEntity tagMuteEntity = new TagMuteEntity();
+        String tagName = tagsBean.getName();
+        tagMuteEntity.setId(tagName.hashCode());
+        tagMuteEntity.setTagJson(Shaft.sGson.toJson(tagsBean));
+        tagMuteEntity.setSearchTime(System.currentTimeMillis());
+        AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().unMuteTag(tagMuteEntity);
+        Common.showToast("操作成功");
     }
 }

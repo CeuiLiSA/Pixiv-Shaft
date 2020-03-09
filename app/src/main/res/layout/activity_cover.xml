@@ -27,7 +27,6 @@
 
             </androidx.viewpager.widget.ViewPager>
 
-
             <com.google.android.material.bottomnavigation.BottomNavigationView
                 android:id="@+id/navigation_view"
                 android:layout_width="match_parent"

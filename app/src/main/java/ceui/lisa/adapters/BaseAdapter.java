@@ -27,6 +27,7 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
     public static final int ITEM_NORMAL = 1024;
 
     public BaseAdapter(List<Item> targetList, Context context) {
+        Common.showLog(getClass().getSimpleName() + " newInstance");
         this.allIllust = targetList;
         this.mContext = context;
         initLayout();

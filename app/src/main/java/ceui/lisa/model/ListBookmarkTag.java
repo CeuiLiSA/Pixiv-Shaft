@@ -2,10 +2,10 @@ package ceui.lisa.model;
 
 import java.util.List;
 
-import ceui.lisa.models.BookmarkTagsBean;
 import ceui.lisa.interfaces.ListShow;
+import ceui.lisa.models.TagsBean;
 
-public class ListBookmarkTag implements ListShow<BookmarkTagsBean> {
+public class ListBookmarkTag implements ListShow<TagsBean> {
 
     private BookmarkDetailBean bookmark_detail;
     private String next_url;
@@ -27,7 +27,7 @@ public class ListBookmarkTag implements ListShow<BookmarkTagsBean> {
     }
 
     @Override
-    public List<BookmarkTagsBean> getList() {
+    public List<TagsBean> getList() {
         return bookmark_detail.tags;
     }
 
@@ -45,7 +45,7 @@ public class ListBookmarkTag implements ListShow<BookmarkTagsBean> {
 
         private boolean is_bookmarked;
         private String restrict;
-        private List<BookmarkTagsBean> tags;
+        private List<TagsBean> tags;
 
         public boolean isIs_bookmarked() {
             return is_bookmarked;
@@ -63,11 +63,11 @@ public class ListBookmarkTag implements ListShow<BookmarkTagsBean> {
             this.restrict = restrict;
         }
 
-        public List<BookmarkTagsBean> getTags() {
+        public List<TagsBean> getTags() {
             return tags;
         }
 
-        public void setTags(List<BookmarkTagsBean> tags) {
+        public void setTags(List<TagsBean> tags) {
             this.tags = tags;
         }
     }

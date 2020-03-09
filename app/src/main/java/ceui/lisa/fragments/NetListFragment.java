@@ -24,6 +24,7 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.core.NetControl;
+import ceui.lisa.core.TagFilter;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.interfaces.ListShow;
 import ceui.lisa.utils.Common;
@@ -44,7 +45,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
         Response extends ListShow<Item>, Item, ItemLayout extends ViewDataBinding>
         extends BaseBindFragment<Layout> {
 
-    private static final long animateDuration = 400L;
+    public static final long animateDuration = 400L;
     protected NetControl<Response> mNetControl;
     protected RecyclerView mRecyclerView;
     protected RefreshLayout mRefreshLayout;

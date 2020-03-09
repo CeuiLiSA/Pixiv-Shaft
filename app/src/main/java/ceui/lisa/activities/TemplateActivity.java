@@ -30,6 +30,7 @@ import ceui.lisa.fragments.FragmentLikeNovel;
 import ceui.lisa.fragments.FragmentLive;
 import ceui.lisa.fragments.FragmentLocalUsers;
 import ceui.lisa.fragments.FragmentMultiDownload;
+import ceui.lisa.fragments.FragmentMutedTags;
 import ceui.lisa.fragments.FragmentNew;
 import ceui.lisa.fragments.FragmentNiceFriend;
 import ceui.lisa.fragments.FragmentNovelHolder;
@@ -178,6 +179,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                     return new FragmentEditFile();
                 case "热门直播":
                     return new FragmentLive();
+                case "标签屏蔽记录":
+                    return new FragmentMutedTags();
                 default:
                     return new FragmentBlank();
             }

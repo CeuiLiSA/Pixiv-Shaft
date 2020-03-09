@@ -228,6 +228,10 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "最新作品");
             intent.putExtra("hideStatusBar", false);
             startActivity(intent);
+        } else if (id == R.id.muted_list) {
+            Intent intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "标签屏蔽记录");
+            startActivity(intent);
         }
 
         baseBind.drawerLayout.closeDrawer(GravityCompat.START);

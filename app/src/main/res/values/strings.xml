@@ -78,6 +78,7 @@
     <string name="filter_by_bookmark">按标签筛选</string>
     <string name="access_denied">请给与足够的权限</string>
     <string name="view_history">浏览记录</string>
+    <string name="muted_history">屏蔽记录</string>
     <string name="app_settings">设置</string>
     <string name="full_about_app">关于软件</string>
     <string name="no_mail_address">未绑定邮箱</string>
@@ -150,4 +151,5 @@
     <string name="ranking_list">排行榜</string>
     <string name="recmd_for_you">为你推荐</string>
     <string name="email_address">邮箱地址</string>
+    <string name="operate_success">操作成功</string>
 </resources>

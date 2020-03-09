@@ -15,7 +15,7 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.models.BookmarkTagsBean;
+import ceui.lisa.models.TagsBean;
 
 
 /**
@@ -25,9 +25,9 @@ public class SelectTagAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
     private Context mContext;
     private OnItemClickListener mOnItemClickListener;
-    private List<BookmarkTagsBean> allIllust;
+    private List<TagsBean> allIllust;
 
-    public SelectTagAdapter(List<BookmarkTagsBean> list, Context context) {
+    public SelectTagAdapter(List<TagsBean> list, Context context) {
         mContext = context;
         allIllust = list;
     }

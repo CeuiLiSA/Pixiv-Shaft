@@ -34,6 +34,15 @@ public abstract class BaseDialog<Layout extends ViewDataBinding> extends DialogF
 
         mContext = getContext();
         mActivity = getActivity();
+
+        Bundle bundle = getArguments();
+        if (bundle != null) {
+            initBundle(bundle);
+        }
+    }
+
+    public void initBundle(Bundle bundle) {
+
     }
 
     @NonNull

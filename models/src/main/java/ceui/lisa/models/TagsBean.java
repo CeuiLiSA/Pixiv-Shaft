@@ -12,6 +12,25 @@ public class TagsBean implements Serializable {
     private String name;
     private String translated_name;
 
+    private int count;
+    private boolean isSelected = false;
+
+    public boolean isSelected() {
+        return isSelected;
+    }
+
+    public void setSelected(boolean selected) {
+        isSelected = selected;
+    }
+
+    public int getCount() {
+        return count;
+    }
+
+    public void setCount(int count) {
+        this.count = count;
+    }
+
     public String getName() {
         return name;
     }
