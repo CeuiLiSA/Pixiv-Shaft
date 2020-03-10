@@ -99,7 +99,7 @@
                             android:paddingEnd="@dimen/four_dp"
                             android:layout_margin="@dimen/twelve_dp"
                             android:paddingBottom="2dp"
-                            android:textColor="@color/white"
+                            android:textColor="@color/always_white"
                             android:textSize="12sp" />
 
                     </ceui.lisa.view.ExpandCard>

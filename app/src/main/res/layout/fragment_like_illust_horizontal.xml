@@ -47,7 +47,7 @@
                     android:layout_marginTop="@dimen/eight_dp"
                     android:layout_marginBottom="@dimen/eight_dp"
                     android:text="插画/漫画收藏"
-                    android:textColor="@color/deep_dark"
+                    android:textColor="@color/rank_text_color"
                     android:textSize="15sp">
 
                 </TextView>

@@ -137,7 +137,6 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                     return new FragmentAboutUser();
                 case "一言":
                     if(Dev.isDev){
-                        return new FragmentTest();
                     }else {
                         return new FragmentH();
                     }

@@ -14,7 +14,6 @@
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:background="@android:color/white"
             android:layout_height="wrap_content">
 
 
@@ -35,7 +34,7 @@
                 android:textSize="15sp"
                 android:layout_marginTop="@dimen/eight_dp"
                 android:textStyle="bold"
-                android:textColor="#666666"
+                android:textColor="@color/view_history_title"
                 android:layout_marginBottom="@dimen/four_dp"
                 android:layout_marginEnd="@dimen/sixteen_dp"
                 android:ellipsize="end"

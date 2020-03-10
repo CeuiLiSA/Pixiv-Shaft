@@ -48,6 +48,7 @@ public class FragmentEditAccount extends BaseBindFragment<FragmentEditAccountBin
         baseBind.pixivId.setText(Shaft.sUserModel.getResponse().getUser().getAccount());
         baseBind.pixivId.setEnabled(false);
         baseBind.submit.setOnClickListener(v -> submit());
+        baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
     }
 
     private void submit() {

@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:background="@color/colorPrimary"
         android:id="@+id/head"
-        android:layout_height="0dp">
+        android:layout_height="1dp">
 
     </ImageView>
 

@@ -23,7 +23,7 @@
             android:text="@string/ranking_illust"
             android:gravity="center"
             android:id="@+id/ranking_s"
-            android:textColor="#2c333c"
+            android:textColor="@color/rank_text_color"
             android:textSize="15sp"
             android:textStyle="bold" />
 
@@ -70,7 +70,7 @@
 
             <TextView
                 android:layout_width="wrap_content"
-                android:textColor="#2c333c"
+                android:textColor="@color/rank_text_color"
                 android:textSize="15sp"
                 android:text="@string/recmd_for_you"
                 android:layout_marginTop="@dimen/six_dp"

@@ -112,7 +112,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                             } else {
                                 mRecyclerView.setVisibility(View.INVISIBLE);
                                 noData.setVisibility(View.VISIBLE);
-                                noData.setImageResource(R.mipmap.no_data);
+                                noData.setImageResource(R.mipmap.no_data_line);
                             }
                             nextUrl = response.getNextUrl();
                             if (!TextUtils.isEmpty(nextUrl)) {
@@ -133,7 +133,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                             super.onError(e);
                             mRecyclerView.setVisibility(View.INVISIBLE);
                             noData.setVisibility(View.VISIBLE);
-                            noData.setImageResource(R.mipmap.load_error);
+                            noData.setImageResource(R.mipmap.no_data_line);
                         }
                     });
                 } else {

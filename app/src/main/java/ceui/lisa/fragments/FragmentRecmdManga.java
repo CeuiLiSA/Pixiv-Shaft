@@ -153,10 +153,12 @@ public class FragmentRecmdManga extends NetListFragment<FragmentRecmdFinalBindin
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .map(entities -> {
-                    Gson gson = new Gson();
                     List<IllustsBean> temp = new ArrayList<>();
                     for (int i = 0; i < entities.size(); i++) {
-                        temp.add(gson.fromJson(entities.get(i).getIllustJson(), IllustsBean.class));
+                        IllustsBean illustsBean = Shaft.sGson.fromJson(
+                                entities.get(i).getIllustJson(), IllustsBean.class);
+                        TagFilter.judge(illustsBean);
+                        temp.add(illustsBean);
                     }
                     return temp;
                 })

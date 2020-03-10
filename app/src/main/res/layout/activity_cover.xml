@@ -32,7 +32,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
-                android:background="@android:color/white"
+                android:background="?android:attr/windowBackground"
                 android:elevation="@dimen/four_dp"
                 app:elevation="@dimen/four_dp"
                 app:menu="@menu/main_activity">

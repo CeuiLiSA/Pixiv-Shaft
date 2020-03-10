@@ -109,13 +109,12 @@
 
                         <TextView
                             android:layout_width="wrap_content"
-                            android:text="搜索历史"
-                            android:textSize="14sp"
-                            android:textColor="@color/deep_dark"
+                            android:layout_height="wrap_content"
                             android:layout_marginStart="@dimen/sixteen_dp"
                             android:layout_marginTop="@dimen/tweenty_four_dp"
-                            android:layout_marginBottom="@dimen/eight_dp"
-                            android:layout_height="wrap_content">
+                            android:text="搜索历史"
+                            android:textColor="@color/second_text_color"
+                            android:textSize="14sp">
 
 
                         </TextView>
@@ -157,7 +156,7 @@
                         android:text="搜索发现"
                         android:id="@+id/fuck"
                         android:textSize="14sp"
-                        android:textColor="@color/deep_dark"
+                        android:textColor="@color/second_text_color"
                         android:layout_marginStart="@dimen/sixteen_dp"
                         android:layout_marginTop="@dimen/eight_dp"
                         android:layout_marginBottom="@dimen/eight_dp"

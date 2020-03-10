@@ -125,6 +125,7 @@
     <string name="other_settings">其他</string>
     <string name="search_result_filter">搜索结果收藏量筛选</string>
     <string name="language">语言</string>
+    <string name="theme_mode">主题模式</string>
     <string name="file_name_type">文件命名格式</string>
     <string name="download_path">下载路径</string>
     <string name="illust_download_path">图片下载路径</string>

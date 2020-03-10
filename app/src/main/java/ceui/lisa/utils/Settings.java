@@ -1,10 +1,14 @@
 package ceui.lisa.utils;
 
+import android.app.Activity;
 import android.text.TextUtils;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.blankj.utilcode.util.PathUtils;
 
 import ceui.lisa.fragments.FragmentFilter;
+import ceui.lisa.theme.ThemeHelper;
 
 public class Settings {
 
@@ -98,6 +102,20 @@ public class Settings {
     private String appLanguage = "";
 
     private String fileNameType = "";
+
+    public String getThemeType() {
+        if (TextUtils.isEmpty(themeType)) {
+            return ThemeHelper.DEFAULT_MODE;
+        }
+        return themeType;
+    }
+
+    public void setThemeType(AppCompatActivity activity, String themeType) {
+        this.themeType = themeType;
+        ThemeHelper.applyTheme(activity, themeType);
+    }
+
+    private String themeType = "";
 
     //收藏量筛选搜索结果
     private String searchFilter = "";

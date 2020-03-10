@@ -6,12 +6,12 @@
     android:clickable="true"
     android:foreground="?attr/selectableItemBackground"
     app:cardCornerRadius="2dp"
+    app:cardBackgroundColor="@color/white_to_gray"
     app:cardElevation="2dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@android:color/white"
         android:orientation="vertical">
 
 

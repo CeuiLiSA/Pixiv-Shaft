@@ -216,14 +216,14 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
                             mProgressBar.setVisibility(View.INVISIBLE);
                             mRecyclerView.setVisibility(View.INVISIBLE);
                             noData.setVisibility(View.VISIBLE);
-                            noData.setImageResource(R.mipmap.no_data);
+                            noData.setImageResource(R.mipmap.no_data_line);
                         }
 
                         @Override
                         public void netError() {
                             mRecyclerView.setVisibility(View.INVISIBLE);
                             noData.setVisibility(View.VISIBLE);
-                            noData.setImageResource(R.mipmap.load_error);
+                            noData.setImageResource(R.mipmap.no_data_line);
                         }
                     });
         }

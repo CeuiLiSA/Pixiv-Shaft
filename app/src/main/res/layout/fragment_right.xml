@@ -36,7 +36,7 @@
                 android:id="@+id/recmd_user"
                 android:textStyle="bold"
                 android:drawablePadding="@dimen/eight_dp"
-                android:textColor="@android:color/white"
+                android:textColor="@color/always_white"
                 android:drawableStart="@drawable/ic_recmd_user"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/toolbar" />
@@ -54,8 +54,8 @@
                 android:text="@string/see_more"
                 android:drawableRight="@drawable/ic_chevron_right_black_24dp"
                 android:gravity="center"
-                android:drawableTint="@color/white"
-                android:textColor="@color/white"
+                android:drawableTint="@color/always_white"
+                android:textColor="@color/always_white"
                 android:textSize="13sp"
                 app:layout_constraintEnd_toEndOf="parent" />
 

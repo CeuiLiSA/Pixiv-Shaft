@@ -26,6 +26,7 @@
                     android:layout_width="wrap_content"
                     android:id="@+id/image_1"
                     android:scaleType="centerCrop"
+                    android:tint="@color/pivision_logo_color"
                     android:src="@drawable/ic_pixivision_color_logo"
                     android:layout_marginTop="@dimen/eight_dp"
                     android:layout_marginStart="@dimen/sixteen_dp"
