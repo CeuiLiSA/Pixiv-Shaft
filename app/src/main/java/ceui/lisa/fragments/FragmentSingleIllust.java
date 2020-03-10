@@ -96,11 +96,24 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
     }
 
     private void loadImage() {
-        Glide.with(mContext)
-                .load(GlideUtil.getSquare(illust))
-                .apply(bitmapTransform(new BlurTransformation(25, 3)))
-                .transition(withCrossFade())
-                .into(baseBind.bgImage);
+
+        int currentNightMode = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+        switch (currentNightMode) {
+            case Configuration.UI_MODE_NIGHT_NO:
+            case Configuration.UI_MODE_NIGHT_UNDEFINED:
+                Glide.with(mContext)
+                        .load(GlideUtil.getSquare(illust))
+                        .apply(bitmapTransform(new BlurTransformation(25, 3)))
+                        .transition(withCrossFade())
+                        .into(baseBind.bgImage);
+                break;
+            case Configuration.UI_MODE_NIGHT_YES:
+                baseBind.bgImage.setImageResource(R.color.black);
+                break;
+        }
+
+
+
         mDetailAdapter = new IllustDetailAdapter(illust, mActivity);
         mDetailAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
