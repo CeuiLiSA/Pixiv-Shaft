@@ -276,12 +276,17 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
             public void onClick(View v) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
                 builder.setTitle(getString(R.string.theme_mode));
-                builder.setSingleChoiceItems(THEME_NAME, ThemeHelper.getThemeType(), new DialogInterface.OnClickListener() {
+                final int index = ThemeHelper.getThemeType();
+                builder.setSingleChoiceItems(THEME_NAME, index, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        Shaft.sSettings.setThemeType(THEME_NAME[which]);
-                        baseBind.themeMode.setText(THEME_NAME[which]);
-                        Local.setSettings(Shaft.sSettings);
+                        if (which == index) {
+                            Common.showToast("什么也不做");
+                        } else {
+                            Shaft.sSettings.setThemeType(((AppCompatActivity) mActivity), THEME_NAME[which]);
+                            baseBind.themeMode.setText(THEME_NAME[which]);
+                            Local.setSettings(Shaft.sSettings);
+                        }
                         dialog.dismiss();
                     }
                 });

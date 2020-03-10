@@ -71,7 +71,7 @@ public class Shaft extends Application {
 
         sSettings = Local.getSettings();
 
-        ThemeHelper.applyTheme(sSettings.getThemeType());
+        ThemeHelper.applyTheme(null, sSettings.getThemeType());
 
         //计算状态栏高度并赋值
         statusHeight = 0;

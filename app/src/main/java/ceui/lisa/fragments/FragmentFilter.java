@@ -37,9 +37,9 @@ public class FragmentFilter extends BaseFragment {
 
     public static final String[] THEME_NAME = new String[]{
             "默认模式（跟随系统）"
-//            ,
-//            "白天模式（浅色）",
-//            "黑暗模式（深色）"
+            ,
+            "白天模式（浅色）",
+            "黑暗模式（深色）"
     };
 
 

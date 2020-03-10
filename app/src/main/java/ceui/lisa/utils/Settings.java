@@ -1,6 +1,9 @@
 package ceui.lisa.utils;
 
+import android.app.Activity;
 import android.text.TextUtils;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.blankj.utilcode.util.PathUtils;
 
@@ -107,9 +110,9 @@ public class Settings {
         return themeType;
     }
 
-    public void setThemeType(String themeType) {
+    public void setThemeType(AppCompatActivity activity, String themeType) {
         this.themeType = themeType;
-        ThemeHelper.applyTheme(themeType);
+        ThemeHelper.applyTheme(activity, themeType);
     }
 
     private String themeType = "";
