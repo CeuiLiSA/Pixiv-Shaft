@@ -181,7 +181,7 @@
                 android:text="@string/finding_datas"
                 android:gravity="center"
                 android:textSize="16sp"
-                android:textColor="@color/white"
+                android:textColor="@color/always_white"
                 android:layout_below="@+id/progress"
                 android:id="@+id/text"
                 android:layout_height="wrap_content" />

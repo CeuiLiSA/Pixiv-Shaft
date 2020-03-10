@@ -39,5 +39,6 @@
     <color name="normal_bg">#f4f4f4</color>
     <color name="second_text_color">#333333</color>
     <color name="no_data_color">#666666</color>
+    <color name="white_to_deep_dark">#FFFFFF</color>
 
 </resources>

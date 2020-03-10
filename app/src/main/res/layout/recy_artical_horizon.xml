@@ -13,7 +13,7 @@
             android:id="@+id/user_follow_linear"
             android:layout_width="220dp"
             android:layout_height="@dimen/article_horizontal_height"
-            android:background="@android:color/white"
+            android:background="@color/white_to_deep_dark"
             android:orientation="vertical">
 
             <ImageView
@@ -43,7 +43,7 @@
                 android:layout_marginTop="@dimen/six_dp"
                 android:layout_marginBottom="@dimen/six_dp"
                 android:layout_marginEnd="@dimen/eight_dp"
-                android:textColor="#666666"
+                android:textColor="@color/rank_text_color"
                 android:layout_below="@+id/illust_image"
                 android:id="@+id/title"
                 android:layout_height="match_parent" />

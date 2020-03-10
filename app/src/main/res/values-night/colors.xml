@@ -45,4 +45,5 @@
     <color name="normal_bg">#434343</color>
     <color name="second_text_color">#8E8E8E</color>
     <color name="no_data_color">#BDBDBD</color>
+    <color name="white_to_deep_dark">#434343</color>
 </resources>

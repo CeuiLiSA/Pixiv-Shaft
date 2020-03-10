@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cardCornerRadius="2dp"
-        app:cardBackgroundColor="@color/white"
+        app:cardBackgroundColor="@color/white_to_deep_dark"
         app:cardElevation="@dimen/four_dp">
 
         <RelativeLayout
@@ -57,7 +57,7 @@
                     android:layout_marginTop="@dimen/eight_dp"
                     android:layout_marginBottom="@dimen/eight_dp"
                     android:layout_marginStart="@dimen/eight_dp"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rank_text_color"
                     android:textSize="16sp">
 
                 </TextView>
@@ -99,7 +99,7 @@
             <de.hdodenhof.circleimageview.CircleImageView
                 android:layout_width="28dp"
                 android:id="@+id/user_head"
-                app:civ_border_color="@color/light_bg"
+                app:civ_border_color="@color/dark_bg"
                 app:civ_border_width="1dp"
                 android:layout_marginStart="@dimen/eight_dp"
                 android:layout_alignBottom="@+id/cover"
