@@ -47,7 +47,7 @@
                     android:layout_marginEnd="@dimen/six_dp"
                     android:paddingBottom="2dp"
                     android:text="4P"
-                    android:textColor="@color/white"
+                    android:textColor="@color/always_white"
                     android:textSize="12sp" />
 
 
@@ -61,7 +61,7 @@
                     android:paddingEnd="@dimen/four_dp"
                     android:paddingBottom="2dp"
                     android:text="GIF"
-                    android:textColor="@color/white"
+                    android:textColor="@color/always_white"
                     android:textSize="12sp" />
 
             </LinearLayout>

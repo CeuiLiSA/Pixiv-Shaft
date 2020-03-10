@@ -13,7 +13,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 import androidx.databinding.ViewDataBinding;
 
+import ceui.lisa.theme.ThemeHelper;
 import ceui.lisa.utils.Common;
+
+import static ceui.lisa.activities.Shaft.sSettings;
 
 public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCompatActivity {
 

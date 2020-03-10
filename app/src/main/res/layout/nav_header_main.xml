@@ -27,7 +27,7 @@
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/user_head"
             app:civ_border_width="1dp"
-            app:civ_border_color="@color/white"
+            app:civ_border_color="@color/always_white"
             android:src="@mipmap/avatar"
             android:layout_width="64dp"
             android:layout_height="64dp"
@@ -42,7 +42,7 @@
 
         <TextView
             android:id="@+id/user_email"
-            android:textColor="@color/white"
+            android:textColor="@color/always_white"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/nav_header_subtitle" />

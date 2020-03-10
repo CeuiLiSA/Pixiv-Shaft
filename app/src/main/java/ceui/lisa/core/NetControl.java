@@ -53,6 +53,17 @@ public abstract class NetControl<Response extends ListShow> {
         if (mApi != null) {
             mApi.subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
+                    .map(new Function<Response, Response>() {
+                        @Override
+                        public Response apply(Response response) {
+                            for (Object o : response.getList()) {
+                                if (o instanceof IllustsBean) {
+                                    TagFilter.judge(((IllustsBean) o));
+                                }
+                            }
+                            return response;
+                        }
+                    })
                     .subscribe(nullCtrl);
         }
     }

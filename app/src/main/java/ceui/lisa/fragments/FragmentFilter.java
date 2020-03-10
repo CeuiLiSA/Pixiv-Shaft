@@ -32,7 +32,15 @@ public class FragmentFilter extends BaseFragment {
             "title_123456789_p0.png",
             "title_123456789_p0.jpg",
             "123456789_title_p0.png",
-            "123456789_title_p0.jpg"};
+            "123456789_title_p0.jpg"
+    };
+
+    public static final String[] THEME_NAME = new String[]{
+            "默认模式（跟随系统）"
+//            ,
+//            "白天模式（浅色）",
+//            "黑暗模式（深色）"
+    };
 
 
     public static final String[] DATE_SORT = new String[]{"最新作品(建议)", "由旧到新"};

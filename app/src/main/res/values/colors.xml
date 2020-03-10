@@ -20,6 +20,10 @@
 
 
     <color name="white">#FFFFFF</color>
+
+
+    <color name="always_white">#FFFFFF</color>
+    <color name="pivision_logo_color">#000000</color>
     <color name="dark_text">#333333</color>
 
     <color name="black_overlay">#66000000</color>
@@ -27,4 +31,13 @@
     <color name="hito_bg">#000339</color>
     <color name="trans">#00eeeeee</color>
     <color name="tag_text_unselect">#737373</color>
+    <color name="rank_text_color">#2c333c</color>
+    <color name="white_to_gray">#FFFFFF</color>
+    <color name="view_history_title">#666666</color>
+    <color name="card_user_detail">#FAFAFA</color>
+    <color name="card_user_head">#FFFFFF</color>
+    <color name="normal_bg">#f4f4f4</color>
+    <color name="second_text_color">#333333</color>
+    <color name="no_data_color">#666666</color>
+
 </resources>

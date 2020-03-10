@@ -102,7 +102,8 @@
     <ImageView
         android:layout_width="wrap_content"
         android:id="@+id/no_data"
-        android:src="@mipmap/no_data"
+        android:src="@mipmap/no_data_line"
+        android:tint="@color/colorPrimary"
         android:scaleType="centerCrop"
         android:visibility="gone"
         app:layout_constraintTop_toTopOf="parent"

@@ -92,7 +92,7 @@
                             android:layout_margin="@dimen/sixteen_dp"
                             android:text="@string/pixiv_problem"
                             android:textSize="15sp"
-                            android:textColor="@color/dark_text"
+                            android:textColor="@color/rank_text_color"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content">
 
@@ -104,7 +104,7 @@
 
                     <View
                         android:layout_width="match_parent"
-                        android:background="#e6e6e6"
+                        android:background="@color/light_bg"
                         android:layout_marginStart="@dimen/sixteen_dp"
                         android:layout_height="1dp" />
 
@@ -119,7 +119,7 @@
                             android:layout_margin="@dimen/sixteen_dp"
                             android:text="@string/pixiv_use_detail"
                             android:textSize="15sp"
-                            android:textColor="@color/dark_text"
+                            android:textColor="@color/rank_text_color"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content">
 
@@ -131,7 +131,7 @@
 
                     <View
                         android:layout_width="match_parent"
-                        android:background="#e6e6e6"
+                        android:background="@color/light_bg"
                         android:layout_marginStart="@dimen/sixteen_dp"
                         android:layout_height="1dp">
 
@@ -149,7 +149,7 @@
                             android:layout_margin="@dimen/sixteen_dp"
                             android:text="@string/privacy"
                             android:textSize="15sp"
-                            android:textColor="@color/dark_text"
+                            android:textColor="@color/rank_text_color"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content">
 
@@ -169,7 +169,7 @@
                             android:layout_margin="@dimen/sixteen_dp"
                             android:text="用户信息"
                             android:textSize="15sp"
-                            android:textColor="@color/dark_text"
+                            android:textColor="@color/rank_text_color"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content">
 
@@ -183,7 +183,7 @@
                     <View
                         android:layout_width="match_parent"
                         android:visibility="gone"
-                        android:background="#e6e6e6"
+                        android:background="@color/light_bg"
                         android:layout_marginStart="@dimen/sixteen_dp"
                         android:layout_height="1dp">
 
@@ -232,7 +232,7 @@
                             android:layout_margin="@dimen/sixteen_dp"
                             android:text="申明"
                             android:textSize="15sp"
-                            android:textColor="@color/dark_text"
+                            android:textColor="@color/rank_text_color"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content">
 
@@ -245,7 +245,7 @@
 
                     <View
                         android:layout_width="match_parent"
-                        android:background="#e6e6e6"
+                        android:background="@color/light_bg"
                         android:layout_marginStart="@dimen/sixteen_dp"
                         android:layout_height="1dp" />
 
@@ -260,7 +260,7 @@
                             android:layout_margin="@dimen/sixteen_dp"
                             android:text="Github主页"
                             android:textSize="15sp"
-                            android:textColor="@color/dark_text"
+                            android:textColor="@color/rank_text_color"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content">
 
@@ -272,7 +272,7 @@
 
                     <View
                         android:layout_width="match_parent"
-                        android:background="#e6e6e6"
+                        android:background="@color/light_bg"
                         android:layout_marginStart="@dimen/sixteen_dp"
                         android:layout_height="1dp" />
 
@@ -287,7 +287,7 @@
                             android:layout_margin="@dimen/sixteen_dp"
                             android:text="@string/project_license"
                             android:textSize="15sp"
-                            android:textColor="@color/dark_text"
+                            android:textColor="@color/rank_text_color"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content">
 

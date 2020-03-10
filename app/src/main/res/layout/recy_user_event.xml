@@ -21,7 +21,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/white"
+        app:cardBackgroundColor="@color/white_to_gray"
         android:orientation="vertical">
 
 
@@ -34,13 +34,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
+                android:text="i am title"
                 android:layout_marginStart="@dimen/eight_dp"
                 android:layout_marginEnd="@dimen/eight_dp"
+                android:textColor="@color/rank_text_color"
                 android:layout_marginBottom="@dimen/eight_dp"
                 android:layout_toEndOf="@+id/user_head"
                 android:ellipsize="end"
                 android:maxLines="2"
-                android:textColor="#333333"
                 android:textSize="14sp"
                 android:textStyle="bold">
 
@@ -49,14 +50,14 @@
 
             <de.hdodenhof.circleimageview.CircleImageView
                 android:id="@+id/user_head"
-                android:layout_width="45dp"
-                android:layout_height="45dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:layout_alignBottom="@+id/bottom_rela"
-                android:layout_marginStart="@dimen/twelve_dp"
+                android:layout_marginStart="@dimen/eight_dp"
                 android:layout_marginTop="@dimen/eight_dp"
                 android:layout_marginBottom="@dimen/eight_dp"
                 app:civ_border_color="#DDDDDD"
-                app:civ_border_width="2dp" />
+                app:civ_border_width="1dp" />
 
 
             <ImageView
@@ -90,8 +91,10 @@
                 android:layout_toStartOf="@+id/star"
                 android:textSize="13sp"
                 android:id="@+id/illust_date"
+                android:text="I am the author"
                 android:drawableStart="@drawable/ic_send_black_24dp"
                 android:gravity="center_vertical"
+                android:textColor="@color/rank_text_color"
                 android:drawablePadding="@dimen/eight_dp"
                 android:drawableTint="@color/colorPrimary"
                 android:layout_marginStart="@dimen/twelve_dp"

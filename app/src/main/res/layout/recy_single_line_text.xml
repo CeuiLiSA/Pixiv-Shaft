@@ -14,6 +14,6 @@
     android:paddingEnd="@dimen/twelve_dp"
     android:paddingBottom="@dimen/eight_dp"
     android:text="哈哈哈哈哈哈"
-    android:textColor="@color/deep_dark">
+    android:textColor="@color/second_text_color">
 
 </TextView>

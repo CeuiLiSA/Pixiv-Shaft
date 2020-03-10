@@ -10,6 +10,7 @@ import com.scwang.smartrefresh.layout.header.ClassicsHeader;
 
 import ceui.lisa.R;
 import ceui.lisa.models.UserModel;
+import ceui.lisa.theme.ThemeHelper;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Dev;
@@ -70,6 +71,7 @@ public class Shaft extends Application {
 
         sSettings = Local.getSettings();
 
+        ThemeHelper.applyTheme(sSettings.getThemeType());
 
         //计算状态栏高度并赋值
         statusHeight = 0;

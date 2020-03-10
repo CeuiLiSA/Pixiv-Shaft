@@ -99,7 +99,7 @@
                             android:paddingEnd="@dimen/four_dp"
                             android:layout_margin="@dimen/twelve_dp"
                             android:paddingBottom="2dp"
-                            android:textColor="@color/white"
+                            android:textColor="@color/always_white"
                             android:textSize="12sp" />
 
                     </ceui.lisa.view.ExpandCard>
@@ -117,13 +117,13 @@
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:orientation="vertical"
-                            android:background="#FAFAFA"
+                            android:background="@color/card_user_detail"
                             android:layout_height="wrap_content">
 
 
                             <RelativeLayout
                                 android:layout_width="match_parent"
-                                android:background="@color/white"
+                                android:background="@color/card_user_head"
                                 android:layout_height="wrap_content">
 
                                 <de.hdodenhof.circleimageview.CircleImageView
