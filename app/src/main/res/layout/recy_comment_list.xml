@@ -8,7 +8,6 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@android:color/white"
         android:clickable="true"
         android:foreground="?attr/selectableItemBackground"
         android:paddingStart="@dimen/twelve_dp"
@@ -74,7 +73,7 @@
             android:layout_alignStart="@+id/user_name"
             android:layout_marginTop="@dimen/eight_dp"
             android:text="阿发发货撒地方和暗室逢灯哈弗斯"
-            android:textColor="#333333"
+            android:textColor="@color/comment_content"
             android:textSize="14sp" />
 
 
@@ -85,7 +84,7 @@
             android:layout_below="@+id/content"
             android:layout_alignStart="@id/user_name"
             android:layout_marginTop="@dimen/eight_dp"
-            android:background="#f2f2f2">
+            android:background="@color/light_bg">
 
 
             <TextView
@@ -108,7 +107,7 @@
             android:layout_below="@+id/reply_comment"
             android:layout_alignStart="@id/user_name"
             android:layout_marginTop="@dimen/eight_dp"
-            android:background="#f3f3f3" />
+            android:background="@color/settings_divider_bg" />
 
 
     </RelativeLayout>

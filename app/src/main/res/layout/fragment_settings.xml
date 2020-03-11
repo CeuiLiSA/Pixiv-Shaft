@@ -63,7 +63,7 @@
                                 android:layout_width="wrap_content"
                                 android:text="@string/account"
                                 android:textSize="13sp"
-                                android:textColor="@color/colorPrimary"
+                                android:textColor="@color/hint_text"
                                 android:layout_marginTop="@dimen/eight_dp"
                                 android:layout_marginBottom="@dimen/eight_dp"
                                 android:layout_marginStart="@dimen/sixteen_dp"
@@ -96,7 +96,7 @@
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="@color/light_bg"
+                            android:background="@color/settings_divider_bg"
                             android:layout_marginStart="@dimen/sixteen_dp"
                             android:layout_height="1dp">
 
@@ -127,7 +127,7 @@
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="@color/light_bg"
+                            android:background="@color/settings_divider_bg"
                             android:layout_marginStart="@dimen/sixteen_dp"
                             android:layout_height="1dp">
 
@@ -158,7 +158,7 @@
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="@color/light_bg"
+                            android:background="@color/settings_divider_bg"
                             android:layout_marginStart="@dimen/sixteen_dp"
                             android:layout_height="1dp">
 
@@ -215,7 +215,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:textSize="13sp"
-                                android:textColor="@color/colorPrimary"
+                                android:textColor="@color/hint_text"
                                 android:text="@string/normal"
                                 android:layout_marginTop="@dimen/eight_dp"
                                 android:layout_marginBottom="@dimen/eight_dp"
@@ -253,7 +253,7 @@
                                 android:text="@string/see_pixiv_ez"
                                 android:layout_below="@+id/fuck_china_s"
                                 android:textSize="13sp"
-                                android:textColor="@color/colorPrimary"
+                                android:textColor="@color/hint_text"
                                 android:singleLine="true"
                                 android:ellipsize="start"
                                 android:id="@+id/fuck_china"
@@ -275,7 +275,7 @@
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="@color/light_bg"
+                            android:background="@color/settings_divider_bg"
                             android:visibility="gone"
                             android:layout_marginStart="@dimen/sixteen_dp"
                             android:layout_height="1dp" />
@@ -315,7 +315,7 @@
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="@color/light_bg"
+                            android:background="@color/settings_divider_bg"
                             android:layout_marginStart="@dimen/sixteen_dp"
                             android:layout_height="1dp">
 
@@ -356,7 +356,7 @@
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="@color/light_bg"
+                            android:background="@color/settings_divider_bg"
                             android:layout_marginStart="@dimen/sixteen_dp"
                             android:layout_height="1dp">
 
@@ -397,7 +397,7 @@
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="@color/light_bg"
+                            android:background="@color/settings_divider_bg"
                             android:layout_marginStart="@dimen/sixteen_dp"
                             android:layout_height="1dp">
 
@@ -460,7 +460,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:textSize="13sp"
-                                android:textColor="@color/colorPrimary"
+                                android:textColor="@color/hint_text"
                                 android:text="@string/other_settings"
                                 android:layout_marginTop="@dimen/eight_dp"
                                 android:layout_marginBottom="@dimen/eight_dp"
@@ -496,7 +496,7 @@
                                 android:textSize="14sp"
                                 android:id="@+id/theme_mode"
                                 android:layout_alignParentEnd="true"
-                                android:textColor="@color/colorPrimary"
+                                android:textColor="@color/hint_text"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content">
 
@@ -509,7 +509,7 @@
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="@color/light_bg"
+                            android:background="@color/settings_divider_bg"
                             android:layout_marginStart="@dimen/sixteen_dp"
                             android:layout_height="1dp">
 
@@ -543,7 +543,7 @@
                                 android:textSize="14sp"
                                 android:id="@+id/search_filter"
                                 android:layout_alignParentEnd="true"
-                                android:textColor="@color/colorPrimary"
+                                android:textColor="@color/hint_text"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content">
 
@@ -556,7 +556,7 @@
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="@color/light_bg"
+                            android:background="@color/settings_divider_bg"
                             android:layout_marginStart="@dimen/sixteen_dp"
                             android:layout_height="1dp">
 
@@ -590,7 +590,7 @@
                                 android:textSize="14sp"
                                 android:id="@+id/app_language"
                                 android:layout_alignParentEnd="true"
-                                android:textColor="@color/colorPrimary"
+                                android:textColor="@color/hint_text"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content">
 
@@ -603,7 +603,7 @@
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="@color/light_bg"
+                            android:background="@color/settings_divider_bg"
                             android:layout_marginStart="@dimen/sixteen_dp"
                             android:layout_height="1dp">
 
@@ -637,7 +637,7 @@
                                 android:textSize="14sp"
                                 android:id="@+id/file_name"
                                 android:layout_alignParentEnd="true"
-                                android:textColor="@color/colorPrimary"
+                                android:textColor="@color/hint_text"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content">
 
@@ -670,7 +670,7 @@
                                 android:layout_width="wrap_content"
                                 android:text="@string/download_path"
                                 android:textSize="13sp"
-                                android:textColor="@color/colorPrimary"
+                                android:textColor="@color/hint_text"
                                 android:layout_marginTop="@dimen/eight_dp"
                                 android:layout_marginBottom="@dimen/eight_dp"
                                 android:layout_marginStart="@dimen/sixteen_dp"
@@ -707,7 +707,7 @@
                                 android:text="/storage/emulated/0/Shaft/SingleImages"
                                 android:layout_below="@+id/illust_path_s"
                                 android:textSize="13sp"
-                                android:textColor="@color/colorPrimary"
+                                android:textColor="@color/hint_text"
                                 android:singleLine="true"
                                 android:ellipsize="start"
                                 android:id="@+id/illust_path"
@@ -722,7 +722,7 @@
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="@color/light_bg"
+                            android:background="@color/settings_divider_bg"
                             android:layout_marginStart="@dimen/sixteen_dp"
                             android:layout_height="1dp">
 
@@ -756,7 +756,7 @@
                                 android:text="/storage/emulated/0/Shaft/SingleImages"
                                 android:layout_below="@+id/gif_result_s"
                                 android:textSize="13sp"
-                                android:textColor="@color/colorPrimary"
+                                android:textColor="@color/hint_text"
                                 android:singleLine="true"
                                 android:ellipsize="start"
                                 android:id="@+id/gif_result"
@@ -780,7 +780,7 @@
                                 android:layout_width="wrap_content"
                                 android:text="缓存"
                                 android:textSize="13sp"
-                                android:textColor="@color/colorPrimary"
+                                android:textColor="@color/hint_text"
                                 android:layout_marginTop="@dimen/eight_dp"
                                 android:layout_marginBottom="@dimen/eight_dp"
                                 android:layout_marginStart="@dimen/sixteen_dp"
@@ -815,7 +815,7 @@
                                 android:textSize="14sp"
                                 android:id="@+id/real_image_cache"
                                 android:layout_alignParentEnd="true"
-                                android:textColor="@color/colorPrimary"
+                                android:textColor="@color/hint_text"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content">
 
@@ -829,7 +829,7 @@
                         <View
                             android:layout_width="match_parent"
                             android:visibility="visible"
-                            android:background="@color/light_bg"
+                            android:background="@color/settings_divider_bg"
                             android:layout_marginStart="@dimen/sixteen_dp"
                             android:layout_height="1dp">
 
@@ -864,7 +864,7 @@
                                 android:textSize="14sp"
                                 android:id="@+id/real_gif_cache"
                                 android:layout_alignParentEnd="true"
-                                android:textColor="@color/colorPrimary"
+                                android:textColor="@color/hint_text"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content">
 

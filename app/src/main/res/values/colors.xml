@@ -10,10 +10,12 @@
     <color name="colorAccent">#CDDC39</color>
     <color name="light_primary_color">#B2EBF2</color>
 
+    <color name="hint_text">#00BCD4</color>
 
     <color name="background">#f2f2f2</color>
     <color name="dark_bg">#999999</color>
     <color name="light_bg">#f2f2f2</color>
+    <color name="settings_divider_bg">#f2f2f2</color>
     <color name="second_light_bg">#fafafa</color>
 
     <color name="follow_user_illust_divider">#ececec</color>
@@ -40,5 +42,7 @@
     <color name="second_text_color">#333333</color>
     <color name="no_data_color">#666666</color>
     <color name="white_to_deep_dark">#FFFFFF</color>
+    <color name="comment_content">#333333</color>
+    <color name="comment_parent_bg">#F2F2F2</color>
 
 </resources>
