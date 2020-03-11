@@ -58,6 +58,24 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
             WindowManager.LayoutParams lp = getWindow().getAttributes();
             lp.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
             getWindow().setAttributes(lp);
+            mRvBottomRela = findViewById(R.id.bottom_rela);
+            mRvBottomRela.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+
+                boolean changed;
+
+                @Override
+                public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                    DisplayCutout displayCutout = v.getRootWindowInsets().getDisplayCutout();
+                    if (displayCutout != null) {
+                        if (!changed) {
+                            changed = true;
+                            Log.d("mRvBottomRela", "before " + v.getPaddingLeft() + " " + v.getPaddingTop() + " " + v.getPaddingRight() + " " + v.getPaddingBottom());
+                            v.setPadding(v.getPaddingLeft() + displayCutout.getSafeInsetLeft(), v.getPaddingTop(), v.getPaddingRight() + displayCutout.getSafeInsetRight(), v.getPaddingBottom() + displayCutout.getSafeInsetBottom());
+                            Log.d("mRvBottomRela", "after " + v.getPaddingLeft() + " " + v.getPaddingTop() + " " + v.getPaddingRight() + " " + v.getPaddingBottom());
+                        }
+                    }
+                }
+            });
         }
         String dataType = getIntent().getStringExtra("dataType");
         baseBind.viewPager.setPageTransformer(true, new CubeOutTransformer());
@@ -65,26 +83,6 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
             currentSize = findViewById(R.id.current_size);
             currentPage = findViewById(R.id.current_page);
             downloadSingle = findViewById(R.id.download_this_one);
-            mRvBottomRela = findViewById(R.id.bottom_rela);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                mRvBottomRela.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
-
-                    boolean changed;
-
-                    @Override
-                    public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
-                        DisplayCutout displayCutout = v.getRootWindowInsets().getDisplayCutout();
-                        if (displayCutout != null) {
-                            if (!changed) {
-                                changed = true;
-                                Log.d("mRvBottomRela", "before " + v.getPaddingLeft() + " " + v.getPaddingTop() + " " + v.getPaddingRight() + " " + v.getPaddingBottom());
-                                v.setPadding(v.getPaddingLeft() + displayCutout.getSafeInsetLeft(), v.getPaddingTop(), v.getPaddingRight() + displayCutout.getSafeInsetRight(), v.getPaddingBottom() + displayCutout.getSafeInsetBottom());
-                                Log.d("mRvBottomRela", "after " + v.getPaddingLeft() + " " + v.getPaddingTop() + " " + v.getPaddingRight() + " " + v.getPaddingBottom());
-                            }
-                        }
-                    }
-                });
-            }
             mIllustsBean = (IllustsBean) getIntent().getSerializableExtra("illust");
             index = getIntent().getIntExtra("index", 0);
             if (mIllustsBean == null) {
