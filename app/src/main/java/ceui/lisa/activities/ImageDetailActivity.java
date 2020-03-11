@@ -1,10 +1,18 @@
 package ceui.lisa.activities;
 
 import android.os.Build;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.DisplayCutout;
 import android.view.View;
 import android.view.ViewTreeObserver;
+import android.view.WindowInsets;
+import android.view.WindowManager;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
+import androidx.core.view.ViewCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
@@ -29,6 +37,7 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
     private IllustsBean mIllustsBean;
     private List<String> localIllust = new ArrayList<>();
     private TextView currentPage, downloadSingle, currentSize;
+    private RelativeLayout mRvBottomRela;
     private int index;
 
     @Override
@@ -42,12 +51,40 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
 
     @Override
     protected void initView() {
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            WindowManager.LayoutParams lp = getWindow().getAttributes();
+            lp.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+            getWindow().setAttributes(lp);
+        }
         String dataType = getIntent().getStringExtra("dataType");
         baseBind.viewPager.setPageTransformer(true, new CubeOutTransformer());
         if (dataType.equals("二级详情")) {
             currentSize = findViewById(R.id.current_size);
             currentPage = findViewById(R.id.current_page);
             downloadSingle = findViewById(R.id.download_this_one);
+            mRvBottomRela = findViewById(R.id.bottom_rela);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                mRvBottomRela.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+
+                    boolean changed;
+
+                    @Override
+                    public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                        DisplayCutout displayCutout = v.getRootWindowInsets().getDisplayCutout();
+                        if (displayCutout != null) {
+                            if (!changed) {
+                                changed = true;
+                                Log.d("mRvBottomRela", "before " + v.getPaddingLeft() + " " + v.getPaddingTop() + " " + v.getPaddingRight() + " " + v.getPaddingBottom());
+                                v.setPadding(v.getPaddingLeft() + displayCutout.getSafeInsetLeft(), v.getPaddingTop(), v.getPaddingRight() + displayCutout.getSafeInsetRight(), v.getPaddingBottom() + displayCutout.getSafeInsetBottom());
+                                Log.d("mRvBottomRela", "after " + v.getPaddingLeft() + " " + v.getPaddingTop() + " " + v.getPaddingRight() + " " + v.getPaddingBottom());
+                            }
+                        }
+                    }
+                });
+            }
             mIllustsBean = (IllustsBean) getIntent().getSerializableExtra("illust");
             index = getIntent().getIntExtra("index", 0);
             if (mIllustsBean == null) {
