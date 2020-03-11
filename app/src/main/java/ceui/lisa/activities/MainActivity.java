@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.net.Uri;
+import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.MenuItem;
@@ -205,14 +206,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             startActivity(intent);
 
         } else if (id == R.id.nav_reverse) {
-            Matisse.from((Activity) mContext)
-                    .choose(MimeType.ofAll())// 选择 mime 的类型
-                    .countable(true)
-                    .maxSelectable(1) // 图片选择的最多数量
-                    .restrictOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED)
-                    .thumbnailScale(1.0f) // 缩略图的比例
-                    .imageEngine(new PicassoEngine()) // 使用的图片加载引擎
-                    .forResult(Params.REQUEST_CODE_CHOOSE);
+            Intent intentToPickPic = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            intentToPickPic.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/jpeg");
+            startActivityForResult(intentToPickPic, Params.REQUEST_CODE_CHOOSE);
 
         } else if (id == R.id.nav_send) {
 
@@ -254,11 +250,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == Params.REQUEST_CODE_CHOOSE && resultCode == RESULT_OK) {
-            List<Uri> result = Matisse.obtainResult(data);
-            if (result != null && result.size() != 0) {
-                ReverseImage.reverse(new File(Common.getRealFilePath(mContext, result.get(0))),
-                        ReverseImage.ReverseProvider.SauceNao, new ReverseWebviewCallback(this));
-            }
+            Uri imageUri = data.getData();
+            ReverseImage.reverse(new File(Common.getRealFilePath(mContext, imageUri)),
+                    ReverseImage.ReverseProvider.SauceNao, new ReverseWebviewCallback(this));
         }
     }
 

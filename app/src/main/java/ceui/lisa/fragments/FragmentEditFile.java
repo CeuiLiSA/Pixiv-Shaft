@@ -95,11 +95,6 @@ public class FragmentEditFile extends BaseBindFragment<FragmentEditFileBinding> 
 
         List<MultipartBody.Part> parts = new ArrayList<>();
         parts.add(imagePart);
-        //MultipartBody.Part webpagePart = MultipartBody.Part.createFormData("webpage", "https://github.com/CeuiLiSA/Pixiv-Shaft");
-        //MultipartBody.Part twitterPart = MultipartBody.Part.createFormData("twitter","CeuiLiSA");
-        //parts.add(webpagePart);
-        //parts.add(twitterPart);
-
 
         Retro.getAppApi().updateUserProfile(sUserModel.getResponse().getAccess_token(), parts)
                 .subscribeOn(Schedulers.newThread())
