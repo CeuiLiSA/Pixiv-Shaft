@@ -18,11 +18,11 @@ import com.github.chrisbanes.photoview.OnOutsidePhotoTapListener;
 import com.github.chrisbanes.photoview.OnPhotoTapListener;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.ImageDetailActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.FragmentImageDetailBinding;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.GlideUtil;
+import ceui.lisa.utils.ObjectTemp;
 import ceui.lisa.utils.Params;
 
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
@@ -60,6 +60,9 @@ public class FragmentImageDetail extends BaseBindFragment<FragmentImageDetailBin
 
     @Override
     void initData() {
+        if (mIllustsBean == null) {
+            mIllustsBean = (IllustsBean) ObjectTemp.get("mIllustsBean");
+        }
         baseBind.illustImage.setTransitionName("big_image_" + index);
         BarUtils.setNavBarVisibility(mActivity, false);
         if (!TextUtils.isEmpty(url)) {
@@ -134,5 +137,9 @@ public class FragmentImageDetail extends BaseBindFragment<FragmentImageDetailBin
         });
     }
 
-
+    @Override
+    public void onDestroy() {
+        ObjectTemp.put("mIllustsBean", mIllustsBean);
+        super.onDestroy();
+    }
 }
