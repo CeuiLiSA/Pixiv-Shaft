@@ -43,56 +43,16 @@ import jp.wasabeef.recyclerview.animators.LandingAnimator;
  */
 public abstract class NetListFragment<Layout extends ViewDataBinding,
         Response extends ListShow<Item>, Item, ItemLayout extends ViewDataBinding>
-        extends BaseBindFragment<Layout> {
+        extends ListFragment<Layout, Item, ItemLayout> {
 
-    public static final long animateDuration = 400L;
     protected NetControl<Response> mNetControl;
-    protected RecyclerView mRecyclerView;
-    protected RefreshLayout mRefreshLayout;
-    protected ImageView noData;
     protected Response mResponse;
-    protected BaseAdapter<Item, ItemLayout> mAdapter;
-    protected List<Item> allItems = new ArrayList<>();
     protected String nextUrl;
-    protected Toolbar mToolbar;
-
-    public abstract NetControl<Response> present();
-
-    public abstract BaseAdapter<Item, ItemLayout> adapter();
-
-    @Override
-    public void initLayout() {
-        mLayoutID = R.layout.fragment_base_list;
-    }
 
     @Override
     public void initView(View view) {
-        mToolbar = view.findViewById(R.id.toolbar);
-        if (mToolbar != null) {
-            if (showToolbar()) {
-                mToolbar.setVisibility(View.VISIBLE);
-                mToolbar.setNavigationOnClickListener(v -> mActivity.finish());
-                mToolbar.setTitle(getToolbarTitle());
-            } else {
-                mToolbar.setVisibility(View.GONE);
-            }
-        }
-        mRecyclerView = view.findViewById(R.id.recyclerView);
-        mRefreshLayout = view.findViewById(R.id.refreshLayout);
-        noData = view.findViewById(R.id.no_data);
-        initRecyclerView();
-        mNetControl = present();
-        mRefreshLayout.setRefreshHeader(mNetControl.enableRefresh() ?
-                mNetControl.getHeader(mContext) : new FalsifyHeader(mContext));
-        mRefreshLayout.setRefreshFooter(mNetControl.hasNext() ?
-                mNetControl.getFooter(mContext) : new FalsifyFooter(mContext));
-        noData.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                noData.setVisibility(View.INVISIBLE);
-                mRefreshLayout.autoRefresh();
-            }
-        });
+        super.initView(view);
+        mNetControl = ((NetControl<Response>) mBaseCtrl);
         mRefreshLayout.setOnRefreshListener(new OnRefreshListener() {
             @Override
             public void onRefresh(@NonNull RefreshLayout refreshLayout) {
@@ -170,54 +130,6 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                 }
             }
         });
-    }
-
-    @Override
-    public void initData() {
-        mAdapter = adapter();
-        if (mAdapter != null) {
-            mRecyclerView.setAdapter(mAdapter);
-        }
-        if (mRecyclerView.getLayoutManager() instanceof StaggeredGridLayoutManager) {
-            //do nothing
-        } else {
-            BaseItemAnimator baseItemAnimator = new LandingAnimator();
-            baseItemAnimator.setAddDuration(animateDuration);
-            baseItemAnimator.setRemoveDuration(animateDuration);
-            baseItemAnimator.setMoveDuration(animateDuration);
-            baseItemAnimator.setChangeDuration(animateDuration);
-            mRecyclerView.setItemAnimator(baseItemAnimator);
-        }
-        if (autoRefresh()) {
-            mRefreshLayout.autoRefresh();
-        }
-    }
-
-    /**
-     * 指定是否显示Toolbar
-     *
-     * @return default true
-     */
-    public boolean showToolbar() {
-        return true;
-    }
-
-    /**
-     * 指定Toolbar title
-     *
-     * @return title
-     */
-    public String getToolbarTitle() {
-        return "";
-    }
-
-    /**
-     * 默认 LinearLayoutManager
-     */
-    public void initRecyclerView() {
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
-        mRecyclerView.setHasFixedSize(true);
-        mRecyclerView.addItemDecoration(new LinearItemDecoration(DensityUtil.dp2px(12.0f)));
     }
 
     /**

@@ -1,11 +1,14 @@
 package ceui.lisa.fragments;
 
 import android.view.View;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.Toolbar;
 import androidx.databinding.ViewDataBinding;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
@@ -21,46 +24,39 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.interfaces.DataControl;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
+import jp.wasabeef.recyclerview.animators.BaseItemAnimator;
+import jp.wasabeef.recyclerview.animators.LandingAnimator;
+
+import static ceui.lisa.fragments.NetListFragment.animateDuration;
 
 public abstract class LocalListFragment<Layout extends ViewDataBinding, Item,
-        ItemLayout extends ViewDataBinding> extends BaseBindFragment<Layout> {
+        ItemLayout extends ViewDataBinding> extends ListFragment<Layout, Item, ItemLayout> {
 
     protected DataControl<List<Item>> mDataControl;
-    protected RecyclerView mRecyclerView;
-    protected RefreshLayout mRefreshLayout;
-    protected BaseAdapter<Item, ItemLayout> mAdapter;
-    protected List<Item> allItems = new ArrayList<>();
-    protected String nextUrl;
-
-    public abstract DataControl<List<Item>> present();
-
-    public abstract BaseAdapter<Item, ItemLayout> adapter();
-
-    @Override
-    public void initLayout() {
-        mLayoutID = R.layout.fragment_base_list;
-    }
 
     @Override
     public void initView(View view) {
-        mRecyclerView = view.findViewById(R.id.recyclerView);
-        mRefreshLayout = view.findViewById(R.id.refreshLayout);
-        initRecyclerView();
-        mDataControl = present();
-        mRefreshLayout.setRefreshHeader(mDataControl.enableRefresh() ?
-                new ClassicsHeader(mContext) : new FalsifyHeader(mContext));
-        mRefreshLayout.setRefreshFooter(mDataControl.hasNext() ?
-                new ClassicsFooter(mContext) : new FalsifyFooter(mContext));
+        super.initView(view);
+        mDataControl = ((DataControl<List<Item>>) mBaseCtrl);
         mRefreshLayout.setOnRefreshListener(new OnRefreshListener() {
             @Override
             public void onRefresh(@NonNull RefreshLayout refreshLayout) {
                 if (mDataControl.enableRefresh()) {
-                    mAdapter.clear();
-                    int lastSize = allItems.size();
-                    allItems.addAll(mDataControl.first());
-                    mAdapter.notifyItemRangeInserted(lastSize, mDataControl.first().size());
+                    if (mDataControl.first() != null && mDataControl.first().size() != 0) {
+                        mAdapter.clear();
+                        int lastSize = allItems.size();
+                        allItems.addAll(mDataControl.first());
+                        mAdapter.notifyItemRangeInserted(lastSize, mDataControl.first().size());
+                        mRecyclerView.setVisibility(View.VISIBLE);
+                        noData.setVisibility(View.INVISIBLE);
+                    } else {
+                        mRecyclerView.setVisibility(View.INVISIBLE);
+                        noData.setVisibility(View.VISIBLE);
+                        noData.setImageResource(R.mipmap.no_data_line);
+                    }
                     mRefreshLayout.finishRefresh(true);
                 }
             }
@@ -69,25 +65,15 @@ public abstract class LocalListFragment<Layout extends ViewDataBinding, Item,
             @Override
             public void onLoadMore(@NonNull RefreshLayout refreshLayout) {
                 if (mDataControl.hasNext()) {
+                    mAdapter.clear();
                     int lastSize = allItems.size();
                     allItems.addAll(mDataControl.next());
                     mAdapter.notifyItemRangeInserted(lastSize, mDataControl.next().size());
-                    mRefreshLayout.finishLoadMore(true);
+                } else {
+                    Common.showToast("没有更多数据啦");
                 }
+                mRefreshLayout.finishLoadMore(true);
             }
         });
-    }
-
-    @Override
-    public void initData() {
-        mAdapter = adapter();
-        mRecyclerView.setAdapter(mAdapter);
-        mRefreshLayout.autoRefresh();
-    }
-
-    public void initRecyclerView() {
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
-        mRecyclerView.setHasFixedSize(true);
-        mRecyclerView.addItemDecoration(new LinearItemDecoration(DensityUtil.dp2px(12.0f)));
     }
 }

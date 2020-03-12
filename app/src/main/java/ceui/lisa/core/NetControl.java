@@ -11,6 +11,7 @@ import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 import java.util.List;
 
 import ceui.lisa.http.NullCtrl;
+import ceui.lisa.interfaces.BaseCtrl;
 import ceui.lisa.interfaces.ListShow;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
@@ -20,7 +21,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 
-public abstract class NetControl<Response extends ListShow> {
+public abstract class NetControl<Response extends ListShow> extends BaseCtrl {
 
     private Observable<Response> mApi;
 
@@ -66,21 +67,5 @@ public abstract class NetControl<Response extends ListShow> {
                     })
                     .subscribe(nullCtrl);
         }
-    }
-
-    public boolean hasNext(){
-        return true;
-    }
-
-    public boolean enableRefresh(){
-        return true;
-    }
-
-    public RefreshHeader getHeader(Context context){
-        return new MaterialHeader(context);
-    }
-
-    public RefreshFooter getFooter(Context context){
-        return new ClassicsFooter(context);
     }
 }

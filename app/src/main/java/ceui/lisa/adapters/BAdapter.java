@@ -44,6 +44,7 @@ public class BAdapter extends BaseAdapter<TagsBean, RecyBookTagBinding> {
                         PixivOperate.unMuteTag(target);
                         allIllust.remove(target);
                         notifyItemRemoved(position);
+                        notifyItemRangeChanged(position, allIllust.size() - position);
                     }
                 });
             } else {

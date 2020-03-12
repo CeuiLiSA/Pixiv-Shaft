@@ -29,8 +29,8 @@ import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.fragments.FragmentLikeNovel;
 import ceui.lisa.fragments.FragmentLive;
 import ceui.lisa.fragments.FragmentLocalUsers;
+import ceui.lisa.fragments.FragmentM;
 import ceui.lisa.fragments.FragmentMultiDownload;
-import ceui.lisa.fragments.FragmentMutedTags;
 import ceui.lisa.fragments.FragmentNew;
 import ceui.lisa.fragments.FragmentNiceFriend;
 import ceui.lisa.fragments.FragmentNovelHolder;
@@ -44,7 +44,6 @@ import ceui.lisa.fragments.FragmentSearchResult;
 import ceui.lisa.fragments.FragmentSearchUser;
 import ceui.lisa.fragments.FragmentSelectBookTag;
 import ceui.lisa.fragments.FragmentSettings;
-import ceui.lisa.fragments.FragmentTest;
 import ceui.lisa.fragments.FragmentUserIllust;
 import ceui.lisa.fragments.FragmentUserManga;
 import ceui.lisa.fragments.FragmentUserNovel;
@@ -179,7 +178,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                 case "热门直播":
                     return new FragmentLive();
                 case "标签屏蔽记录":
-                    return new FragmentMutedTags();
+                    return new FragmentM();
                 default:
                     return new FragmentBlank();
             }
