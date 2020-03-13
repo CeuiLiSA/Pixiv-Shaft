@@ -57,8 +57,7 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         if (viewType == ITEM_NORMAL) {
-            return new ViewHolder<>(DataBindingUtil.inflate(
-                    LayoutInflater.from(mContext), mLayoutID, parent, false).getRoot());
+            return getNormalItem(parent);
         } else {
             return getHeader(parent);
         }
@@ -89,5 +88,10 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
 
     public ViewHolder getHeader(ViewGroup parent) {
         return null;
+    }
+
+    public ViewHolder<BindView> getNormalItem(ViewGroup parent) {
+        return new ViewHolder<>(DataBindingUtil.inflate(
+                LayoutInflater.from(mContext), mLayoutID, parent, false).getRoot());
     }
 }

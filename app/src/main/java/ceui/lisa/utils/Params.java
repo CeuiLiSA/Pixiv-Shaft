@@ -16,6 +16,7 @@ public class Params {
     public static final String SHOW_DIALOG              = "show dialog";
     public static final String USER_MODEL              = "user model";
     public static final String USE_DEBUG              = "use debug mode";
+    public static final String FILE_PATH              = "file path";
 
     public static final String IMAGE_UNKNOWN = "https://s.pximg.net/common/images/limit_unknown_360.png";
     public static final String HEAD_UNKNOWN = "https://s.pximg.net/common/images/no_profile.png";

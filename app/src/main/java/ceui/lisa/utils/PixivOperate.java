@@ -7,6 +7,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
 
+import com.google.gson.Gson;
+
 import org.greenrobot.eventbus.EventBus;
 
 import java.io.File;
@@ -17,6 +19,7 @@ import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.database.AppDatabase;
+import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.database.TagMuteEntity;
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.fragments.FragmentL;
@@ -238,5 +241,15 @@ public class PixivOperate {
         tagMuteEntity.setSearchTime(System.currentTimeMillis());
         AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().unMuteTag(tagMuteEntity);
         Common.showToast("操作成功");
+    }
+
+    public static void insertViewHistory(IllustsBean illust) {
+        IllustHistoryEntity illustHistoryEntity = new IllustHistoryEntity();
+        illustHistoryEntity.setIllustID(illust.getId());
+        Gson gson = new Gson();
+        illustHistoryEntity.setIllustJson(gson.toJson(illust));
+        illustHistoryEntity.setTime(System.currentTimeMillis());
+        Common.showLog("插入了 " + illustHistoryEntity.getIllustID() + " time " + illustHistoryEntity.getTime());
+        AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(illustHistoryEntity);
     }
 }

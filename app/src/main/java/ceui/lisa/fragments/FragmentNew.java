@@ -36,11 +36,11 @@ public class FragmentNew extends BaseBindFragment<ViewpagerWithTablayoutBinding>
                     if (position == 0) {
                         return FragmentLatestNovel.newInstance("novel");
                     } else if (position == 1) {
-                        return new FragmentBlank();
+                        return new Fragment();
                     } else if (position == 2) {
-                        return new FragmentBlank();
+                        return new Fragment();
                     } else {
-                        return new FragmentBlank();
+                        return new Fragment();
                     }
                 } else {
                     if (position == 0) {
@@ -50,7 +50,7 @@ public class FragmentNew extends BaseBindFragment<ViewpagerWithTablayoutBinding>
                     } else if (position == 2) {
                         return FragmentLatestNovel.newInstance("novel");
                     } else {
-                        return new FragmentBlank();
+                        return new Fragment();
                     }
                 }
             }
@@ -67,10 +67,5 @@ public class FragmentNew extends BaseBindFragment<ViewpagerWithTablayoutBinding>
             }
         });
         baseBind.tabLayout.setupWithViewPager(baseBind.viewPager);
-    }
-
-    @Override
-    void initData() {
-
     }
 }

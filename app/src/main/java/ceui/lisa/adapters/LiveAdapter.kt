@@ -11,11 +11,7 @@ class LiveAdapter(targetList: MutableList<Live>, context: Context):
         BaseAdapter<Live, RecyItemLiveBinding>(targetList, context) {
 
     override fun bindData(target: Live?, bindView: ViewHolder<RecyItemLiveBinding>?, position: Int) {
-        if(bindView != null) {
-            Glide.with(mContext)
-                    .load(GlideUtil.getMediumImg(target?.thumbnail_image_url))
-                    .into(bindView.baseBind.image)
-        }
+
     }
 
     override fun initLayout() {

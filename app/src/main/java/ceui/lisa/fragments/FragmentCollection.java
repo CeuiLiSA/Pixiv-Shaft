@@ -127,9 +127,4 @@ public class FragmentCollection extends BaseBindFragment<ViewpagerWithTablayoutB
             }
         });
     }
-
-    @Override
-    void initData() {
-
-    }
 }

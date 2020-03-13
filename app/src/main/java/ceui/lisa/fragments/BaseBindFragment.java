@@ -90,7 +90,9 @@ public abstract class BaseBindFragment<Layout extends ViewDataBinding> extends F
 
     abstract void initLayout();
 
-    abstract void initData();
+    void initData(){
+
+    }
 
 
     public void getFirstData() {

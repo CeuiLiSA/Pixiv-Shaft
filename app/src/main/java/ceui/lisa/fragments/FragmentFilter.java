@@ -140,12 +140,6 @@ public class FragmentFilter extends BaseFragment {
         return v;
     }
 
-    @Override
-    void initData() {
-
-    }
-
-
     static abstract class SearchFilter {
 
         abstract void onTagMatchChanged(String tagMatch);

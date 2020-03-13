@@ -1,23 +1,32 @@
 package ceui.lisa.fragments;
 
+import android.os.Bundle;
 import android.view.View;
 
 import com.bumptech.glide.Glide;
 import com.github.chrisbanes.photoview.PhotoView;
 
 import ceui.lisa.R;
+import ceui.lisa.databinding.FragmentImageDetailBinding;
+import ceui.lisa.utils.Params;
 
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
-public class FragmentLocalImageDetail extends BaseFragment {
+public class FragmentLocalImageDetail extends BaseBindFragment<FragmentImageDetailBinding> {
 
     private String filePath;
-    private PhotoView mImageView;
 
     public static FragmentLocalImageDetail newInstance(String filePath) {
-        FragmentLocalImageDetail fragmentImageDetail = new FragmentLocalImageDetail();
-        fragmentImageDetail.filePath = filePath;
-        return fragmentImageDetail;
+        Bundle args = new Bundle();
+        args.putString(Params.FILE_PATH, filePath);
+        FragmentLocalImageDetail fragment = new FragmentLocalImageDetail();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void initBundle(Bundle bundle) {
+        filePath = bundle.getString(Params.FILE_PATH);
     }
 
     @Override
@@ -26,18 +35,10 @@ public class FragmentLocalImageDetail extends BaseFragment {
     }
 
     @Override
-    View initView(View v) {
-        mImageView = v.findViewById(R.id.illust_image);
+    public void initView(View view) {
         Glide.with(mContext)
-                //.load(GlideUtil.getOriginal(mIllustsBean, index))
                 .load(filePath)
                 .transition(withCrossFade())
-                .into(mImageView);
-        return v;
-    }
-
-    @Override
-    void initData() {
-
+                .into(baseBind.illustImage);
     }
 }

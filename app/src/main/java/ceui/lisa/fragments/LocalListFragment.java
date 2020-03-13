@@ -40,18 +40,21 @@ public abstract class LocalListFragment<Layout extends ViewDataBinding, Item,
     @Override
     public void initView(View view) {
         super.initView(view);
-        mDataControl = ((DataControl<List<Item>>) mBaseCtrl);
+        mDataControl = (DataControl<List<Item>>) mBaseCtrl;
         mRefreshLayout.setOnRefreshListener(new OnRefreshListener() {
             @Override
             public void onRefresh(@NonNull RefreshLayout refreshLayout) {
+                Common.showLog(className + "onRefresh ");
+                mAdapter.clear();
                 if (mDataControl.enableRefresh()) {
                     if (mDataControl.first() != null && mDataControl.first().size() != 0) {
-                        mAdapter.clear();
                         int lastSize = allItems.size();
-                        allItems.addAll(mDataControl.first());
-                        mAdapter.notifyItemRangeInserted(lastSize, mDataControl.first().size());
+                        List<Item> firstList = mDataControl.first();
+                        allItems.addAll(firstList);
+                        onFirstLoaded(firstList);
                         mRecyclerView.setVisibility(View.VISIBLE);
                         noData.setVisibility(View.INVISIBLE);
+                        mAdapter.notifyItemRangeInserted(lastSize, mDataControl.first().size());
                     } else {
                         mRecyclerView.setVisibility(View.INVISIBLE);
                         noData.setVisibility(View.VISIBLE);
@@ -64,10 +67,13 @@ public abstract class LocalListFragment<Layout extends ViewDataBinding, Item,
         mRefreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
             @Override
             public void onLoadMore(@NonNull RefreshLayout refreshLayout) {
-                if (mDataControl.hasNext()) {
-                    mAdapter.clear();
+                if (mDataControl.hasNext() &&
+                        mDataControl.next() !=null &&
+                        mDataControl.next().size() != 0) {
                     int lastSize = allItems.size();
-                    allItems.addAll(mDataControl.next());
+                    List<Item> nextList = mDataControl.next();
+                    allItems.addAll(nextList);
+                    onNextLoaded(nextList);
                     mAdapter.notifyItemRangeInserted(lastSize, mDataControl.next().size());
                 } else {
                     Common.showToast("没有更多数据啦");

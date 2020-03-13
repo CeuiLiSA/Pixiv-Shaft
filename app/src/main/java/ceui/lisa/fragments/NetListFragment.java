@@ -52,7 +52,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
     @Override
     public void initView(View view) {
         super.initView(view);
-        mNetControl = ((NetControl<Response>) mBaseCtrl);
+        mNetControl = (NetControl<Response>) mBaseCtrl;
         mRefreshLayout.setOnRefreshListener(new OnRefreshListener() {
             @Override
             public void onRefresh(@NonNull RefreshLayout refreshLayout) {

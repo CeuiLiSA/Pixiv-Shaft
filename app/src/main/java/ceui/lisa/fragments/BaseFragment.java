@@ -30,7 +30,9 @@ public abstract class BaseFragment extends Fragment {
 
     abstract View initView(View v);
 
-    abstract void initData();
+    void initData(){
+
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

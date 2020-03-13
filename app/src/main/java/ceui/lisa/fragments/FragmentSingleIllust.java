@@ -436,9 +436,6 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
         super.setUserVisibleHint(isVisibleToUser);
         if (illust != null) {
             if (isVisibleToUser) {
-                if (Shaft.sSettings.isSaveViewHistory()) {
-                    insertViewHistory();
-                }
                 if ("ugoira".equals(illust.getType()) && mDetailAdapter != null) {
                     mDetailAdapter.nowPlayGif();
                 }
@@ -448,15 +445,6 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
                 }
             }
         }
-    }
-
-    private void insertViewHistory() {
-        IllustHistoryEntity illustHistoryEntity = new IllustHistoryEntity();
-        illustHistoryEntity.setIllustID(illust.getId());
-        Gson gson = new Gson();
-        illustHistoryEntity.setIllustJson(gson.toJson(illust));
-        illustHistoryEntity.setTime(System.currentTimeMillis());
-        AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(illustHistoryEntity);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

@@ -37,7 +37,7 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.databinding.ActivityCoverBinding;
 import ceui.lisa.download.TaskQueue;
-import ceui.lisa.fragments.BaseFragment;
+import ceui.lisa.fragments.BaseBindFragment;
 import ceui.lisa.fragments.FragmentCenter;
 import ceui.lisa.fragments.FragmentLeft;
 import ceui.lisa.fragments.FragmentRight;
@@ -59,7 +59,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     private TextView username;
     private TextView user_email;
     private long mExitTime;
-    private BaseFragment[] baseFragments = null;
+    private BaseBindFragment[] baseFragments = null;
 
     @Override
     protected int initLayout() {
@@ -137,7 +137,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     }
 
     private void initFragment() {
-        baseFragments = new BaseFragment[]{
+        baseFragments = new BaseBindFragment[]{
                 new FragmentLeft(),
                 new FragmentCenter(),
                 new FragmentRight()

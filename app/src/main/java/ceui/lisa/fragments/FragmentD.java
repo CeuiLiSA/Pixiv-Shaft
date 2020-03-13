@@ -108,9 +108,4 @@ public class FragmentD extends BaseBindFragment<ViewpagerWithTablayoutBinding> {
             }
         });
     }
-
-    @Override
-    void initData() {
-
-    }
 }

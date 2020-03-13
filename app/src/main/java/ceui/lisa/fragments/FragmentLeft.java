@@ -19,10 +19,9 @@ import ceui.lisa.R;
 import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
+import ceui.lisa.databinding.FragmentLeftBinding;
 
-public class FragmentLeft extends BaseFragment {
-
-    private ViewPager viewPager = null;
+public class FragmentLeft extends BaseBindFragment<FragmentLeftBinding> {
 
     @Override
     void initLayout() {
@@ -30,23 +29,23 @@ public class FragmentLeft extends BaseFragment {
     }
 
     @Override
-    View initView(View v) {
+    public void initView(View view) {
         String[] TITLES = new String[]{
                 Shaft.getContext().getString(R.string.recommend_illust),
                 Shaft.getContext().getString(R.string.hot_tag)
         };
-        Toolbar toolbar = v.findViewById(R.id.toolbar);
-        ImageView head = v.findViewById(R.id.head);
-        ViewGroup.LayoutParams headParams = head.getLayoutParams();
+
+        ViewGroup.LayoutParams headParams = baseBind.head.getLayoutParams();
         headParams.height = Shaft.statusHeight;
-        head.setLayoutParams(headParams);
-        toolbar.setNavigationOnClickListener(view -> {
+        baseBind.head.setLayoutParams(headParams);
+
+        baseBind.toolbar.setNavigationOnClickListener(v -> {
             if (getActivity() instanceof MainActivity) {
                 ((MainActivity) getActivity()).getDrawer().openDrawer(Gravity.START);
             }
         });
-        toolbar.inflateMenu(R.menu.fragment_left);
-        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+        baseBind.toolbar.inflateMenu(R.menu.fragment_left);
+        baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 if (item.getItemId() == R.id.action_search) {
@@ -58,8 +57,7 @@ public class FragmentLeft extends BaseFragment {
                 return false;
             }
         });
-        viewPager = v.findViewById(R.id.view_pager);
-        viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
+        baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager(), 0) {
             @NonNull
             @Override
             public Fragment getItem(int i) {
@@ -81,17 +79,10 @@ public class FragmentLeft extends BaseFragment {
                 return TITLES[position];
             }
         });
-        TabLayout tabLayout = v.findViewById(R.id.tab_layout);
-        tabLayout.setupWithViewPager(viewPager);
-        return v;
-    }
-
-    @Override
-    void initData() {
-
+        baseBind.tabLayout.setupWithViewPager(baseBind.viewPager);
     }
 
     public ViewPager getViewPager() {
-        return viewPager;
+        return baseBind.viewPager;
     }
 }

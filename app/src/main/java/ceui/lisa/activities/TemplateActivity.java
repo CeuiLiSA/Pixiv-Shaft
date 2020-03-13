@@ -13,7 +13,6 @@ import ceui.lisa.R;
 import ceui.lisa.databinding.ActivityFragmentBinding;
 import ceui.lisa.fragments.FragmentAbout;
 import ceui.lisa.fragments.FragmentAboutUser;
-import ceui.lisa.fragments.FragmentBlank;
 import ceui.lisa.fragments.FragmentBookTag;
 import ceui.lisa.fragments.FragmentC;
 import ceui.lisa.fragments.FragmentCollection;
@@ -22,6 +21,7 @@ import ceui.lisa.fragments.FragmentEditAccount;
 import ceui.lisa.fragments.FragmentEditFile;
 import ceui.lisa.fragments.FragmentFollowUser;
 import ceui.lisa.fragments.FragmentH;
+import ceui.lisa.fragments.FragmentHistory;
 import ceui.lisa.fragments.FragmentImageDetail;
 import ceui.lisa.fragments.FragmentL;
 import ceui.lisa.fragments.FragmentLicense;
@@ -47,7 +47,6 @@ import ceui.lisa.fragments.FragmentSettings;
 import ceui.lisa.fragments.FragmentUserIllust;
 import ceui.lisa.fragments.FragmentUserManga;
 import ceui.lisa.fragments.FragmentUserNovel;
-import ceui.lisa.fragments.FragmentViewHistory;
 import ceui.lisa.fragments.FragmentWalkThrough;
 import ceui.lisa.fragments.FragmentWebView;
 import ceui.lisa.fragments.FragmentWhoFollowThisUser;
@@ -82,7 +81,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                     return FragmentRelatedIllust.newInstance(id, title);
                 }
                 case "浏览记录":
-                    return new FragmentViewHistory();
+                    return new FragmentHistory();
+                    //return new FragmentViewHistory();
                 case "网页链接": {
                     String url = intent.getStringExtra(Params.URL);
                     String title = intent.getStringExtra(Params.TITLE);
@@ -180,7 +180,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                 case "标签屏蔽记录":
                     return new FragmentM();
                 default:
-                    return new FragmentBlank();
+                    return new Fragment();
             }
         }
         return null;

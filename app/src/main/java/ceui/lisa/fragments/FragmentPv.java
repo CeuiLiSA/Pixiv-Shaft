@@ -41,7 +41,7 @@ public class FragmentPv extends BaseBindFragment<ViewpagerWithTablayoutBinding> 
                 } else if (position == 1) {
                     return FragmentPivision.newInstance("manga");
                 } else {
-                    return new FragmentBlank();
+                    return new Fragment();
                 }
             }
 
@@ -57,10 +57,5 @@ public class FragmentPv extends BaseBindFragment<ViewpagerWithTablayoutBinding> 
             }
         });
         baseBind.tabLayout.setupWithViewPager(baseBind.viewPager);
-    }
-
-    @Override
-    void initData() {
-
     }
 }

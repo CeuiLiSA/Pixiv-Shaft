@@ -14,6 +14,7 @@ import ceui.lisa.transformer.GalleryTransformer
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.DataChannel
 import ceui.lisa.utils.DensityUtil
+import ceui.lisa.utils.PixivOperate.insertViewHistory
 import ceui.lisa.viewmodel.Dust
 import com.ToxicBakery.viewpager.transforms.DrawerTransformer
 
@@ -56,6 +57,9 @@ class ViewPagerActivity : BaseActivity<ActivityViewPagerBinding>() {
 
             override fun onPageSelected(position: Int) {
                 holder.index.value = position
+                if (Shaft.sSettings.isSaveViewHistory) {
+                    insertViewHistory(holder.dust?.value!![position])
+                }
             }
         })
 

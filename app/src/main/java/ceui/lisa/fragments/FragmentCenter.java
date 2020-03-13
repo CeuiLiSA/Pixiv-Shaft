@@ -16,6 +16,7 @@ import com.scwang.smartrefresh.layout.header.FalsifyHeader;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
+import ceui.lisa.databinding.FragmentCenterBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListIllust;
@@ -24,10 +25,9 @@ import ceui.lisa.utils.Dev;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
-public class FragmentCenter extends BaseFragment {
+public class FragmentCenter extends BaseBindFragment<FragmentCenterBinding> {
 
-    private boolean isLoad = false, isActive;
-    private ViewPager mViewPager;
+    private boolean isLoad = false;
 
     @Override
     void initLayout() {
@@ -35,13 +35,10 @@ public class FragmentCenter extends BaseFragment {
     }
 
     @Override
-    View initView(View v) {
-        mViewPager = v.findViewById(R.id.viewPager);
-        RefreshLayout refreshLayout = v.findViewById(R.id.refreshLayout);
-        refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));
-        refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
-
-        v.findViewById(R.id.manga).setOnClickListener(new View.OnClickListener() {
+    public void initView(View view) {
+        baseBind.refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));
+        baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
+        baseBind.manga.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, TemplateActivity.class);
@@ -49,7 +46,7 @@ public class FragmentCenter extends BaseFragment {
                 startActivity(intent);
             }
         });
-        v.findViewById(R.id.novel).setOnClickListener(new View.OnClickListener() {
+        baseBind.novel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, TemplateActivity.class);
@@ -57,9 +54,6 @@ public class FragmentCenter extends BaseFragment {
                 startActivity(intent);
             }
         });
-
-
-        return v;
     }
 
     @Override
@@ -73,7 +67,7 @@ public class FragmentCenter extends BaseFragment {
                     .subscribe(new NullCtrl<ListIllust>() {
                         @Override
                         public void success(ListIllust listIllust) {
-                            mViewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
+                            baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
                                 @NonNull
                                 @Override
                                 public Fragment getItem(int position) {
@@ -88,7 +82,7 @@ public class FragmentCenter extends BaseFragment {
                                     return Integer.MAX_VALUE;
                                 }
                             });
-                            mViewPager.setCurrentItem(listIllust.getList().size());
+                            baseBind.viewPager.setCurrentItem(listIllust.getList().size());
 
                         }
                     });
@@ -106,9 +100,7 @@ public class FragmentCenter extends BaseFragment {
                 transaction.add(R.id.fragment_pivision, fragmentPivision).commit();
                 isLoad = true;
             }
-            isActive = true;
         } else {
-            isActive = false;
         }
     }
 }
