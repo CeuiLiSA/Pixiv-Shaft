@@ -126,7 +126,9 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                         }
                     });
                 } else {
-                    Common.showToast("没有更多数据啦");
+                    if (mNetControl.showNoDataHint()) {
+                        Common.showToast("没有更多数据啦");
+                    }
                 }
             }
         });

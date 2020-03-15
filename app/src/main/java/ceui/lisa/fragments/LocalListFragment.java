@@ -46,22 +46,20 @@ public abstract class LocalListFragment<Layout extends ViewDataBinding, Item,
             public void onRefresh(@NonNull RefreshLayout refreshLayout) {
                 Common.showLog(className + "onRefresh ");
                 mAdapter.clear();
-                if (mDataControl.enableRefresh()) {
-                    if (mDataControl.first() != null && mDataControl.first().size() != 0) {
-                        int lastSize = allItems.size();
-                        List<Item> firstList = mDataControl.first();
-                        allItems.addAll(firstList);
-                        onFirstLoaded(firstList);
-                        mRecyclerView.setVisibility(View.VISIBLE);
-                        noData.setVisibility(View.INVISIBLE);
-                        mAdapter.notifyItemRangeInserted(lastSize, mDataControl.first().size());
-                    } else {
-                        mRecyclerView.setVisibility(View.INVISIBLE);
-                        noData.setVisibility(View.VISIBLE);
-                        noData.setImageResource(R.mipmap.no_data_line);
-                    }
-                    mRefreshLayout.finishRefresh(true);
+                if (mDataControl.first() != null && mDataControl.first().size() != 0) {
+                    int lastSize = allItems.size();
+                    List<Item> firstList = mDataControl.first();
+                    allItems.addAll(firstList);
+                    onFirstLoaded(firstList);
+                    mRecyclerView.setVisibility(View.VISIBLE);
+                    noData.setVisibility(View.INVISIBLE);
+                    mAdapter.notifyItemRangeInserted(lastSize, mDataControl.first().size());
+                } else {
+                    mRecyclerView.setVisibility(View.INVISIBLE);
+                    noData.setVisibility(View.VISIBLE);
+                    noData.setImageResource(R.mipmap.no_data_line);
                 }
+                mRefreshLayout.finishRefresh(true);
             }
         });
         mRefreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
@@ -76,7 +74,9 @@ public abstract class LocalListFragment<Layout extends ViewDataBinding, Item,
                     onNextLoaded(nextList);
                     mAdapter.notifyItemRangeInserted(lastSize, mDataControl.next().size());
                 } else {
-                    Common.showToast("没有更多数据啦");
+                    if (mDataControl.showNoDataHint()) {
+                        Common.showToast("没有更多数据啦");
+                    }
                 }
                 mRefreshLayout.finishLoadMore(true);
             }

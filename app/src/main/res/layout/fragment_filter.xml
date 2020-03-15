@@ -149,7 +149,6 @@
             android:layout_width="wrap_content"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
-            android:enabled="false"
             android:id="@+id/pop_switch"
             android:layout_marginEnd="@dimen/sixteen_dp"
             android:layout_height="wrap_content">

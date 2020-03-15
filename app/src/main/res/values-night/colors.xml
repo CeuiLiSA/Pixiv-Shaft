@@ -7,7 +7,7 @@
 
     <color name="colorPrimary">#607D8B</color>
     <color name="colorPrimaryDark">#455A64</color>
-    <color name="colorAccent">#9E9E9E</color>
+    <color name="colorAccent">#009688</color>
     <color name="light_primary_color">#CFD8DC</color>
 
     <color name="hint_text">#607D8B</color>
@@ -51,4 +51,10 @@
     <color name="white_to_deep_dark">#434343</color>
     <color name="comment_content">#8E8E8E</color>
     <color name="comment_parent_bg">#607D8B</color>
+
+
+    <color name="about_user_divider">#373737</color>
+    <color name="about_user_left">#777777</color>
+    <color name="about_user_right">#BBBBBB</color>
+    <color name="about_user_white">#434343</color>
 </resources>

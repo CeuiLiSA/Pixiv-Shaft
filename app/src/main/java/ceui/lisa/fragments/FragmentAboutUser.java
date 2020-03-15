@@ -36,6 +36,7 @@ public class FragmentAboutUser extends BaseBindFragment<FragmentAboutUserBinding
 
     @Override
     void initData() {
+        baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
         UserDetailResponse user = ((UserDetailResponse) mActivity.getIntent().getSerializableExtra(
                 TemplateActivity.EXTRA_OBJECT));
         invoke(user);

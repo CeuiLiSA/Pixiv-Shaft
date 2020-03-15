@@ -44,5 +44,9 @@
     <color name="white_to_deep_dark">#FFFFFF</color>
     <color name="comment_content">#333333</color>
     <color name="comment_parent_bg">#F2F2F2</color>
+    <color name="about_user_divider">#E3E3E3</color>
+    <color name="about_user_left">#777777</color>
+    <color name="about_user_right">#BBBBBB</color>
+    <color name="about_user_white">#FFFFFF</color>
 
 </resources>

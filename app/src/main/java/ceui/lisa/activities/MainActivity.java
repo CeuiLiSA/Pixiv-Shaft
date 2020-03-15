@@ -38,6 +38,7 @@ import ceui.lisa.R;
 import ceui.lisa.databinding.ActivityCoverBinding;
 import ceui.lisa.download.TaskQueue;
 import ceui.lisa.fragments.BaseBindFragment;
+import ceui.lisa.fragments.FragmentCT;
 import ceui.lisa.fragments.FragmentCenter;
 import ceui.lisa.fragments.FragmentLeft;
 import ceui.lisa.fragments.FragmentRight;
@@ -140,6 +141,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         baseFragments = new BaseBindFragment[]{
                 new FragmentLeft(),
                 new FragmentCenter(),
+                //new FragmentCT(),
                 new FragmentRight()
         };
         baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {

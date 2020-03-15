@@ -13,6 +13,7 @@ import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
@@ -25,11 +26,14 @@ import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
+import java.util.ArrayList;
+import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UActivity;
+import ceui.lisa.model.MenuItem;
 import ceui.lisa.models.UserBean;
 import ceui.lisa.models.UserContainer;
 import ceui.lisa.models.UserModel;
@@ -224,5 +228,17 @@ public class Common {
             }
         }
         return index;
+    }
+
+    public static List<MenuItem> getMenuList() {
+        List<MenuItem> itemList = new ArrayList<>();
+        itemList.add(new MenuItem("漫画", 0));
+        itemList.add(new MenuItem("小说", 0));
+        itemList.add(new MenuItem("最新", 0));
+        itemList.add(new MenuItem("特辑", 0));
+        itemList.add(new MenuItem("画廊", 0));
+        itemList.add(new MenuItem("一言", 0));
+        itemList.add(new MenuItem("以图搜源", 0));
+        return itemList;
     }
 }

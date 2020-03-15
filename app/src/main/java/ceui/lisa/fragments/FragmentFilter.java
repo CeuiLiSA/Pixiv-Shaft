@@ -72,7 +72,7 @@ public class FragmentFilter extends BaseFragment {
         });
         AppCompatSpinner tagSpinner = v.findViewById(R.id.tag_spinner);
         ArrayAdapter<String> tagAdapter = new ArrayAdapter<>(mContext,
-                R.layout.support_simple_spinner_dropdown_item, TAG_MATCH);
+                R.layout.spinner_item, TAG_MATCH);
         tagSpinner.setAdapter(tagAdapter);
         tagSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -89,7 +89,7 @@ public class FragmentFilter extends BaseFragment {
 
         AppCompatSpinner starSpinner = v.findViewById(R.id.star_size_spinner);
         ArrayAdapter<String> starAdapter = new ArrayAdapter<>(mContext,
-                R.layout.support_simple_spinner_dropdown_item, ALL_SIZE);
+                R.layout.spinner_item, ALL_SIZE);
         starSpinner.setAdapter(starAdapter);
         for (int i = 0; i < ALL_SIZE_VALUE.length; i++) {
             if (ALL_SIZE_VALUE[i].equals(Shaft.sSettings.getSearchFilter())) {
@@ -114,7 +114,7 @@ public class FragmentFilter extends BaseFragment {
 
         AppCompatSpinner dateSpinner = v.findViewById(R.id.date_spinner);
         ArrayAdapter<String> dateAdapter = new ArrayAdapter<>(mContext,
-                R.layout.support_simple_spinner_dropdown_item, DATE_SORT);
+                R.layout.spinner_item, DATE_SORT);
         dateSpinner.setAdapter(dateAdapter);
         dateSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override

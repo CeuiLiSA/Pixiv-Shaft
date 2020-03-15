@@ -22,6 +22,7 @@ import ceui.lisa.core.NetControl;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.interfaces.BaseCtrl;
 import ceui.lisa.interfaces.ListShow;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
 import jp.wasabeef.recyclerview.animators.BaseItemAnimator;

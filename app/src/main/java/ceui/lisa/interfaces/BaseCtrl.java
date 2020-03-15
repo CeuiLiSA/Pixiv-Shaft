@@ -24,4 +24,8 @@ public class BaseCtrl {
     public RefreshFooter getFooter(Context context){
         return new ClassicsFooter(context);
     }
+
+    public boolean showNoDataHint() {
+        return true;
+    }
 }
