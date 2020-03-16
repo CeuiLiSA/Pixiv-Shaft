@@ -87,7 +87,7 @@ public class Settings {
         if(!TextUtils.isEmpty(fileNameType)){
             return fileNameType;
         } else {
-            return FragmentFilter.FILE_NAME[0];
+            return "<title>_<id>_<p>.png";
         }
     }
 
