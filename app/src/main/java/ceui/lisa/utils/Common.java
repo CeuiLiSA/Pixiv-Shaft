@@ -44,8 +44,6 @@ import okhttp3.ResponseBody;
 import okio.Buffer;
 import okio.BufferedSource;
 
-import static ceui.lisa.fragments.FragmentFilter.FILE_NAME;
-
 public class Common {
 
     private static Toast toast = null;

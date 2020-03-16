@@ -40,7 +40,6 @@ import ceui.lisa.utils.Params;
 import static ceui.lisa.fragments.FragmentFilter.ALL_LANGUAGE;
 import static ceui.lisa.fragments.FragmentFilter.ALL_SIZE;
 import static ceui.lisa.fragments.FragmentFilter.ALL_SIZE_VALUE;
-import static ceui.lisa.fragments.FragmentFilter.FILE_NAME;
 import static ceui.lisa.fragments.FragmentFilter.THEME_NAME;
 
 
