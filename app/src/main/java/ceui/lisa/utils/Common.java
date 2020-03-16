@@ -218,18 +218,6 @@ public class Common {
         context.startActivity(intent);
     }
 
-    public static int getFileNameType() {
-        String currentType = Shaft.sSettings.getFileNameType();
-        int index = 0;
-        for (int i = 0; i < FILE_NAME.length; i++) {
-            if (FILE_NAME[i].equals(currentType)) {
-                index = i;
-                break;
-            }
-        }
-        return index;
-    }
-
     public static List<MenuItem> getMenuList() {
         List<MenuItem> itemList = new ArrayList<>();
         itemList.add(new MenuItem("漫画", 0));
