@@ -9,7 +9,6 @@ import androidx.appcompat.app.AppCompatDelegate;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.utils.Common;
 
-import static ceui.lisa.fragments.FragmentFilter.FILE_NAME;
 import static ceui.lisa.fragments.FragmentFilter.THEME_NAME;
 
 public class ThemeHelper {

@@ -28,12 +28,6 @@ public class FragmentFilter extends BaseFragment {
 
     //, "Русский язык"
     public static final String[] ALL_LANGUAGE = new String[]{"简体中文", "日本語", "English", "繁體中文"};
-    public static final String[] FILE_NAME = new String[]{
-            "title_123456789_p0.png",
-            "title_123456789_p0.jpg",
-            "123456789_title_p0.png",
-            "123456789_title_p0.jpg"
-    };
 
     public static final String[] THEME_NAME = new String[]{
             "默认模式（跟随系统）"

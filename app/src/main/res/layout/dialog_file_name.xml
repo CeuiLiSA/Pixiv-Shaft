@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+
+    </data>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/sixteen_dp">
+        <!--        TODO 国际化-->
+        <com.google.android.material.textview.MaterialTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="格式化文件名\n&lt;title&gt; 作品标题\n&lt;id&gt; 作品id\n&lt;p&gt; 插画第几p\n&lt;author&gt; 作者名\n&lt;width&gt; 宽\n&lt;height&gt; 高\n&lt;ts&gt; 保存时毫秒时间戳\n- / , 被替换为 _\n其余不会被替换"
+            android:textIsSelectable="true" />
+
+        <com.rengwuxian.materialedittext.MaterialEditText
+            android:id="@+id/file_name_type"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:hint="@string/file_name_type" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp">
+
+            <Button
+                android:id="@+id/sure"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="@dimen/sixteen_dp"
+                android:layout_marginBottom="@dimen/eight_dp"
+                android:text="@string/save"
+                android:textAllCaps="true" />
+
+            <Button
+                android:id="@+id/cancel"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/eight_dp"
+                android:layout_toStartOf="@id/sure"
+                android:text="@android:string/cancel"
+                android:textAllCaps="true" />
+
+        </RelativeLayout>
+
+    </LinearLayout>
+</layout>

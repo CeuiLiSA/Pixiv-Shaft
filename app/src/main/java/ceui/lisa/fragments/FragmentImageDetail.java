@@ -6,6 +6,7 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.ImageView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.blankj.utilcode.util.BarUtils;
@@ -22,7 +23,6 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.FragmentImageDetailBinding;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.GlideUtil;
-import ceui.lisa.utils.ObjectTemp;
 import ceui.lisa.utils.Params;
 
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
@@ -49,6 +49,15 @@ public class FragmentImageDetail extends BaseBindFragment<FragmentImageDetailBin
     }
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) {
+            mIllustsBean = (IllustsBean) savedInstanceState.getSerializable("mIllustsBean");
+            index = savedInstanceState.getInt("index");
+        }
+    }
+
+    @Override
     public void initBundle(Bundle bundle) {
         url = bundle.getString(Params.URL);
     }
@@ -60,9 +69,6 @@ public class FragmentImageDetail extends BaseBindFragment<FragmentImageDetailBin
 
     @Override
     void initData() {
-        if (mIllustsBean == null) {
-            mIllustsBean = (IllustsBean) ObjectTemp.get("mIllustsBean");
-        }
         baseBind.illustImage.setTransitionName("big_image_" + index);
         BarUtils.setNavBarVisibility(mActivity, false);
         if (!TextUtils.isEmpty(url)) {
@@ -138,8 +144,9 @@ public class FragmentImageDetail extends BaseBindFragment<FragmentImageDetailBin
     }
 
     @Override
-    public void onDestroy() {
-        ObjectTemp.put("mIllustsBean", mIllustsBean);
-        super.onDestroy();
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putSerializable("mIllustsBean", mIllustsBean);
+        outState.putInt("index", index);
     }
 }

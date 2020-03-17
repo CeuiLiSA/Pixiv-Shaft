@@ -1,11 +1,14 @@
 package ceui.lisa.activities;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.view.KeyEvent;
@@ -16,6 +19,8 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
@@ -178,57 +183,77 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            Intent intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "收藏夹");
-            intent.putExtra("hideStatusBar", false);
-            startActivity(intent);
-        } else if (id == R.id.nav_gallery) {
-            Intent intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载管理");
-            intent.putExtra("hideStatusBar", false);
-            startActivity(intent);
-        } else if (id == R.id.nav_slideshow) {
-            Intent intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "浏览记录");
-            startActivity(intent);
-        } else if (id == R.id.nav_manage) {
-            Intent intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "设置");
-            startActivity(intent);
-        } else if (id == R.id.nav_share) {
-            Intent intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "关于软件");
-            startActivity(intent);
-
-        } else if (id == R.id.main_page) {
-            Intent intent;
-            intent = new Intent(mContext, UActivity.class);
-            intent.putExtra(Params.USER_ID, sUserModel.getResponse().getUser().getId());
-            startActivity(intent);
-
-        } else if (id == R.id.nav_reverse) {
-            Intent intentToPickPic = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-            intentToPickPic.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/jpeg");
-            startActivityForResult(intentToPickPic, Params.REQUEST_CODE_CHOOSE);
-
-        } else if (id == R.id.nav_send) {
-
-            Intent intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "画廊");
-            startActivity(intent);
-        } else if (id == R.id.web_test) {
-            Intent intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "一言");
-            startActivity(intent);
-        } else if (id == R.id.nav_new_work) {
-            Intent intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "最新作品");
-            intent.putExtra("hideStatusBar", false);
-            startActivity(intent);
-        } else if (id == R.id.muted_list) {
-            Intent intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "标签屏蔽记录");
+        Intent intent = null;
+        switch (id) {
+            case R.id.nav_camera:
+                intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "收藏夹");
+                intent.putExtra("hideStatusBar", false);
+                break;
+            case R.id.nav_gallery:
+                intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载管理");
+                intent.putExtra("hideStatusBar", false);
+                break;
+            case R.id.nav_slideshow:
+                intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "浏览记录");
+                break;
+            case R.id.nav_manage:
+                intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "设置");
+                break;
+            case R.id.nav_share:
+                intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "关于软件");
+                break;
+            case R.id.main_page:
+                intent = new Intent(mContext, UActivity.class);
+                intent.putExtra(Params.USER_ID, sUserModel.getResponse().getUser().getId());
+                break;
+            case R.id.nav_reverse:
+                // TODO: 20-3-16 国际化 仅第一次时显示 向用户索要权限
+                new AlertDialog.Builder(MainActivity.this)
+                        .setTitle("关于以图搜源")
+                        .setMessage("以图搜源的实质是将你选择的图片上传至 https://saucenao.com/ 进行搜索\n" +
+                                "https://saucenao.com/ 可以算一个专门查找P站图的网站，更多信息不在这里介绍\n" +
+                                "注意：该功能需要 READ_EXTERNAL_STORAGE 以读取图片，如果 SDK >= 23 且没有授权" +
+                                "则功能无法实现")
+                        .setPositiveButton(android.R.string.yes, (dialog, which) -> {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                String[] permissions = new String[] {Manifest.permission.READ_EXTERNAL_STORAGE};
+                                int i = ContextCompat.checkSelfPermission(this, permissions[0]);
+                                if (i != PackageManager.PERMISSION_GRANTED) {
+                                    ActivityCompat.requestPermissions(this, permissions, 1);
+                                } else {
+                                    gotoReverse();
+                                }
+                            } else {
+                                gotoReverse();
+                            }
+                        })
+                        .setNegativeButton(android.R.string.cancel, null)
+                        .show();
+                break;
+            case R.id.nav_send:
+                intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "画廊");
+                break;
+            case R.id.web_test:
+                intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "一言");
+                break;
+            case R.id.nav_new_work:
+                intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "最新作品");
+                intent.putExtra("hideStatusBar", false);
+                break;
+            case R.id.muted_list:
+                intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "标签屏蔽记录");
+                break;
+        }
+        if (intent != null) {
             startActivity(intent);
         }
 
@@ -236,6 +261,11 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         return true;
     }
 
+    private void gotoReverse() {
+        Intent intentToPickPic = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        intentToPickPic.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/jpeg");
+        startActivityForResult(intentToPickPic, Params.REQUEST_CODE_CHOOSE);
+    }
 
     private void initDrawerHeader() {
         if (sUserModel != null && sUserModel.getResponse() != null) {

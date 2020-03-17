@@ -31,6 +31,7 @@ import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.FragmentSettingsBinding;
+import ceui.lisa.dialogs.FileNameDialog;
 import ceui.lisa.theme.ThemeHelper;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
@@ -39,7 +40,6 @@ import ceui.lisa.utils.Params;
 import static ceui.lisa.fragments.FragmentFilter.ALL_LANGUAGE;
 import static ceui.lisa.fragments.FragmentFilter.ALL_SIZE;
 import static ceui.lisa.fragments.FragmentFilter.ALL_SIZE_VALUE;
-import static ceui.lisa.fragments.FragmentFilter.FILE_NAME;
 import static ceui.lisa.fragments.FragmentFilter.THEME_NAME;
 
 
@@ -254,19 +254,11 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
         baseBind.fileName.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                builder.setTitle(getString(R.string.file_name_type));
-                builder.setSingleChoiceItems(FILE_NAME, Common.getFileNameType(), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Shaft.sSettings.setFileNameType(FILE_NAME[which]);
-                        baseBind.fileName.setText(FILE_NAME[which]);
-                        Local.setSettings(Shaft.sSettings);
-                        dialog.dismiss();
-                    }
-                });
-                AlertDialog alertDialog = builder.create();
-                alertDialog.show();
+                new FileNameDialog()
+                        .setOnDismissListener(d -> {
+                            baseBind.fileName.setText(Shaft.sSettings.getFileNameType());
+                        })
+                        .show(getParentFragmentManager(), "fileNameDialog");
             }
         });
 
