@@ -21,6 +21,7 @@ import java.util.Objects;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.UActivity;
+import ceui.lisa.databinding.FragmentWebviewBinding;
 import ceui.lisa.download.WebDownload;
 import ceui.lisa.utils.ClipBoardUtils;
 import ceui.lisa.utils.Common;
@@ -30,7 +31,7 @@ import ceui.lisa.view.ContextMenuTitleView;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-public class FragmentWebView extends BaseFragment {
+public class FragmentWebView extends BaseBindFragment<FragmentWebviewBinding> {
 
     //private static final String ILLUST_HEAD = "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=";
     private static final String USER_HEAD = "https://www.pixiv.net/member.php?id=";
@@ -43,7 +44,6 @@ public class FragmentWebView extends BaseFragment {
     private String history_url = null;
     private AgentWeb mAgentWeb;
     private WebView mWebView;
-    private RelativeLayout webViewParent;
     private String mIntentUrl;
     private WebViewClickHandler handler = new WebViewClickHandler();
 
@@ -80,18 +80,15 @@ public class FragmentWebView extends BaseFragment {
     }
 
     @Override
-    View initView(View v) {
-        Toolbar toolbar = v.findViewById(R.id.toolbar);
-        toolbar.setTitle(title);
-        toolbar.setNavigationOnClickListener(view -> getActivity().finish());
-        webViewParent = v.findViewById(R.id.web_view_parent);
-        return v;
+    public void initView(View view) {
+        baseBind.toolbar.setTitle(title);
+        baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
     }
 
     @Override
     void initData() {
         AgentWeb.PreAgentWeb ready = AgentWeb.with(this)
-                .setAgentWebParent(webViewParent, new RelativeLayout.LayoutParams(-1, -1))
+                .setAgentWebParent(baseBind.webViewParent, new RelativeLayout.LayoutParams(-1, -1))
                 .useDefaultIndicator()
                 .setWebViewClient(new WebViewClient() {
                     @Override

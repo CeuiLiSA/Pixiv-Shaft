@@ -2,6 +2,7 @@ package ceui.lisa.fragments;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.Bundle;
 import android.view.View;
 
 import androidx.appcompat.app.AlertDialog;
@@ -37,11 +38,20 @@ public class FragmentC extends NetListFragment<FragmentCommentBinding,
     private String title;
     private int parentCommentID;
 
+
     public static FragmentC newInstance(int id, String title) {
-        FragmentC comment = new FragmentC();
-        comment.illustID = id;
-        comment.title = title;
-        return comment;
+        Bundle args = new Bundle();
+        args.putInt(Params.ILLUST_ID, id);
+        args.putString(Params.ILLUST_TITLE, title);
+        FragmentC fragment = new FragmentC();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void initBundle(Bundle bundle) {
+        illustID = bundle.getInt(Params.ILLUST_ID);
+        title = bundle.getString(Params.ILLUST_TITLE);
     }
 
     @Override

@@ -84,6 +84,8 @@
 
                     <RelativeLayout
                         android:id="@+id/pixiv_problem"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:clickable="true"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent">
 
@@ -112,6 +114,8 @@
                     <RelativeLayout
                         android:id="@+id/pixiv_use_detail"
                         android:layout_width="match_parent"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:clickable="true"
                         android:layout_height="match_parent">
 
 
@@ -141,6 +145,8 @@
 
                     <RelativeLayout
                         android:id="@+id/pixiv_privacy"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:clickable="true"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent">
 
@@ -158,37 +164,6 @@
 
 
                     </RelativeLayout>
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:visibility="gone"
-                        android:layout_height="match_parent">
-
-
-                        <TextView
-                            android:layout_margin="@dimen/sixteen_dp"
-                            android:text="用户信息"
-                            android:textSize="15sp"
-                            android:textColor="@color/rank_text_color"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content">
-
-
-                        </TextView>
-
-
-                    </RelativeLayout>
-
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:visibility="gone"
-                        android:background="@color/light_bg"
-                        android:layout_marginStart="@dimen/sixteen_dp"
-                        android:layout_height="1dp">
-
-
-                    </View>
 
                 </LinearLayout>
 
@@ -224,6 +199,8 @@
 
                     <RelativeLayout
                         android:id="@+id/dont_catch_me"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:clickable="true"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent">
 
@@ -252,14 +229,30 @@
 
                     <RelativeLayout
                         android:id="@+id/project_website"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:clickable="true"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent">
 
 
+                        <ImageView
+                            android:layout_width="36dp"
+                            android:src="@mipmap/github"
+                            android:id="@+id/github_image"
+                            android:layout_marginTop="@dimen/eight_dp"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_marginBottom="@dimen/eight_dp"
+                            android:layout_height="36dp">
+
+                        </ImageView>
+
                         <TextView
-                            android:layout_margin="@dimen/sixteen_dp"
-                            android:text="Github主页"
-                            android:textSize="15sp"
+                            android:id="@+id/github_text"
+                            android:text="Github"
+                            android:textSize="14sp"
+                            android:layout_marginTop="@dimen/eight_dp"
+                            android:layout_toEndOf="@+id/github_image"
+                            android:layout_marginStart="@dimen/twelve_dp"
                             android:textColor="@color/rank_text_color"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content">
@@ -267,18 +260,32 @@
 
                         </TextView>
 
+                        <TextView
+                            android:text="https://github.com/CeuiLiSA/Pixiv-Shaft"
+                            android:textSize="12sp"
+                            android:layout_marginTop="2dp"
+                            android:layout_below="@+id/github_text"
+                            android:layout_marginStart="@dimen/twelve_dp"
+                            android:layout_toEndOf="@+id/github_image"
+                            android:textColor="#777777"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content">
+
+
+                        </TextView>
 
                     </RelativeLayout>
 
-                    <View
-                        android:layout_width="match_parent"
-                        android:background="@color/light_bg"
-                        android:layout_marginStart="@dimen/sixteen_dp"
-                        android:layout_height="1dp" />
+<!--                    <View-->
+<!--                        android:layout_width="match_parent"-->
+<!--                        android:background="@color/light_bg"-->
+<!--                        android:layout_marginStart="@dimen/sixteen_dp"-->
+<!--                        android:layout_height="1dp" />-->
 
 
                     <RelativeLayout
                         android:id="@+id/project_license"
+                        android:visibility="gone"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent">
 

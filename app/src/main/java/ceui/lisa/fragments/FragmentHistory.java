@@ -29,7 +29,7 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.Params;
 
-import static ceui.lisa.fragments.BaseAsyncFragment.PAGE_SIZE;
+
 
 public class FragmentHistory extends LocalListFragment<FragmentBaseListBinding,
         IllustHistoryEntity, RecyViewHistoryBinding> {

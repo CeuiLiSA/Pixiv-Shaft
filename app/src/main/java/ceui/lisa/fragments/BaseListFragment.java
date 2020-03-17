@@ -90,7 +90,6 @@ public abstract class BaseListFragment<Response extends ListShow<ListItem>,
         Adapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>,
         ListItem> extends BaseFragment {
 
-    public static final int PAGE_SIZE = 20;
     protected Observable<Response> mApi;
     protected Adapter mAdapter;
     protected RecyclerView mRecyclerView;

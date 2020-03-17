@@ -26,8 +26,7 @@ public class FileNameDialog extends BaseDialog<DialogFileNameBinding> {
     @Override
     void initView(View v) {
         baseBind.fileNameType.setText(Shaft.sSettings.getFileNameType());
-        sure = v.findViewById(R.id.sure);
-        sure.setOnClickListener(v1 -> {
+        baseBind.sure.setOnClickListener(view -> {
             if (TextUtils.isEmpty(baseBind.fileNameType.getText().toString())) {
                 ToastUtils.showLong(R.string.shoud_not_be_empty);
             } else {
@@ -36,8 +35,7 @@ public class FileNameDialog extends BaseDialog<DialogFileNameBinding> {
                 dismiss();
             }
         });
-        cancel = v.findViewById(R.id.cancel);
-        cancel.setOnClickListener(view -> dismiss());
+        baseBind.cancel.setOnClickListener(view -> dismiss());
     }
 
     @Override

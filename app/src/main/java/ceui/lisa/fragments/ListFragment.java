@@ -40,6 +40,7 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
     protected String nextUrl;
     protected Toolbar mToolbar;
     protected BaseCtrl mBaseCtrl;
+    public static final int PAGE_SIZE = 20;
 
     @Override
     protected void initLayout() {
@@ -156,10 +157,8 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
     }
 
     public void onFirstLoaded(List<Item> items) {
-
     }
 
     public void onNextLoaded(List<Item> items) {
-
     }
 }

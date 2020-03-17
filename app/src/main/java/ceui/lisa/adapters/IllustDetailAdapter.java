@@ -89,15 +89,20 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             params.height = imageSize * allIllust.getHeight() / allIllust.getWidth();
             params.width = imageSize;
             currentOne.illust.setLayoutParams(params);
-            if (Shaft.sSettings.isFirstImageSize()) {
-                Glide.with(mContext)
-                        .load(GlideUtil.getOriginal(allIllust, position))
-                        .into(currentOne.illust);
-            } else {
-                Glide.with(mContext)
-                        .load(GlideUtil.getLargeImage(allIllust, position))
-                        .into(currentOne.illust);
-            }
+//            if (Shaft.sSettings.isFirstImageSize()) {
+//                Glide.with(mContext)
+//                        .load(GlideUtil.getOriginal(allIllust, position))
+//                        .into(currentOne.illust);
+//            } else {
+//                Glide.with(mContext)
+//                        .load(GlideUtil.getLargeImage(allIllust, position))
+//                        .into(currentOne.illust);
+//            }
+
+            Glide.with(mContext)
+                    .load(GlideUtil.getLargeImage(allIllust, position))
+                    .into(currentOne.illust);
+
             Common.showLog("height " + params.height + "width " + params.width);
 
             //如果是GIF
