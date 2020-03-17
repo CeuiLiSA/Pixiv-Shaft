@@ -11,10 +11,11 @@ import androidx.appcompat.widget.AppCompatSpinner;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.databinding.FragmentFilterBinding;
 import ceui.lisa.utils.Local;
 
 
-public class FragmentFilter extends BaseFragment {
+public class FragmentFilter extends BaseBindFragment<FragmentFilterBinding> {
 
     public static final String[] TAG_MATCH = new String[]{"标签 部分匹配(建议)", "标签 完全匹配", "标题/简介 匹配"};
     public static final String[] TAG_MATCH_VALUE = new String[]{"partial_match_for_tags",
@@ -55,20 +56,18 @@ public class FragmentFilter extends BaseFragment {
     }
 
     @Override
-    View initView(View v) {
-        Button submit = v.findViewById(R.id.submit);
-        submit.setOnClickListener(new View.OnClickListener() {
+    public void initView(View view) {
+        baseBind.submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mSearchFilter.closeDrawer();
                 mSearchFilter.startSearch();
             }
         });
-        AppCompatSpinner tagSpinner = v.findViewById(R.id.tag_spinner);
         ArrayAdapter<String> tagAdapter = new ArrayAdapter<>(mContext,
                 R.layout.spinner_item, TAG_MATCH);
-        tagSpinner.setAdapter(tagAdapter);
-        tagSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        baseBind.tagSpinner.setAdapter(tagAdapter);
+        baseBind.tagSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 mSearchFilter.onTagMatchChanged(TAG_MATCH_VALUE[position]);
@@ -81,17 +80,16 @@ public class FragmentFilter extends BaseFragment {
         });
 
 
-        AppCompatSpinner starSpinner = v.findViewById(R.id.star_size_spinner);
         ArrayAdapter<String> starAdapter = new ArrayAdapter<>(mContext,
                 R.layout.spinner_item, ALL_SIZE);
-        starSpinner.setAdapter(starAdapter);
+        baseBind.starSizeSpinner.setAdapter(starAdapter);
         for (int i = 0; i < ALL_SIZE_VALUE.length; i++) {
             if (ALL_SIZE_VALUE[i].equals(Shaft.sSettings.getSearchFilter())) {
-                starSpinner.setSelection(i);
+                baseBind.starSizeSpinner.setSelection(i);
                 break;
             }
         }
-        starSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        baseBind.starSizeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 Shaft.sSettings.setSearchFilter(ALL_SIZE_VALUE[position]);
@@ -106,11 +104,10 @@ public class FragmentFilter extends BaseFragment {
         });
 
 
-        AppCompatSpinner dateSpinner = v.findViewById(R.id.date_spinner);
         ArrayAdapter<String> dateAdapter = new ArrayAdapter<>(mContext,
                 R.layout.spinner_item, DATE_SORT);
-        dateSpinner.setAdapter(dateAdapter);
-        dateSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        baseBind.dateSpinner.setAdapter(dateAdapter);
+        baseBind.dateSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 mSearchFilter.onDateSortChanged(DATE_SORT_VALUE[position]);
@@ -123,15 +120,12 @@ public class FragmentFilter extends BaseFragment {
         });
 
 
-        Switch popSwitch = v.findViewById(R.id.pop_switch);
-        popSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        baseBind.popSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 mSearchFilter.onPopularChanged(isChecked);
             }
         });
-
-        return v;
     }
 
     static abstract class SearchFilter {

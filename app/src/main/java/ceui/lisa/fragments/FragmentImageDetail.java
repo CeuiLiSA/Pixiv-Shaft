@@ -22,6 +22,7 @@ import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.FragmentImageDetailBinding;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 
@@ -78,52 +79,66 @@ public class FragmentImageDetail extends BaseBindFragment<FragmentImageDetailBin
                     .listener(new RequestListener<Drawable>() {
                         @Override
                         public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                            baseBind.progress.setVisibility(View.INVISIBLE);
                             return false;
                         }
 
                         @Override
                         public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
                             mActivity.startPostponedEnterTransition();
+                            baseBind.progress.setVisibility(View.INVISIBLE);
                             return false;
                         }
                     })
                     .into(baseBind.illustImage);
         } else {
-            if (Shaft.sSettings.isFirstImageSize()) {
-                Glide.with(mContext)
-                        .load(GlideUtil.getOriginal(mIllustsBean, index))
-                        .transition(withCrossFade())
-                        .listener(new RequestListener<Drawable>() {
-                            @Override
-                            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                                return false;
-                            }
+            baseBind.reload.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    loadImage();
+                }
+            });
+            loadImage();
+        }
+    }
 
-                            @Override
-                            public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                                mActivity.startPostponedEnterTransition();
-                                return false;
-                            }
-                        })
-                        .into(baseBind.illustImage);
-            } else {
-                Glide.with(mContext)
-                        .load(GlideUtil.getLargeImage(mIllustsBean, index))
-                        .transition(withCrossFade())
-                        .listener(new RequestListener<Drawable>() {
-                            @Override
-                            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                                return false;
-                            }
-
-                            @Override
-                            public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                                mActivity.startPostponedEnterTransition();
-                                return false;
-                            }
-                        })
-                        .into(baseBind.illustImage);
+    private void loadImage() {
+        baseBind.reload.setVisibility(View.INVISIBLE);
+        baseBind.progress.setVisibility(View.VISIBLE);
+        RequestListener<Drawable> requestListener = new RequestListener<Drawable>() {
+            @Override
+            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                baseBind.progress.setVisibility(View.INVISIBLE);
+                baseBind.reload.setVisibility(View.VISIBLE);
+                Common.showToast("加载失败，点击重试");
+                return false;
             }
+
+            @Override
+            public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                baseBind.progress.setVisibility(View.INVISIBLE);
+                if (Shaft.sSettings.isFirstImageSize()) {
+
+                } else {
+                    mActivity.startPostponedEnterTransition();
+                }
+                return false;
+            }
+        };
+        if (Shaft.sSettings.isFirstImageSize()) {
+            Common.showLog(className + "展示原图");
+            Glide.with(mContext)
+                    .load(GlideUtil.getOriginal(mIllustsBean, index))
+                    .transition(withCrossFade())
+                    .listener(requestListener)
+                    .into(baseBind.illustImage);
+        } else {
+            Common.showLog(className + "展示大图");
+            Glide.with(mContext)
+                    .load(GlideUtil.getLargeImage(mIllustsBean, index))
+                    .transition(withCrossFade())
+                    .listener(requestListener)
+                    .into(baseBind.illustImage);
         }
     }
 

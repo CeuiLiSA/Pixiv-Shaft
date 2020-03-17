@@ -73,21 +73,17 @@ public class CAdapter extends BaseAdapter<CommentsBean, RecyCommentListBinding> 
 
 
         if (mOnItemClickListener != null) {
-            bindView.itemView.setOnClickListener(v -> {
-                mOnItemClickListener.onItemClick(v, position, 0);
-            });
+            bindView.itemView.setOnClickListener(v ->
+                    mOnItemClickListener.onItemClick(v, position, 0));
 
-            bindView.baseBind.userHead.setOnClickListener(v -> {
-                mOnItemClickListener.onItemClick(v, position, 1);
-            });
+            bindView.baseBind.userHead.setOnClickListener(v ->
+                    mOnItemClickListener.onItemClick(v, position, 1));
 
-            bindView.baseBind.userName.setOnClickListener(v -> {
-                mOnItemClickListener.onItemClick(v, position, 1);
-            });
+            bindView.baseBind.userName.setOnClickListener(v ->
+                    mOnItemClickListener.onItemClick(v, position, 1));
 
-            bindView.baseBind.replyContent.setOnClickListener(v -> {
-                mOnItemClickListener.onItemClick(v, position, 2);
-            });
+            bindView.baseBind.replyContent.setOnClickListener(v ->
+                    mOnItemClickListener.onItemClick(v, position, 2));
         }
     }
 }

@@ -1,108 +1,113 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <data>
 
+    </data>
 
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:background="@color/colorPrimary"
-        android:elevation="@dimen/six_dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:fitsSystemWindows="true"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
-        app:title="账号管理"
-        app:titleTextColor="@android:color/white">
-
-    </androidx.appcompat.widget.Toolbar>
-
-
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:orientation="vertical"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_height="0dp">
+        android:layout_height="match_parent">
+
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:background="@color/colorPrimary"
+            android:elevation="@dimen/six_dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:fitsSystemWindows="true"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
+            app:title="账号管理"
+            app:titleTextColor="@android:color/white">
+
+        </androidx.appcompat.widget.Toolbar>
 
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:id="@+id/user_list"
             android:orientation="vertical"
-            android:layout_height="wrap_content">
+            app:layout_constraintTop_toBottomOf="@+id/toolbar"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_height="0dp">
 
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:id="@+id/user_list"
+                android:orientation="vertical"
+                android:layout_height="wrap_content">
+
+
+            </LinearLayout>
+
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:id="@+id/add_user"
+                android:clickable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:text="添加账号"
+                    android:drawablePadding="@dimen/eight_dp"
+                    android:gravity="center_vertical"
+                    android:drawableStart="@drawable/ic_person_add_black_24dp"
+                    android:textColor="@color/dark_text"
+                    android:layout_margin="@dimen/sixteen_dp"
+                    android:layout_height="wrap_content" />
+
+            </RelativeLayout>
+
+
+            <View
+                android:layout_width="match_parent"
+                android:background="@color/light_bg"
+                android:layout_height="20dp" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:clickable="true"
+                android:id="@+id/login_out"
+                android:foreground="?attr/selectableItemBackground"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:text="退出当前账号"
+                    android:textColor="@color/dark_text"
+                    android:layout_margin="@dimen/sixteen_dp"
+                    android:layout_height="wrap_content" />
+
+            </RelativeLayout>
+
+
+            <View
+                android:layout_width="match_parent"
+                android:background="#e6e6e6"
+                android:layout_marginStart="@dimen/sixteen_dp"
+                android:layout_height="1dp">
+
+
+            </View>
 
         </LinearLayout>
 
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:id="@+id/add_user"
-            android:clickable="true"
-            android:foreground="?attr/selectableItemBackground"
-            android:layout_height="wrap_content">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:text="添加账号"
-            android:drawablePadding="@dimen/eight_dp"
-            android:gravity="center_vertical"
-            android:drawableStart="@drawable/ic_person_add_black_24dp"
-            android:textColor="@color/dark_text"
-            android:layout_margin="@dimen/sixteen_dp"
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:id="@+id/progress"
+            android:visibility="invisible"
+            app:layout_constraintTop_toBottomOf="@+id/toolbar"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
             android:layout_height="wrap_content" />
 
-        </RelativeLayout>
-
-
-
-        <View
-            android:layout_width="match_parent"
-            android:background="@color/light_bg"
-            android:layout_height="20dp"/>
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:clickable="true"
-            android:id="@+id/login_out"
-            android:foreground="?attr/selectableItemBackground"
-            android:layout_height="wrap_content">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:text="退出当前账号"
-                android:textColor="@color/dark_text"
-                android:layout_margin="@dimen/sixteen_dp"
-                android:layout_height="wrap_content" />
-
-        </RelativeLayout>
-
-
-        <View
-            android:layout_width="match_parent"
-            android:background="#e6e6e6"
-            android:layout_marginStart="@dimen/sixteen_dp"
-            android:layout_height="1dp">
-
-
-        </View>
-
-    </LinearLayout>
-
-    <ProgressBar
-        android:layout_width="wrap_content"
-        android:id="@+id/progress"
-        android:visibility="invisible"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        android:layout_height="wrap_content" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

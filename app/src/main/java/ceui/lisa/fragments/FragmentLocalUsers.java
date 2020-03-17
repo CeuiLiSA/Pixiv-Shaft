@@ -21,6 +21,7 @@ import ceui.lisa.R;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
+import ceui.lisa.databinding.FragmentLocalUserBinding;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.utils.Common;
@@ -40,10 +41,8 @@ import retrofit2.Response;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-public class FragmentLocalUsers extends BaseFragment {
+public class FragmentLocalUsers extends BaseBindFragment<FragmentLocalUserBinding> {
 
-    private LinearLayout userList;
-    private ProgressBar mProgressBar;
     //private SimpleDateFormat formatter = new SimpleDateFormat("MM月dd日 HH:mm:ss");
     private List<UserModel> allItems = new ArrayList<>();
 
@@ -53,18 +52,14 @@ public class FragmentLocalUsers extends BaseFragment {
     }
 
     @Override
-    View initView(View v) {
-        Toolbar toolbar = v.findViewById(R.id.toolbar);
-        mProgressBar = v.findViewById(R.id.progress);
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+    public void initView(View view) {
+        baseBind.toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 getActivity().finish();
             }
         });
-        userList = v.findViewById(R.id.user_list);
-        RelativeLayout loginOut = v.findViewById(R.id.login_out);
-        loginOut.setOnClickListener(new View.OnClickListener() {
+        baseBind.loginOut.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, TemplateActivity.class);
@@ -73,8 +68,7 @@ public class FragmentLocalUsers extends BaseFragment {
             }
         });
 
-        RelativeLayout addUser = v.findViewById(R.id.add_user);
-        addUser.setOnClickListener(new View.OnClickListener() {
+        baseBind.addUser.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, TemplateActivity.class);
@@ -82,7 +76,6 @@ public class FragmentLocalUsers extends BaseFragment {
                 startActivity(intent);
             }
         });
-        return v;
     }
 
     @Override
@@ -112,7 +105,7 @@ public class FragmentLocalUsers extends BaseFragment {
                                 for (int i = 0; i < userModels.size(); i++) {
                                     View v = LayoutInflater.from(mContext).inflate(R.layout.recy_loal_user, null);
                                     bindData(v, userModels.get(i));
-                                    userList.addView(v);
+                                    baseBind.userList.addView(v);
                                 }
                             }
                         }
@@ -153,7 +146,7 @@ public class FragmentLocalUsers extends BaseFragment {
         v.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mProgressBar.setVisibility(View.VISIBLE);
+                baseBind.progress.setVisibility(View.VISIBLE);
                 PixivOperate.refreshUserData(userModel, new Callback<UserModel>() {
                     @Override
                     public void onResponse(Call<UserModel> call, Response<UserModel> response) {
@@ -165,13 +158,13 @@ public class FragmentLocalUsers extends BaseFragment {
                             Dev.refreshUser = true;
                             mActivity.finish();
                         }
-                        mProgressBar.setVisibility(View.INVISIBLE);
+                        baseBind.progress.setVisibility(View.INVISIBLE);
                     }
 
                     @Override
                     public void onFailure(Call<UserModel> call, Throwable t) {
                         Common.showToast(t.toString());
-                        mProgressBar.setVisibility(View.INVISIBLE);
+                        baseBind.progress.setVisibility(View.INVISIBLE);
                     }
                 });
             }

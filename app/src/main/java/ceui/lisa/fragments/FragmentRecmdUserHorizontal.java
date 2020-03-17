@@ -15,6 +15,7 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.activities.UActivity;
 import ceui.lisa.adapters.UserHorizontalAdapter;
+import ceui.lisa.databinding.FragmentUserHorizontalBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
@@ -32,10 +33,8 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 /**
  * 推荐用户
  */
-public class FragmentRecmdUserHorizontal extends BaseFragment {
+public class FragmentRecmdUserHorizontal extends BaseBindFragment<FragmentUserHorizontalBinding> {
 
-    private ProgressBar mProgressBar;
-    private RecyclerView mRecyclerView;
     private List<UserPreviewsBean> allItems = new ArrayList<>();
     private UserHorizontalAdapter mAdapter;
 
@@ -45,23 +44,21 @@ public class FragmentRecmdUserHorizontal extends BaseFragment {
     }
 
     @Override
-    View initView(View v) {
-        mProgressBar = v.findViewById(R.id.progress);
+    public void initView(View view) {
         DoubleBounce doubleBounce = new DoubleBounce();
         doubleBounce.setColor(getResources().getColor(R.color.white));
-        mProgressBar.setIndeterminateDrawable(doubleBounce);
-        mRecyclerView = v.findViewById(R.id.recyclerView);
-        mRecyclerView.addItemDecoration(new LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
+        baseBind.progress.setIndeterminateDrawable(doubleBounce);
+        baseBind.recyclerView.addItemDecoration(new LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
         FadeInLeftAnimator landingAnimator = new FadeInLeftAnimator();
         final long animateDuration = 400L;
         landingAnimator.setAddDuration(animateDuration);
         landingAnimator.setRemoveDuration(animateDuration);
         landingAnimator.setMoveDuration(animateDuration);
         landingAnimator.setChangeDuration(animateDuration);
-        mRecyclerView.setItemAnimator(landingAnimator);
+        baseBind.recyclerView.setItemAnimator(landingAnimator);
         LinearLayoutManager manager = new LinearLayoutManager(mContext, LinearLayoutManager.HORIZONTAL, false);
-        mRecyclerView.setLayoutManager(manager);
-        mRecyclerView.setHasFixedSize(true);
+        baseBind.recyclerView.setLayoutManager(manager);
+        baseBind.recyclerView.setHasFixedSize(true);
         mAdapter = new UserHorizontalAdapter(allItems, mContext);
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
@@ -73,16 +70,11 @@ public class FragmentRecmdUserHorizontal extends BaseFragment {
 
             }
         });
-        mRecyclerView.setAdapter(mAdapter);
-        return v;
+        baseBind.recyclerView.setAdapter(mAdapter);
     }
 
     @Override
     void initData() {
-        getFirstData();
-    }
-
-    private void getFirstData() {
         Retro.getAppApi().getRecmdUser(sUserModel.getResponse().getAccess_token())
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -96,7 +88,7 @@ public class FragmentRecmdUserHorizontal extends BaseFragment {
 
                     @Override
                     public void must(boolean isSuccess) {
-                        mProgressBar.setVisibility(View.INVISIBLE);
+                        baseBind.progress.setVisibility(View.INVISIBLE);
                     }
                 });
     }
