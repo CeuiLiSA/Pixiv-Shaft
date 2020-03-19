@@ -32,6 +32,9 @@ import ceui.lisa.fragments.FragmentLocalImageDetail;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 
+/**
+ * 图片二级详情
+ */
 public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding> {
 
     private IllustsBean mIllustsBean;
@@ -162,8 +165,6 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
             });
             downloadSingle.setText("路径：" + localIllust.get(index));
         }
-        currentPage.setTextAppearance(mContext, R.style.shadowText);
-        downloadSingle.setTextAppearance(mContext, R.style.shadowText);
     }
 
 

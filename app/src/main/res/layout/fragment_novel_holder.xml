@@ -48,7 +48,7 @@
                     <de.hdodenhof.circleimageview.CircleImageView
                         android:layout_width="45dp"
                         app:civ_border_color="#DDDDDD"
-                        app:civ_border_width="2dp"
+                        app:civ_border_width="1dp"
                         android:layout_marginStart="@dimen/twelve_dp"
                         android:layout_marginTop="@dimen/eight_dp"
                         android:layout_marginBottom="@dimen/eight_dp"
@@ -63,7 +63,7 @@
                         android:textSize="16sp"
                         android:layout_marginStart="@dimen/eight_dp"
                         android:layout_toEndOf="@+id/user_head"
-                        android:textColor="@color/white"
+                        android:textColor="@color/always_white"
                         android:layout_centerVertical="true"
                         android:layout_height="wrap_content" />
 
@@ -80,7 +80,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:id="@+id/novel_title"
-                        android:textColor="@color/white"
+                        android:textColor="@color/always_white"
                         android:textSize="15sp"
                         android:layout_marginEnd="@dimen/sixteen_dp"
                         android:maxLines="3"
@@ -94,7 +94,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:id="@+id/novel_series"
-                        android:textColor="@color/white"
+                        android:textColor="@color/white_to_gray"
                         android:layout_marginEnd="@dimen/sixteen_dp"
                         android:textSize="15sp"
                         android:textStyle="bold"
@@ -125,7 +125,7 @@
                         android:drawableStart="@drawable/ic_chevron_left_black_24dp"
                         android:layout_marginStart="@dimen/six_dp"
                         android:text="上一章节"
-                        android:textColor="@color/white">
+                        android:textColor="@color/white_to_gray">
 
                     </Button>
 
@@ -138,7 +138,7 @@
                         android:textStyle="bold"
                         android:layout_height="wrap_content"
                         android:layout_centerHorizontal="true"
-                        android:textColor="@color/white">
+                        android:textColor="@color/always_white">
 
                     </Button>
 
@@ -152,7 +152,7 @@
                         android:gravity="center_vertical"
                         android:layout_marginEnd="@dimen/six_dp"
                         android:text="下一章节"
-                        android:textColor="@color/white">
+                        android:textColor="@color/white_to_gray">
 
                     </Button>
 

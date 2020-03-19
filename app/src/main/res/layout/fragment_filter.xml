@@ -164,6 +164,35 @@
         </RelativeLayout>
 
 
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:id="@+id/r_18_rela"
+            android:visibility="gone"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:text="R"
+                android:textSize="16sp"
+                android:textColor="@color/colorPrimary"
+                android:layout_margin="@dimen/sixteen_dp"
+                android:layout_height="wrap_content" />
+
+
+            <Switch
+                android:layout_width="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:id="@+id/r_18_switch"
+                android:layout_marginEnd="@dimen/sixteen_dp"
+                android:layout_height="wrap_content">
+
+
+            </Switch>
+
+        </RelativeLayout>
+
+
         <View
             android:layout_width="match_parent"
             android:background="@color/light_bg"

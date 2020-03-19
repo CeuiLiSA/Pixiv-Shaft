@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.safframework.http.interceptor.LoggingInterceptor;
 
 import java.security.cert.X509Certificate;
 import java.util.Collections;
@@ -49,14 +50,10 @@ public class Retro {
     }
 
     private static Retrofit buildRetrofit(String baseUrl) {
-        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(
-                message -> Log.i("retrofit", message));
-        loggingInterceptor.level(HttpLoggingInterceptor.Level.BODY);
-
         Common.showLog(baseUrl + "生成了一个实例");
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
         try {
-            builder.addInterceptor(loggingInterceptor)
+            builder.addInterceptor(getLogger())
                     .protocols(Collections.singletonList(Protocol.HTTP_1_1))
                     .addInterceptor(chain -> chain.proceed(
                             addHeader(chain.request().newBuilder()).build())
@@ -83,14 +80,10 @@ public class Retro {
     }
 
     public static RankTokenApi getRankApi() {
-        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(
-                message -> Log.i("RetrofitLog", "retrofitBack = " + message));
-        loggingInterceptor.level(HttpLoggingInterceptor.Level.BODY);
         OkHttpClient okHttpClient = new OkHttpClient
                 .Builder()
-                .addInterceptor(loggingInterceptor)
+                .addInterceptor(getLogger())
                 .protocols(Collections.singletonList(Protocol.HTTP_1_1))
-                .addInterceptor(chain -> chain.proceed(addHeader(chain.request().newBuilder()).build()))
                 .build();
         Gson gson = new GsonBuilder().setLenient().create();
         Retrofit retrofit = new Retrofit.Builder()
@@ -103,12 +96,9 @@ public class Retro {
     }
 
     public static HitoApi getHitoApi() {
-        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(
-                message -> Log.i("RetrofitLog", "retrofitBack = " + message));
-        loggingInterceptor.level(HttpLoggingInterceptor.Level.BODY);
         OkHttpClient okHttpClient = new OkHttpClient
                 .Builder()
-                .addInterceptor(loggingInterceptor)
+                .addInterceptor(getLogger())
                 .protocols(Collections.singletonList(Protocol.HTTP_1_1))
                 .build();
         Gson gson = new GsonBuilder().setLenient().create();
@@ -122,12 +112,9 @@ public class Retro {
     }
 
     public static <T> T create(String baseUrl, final Class<T> service) {
-        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(
-                message -> Log.i("RetrofitLog", "retrofitBack = " + message));
-        loggingInterceptor.level(HttpLoggingInterceptor.Level.BODY);
         OkHttpClient okHttpClient = new OkHttpClient
                 .Builder()
-                .addInterceptor(loggingInterceptor)
+                .addInterceptor(getLogger())
                 .protocols(Collections.singletonList(Protocol.HTTP_1_1))
                 .addInterceptor(chain -> {
                     Request localRequest = chain.request().newBuilder()
@@ -167,5 +154,15 @@ public class Retro {
 
     public static Retrofit get() {
         return Holder.appRetrofit;
+    }
+
+    private static LoggingInterceptor getLogger() {
+        return new LoggingInterceptor.Builder()
+                .loggable(true)
+                .request()
+                .requestTag("Request")
+                .response()
+                .responseTag("Response")
+                .build();
     }
 }

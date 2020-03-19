@@ -16,9 +16,7 @@ import ceui.lisa.utils.Common;
 public class TagFilter {
 
     public static void judge(IllustsBean illustsBean) {
-
         String tagString = illustsBean.getTagString();
-        Common.showLog(illustsBean.getTitle() + " " + tagString);
         if (TextUtils.isEmpty(tagString)) {
             return;
         }
@@ -26,7 +24,6 @@ public class TagFilter {
         List<TagsBean> temp = getMutedTags();
         for (TagsBean bean : temp) {
             String name = "*#" + bean.getName() + ",";
-            //Common.showLog(illustsBean.getTitle() + " " + name);
             if (tagString.contains(name)) {
                 illustsBean.setShield(true);
                 break;
@@ -42,7 +39,6 @@ public class TagFilter {
         }
         for (TagMuteEntity muteEntity : muteEntities) {
             TagsBean bean = Shaft.sGson.fromJson(muteEntity.getTagJson(), TagsBean.class);
-            //Common.showLog(bean.getName());
             result.add(bean);
         }
         return result;

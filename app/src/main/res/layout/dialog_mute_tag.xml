@@ -33,10 +33,19 @@
             android:layout_height="wrap_content">
 
             <Button
+                android:id="@+id/other"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/colorPrimary"
+                android:text="屏蔽记录" />
+
+            <Button
                 android:id="@+id/cancel"
                 style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textColor="@color/colorPrimary"
                 android:layout_toStartOf="@+id/sure"
                 android:text="取消" />
 
@@ -45,9 +54,8 @@
                 style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textColor="@color/colorPrimary"
                 android:layout_alignParentEnd="true"
-                android:layout_marginEnd="@dimen/sixteen_dp"
-                android:layout_marginBottom="@dimen/eight_dp"
                 android:text="添加屏蔽" />
 
         </RelativeLayout>

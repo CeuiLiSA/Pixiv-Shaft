@@ -34,10 +34,9 @@ public abstract class ErrorCtrl<T> implements Observer<T> {
                         responseString.contains("{") &&
                         responseString.contains("}") &&
                         responseString.contains(":")) {
-                    Gson gson = new Gson();
                     if (responseString.contains("validation_errors") || httpException.code() == 500) {
                         if (responseString.contains("body\":{")) {
-                            Error500Obj response = gson.fromJson(responseString, Error500Obj.class);
+                            Error500Obj response = Shaft.sGson.fromJson(responseString, Error500Obj.class);
                             if (response != null && response.getBody() != null) {
                                 if (!TextUtils.isEmpty(response.getBody().getValidation_errors().getMail_address())) {
                                     Common.showToast(response.getBody().getValidation_errors().getMail_address());
@@ -46,7 +45,7 @@ public abstract class ErrorCtrl<T> implements Observer<T> {
                                 Common.showToast(e.toString());
                             }
                         } else {
-                            Error500 response = gson.fromJson(responseString, Error500.class);
+                            Error500 response = Shaft.sGson.fromJson(responseString, Error500.class);
                             if (response != null) {
                                 if (!TextUtils.isEmpty(response.getMessage())) {
                                     Common.showToast(response.getMessage());
@@ -56,7 +55,7 @@ public abstract class ErrorCtrl<T> implements Observer<T> {
                             }
                         }
                     } else {
-                        ErrorResponse response = gson.fromJson(responseString, ErrorResponse.class);
+                        ErrorResponse response = Shaft.sGson.fromJson(responseString, ErrorResponse.class);
                         if (response != null) {
                             if (response.getBody() != null &&
                                     response.getBody().getValidation_errors() != null &&

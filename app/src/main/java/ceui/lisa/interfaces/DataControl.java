@@ -2,6 +2,7 @@ package ceui.lisa.interfaces;
 
 import android.content.Context;
 
+import com.scwang.smartrefresh.header.DeliveryHeader;
 import com.scwang.smartrefresh.layout.api.RefreshHeader;
 import com.scwang.smartrefresh.layout.header.ClassicsHeader;
 
@@ -22,6 +23,6 @@ public abstract class DataControl<T> extends BaseCtrl{
 
     @Override
     public RefreshHeader getHeader(Context context) {
-        return new ClassicsHeader(context);
+        return new DeliveryHeader(context);
     }
 }

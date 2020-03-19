@@ -179,7 +179,6 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
             }
         });
         baseBind.toolbar.setTitle(illust.getTitle() + "  ");
-        baseBind.toolbar.setTitleTextAppearance(mContext, R.style.shadowText);
         baseBind.toolbar.setNavigationOnClickListener(view -> getActivity().finish());
         baseBind.download.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -280,7 +279,7 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
         } else if (ori == Configuration.ORIENTATION_PORTRAIT) {
             //竖屏
             ViewGroup.LayoutParams headParams = baseBind.head.getLayoutParams();
-            headParams.height = Shaft.statusHeight + Shaft.toolbarHeight;
+            headParams.height = Shaft.statusHeight + Shaft.toolbarHeight - DensityUtil.dp2px(3.0f);
             baseBind.head.setLayoutParams(headParams);
 
             baseBind.toolbar.setPadding(0, Shaft.statusHeight, 0, 0);

@@ -128,6 +128,9 @@ dependencies {
     implementation 'com.blankj:utilcodex:1.26.0'
     implementation group: 'net.lingala.zip4j', name: 'zip4j', version: '2.2.8'
 
+    implementation 'com.safframework.log:saf-logginginterceptor:1.4.6'
+    implementation 'com.github.devlight.shadowlayout:library:1.0.2'
+
     implementation project(path: ':models')
 
     testImplementation 'junit:junit:4.12'

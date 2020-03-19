@@ -137,8 +137,7 @@ public class FragmentRecmdManga extends NetListFragment<FragmentRecmdFinalBindin
     private void insertViewHistory(IllustsBean illustsBean) {
         IllustRecmdEntity illustRecmdEntity = new IllustRecmdEntity();
         illustRecmdEntity.setIllustID(illustsBean.getId());
-        Gson gson = new Gson();
-        illustRecmdEntity.setIllustJson(gson.toJson(illustsBean));
+        illustRecmdEntity.setIllustJson(Shaft.sGson.toJson(illustsBean));
         illustRecmdEntity.setTime(System.currentTimeMillis());
         AppDatabase.getAppDatabase(Shaft.getContext()).recmdDao().insert(illustRecmdEntity);
     }

@@ -11,12 +11,12 @@ import com.blankj.utilcode.util.BarUtils;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.ActivityFragmentBinding;
-import ceui.lisa.fragments.FragmentAbout;
-import ceui.lisa.fragments.FragmentAboutUser;
-import ceui.lisa.fragments.FragmentBookTag;
-import ceui.lisa.fragments.FragmentC;
+import ceui.lisa.fragments.FragmentAboutApp;
+import ceui.lisa.fragments.FragmentUserInfo;
+import ceui.lisa.fragments.FragmentBookedTag;
+import ceui.lisa.fragments.FragmentComment;
 import ceui.lisa.fragments.FragmentCollection;
-import ceui.lisa.fragments.FragmentD;
+import ceui.lisa.fragments.FragmentDownload;
 import ceui.lisa.fragments.FragmentEditAccount;
 import ceui.lisa.fragments.FragmentEditFile;
 import ceui.lisa.fragments.FragmentFollowUser;
@@ -104,20 +104,20 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                 case "相关评论": {
                     int id = intent.getIntExtra(Params.ILLUST_ID, 0);
                     String title = intent.getStringExtra(Params.ILLUST_TITLE);
-                    return FragmentC.newInstance(id, title);
+                    return FragmentComment.newInstance(id, title);
                 }
                 case "账号管理":
                     return new FragmentLocalUsers();
                 case "按标签筛选": {
                     String keyword = intent.getStringExtra(EXTRA_KEYWORD);
-                    return FragmentBookTag.newInstance(keyword);
+                    return FragmentBookedTag.newInstance(keyword);
                 }
                 case "按标签收藏": {
                     int id = intent.getIntExtra(Params.ILLUST_ID, 0);
                     return FragmentSelectBookTag.newInstance(id);
                 }
                 case "关于软件":
-                    return new FragmentAbout();
+                    return new FragmentAboutApp();
                 case "批量下载":
                     return new FragmentMultiDownload();
                 case "画廊":
@@ -133,7 +133,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                 case "搜索":
                     return new FragmentSearch();
                 case "详细信息":
-                    return new FragmentAboutUser();
+                    return new FragmentUserInfo();
                 case "一言":
                     if(Dev.isDev){
                     }else {
@@ -153,7 +153,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                     return FragmentLikeIllust.newInstance(intent.getIntExtra(Params.USER_ID, 0),
                             FragmentLikeIllust.TYPE_PUBLUC, true);
                 case "下载管理":
-                    return new FragmentD();
+                    return new FragmentDownload();
                 case "收藏夹":
                     getWindow().setStatusBarColor(getResources().getColor(R.color.colorPrimary));
                     return new FragmentCollection();

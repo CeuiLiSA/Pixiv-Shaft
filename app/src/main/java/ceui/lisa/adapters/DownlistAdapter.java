@@ -21,6 +21,7 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.IllustsBean;
@@ -34,7 +35,6 @@ public class DownlistAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private Context mContext;
     private OnItemClickListener mOnItemClickListener;
     private List<DownloadEntity> allIllust;
-    private Gson mGson = new Gson();
     private int imageSize = 0;
     private SimpleDateFormat mTime = new SimpleDateFormat("MM月dd日 HH: mm");
 
@@ -61,7 +61,7 @@ public class DownlistAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         ViewGroup.LayoutParams params = currentOne.illust.getLayoutParams();
         params.height = imageSize;
         params.width = imageSize;
-        IllustsBean currentIllust = mGson.fromJson(allIllust.get(position).getIllustGson(), IllustsBean.class);
+        IllustsBean currentIllust = Shaft.sGson.fromJson(allIllust.get(position).getIllustGson(), IllustsBean.class);
         currentOne.illust.setLayoutParams(params);
         Glide.with(mContext)
                 .load(allIllust.get(position).getFilePath())

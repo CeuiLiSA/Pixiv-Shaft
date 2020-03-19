@@ -60,7 +60,7 @@ public class IllustDownload {
                 illustTask.setIllustsBean(illustsBean);
                 illustTask.setDownloadTask(task);
                 TaskQueue.get().addTask(illustTask);
-                task.enqueue(new QueueListener());
+                task.enqueue(new DListener());
                 Common.showToast(Shaft.getContext().getString(R.string.one_item_added));
             }
         });
@@ -97,7 +97,7 @@ public class IllustDownload {
                     illustTask.setIllustsBean(illustsBean);
                     illustTask.setDownloadTask(task);
                     TaskQueue.get().addTask(illustTask);
-                    task.enqueue(new QueueListener());
+                    task.enqueue(new DListener());
                     Common.showToast(Shaft.getContext().getString(R.string.one_item_added));
                 }
             }
@@ -143,7 +143,7 @@ public class IllustDownload {
                 }
 
                 DownloadTask[] taskArray = new DownloadTask[tempList.size()];
-                DownloadTask.enqueue(tempList.toArray(taskArray), new QueueListener());
+                DownloadTask.enqueue(tempList.toArray(taskArray), new DListener());
                 Common.showToast(tempList.size() + Shaft.getContext().getString(R.string.has_been_added));
             }
         });
@@ -227,7 +227,7 @@ public class IllustDownload {
                 }
 
                 DownloadTask[] taskArray = new DownloadTask[tempList.size()];
-                DownloadTask.enqueue(tempList.toArray(taskArray), new QueueListener());
+                DownloadTask.enqueue(tempList.toArray(taskArray), new DListener());
                 Common.showToast(tempList.size() + Shaft.getContext().getString(R.string.has_been_added));
             }
         });

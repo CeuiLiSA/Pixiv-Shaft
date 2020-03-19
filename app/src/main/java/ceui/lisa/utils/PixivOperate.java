@@ -246,8 +246,7 @@ public class PixivOperate {
     public static void insertViewHistory(IllustsBean illust) {
         IllustHistoryEntity illustHistoryEntity = new IllustHistoryEntity();
         illustHistoryEntity.setIllustID(illust.getId());
-        Gson gson = new Gson();
-        illustHistoryEntity.setIllustJson(gson.toJson(illust));
+        illustHistoryEntity.setIllustJson(Shaft.sGson.toJson(illust));
         illustHistoryEntity.setTime(System.currentTimeMillis());
         Common.showLog("插入了 " + illustHistoryEntity.getIllustID() + " time " + illustHistoryEntity.getTime());
         AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(illustHistoryEntity);

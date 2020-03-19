@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.adapters.BaseAdapter;
-import ceui.lisa.adapters.HAdapter;
+import ceui.lisa.adapters.TagAdapter;
 import ceui.lisa.core.NetControl;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyTagGridBinding;
@@ -63,7 +63,7 @@ public class FragmentHotTag extends NetListFragment<FragmentBaseListBinding,
 
     @Override
     public BaseAdapter<ListTrendingtag.TrendTagsBean, RecyTagGridBinding> adapter() {
-        return new HAdapter(allItems, mContext).setOnItemClickListener(new OnItemClickListener() {
+        return new TagAdapter(allItems, mContext).setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
                 Intent intent = new Intent(mContext, TemplateActivity.class);

@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import org.greenrobot.eventbus.EventBus;
 
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.adapters.BAdapter;
+import ceui.lisa.adapters.BookedTagAdapter;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.core.NetControl;
 import ceui.lisa.databinding.FragmentBaseListBinding;
@@ -21,13 +21,13 @@ import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
 import io.reactivex.Observable;
 
-public class FragmentBookTag extends NetListFragment<FragmentBaseListBinding,
+public class FragmentBookedTag extends NetListFragment<FragmentBaseListBinding,
         ListTag, TagsBean, RecyBookTagBinding> {
 
     private String bookType = "";
 
-    public static FragmentBookTag newInstance(String bookType) {
-        FragmentBookTag fragment = new FragmentBookTag();
+    public static FragmentBookedTag newInstance(String bookType) {
+        FragmentBookedTag fragment = new FragmentBookedTag();
         fragment.bookType = bookType;
         return fragment;
     }
@@ -50,7 +50,7 @@ public class FragmentBookTag extends NetListFragment<FragmentBaseListBinding,
 
     @Override
     public BaseAdapter<TagsBean, RecyBookTagBinding> adapter() {
-        return new BAdapter(allItems, mContext, false).setOnItemClickListener(new OnItemClickListener() {
+        return new BookedTagAdapter(allItems, mContext, false).setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
                 Channel channel = new Channel();

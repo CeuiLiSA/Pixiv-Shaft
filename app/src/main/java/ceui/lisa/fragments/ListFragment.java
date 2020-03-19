@@ -161,4 +161,13 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
 
     public void onNextLoaded(List<Item> items) {
     }
+
+    public void clear() {
+        if (mAdapter != null) {
+            mAdapter.clear();
+            //mRecyclerView.setVisibility(View.VISIBLE);
+            //noData.setVisibility(View.INVISIBLE);
+            mRefreshLayout.autoRefresh();
+        }
+    }
 }

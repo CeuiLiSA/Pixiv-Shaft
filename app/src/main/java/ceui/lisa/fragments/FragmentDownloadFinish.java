@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.activities.ImageDetailActivity;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.UActivity;
 import ceui.lisa.adapters.DownlistAdapter;
 import ceui.lisa.database.AppDatabase;
@@ -46,11 +47,10 @@ public class FragmentDownloadFinish extends BaseAsyncFragment<DownlistAdapter, D
             nowIndex += temp.size();
             allItems.addAll(temp);
             Thread.sleep(500);
-            Gson gson = new Gson();
             allIllusts = new ArrayList<>();
             filePaths = new ArrayList<>();
             for (int i = 0; i < allItems.size(); i++) {
-                allIllusts.add(gson.fromJson(allItems.get(i).getIllustGson(), IllustsBean.class));
+                allIllusts.add(Shaft.sGson.fromJson(allItems.get(i).getIllustGson(), IllustsBean.class));
                 filePaths.add(allItems.get(i).getFilePath());
             }
             emitter.onComplete();
@@ -116,9 +116,8 @@ public class FragmentDownloadFinish extends BaseAsyncFragment<DownlistAdapter, D
             allItems.addAll(temp);
             emitter.onNext("开始转换数据类型");
             Thread.sleep(500);
-            Gson gson = new Gson();
             for (int i = lastSize; i < allItems.size(); i++) {
-                allIllusts.add(gson.fromJson(allItems.get(i).getIllustGson(), IllustsBean.class));
+                allIllusts.add(Shaft.sGson.fromJson(allItems.get(i).getIllustGson(), IllustsBean.class));
                 filePaths.add(allItems.get(i).getFilePath());
             }
             mAdapter.notifyItemRangeChanged(lastSize, nowIndex);
@@ -158,16 +157,7 @@ public class FragmentDownloadFinish extends BaseAsyncFragment<DownlistAdapter, D
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(Channel event) {
         if (className.contains(event.getReceiver())) {
-            nowIndex++;
-            mRecyclerView.setVisibility(View.VISIBLE);
-            noData.setVisibility(View.INVISIBLE);
-            DownloadEntity entity = (DownloadEntity) event.getObject();
-            allItems.add(0, entity);
-            allIllusts.add(new Gson().fromJson(entity.getIllustGson(), IllustsBean.class));
-            filePaths.add(0, entity.getFilePath());
-            mAdapter.notifyItemInserted(0);
-            mRecyclerView.scrollToPosition(0);
-            mAdapter.notifyItemRangeChanged(0, allItems.size());
+
         }
     }
 

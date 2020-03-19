@@ -17,11 +17,11 @@ import ceui.lisa.model.ListTrendingtag;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.GlideUtil;
 
-public class HAdapter extends BaseAdapter<ListTrendingtag.TrendTagsBean, RecyTagGridBinding> implements MultiDownload {
+public class TagAdapter extends BaseAdapter<ListTrendingtag.TrendTagsBean, RecyTagGridBinding> implements MultiDownload {
 
     private int imageSize;
 
-    public HAdapter(List<ListTrendingtag.TrendTagsBean> targetList, Context context) {
+    public TagAdapter(List<ListTrendingtag.TrendTagsBean> targetList, Context context) {
         super(targetList, context);
         imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
                 mContext.getResources().getDimensionPixelSize(R.dimen.two_dp)) / 3;

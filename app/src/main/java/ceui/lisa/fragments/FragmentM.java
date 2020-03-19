@@ -9,7 +9,7 @@ import androidx.appcompat.widget.Toolbar;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.adapters.BAdapter;
+import ceui.lisa.adapters.BookedTagAdapter;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.core.TagFilter;
 import ceui.lisa.database.AppDatabase;
@@ -38,7 +38,7 @@ public class FragmentM extends LocalListFragment<FragmentBaseListBinding, TagsBe
 
     @Override
     public BaseAdapter<TagsBean, RecyBookTagBinding> adapter() {
-        return new BAdapter(allItems, mContext, true);
+        return new BookedTagAdapter(allItems, mContext, true);
     }
 
     @Override

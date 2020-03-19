@@ -1,22 +1,7 @@
-/*
- * Copyright (c) 2017 LingoChamp Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package ceui.lisa.download;
 
-import android.util.SparseArray;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -33,38 +18,24 @@ import net.lingala.zip4j.exception.ZipException;
 import org.greenrobot.eventbus.EventBus;
 
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.adapters.DownloadTaskAdapter;
 import ceui.lisa.database.IllustTask;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 
-public class QueueListener extends DownloadListener1 {
+public class DListener extends DownloadListener1 {
 
-    private static final String TAG = "QueueListener";
-    private SparseArray<DownloadTaskAdapter.TagHolder> holderMap = new SparseArray<>();
+    private ProgressBar mProgressBar;
+    private TextView currentSize;
+    private int nowID = 0, max = 0, nowOffset = 0;
 
-
-    public QueueListener() {
-        Common.showLog("QueueListener 生成了一个实例 " + System.currentTimeMillis());
-    }
-
-    public void bind(DownloadTaskAdapter.TagHolder holder, DownloadTask task) {
-        // replace.
-        final int size = holderMap.size();
-        for (int i = 0; i < size; i++) {
-            if (holderMap.valueAt(i) == holder) {
-                holderMap.removeAt(i);
-                break;
-            }
-        }
-        holderMap.put(task.getId(), holder);
-        final String taskName = task.getFilename();
-        holder.title.setText(taskName);
+    public void bind(ProgressBar progressBar, TextView textView) {
+        mProgressBar = progressBar;
+        currentSize = textView;
     }
 
     @Override
     public void taskStart(@NonNull DownloadTask task, @NonNull Listener1Assist.Listener1Model model) {
-
+        nowID = task.getId();
     }
 
     @Override
@@ -75,24 +46,33 @@ public class QueueListener extends DownloadListener1 {
     @Override
     public void connected(@NonNull DownloadTask task, int blockCount, long currentOffset, long totalLength) {
 
-        final DownloadTaskAdapter.TagHolder holder = holderMap.get(task.getId());
-        if (holder != null) {
-            holder.mProgressBar.setMax((int) totalLength);
-            holder.fullSize.setText(" / " + FileSizeUtil.formatFileSize(totalLength));
-            holder.mProgressBar.setProgress((int) currentOffset);
-        }
     }
 
     @Override
     public void progress(@NonNull DownloadTask task, long currentOffset, long totalLength) {
-
-        final DownloadTaskAdapter.TagHolder holder = holderMap.get(task.getId());
-        if (holder != null) {
-            Common.showLog("totalLength : " + totalLength + " currentOffset " + currentOffset);
-            holder.mProgressBar.setMax((int) totalLength);
-            holder.mProgressBar.setProgress((int) currentOffset);
-            holder.currentSize.setText(FileSizeUtil.formatFileSize(currentOffset));
+        Common.showLog("progress " + task.getFilename() + " " + currentOffset + "/" + totalLength);
+        if (mProgressBar != null){
+            if ("update".equals(mProgressBar.getTag())) {
+                mProgressBar.setMax((int) totalLength);
+                mProgressBar.setProgress((int) currentOffset);
+            } else {
+                mProgressBar.setProgress(0);
+            }
         }
+
+
+        if (currentSize != null) {
+            if ("update".equals(currentSize.getTag())) {
+                currentSize.setText(String.format("%s / %s",
+                        FileSizeUtil.formatFileSize(currentOffset),
+                        FileSizeUtil.formatFileSize(totalLength)));
+            } else {
+                currentSize.setText("0.00KB / 未知大小");
+            }
+        }
+
+        max = (int) totalLength;
+        nowOffset = (int) currentOffset;
     }
 
     @Override
@@ -105,22 +85,16 @@ public class QueueListener extends DownloadListener1 {
         try {
             Common.showLog(task.getFile().getPath());
             if (task.getFilename().contains(".zip")) {
-                //ZipUtil.unpack(task.getFile(), new File(FileCreator.FILE_GIF_CHILD_PATH + task.getFilename().substring(0, task.getFilename().length() - 4)));
-
-
                 try {
                     ZipFile zipFile = new ZipFile(task.getFile().getPath());
                     zipFile.extractAll(Shaft.sSettings.getGifUnzipPath() +
                             task.getFilename().substring(0, task.getFilename().length() - 4));
                     Common.showToast("图组ZIP解压完成");
 
-
                     //通知FragmentSingleIllust 开始播放gif
                     Channel channel = new Channel();
                     channel.setReceiver("FragmentSingleIllust");
                     EventBus.getDefault().post(channel);
-
-
                 } catch (ZipException e) {
                     e.printStackTrace();
                 }
@@ -129,9 +103,30 @@ public class QueueListener extends DownloadListener1 {
             e.printStackTrace();
         }
 
-
         TaskQueue.get().removeTask(illustTask);
+    }
 
+    public int getNowID() {
+        return nowID;
+    }
 
+    public void setNowID(int nowID) {
+        this.nowID = nowID;
+    }
+
+    public int getMax() {
+        return max;
+    }
+
+    public void setMax(int max) {
+        this.max = max;
+    }
+
+    public int getNowOffset() {
+        return nowOffset;
+    }
+
+    public void setNowOffset(int nowOffset) {
+        this.nowOffset = nowOffset;
     }
 }

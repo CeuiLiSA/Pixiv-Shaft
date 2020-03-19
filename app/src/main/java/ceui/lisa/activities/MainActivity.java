@@ -58,6 +58,9 @@ import ceui.lisa.utils.ReverseWebviewCallback;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
+/**
+ * 主页
+ */
 public class MainActivity extends BaseActivity<ActivityCoverBinding>
         implements NavigationView.OnNavigationItemSelectedListener {
 
