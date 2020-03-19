@@ -20,8 +20,7 @@ public class Local {
                 userModel.getResponse().setAccess_token("Bearer " + token);
             }
             String userString = Shaft.sGson.toJson(userModel, UserModel.class);
-            SharedPreferences localData = Shaft.getContext().getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
-            SharedPreferences.Editor editor = localData.edit();
+            SharedPreferences.Editor editor = Shaft.sPreferences.edit();
             editor.putString(USER, userString);
             if (editor.commit()) {
                 Shaft.sUserModel = userModel;
@@ -31,39 +30,32 @@ public class Local {
 
     public static UserModel getUser() {
         return Shaft.sGson.fromJson(
-                Shaft.getContext()
-                        .getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE)
+                Shaft.sPreferences
                         .getString(USER, ""),
                 UserModel.class);
     }
 
     public static Settings getSettings() {
-        SharedPreferences localData = Shaft.getContext().getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
-        String settingsString = localData.getString("settings", "");
-        Settings settings = new Gson().fromJson(settingsString, Settings.class);
+        String settingsString = Shaft.sPreferences.getString("settings", "");
+        Settings settings = Shaft.sGson.fromJson(settingsString, Settings.class);
         return settings == null ? new Settings() : settings;
     }
 
     public static void setSettings(Settings settings) {
-        SharedPreferences localData = Shaft.getContext().getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
-        Gson gson = new Gson();
-        String settingsGson = gson.toJson(settings);
-        SharedPreferences.Editor editor = localData.edit();
+        String settingsGson = Shaft.sGson.toJson(settings);
+        SharedPreferences.Editor editor = Shaft.sPreferences.edit();
         editor.putString("settings", settingsGson);
-        editor.commit();
+        editor.apply();
         Shaft.sSettings = settings;
     }
 
     public static boolean getBoolean(String key, boolean defValue) {
-        SharedPreferences localData = Shaft.getContext().getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
-        Common.showLog("getBoolean " + key + " " + localData.getBoolean(key, defValue));
-        return localData.getBoolean(key, defValue);
+        return Shaft.sPreferences.getBoolean(key, defValue);
     }
 
     public static void setBoolean(String key, boolean value) {
-        SharedPreferences localData = Shaft.getContext().getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = localData.edit();
+        SharedPreferences.Editor editor = Shaft.sPreferences.edit();
         editor.putBoolean(key, value);
-        editor.commit();
+        editor.apply();
     }
 }

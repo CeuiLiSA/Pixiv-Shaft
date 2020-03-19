@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
 
@@ -19,55 +20,61 @@
 
         </androidx.viewpager.widget.ViewPager>
 
-
-        <RelativeLayout
-            android:id="@+id/bottom_rela"
+        <com.gigamole.library.ShadowLayout
+            app:sl_shadow_radius="@dimen/two_dp"
+            app:sl_shadow_distance="@dimen/two_dp"
+            android:layout_alignParentBottom="true"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true">
+            android:layout_height="wrap_content">
 
-            <TextView
-                android:id="@+id/current_size"
+            <RelativeLayout
+                android:id="@+id/bottom_rela"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignBottom="@id/download_this_one"
-                android:layout_marginStart="@dimen/sixteen_dp"
-                android:layout_marginEnd="@dimen/eight_dp"
-                android:layout_marginBottom="5dp"
-                android:layout_toStartOf="@+id/download_this_one"
-                android:ellipsize="end"
-                android:gravity="start"
-                android:singleLine="true"
-                android:textColor="@android:color/white" />
+                android:layout_height="wrap_content">
 
-            <TextView
-                android:id="@+id/download_this_one"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_margin="@dimen/twelve_dip"
-                android:background="@drawable/follow_user_bg"
-                android:paddingStart="@dimen/sixteen_dp"
-                android:paddingTop="@dimen/six_dp"
-                android:paddingEnd="@dimen/sixteen_dp"
-                android:paddingBottom="@dimen/six_dp"
-                android:text="下载图片"
-                android:textColor="@android:color/white" />
+                <TextView
+                    android:id="@+id/current_size"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignBottom="@id/download_this_one"
+                    android:layout_marginStart="@dimen/sixteen_dp"
+                    android:layout_marginEnd="@dimen/eight_dp"
+                    android:layout_marginBottom="5dp"
+                    android:layout_toStartOf="@+id/download_this_one"
+                    android:ellipsize="end"
+                    android:gravity="start"
+                    android:singleLine="true"
+                    android:textColor="@android:color/white" />
 
-
-            <TextView
-                android:id="@+id/current_page"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignBottom="@id/download_this_one"
-                android:layout_marginEnd="@dimen/sixteen_dp"
-                android:layout_marginBottom="5dp"
-                android:layout_toEndOf="@+id/download_this_one"
-                android:gravity="end"
-                android:textColor="@android:color/white" />
+                <TextView
+                    android:id="@+id/download_this_one"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true"
+                    android:layout_margin="@dimen/twelve_dip"
+                    android:background="@drawable/follow_user_bg"
+                    android:paddingStart="@dimen/sixteen_dp"
+                    android:paddingTop="@dimen/six_dp"
+                    android:paddingEnd="@dimen/sixteen_dp"
+                    android:paddingBottom="@dimen/six_dp"
+                    android:text="下载图片"
+                    android:textColor="@android:color/white" />
 
 
-        </RelativeLayout>
+                <TextView
+                    android:id="@+id/current_page"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignBottom="@id/download_this_one"
+                    android:layout_marginEnd="@dimen/sixteen_dp"
+                    android:layout_marginBottom="5dp"
+                    android:layout_toEndOf="@+id/download_this_one"
+                    android:gravity="end"
+                    android:textColor="@android:color/white" />
 
+
+            </RelativeLayout>
+
+        </com.gigamole.library.ShadowLayout>
     </RelativeLayout>
 </layout>

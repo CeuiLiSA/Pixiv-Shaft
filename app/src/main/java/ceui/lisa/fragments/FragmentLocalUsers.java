@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
@@ -88,10 +89,9 @@ public class FragmentLocalUsers extends BaseBindFragment<FragmentLocalUserBindin
                 .map(new Function<List<UserEntity>, List<UserModel>>() {
                     @Override
                     public List<UserModel> apply(List<UserEntity> userEntities) throws Exception {
-                        Gson gson = new Gson();
                         allItems = new ArrayList<>();
                         for (int i = 0; i < userEntities.size(); i++) {
-                            allItems.add(gson.fromJson(userEntities.get(i).getUserGson(), UserModel.class));
+                            allItems.add(Shaft.sGson.fromJson(userEntities.get(i).getUserGson(), UserModel.class));
                         }
                         return allItems;
                     }

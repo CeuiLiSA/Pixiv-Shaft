@@ -150,7 +150,6 @@ public class FragmentCardIllust extends BaseBindFragment<FragmentCardIllustBindi
             }
         });
         baseBind.toolbar.setTitle(illust.getTitle() + "  ");
-        baseBind.toolbar.setTitleTextAppearance(mContext, R.style.shadowText);
         baseBind.toolbar.setNavigationOnClickListener(view -> getActivity().finish());
         baseBind.download.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -406,8 +405,7 @@ public class FragmentCardIllust extends BaseBindFragment<FragmentCardIllustBindi
     private void insertViewHistory() {
         IllustHistoryEntity illustHistoryEntity = new IllustHistoryEntity();
         illustHistoryEntity.setIllustID(illust.getId());
-        Gson gson = new Gson();
-        illustHistoryEntity.setIllustJson(gson.toJson(illust));
+        illustHistoryEntity.setIllustJson(Shaft.sGson.toJson(illust));
         illustHistoryEntity.setTime(System.currentTimeMillis());
         AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(illustHistoryEntity);
     }

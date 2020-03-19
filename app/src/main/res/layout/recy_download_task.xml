@@ -1,60 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+<layout xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:id="@+id/task_name"
-        android:layout_margin="@dimen/sixteen_dp"
-        android:textColor="@color/dark_text"
-        android:layout_height="wrap_content" />
+    <data>
 
+    </data>
 
-    <ProgressBar
-        android:id="@+id/progress"
-        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/task_name"
-        android:layout_marginStart="@dimen/sixteen_dp"
-        android:progress="0"
-        android:layout_marginEnd="@dimen/sixteen_dp" />
+        app:cardCornerRadius="@dimen/four_dp"
+        app:cardElevation="@dimen/four_dp"
+        android:layout_height="wrap_content">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_marginStart="@dimen/sixteen_dp"
-        android:layout_marginTop="@dimen/eight_dp"
-        android:layout_marginBottom="@dimen/sixteen_dp"
-        android:textSize="12sp"
-        android:text="0.00KB"
-        android:layout_below="@+id/progress"
-        android:id="@+id/current_size"
-        android:layout_height="wrap_content" />
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_marginStart="@dimen/sixteen_dp"
-        android:layout_marginTop="@dimen/eight_dp"
-        android:layout_marginBottom="@dimen/sixteen_dp"
-        android:textSize="12sp"
-        android:id="@+id/full_size"
-        android:text=" / 未知大小"
-        android:layout_toEndOf="@+id/current_size"
-        android:layout_below="@+id/progress"
-        android:layout_height="wrap_content" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:id="@+id/task_name"
+                android:layout_margin="@dimen/sixteen_dp"
+                android:textColor="@color/dark_text"
+                android:layout_height="wrap_content" />
 
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_marginStart="@dimen/sixteen_dp"
-        android:layout_marginTop="@dimen/eight_dp"
-        android:layout_marginBottom="@dimen/sixteen_dp"
-        android:textSize="12sp"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="@dimen/sixteen_dp"
-        android:id="@+id/state"
-        android:layout_below="@+id/progress"
-        android:layout_height="wrap_content" />
+            <ProgressBar
+                android:id="@+id/progress"
+                style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/task_name"
+                android:layout_marginStart="@dimen/sixteen_dp"
+                android:progress="0"
+                android:layout_marginEnd="@dimen/sixteen_dp" />
 
-</RelativeLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_marginStart="@dimen/sixteen_dp"
+                android:layout_marginTop="@dimen/eight_dp"
+                android:layout_marginBottom="@dimen/sixteen_dp"
+                android:textSize="12sp"
+                android:text="0.00KB / 未知大小"
+                android:layout_below="@+id/progress"
+                android:id="@+id/current_size"
+                android:layout_height="wrap_content" />
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_marginStart="@dimen/sixteen_dp"
+                android:layout_marginTop="@dimen/eight_dp"
+                android:layout_marginBottom="@dimen/sixteen_dp"
+                android:textSize="12sp"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="@dimen/sixteen_dp"
+                android:id="@+id/state"
+                android:layout_below="@+id/progress"
+                android:layout_height="wrap_content" />
+
+        </RelativeLayout>
+
+
+    </androidx.cardview.widget.CardView>
+</layout>

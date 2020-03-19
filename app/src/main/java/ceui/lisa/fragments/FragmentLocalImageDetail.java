@@ -40,5 +40,6 @@ public class FragmentLocalImageDetail extends BaseBindFragment<FragmentImageDeta
                 .load(filePath)
                 .transition(withCrossFade())
                 .into(baseBind.illustImage);
+        baseBind.progress.setVisibility(View.INVISIBLE);
     }
 }

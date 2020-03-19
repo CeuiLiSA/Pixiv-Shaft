@@ -7,7 +7,7 @@ import ceui.lisa.interfaces.Display;
 import ceui.lisa.models.UserDetailResponse;
 import ceui.lisa.utils.Common;
 
-public class FragmentAboutUser extends BaseBindFragment<FragmentAboutUserBinding> implements
+public class FragmentUserInfo extends BaseBindFragment<FragmentAboutUserBinding> implements
         Display<UserDetailResponse> {
 
     @Override

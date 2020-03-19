@@ -12,7 +12,7 @@ import ceui.lisa.R;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UActivity;
 import ceui.lisa.adapters.BaseAdapter;
-import ceui.lisa.adapters.CAdapter;
+import ceui.lisa.adapters.CommentAdapter;
 import ceui.lisa.core.NetControl;
 import ceui.lisa.databinding.FragmentCommentBinding;
 import ceui.lisa.databinding.RecyCommentListBinding;
@@ -30,7 +30,7 @@ import io.reactivex.schedulers.Schedulers;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-public class FragmentC extends NetListFragment<FragmentCommentBinding,
+public class FragmentComment extends NetListFragment<FragmentCommentBinding,
         ListComment, CommentsBean, RecyCommentListBinding> {
 
     private static final String[] OPTIONS = new String[]{"回复评论", "复制评论"};
@@ -39,11 +39,11 @@ public class FragmentC extends NetListFragment<FragmentCommentBinding,
     private int parentCommentID;
 
 
-    public static FragmentC newInstance(int id, String title) {
+    public static FragmentComment newInstance(int id, String title) {
         Bundle args = new Bundle();
         args.putInt(Params.ILLUST_ID, id);
         args.putString(Params.ILLUST_TITLE, title);
-        FragmentC fragment = new FragmentC();
+        FragmentComment fragment = new FragmentComment();
         fragment.setArguments(args);
         return fragment;
     }
@@ -76,7 +76,7 @@ public class FragmentC extends NetListFragment<FragmentCommentBinding,
 
     @Override
     public BaseAdapter<CommentsBean, RecyCommentListBinding> adapter() {
-        return new CAdapter(allItems, mContext).setOnItemClickListener((v, position, viewType) -> {
+        return new CommentAdapter(allItems, mContext).setOnItemClickListener((v, position, viewType) -> {
             if (viewType == 0) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
                 builder.setItems(OPTIONS, (dialog, which) -> {

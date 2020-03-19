@@ -12,11 +12,12 @@ import ceui.lisa.databinding.RecyArticalBinding;
 import ceui.lisa.models.SpotlightArticlesBean;
 import ceui.lisa.utils.GlideUtil;
 
-public class AAdapter extends BaseAdapter<SpotlightArticlesBean, RecyArticalBinding> {
+//特辑
+public class ArticleAdapter extends BaseAdapter<SpotlightArticlesBean, RecyArticalBinding> {
 
     private int imageSize;
 
-    public AAdapter(List<SpotlightArticlesBean> targetList, Context context) {
+    public ArticleAdapter(List<SpotlightArticlesBean> targetList, Context context) {
         super(targetList, context);
         imageSize = mContext.getResources().getDisplayMetrics().widthPixels -
                 2 * mContext.getResources().getDimensionPixelSize(R.dimen.sixteen_dp);

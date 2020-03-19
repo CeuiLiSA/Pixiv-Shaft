@@ -22,10 +22,10 @@ import ceui.lisa.utils.GlideUtil;
  * 评论列表
  */
 
-public class CAdapter extends BaseAdapter<CommentsBean, RecyCommentListBinding> {
+public class CommentAdapter extends BaseAdapter<CommentsBean, RecyCommentListBinding> {
 
 
-    public CAdapter(List<CommentsBean> targetList, Context context) {
+    public CommentAdapter(List<CommentsBean> targetList, Context context) {
         super(targetList, context);
     }
 

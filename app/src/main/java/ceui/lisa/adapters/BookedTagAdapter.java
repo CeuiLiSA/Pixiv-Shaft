@@ -11,11 +11,12 @@ import ceui.lisa.databinding.RecyBookTagBinding;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.utils.PixivOperate;
 
-public class BAdapter extends BaseAdapter<TagsBean, RecyBookTagBinding> {
+//自己收藏的Tag
+public class BookedTagAdapter extends BaseAdapter<TagsBean, RecyBookTagBinding> {
 
     private boolean isMuted = false;
 
-    public BAdapter(List<TagsBean> targetList, Context context, boolean muted) {
+    public BookedTagAdapter(List<TagsBean> targetList, Context context, boolean muted) {
         super(targetList, context);
         isMuted = muted;
     }

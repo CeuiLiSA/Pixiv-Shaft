@@ -352,19 +352,28 @@
 
         </com.scwang.smartrefresh.layout.SmartRefreshLayout>
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
+        <com.gigamole.library.ShadowLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:theme="@style/AppTheme.AppBarOverlay"
-            app:popupTheme="@style/AppTheme.PopupOverlay"
-            android:background="@android:color/transparent"
-            android:elevation="@dimen/six_dp"
-            app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
-            app:title=" "
-            app:titleTextColor="@android:color/white">
+            app:sl_shadow_radius="1.5dp"
+            app:sl_shadow_distance="1.5dp"
+            android:layout_height="wrap_content">
 
-        </androidx.appcompat.widget.Toolbar>
+
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:theme="@style/AppTheme.AppBarOverlay"
+                app:popupTheme="@style/AppTheme.PopupOverlay"
+                android:background="@android:color/transparent"
+                android:elevation="@dimen/six_dp"
+                app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
+                app:title=" "
+                app:titleTextColor="@android:color/white">
+
+            </androidx.appcompat.widget.Toolbar>
+
+        </com.gigamole.library.ShadowLayout>
 
     </RelativeLayout>
 </layout>

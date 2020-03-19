@@ -1,5 +1,6 @@
 package ceui.lisa.dialogs;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.DialogMuteTagBinding;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.TagsBean;
@@ -80,6 +82,15 @@ public class MuteDialog extends BaseDialog<DialogMuteTagBinding> {
                 } else {
                     Common.showToast("请选择要屏蔽的标签");
                 }
+            }
+        });
+        baseBind.other.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "标签屏蔽记录");
+                mContext.startActivity(intent);
+                dismiss();
             }
         });
     }

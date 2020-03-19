@@ -3,11 +3,7 @@ package ceui.lisa.fragments;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.CompoundButton;
-import android.widget.Switch;
-
-import androidx.appcompat.widget.AppCompatSpinner;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
@@ -123,7 +119,19 @@ public class FragmentFilter extends BaseBindFragment<FragmentFilterBinding> {
         baseBind.popSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                mSearchFilter.onPopularChanged(isChecked);
+                if (isChecked) {
+                    baseBind.r18Rela.setVisibility(View.VISIBLE);
+                    mSearchFilter.onPopularChanged(true, baseBind.r18Switch.isChecked());
+                } else {
+                    baseBind.r18Rela.setVisibility(View.GONE);
+                    mSearchFilter.onPopularChanged(false, false);
+                }
+            }
+        });
+        baseBind.r18Switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                mSearchFilter.onPopularChanged(true, isChecked);
             }
         });
     }
@@ -136,7 +144,7 @@ public class FragmentFilter extends BaseBindFragment<FragmentFilterBinding> {
 
         abstract void onStarSizeChanged(String starSize);
 
-        abstract void onPopularChanged(boolean isPopular);
+        abstract void onPopularChanged(boolean isPopular, boolean hasR18);
 
         abstract void startSearch();
 

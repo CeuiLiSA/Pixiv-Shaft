@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateActivity;
-import ceui.lisa.adapters.AAdapter;
+import ceui.lisa.adapters.ArticleAdapter;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.core.NetControl;
 import ceui.lisa.databinding.FragmentBaseListBinding;
@@ -64,7 +64,7 @@ public class FragmentPivision extends NetListFragment<FragmentBaseListBinding,
 
     @Override
     public BaseAdapter<SpotlightArticlesBean, RecyArticalBinding> adapter() {
-        return new AAdapter(allItems, mContext).setOnItemClickListener(new OnItemClickListener() {
+        return new ArticleAdapter(allItems, mContext).setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
                 Intent intent = new Intent(mContext, TemplateActivity.class);

@@ -2,6 +2,8 @@ package ceui.lisa.http;
 
 import android.util.Log;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
 
 import ceui.lisa.activities.Shaft;
@@ -19,10 +21,9 @@ import retrofit2.Call;
  */
 public class TokenInterceptor implements Interceptor {
 
-
-    public static boolean isTokenNew = true;
     private static final String TOKEN_ERROR = "Error occurred at the OAuth process";
 
+    @NotNull
     @Override
     public Response intercept(Chain chain) throws IOException {
         Request request = chain.request();
@@ -48,14 +49,8 @@ public class TokenInterceptor implements Interceptor {
      * @return
      */
     private boolean isTokenExpired(Response response) {
-        if (response.code() == 400 &&
-                Common.getResponseBody(response).contains(TOKEN_ERROR)) {
-            isTokenNew = false;
-            return true;
-        } else {
-            isTokenNew = true;
-            return false;
-        }
+        return response.code() == 400 &&
+                Common.getResponseBody(response).contains(TOKEN_ERROR);
     }
 
     /**
@@ -81,7 +76,6 @@ public class TokenInterceptor implements Interceptor {
             newUser.getResponse().getUser().setIs_login(true);
         }
         Local.saveUser(newUser);
-        isTokenNew = true;
         if (newUser != null && newUser.getResponse() != null) {
             return newUser.getResponse().getAccess_token();
         } else {

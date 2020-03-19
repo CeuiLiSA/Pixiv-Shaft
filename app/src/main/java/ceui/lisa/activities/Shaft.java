@@ -2,6 +2,7 @@ package ceui.lisa.activities;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.SharedPreferences;
 
 import com.google.gson.Gson;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
@@ -18,11 +19,15 @@ import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.Settings;
 
+import static ceui.lisa.utils.Local.LOCAL_DATA;
+
 public class Shaft extends Application {
 
     public static UserModel sUserModel;
     public static Settings sSettings;
     public static Gson sGson;
+    public static SharedPreferences sPreferences;
+
     /**
      * 状态栏高度，初始化
      */
@@ -46,10 +51,6 @@ public class Shaft extends Application {
         return sContext;
     }
 
-    public static void setContext(Context context) {
-        sContext = context;
-    }
-
     @Override
     public void onCreate() {
         super.onCreate();
@@ -58,6 +59,8 @@ public class Shaft extends Application {
         sContext = this;
         sGson = new Gson();
         //0.0127254
+
+        sPreferences = getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
 
         final long before = System.nanoTime();
 

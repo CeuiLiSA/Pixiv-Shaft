@@ -48,6 +48,7 @@ public class FragmentSearchResult extends NetListFragment<FragmentSearchResultBi
     private String sort = "date_desc";
     private String searchTarget = "partial_match_for_tags";
     private boolean isPopular = false;
+    private boolean hasR18 = false;
 
     public static FragmentSearchResult newInstance(String keyWord) {
         return newInstance(keyWord, "date_desc", "partial_match_for_tags");
@@ -136,8 +137,9 @@ public class FragmentSearchResult extends NetListFragment<FragmentSearchResultBi
             }
 
             @Override
-            public void onPopularChanged(boolean isPopular) {
+            void onPopularChanged(boolean isPopular, boolean hasR18) {
                 FragmentSearchResult.this.isPopular = isPopular;
+                FragmentSearchResult.this.hasR18 = hasR18;
             }
 
             @Override
