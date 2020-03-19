@@ -1,12 +1,8 @@
 package ceui.lisa.fragments;
 
-import android.content.Context;
 import android.os.Bundle;
 
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
-
-import com.scwang.smartrefresh.header.MaterialHeader;
-import com.scwang.smartrefresh.layout.api.RefreshHeader;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;

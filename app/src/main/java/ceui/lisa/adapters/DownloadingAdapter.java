@@ -2,7 +2,6 @@ package ceui.lisa.adapters;
 
 import android.content.Context;
 
-import com.liulishuo.okdownload.DownloadTask;
 import com.liulishuo.okdownload.StatusUtil;
 
 import java.util.List;

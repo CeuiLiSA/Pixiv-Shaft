@@ -2,7 +2,6 @@ package ceui.lisa.adapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -16,15 +15,14 @@ import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.utils.Common;
 
 public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extends
-        RecyclerView.Adapter<RecyclerView.ViewHolder>{
+        RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
+    public static final int ITEM_HEAD = 1023;
+    public static final int ITEM_NORMAL = 1024;
     protected List<Item> allIllust;
     protected Context mContext;
     protected int mLayoutID = -1;
     protected OnItemClickListener mOnItemClickListener;
-
-    public static final int ITEM_HEAD = 1023;
-    public static final int ITEM_NORMAL = 1024;
 
     public BaseAdapter(List<Item> targetList, Context context) {
         Common.showLog(getClass().getSimpleName() + " newInstance");
@@ -39,7 +37,7 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
         if (viewType == ITEM_NORMAL) {
             int index = position - headerSize();
             bindData(allIllust.get(index), (ViewHolder<BindView>) holder, index);
-        } else if(viewType == ITEM_HEAD){
+        } else if (viewType == ITEM_HEAD) {
 
         }
     }

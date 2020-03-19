@@ -1,7 +1,6 @@
 package ceui.lisa.adapters;
 
 import android.app.Activity;
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
@@ -19,7 +18,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
-import com.liulishuo.okdownload.DownloadTask;
 
 import java.io.File;
 import java.util.Arrays;
@@ -47,9 +45,6 @@ import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
-
-import static ceui.lisa.download.IllustDownload.IMAGE_REFERER;
-import static ceui.lisa.download.IllustDownload.MAP_KEY;
 
 
 /**
@@ -126,7 +121,7 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                     };
 
                     //检查是否正在下载
-                    if(GifQueue.get().getTasks() != null &&
+                    if (GifQueue.get().getTasks() != null &&
                             GifQueue.get().getTasks().size() != 0) {
 
                         boolean isDownloading = false;
@@ -142,7 +137,7 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                                 break;
                             }
                         }
-                        if(isDownloading){
+                        if (isDownloading) {
                             currentOne.playGif.setVisibility(View.INVISIBLE);
                         } else {
                             currentOne.playGif.setVisibility(View.VISIBLE);
@@ -210,20 +205,8 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         mOnItemClickListener = itemClickListener;
     }
 
-    public static class TagHolder extends RecyclerView.ViewHolder {
-        ImageView illust, playGif;
-        ProgressBar mProgressBar;
-
-        TagHolder(View itemView) {
-            super(itemView);
-            illust = itemView.findViewById(R.id.illust_image);
-            playGif = itemView.findViewById(R.id.play_gif);
-            mProgressBar = itemView.findViewById(R.id.gif_progress);
-        }
-    }
-
     public void nowPlayGif() {
-        if(animationDrawable != null && gifHolder != null) {
+        if (animationDrawable != null && gifHolder != null) {
             gifHolder.illust.setImageDrawable(animationDrawable);
             animationDrawable.start();
         }
@@ -231,7 +214,7 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     public void nowStopGif() {
         Common.showLog(allIllust.getTitle() + "IllustDetailAdapter 停止播放gif图");
-        if(animationDrawable != null){
+        if (animationDrawable != null) {
             animationDrawable.stop();
         }
     }
@@ -280,5 +263,17 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                         }
                     }
                 });
+    }
+
+    public static class TagHolder extends RecyclerView.ViewHolder {
+        ImageView illust, playGif;
+        ProgressBar mProgressBar;
+
+        TagHolder(View itemView) {
+            super(itemView);
+            illust = itemView.findViewById(R.id.illust_image);
+            playGif = itemView.findViewById(R.id.play_gif);
+            mProgressBar = itemView.findViewById(R.id.gif_progress);
+        }
     }
 }

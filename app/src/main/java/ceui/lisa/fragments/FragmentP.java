@@ -150,7 +150,7 @@ public class FragmentP extends NetListFragment<FragmentBaseListBinding,
                                 PixivOperate.postUnFollowUser(allItems.get(position).getUser().getUserId());
                                 allItems.get(position).getUser().setIs_followed(false);
                                 follow.setText("添加关注");
-                            }else {
+                            } else {
                                 PixivOperate.postFollowUser(allItems.get(position).getUser().getUserId(),
                                         FragmentLikeIllust.TYPE_PUBLUC);
                                 allItems.get(position).getUser().setIs_followed(true);

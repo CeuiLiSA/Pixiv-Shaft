@@ -1,15 +1,8 @@
 package ceui.lisa.adapters;
 
 import android.content.Context;
-import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
-import android.widget.ImageView;
-
-import androidx.annotation.NonNull;
-import androidx.appcompat.widget.AppCompatCheckBox;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 
@@ -19,7 +12,6 @@ import ceui.lisa.R;
 import ceui.lisa.databinding.RecyMultiDownloadBinding;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.interfaces.MultiDownload;
-import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.GlideUtil;
 

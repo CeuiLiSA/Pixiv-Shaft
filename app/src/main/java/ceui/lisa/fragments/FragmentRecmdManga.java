@@ -4,7 +4,6 @@ import android.os.Bundle;
 
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
-import com.google.gson.Gson;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 
 import java.util.ArrayList;
