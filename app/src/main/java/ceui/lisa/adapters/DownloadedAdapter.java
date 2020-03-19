@@ -17,8 +17,8 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.databinding.RecyViewHistoryBinding;
 import ceui.lisa.models.IllustsBean;
-import ceui.lisa.utils.GlideUtil;
 
+//已下载
 public class DownloadedAdapter extends BaseAdapter<DownloadEntity, RecyViewHistoryBinding> {
 
     private int imageSize = 0;

@@ -6,12 +6,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.PopupWindow;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.qmuiteam.qmui.skin.QMUISkinHelper;
-import com.qmuiteam.qmui.skin.QMUISkinValueBuilder;
 import com.qmuiteam.qmui.util.QMUIDisplayHelper;
-import com.qmuiteam.qmui.util.QMUIResHelper;
 import com.qmuiteam.qmui.widget.popup.QMUIPopup;
 import com.qmuiteam.qmui.widget.popup.QMUIPopups;
 import com.scwang.smartrefresh.layout.api.RefreshFooter;
@@ -22,7 +18,7 @@ import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UActivity;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.BaseAdapter;
-import ceui.lisa.adapters.EAdapter;
+import ceui.lisa.adapters.EventAdapter;
 import ceui.lisa.core.NetControl;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyUserEventBinding;
@@ -66,7 +62,7 @@ public class FragmentP extends NetListFragment<FragmentBaseListBinding,
 
     @Override
     public BaseAdapter<IllustsBean, RecyUserEventBinding> adapter() {
-        return new EAdapter(allItems, mContext).setOnItemClickListener(new OnItemClickListener() {
+        return new EventAdapter(allItems, mContext).setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
                 if (viewType == 0) {

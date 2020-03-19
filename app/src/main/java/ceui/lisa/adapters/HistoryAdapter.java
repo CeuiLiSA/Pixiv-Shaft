@@ -38,6 +38,7 @@ import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 
+//浏览历史
 public class HistoryAdapter extends BaseAdapter<IllustHistoryEntity, RecyViewHistoryBinding> {
 
     private int imageSize = 0;

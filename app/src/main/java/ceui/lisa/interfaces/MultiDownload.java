@@ -17,7 +17,11 @@ public interface MultiDownload {
 
     default void startDownload() {
         DataChannel dataChannel = DataChannel.get();
-        dataChannel.setDownloadList(getIllustList());
+        List<IllustsBean> list = getIllustList();
+        for (IllustsBean illustsBean : list) {
+            illustsBean.setChecked(true);
+        }
+        dataChannel.setDownloadList(list);
         Intent intent = new Intent(getContext(), TemplateActivity.class);
         intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "批量下载");
         getContext().startActivity(intent);

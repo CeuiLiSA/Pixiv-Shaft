@@ -1,14 +1,11 @@
 package ceui.lisa.fragments;
 
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Switch;
 
-import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.appcompat.widget.Toolbar;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -17,60 +14,66 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.activities.TemplateActivity;
-import ceui.lisa.adapters.SelectTagAdapter;
+import ceui.lisa.adapters.BaseAdapter;
+import ceui.lisa.adapters.SAdapter;
+import ceui.lisa.core.NetControl;
+import ceui.lisa.databinding.FragmentSelectTagBinding;
+import ceui.lisa.databinding.RecySelectTagBinding;
 import ceui.lisa.dialogs.AddTagDialog;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
-import ceui.lisa.interfaces.OnItemClickListener;
+import ceui.lisa.interfaces.BaseCtrl;
 import ceui.lisa.model.ListBookmarkTag;
 import ceui.lisa.models.NullResponse;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.DensityUtil;
-import ceui.lisa.view.LinearItemDecoration;
+import ceui.lisa.utils.Params;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
-public class FragmentSelectBookTag extends BaseListFragment<ListBookmarkTag, SelectTagAdapter, TagsBean> {
+public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
+        ListBookmarkTag, TagsBean, RecySelectTagBinding> {
 
     private int illustID;
-    private Switch mSwitch;
 
-    public static FragmentSelectBookTag newInstance(int illustID) {
-        FragmentSelectBookTag fragment = new FragmentSelectBookTag();
-        fragment.illustID = illustID;
+    public static FragmentSB newInstance(int illustID) {
+        Bundle args = new Bundle();
+        args.putInt(Params.ILLUST_ID, illustID);
+        FragmentSB fragment = new FragmentSB();
+        fragment.setArguments(args);
         return fragment;
     }
 
     @Override
-    String getToolbarTitle() {
-        return "按标签收藏";
+    public void initBundle(Bundle bundle) {
+        illustID = bundle.getInt(Params.ILLUST_ID);
     }
 
     @Override
-    void initLayout() {
+    public BaseAdapter<TagsBean, RecySelectTagBinding> adapter() {
+        return new SAdapter(allItems, mContext);
+    }
+
+    @Override
+    protected void initLayout() {
         mLayoutID = R.layout.fragment_select_tag;
     }
 
     @Override
-    void initRecyclerView() {
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
-        mRecyclerView.addItemDecoration(new LinearItemDecoration(DensityUtil.dp2px(16.0f)));
-    }
+    public BaseCtrl present() {
+        return new NetControl<ListBookmarkTag>() {
+            @Override
+            public Observable<ListBookmarkTag> initApi() {
+                return Retro.getAppApi().getIllustBookmarkTags(Shaft.sUserModel.getResponse().getAccess_token(), illustID);
+            }
 
-    @Override
-    View initView(View v) {
-        super.initView(v);
-        ((TemplateActivity) getActivity()).setSupportActionBar(mToolbar);
-        mToolbar.setNavigationOnClickListener(view -> getActivity().finish());
-        mToolbar.setTitle(getToolbarTitle());
-        mSwitch = v.findViewById(R.id.is_private);
-        Button button = v.findViewById(R.id.submit_area);
-        button.setOnClickListener(view -> submitStar());
-        return v;
+            @Override
+            public Observable<ListBookmarkTag> initNextApi() {
+                return null;
+            }
+        };
     }
 
     private void submitStar() {
@@ -83,7 +86,7 @@ public class FragmentSelectBookTag extends BaseListFragment<ListBookmarkTag, Sel
 
         if (tempList.size() == 0) {
             Retro.getAppApi().postLike(Shaft.sUserModel.getResponse().getAccess_token(), illustID,
-                    mSwitch.isChecked() ? FragmentLikeIllust.TYPE_PRIVATE : FragmentLikeIllust.TYPE_PUBLUC)
+                    baseBind.isPrivate.isChecked() ? FragmentLikeIllust.TYPE_PRIVATE : FragmentLikeIllust.TYPE_PUBLUC)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {
@@ -99,7 +102,7 @@ public class FragmentSelectBookTag extends BaseListFragment<ListBookmarkTag, Sel
             tempList.toArray(strings);
 
             Retro.getAppApi().postLike(Shaft.sUserModel.getResponse().getAccess_token(), illustID,
-                    mSwitch.isChecked() ? FragmentLikeIllust.TYPE_PRIVATE : FragmentLikeIllust.TYPE_PUBLUC, strings)
+                    baseBind.isPrivate.isChecked() ? FragmentLikeIllust.TYPE_PRIVATE : FragmentLikeIllust.TYPE_PUBLUC, strings)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {
@@ -110,7 +113,6 @@ public class FragmentSelectBookTag extends BaseListFragment<ListBookmarkTag, Sel
                         }
                     });
         }
-
     }
 
     private void setFollowed() {
@@ -118,34 +120,7 @@ public class FragmentSelectBookTag extends BaseListFragment<ListBookmarkTag, Sel
         channel.setReceiver("FragmentSingleIllust starIllust");
         channel.setObject(illustID);
         EventBus.getDefault().post(channel);
-        getActivity().finish();
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
-    }
-
-    @Override
-    Observable<ListBookmarkTag> initApi() {
-        return Retro.getAppApi().getIllustBookmarkTags(Shaft.sUserModel.getResponse().getAccess_token(), illustID);
-    }
-
-    @Override
-    Observable<ListBookmarkTag> initNextApi() {
-        return null;
-    }
-
-    @Override
-    void initAdapter() {
-        mAdapter = new SelectTagAdapter(allItems, mContext);
-        mAdapter.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(View v, int position, int viewType) {
-                Common.showLog(className + position);
-            }
-        });
+        mActivity.finish();
     }
 
     public void addTag(String tag) {
@@ -166,6 +141,7 @@ public class FragmentSelectBookTag extends BaseListFragment<ListBookmarkTag, Sel
         bookmarkTagsBean.setCount(0);
         bookmarkTagsBean.setSelected(true);
         bookmarkTagsBean.setName(tag);
+
         allItems.add(0, bookmarkTagsBean);
         mAdapter.notifyItemInserted(0);
         mRecyclerView.scrollToPosition(0);
@@ -173,18 +149,30 @@ public class FragmentSelectBookTag extends BaseListFragment<ListBookmarkTag, Sel
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.add_tag, menu);
+    public void initToolbar(Toolbar toolbar) {
+        super.initToolbar(toolbar);
+        toolbar.inflateMenu(R.menu.add_tag);
+        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                if (item.getItemId() == R.id.action_add) {
+                    AddTagDialog dialog = new AddTagDialog();
+                    dialog.show(getChildFragmentManager(), "AddTagDialog");
+                    return true;
+                }
+                return false;
+            }
+        });
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.action_add) {
-            AddTagDialog dialog = new AddTagDialog();
-            dialog.show(getChildFragmentManager(), "AddTagDialog");
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
+    public void initView(View view) {
+        super.initView(view);
+        baseBind.submitArea.setOnClickListener(v -> submitStar());
+    }
+
+    @Override
+    public String getToolbarTitle() {
+        return "按标签收藏";
     }
 }
