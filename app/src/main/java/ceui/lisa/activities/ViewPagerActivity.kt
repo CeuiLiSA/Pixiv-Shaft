@@ -30,7 +30,7 @@ class ViewPagerActivity : BaseActivity<ActivityViewPagerBinding>() {
         holder = ViewModelProvider(this).get(Dust::class.java)
 
         holder.dust.observe(this, Observer<List<IllustsBean>> { dust: List<IllustsBean> ->
-            baseBind.viewPager.adapter = object : FragmentPagerAdapter(supportFragmentManager) {
+            baseBind.viewPager.adapter = object : FragmentPagerAdapter(supportFragmentManager, 0) {
                 override fun getItem(i: Int): Fragment {
                     Common.showLog(className + "setPageTransformer " + i)
                     return FragmentSingleIllust.newInstance(i)
@@ -77,10 +77,5 @@ class ViewPagerActivity : BaseActivity<ActivityViewPagerBinding>() {
     }
 
     override fun initData() {
-    }
-
-    fun rise() {
-        baseBind.viewPager.setPageTransformer(true, GalleryTransformer())
-        baseBind.viewPager.offscreenPageLimit = 3
     }
 }
