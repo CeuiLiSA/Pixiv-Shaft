@@ -1,10 +1,6 @@
 package ceui.lisa.adapters;
 
 import android.content.Context;
-import android.view.LayoutInflater;
-import android.view.ViewGroup;
-
-import androidx.databinding.DataBindingUtil;
 
 import com.bumptech.glide.Glide;
 

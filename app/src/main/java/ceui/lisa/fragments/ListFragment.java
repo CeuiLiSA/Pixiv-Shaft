@@ -18,11 +18,7 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
-import ceui.lisa.core.NetControl;
-import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.interfaces.BaseCtrl;
-import ceui.lisa.interfaces.ListShow;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
 import jp.wasabeef.recyclerview.animators.BaseItemAnimator;
@@ -32,6 +28,7 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
         ItemLayout extends ViewDataBinding> extends BaseBindFragment<Layout> {
 
     public static final long animateDuration = 400L;
+    public static final int PAGE_SIZE = 20;
     protected RecyclerView mRecyclerView;
     protected RefreshLayout mRefreshLayout;
     protected ImageView noData;
@@ -40,7 +37,6 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
     protected String nextUrl;
     protected Toolbar mToolbar;
     protected BaseCtrl mBaseCtrl;
-    public static final int PAGE_SIZE = 20;
 
     @Override
     protected void initLayout() {

@@ -1,43 +1,25 @@
 package ceui.lisa.adapters;
 
 import android.content.Context;
-import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.databinding.DataBindingUtil;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.facebook.rebound.SimpleSpringListener;
-import com.facebook.rebound.Spring;
-import com.facebook.rebound.SpringConfig;
-import com.facebook.rebound.SpringSystem;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.activities.TemplateActivity;
-import ceui.lisa.activities.UActivity;
-import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.databinding.RecyViewHistoryBinding;
-import ceui.lisa.fragments.FragmentLikeIllust;
-import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.IllustsBean;
-import ceui.lisa.utils.Common;
-import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.GlideUtil;
-import ceui.lisa.utils.Params;
-import ceui.lisa.utils.PixivOperate;
 
+//浏览历史
 public class HistoryAdapter extends BaseAdapter<IllustHistoryEntity, RecyViewHistoryBinding> {
 
     private int imageSize = 0;
@@ -70,7 +52,7 @@ public class HistoryAdapter extends BaseAdapter<IllustHistoryEntity, RecyViewHis
         bindView.baseBind.author.setText("by: " + currentIllust.getUser().getName());
         bindView.baseBind.time.setText(mTime.format(allIllust.get(position).getTime()));
 
-        if(currentIllust.isGif()){
+        if (currentIllust.isGif()) {
             bindView.baseBind.pSize.setText("GIF");
         } else {
             if (currentIllust.getPage_count() == 1) {

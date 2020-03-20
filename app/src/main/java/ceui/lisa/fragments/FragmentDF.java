@@ -10,12 +10,10 @@ import java.util.List;
 import ceui.lisa.activities.ImageDetailActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.UActivity;
-import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.DownloadedAdapter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.DownloadEntity;
-import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyViewHistoryBinding;
 import ceui.lisa.interfaces.BaseCtrl;
@@ -24,7 +22,6 @@ import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.Params;
 
 public class FragmentDF extends LocalListFragment<FragmentBaseListBinding,

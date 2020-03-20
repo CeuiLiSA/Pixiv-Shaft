@@ -3,11 +3,10 @@ package ceui.lisa.dialogs;
 import android.text.TextUtils;
 import android.view.View;
 
-import com.rengwuxian.materialedittext.MaterialEditText;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.DialogAddTagBinding;
-import ceui.lisa.fragments.FragmentSelectBookTag;
+import ceui.lisa.fragments.FragmentSB;
 import ceui.lisa.utils.Common;
 
 public class AddTagDialog extends BaseDialog<DialogAddTagBinding> {
@@ -28,8 +27,8 @@ public class AddTagDialog extends BaseDialog<DialogAddTagBinding> {
                     return;
                 }
 
-                if (getParentFragment() instanceof FragmentSelectBookTag) {
-                    ((FragmentSelectBookTag) getParentFragment()).addTag(baseBind.tagName.getText().toString());
+                if (getParentFragment() instanceof FragmentSB) {
+                    ((FragmentSB) getParentFragment()).addTag(baseBind.tagName.getText().toString());
                 }
 
                 dismiss();

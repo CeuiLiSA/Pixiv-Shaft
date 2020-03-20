@@ -1,7 +1,6 @@
 package ceui.lisa.fragments;
 
 import android.animation.Animator;
-import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -15,7 +14,6 @@ import java.util.Collections;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.activities.UActivity;
 import ceui.lisa.adapters.VAdapter;
 import ceui.lisa.databinding.FragmentNovelHolderBinding;
 import ceui.lisa.http.NullCtrl;

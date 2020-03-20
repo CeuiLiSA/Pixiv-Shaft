@@ -2,10 +2,8 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.view.View;
-import android.widget.ProgressBar;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.github.ybq.android.spinkit.style.DoubleBounce;
 

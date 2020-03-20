@@ -346,17 +346,26 @@
 
                     </androidx.cardview.widget.CardView>
 
+
+                    <SeekBar
+                        android:layout_width="match_parent"
+                        android:id="@+id/seekbar"
+                        android:layout_margin="@dimen/sixteen_dp"
+                        android:layout_height="wrap_content">
+
+                    </SeekBar>
+
                 </LinearLayout>
 
             </androidx.core.widget.NestedScrollView>
 
         </com.scwang.smartrefresh.layout.SmartRefreshLayout>
 
-        <com.gigamole.library.ShadowLayout
-            android:layout_width="match_parent"
-            app:sl_shadow_radius="1.5dp"
-            app:sl_shadow_distance="1.5dp"
-            android:layout_height="wrap_content">
+<!--        <com.gigamole.library.ShadowLayout-->
+<!--            android:layout_width="match_parent"-->
+<!--            app:sl_shadow_radius="1.5dp"-->
+<!--            app:sl_shadow_distance="1.5dp"-->
+<!--            android:layout_height="wrap_content">-->
 
 
             <androidx.appcompat.widget.Toolbar
@@ -373,7 +382,7 @@
 
             </androidx.appcompat.widget.Toolbar>
 
-        </com.gigamole.library.ShadowLayout>
+<!--        </com.gigamole.library.ShadowLayout>-->
 
     </RelativeLayout>
 </layout>

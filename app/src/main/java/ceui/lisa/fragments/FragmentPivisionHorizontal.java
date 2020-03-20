@@ -70,11 +70,6 @@ public class FragmentPivisionHorizontal extends BaseBindFragment<FragmentPivisio
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "特辑");
             startActivity(intent);
         });
-        getFirstData();
-    }
-
-    @Override
-    public void getFirstData() {
         Retro.getAppApi().getArticles(sUserModel.getResponse().getAccess_token(), "all")
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())

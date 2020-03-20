@@ -1,7 +1,6 @@
 package ceui.lisa.adapters;
 
 import android.content.Context;
-import android.content.Intent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -11,14 +10,12 @@ import com.bumptech.glide.Glide;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.UActivity;
 import ceui.lisa.databinding.RecyUserPreviewBinding;
 import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.interfaces.FullClickListener;
 import ceui.lisa.models.UserPreviewsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
-import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 
 public class UAdapter extends BaseAdapter<UserPreviewsBean, RecyUserPreviewBinding> {

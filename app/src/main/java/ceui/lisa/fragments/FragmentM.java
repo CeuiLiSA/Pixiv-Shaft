@@ -9,8 +9,8 @@ import androidx.appcompat.widget.Toolbar;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.adapters.BookedTagAdapter;
 import ceui.lisa.adapters.BaseAdapter;
+import ceui.lisa.adapters.BookedTagAdapter;
 import ceui.lisa.core.TagFilter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.databinding.FragmentBaseListBinding;

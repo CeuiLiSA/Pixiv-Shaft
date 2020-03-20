@@ -1,10 +1,7 @@
 package ceui.lisa.fragments;
 
-import android.view.View;
-
 import androidx.recyclerview.widget.GridLayoutManager;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;

@@ -1,9 +1,6 @@
 package ceui.lisa.adapters;
 
 import android.content.Context;
-import android.view.ViewGroup;
-
-import com.bumptech.glide.Glide;
 
 import java.util.List;
 

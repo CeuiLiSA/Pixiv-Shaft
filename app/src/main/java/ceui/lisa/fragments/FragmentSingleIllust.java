@@ -10,20 +10,16 @@ import android.text.style.ForegroundColorSpan;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.SeekBar;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityOptionsCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.gson.Gson;
-import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
-import com.scwang.smartrefresh.layout.listener.OnLoadMoreListener;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -38,10 +34,7 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UActivity;
 import ceui.lisa.activities.VActivity;
-import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.IllustDetailAdapter;
-import ceui.lisa.database.AppDatabase;
-import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.databinding.FragmentSingleIllustBinding;
 import ceui.lisa.dialogs.MuteDialog;
 import ceui.lisa.download.FileCreator;
@@ -51,7 +44,6 @@ import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
@@ -113,7 +105,6 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
         }
 
 
-
         mDetailAdapter = new IllustDetailAdapter(illust, mActivity);
         mDetailAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
@@ -140,8 +131,36 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
 
     @Override
     void initData() {
+
+
+        Configuration mConfiguration = this.getResources().getConfiguration(); //获取设置的配置信息
+        int ori = mConfiguration.orientation; //获取屏幕方向
+        if (ori == Configuration.ORIENTATION_LANDSCAPE) {
+            //横屏
+            Common.showLog(illust.getTitle() + "screen 横屏");
+
+            ViewGroup.LayoutParams headParams = baseBind.head.getLayoutParams();
+            headParams.height = Shaft.statusHeight * 3 / 5 + Shaft.toolbarHeight;
+            baseBind.head.setLayoutParams(headParams);
+
+
+        } else if (ori == Configuration.ORIENTATION_PORTRAIT) {
+            //竖屏
+            ViewGroup.LayoutParams headParams = baseBind.head.getLayoutParams();
+            headParams.height = Shaft.statusHeight + Shaft.toolbarHeight;
+            baseBind.head.setLayoutParams(headParams);
+
+            baseBind.toolbar.setPadding(0, Shaft.statusHeight, 0, 0);
+            Common.showLog(illust.getTitle() + "screen 竖屏");
+        }
+        loadImage();
+    }
+
+    @Override
+    public void initView(View view) {
         Dust dust = new ViewModelProvider(mActivity).get(Dust.class);
         illust = dust.getDust().getValue().get(index);
+
         baseBind.refreshLayout.setEnableLoadMore(true);
         baseBind.refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));
         baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
@@ -179,18 +198,15 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
             }
         });
         baseBind.toolbar.setTitle(illust.getTitle() + "  ");
-        baseBind.toolbar.setNavigationOnClickListener(view -> getActivity().finish());
-        baseBind.download.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (illust.isGif()) {
-                    GifCreate.createGif(illust);
+        baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
+        baseBind.download.setOnClickListener(v -> {
+            if (illust.isGif()) {
+                GifCreate.createGif(illust);
+            } else {
+                if (illust.getPage_count() == 1) {
+                    IllustDownload.downloadIllust(mActivity, illust);
                 } else {
-                    if (illust.getPage_count() == 1) {
-                        IllustDownload.downloadIllust(mActivity, illust);
-                    } else {
-                        IllustDownload.downloadAllIllust(mActivity, illust);
-                    }
+                    IllustDownload.downloadAllIllust(mActivity, illust);
                 }
             }
         });
@@ -253,39 +269,6 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
                 return true;
             }
         });
-
-        /**
-         * 设置一个空白的imageview作为头部，作为占位,
-         * 这样原图就会刚好在toolbar 下方，不会被toolbar遮住
-         */
-
-
-//        ViewGroup.LayoutParams toolbarHead = baseBind.toolbarHead.getLayoutParams();
-//        toolbarHead.height = Shaft.statusHeight;
-//        baseBind.toolbarHead.setLayoutParams(toolbarHead);
-
-
-        Configuration mConfiguration = this.getResources().getConfiguration(); //获取设置的配置信息
-        int ori = mConfiguration.orientation; //获取屏幕方向
-        if (ori == Configuration.ORIENTATION_LANDSCAPE) {
-            //横屏
-            Common.showLog(illust.getTitle() + "screen 横屏");
-
-            ViewGroup.LayoutParams headParams = baseBind.head.getLayoutParams();
-            headParams.height = Shaft.statusHeight * 3 / 5 + Shaft.toolbarHeight;
-            baseBind.head.setLayoutParams(headParams);
-
-
-        } else if (ori == Configuration.ORIENTATION_PORTRAIT) {
-            //竖屏
-            ViewGroup.LayoutParams headParams = baseBind.head.getLayoutParams();
-            headParams.height = Shaft.statusHeight + Shaft.toolbarHeight - DensityUtil.dp2px(3.0f);
-            baseBind.head.setLayoutParams(headParams);
-
-            baseBind.toolbar.setPadding(0, Shaft.statusHeight, 0, 0);
-            Common.showLog(illust.getTitle() + "screen 竖屏");
-        }
-
 
         Glide.with(mContext)
                 .load(GlideUtil.getMediumImg(illust.getUser().getProfile_image_urls().getMedium()))
@@ -422,7 +405,23 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
                 }
             });
         }
-        loadImage();
+        baseBind.seekbar.setMax(100);
+        baseBind.seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                //parentView.setTranslationX(DensityUtil.dp2px((float) progress));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
     }
 
     @Override

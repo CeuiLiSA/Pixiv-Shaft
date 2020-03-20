@@ -13,11 +13,12 @@ import ceui.lisa.databinding.RecyUserEventBinding;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.GlideUtil;
 
-public class EAdapter extends BaseAdapter<IllustsBean, RecyUserEventBinding> {
+//你所关注用户的动态
+public class EventAdapter extends BaseAdapter<IllustsBean, RecyUserEventBinding> {
 
     private int imageSize;
 
-    public EAdapter(List<IllustsBean> targetList, Context context) {
+    public EventAdapter(List<IllustsBean> targetList, Context context) {
         super(targetList, context);
         imageSize = mContext.getResources().getDisplayMetrics().widthPixels;
     }

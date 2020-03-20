@@ -12,6 +12,8 @@ import com.blankj.utilcode.util.BarUtils;
 import ceui.lisa.R;
 import ceui.lisa.databinding.ActivityFragmentBinding;
 import ceui.lisa.fragments.FragmentAboutApp;
+import ceui.lisa.fragments.FragmentMultiDownld;
+import ceui.lisa.fragments.FragmentSB;
 import ceui.lisa.fragments.FragmentUserInfo;
 import ceui.lisa.fragments.FragmentBookedTag;
 import ceui.lisa.fragments.FragmentComment;
@@ -30,7 +32,6 @@ import ceui.lisa.fragments.FragmentLikeNovel;
 import ceui.lisa.fragments.FragmentLive;
 import ceui.lisa.fragments.FragmentLocalUsers;
 import ceui.lisa.fragments.FragmentM;
-import ceui.lisa.fragments.FragmentMultiDownload;
 import ceui.lisa.fragments.FragmentNew;
 import ceui.lisa.fragments.FragmentNiceFriend;
 import ceui.lisa.fragments.FragmentNovelHolder;
@@ -42,7 +43,6 @@ import ceui.lisa.fragments.FragmentRelatedIllust;
 import ceui.lisa.fragments.FragmentSearch;
 import ceui.lisa.fragments.FragmentSearchResult;
 import ceui.lisa.fragments.FragmentSearchUser;
-import ceui.lisa.fragments.FragmentSelectBookTag;
 import ceui.lisa.fragments.FragmentSettings;
 import ceui.lisa.fragments.FragmentUserIllust;
 import ceui.lisa.fragments.FragmentUserManga;
@@ -114,12 +114,12 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                 }
                 case "按标签收藏": {
                     int id = intent.getIntExtra(Params.ILLUST_ID, 0);
-                    return FragmentSelectBookTag.newInstance(id);
+                    return FragmentSB.newInstance(id);
                 }
                 case "关于软件":
                     return new FragmentAboutApp();
                 case "批量下载":
-                    return new FragmentMultiDownload();
+                    return new FragmentMultiDownld();
                 case "画廊":
                     return new FragmentWalkThrough();
                 case "License":

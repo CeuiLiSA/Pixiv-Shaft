@@ -30,7 +30,6 @@ import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.Params;
 
 
-
 public class FragmentHistory extends LocalListFragment<FragmentBaseListBinding,
         IllustHistoryEntity, RecyViewHistoryBinding> {
 

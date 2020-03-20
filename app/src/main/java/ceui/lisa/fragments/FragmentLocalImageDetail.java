@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.view.View;
 
 import com.bumptech.glide.Glide;
-import com.github.chrisbanes.photoview.PhotoView;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.FragmentImageDetailBinding;
