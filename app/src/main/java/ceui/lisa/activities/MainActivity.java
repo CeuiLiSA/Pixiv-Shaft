@@ -227,6 +227,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                         @Override
                         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                             Shaft.sSettings.setReverseDialogNeverShowAgain(isChecked);
+                            Local.setSettings(Shaft.sSettings);
                         }
                     });
                     new AlertDialog.Builder(MainActivity.this)

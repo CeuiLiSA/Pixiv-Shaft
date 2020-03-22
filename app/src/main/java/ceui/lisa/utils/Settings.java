@@ -30,6 +30,9 @@ public class Settings {
     //WEB下载
     public static final String WEB_DOWNLOAD_PATH = PathUtils.getExternalPicturesPath() + "/ShaftWeb";
 
+    public static boolean stringLooksLikeOldFileNameType(String type) {
+        return type.startsWith("title_123456789") || type.startsWith("123456789_title");
+    }
 
     //瀑布流List点击动画
     private boolean mainListAnimate = true;
@@ -76,6 +79,8 @@ public class Settings {
     private String webDownloadPath = "";
 
     private boolean reverseDialogNeverShowAgain = false;
+
+    private boolean usingNewFileNameType = false;
 
     public String getAppLanguage() {
         if(!TextUtils.isEmpty(appLanguage)){
@@ -287,5 +292,13 @@ public class Settings {
 
     public void setReverseDialogNeverShowAgain(boolean reverseDialogNeverShowAgain) {
         this.reverseDialogNeverShowAgain = reverseDialogNeverShowAgain;
+    }
+
+    public boolean isUsingNewFileNameType() {
+        return usingNewFileNameType;
+    }
+
+    public void setUsingNewFileNameType(boolean usingNewFileNameType) {
+        this.usingNewFileNameType = usingNewFileNameType;
     }
 }
