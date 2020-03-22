@@ -62,8 +62,17 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
         baseBind.loginOut.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Common.logOut(mContext);
-                mActivity.finish();
+                new AlertDialog.Builder(mContext)
+                        .setTitle(getString(R.string.login_out) + "?")
+                        .setPositiveButton(R.string.login_out, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Common.logOut(mContext);
+                                mActivity.finish();
+                            }
+                        })
+                        .setNegativeButton(android.R.string.cancel, null)
+                        .show();
             }
         });
 
