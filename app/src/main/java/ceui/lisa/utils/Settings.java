@@ -75,6 +75,8 @@ public class Settings {
 
     private String webDownloadPath = "";
 
+    private boolean reverseDialogNeverShowAgain = false;
+
     public String getAppLanguage() {
         if(!TextUtils.isEmpty(appLanguage)){
             return appLanguage;
@@ -277,5 +279,13 @@ public class Settings {
 
     public void setShowPixivDialog(boolean showPixivDialog) {
         this.showPixivDialog = showPixivDialog;
+    }
+
+    public boolean isReverseDialogNeverShowAgain() {
+        return reverseDialogNeverShowAgain;
+    }
+
+    public void setReverseDialogNeverShowAgain(boolean reverseDialogNeverShowAgain) {
+        this.reverseDialogNeverShowAgain = reverseDialogNeverShowAgain;
     }
 }
