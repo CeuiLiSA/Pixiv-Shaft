@@ -164,132 +164,164 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
         baseBind.refreshLayout.setEnableLoadMore(true);
         baseBind.refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));
         baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
-        baseBind.toolbar.inflateMenu(R.menu.share);
-        baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem menuItem) {
-                if (menuItem.getItemId() == R.id.action_share) {
-                    new ShareIllust(mContext, illust) {
-                        @Override
-                        public void onPrepare() {
-
-                        }
-
-                        @Override
-                        public void onExecuteSuccess(Void aVoid) {
-
-                        }
-
-                        @Override
-                        public void onExecuteFail(Exception e) {
-
-                        }
-                    }.execute();
-                    return true;
-                } else if (menuItem.getItemId() == R.id.action_dislike) {
-                    MuteDialog muteDialog = MuteDialog.newInstance(illust);
-                    muteDialog.show(getChildFragmentManager(), "MuteDialog");
-                } else if (menuItem.getItemId() == R.id.action_preview) {
-                    Intent intent = new Intent(mContext, VActivity.class);
-                    intent.putExtra("position", index);
-                    mContext.startActivity(intent);
-                }
-                return false;
-            }
-        });
         baseBind.toolbar.setTitle(illust.getTitle() + "  ");
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
-        baseBind.download.setOnClickListener(v -> {
-            if (illust.isGif()) {
-                GifCreate.createGif(illust);
-            } else {
-                if (illust.getPage_count() == 1) {
-                    IllustDownload.downloadIllust(mActivity, illust);
-                } else {
-                    IllustDownload.downloadAllIllust(mActivity, illust);
+
+        if (illust != null && illust.getId() > 0) {
+            baseBind.toolbar.inflateMenu(R.menu.share);
+            baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(MenuItem menuItem) {
+                    if (menuItem.getItemId() == R.id.action_share) {
+                        new ShareIllust(mContext, illust) {
+                            @Override
+                            public void onPrepare() {
+
+                            }
+
+                            @Override
+                            public void onExecuteSuccess(Void aVoid) {
+
+                            }
+
+                            @Override
+                            public void onExecuteFail(Exception e) {
+
+                            }
+                        }.execute();
+                        return true;
+                    } else if (menuItem.getItemId() == R.id.action_dislike) {
+                        MuteDialog muteDialog = MuteDialog.newInstance(illust);
+                        muteDialog.show(getChildFragmentManager(), "MuteDialog");
+                    } else if (menuItem.getItemId() == R.id.action_preview) {
+                        Intent intent = new Intent(mContext, VActivity.class);
+                        intent.putExtra("position", index);
+                        mContext.startActivity(intent);
+                    }
+                    return false;
                 }
-            }
-        });
-        File file = FileCreator.createIllustFile(illust);
-        if (file.exists()) {
-            baseBind.download.setImageResource(R.drawable.ic_has_download);
-        }
-        baseBind.userName.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                Common.copy(mContext, String.valueOf(illust.getUser().getName()));
-                return true;
-            }
-        });
-        baseBind.related.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关作品");
-                intent.putExtra(Params.ILLUST_ID, illust.getId());
-                intent.putExtra(Params.ILLUST_TITLE, illust.getTitle());
-                startActivity(intent);
-            }
-        });
-        baseBind.comment.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关评论");
-                intent.putExtra(Params.ILLUST_ID, illust.getId());
-                intent.putExtra(Params.ILLUST_TITLE, illust.getTitle());
-                startActivity(intent);
-            }
-        });
-        if (illust.isIs_bookmarked()) {
-            baseBind.postLike.setImageResource(R.drawable.ic_favorite_accent_24dp);
-        } else {
-            baseBind.postLike.setImageResource(R.drawable.ic_favorite_black_24dp);
-        }
-        baseBind.postLike.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (illust.isIs_bookmarked()) {
-                    baseBind.postLike.setImageResource(R.drawable.ic_favorite_black_24dp);
+            });
+
+            baseBind.download.setOnClickListener(v -> {
+                if (illust.isGif()) {
+                    GifCreate.createGif(illust);
                 } else {
-                    baseBind.postLike.setImageResource(R.drawable.ic_favorite_accent_24dp);
+                    if (illust.getPage_count() == 1) {
+                        IllustDownload.downloadIllust(mActivity, illust);
+                    } else {
+                        IllustDownload.downloadAllIllust(mActivity, illust);
+                    }
                 }
-                PixivOperate.postLike(illust, sUserModel, FragmentLikeIllust.TYPE_PUBLUC);
+            });
+            File file = FileCreator.createIllustFile(illust);
+            if (file.exists()) {
+                baseBind.download.setImageResource(R.drawable.ic_has_download);
             }
-        });
-        baseBind.postLike.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                if (!illust.isIs_bookmarked()) {
+            baseBind.userName.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    Common.copy(mContext, String.valueOf(illust.getUser().getName()));
+                    return true;
+                }
+            });
+            baseBind.related.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
                     Intent intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关作品");
                     intent.putExtra(Params.ILLUST_ID, illust.getId());
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏");
+                    intent.putExtra(Params.ILLUST_TITLE, illust.getTitle());
                     startActivity(intent);
                 }
-                return true;
+            });
+            baseBind.comment.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关评论");
+                    intent.putExtra(Params.ILLUST_ID, illust.getId());
+                    intent.putExtra(Params.ILLUST_TITLE, illust.getTitle());
+                    startActivity(intent);
+                }
+            });
+            if (illust.isIs_bookmarked()) {
+                baseBind.postLike.setImageResource(R.drawable.ic_favorite_accent_24dp);
+            } else {
+                baseBind.postLike.setImageResource(R.drawable.ic_favorite_black_24dp);
             }
-        });
+            baseBind.postLike.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (illust.isIs_bookmarked()) {
+                        baseBind.postLike.setImageResource(R.drawable.ic_favorite_black_24dp);
+                    } else {
+                        baseBind.postLike.setImageResource(R.drawable.ic_favorite_accent_24dp);
+                    }
+                    PixivOperate.postLike(illust, sUserModel, FragmentLikeIllust.TYPE_PUBLUC);
+                }
+            });
+            baseBind.postLike.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    if (!illust.isIs_bookmarked()) {
+                        Intent intent = new Intent(mContext, TemplateActivity.class);
+                        intent.putExtra(Params.ILLUST_ID, illust.getId());
+                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏");
+                        startActivity(intent);
+                    }
+                    return true;
+                }
+            });
+            baseBind.userHead.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(mContext, UActivity.class);
+                    intent.putExtra(Params.USER_ID, illust.getUser().getId());
+                    startActivity(intent);
+                }
+            });
+            baseBind.userName.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(mContext, UActivity.class);
+                    intent.putExtra(Params.USER_ID, illust.getUser().getId());
+                    startActivity(intent);
+                }
+            });
+
+            baseBind.follow.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (illust.getUser().isIs_followed()) {
+                        baseBind.follow.setText("+ 关注");
+                        PixivOperate.postUnFollowUser(illust.getUser().getId());
+                        illust.getUser().setIs_followed(false);
+                    } else {
+                        baseBind.follow.setText("取消关注");
+                        PixivOperate.postFollowUser(illust.getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC);
+                        illust.getUser().setIs_followed(true);
+                    }
+                }
+            });
+
+            baseBind.follow.setOnLongClickListener(v1 -> {
+                if (illust.getUser().isIs_followed()) {
+
+                } else {
+                    baseBind.follow.setText("取消关注");
+                    illust.getUser().setIs_followed(true);
+                    PixivOperate.postFollowUser(illust.getUser().getId(), FragmentLikeIllust.TYPE_PRIVATE);
+                }
+                return true;
+            });
+        }
 
         Glide.with(mContext)
                 .load(GlideUtil.getMediumImg(illust.getUser().getProfile_image_urls().getMedium()))
                 .into(baseBind.userHead);
-        baseBind.userHead.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(mContext, UActivity.class);
-                intent.putExtra(Params.USER_ID, illust.getUser().getId());
-                startActivity(intent);
-            }
-        });
+
         baseBind.userName.setText(illust.getUser().getName());
-        baseBind.userName.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(mContext, UActivity.class);
-                intent.putExtra(Params.USER_ID, illust.getUser().getId());
-                startActivity(intent);
-            }
-        });
+
         SpannableString sizeString = new SpannableString(String.format("尺寸：%s",
                 illust.getSize()));
         sizeString.setSpan(new ForegroundColorSpan(mContext.getResources().getColor(R.color.colorPrimary)),
@@ -334,31 +366,6 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
         }
 
 
-        baseBind.follow.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (illust.getUser().isIs_followed()) {
-                    baseBind.follow.setText("+ 关注");
-                    PixivOperate.postUnFollowUser(illust.getUser().getId());
-                    illust.getUser().setIs_followed(false);
-                } else {
-                    baseBind.follow.setText("取消关注");
-                    PixivOperate.postFollowUser(illust.getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC);
-                    illust.getUser().setIs_followed(true);
-                }
-            }
-        });
-
-        baseBind.follow.setOnLongClickListener(v1 -> {
-            if (illust.getUser().isIs_followed()) {
-
-            } else {
-                baseBind.follow.setText("取消关注");
-                illust.getUser().setIs_followed(true);
-                PixivOperate.postFollowUser(illust.getUser().getId(), FragmentLikeIllust.TYPE_PRIVATE);
-            }
-            return true;
-        });
         SpannableString userString = new SpannableString(String.format("用户ID：%s",
                 String.valueOf(illust.getUser().getId())));
         userString.setSpan(new ForegroundColorSpan(mContext.getResources().getColor(R.color.colorPrimary)),
@@ -405,23 +412,6 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
                 }
             });
         }
-        baseBind.seekbar.setMax(100);
-        baseBind.seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                //parentView.setTranslationX(DensityUtil.dp2px((float) progress));
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
-        });
     }
 
     @Override

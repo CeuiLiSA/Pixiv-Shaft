@@ -50,6 +50,7 @@ import ceui.lisa.fragments.FragmentUserNovel;
 import ceui.lisa.fragments.FragmentWalkThrough;
 import ceui.lisa.fragments.FragmentWebView;
 import ceui.lisa.fragments.FragmentWhoFollowThisUser;
+import ceui.lisa.models.NovelBean;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseResult;
@@ -168,7 +169,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                     return FragmentUserNovel.newInstance(intent.getIntExtra(Params.USER_ID, 0),
                             true);
                 case "小说详情":
-                    return FragmentNovelHolder.newInstance(intent.getIntExtra(Params.INDEX, 0));
+                    return FragmentNovelHolder.newInstance((NovelBean) intent.getSerializableExtra(Params.CONTENT));
                 case "图片详情":
                     return FragmentImageDetail.newInstance(intent.getStringExtra(Params.URL));
                 case "绑定邮箱":

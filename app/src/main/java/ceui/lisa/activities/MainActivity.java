@@ -14,6 +14,7 @@ import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
@@ -151,8 +152,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     private void initFragment() {
         baseFragments = new BaseBindFragment[]{
                 new FragmentLeft(),
-                new FragmentCenter(),
-                //new FragmentCT(),
+                Dev.isDev ? new FragmentCT() : new FragmentCenter(),
                 new FragmentRight()
         };
         baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
