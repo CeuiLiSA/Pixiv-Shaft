@@ -36,9 +36,9 @@ public class FragmentNovelHolder extends BaseBindFragment<FragmentNovelHolderBin
     private boolean isOpen = false;
     private NovelBean mNovelBean;
 
-    public static FragmentNovelHolder newInstance(int index) {
+    public static FragmentNovelHolder newInstance(NovelBean novelBean) {
         Bundle args = new Bundle();
-        args.putInt(Params.INDEX, index);
+        args.putSerializable(Params.CONTENT, novelBean);
         FragmentNovelHolder fragment = new FragmentNovelHolder();
         fragment.setArguments(args);
         return fragment;
@@ -51,8 +51,8 @@ public class FragmentNovelHolder extends BaseBindFragment<FragmentNovelHolderBin
 
     @Override
     public void initBundle(Bundle bundle) {
-        int index = bundle.getInt(Params.INDEX);
-        mNovelBean = DataChannel.get().getNovelList().get(index);
+        mNovelBean = (NovelBean) bundle.getSerializable(Params.CONTENT);
+        PixivOperate.insertNovelViewHistory(mNovelBean);
     }
 
     @Override

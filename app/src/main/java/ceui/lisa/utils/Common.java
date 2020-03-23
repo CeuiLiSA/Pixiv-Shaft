@@ -218,13 +218,48 @@ public class Common {
 
     public static List<MenuItem> getMenuList() {
         List<MenuItem> itemList = new ArrayList<>();
-        itemList.add(new MenuItem("漫画", 0));
-        itemList.add(new MenuItem("小说", 0));
-        itemList.add(new MenuItem("最新", 0));
-        itemList.add(new MenuItem("特辑", 0));
-        itemList.add(new MenuItem("画廊", 0));
-        itemList.add(new MenuItem("一言", 0));
-        itemList.add(new MenuItem("以图搜源", 0));
+        itemList.add(new MenuItem("漫画", R.mipmap.main_manga, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        }));
+        itemList.add(new MenuItem("小说", R.mipmap.main_novel, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        }));
+        itemList.add(new MenuItem("最新", 0, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        }));
+        itemList.add(new MenuItem("特辑", 0, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        }));
+        itemList.add(new MenuItem("画廊", 0, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        }));
+        itemList.add(new MenuItem("一言", 0, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        }));
+        itemList.add(new MenuItem("以图搜源", 0, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        }));
         return itemList;
     }
 }

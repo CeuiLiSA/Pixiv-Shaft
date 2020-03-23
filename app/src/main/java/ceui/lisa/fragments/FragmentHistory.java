@@ -80,19 +80,22 @@ public class FragmentHistory extends LocalListFragment<FragmentBaseListBinding,
     @Override
     public void onFirstLoaded(List<IllustHistoryEntity> illustHistoryEntities) {
         for (int i = 0; i < illustHistoryEntities.size(); i++) {
-            IllustsBean illustsBean = Shaft.sGson.fromJson(
-                    illustHistoryEntities.get(i).getIllustJson(), IllustsBean.class);
-            all.add(illustsBean);
+            if (illustHistoryEntities.get(i).getType() == 0) {
+                IllustsBean illustsBean = Shaft.sGson.fromJson(
+                        illustHistoryEntities.get(i).getIllustJson(), IllustsBean.class);
+                all.add(illustsBean);
+            }
         }
     }
 
     @Override
     public void onNextLoaded(List<IllustHistoryEntity> illustHistoryEntities) {
         for (int i = 0; i < illustHistoryEntities.size(); i++) {
-            IllustsBean illustsBean = Shaft.sGson.fromJson(
-                    illustHistoryEntities.get(i).getIllustJson(), IllustsBean.class);
-            Common.showLog(className + "add " + i + illustsBean.getTitle());
-            all.add(illustsBean);
+            if (illustHistoryEntities.get(i).getType() == 0) {
+                IllustsBean illustsBean = Shaft.sGson.fromJson(
+                        illustHistoryEntities.get(i).getIllustJson(), IllustsBean.class);
+                all.add(illustsBean);
+            }
         }
     }
 

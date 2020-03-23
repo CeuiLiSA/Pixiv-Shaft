@@ -8,7 +8,7 @@
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
-        android:layout_height="140dp"
+        android:layout_height="150dp"
         android:clickable="true"
         app:cardBackgroundColor="@color/white_to_deep_dark"
         android:foreground="?attr/selectableItemBackground"

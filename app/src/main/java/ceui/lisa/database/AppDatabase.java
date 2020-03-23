@@ -16,7 +16,7 @@ import androidx.room.RoomDatabase;
                 ImageEntity.class, //用不到
                 TagMuteEntity.class //记录用户屏蔽的标签
         },
-        version = 11,
+        version = 12,
         exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {

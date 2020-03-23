@@ -8,6 +8,7 @@ import android.view.animation.Animation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.PagerSnapHelper;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -90,9 +91,8 @@ public class FragmentRecmdNovel extends NetListFragment<FragmentRecmdBinding,
         adapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                DataChannel.get().setNovelList(allItems);
                 Intent intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(Params.INDEX, position);
+                intent.putExtra(Params.CONTENT, ((Serializable) ranking.get(position)));
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情");
                 intent.putExtra("hideStatusBar", true);
                 startActivity(intent);

@@ -3,12 +3,15 @@ package ceui.lisa.adapters;
 import android.content.Context;
 import android.view.ViewGroup;
 
+import com.bumptech.glide.Glide;
+
 import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.RecyMenuBinding;
 import ceui.lisa.model.MenuItem;
 import ceui.lisa.utils.DensityUtil;
+import ceui.lisa.utils.GlideUtil;
 
 public class MenuAdapter extends BaseAdapter<MenuItem, RecyMenuBinding> {
 
@@ -33,5 +36,11 @@ public class MenuAdapter extends BaseAdapter<MenuItem, RecyMenuBinding> {
         bindView.baseBind.rootCard.setLayoutParams(params);
 
         bindView.baseBind.itemName.setText(target.getName());
+        if (target.getImageRes() != 0) {
+            Glide.with(mContext).load(target.getImageRes()).into(bindView.baseBind.itemImage);
+        }
+        if (target.getListener() != null) {
+            bindView.itemView.setOnClickListener(target.getListener());
+        }
     }
 }

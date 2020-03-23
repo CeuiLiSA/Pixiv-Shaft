@@ -10,6 +10,7 @@ public final class IllustHistoryEntity {
     private int illustID;
     private String illustJson;
     private long time;
+    private int type;
 
     public long getTime() {
         return time;
@@ -35,12 +36,21 @@ public final class IllustHistoryEntity {
         this.illustJson = illustJson;
     }
 
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
+    }
+
     @Override
     public String toString() {
         return "IllustHistoryEntity{" +
                 "illustID=" + illustID +
                 ", illustJson='" + illustJson + '\'' +
                 ", time=" + time +
+                ", type=" + type +
                 '}';
     }
 }
