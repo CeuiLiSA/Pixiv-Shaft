@@ -140,4 +140,7 @@
 	<string name="r_eighteen">R</string>
 	<string name="ranking_list">Ranking List</string>
 	<string name="recmd_for_you">Recommend for you</string>
+    <string name="save">save</string>
+	<string name="shoud_not_be_empty">shoud not be empty</string>
+	<string name="never_show_again">never show again</string>
 </resources>

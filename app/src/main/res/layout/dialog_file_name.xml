@@ -15,14 +15,17 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="格式化文件名\n&lt;title&gt; 作品标题\n&lt;id&gt; 作品id\n&lt;p&gt; 插画第几p\n&lt;author&gt; 作者名\n&lt;width&gt; 宽\n&lt;height&gt; 高\n&lt;ts&gt; 保存时毫秒时间戳\n- / , 被替换为 _\n其余不会被替换"
+            android:textColor="@color/dark_text"
             android:textIsSelectable="true" />
 
-        <com.rengwuxian.materialedittext.MaterialEditText
+        <EditText
             android:id="@+id/file_name_type"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
-            android:hint="@string/file_name_type" />
+            android:hint="@string/file_name_type"
+            android:textColor="@color/dark_text"
+            android:textColorHint="@color/hint_text" />
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -38,7 +41,8 @@
                 android:layout_marginEnd="@dimen/sixteen_dp"
                 android:layout_marginBottom="@dimen/eight_dp"
                 android:text="@string/save"
-                android:textAllCaps="true" />
+                android:textAllCaps="true"
+                android:textColor="@color/dark_text" />
 
             <Button
                 android:id="@+id/cancel"
@@ -48,7 +52,8 @@
                 android:layout_marginEnd="@dimen/eight_dp"
                 android:layout_toStartOf="@id/sure"
                 android:text="@android:string/cancel"
-                android:textAllCaps="true" />
+                android:textAllCaps="true"
+                android:textColor="@color/dark_text" />
 
         </RelativeLayout>
 

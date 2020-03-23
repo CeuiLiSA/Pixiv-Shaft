@@ -153,6 +153,7 @@
     <string name="recmd_for_you">为你推荐</string>
     <string name="email_address">邮箱地址</string>
     <string name="operate_success">操作成功</string>
-    <string name="save">save</string>
+    <string name="save">保存</string>
     <string name="shoud_not_be_empty">不应为空</string>
+    <string name="never_show_again">不再显示</string>
 </resources>
