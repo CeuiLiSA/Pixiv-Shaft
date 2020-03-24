@@ -30,6 +30,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
+import com.blankj.utilcode.util.BarUtils;
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
@@ -72,7 +73,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     private TextView username;
     private TextView user_email;
     private long mExitTime;
-    private BaseBindFragment[] baseFragments = null;
+    private BaseBindFragment<?>[] baseFragments = null;
 
     @Override
     protected int initLayout() {
@@ -140,6 +141,11 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             @Override
             public void onPageSelected(int i) {
                 bottomNavigationView.getMenu().getItem(i).setChecked(true);
+                if (i == 1) {
+                    BarUtils.setStatusBarLightMode(mActivity, true);
+                } else {
+                    BarUtils.setStatusBarLightMode(mActivity, false);
+                }
             }
 
             @Override
