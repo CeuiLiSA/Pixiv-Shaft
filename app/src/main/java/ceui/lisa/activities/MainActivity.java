@@ -152,7 +152,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     private void initFragment() {
         baseFragments = new BaseBindFragment[]{
                 new FragmentLeft(),
-                Dev.isDev ? new FragmentCT() : new FragmentCenter(),
+                (Dev.isDev && false) ? new FragmentCT() : new FragmentCenter(),
                 new FragmentRight()
         };
         baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {

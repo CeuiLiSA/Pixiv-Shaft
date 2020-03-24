@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 
+import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.PagerSnapHelper;
@@ -54,7 +55,7 @@ public class FragmentLikeNovelHorizontal extends BaseBindFragment<FragmentLikeIl
     @Override
     public void initBundle(Bundle bundle) {
         type = bundle.getInt(Params.DATA_TYPE);
-        UserViewModel userViewModel = ViewModelProviders.of(mActivity).get(UserViewModel.class);
+        UserViewModel userViewModel = new ViewModelProvider(mActivity).get(UserViewModel.class);
         mUserDetailResponse = userViewModel.getUser().getValue();
     }
 

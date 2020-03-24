@@ -54,17 +54,7 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
         if (mAdapter != null) {
             mRecyclerView.setAdapter(mAdapter);
         }
-        if (mRecyclerView.getLayoutManager() instanceof StaggeredGridLayoutManager) {
-            //do nothing
-        } else {
-            //设置item动画
-            BaseItemAnimator baseItemAnimator = new LandingAnimator();
-            baseItemAnimator.setAddDuration(animateDuration);
-            baseItemAnimator.setRemoveDuration(animateDuration);
-            baseItemAnimator.setMoveDuration(animateDuration);
-            baseItemAnimator.setChangeDuration(animateDuration);
-            mRecyclerView.setItemAnimator(baseItemAnimator);
-        }
+
         //进页面主动刷新
         if (autoRefresh()) {
             mRefreshLayout.autoRefresh();
@@ -82,18 +72,14 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
         mRecyclerView = view.findViewById(R.id.recyclerView);
         initRecyclerView();
 
+        mRecyclerView.setItemAnimator(animation());
 
         mRefreshLayout = view.findViewById(R.id.refreshLayout);
-
         noData = view.findViewById(R.id.no_data);
-        noData.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                noData.setVisibility(View.INVISIBLE);
-                mRefreshLayout.autoRefresh();
-            }
+        noData.setOnClickListener(v -> {
+            noData.setVisibility(View.INVISIBLE);
+            mRefreshLayout.autoRefresh();
         });
-
         mBaseCtrl = present();
         mRefreshLayout.setRefreshHeader(mBaseCtrl.enableRefresh() ?
                 mBaseCtrl.getHeader(mContext) : new FalsifyHeader(mContext));
@@ -161,9 +147,28 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
     public void clear() {
         if (mAdapter != null) {
             mAdapter.clear();
-            //mRecyclerView.setVisibility(View.VISIBLE);
-            //noData.setVisibility(View.INVISIBLE);
-            mRefreshLayout.autoRefresh();
+            if (mRefreshLayout != null) {
+                mRefreshLayout.autoRefresh();
+            }
+        }
+    }
+
+    public boolean isVertical() {
+        return true;
+    }
+
+    public BaseItemAnimator animation() {
+        if (mRecyclerView.getLayoutManager() instanceof StaggeredGridLayoutManager) {
+            //do nothing
+            return null;
+        } else {
+            //设置item动画
+            BaseItemAnimator baseItemAnimator = new LandingAnimator();
+            baseItemAnimator.setAddDuration(animateDuration);
+            baseItemAnimator.setRemoveDuration(animateDuration);
+            baseItemAnimator.setMoveDuration(animateDuration);
+            baseItemAnimator.setChangeDuration(animateDuration);
+            return baseItemAnimator;
         }
     }
 }

@@ -21,7 +21,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 
-public abstract class NetControl<Response extends ListShow> extends BaseCtrl {
+public abstract class NetControl<Response extends ListShow<?>> extends BaseCtrl {
 
     private Observable<Response> mApi;
 
