@@ -17,20 +17,26 @@
             android:layout_height="match_parent">
 
 
-            <ceui.lisa.view.HeadZoomScrollView
+            <androidx.core.widget.NestedScrollView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
 
                 <LinearLayout
                     android:layout_width="match_parent"
+                    android:clipChildren="false"
                     android:orientation="vertical"
                     android:layout_height="match_parent">
 
                     <androidx.viewpager.widget.ViewPager
                         android:id="@+id/viewPager"
+                        android:layout_marginTop="45dp"
+                        android:layout_marginStart="36dp"
+                        android:layout_marginEnd="36dp"
+                        android:clipChildren="false"
+                        android:layout_marginBottom="@dimen/eight_dp"
                         android:layout_width="match_parent"
-                        android:layout_height="220dp">
+                        android:layout_height="146dp">
 
 
                     </androidx.viewpager.widget.ViewPager>
@@ -39,7 +45,7 @@
                     <FrameLayout
                         android:id="@+id/fragment_pivision"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
+                        android:layout_height="200dp">
 
                     </FrameLayout>
 
@@ -150,7 +156,7 @@
 
                 </LinearLayout>
 
-            </ceui.lisa.view.HeadZoomScrollView>
+            </androidx.core.widget.NestedScrollView>
         </com.scwang.smartrefresh.layout.SmartRefreshLayout>
     </RelativeLayout>
 </layout>

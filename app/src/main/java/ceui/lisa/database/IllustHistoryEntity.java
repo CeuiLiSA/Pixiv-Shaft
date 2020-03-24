@@ -10,7 +10,7 @@ public final class IllustHistoryEntity {
     private int illustID;
     private String illustJson;
     private long time;
-    private int type;
+    private int type; // 0插画， 1小说
 
     public long getTime() {
         return time;

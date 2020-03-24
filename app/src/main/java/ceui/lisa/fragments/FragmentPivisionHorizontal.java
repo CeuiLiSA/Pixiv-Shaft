@@ -6,52 +6,72 @@ import android.view.ViewGroup;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.github.ybq.android.spinkit.style.DoubleBounce;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateActivity;
-import ceui.lisa.adapters.PivisionHorizontalAdapter;
+import ceui.lisa.adapters.BaseAdapter;
+import ceui.lisa.adapters.PivisionHAdapter;
+import ceui.lisa.core.NetControl;
 import ceui.lisa.databinding.FragmentPivisionHorizontalBinding;
-import ceui.lisa.http.NullCtrl;
+import ceui.lisa.databinding.RecyArticalHorizonBinding;
 import ceui.lisa.http.Retro;
+import ceui.lisa.interfaces.BaseCtrl;
+import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListArticle;
 import ceui.lisa.models.SpotlightArticlesBean;
 import ceui.lisa.utils.DensityUtil;
+import ceui.lisa.utils.Params;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
+import io.reactivex.Observable;
+import jp.wasabeef.recyclerview.animators.BaseItemAnimator;
 import jp.wasabeef.recyclerview.animators.FadeInLeftAnimator;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-/**
- * Pivision 文章
- */
-public class FragmentPivisionHorizontal extends BaseBindFragment<FragmentPivisionHorizontalBinding> {
-
-    private List<SpotlightArticlesBean> allItems = new ArrayList<>();
-    private PivisionHorizontalAdapter mAdapter;
+public class FragmentPivisionHorizontal extends NetListFragment<FragmentPivisionHorizontalBinding,
+        ListArticle, SpotlightArticlesBean, RecyArticalHorizonBinding> {
 
     @Override
-    void initLayout() {
+    public BaseAdapter<SpotlightArticlesBean, RecyArticalHorizonBinding> adapter() {
+        return new PivisionHAdapter(allItems, mContext).setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(View v, int position, int viewType) {
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
+                intent.putExtra(Params.URL, allItems.get(position).getArticle_url());
+                intent.putExtra(Params.TITLE, getString(R.string.pixiv_special));
+                startActivity(intent);
+            }
+        });
+    }
+
+    @Override
+    protected void initLayout() {
         mLayoutID = R.layout.fragment_pivision_horizontal;
     }
 
     @Override
-    void initData() {
-        DoubleBounce doubleBounce = new DoubleBounce();
-        doubleBounce.setColor(getResources().getColor(R.color.white));
-        baseBind.progress.setIndeterminateDrawable(doubleBounce);
-        FadeInLeftAnimator landingAnimator = new FadeInLeftAnimator();
-        landingAnimator.setAddDuration(400L);
-        landingAnimator.setRemoveDuration(400L);
-        landingAnimator.setMoveDuration(400L);
-        landingAnimator.setChangeDuration(400L);
-        baseBind.recyclerView.setItemAnimator(landingAnimator);
+    public BaseCtrl present() {
+        return new NetControl<ListArticle>() {
+            @Override
+            public Observable<ListArticle> initApi() {
+                return Retro.getAppApi().getArticles(sUserModel.getResponse().getAccess_token(), "all");
+            }
+
+            @Override
+            public Observable<ListArticle> initNextApi() {
+                return null;
+            }
+        };
+    }
+
+    @Override
+    public boolean isVertical() {
+        return false;
+    }
+
+    @Override
+    public void initRecyclerView() {
         baseBind.recyclerView.addItemDecoration(new LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
         LinearLayoutManager manager = new LinearLayoutManager(mContext, LinearLayoutManager.HORIZONTAL, false);
         baseBind.recyclerView.setLayoutManager(manager);
@@ -63,28 +83,31 @@ public class FragmentPivisionHorizontal extends BaseBindFragment<FragmentPivisio
                 mContext.getResources()
                         .getDimensionPixelSize(R.dimen.sixteen_dp);
         baseBind.recyclerView.setLayoutParams(layoutParams);
-        mAdapter = new PivisionHorizontalAdapter(allItems, mContext);
-        baseBind.recyclerView.setAdapter(mAdapter);
-        baseBind.seeMore.setOnClickListener(view -> {
+    }
+
+    @Override
+    public void initView(View view) {
+        super.initView(view);
+        baseBind.seeMore.setOnClickListener(v -> {
             Intent intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "特辑");
             startActivity(intent);
         });
-        Retro.getAppApi().getArticles(sUserModel.getResponse().getAccess_token(), "all")
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new NullCtrl<ListArticle>() {
-                    @Override
-                    public void success(ListArticle listArticle) {
-                        allItems.clear();
-                        allItems.addAll(listArticle.getList());
-                        mAdapter.notifyItemRangeInserted(0, listArticle.getList().size());
-                    }
+    }
 
-                    @Override
-                    public void must(boolean isSuccess) {
-                        baseBind.progress.setVisibility(View.INVISIBLE);
-                    }
-                });
+    @Override
+    public BaseItemAnimator animation() {
+        FadeInLeftAnimator landingAnimator = new FadeInLeftAnimator();
+        landingAnimator.setAddDuration(animateDuration);
+        landingAnimator.setRemoveDuration(animateDuration);
+        landingAnimator.setMoveDuration(animateDuration);
+        landingAnimator.setChangeDuration(animateDuration);
+        return landingAnimator;
+    }
+
+    @Override
+    public void firstSuccess() {
+        mRefreshLayout.setEnableRefresh(false);
+        mRefreshLayout.setEnableLoadMore(false);
     }
 }

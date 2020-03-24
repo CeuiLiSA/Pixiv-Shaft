@@ -10,7 +10,9 @@ import android.widget.TextView;
 import com.qmuiteam.qmui.util.QMUIDisplayHelper;
 import com.qmuiteam.qmui.widget.popup.QMUIPopup;
 import com.qmuiteam.qmui.widget.popup.QMUIPopups;
+import com.scwang.smartrefresh.header.DeliveryHeader;
 import com.scwang.smartrefresh.layout.api.RefreshFooter;
+import com.scwang.smartrefresh.layout.api.RefreshHeader;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 
 import ceui.lisa.R;
@@ -56,6 +58,11 @@ public class FragmentP extends NetListFragment<FragmentBaseListBinding,
                 ClassicsFooter classicsFooter = new ClassicsFooter(context);
                 classicsFooter.setPrimaryColorId(R.color.white);
                 return classicsFooter;
+            }
+
+            @Override
+            public RefreshHeader getHeader(Context context) {
+                return new DeliveryHeader(context);
             }
         };
     }
