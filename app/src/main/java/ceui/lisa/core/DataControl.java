@@ -1,12 +1,13 @@
-package ceui.lisa.interfaces;
+package ceui.lisa.core;
 
 import android.content.Context;
 
 import com.scwang.smartrefresh.header.DeliveryHeader;
 import com.scwang.smartrefresh.layout.api.RefreshHeader;
-import com.scwang.smartrefresh.layout.header.ClassicsHeader;
 
-public abstract class DataControl<T> extends BaseCtrl{
+import ceui.lisa.core.BaseCtrl;
+
+public abstract class DataControl<T> extends BaseCtrl {
 
     public abstract T first();
 

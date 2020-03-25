@@ -14,7 +14,7 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapterWithHeadView;
 import ceui.lisa.core.NetControl;
-import ceui.lisa.core.TagFilter;
+import ceui.lisa.helper.TagFilter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustRecmdEntity;
 import ceui.lisa.databinding.FragmentRecmdFinalBinding;

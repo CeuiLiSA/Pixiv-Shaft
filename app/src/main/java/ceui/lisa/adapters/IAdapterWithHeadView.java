@@ -12,7 +12,6 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.core.RecmdHeader;
 import ceui.lisa.models.IllustsBean;
 
 public class IAdapterWithHeadView extends IAdapter {

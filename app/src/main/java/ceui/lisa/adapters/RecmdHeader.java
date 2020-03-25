@@ -1,4 +1,4 @@
-package ceui.lisa.core;
+package ceui.lisa.adapters;
 
 import android.content.Context;
 import android.content.Intent;

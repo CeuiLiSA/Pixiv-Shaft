@@ -13,8 +13,6 @@ public class DataChannel {
 
     private List<IllustsBean> downloadList = new ArrayList<>();
 
-    private List<NovelBean> novelList = new ArrayList<>();
-
     private DataChannel() {
     }
 
@@ -44,13 +42,5 @@ public class DataChannel {
 
     public void setDownloadList(List<IllustsBean> illustList) {
         this.downloadList = illustList;
-    }
-
-    public List<NovelBean> getNovelList() {
-        return novelList;
-    }
-
-    public void setNovelList(List<NovelBean> novelList) {
-        this.novelList = novelList;
     }
 }

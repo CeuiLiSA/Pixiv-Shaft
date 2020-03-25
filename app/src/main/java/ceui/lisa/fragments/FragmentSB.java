@@ -21,7 +21,7 @@ import ceui.lisa.databinding.RecySelectTagBinding;
 import ceui.lisa.dialogs.AddTagDialog;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
-import ceui.lisa.interfaces.BaseCtrl;
+import ceui.lisa.core.BaseCtrl;
 import ceui.lisa.model.ListBookmarkTag;
 import ceui.lisa.models.NullResponse;
 import ceui.lisa.models.TagsBean;

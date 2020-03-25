@@ -26,7 +26,6 @@ import ceui.lisa.fragments.FragmentH;
 import ceui.lisa.fragments.FragmentHistory;
 import ceui.lisa.fragments.FragmentImageDetail;
 import ceui.lisa.fragments.FragmentL;
-import ceui.lisa.fragments.FragmentLicense;
 import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.fragments.FragmentLikeNovel;
 import ceui.lisa.fragments.FragmentLive;
@@ -123,8 +122,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                     return new FragmentMultiDownld();
                 case "画廊":
                     return new FragmentWalkThrough();
-                case "License":
-                    return new FragmentLicense();
+//                case "License":
+//                    return new FragmentLicense();
                 case "正在关注":
                     return FragmentFollowUser.newInstance(
                             getIntent().getIntExtra(Params.USER_ID, 0),

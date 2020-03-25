@@ -3,25 +3,19 @@ package ceui.lisa.activities;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.view.View;
-import android.view.Window;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 import androidx.databinding.ViewDataBinding;
-
-import ceui.lisa.theme.ThemeHelper;
-import ceui.lisa.utils.Common;
-
-import static ceui.lisa.activities.Shaft.sSettings;
+import androidx.fragment.app.FragmentActivity;
 
 public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCompatActivity {
 
     protected Context mContext;
-    protected Activity mActivity;
+    protected FragmentActivity mActivity;
     protected int mLayoutID;
     protected Layout baseBind;
     protected String className = this.getClass().getSimpleName() + " ";

@@ -14,7 +14,7 @@ import ceui.lisa.core.NetControl;
 import ceui.lisa.databinding.FragmentPivisionHorizontalBinding;
 import ceui.lisa.databinding.RecyArticalHorizonBinding;
 import ceui.lisa.http.Retro;
-import ceui.lisa.interfaces.BaseCtrl;
+import ceui.lisa.core.BaseCtrl;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListArticle;
 import ceui.lisa.models.SpotlightArticlesBean;
