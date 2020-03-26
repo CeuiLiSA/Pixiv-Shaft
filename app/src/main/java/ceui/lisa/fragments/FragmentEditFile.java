@@ -12,6 +12,7 @@ import com.blankj.utilcode.util.UriUtils;
 import com.bumptech.glide.Glide;
 import com.zhihu.matisse.Matisse;
 import com.zhihu.matisse.MimeType;
+import com.zhihu.matisse.engine.impl.GlideEngine;
 import com.zhihu.matisse.engine.impl.PicassoEngine;
 
 import java.io.File;
@@ -67,7 +68,7 @@ public class FragmentEditFile extends BaseBindFragment<FragmentEditFileBinding> 
                             .maxSelectable(1) // 图片选择的最多数量
                             .restrictOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED)
                             .thumbnailScale(1.0f) // 缩略图的比例
-                            .imageEngine(new PicassoEngine()) // 使用的图片加载引擎
+                            .imageEngine(new GlideEngine()) // 使用的图片加载引擎
                             .forResult(Params.REQUEST_CODE_CHOOSE);
                 }
             });

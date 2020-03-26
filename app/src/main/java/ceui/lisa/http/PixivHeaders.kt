@@ -12,6 +12,7 @@ import java.util.*
  * thanks https://github.com/upbit/pixivpy/issues/83
  */
 class PixivHeaders {
+
     var XClientTime: String
     var XClientHash: String
 

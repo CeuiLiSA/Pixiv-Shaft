@@ -15,8 +15,4 @@ public interface RankTokenApi {
     @GET("/token")
     Observable<TempTokenResponse> getRankToken();
 
-
-    @Multipart
-    @POST("/upload")
-    Observable<String> uploadImage(@Part MultipartBody.Part file);
 }

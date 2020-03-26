@@ -12,7 +12,7 @@ import com.scwang.smartrefresh.layout.listener.OnRefreshListener;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.interfaces.DataControl;
+import ceui.lisa.core.DataControl;
 import ceui.lisa.utils.Common;
 
 public abstract class LocalListFragment<Layout extends ViewDataBinding, Item,

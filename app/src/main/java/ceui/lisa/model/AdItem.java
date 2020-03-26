@@ -1,14 +1,14 @@
-package ceui.lisa.core;
+package ceui.lisa.model;
 
 import java.io.Serializable;
 
-public class Sony implements Serializable {
+public class AdItem implements Serializable {
 
     private String title;
     private String link;
     private String imageUrl;
 
-    public Sony(String title, String link, String imageUrl) {
+    public AdItem(String title, String link, String imageUrl) {
         this.title = title;
         this.link = link;
         this.imageUrl = imageUrl;

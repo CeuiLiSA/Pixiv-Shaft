@@ -18,7 +18,7 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
-import ceui.lisa.interfaces.BaseCtrl;
+import ceui.lisa.core.BaseCtrl;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
 import jp.wasabeef.recyclerview.animators.BaseItemAnimator;

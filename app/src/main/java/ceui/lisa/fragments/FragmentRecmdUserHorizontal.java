@@ -13,7 +13,7 @@ import ceui.lisa.core.NetControl;
 import ceui.lisa.databinding.FragmentUserHorizontalBinding;
 import ceui.lisa.databinding.RecyUserPreviewHorizontalBinding;
 import ceui.lisa.http.Retro;
-import ceui.lisa.interfaces.BaseCtrl;
+import ceui.lisa.core.BaseCtrl;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListUser;
 import ceui.lisa.models.UserPreviewsBean;

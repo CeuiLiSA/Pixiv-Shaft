@@ -1,6 +1,5 @@
 package ceui.lisa.utils;
 
-import android.app.Activity;
 import android.text.TextUtils;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -8,7 +7,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.blankj.utilcode.util.PathUtils;
 
 import ceui.lisa.fragments.FragmentFilter;
-import ceui.lisa.theme.ThemeHelper;
+import ceui.lisa.helper.ThemeHelper;
 
 public class Settings {
 

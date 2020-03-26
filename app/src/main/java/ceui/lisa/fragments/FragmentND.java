@@ -8,8 +8,8 @@ import ceui.lisa.database.IllustTask;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyDownloadTaskBinding;
 import ceui.lisa.download.TaskQueue;
-import ceui.lisa.interfaces.BaseCtrl;
-import ceui.lisa.interfaces.DataControl;
+import ceui.lisa.core.BaseCtrl;
+import ceui.lisa.core.DataControl;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 

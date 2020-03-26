@@ -27,8 +27,8 @@ public class IllustDownload {
     public static final String MAP_KEY = "Referer";
     public static final String IMAGE_REFERER = "https://app-api.pixiv.net/";
 
-    public static void downloadIllust(Activity activity, IllustsBean illustsBean) {
-        checkPermission(activity, new Callback() {
+    public static void downloadIllust(FragmentActivity activity, IllustsBean illustsBean) {
+        checkPermission(activity, new Callback<Object>() {
             @Override
             public void doSomething(Object t) {
                 if (illustsBean == null) {
@@ -67,8 +67,8 @@ public class IllustDownload {
     }
 
 
-    public static void downloadIllust(Activity activity, IllustsBean illustsBean, int index) {
-        checkPermission(activity, new Callback() {
+    public static void downloadIllust(FragmentActivity activity, IllustsBean illustsBean, int index) {
+        checkPermission(activity, new Callback<Object>() {
             @Override
             public void doSomething(Object t) {
                 if (illustsBean == null) {
@@ -105,8 +105,8 @@ public class IllustDownload {
     }
 
 
-    public static void downloadAllIllust(Activity activity, IllustsBean illustsBean) {
-        checkPermission(activity, new Callback() {
+    public static void downloadAllIllust(FragmentActivity activity, IllustsBean illustsBean) {
+        checkPermission(activity, new Callback<Object>() {
             @Override
             public void doSomething(Object t) {
                 if (illustsBean == null) {
@@ -150,8 +150,8 @@ public class IllustDownload {
     }
 
 
-    public static void downloadAllIllust(Activity activity, List<IllustsBean> beans) {
-        checkPermission(activity, new Callback() {
+    public static void downloadAllIllust(FragmentActivity activity, List<IllustsBean> beans) {
+        checkPermission(activity, new Callback<Object>() {
             @Override
             public void doSomething(Object t) {
                 if (beans == null) {
@@ -233,8 +233,8 @@ public class IllustDownload {
         });
     }
 
-    public static void downloadGif(Activity activity, GifResponse response, IllustsBean allIllust, GifListener gifListener) {
-        checkPermission(activity, new Callback() {
+    public static void downloadGif(FragmentActivity activity, GifResponse response, IllustsBean allIllust, GifListener gifListener) {
+        checkPermission(activity, new Callback<Object>() {
             @Override
             public void doSomething(Object t) {
                 File file = FileCreator.createGifZipFile(allIllust);
@@ -257,10 +257,12 @@ public class IllustDownload {
         });
     }
 
-    private static void checkPermission(Activity mActivity, Callback callback) {
-        final RxPermissions rxPermissions = new RxPermissions((FragmentActivity) mActivity);
+    private static void checkPermission(FragmentActivity mActivity, Callback<?> callback) {
+        final RxPermissions rxPermissions = new RxPermissions(mActivity);
         Disposable disposable = rxPermissions
-                .requestEachCombined(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                .requestEachCombined(
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE
+                )
                 .subscribe(permission -> {
                     if (permission.granted) {
                         callback.doSomething(null);

@@ -34,9 +34,6 @@ import com.blankj.utilcode.util.BarUtils;
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
-import com.zhihu.matisse.Matisse;
-import com.zhihu.matisse.MimeType;
-import com.zhihu.matisse.engine.impl.PicassoEngine;
 
 import org.greenrobot.eventbus.EventBus;
 

@@ -13,6 +13,7 @@ import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -52,14 +53,14 @@ import io.reactivex.schedulers.Schedulers;
  */
 public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    private Activity mContext;
+    private FragmentActivity mContext;
     private OnItemClickListener mOnItemClickListener;
     private IllustsBean allIllust;
     private int imageSize = 0;
     private TagHolder gifHolder;
     private AnimationDrawable animationDrawable;
 
-    public IllustDetailAdapter(IllustsBean list, Activity context) {
+    public IllustDetailAdapter(IllustsBean list, FragmentActivity context) {
         mContext = context;
         allIllust = list;
         imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
