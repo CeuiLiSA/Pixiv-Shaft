@@ -70,7 +70,8 @@ public class FragmentRankIllust extends NetListFragment<FragmentBaseListBinding,
 
             @Override
             public Observable<ListIllust> initNextApi() {
-                return Retro.getAppApi().getNextIllust(sUserModel.getResponse().getAccess_token(), nextUrl);
+                return Retro.getAppApi().getNextIllust(sUserModel.getResponse().getAccess_token(),
+                        mModel.getNextUrl());
             }
         };
     }

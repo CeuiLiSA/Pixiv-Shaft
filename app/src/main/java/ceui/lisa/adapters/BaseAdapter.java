@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.databinding.DataBindingUtil;
 import androidx.databinding.ViewDataBinding;
 import androidx.recyclerview.widget.RecyclerView;
@@ -24,7 +25,7 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
     protected int mLayoutID = -1;
     protected OnItemClickListener mOnItemClickListener;
 
-    public BaseAdapter(List<Item> targetList, Context context) {
+    public BaseAdapter(@Nullable List<Item> targetList, Context context) {
         Common.showLog(getClass().getSimpleName() + " newInstance");
         this.allIllust = targetList;
         this.mContext = context;

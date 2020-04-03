@@ -44,7 +44,8 @@ public class FragmentRecmdNovel extends NetListFragment<FragmentRecmdBinding,
 
             @Override
             public Observable<ListNovel> initNextApi() {
-                return Retro.getAppApi().getNextNovel(Shaft.sUserModel.getResponse().getAccess_token(), nextUrl);
+                return Retro.getAppApi().getNextNovel(
+                        Shaft.sUserModel.getResponse().getAccess_token(), mModel.getNextUrl());
             }
         };
     }

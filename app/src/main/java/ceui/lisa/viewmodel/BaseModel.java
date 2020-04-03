@@ -12,7 +12,8 @@ import ceui.lisa.utils.Common;
 public class BaseModel<T> extends ViewModel {
 
     private MutableLiveData<List<T>> content;
-    private int lastSize;
+    private String nextUrl = "";
+    private int lastSize = 0;
     private boolean isLoaded = false;
 
     public BaseModel() {
@@ -41,5 +42,13 @@ public class BaseModel<T> extends ViewModel {
 
     public boolean isLoaded() {
         return isLoaded;
+    }
+
+    public String getNextUrl() {
+        return nextUrl;
+    }
+
+    public void setNextUrl(String nextUrl) {
+        this.nextUrl = nextUrl;
     }
 }

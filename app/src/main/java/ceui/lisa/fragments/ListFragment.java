@@ -38,9 +38,8 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
     protected RefreshLayout mRefreshLayout;
     protected ImageView noData;
     protected BaseAdapter<Item, ItemLayout> mAdapter;
-    protected List<Item> allItems = new ArrayList<>();
+    protected List<Item> allItems = null;
     protected BaseModel<Item> mModel;
-    protected String nextUrl;
     protected Toolbar mToolbar;
     protected BaseCtrl mBaseCtrl;
 
@@ -65,6 +64,7 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         mModel = (BaseModel<Item>) new ViewModelProvider(this).get(BaseModel.class);
+        allItems = mModel.getContent().getValue();
 
         mAdapter = adapter();
         if (mAdapter != null) {

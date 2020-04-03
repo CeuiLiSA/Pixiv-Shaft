@@ -27,14 +27,15 @@ public class FragmentLatestNovel extends NetListFragment<FragmentBaseListBinding
 
             @Override
             public Observable<ListNovel> initNextApi() {
-                return Retro.getAppApi().getNextNovel(Shaft.sUserModel.getResponse().getAccess_token(), nextUrl);
+                return Retro.getAppApi().getNextNovel(Shaft.sUserModel.getResponse().getAccess_token(),
+                        mModel.getNextUrl());
             }
         };
     }
 
     @Override
     public BaseAdapter<NovelBean, RecyNovelBinding> adapter() {
-        return new NAdapter(allItems, mContext);
+        return new NAdapter(mModel.getContent().getValue(), mContext);
     }
 
     @Override

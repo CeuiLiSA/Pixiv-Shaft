@@ -37,7 +37,8 @@ public class FragmentFollowUser extends NetListFragment<FragmentBaseListBinding,
 
             @Override
             public Observable<ListUser> initNextApi() {
-                return Retro.getAppApi().getNextUser(sUserModel.getResponse().getAccess_token(), nextUrl);
+                return Retro.getAppApi().getNextUser(sUserModel.getResponse().getAccess_token(),
+                        mModel.getNextUrl());
             }
         };
     }

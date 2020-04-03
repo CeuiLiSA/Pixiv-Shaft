@@ -50,7 +50,8 @@ public class FragmentEvent extends NetListFragment<FragmentBaseListBinding,
 
             @Override
             public Observable<ListIllust> initNextApi() {
-                return Retro.getAppApi().getNextIllust(sUserModel.getResponse().getAccess_token(), nextUrl);
+                return Retro.getAppApi().getNextIllust(
+                        sUserModel.getResponse().getAccess_token(), mModel.getNextUrl());
             }
 
             @Override
@@ -80,7 +81,7 @@ public class FragmentEvent extends NetListFragment<FragmentBaseListBinding,
                 } else if (viewType == 1) {
                     Intent intent = new Intent(mContext, UActivity.class);
                     intent.putExtra(Params.USER_ID, allItems.get(position).getUser().getId());
-                    UActivity.newInstance(intent, mContext);
+                    startActivity(intent);
                 } else if (viewType == 2) {
                     if (allItems.get(position).getPage_count() == 1) {
                         IllustDownload.downloadIllust(mActivity, allItems.get(position));

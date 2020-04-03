@@ -32,7 +32,6 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
 
     protected NetControl<Response> mNetControl;
     protected Response mResponse;
-    protected String nextUrl;
 
     @Override
     public void initView(View view) {
@@ -51,17 +50,15 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                             if (response.getList() != null && response.getList().size() != 0) {
                                 mRecyclerView.setVisibility(View.VISIBLE);
                                 noData.setVisibility(View.INVISIBLE);
-                                int lastSize = allItems.size() + mAdapter.headerSize();
-                                allItems.addAll(response.getList());
                                 onFirstLoaded(response.getList());
-                                mAdapter.notifyItemRangeInserted(lastSize, response.getList().size());
+                                mAdapter.notifyItemRangeInserted(mModel.getLastSize(), response.getList().size());
                             } else {
                                 mRecyclerView.setVisibility(View.INVISIBLE);
                                 noData.setVisibility(View.VISIBLE);
                                 noData.setImageResource(R.mipmap.no_data_line);
                             }
-                            nextUrl = response.getNextUrl();
-                            if (!TextUtils.isEmpty(nextUrl)) {
+                            mModel.setNextUrl(response.getNextUrl());
+                            if (!TextUtils.isEmpty(response.getNextUrl())) {
                                 mRefreshLayout.setRefreshFooter(new ClassicsFooter(mContext));
                             } else {
                                 mRefreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
@@ -93,18 +90,16 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
             @Override
             public void onLoadMore(@NonNull RefreshLayout refreshLayout) {
                 Common.showLog(className + "onLoadMore ");
-                if (!TextUtils.isEmpty(nextUrl)) {
+                if (!TextUtils.isEmpty(mModel.getNextUrl())) {
                     mNetControl.getNextData(new NullCtrl<Response>() {
                         @Override
                         public void success(Response response) {
                             mResponse = response;
                             if (response.getList() != null && response.getList().size() != 0) {
-                                int lastSize = allItems.size() + mAdapter.headerSize();
-                                allItems.addAll(response.getList());
                                 onNextLoaded(response.getList());
-                                mAdapter.notifyItemRangeInserted(lastSize, response.getList().size());
+                                mAdapter.notifyItemRangeInserted(mModel.getLastSize(), response.getList().size());
                             }
-                            nextUrl = response.getNextUrl();
+                            mModel.setNextUrl(response.getNextUrl());
                         }
 
                         @Override

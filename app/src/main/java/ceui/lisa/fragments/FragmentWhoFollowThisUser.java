@@ -42,7 +42,8 @@ public class FragmentWhoFollowThisUser extends NetListFragment<FragmentBaseListB
 
             @Override
             public Observable<ListUser> initNextApi() {
-                return Retro.getAppApi().getNextUser(Shaft.sUserModel.getResponse().getAccess_token(), nextUrl);
+                return Retro.getAppApi().getNextUser(
+                        Shaft.sUserModel.getResponse().getAccess_token(), mModel.getNextUrl());
             }
         };
     }
