@@ -13,12 +13,12 @@ import ceui.lisa.utils.Common;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
-public class FragmentH extends BaseBindFragment<FragmentHBinding> implements Display<HitoResponse> {
+public class FragmentHitokoto extends BaseFragment<FragmentHBinding> implements Display<HitoResponse> {
 
     private static final String[] TYPES = new String[]{"动画", "漫画", "游戏", "小说", "原创", "网络", "其他"};
 
     @Override
-    void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.fragment_h;
     }
 

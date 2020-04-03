@@ -5,13 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ProgressBar;
 
-import com.google.gson.Gson;
-
-import org.greenrobot.eventbus.EventBus;
-
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,8 +15,7 @@ import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.database.TagMuteEntity;
-import ceui.lisa.download.FileCreator;
-import ceui.lisa.fragments.FragmentL;
+import ceui.lisa.fragments.FragmentLogin;
 import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
@@ -46,8 +39,8 @@ public class PixivOperate {
 
     public static void refreshUserData(UserModel userModel, Callback<UserModel> callback) {
         Call<UserModel> call = Retro.getAccountApi().refreshToken(
-                FragmentL.CLIENT_ID,
-                FragmentL.CLIENT_SECRET,
+                FragmentLogin.CLIENT_ID,
+                FragmentLogin.CLIENT_SECRET,
                 "refresh_token",
                 userModel.getResponse().getRefresh_token(),
                 userModel.getResponse().getDevice_token(),

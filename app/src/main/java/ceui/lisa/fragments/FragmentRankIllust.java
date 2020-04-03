@@ -23,7 +23,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 /**
  * illust / manga 排行榜都用这个
  */
-public class FragmentRank extends NetListFragment<FragmentBaseListBinding,
+public class FragmentRankIllust extends NetListFragment<FragmentBaseListBinding,
         ListIllust, IllustsBean, RecyIllustStaggerBinding> {
 
     private static final String[] API_TITLES = new String[]{"day", "week",
@@ -37,12 +37,12 @@ public class FragmentRank extends NetListFragment<FragmentBaseListBinding,
     private boolean isManga = false;
     private String queryDate = "";
 
-    public static FragmentRank newInstance(int index, String date, boolean isManga) {
+    public static FragmentRankIllust newInstance(int index, String date, boolean isManga) {
         Bundle args = new Bundle();
         args.putInt(Params.INDEX, index);
         args.putBoolean(Params.MANGA, isManga);
         args.putString(Params.DAY, date);
-        FragmentRank fragment = new FragmentRank();
+        FragmentRankIllust fragment = new FragmentRankIllust();
         fragment.setArguments(args);
         return fragment;
     }

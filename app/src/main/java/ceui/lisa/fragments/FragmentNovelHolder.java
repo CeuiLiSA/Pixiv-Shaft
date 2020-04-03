@@ -21,7 +21,6 @@ import ceui.lisa.http.Retro;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.NovelDetail;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
@@ -31,7 +30,7 @@ import ceui.lisa.view.ScrollChange;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
-public class FragmentNovelHolder extends BaseBindFragment<FragmentNovelHolderBinding> {
+public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding> {
 
     private boolean isOpen = false;
     private NovelBean mNovelBean;
@@ -45,7 +44,7 @@ public class FragmentNovelHolder extends BaseBindFragment<FragmentNovelHolderBin
     }
 
     @Override
-    void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.fragment_novel_holder;
     }
 

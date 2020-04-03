@@ -16,10 +16,9 @@ import com.google.android.material.tabs.TabLayout;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 
 import java.util.Calendar;
-import java.util.Date;
 
 import ceui.lisa.R;
-import ceui.lisa.fragments.FragmentRank;
+import ceui.lisa.fragments.FragmentRankIllust;
 import ceui.lisa.fragments.FragmentRankNovel;
 import ceui.lisa.fragments.NetListFragment;
 import ceui.lisa.utils.Common;
@@ -66,9 +65,9 @@ public class RankActivity extends BaseActivity implements DatePickerDialog.OnDat
             public Fragment getItem(int i) {
                 if (allPages[i] == null) {
                     if ("插画".equals(dataType)) {
-                        allPages[i] = FragmentRank.newInstance(i, queryDate, false);
+                        allPages[i] = FragmentRankIllust.newInstance(i, queryDate, false);
                     } else if ("漫画".equals(dataType)) {
-                        allPages[i] = FragmentRank.newInstance(i, queryDate, true);
+                        allPages[i] = FragmentRankIllust.newInstance(i, queryDate, true);
                     } else if ("小说".equals(dataType)) {
                         allPages[i] = FragmentRankNovel.newInstance(i, queryDate);
                     }

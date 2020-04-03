@@ -25,7 +25,7 @@ import jp.wasabeef.recyclerview.animators.BaseItemAnimator;
 import jp.wasabeef.recyclerview.animators.LandingAnimator;
 
 public abstract class ListFragment<Layout extends ViewDataBinding, Item,
-        ItemLayout extends ViewDataBinding> extends BaseBindFragment<Layout> {
+        ItemLayout extends ViewDataBinding> extends BaseFragment<Layout> {
 
     public static final long animateDuration = 400L;
     public static final int PAGE_SIZE = 20;
@@ -39,7 +39,7 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
     protected BaseCtrl mBaseCtrl;
 
     @Override
-    protected void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.fragment_base_list;
     }
 

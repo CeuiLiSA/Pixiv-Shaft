@@ -34,16 +34,16 @@ import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
-public class FragmentRecmdManga extends NetListFragment<FragmentRecmdFinalBinding,
+public class FragmentRecmdIllust extends NetListFragment<FragmentRecmdFinalBinding,
         ListIllust, IllustsBean, RecyIllustStaggerBinding> {
 
     private String dataType;
     private List<IllustsBean> ranking = new ArrayList<>();
 
-    public static FragmentRecmdManga newInstance(String dataType) {
+    public static FragmentRecmdIllust newInstance(String dataType) {
         Bundle args = new Bundle();
         args.putString(Params.DATA_TYPE, dataType);
-        FragmentRecmdManga fragment = new FragmentRecmdManga();
+        FragmentRecmdIllust fragment = new FragmentRecmdIllust();
         fragment.setArguments(args);
         return fragment;
     }

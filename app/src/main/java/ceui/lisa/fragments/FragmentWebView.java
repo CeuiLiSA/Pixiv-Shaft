@@ -29,7 +29,7 @@ import ceui.lisa.view.ContextMenuTitleView;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-public class FragmentWebView extends BaseBindFragment<FragmentWebviewBinding> {
+public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
 
     //private static final String ILLUST_HEAD = "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=";
     private static final String USER_HEAD = "https://www.pixiv.net/member.php?id=";
@@ -73,7 +73,7 @@ public class FragmentWebView extends BaseBindFragment<FragmentWebviewBinding> {
     }
 
     @Override
-    void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.fragment_webview;
     }
 

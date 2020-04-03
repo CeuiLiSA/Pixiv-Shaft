@@ -1,13 +1,11 @@
 package ceui.lisa.http;
 
-import android.util.Log;
-
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.fragments.FragmentL;
+import ceui.lisa.fragments.FragmentLogin;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
@@ -61,8 +59,8 @@ public class TokenInterceptor implements Interceptor {
     private String getNewToken() throws IOException {
         UserModel userModel = Local.getUser();
         Call<UserModel> call = Retro.getAccountApi().refreshToken(
-                FragmentL.CLIENT_ID,
-                FragmentL.CLIENT_SECRET,
+                FragmentLogin.CLIENT_ID,
+                FragmentLogin.CLIENT_SECRET,
                 "refresh_token",
                 userModel.getResponse().getRefresh_token(),
                 userModel.getResponse().getDevice_token(),

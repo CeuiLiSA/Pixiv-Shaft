@@ -10,7 +10,6 @@ import android.text.style.ForegroundColorSpan;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.SeekBar;
 
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityOptionsCompat;
@@ -33,7 +32,6 @@ import ceui.lisa.activities.ImageDetailActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UActivity;
-import ceui.lisa.activities.VActivity;
 import ceui.lisa.adapters.IllustDetailAdapter;
 import ceui.lisa.databinding.FragmentSingleIllustBinding;
 import ceui.lisa.dialogs.MuteDialog;
@@ -62,7 +60,7 @@ import static com.bumptech.glide.request.RequestOptions.bitmapTransform;
 /**
  * 插画详情
  */
-public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustBinding> {
+public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBinding> {
 
     private IllustsBean illust;
     private IllustDetailAdapter mDetailAdapter;
@@ -83,7 +81,7 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
     }
 
     @Override
-    void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.fragment_single_illust;
     }
 
@@ -193,10 +191,6 @@ public class FragmentSingleIllust extends BaseBindFragment<FragmentSingleIllustB
                     } else if (menuItem.getItemId() == R.id.action_dislike) {
                         MuteDialog muteDialog = MuteDialog.newInstance(illust);
                         muteDialog.show(getChildFragmentManager(), "MuteDialog");
-                    } else if (menuItem.getItemId() == R.id.action_preview) {
-                        Intent intent = new Intent(mContext, VActivity.class);
-                        intent.putExtra("position", index);
-                        mContext.startActivity(intent);
                     }
                     return false;
                 }

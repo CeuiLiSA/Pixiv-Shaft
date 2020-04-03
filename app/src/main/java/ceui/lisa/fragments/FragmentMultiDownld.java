@@ -36,7 +36,7 @@ public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownload
         IllustsBean, RecyMultiDownloadBinding> {
 
     @Override
-    protected void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.fragment_multi_download;
     }
 

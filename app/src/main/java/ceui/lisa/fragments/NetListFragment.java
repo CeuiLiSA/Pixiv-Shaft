@@ -82,7 +82,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                         }
                     });
                 } else {
-                    if (className.equals("FragmentRecmdManga ")) {
+                    if (className.equals("FragmentRecmdIllust ")) {
                         showDataBase();
                     }
                 }

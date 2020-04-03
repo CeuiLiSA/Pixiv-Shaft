@@ -36,7 +36,7 @@ import ceui.lisa.utils.Params;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
-public class FragmentL extends BaseBindFragment<ActivityLoginBinding> {
+public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
 
     public static final String CLIENT_ID = "MOBrBDS8blbauoSck0ZfDbtuzpyT";
     public static final String CLIENT_SECRET = "lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj";
@@ -57,7 +57,7 @@ public class FragmentL extends BaseBindFragment<ActivityLoginBinding> {
     }
 
     @Override
-    void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.activity_login;
     }
 

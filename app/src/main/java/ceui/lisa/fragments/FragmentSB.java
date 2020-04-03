@@ -56,7 +56,7 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
     }
 
     @Override
-    protected void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.fragment_select_tag;
     }
 

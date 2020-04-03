@@ -13,7 +13,6 @@ import com.bumptech.glide.Glide;
 import com.zhihu.matisse.Matisse;
 import com.zhihu.matisse.MimeType;
 import com.zhihu.matisse.engine.impl.GlideEngine;
-import com.zhihu.matisse.engine.impl.PicassoEngine;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -43,12 +42,12 @@ import retrofit2.Response;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-public class FragmentEditFile extends BaseBindFragment<FragmentEditFileBinding> {
+public class FragmentEditFile extends BaseFragment<FragmentEditFileBinding> {
 
     private File imageFile = null;
 
     @Override
-    void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.fragment_edit_file;
     }
 

@@ -46,7 +46,7 @@ public class FragmentPivisionHorizontal extends NetListFragment<FragmentPivision
     }
 
     @Override
-    protected void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.fragment_pivision_horizontal;
     }
 

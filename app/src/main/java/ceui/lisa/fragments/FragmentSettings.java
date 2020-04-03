@@ -42,7 +42,7 @@ import static ceui.lisa.fragments.FragmentFilter.ALL_SIZE_VALUE;
 import static ceui.lisa.fragments.FragmentFilter.THEME_NAME;
 
 
-public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> {
+public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
 
     private static final int illustPath_CODE = 10086;
     private static final int gifResultPath_CODE = 10087;
@@ -50,7 +50,7 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
     private static final int gifUnzipPath_CODE = 10089;
 
     @Override
-    void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.fragment_settings;
     }
 
@@ -281,7 +281,7 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         if (which == index) {
-                            Common.showToast("什么也不做");
+                            Common.showLog("什么也不做");
                         } else {
                             Shaft.sSettings.setThemeType(((AppCompatActivity) mActivity), THEME_NAME[which]);
                             baseBind.themeMode.setText(THEME_NAME[which]);

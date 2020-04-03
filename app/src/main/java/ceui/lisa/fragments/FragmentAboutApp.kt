@@ -7,7 +7,7 @@ import ceui.lisa.databinding.FragmentAboutBinding
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 
-class FragmentAboutApp : BaseBindFragment<FragmentAboutBinding>() {
+class FragmentAboutApp : BaseFragment<FragmentAboutBinding>() {
 
     override fun initLayout() {
         mLayoutID = R.layout.fragment_about

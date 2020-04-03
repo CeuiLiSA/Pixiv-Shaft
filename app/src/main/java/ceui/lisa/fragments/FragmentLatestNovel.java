@@ -17,22 +17,6 @@ import io.reactivex.Observable;
 public class FragmentLatestNovel extends NetListFragment<FragmentBaseListBinding, ListNovel,
         NovelBean, RecyNovelBinding> {
 
-    private String workType;
-
-    public static FragmentLatestNovel newInstance(String paramWorkType) {
-        Bundle args = new Bundle();
-        args.putString(Params.DATA_TYPE, paramWorkType);
-        FragmentLatestNovel fragment = new FragmentLatestNovel();
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    @Override
-    public void initBundle(Bundle bundle) {
-        workType = bundle.getString(Params.DATA_TYPE);
-    }
-
-
     @Override
     public NetControl<ListNovel> present() {
         return new NetControl<ListNovel>() {

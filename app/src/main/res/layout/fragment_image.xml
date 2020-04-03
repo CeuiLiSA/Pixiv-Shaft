@@ -1,21 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
 
     </data>
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
-        android:background="@color/black"
+        app:cardCornerRadius="@dimen/four_dp"
+        app:cardElevation="@dimen/four_dp"
         android:layout_height="match_parent">
-
 
         <ImageView
             android:layout_width="match_parent"
             android:id="@+id/illust_image"
             android:scaleType="centerCrop"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent">
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+        </ImageView>
+    </androidx.cardview.widget.CardView>
+
 </layout>

@@ -19,7 +19,7 @@ import ceui.lisa.view.GridItemDecoration;
 public class FragmentCT extends LocalListFragment<FragmentCtBinding, MenuItem, RecyMenuBinding> {
 
     @Override
-    protected void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.fragment_ct;
     }
 

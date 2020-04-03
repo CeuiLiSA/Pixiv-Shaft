@@ -10,9 +10,9 @@ import ceui.lisa.utils.Common
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter
 import com.scwang.smartrefresh.layout.header.FalsifyHeader
 
-class FragmentUserInfo : BaseBindFragment<FragmentAboutUserBinding>(), Display<UserDetailResponse> {
+class FragmentUserInfo : BaseFragment<FragmentAboutUserBinding>(), Display<UserDetailResponse> {
 
-    public override fun initLayout() {
+    override fun initLayout() {
         mLayoutID = R.layout.fragment_about_user
     }
 

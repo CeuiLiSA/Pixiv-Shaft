@@ -11,12 +11,12 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.FragmentRightBinding;
 
-public class FragmentRight extends BaseBindFragment<FragmentRightBinding> {
+public class FragmentRight extends BaseFragment<FragmentRightBinding> {
 
     private boolean isLoad = false;
 
     @Override
-    void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.fragment_right;
     }
 
@@ -43,7 +43,7 @@ public class FragmentRight extends BaseBindFragment<FragmentRightBinding> {
             FragmentRecmdUserHorizontal recmdUser = new FragmentRecmdUserHorizontal();
             transaction.add(R.id.fragment_container, recmdUser);
 
-            FragmentP fragmentFollowIllust = new FragmentP();
+            FragmentEvent fragmentFollowIllust = new FragmentEvent();
             transaction.add(R.id.fragment_recy, fragmentFollowIllust);
 
             transaction.commitNow();

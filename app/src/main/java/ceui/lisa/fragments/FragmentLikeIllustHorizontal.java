@@ -35,7 +35,7 @@ import jp.wasabeef.recyclerview.animators.FadeInLeftAnimator;
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-public class FragmentLikeIllustHorizontal extends BaseBindFragment<FragmentLikeIllustHorizontalBinding> {
+public class FragmentLikeIllustHorizontal extends BaseFragment<FragmentLikeIllustHorizontalBinding> {
 
     private List<IllustsBean> allItems = new ArrayList<>();
     private UserDetailResponse mUserDetailResponse;
@@ -50,7 +50,7 @@ public class FragmentLikeIllustHorizontal extends BaseBindFragment<FragmentLikeI
     }
 
     @Override
-    void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.fragment_like_illust_horizontal;
     }
 

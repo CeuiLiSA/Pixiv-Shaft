@@ -9,7 +9,7 @@ import ceui.lisa.databinding.FragmentAdBinding
 import ceui.lisa.utils.Params
 import com.bumptech.glide.Glide
 
-class FragmentAD : BaseBindFragment<FragmentAdBinding>() {
+class FragmentAD : BaseFragment<FragmentAdBinding>() {
 
     lateinit var mAdItem: AdItem
 

@@ -2,6 +2,8 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -20,23 +22,24 @@ import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.transformer.GalleryTransformer;
-import ceui.lisa.utils.Common;
-import ceui.lisa.utils.Dev;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
-public class FragmentCenter extends BaseBindFragment<FragmentCenterBinding> {
+public class FragmentCenter extends BaseFragment<FragmentCenterBinding> {
 
     private boolean isLoad = false;
 
     @Override
-    void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.fragment_center;
     }
 
     @Override
     public void initView(View view) {
-        baseBind.refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));
+        FalsifyHeader falsifyHeader = new FalsifyHeader(mContext);
+        falsifyHeader.setPrimaryColors(getResources().getColor(R.color.colorPrimary));
+        falsifyHeader.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+        baseBind.refreshLayout.setRefreshHeader(falsifyHeader);
         baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
         baseBind.manga.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -54,11 +57,23 @@ public class FragmentCenter extends BaseBindFragment<FragmentCenterBinding> {
                 startActivity(intent);
             }
         });
+
+        baseBind.viewPager.getViewTreeObserver().addOnGlobalLayoutListener(
+                new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                ViewGroup.LayoutParams params = baseBind.wtfHead.getLayoutParams();
+                params.height = baseBind.viewPager.getTop() +
+                        (baseBind.viewPager.getBottom() - baseBind.viewPager.getTop()) / 2;
+                baseBind.wtfHead.setLayoutParams(params);
+                baseBind.viewPager.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+            }
+        });
     }
 
     @Override
     void initData() {
-        if (Dev.isDev) {
+        if (false) {
             AdItem[] sonies = new AdItem[]{
                     new AdItem("WH-1000XM3",
                             "https://www.sonystyle.com.cn/products/headphone/wh_1000xm3/wh_1000xm3_b.html?cid=sony_pa_wh_1000xm3",
@@ -90,7 +105,6 @@ public class FragmentCenter extends BaseBindFragment<FragmentCenterBinding> {
                 @Override
                 public Fragment getItem(int position) {
                     int index = position % sonies.length;
-                    Common.showLog(className + index);
                     return FragmentAD.Companion.newInstance(sonies[index]);
                 }
 
@@ -114,7 +128,6 @@ public class FragmentCenter extends BaseBindFragment<FragmentCenterBinding> {
                                 @Override
                                 public Fragment getItem(int position) {
                                     int index = position % listIllust.getList().size();
-                                    Common.showLog(className + index);
                                     return FragmentImage.newInstance(listIllust.getIllusts()
                                             .get(index));
                                 }
@@ -124,6 +137,8 @@ public class FragmentCenter extends BaseBindFragment<FragmentCenterBinding> {
                                     return Integer.MAX_VALUE;
                                 }
                             });
+                            baseBind.viewPager.setPageTransformer(true, new GalleryTransformer());
+                            baseBind.viewPager.setOffscreenPageLimit(3);
                             baseBind.viewPager.setCurrentItem(listIllust.getList().size());
                         }
                     });
@@ -136,9 +151,9 @@ public class FragmentCenter extends BaseBindFragment<FragmentCenterBinding> {
 
         if (isVisibleToUser) {
             if (!isLoad) {
-                FragmentPivisionHorizontal fragmentPivision = new FragmentPivisionHorizontal();
                 FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
-                transaction.add(R.id.fragment_pivision, fragmentPivision).commit();
+                transaction.add(R.id.fragment_pivision, new FragmentPivisionHorizontal());
+                transaction.commit();
                 isLoad = true;
             }
         } else {

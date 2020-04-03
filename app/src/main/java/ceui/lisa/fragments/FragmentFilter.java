@@ -11,7 +11,7 @@ import ceui.lisa.databinding.FragmentFilterBinding;
 import ceui.lisa.utils.Local;
 
 
-public class FragmentFilter extends BaseBindFragment<FragmentFilterBinding> {
+public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
 
     public static final String[] TAG_MATCH = new String[]{"标签 部分匹配(建议)", "标签 完全匹配", "标题/简介 匹配"};
     public static final String[] TAG_MATCH_VALUE = new String[]{"partial_match_for_tags",
@@ -47,7 +47,7 @@ public class FragmentFilter extends BaseBindFragment<FragmentFilterBinding> {
     }
 
     @Override
-    void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.fragment_filter;
     }
 

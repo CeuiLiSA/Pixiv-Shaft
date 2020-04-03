@@ -30,7 +30,7 @@ public class FragmentRecmdUserHorizontal extends NetListFragment<FragmentUserHor
         ListUser, UserPreviewsBean, RecyUserPreviewHorizontalBinding> {
 
     @Override
-    protected void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.fragment_user_horizontal;
     }
 

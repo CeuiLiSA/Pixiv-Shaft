@@ -11,7 +11,7 @@ public class GalleryTransformer implements ViewPager.PageTransformer {
     public void transformPage(View page, float position) {
 
 
-        float scale= 1 - (Math.abs(position) * 0.15f);
+        float scale= 1 - (Math.abs(position) * 0.25f);
         page.setScaleX(scale);
         page.setScaleY(scale);
 
@@ -20,6 +20,6 @@ public class GalleryTransformer implements ViewPager.PageTransformer {
         }else {
             page.setTranslationZ(position);
         }
-        page.setTranslationX(-40 * position);
+        page.setTranslationX(-50 * position);
     }
 }
