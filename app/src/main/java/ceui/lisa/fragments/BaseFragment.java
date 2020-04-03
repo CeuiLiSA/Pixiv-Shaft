@@ -29,6 +29,7 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
     protected String className = getClass().getSimpleName() + " ";
     protected Layout baseBind;
     protected View parentView;
+    protected boolean isloaded = false;
 
     public BaseFragment() {
         Common.showLog(className + "new instance");

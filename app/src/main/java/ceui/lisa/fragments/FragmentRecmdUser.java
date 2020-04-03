@@ -36,7 +36,7 @@ public class FragmentRecmdUser extends NetListFragment<FragmentBaseListBinding,
 
     @Override
     public BaseAdapter<UserPreviewsBean, RecyUserPreviewBinding> adapter() {
-        return new UAdapter(allItems, mContext);
+        return new UAdapter(mModel.getContent().getValue(), mContext);
     }
 
     @Override

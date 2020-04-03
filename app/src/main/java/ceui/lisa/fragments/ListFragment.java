@@ -1,10 +1,13 @@
 package ceui.lisa.fragments;
 
+import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.databinding.ViewDataBinding;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
@@ -19,8 +22,10 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.core.BaseCtrl;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
+import ceui.lisa.viewmodel.BaseModel;
 import jp.wasabeef.recyclerview.animators.BaseItemAnimator;
 import jp.wasabeef.recyclerview.animators.LandingAnimator;
 
@@ -34,6 +39,7 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
     protected ImageView noData;
     protected BaseAdapter<Item, ItemLayout> mAdapter;
     protected List<Item> allItems = new ArrayList<>();
+    protected BaseModel<Item> mModel;
     protected String nextUrl;
     protected Toolbar mToolbar;
     protected BaseCtrl mBaseCtrl;
@@ -50,13 +56,23 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
     @Override
     void initData() {
         //为recyclerView设置Adapter
+
+
+
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        mModel = (BaseModel<Item>) new ViewModelProvider(this).get(BaseModel.class);
+
         mAdapter = adapter();
         if (mAdapter != null) {
             mRecyclerView.setAdapter(mAdapter);
         }
 
         //进页面主动刷新
-        if (autoRefresh()) {
+        if (autoRefresh() && !mModel.isLoaded()) {
             mRefreshLayout.autoRefresh();
         }
     }
@@ -139,9 +155,15 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
     }
 
     public void onFirstLoaded(List<Item> items) {
+        if (mModel != null) {
+            mModel.load(items, getClass());
+        }
     }
 
     public void onNextLoaded(List<Item> items) {
+        if (mModel != null) {
+            mModel.load(items, getClass());
+        }
     }
 
     public void clear() {

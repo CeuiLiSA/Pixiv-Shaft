@@ -53,6 +53,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                                 noData.setVisibility(View.INVISIBLE);
                                 int lastSize = allItems.size() + mAdapter.headerSize();
                                 allItems.addAll(response.getList());
+                                onFirstLoaded(response.getList());
                                 mAdapter.notifyItemRangeInserted(lastSize, response.getList().size());
                             } else {
                                 mRecyclerView.setVisibility(View.INVISIBLE);
@@ -100,6 +101,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                             if (response.getList() != null && response.getList().size() != 0) {
                                 int lastSize = allItems.size() + mAdapter.headerSize();
                                 allItems.addAll(response.getList());
+                                onNextLoaded(response.getList());
                                 mAdapter.notifyItemRangeInserted(lastSize, response.getList().size());
                             }
                             nextUrl = response.getNextUrl();

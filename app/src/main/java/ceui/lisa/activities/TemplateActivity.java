@@ -15,6 +15,7 @@ import ceui.lisa.fragments.FragmentAboutApp;
 import ceui.lisa.fragments.FragmentMultiDownld;
 import ceui.lisa.fragments.FragmentRecmdIllust;
 import ceui.lisa.fragments.FragmentSB;
+import ceui.lisa.fragments.FragmentTest;
 import ceui.lisa.fragments.FragmentUserInfo;
 import ceui.lisa.fragments.FragmentBookedTag;
 import ceui.lisa.fragments.FragmentComment;
@@ -136,6 +137,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                     return new FragmentUserInfo();
                 case "一言":
                     if(Dev.isDev){
+                        return new FragmentRecmdUser();
                     }else {
                         return new FragmentHitokoto();
                     }

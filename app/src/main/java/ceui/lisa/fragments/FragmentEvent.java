@@ -80,7 +80,7 @@ public class FragmentEvent extends NetListFragment<FragmentBaseListBinding,
                 } else if (viewType == 1) {
                     Intent intent = new Intent(mContext, UActivity.class);
                     intent.putExtra(Params.USER_ID, allItems.get(position).getUser().getId());
-                    startActivity(intent);
+                    UActivity.newInstance(intent, mContext);
                 } else if (viewType == 2) {
                     if (allItems.get(position).getPage_count() == 1) {
                         IllustDownload.downloadIllust(mActivity, allItems.get(position));

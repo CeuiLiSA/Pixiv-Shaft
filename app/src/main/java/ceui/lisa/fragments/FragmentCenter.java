@@ -73,7 +73,7 @@ public class FragmentCenter extends BaseFragment<FragmentCenterBinding> {
 
     @Override
     void initData() {
-        if (false) {
+        if (true) {
             AdItem[] sonies = new AdItem[]{
                     new AdItem("WH-1000XM3",
                             "https://www.sonystyle.com.cn/products/headphone/wh_1000xm3/wh_1000xm3_b.html?cid=sony_pa_wh_1000xm3",
