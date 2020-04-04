@@ -12,6 +12,8 @@ import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.listener.OnLoadMoreListener;
 import com.scwang.smartrefresh.layout.listener.OnRefreshListener;
 
+import java.util.List;
+
 import ceui.lisa.R;
 import ceui.lisa.core.NetControl;
 import ceui.lisa.http.NullCtrl;
@@ -41,17 +43,21 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
             @Override
             public void onRefresh(@NonNull RefreshLayout refreshLayout) {
                 Common.showLog(className + "onRefresh ");
-                mAdapter.clear();
+                clear();
                 if (mNetControl.initApi() != null) {
                     mNetControl.getFirstData(new NullCtrl<Response>() {
                         @Override
                         public void success(Response response) {
                             mResponse = response;
                             if (response.getList() != null && response.getList().size() != 0) {
+                                List<Item> firstList = response.getList();
+                                if (mModel != null) {
+                                    mModel.load(firstList);
+                                }
+                                onFirstLoaded(firstList);
                                 mRecyclerView.setVisibility(View.VISIBLE);
                                 noData.setVisibility(View.INVISIBLE);
-                                onFirstLoaded(response.getList());
-                                mAdapter.notifyItemRangeInserted(mModel.getLastSize(), response.getList().size());
+                                mAdapter.notifyItemRangeInserted(mModel.getLastSize(), firstList.size());
                             } else {
                                 mRecyclerView.setVisibility(View.INVISIBLE);
                                 noData.setVisibility(View.VISIBLE);
@@ -63,7 +69,6 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                             } else {
                                 mRefreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
                             }
-                            firstSuccess();
                         }
 
                         @Override
@@ -96,8 +101,12 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                         public void success(Response response) {
                             mResponse = response;
                             if (response.getList() != null && response.getList().size() != 0) {
-                                onNextLoaded(response.getList());
-                                mAdapter.notifyItemRangeInserted(mModel.getLastSize(), response.getList().size());
+                                List<Item> nextList = response.getList();
+                                if (mModel != null) {
+                                    mModel.load(nextList);
+                                }
+                                onNextLoaded(nextList);
+                                mAdapter.notifyItemRangeInserted(mModel.getLastSize(), nextList.size());
                             }
                             mModel.setNextUrl(response.getNextUrl());
                         }
@@ -108,6 +117,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                         }
                     });
                 } else {
+                    mRefreshLayout.finishLoadMore();
                     if (mNetControl.showNoDataHint()) {
                         Common.showToast("没有更多数据啦");
                     }
@@ -128,12 +138,6 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
     public void nowRefresh() {
         mRecyclerView.smoothScrollToPosition(0);
         mRefreshLayout.autoRefresh();
-    }
-
-    /**
-     * 第一波数据加载成功之后，FragmentR页面将数据写入到数据库，方法实际上没啥用，只是为了方便测试
-     */
-    public void firstSuccess() {
     }
 
     /**

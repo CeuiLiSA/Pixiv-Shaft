@@ -51,7 +51,7 @@ public class FragmentDownload extends BaseFragment<ViewpagerWithTablayoutBinding
                         public void onClick(DialogInterface dialog, int which) {
                             AppDatabase.getAppDatabase(mContext).downloadDao().deleteAllDownload();
                             if (allPages[1] instanceof FragmentDownloadFinish) {
-                                ((FragmentDownloadFinish) allPages[1]).clear();
+                                ((FragmentDownloadFinish) allPages[1]).clearAndRefresh();
                             }
                             Common.showToast("下载记录清除成功");
                         }

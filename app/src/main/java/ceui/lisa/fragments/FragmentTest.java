@@ -90,7 +90,7 @@ public class FragmentTest extends BaseFragment<FragmentTestBinding> {
                         .subscribe(new NullCtrl<ListUser>() {
                             @Override
                             public void success(ListUser listUser) {
-                                mModel.load(listUser.getList(), getClass());
+                                mModel.load(listUser.getList());
                                 isloaded = true;
                                 baseBind.refreshLayout.finishRefresh();
                             }

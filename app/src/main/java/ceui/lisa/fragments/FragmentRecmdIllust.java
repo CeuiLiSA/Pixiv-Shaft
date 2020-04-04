@@ -107,7 +107,8 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentRecmdFinalBindi
     }
 
     @Override
-    public void firstSuccess() {
+    public void onFirstLoaded(List<IllustsBean> illustsBeans) {
+        super.onFirstLoaded(illustsBeans);
         Observable.create((ObservableOnSubscribe<String>) emitter -> {
             emitter.onNext("开始写入数据库");
             if (allItems != null) {

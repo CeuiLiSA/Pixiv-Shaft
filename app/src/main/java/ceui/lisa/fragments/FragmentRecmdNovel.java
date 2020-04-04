@@ -34,6 +34,9 @@ import io.reactivex.Observable;
 public class FragmentRecmdNovel extends NetListFragment<FragmentRecmdBinding,
         ListNovel, NovelBean, RecyNovelBinding> {
 
+    private List<NovelBean> ranking = new ArrayList<>();
+    private NHAdapter horizontalAdapter;
+
     @Override
     public NetControl<ListNovel> present() {
         return new NetControl<ListNovel>() {
@@ -66,6 +69,25 @@ public class FragmentRecmdNovel extends NetListFragment<FragmentRecmdBinding,
                 startActivity(intent);
             }
         });
+
+        LinearLayoutManager manager = new LinearLayoutManager(mContext, LinearLayoutManager.HORIZONTAL, false);
+        baseBind.ranking.setLayoutManager(manager);
+        baseBind.ranking.setHasFixedSize(true);
+        baseBind.ranking.addItemDecoration(new LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
+        PagerSnapHelper snapHelper = new PagerSnapHelper();
+        snapHelper.attachToRecyclerView(baseBind.ranking);
+        horizontalAdapter = new NHAdapter(ranking, mContext);
+        horizontalAdapter.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(View v, int position, int viewType) {
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(Params.CONTENT, ranking.get(position));
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情");
+                intent.putExtra("hideStatusBar", true);
+                startActivity(intent);
+            }
+        });
+        baseBind.ranking.setAdapter(horizontalAdapter);
     }
 
     @Override
@@ -79,29 +101,18 @@ public class FragmentRecmdNovel extends NetListFragment<FragmentRecmdBinding,
     }
 
     @Override
-    public void firstSuccess() {
-        List<NovelBean> ranking = new ArrayList<>(mResponse.getRanking_novels());
-        baseBind.ranking.addItemDecoration(new LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
-        LinearLayoutManager manager = new LinearLayoutManager(mContext, LinearLayoutManager.HORIZONTAL, false);
-        baseBind.ranking.setLayoutManager(manager);
-        baseBind.ranking.setHasFixedSize(true);
-        PagerSnapHelper snapHelper = new PagerSnapHelper();
-        snapHelper.attachToRecyclerView(baseBind.ranking);
-        NHAdapter adapter = new NHAdapter(ranking, mContext);
-        adapter.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(View v, int position, int viewType) {
-                Intent intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(Params.CONTENT, ((Serializable) ranking.get(position)));
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情");
-                intent.putExtra("hideStatusBar", true);
-                startActivity(intent);
-            }
-        });
-        baseBind.ranking.setAdapter(adapter);
+    public void onFirstLoaded(List<NovelBean> novelBeans) {
+        ranking.addAll(mResponse.getRanking_novels());
+        horizontalAdapter.notifyItemRangeInserted(0, ranking.size());
         baseBind.topRela.setVisibility(View.VISIBLE);
         Animation animation = new AlphaAnimation(0.0f, 1.0f);
         animation.setDuration(800L);
         baseBind.topRela.startAnimation(animation);
+    }
+
+    @Override
+    public void clear() {
+        super.clear();
+        horizontalAdapter.clear();
     }
 }

@@ -1,5 +1,6 @@
 package ceui.lisa.fragments;
 
+import android.os.Bundle;
 import android.text.TextUtils;
 
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
@@ -17,6 +18,7 @@ import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.DensityUtil;
+import ceui.lisa.utils.Params;
 import ceui.lisa.view.SpacesItemDecoration;
 import io.reactivex.Observable;
 
@@ -35,18 +37,25 @@ public class FragmentLikeIllust extends NetListFragment<FragmentBaseListBinding,
     private boolean showToolbar = false;
 
     public static FragmentLikeIllust newInstance(int userID, String starType) {
-        FragmentLikeIllust fragmentRelatedIllust = new FragmentLikeIllust();
-        fragmentRelatedIllust.userID = userID;
-        fragmentRelatedIllust.starType = starType;
-        return fragmentRelatedIllust;
+        return newInstance(userID, starType, false);
     }
 
-    public static FragmentLikeIllust newInstance(int userID, String starType, boolean paramShowToolbar) {
-        FragmentLikeIllust fragmentRelatedIllust = new FragmentLikeIllust();
-        fragmentRelatedIllust.userID = userID;
-        fragmentRelatedIllust.starType = starType;
-        fragmentRelatedIllust.showToolbar = paramShowToolbar;
-        return fragmentRelatedIllust;
+    public static FragmentLikeIllust newInstance(int userID, String starType,
+                                                 boolean paramShowToolbar) {
+        Bundle args = new Bundle();
+        args.putInt(Params.USER_ID, userID);
+        args.putString(Params.STAR_TYPE, starType);
+        args.putBoolean(Params.FLAG, paramShowToolbar);
+        FragmentLikeIllust fragment = new FragmentLikeIllust();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void initBundle(Bundle bundle) {
+        userID = bundle.getInt(Params.USER_ID);
+        starType = bundle.getString(Params.STAR_TYPE);
+        showToolbar = bundle.getBoolean(Params.FLAG);
     }
 
     @Override
@@ -90,7 +99,6 @@ public class FragmentLikeIllust extends NetListFragment<FragmentBaseListBinding,
     public String getToolbarTitle() {
         return showToolbar ? "插画/漫画收藏" : super.getToolbarTitle();
     }
-
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(Channel event) {

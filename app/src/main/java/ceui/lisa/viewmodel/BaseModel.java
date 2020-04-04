@@ -25,13 +25,12 @@ public class BaseModel<T> extends ViewModel {
         return content;
     }
 
-    public void load(List<T> list, Class c) {
+    public void load(List<T> list) {
         List<T> current = content.getValue();
         if (current != null) {
             lastSize = current.size();
             current.addAll(list);
         }
-        Common.showLog(c.getSimpleName() + "设置了已加载");
         content.setValue(current);
         isLoaded = true;
     }

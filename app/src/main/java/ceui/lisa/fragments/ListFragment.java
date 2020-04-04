@@ -54,7 +54,6 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
 
     @Override
     void initData() {
-        //为recyclerView设置Adapter
 
 
 
@@ -63,9 +62,11 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        //获取viewmodel
         mModel = (BaseModel<Item>) new ViewModelProvider(this).get(BaseModel.class);
         allItems = mModel.getContent().getValue();
 
+        //为recyclerView设置Adapter
         mAdapter = adapter();
         if (mAdapter != null) {
             mRecyclerView.setAdapter(mAdapter);
@@ -122,7 +123,7 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
     }
 
     /**
-     * 默认 LinearLayoutManager
+     * 默认 LinearLayoutManager，想换其他LayoutManager @Override 这个方法即可
      */
     public void initRecyclerView() {
         mRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
@@ -155,23 +156,23 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
     }
 
     public void onFirstLoaded(List<Item> items) {
-        if (mModel != null) {
-            mModel.load(items, getClass());
-        }
+
     }
 
     public void onNextLoaded(List<Item> items) {
-        if (mModel != null) {
-            mModel.load(items, getClass());
-        }
+
     }
 
     public void clear() {
         if (mAdapter != null) {
             mAdapter.clear();
-            if (mRefreshLayout != null) {
-                mRefreshLayout.autoRefresh();
-            }
+        }
+    }
+
+    public void clearAndRefresh() {
+        clear();
+        if (mRefreshLayout != null) {
+            mRefreshLayout.autoRefresh();
         }
     }
 
