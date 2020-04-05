@@ -6,6 +6,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import org.greenrobot.eventbus.EventBus;
 
+import java.util.List;
+
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.BookedTagAdapter;
@@ -43,7 +45,8 @@ public class FragmentBookedTag extends NetListFragment<FragmentBaseListBinding,
 
             @Override
             public Observable<ListTag> initNextApi() {
-                return Retro.getAppApi().getNextTags(Shaft.sUserModel.getResponse().getAccess_token(), nextUrl);
+                return Retro.getAppApi().getNextTags(
+                        Shaft.sUserModel.getResponse().getAccess_token(), mModel.getNextUrl());
             }
         };
     }
@@ -75,7 +78,7 @@ public class FragmentBookedTag extends NetListFragment<FragmentBaseListBinding,
     }
 
     @Override
-    public void firstSuccess() {
+    public void onFirstLoaded(List<TagsBean> tagsBeans) {
         //全部
         TagsBean all = new TagsBean();
         all.setCount(-1);

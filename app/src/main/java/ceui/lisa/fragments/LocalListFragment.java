@@ -28,15 +28,16 @@ public abstract class LocalListFragment<Layout extends ViewDataBinding, Item,
             @Override
             public void onRefresh(@NonNull RefreshLayout refreshLayout) {
                 Common.showLog(className + "onRefresh ");
-                mAdapter.clear();
+                clear();
                 if (mDataControl.first() != null && mDataControl.first().size() != 0) {
-                    int lastSize = allItems.size();
                     List<Item> firstList = mDataControl.first();
-                    allItems.addAll(firstList);
+                    if (mModel != null) {
+                        mModel.load(firstList);
+                    }
                     onFirstLoaded(firstList);
                     mRecyclerView.setVisibility(View.VISIBLE);
                     noData.setVisibility(View.INVISIBLE);
-                    mAdapter.notifyItemRangeInserted(lastSize, mDataControl.first().size());
+                    mAdapter.notifyItemRangeInserted(mModel.getLastSize(), firstList.size());
                 } else {
                     mRecyclerView.setVisibility(View.INVISIBLE);
                     noData.setVisibility(View.VISIBLE);
@@ -53,7 +54,9 @@ public abstract class LocalListFragment<Layout extends ViewDataBinding, Item,
                         mDataControl.next().size() != 0) {
                     int lastSize = allItems.size();
                     List<Item> nextList = mDataControl.next();
-                    allItems.addAll(nextList);
+                    if (mModel != null) {
+                        mModel.load(nextList);
+                    }
                     onNextLoaded(nextList);
                     mAdapter.notifyItemRangeInserted(lastSize, mDataControl.next().size());
                 } else {

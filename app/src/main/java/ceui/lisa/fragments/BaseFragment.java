@@ -21,7 +21,7 @@ import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 
 
-public abstract class BaseBindFragment<Layout extends ViewDataBinding> extends Fragment {
+public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragment {
 
     protected Context mContext;
     protected FragmentActivity mActivity;
@@ -29,8 +29,9 @@ public abstract class BaseBindFragment<Layout extends ViewDataBinding> extends F
     protected String className = getClass().getSimpleName() + " ";
     protected Layout baseBind;
     protected View parentView;
+    protected boolean isloaded = false;
 
-    public BaseBindFragment() {
+    public BaseFragment() {
         Common.showLog(className + "new instance");
     }
 
@@ -88,7 +89,7 @@ public abstract class BaseBindFragment<Layout extends ViewDataBinding> extends F
 
     }
 
-    abstract void initLayout();
+    public abstract void initLayout();
 
     void initData() {
 

@@ -1,10 +1,8 @@
 package ceui.lisa.activities;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
@@ -14,7 +12,6 @@ import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
@@ -30,7 +27,6 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
-import com.blankj.utilcode.util.BarUtils;
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
@@ -38,19 +34,17 @@ import com.google.android.material.navigation.NavigationView;
 import org.greenrobot.eventbus.EventBus;
 
 import java.io.File;
-import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.ActivityCoverBinding;
 import ceui.lisa.download.TaskQueue;
-import ceui.lisa.fragments.BaseBindFragment;
+import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentCT;
 import ceui.lisa.fragments.FragmentCenter;
 import ceui.lisa.fragments.FragmentLeft;
 import ceui.lisa.fragments.FragmentRight;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Local;
@@ -70,7 +64,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     private TextView username;
     private TextView user_email;
     private long mExitTime;
-    private BaseBindFragment<?>[] baseFragments = null;
+    private BaseFragment<?>[] baseFragments = null;
 
     @Override
     protected int initLayout() {
@@ -120,7 +114,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 if (item.getItemId() == R.id.action_1) {
                     Channel channel = new Channel();
                     if (((FragmentLeft) baseFragments[0]).getViewPager().getCurrentItem() == 0) {
-                        channel.setReceiver("FragmentRecmdManga");//刷新推荐
+                        channel.setReceiver("FragmentRecmdIllust");//刷新推荐
                     } else {
                         channel.setReceiver("FragmentHotTag");//刷新热门标签
                     }
@@ -138,11 +132,11 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             @Override
             public void onPageSelected(int i) {
                 bottomNavigationView.getMenu().getItem(i).setChecked(true);
-                if (i == 1) {
-                    BarUtils.setStatusBarLightMode(mActivity, true);
-                } else {
-                    BarUtils.setStatusBarLightMode(mActivity, false);
-                }
+//                if (i == 1) {
+//                    BarUtils.setStatusBarLightMode(mActivity, true);
+//                } else {
+//                    BarUtils.setStatusBarLightMode(mActivity, false);
+//                }
             }
 
             @Override
@@ -153,7 +147,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     }
 
     private void initFragment() {
-        baseFragments = new BaseBindFragment[]{
+        baseFragments = new BaseFragment[]{
                 new FragmentLeft(),
                 (Dev.isDev && false) ? new FragmentCT() : new FragmentCenter(),
                 new FragmentRight()

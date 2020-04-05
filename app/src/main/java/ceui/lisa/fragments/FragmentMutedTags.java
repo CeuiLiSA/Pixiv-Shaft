@@ -19,7 +19,7 @@ import ceui.lisa.core.DataControl;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.utils.Common;
 
-public class FragmentM extends LocalListFragment<FragmentBaseListBinding, TagsBean, RecyBookTagBinding> {
+public class FragmentMutedTags extends LocalListFragment<FragmentBaseListBinding, TagsBean, RecyBookTagBinding> {
 
     @Override
     public DataControl<List<TagsBean>> present() {

@@ -9,7 +9,7 @@ import ceui.lisa.R;
 import ceui.lisa.databinding.FragmentSingleNovelBinding;
 import ceui.lisa.utils.Params;
 
-public class FragmentSingleNovel extends BaseBindFragment<FragmentSingleNovelBinding> {
+public class FragmentSingleNovel extends BaseFragment<FragmentSingleNovelBinding> {
 
 
     private String novelString;
@@ -24,7 +24,7 @@ public class FragmentSingleNovel extends BaseBindFragment<FragmentSingleNovelBin
     }
 
     @Override
-    void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.fragment_single_novel;
     }
 

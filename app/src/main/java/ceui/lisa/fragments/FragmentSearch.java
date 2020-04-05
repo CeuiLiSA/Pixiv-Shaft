@@ -48,13 +48,13 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 import static ceui.lisa.fragments.FragmentFilter.SEARCH_TYPE;
 import static ceui.lisa.utils.Common.isNumeric;
 
-public class FragmentSearch extends BaseBindFragment<FragmentSearchBinding> {
+public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
 
     private ObservableEmitter<String> fuck = null;
     private int searchType = 0;
 
     @Override
-    void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.fragment_search;
     }
 

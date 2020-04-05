@@ -8,7 +8,6 @@ import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 
 import androidx.lifecycle.ViewModelProvider;
-import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.PagerSnapHelper;
 
@@ -25,7 +24,6 @@ import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListNovel;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.UserDetailResponse;
-import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
@@ -37,7 +35,7 @@ import io.reactivex.schedulers.Schedulers;
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-public class FragmentLikeNovelHorizontal extends BaseBindFragment<FragmentLikeIllustHorizontalBinding> {
+public class FragmentLikeNovelHorizontal extends BaseFragment<FragmentLikeIllustHorizontalBinding> {
 
     private List<NovelBean> allItems = new ArrayList<>();
     private UserDetailResponse mUserDetailResponse;
@@ -60,7 +58,7 @@ public class FragmentLikeNovelHorizontal extends BaseBindFragment<FragmentLikeIl
     }
 
     @Override
-    void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.fragment_like_illust_horizontal;
     }
 

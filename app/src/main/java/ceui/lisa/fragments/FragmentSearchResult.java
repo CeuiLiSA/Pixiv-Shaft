@@ -83,7 +83,7 @@ public class FragmentSearchResult extends NetListFragment<FragmentSearchResultBi
 
             @Override
             public Observable<ListIllust> initNextApi() {
-                return Retro.getAppApi().getNextIllust(token, nextUrl);
+                return Retro.getAppApi().getNextIllust(token, mModel.getNextUrl());
             }
         };
     }

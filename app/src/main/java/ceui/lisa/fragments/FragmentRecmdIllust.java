@@ -34,16 +34,16 @@ import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
-public class FragmentRecmdManga extends NetListFragment<FragmentRecmdFinalBinding,
+public class FragmentRecmdIllust extends NetListFragment<FragmentRecmdFinalBinding,
         ListIllust, IllustsBean, RecyIllustStaggerBinding> {
 
     private String dataType;
     private List<IllustsBean> ranking = new ArrayList<>();
 
-    public static FragmentRecmdManga newInstance(String dataType) {
+    public static FragmentRecmdIllust newInstance(String dataType) {
         Bundle args = new Bundle();
         args.putString(Params.DATA_TYPE, dataType);
-        FragmentRecmdManga fragment = new FragmentRecmdManga();
+        FragmentRecmdIllust fragment = new FragmentRecmdIllust();
         fragment.setArguments(args);
         return fragment;
     }
@@ -71,7 +71,8 @@ public class FragmentRecmdManga extends NetListFragment<FragmentRecmdFinalBindin
 
             @Override
             public Observable<ListIllust> initNextApi() {
-                return Retro.getAppApi().getNextIllust(Shaft.sUserModel.getResponse().getAccess_token(), nextUrl);
+                return Retro.getAppApi().getNextIllust(
+                        Shaft.sUserModel.getResponse().getAccess_token(), mModel.getNextUrl());
             }
         };
     }
@@ -106,7 +107,8 @@ public class FragmentRecmdManga extends NetListFragment<FragmentRecmdFinalBindin
     }
 
     @Override
-    public void firstSuccess() {
+    public void onFirstLoaded(List<IllustsBean> illustsBeans) {
+        super.onFirstLoaded(illustsBeans);
         Observable.create((ObservableOnSubscribe<String>) emitter -> {
             emitter.onNext("开始写入数据库");
             if (allItems != null) {

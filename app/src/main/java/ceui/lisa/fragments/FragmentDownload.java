@@ -22,16 +22,16 @@ import ceui.lisa.utils.Common;
 /**
  * 下载管理
  */
-public class FragmentDownload extends BaseBindFragment<ViewpagerWithTablayoutBinding> {
+public class FragmentDownload extends BaseFragment<ViewpagerWithTablayoutBinding> {
 
     private static final String[] CHINESE_TITLES = new String[]{
             Shaft.getContext().getString(R.string.now_downloading),
             Shaft.getContext().getString(R.string.has_download)
     };
-    private Fragment[] allPages = new Fragment[]{new FragmentND(), new FragmentDF()};
+    private Fragment[] allPages = new Fragment[]{new FragmentDownloading(), new FragmentDownloadFinish()};
 
     @Override
-    void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.viewpager_with_tablayout;
     }
 
@@ -50,8 +50,8 @@ public class FragmentDownload extends BaseBindFragment<ViewpagerWithTablayoutBin
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             AppDatabase.getAppDatabase(mContext).downloadDao().deleteAllDownload();
-                            if (allPages[1] instanceof FragmentDF) {
-                                ((FragmentDF) allPages[1]).clear();
+                            if (allPages[1] instanceof FragmentDownloadFinish) {
+                                ((FragmentDownloadFinish) allPages[1]).clearAndRefresh();
                             }
                             Common.showToast("下载记录清除成功");
                         }

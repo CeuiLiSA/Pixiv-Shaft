@@ -5,6 +5,8 @@ import android.view.View;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import java.util.List;
+
 import ceui.lisa.R;
 import ceui.lisa.activities.UActivity;
 import ceui.lisa.adapters.BaseAdapter;
@@ -30,7 +32,7 @@ public class FragmentRecmdUserHorizontal extends NetListFragment<FragmentUserHor
         ListUser, UserPreviewsBean, RecyUserPreviewHorizontalBinding> {
 
     @Override
-    protected void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.fragment_user_horizontal;
     }
 
@@ -72,7 +74,7 @@ public class FragmentRecmdUserHorizontal extends NetListFragment<FragmentUserHor
     }
 
     @Override
-    public void firstSuccess() {
+    public void onFirstLoaded(List<UserPreviewsBean> userPreviewsBeans) {
         mRefreshLayout.setEnableRefresh(false);
         mRefreshLayout.setEnableLoadMore(false);
     }

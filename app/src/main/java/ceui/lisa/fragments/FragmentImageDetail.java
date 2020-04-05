@@ -28,7 +28,7 @@ import ceui.lisa.utils.Params;
 
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
-public class FragmentImageDetail extends BaseBindFragment<FragmentImageDetailBinding> {
+public class FragmentImageDetail extends BaseFragment<FragmentImageDetailBinding> {
 
     private IllustsBean mIllustsBean;
     private int index;
@@ -64,7 +64,7 @@ public class FragmentImageDetail extends BaseBindFragment<FragmentImageDetailBin
     }
 
     @Override
-    void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.fragment_image_detail;
     }
 

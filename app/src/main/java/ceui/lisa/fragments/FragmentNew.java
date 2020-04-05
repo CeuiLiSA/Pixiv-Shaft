@@ -12,7 +12,7 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.ViewpagerWithTablayoutBinding;
 import ceui.lisa.utils.Dev;
 
-public class FragmentNew extends BaseBindFragment<ViewpagerWithTablayoutBinding> {
+public class FragmentNew extends BaseFragment<ViewpagerWithTablayoutBinding> {
 
     private static final String[] CHINESE_TITLES = new String[]{
             Shaft.getContext().getString(R.string.type_illust),
@@ -20,7 +20,7 @@ public class FragmentNew extends BaseBindFragment<ViewpagerWithTablayoutBinding>
             Shaft.getContext().getString(R.string.type_novel)};
 
     @Override
-    void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.viewpager_with_tablayout;
     }
 
@@ -34,7 +34,7 @@ public class FragmentNew extends BaseBindFragment<ViewpagerWithTablayoutBinding>
             public Fragment getItem(int position) {
                 if (Dev.isDev) {
                     if (position == 0) {
-                        return FragmentLatestNovel.newInstance("novel");
+                        return new FragmentLatestNovel();
                     } else if (position == 1) {
                         return new Fragment();
                     } else if (position == 2) {
@@ -48,7 +48,7 @@ public class FragmentNew extends BaseBindFragment<ViewpagerWithTablayoutBinding>
                     } else if (position == 1) {
                         return FragmentLatestWorks.newInstance("manga");
                     } else if (position == 2) {
-                        return FragmentLatestNovel.newInstance("novel");
+                        return new FragmentLatestNovel();
                     } else {
                         return new Fragment();
                     }

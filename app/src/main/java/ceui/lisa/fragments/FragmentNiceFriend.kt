@@ -23,7 +23,8 @@ class FragmentNiceFriend : NetListFragment<FragmentBaseListBinding,
             }
 
             override fun initNextApi(): Observable<ListUser> {
-                return Retro.getAppApi().getNextUser(Shaft.sUserModel.response.access_token, nextUrl)
+                return Retro.getAppApi().getNextUser(
+                        Shaft.sUserModel.response.access_token, mModel.nextUrl)
             }
         }
     }

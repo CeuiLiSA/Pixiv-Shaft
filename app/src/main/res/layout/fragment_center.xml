@@ -24,28 +24,43 @@
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:clipChildren="false"
                     android:orientation="vertical"
                     android:layout_height="match_parent">
 
-                    <androidx.viewpager.widget.ViewPager
-                        android:id="@+id/viewPager"
-                        android:layout_marginTop="45dp"
-                        android:layout_marginStart="36dp"
-                        android:layout_marginEnd="36dp"
-                        android:clipChildren="false"
-                        android:layout_marginBottom="@dimen/eight_dp"
+                    <RelativeLayout
                         android:layout_width="match_parent"
-                        android:layout_height="146dp">
+                        android:clipChildren="false"
+                        android:layout_height="wrap_content">
+
+                        <ImageView
+                            android:layout_width="match_parent"
+                            android:src="@color/colorPrimary"
+                            android:id="@+id/wtf_head"
+                            android:layout_height="70dp">
+
+                        </ImageView>
+
+                        <androidx.viewpager.widget.ViewPager
+                            android:id="@+id/viewPager"
+                            android:layout_marginTop="45dp"
+                            android:layout_marginStart="76dp"
+                            android:layout_marginEnd="76dp"
+                            android:clipChildren="false"
+                            android:layout_marginBottom="@dimen/eight_dp"
+                            android:layout_width="match_parent"
+                            android:layout_height="176dp">
 
 
-                    </androidx.viewpager.widget.ViewPager>
+                        </androidx.viewpager.widget.ViewPager>
+
+                    </RelativeLayout>
+
 
 
                     <FrameLayout
                         android:id="@+id/fragment_pivision"
                         android:layout_width="match_parent"
-                        android:layout_height="200dp">
+                        android:layout_height="wrap_content">
 
                     </FrameLayout>
 
@@ -155,7 +170,6 @@
                     </LinearLayout>
 
                 </LinearLayout>
-
             </androidx.core.widget.NestedScrollView>
         </com.scwang.smartrefresh.layout.SmartRefreshLayout>
     </RelativeLayout>

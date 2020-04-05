@@ -1,5 +1,6 @@
 package ceui.lisa.adapters;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.view.LayoutInflater;
@@ -161,6 +162,8 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
                 Intent intent = new Intent(mContext, ViewPagerActivity.class);
                 intent.putExtra("position", position);
                 mContext.startActivity(intent);
+//                ((Activity)mContext).overridePendingTransition(R.anim.zoom_enter,
+//                        R.anim.zoom_exit);
             }
         });
     }

@@ -24,7 +24,7 @@ import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 
-public class FragmentDF extends LocalListFragment<FragmentBaseListBinding,
+public class FragmentDownloadFinish extends LocalListFragment<FragmentBaseListBinding,
         DownloadEntity, RecyViewHistoryBinding> {
 
     private List<IllustsBean> all = new ArrayList<>();

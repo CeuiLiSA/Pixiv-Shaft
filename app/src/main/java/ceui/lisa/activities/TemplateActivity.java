@@ -13,7 +13,9 @@ import ceui.lisa.R;
 import ceui.lisa.databinding.ActivityFragmentBinding;
 import ceui.lisa.fragments.FragmentAboutApp;
 import ceui.lisa.fragments.FragmentMultiDownld;
+import ceui.lisa.fragments.FragmentRecmdIllust;
 import ceui.lisa.fragments.FragmentSB;
+import ceui.lisa.fragments.FragmentTest;
 import ceui.lisa.fragments.FragmentUserInfo;
 import ceui.lisa.fragments.FragmentBookedTag;
 import ceui.lisa.fragments.FragmentComment;
@@ -22,20 +24,19 @@ import ceui.lisa.fragments.FragmentDownload;
 import ceui.lisa.fragments.FragmentEditAccount;
 import ceui.lisa.fragments.FragmentEditFile;
 import ceui.lisa.fragments.FragmentFollowUser;
-import ceui.lisa.fragments.FragmentH;
+import ceui.lisa.fragments.FragmentHitokoto;
 import ceui.lisa.fragments.FragmentHistory;
 import ceui.lisa.fragments.FragmentImageDetail;
-import ceui.lisa.fragments.FragmentL;
+import ceui.lisa.fragments.FragmentLogin;
 import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.fragments.FragmentLikeNovel;
 import ceui.lisa.fragments.FragmentLive;
 import ceui.lisa.fragments.FragmentLocalUsers;
-import ceui.lisa.fragments.FragmentM;
+import ceui.lisa.fragments.FragmentMutedTags;
 import ceui.lisa.fragments.FragmentNew;
 import ceui.lisa.fragments.FragmentNiceFriend;
 import ceui.lisa.fragments.FragmentNovelHolder;
 import ceui.lisa.fragments.FragmentPv;
-import ceui.lisa.fragments.FragmentRecmdManga;
 import ceui.lisa.fragments.FragmentRecmdNovel;
 import ceui.lisa.fragments.FragmentRecmdUser;
 import ceui.lisa.fragments.FragmentRelatedIllust;
@@ -70,7 +71,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
             switch (dataType) {
                 case "登录注册":
                     BarUtils.setNavBarColor(mActivity, getResources().getColor(R.color.colorPrimary));
-                    return new FragmentL();
+                    return new FragmentLogin();
                 case "搜索结果": {
                     String keyword = intent.getStringExtra(EXTRA_KEYWORD);
                     return FragmentSearchResult.newInstance(keyword);
@@ -136,8 +137,9 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                     return new FragmentUserInfo();
                 case "一言":
                     if(Dev.isDev){
+                        return new FragmentRecmdUser();
                     }else {
-                        return new FragmentH();
+                        return new FragmentHitokoto();
                     }
                 case "最新作品":
                     return new FragmentNew();
@@ -158,7 +160,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                     getWindow().setStatusBarColor(getResources().getColor(R.color.colorPrimary));
                     return new FragmentCollection();
                 case "推荐漫画":
-                    return FragmentRecmdManga.newInstance("漫画");
+                    return FragmentRecmdIllust.newInstance("漫画");
                 case "推荐小说":
                     return new FragmentRecmdNovel();
                 case "小说收藏":
@@ -178,7 +180,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                 case "热门直播":
                     return new FragmentLive();
                 case "标签屏蔽记录":
-                    return new FragmentM();
+                    return new FragmentMutedTags();
                 default:
                     return new Fragment();
             }

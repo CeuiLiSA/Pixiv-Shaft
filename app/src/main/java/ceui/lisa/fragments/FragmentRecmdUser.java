@@ -29,14 +29,15 @@ public class FragmentRecmdUser extends NetListFragment<FragmentBaseListBinding,
 
             @Override
             public Observable<ListUser> initNextApi() {
-                return Retro.getAppApi().getNextUser(sUserModel.getResponse().getAccess_token(), nextUrl);
+                return Retro.getAppApi().getNextUser(
+                        sUserModel.getResponse().getAccess_token(), mModel.getNextUrl());
             }
         };
     }
 
     @Override
     public BaseAdapter<UserPreviewsBean, RecyUserPreviewBinding> adapter() {
-        return new UAdapter(allItems, mContext);
+        return new UAdapter(mModel.getContent().getValue(), mContext);
     }
 
     @Override

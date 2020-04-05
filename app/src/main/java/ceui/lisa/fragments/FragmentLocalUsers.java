@@ -36,13 +36,13 @@ import retrofit2.Response;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-public class FragmentLocalUsers extends BaseBindFragment<FragmentLocalUserBinding> {
+public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
 
     //private SimpleDateFormat formatter = new SimpleDateFormat("MM月dd日 HH:mm:ss");
     private List<UserModel> allItems = new ArrayList<>();
 
     @Override
-    void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.fragment_local_user;
     }
 

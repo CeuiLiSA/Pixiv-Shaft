@@ -57,7 +57,8 @@ public class FragmentPivision extends NetListFragment<FragmentBaseListBinding,
 
             @Override
             public Observable<ListArticle> initNextApi() {
-                return Retro.getAppApi().getNextArticals(sUserModel.getResponse().getAccess_token(), nextUrl);
+                return Retro.getAppApi().getNextArticals(
+                        sUserModel.getResponse().getAccess_token(), mModel.getNextUrl());
             }
         };
     }

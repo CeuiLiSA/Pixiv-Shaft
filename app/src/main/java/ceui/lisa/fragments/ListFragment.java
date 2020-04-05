@@ -1,10 +1,13 @@
 package ceui.lisa.fragments;
 
+import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.databinding.ViewDataBinding;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
@@ -19,13 +22,15 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.core.BaseCtrl;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
+import ceui.lisa.viewmodel.BaseModel;
 import jp.wasabeef.recyclerview.animators.BaseItemAnimator;
 import jp.wasabeef.recyclerview.animators.LandingAnimator;
 
 public abstract class ListFragment<Layout extends ViewDataBinding, Item,
-        ItemLayout extends ViewDataBinding> extends BaseBindFragment<Layout> {
+        ItemLayout extends ViewDataBinding> extends BaseFragment<Layout> {
 
     public static final long animateDuration = 400L;
     public static final int PAGE_SIZE = 20;
@@ -33,13 +38,13 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
     protected RefreshLayout mRefreshLayout;
     protected ImageView noData;
     protected BaseAdapter<Item, ItemLayout> mAdapter;
-    protected List<Item> allItems = new ArrayList<>();
-    protected String nextUrl;
+    protected List<Item> allItems = null;
+    protected BaseModel<Item> mModel;
     protected Toolbar mToolbar;
     protected BaseCtrl mBaseCtrl;
 
     @Override
-    protected void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.fragment_base_list;
     }
 
@@ -49,6 +54,18 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
 
     @Override
     void initData() {
+
+
+
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        //获取viewmodel
+        mModel = (BaseModel<Item>) new ViewModelProvider(this).get(BaseModel.class);
+        allItems = mModel.getContent().getValue();
+
         //为recyclerView设置Adapter
         mAdapter = adapter();
         if (mAdapter != null) {
@@ -56,7 +73,7 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
         }
 
         //进页面主动刷新
-        if (autoRefresh()) {
+        if (autoRefresh() && !mModel.isLoaded()) {
             mRefreshLayout.autoRefresh();
         }
     }
@@ -106,7 +123,7 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
     }
 
     /**
-     * 默认 LinearLayoutManager
+     * 默认 LinearLayoutManager，想换其他LayoutManager @Override 这个方法即可
      */
     public void initRecyclerView() {
         mRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
@@ -139,17 +156,23 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
     }
 
     public void onFirstLoaded(List<Item> items) {
+
     }
 
     public void onNextLoaded(List<Item> items) {
+
     }
 
     public void clear() {
         if (mAdapter != null) {
             mAdapter.clear();
-            if (mRefreshLayout != null) {
-                mRefreshLayout.autoRefresh();
-            }
+        }
+    }
+
+    public void clearAndRefresh() {
+        clear();
+        if (mRefreshLayout != null) {
+            mRefreshLayout.autoRefresh();
         }
     }
 

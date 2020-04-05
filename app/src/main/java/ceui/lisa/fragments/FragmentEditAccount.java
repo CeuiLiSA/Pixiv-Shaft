@@ -18,12 +18,12 @@ import io.reactivex.schedulers.Schedulers;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-public class FragmentEditAccount extends BaseBindFragment<FragmentEditAccountBinding> {
+public class FragmentEditAccount extends BaseFragment<FragmentEditAccountBinding> {
 
     private boolean canChangePixivID = false;
 
     @Override
-    void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.fragment_edit_account;
     }
 

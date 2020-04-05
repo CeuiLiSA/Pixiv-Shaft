@@ -13,7 +13,7 @@ import ceui.lisa.core.DataControl;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 
-public class FragmentND extends LocalListFragment<FragmentBaseListBinding,
+public class FragmentDownloading extends LocalListFragment<FragmentBaseListBinding,
         IllustTask, RecyDownloadTaskBinding> {
 
     @Override

@@ -18,10 +18,10 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.FragmentLeftBinding;
 
-public class FragmentLeft extends BaseBindFragment<FragmentLeftBinding> {
+public class FragmentLeft extends BaseFragment<FragmentLeftBinding> {
 
     @Override
-    void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.fragment_left;
     }
 
@@ -59,7 +59,7 @@ public class FragmentLeft extends BaseBindFragment<FragmentLeftBinding> {
             @Override
             public Fragment getItem(int i) {
                 if (i == 0) {
-                    return FragmentRecmdManga.newInstance("插画");
+                    return FragmentRecmdIllust.newInstance("插画");
                 } else {
                     return new FragmentHotTag();
                 }

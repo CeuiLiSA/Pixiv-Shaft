@@ -1,36 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
 
     </data>
 
     <RelativeLayout
-        android:orientation="vertical"
-        android:clipChildren="false"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <ImageView
+        <com.scwang.smartrefresh.layout.SmartRefreshLayout
             android:layout_width="match_parent"
-            android:id="@+id/image_bg"
-            android:scaleType="centerCrop"
+            android:id="@+id/refreshLayout"
+            app:srlEnableRefresh="true"
             android:layout_height="match_parent">
 
 
-        </ImageView>
+            <androidx.recyclerview.widget.RecyclerView
+                android:layout_width="match_parent"
+                android:id="@+id/recyclerView"
+                android:layout_height="match_parent">
 
-        <androidx.viewpager.widget.ViewPager
-            android:layout_width="match_parent"
-            android:id="@+id/viewPager"
-            android:layout_marginTop="55dp"
-            android:layout_marginBottom="75dp"
-            android:layout_marginStart="42dp"
-            android:layout_marginEnd="42dp"
-            android:clipChildren="false"
-            android:layout_height="match_parent">
+            </androidx.recyclerview.widget.RecyclerView>
 
-        </androidx.viewpager.widget.ViewPager>
-
+        </com.scwang.smartrefresh.layout.SmartRefreshLayout>
     </RelativeLayout>
 </layout>

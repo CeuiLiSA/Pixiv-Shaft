@@ -6,6 +6,8 @@ import android.view.ViewGroup;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import java.util.List;
+
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.adapters.BaseAdapter;
@@ -46,7 +48,7 @@ public class FragmentPivisionHorizontal extends NetListFragment<FragmentPivision
     }
 
     @Override
-    protected void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.fragment_pivision_horizontal;
     }
 
@@ -106,7 +108,7 @@ public class FragmentPivisionHorizontal extends NetListFragment<FragmentPivision
     }
 
     @Override
-    public void firstSuccess() {
+    public void onFirstLoaded(List<SpotlightArticlesBean> spotlightArticlesBeans) {
         mRefreshLayout.setEnableRefresh(false);
         mRefreshLayout.setEnableLoadMore(false);
     }

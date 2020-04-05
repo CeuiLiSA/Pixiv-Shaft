@@ -46,7 +46,7 @@ public class TaskQueue {
 
                 //通知FragmentNowDownload 删除已经下载完成的这一项
                 Channel deleteChannel = new Channel();
-                deleteChannel.setReceiver("FragmentND");
+                deleteChannel.setReceiver("FragmentDownloading");
                 deleteChannel.setObject(i);
                 EventBus.getDefault().post(deleteChannel);
 
@@ -62,7 +62,7 @@ public class TaskQueue {
 
                     //通知FragmentHasDownload 添加这一项
                     Channel addChannel = new Channel();
-                    addChannel.setReceiver("FragmentDF");
+                    addChannel.setReceiver("FragmentDownloadFinish");
                     addChannel.setObject(downloadEntity);
                     EventBus.getDefault().post(addChannel);
 

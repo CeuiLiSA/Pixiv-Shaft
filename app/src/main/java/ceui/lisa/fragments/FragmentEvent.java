@@ -37,7 +37,7 @@ import io.reactivex.Observable;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-public class FragmentP extends NetListFragment<FragmentBaseListBinding,
+public class FragmentEvent extends NetListFragment<FragmentBaseListBinding,
         ListIllust, IllustsBean, RecyUserEventBinding> {
 
     @Override
@@ -50,7 +50,8 @@ public class FragmentP extends NetListFragment<FragmentBaseListBinding,
 
             @Override
             public Observable<ListIllust> initNextApi() {
-                return Retro.getAppApi().getNextIllust(sUserModel.getResponse().getAccess_token(), nextUrl);
+                return Retro.getAppApi().getNextIllust(
+                        sUserModel.getResponse().getAccess_token(), mModel.getNextUrl());
             }
 
             @Override

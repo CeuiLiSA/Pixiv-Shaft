@@ -54,13 +54,15 @@ public class FragmentRankNovel extends NetListFragment<FragmentBaseListBinding,
         return new NetControl<ListNovel>() {
             @Override
             public Observable<ListNovel> initApi() {
-                return Retro.getAppApi().getRankNovel(Shaft.sUserModel.getResponse().getAccess_token(),
+                return Retro.getAppApi().getRankNovel(
+                        Shaft.sUserModel.getResponse().getAccess_token(),
                         API_TITLES[mIndex], queryDate);
             }
 
             @Override
             public Observable<ListNovel> initNextApi() {
-                return Retro.getAppApi().getNextNovel(sUserModel.getResponse().getAccess_token(), nextUrl);
+                return Retro.getAppApi().getNextNovel(
+                        sUserModel.getResponse().getAccess_token(), mModel.getNextUrl());
             }
 
             @Override
