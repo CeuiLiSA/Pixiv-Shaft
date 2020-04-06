@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.databinding.ViewDataBinding;
@@ -15,6 +16,8 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
+import com.scwang.smartrefresh.layout.listener.OnLoadMoreListener;
+import com.scwang.smartrefresh.layout.listener.OnRefreshListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +28,7 @@ import ceui.lisa.core.BaseCtrl;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
+import ceui.lisa.view.SpacesItemDecoration;
 import ceui.lisa.viewmodel.BaseModel;
 import jp.wasabeef.recyclerview.animators.BaseItemAnimator;
 import jp.wasabeef.recyclerview.animators.LandingAnimator;
@@ -53,17 +57,10 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
     public abstract BaseCtrl present();
 
     @Override
-    void initData() {
-
-
-
-    }
-
-    @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         //获取viewmodel
-        mModel = (BaseModel<Item>) new ViewModelProvider(this).get(BaseModel.class);
+        mModel = (BaseModel<Item>) new ViewModelProvider(this).get(modelClass());
         allItems = mModel.getContent().getValue();
 
         //为recyclerView设置Adapter
@@ -76,6 +73,10 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
         if (autoRefresh() && !mModel.isLoaded()) {
             mRefreshLayout.autoRefresh();
         }
+    }
+
+    public Class<? extends BaseModel> modelClass() {
+        return BaseModel.class;
     }
 
     @Override
@@ -102,7 +103,27 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
                 mBaseCtrl.getHeader(mContext) : new FalsifyHeader(mContext));
         mRefreshLayout.setRefreshFooter(mBaseCtrl.hasNext() ?
                 mBaseCtrl.getFooter(mContext) : new FalsifyFooter(mContext));
+
+        mRefreshLayout.setOnRefreshListener(new OnRefreshListener() {
+            @Override
+            public void onRefresh(@NonNull RefreshLayout refreshLayout) {
+                Common.showLog(className + "onRefresh ");
+                clear();
+                fresh();
+            }
+        });
+        mRefreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
+            @Override
+            public void onLoadMore(@NonNull RefreshLayout refreshLayout) {
+                Common.showLog(className + "onLoadMore ");
+                loadMore();
+            }
+        });
     }
+
+    public abstract void fresh();
+
+    public abstract void loadMore();
 
     /**
      * 指定是否显示Toolbar
@@ -122,13 +143,23 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
         return "";
     }
 
-    /**
-     * 默认 LinearLayoutManager，想换其他LayoutManager @Override 这个方法即可
-     */
+
     public void initRecyclerView() {
+        verticalRecyclerView();
+    }
+
+    public void verticalRecyclerView() {
         mRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.addItemDecoration(new LinearItemDecoration(DensityUtil.dp2px(12.0f)));
+    }
+
+    protected void staggerRecyclerView() {
+        StaggeredGridLayoutManager manager = new StaggeredGridLayoutManager(
+                2, StaggeredGridLayoutManager.VERTICAL);
+        mRecyclerView.setLayoutManager(manager);
+        mRecyclerView.addItemDecoration(new SpacesItemDecoration(
+                DensityUtil.dp2px(8.0f)));
     }
 
     /**
@@ -193,5 +224,14 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
             baseItemAnimator.setChangeDuration(animateDuration);
             return baseItemAnimator;
         }
+    }
+
+    public int getStartSize() {
+        return allItems.size() + mAdapter.headerSize();
+    }
+
+    public void nowRefresh() {
+        mRecyclerView.smoothScrollToPosition(0);
+        mRefreshLayout.autoRefresh();
     }
 }

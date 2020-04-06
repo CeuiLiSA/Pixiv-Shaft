@@ -29,6 +29,7 @@ import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.TempTokenResponse;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
+import ceui.lisa.utils.Params;
 import ceui.lisa.view.GridItemDecoration;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -59,13 +60,23 @@ public class FragmentSearchResult extends NetListFragment<FragmentSearchResultBi
     }
 
     public static FragmentSearchResult newInstance(String keyWord, String sort, String searchTarget) {
-        FragmentSearchResult fragmentSearchResult = new FragmentSearchResult();
-        fragmentSearchResult.keyWord = keyWord;
-        fragmentSearchResult.sort = sort;
-        fragmentSearchResult.searchTarget = searchTarget;
-        fragmentSearchResult.starSize = Shaft.sSettings.getSearchFilter().contains("无限制") ?
-                "" : " " + (Shaft.sSettings.getSearchFilter());
-        return fragmentSearchResult;
+        Bundle args = new Bundle();
+        args.putString(Params.KEY_WORD, keyWord);
+        args.putString(Params.SORT_TYPE, sort);
+        args.putString(Params.SEARCH_TYPE, searchTarget);
+        args.putString(Params.STAR_SIZE, Shaft.sSettings.getSearchFilter().contains("无限制") ?
+                "" : " " + (Shaft.sSettings.getSearchFilter()));
+        FragmentSearchResult fragment = new FragmentSearchResult();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void initBundle(Bundle bundle) {
+        keyWord = bundle.getString(Params.KEY_WORD);
+        sort = bundle.getString(Params.SORT_TYPE);
+        searchTarget = bundle.getString(Params.SEARCH_TYPE);
+        starSize = bundle.getString(Params.STAR_SIZE);
     }
 
     @Override
@@ -95,7 +106,7 @@ public class FragmentSearchResult extends NetListFragment<FragmentSearchResultBi
 
     @Override
     public void initData() {
-        ((TemplateActivity) getActivity()).setSupportActionBar(baseBind.toolbar);
+        ((TemplateActivity) mActivity).setSupportActionBar(baseBind.toolbar);
         baseBind.toolbar.setTitle(getToolbarTitle());
         baseBind.toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
@@ -118,7 +129,8 @@ public class FragmentSearchResult extends NetListFragment<FragmentSearchResultBi
 
         baseBind.drawerlayout.setTouchMode(ElasticDrawer.TOUCH_MODE_BEZEL);
         token = sUserModel.getResponse().getAccess_token();
-        FragmentFilter fragmentFilter = FragmentFilter.newInstance(new FragmentFilter.SearchFilter() {
+        FragmentFilter fragmentFilter = FragmentFilter.newInstance();
+        fragmentFilter.setSearchFilter(new FragmentFilter.SearchFilter() {
             @Override
             public void onTagMatchChanged(String tagMatch) {
                 searchTarget = tagMatch;

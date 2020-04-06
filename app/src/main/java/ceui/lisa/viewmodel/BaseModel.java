@@ -1,19 +1,16 @@
 package ceui.lisa.viewmodel;
 
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import ceui.lisa.utils.Common;
 
 public class BaseModel<T> extends ViewModel {
 
     private MutableLiveData<List<T>> content;
     private String nextUrl = "";
-    private int lastSize = 0;
     private boolean isLoaded = false;
 
     public BaseModel() {
@@ -28,15 +25,10 @@ public class BaseModel<T> extends ViewModel {
     public void load(List<T> list) {
         List<T> current = content.getValue();
         if (current != null) {
-            lastSize = current.size();
             current.addAll(list);
         }
         content.setValue(current);
         isLoaded = true;
-    }
-
-    public int getLastSize() {
-        return lastSize;
     }
 
     public boolean isLoaded() {

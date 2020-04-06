@@ -83,9 +83,6 @@ public class FragmentRankIllust extends NetListFragment<FragmentBaseListBinding,
 
     @Override
     public void initRecyclerView() {
-        StaggeredGridLayoutManager layoutManager =
-                new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
-        baseBind.recyclerView.setLayoutManager(layoutManager);
-        baseBind.recyclerView.addItemDecoration(new SpacesItemDecoration(DensityUtil.dp2px(8.0f)));
+        staggerRecyclerView();
     }
 }

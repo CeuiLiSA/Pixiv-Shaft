@@ -1,5 +1,7 @@
 package ceui.lisa.fragments;
 
+import android.os.Bundle;
+
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.UAdapter;
 import ceui.lisa.core.NetControl;
@@ -8,6 +10,7 @@ import ceui.lisa.databinding.RecyUserPreviewBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListUser;
 import ceui.lisa.models.UserPreviewsBean;
+import ceui.lisa.utils.Params;
 import io.reactivex.Observable;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
@@ -20,10 +23,17 @@ public class FragmentSearchUser extends NetListFragment<FragmentBaseListBinding,
 
     private String word;
 
-    public static FragmentSearchUser newInstance(String w) {
-        FragmentSearchUser searchUser = new FragmentSearchUser();
-        searchUser.word = w;
-        return searchUser;
+    public static FragmentSearchUser newInstance(String word) {
+        Bundle args = new Bundle();
+        args.putString(Params.KEY_WORD, word);
+        FragmentSearchUser fragment = new FragmentSearchUser();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void initBundle(Bundle bundle) {
+        word = bundle.getString(Params.KEY_WORD);
     }
 
     @Override

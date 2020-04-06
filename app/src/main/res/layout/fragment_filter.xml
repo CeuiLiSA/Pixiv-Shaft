@@ -5,6 +5,11 @@
 
     </data>
 
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
     <LinearLayout
         android:layout_width="match_parent"
         android:background="@color/white"
@@ -213,4 +218,7 @@
             android:text="查找结果" />
 
     </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
 </layout>

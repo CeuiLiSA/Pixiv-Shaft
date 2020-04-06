@@ -2,6 +2,7 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Bundle;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -39,37 +40,43 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
     private String response = null;
     private String mime = null;
     private String encoding = null;
-    private String history_url = null;
+    private String historyUrl = null;
     private AgentWeb mAgentWeb;
     private WebView mWebView;
     private String mIntentUrl;
     private WebViewClickHandler handler = new WebViewClickHandler();
 
     public static FragmentWebView newInstance(String title, String url) {
-        FragmentWebView fragmentWebView = new FragmentWebView();
-        fragmentWebView.title = title;
-        fragmentWebView.url = url;
-        return fragmentWebView;
+        Bundle args = new Bundle();
+        args.putString(Params.TITLE, title);
+        args.putString(Params.URL, url);
+        FragmentWebView fragment = new FragmentWebView();
+        fragment.setArguments(args);
+        return fragment;
     }
 
-    /**
-     * Loads with local html source
-     *
-     * @param title
-     * @param url
-     * @param response
-     * @param mime
-     * @param encoding
-     * @param history_url
-     * @return
-     */
-    public static FragmentWebView newInstance(String title, String url, String response, String mime, String encoding, String history_url) {
-        FragmentWebView fragmentWebView = newInstance(title, url);
-        fragmentWebView.response = response;
-        fragmentWebView.mime = mime;
-        fragmentWebView.encoding = encoding;
-        fragmentWebView.history_url = history_url;
-        return fragmentWebView;
+    @Override
+    public void initBundle(Bundle bundle) {
+        title = bundle.getString(Params.TITLE);
+        url = bundle.getString(Params.URL);
+        response = bundle.getString(Params.RESPONSE);
+        mime = bundle.getString(Params.MIME);
+        encoding = bundle.getString(Params.ENCODING);
+        historyUrl = bundle.getString(Params.HISTORY_URL);
+    }
+
+    public static FragmentWebView newInstance(String title, String url, String response,
+                                              String mime, String encoding, String history_url) {
+        Bundle args = new Bundle();
+        args.putString(Params.TITLE, title);
+        args.putString(Params.URL, url);
+        args.putString(Params.RESPONSE, response);
+        args.putString(Params.MIME, mime);
+        args.putString(Params.ENCODING, encoding);
+        args.putString(Params.HISTORY_URL, history_url);
+        FragmentWebView fragment = new FragmentWebView();
+        fragment.setArguments(args);
+        return fragment;
     }
 
     @Override
@@ -119,7 +126,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
             mAgentWeb = ready.go(url);
         } else {
             mAgentWeb = ready.get();
-            mAgentWeb.getUrlLoader().loadDataWithBaseURL(url, response, mime, encoding, history_url);
+            mAgentWeb.getUrlLoader().loadDataWithBaseURL(url, response, mime, encoding, historyUrl);
         }
 
         mWebView = mAgentWeb.getWebCreator().getWebView();

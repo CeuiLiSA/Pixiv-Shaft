@@ -14,10 +14,10 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapterWithHeadView;
 import ceui.lisa.core.NetControl;
+import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.helper.TagFilter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustRecmdEntity;
-import ceui.lisa.databinding.FragmentRecmdFinalBinding;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
@@ -34,7 +34,7 @@ import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
-public class FragmentRecmdIllust extends NetListFragment<FragmentRecmdFinalBinding,
+public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding,
         ListIllust, IllustsBean, RecyIllustStaggerBinding> {
 
     private String dataType;
@@ -62,9 +62,11 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentRecmdFinalBindi
                     return null;
                 } else {
                     if ("漫画".equals(dataType)) {
-                        return Retro.getAppApi().getRecmdManga(Shaft.sUserModel.getResponse().getAccess_token());
+                        return Retro.getAppApi().getRecmdManga(
+                                Shaft.sUserModel.getResponse().getAccess_token());
                     } else {
-                        return Retro.getAppApi().getRecmdIllust(Shaft.sUserModel.getResponse().getAccess_token());
+                        return Retro.getAppApi().getRecmdIllust(
+                                Shaft.sUserModel.getResponse().getAccess_token());
                     }
                 }
             }
@@ -92,11 +94,6 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentRecmdFinalBindi
     }
 
     @Override
-    public void initLayout() {
-        mLayoutID = R.layout.fragment_recmd_final;
-    }
-
-    @Override
     public String getToolbarTitle() {
         return "推荐" + dataType;
     }
@@ -108,7 +105,6 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentRecmdFinalBindi
 
     @Override
     public void onFirstLoaded(List<IllustsBean> illustsBeans) {
-        super.onFirstLoaded(illustsBeans);
         Observable.create((ObservableOnSubscribe<String>) emitter -> {
             emitter.onNext("开始写入数据库");
             if (allItems != null) {

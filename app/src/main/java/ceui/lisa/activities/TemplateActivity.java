@@ -83,7 +83,6 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                 }
                 case "浏览记录":
                     return new FragmentHistory();
-                    //return new FragmentViewHistory();
                 case "网页链接": {
                     String url = intent.getStringExtra(Params.URL);
                     String title = intent.getStringExtra(Params.TITLE);

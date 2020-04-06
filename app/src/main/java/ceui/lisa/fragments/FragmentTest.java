@@ -56,7 +56,7 @@ public class FragmentTest extends BaseFragment<FragmentTestBinding> {
         mModel.getContent().observe(getViewLifecycleOwner(), new Observer<List<UserPreviewsBean>>() {
             @Override
             public void onChanged(List<UserPreviewsBean> list) {
-                mAdapter.notifyItemRangeInserted(mModel.getLastSize(), list.size());
+                mAdapter.notifyItemRangeInserted(mModel.getContent().getValue().size(), list.size());
             }
         });
         mAdapter = new UAdapter(mModel.getContent().getValue(), mContext);
@@ -91,7 +91,6 @@ public class FragmentTest extends BaseFragment<FragmentTestBinding> {
                             @Override
                             public void success(ListUser listUser) {
                                 mModel.load(listUser.getList());
-                                isloaded = true;
                                 baseBind.refreshLayout.finishRefresh();
                             }
                         });

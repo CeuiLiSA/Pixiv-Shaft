@@ -1,6 +1,7 @@
 package ceui.lisa.fragments;
 
-import androidx.recyclerview.widget.StaggeredGridLayoutManager;
+
+import android.os.Bundle;
 
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapter;
@@ -11,6 +12,7 @@ import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.DensityUtil;
+import ceui.lisa.utils.Params;
 import ceui.lisa.view.SpacesItemDecoration;
 import io.reactivex.Observable;
 
@@ -26,16 +28,22 @@ public class FragmentUserManga extends NetListFragment<FragmentBaseListBinding,
     private boolean showToolbar = false;
 
     public static FragmentUserManga newInstance(int userID) {
-        FragmentUserManga fragmentRelatedIllust = new FragmentUserManga();
-        fragmentRelatedIllust.userID = userID;
-        return fragmentRelatedIllust;
+        return newInstance(userID, false);
     }
 
     public static FragmentUserManga newInstance(int userID, boolean paramShowToolbar) {
-        FragmentUserManga fragmentRelatedIllust = new FragmentUserManga();
-        fragmentRelatedIllust.userID = userID;
-        fragmentRelatedIllust.showToolbar = paramShowToolbar;
-        return fragmentRelatedIllust;
+        Bundle args = new Bundle();
+        args.putInt(Params.USER_ID, userID);
+        args.putBoolean(Params.FLAG, paramShowToolbar);
+        FragmentUserManga fragment = new FragmentUserManga();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void initBundle(Bundle bundle) {
+        userID = bundle.getInt(Params.USER_ID);
+        showToolbar = bundle.getBoolean(Params.FLAG);
     }
 
     @Override
@@ -74,8 +82,6 @@ public class FragmentUserManga extends NetListFragment<FragmentBaseListBinding,
 
     @Override
     public void initRecyclerView() {
-        StaggeredGridLayoutManager manager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
-        baseBind.recyclerView.setLayoutManager(manager);
-        baseBind.recyclerView.addItemDecoration(new SpacesItemDecoration(DensityUtil.dp2px(8.0f)));
+        staggerRecyclerView();
     }
 }

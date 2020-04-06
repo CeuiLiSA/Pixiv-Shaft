@@ -1,5 +1,7 @@
 package ceui.lisa.fragments;
 
+import android.os.Bundle;
+
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import ceui.lisa.adapters.BaseAdapter;
@@ -11,6 +13,7 @@ import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.DensityUtil;
+import ceui.lisa.utils.Params;
 import ceui.lisa.view.SpacesItemDecoration;
 import io.reactivex.Observable;
 
@@ -25,16 +28,22 @@ public class FragmentUserIllust extends NetListFragment<FragmentBaseListBinding,
     private boolean showToolbar = false;
 
     public static FragmentUserIllust newInstance(int userID) {
-        FragmentUserIllust fragmentRelatedIllust = new FragmentUserIllust();
-        fragmentRelatedIllust.userID = userID;
-        return fragmentRelatedIllust;
+        return newInstance(userID, false);
     }
 
     public static FragmentUserIllust newInstance(int userID, boolean paramShowToolbar) {
-        FragmentUserIllust fragmentRelatedIllust = new FragmentUserIllust();
-        fragmentRelatedIllust.userID = userID;
-        fragmentRelatedIllust.showToolbar = paramShowToolbar;
-        return fragmentRelatedIllust;
+        Bundle args = new Bundle();
+        args.putInt(Params.USER_ID, userID);
+        args.putBoolean(Params.FLAG, paramShowToolbar);
+        FragmentUserIllust fragment = new FragmentUserIllust();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void initBundle(Bundle bundle) {
+        userID = bundle.getInt(Params.USER_ID);
+        showToolbar = bundle.getBoolean(Params.FLAG);
     }
 
     @Override
@@ -42,13 +51,14 @@ public class FragmentUserIllust extends NetListFragment<FragmentBaseListBinding,
         return new NetControl<ListIllust>() {
             @Override
             public Observable<ListIllust> initApi() {
-                return Retro.getAppApi().getUserSubmitIllust(sUserModel.getResponse().getAccess_token(), userID, "illust");
+                return Retro.getAppApi().getUserSubmitIllust(
+                        sUserModel.getResponse().getAccess_token(), userID, "illust");
             }
 
             @Override
             public Observable<ListIllust> initNextApi() {
-                return Retro.getAppApi().getNextIllust(sUserModel.getResponse().getAccess_token(),
-                        mModel.getNextUrl());
+                return Retro.getAppApi().getNextIllust(
+                        sUserModel.getResponse().getAccess_token(), mModel.getNextUrl());
             }
         };
     }
@@ -74,9 +84,6 @@ public class FragmentUserIllust extends NetListFragment<FragmentBaseListBinding,
 
     @Override
     public void initRecyclerView() {
-        StaggeredGridLayoutManager manager = new StaggeredGridLayoutManager(2,
-                StaggeredGridLayoutManager.VERTICAL);
-        baseBind.recyclerView.setLayoutManager(manager);
-        baseBind.recyclerView.addItemDecoration(new SpacesItemDecoration(DensityUtil.dp2px(8.0f)));
+        staggerRecyclerView();
     }
 }

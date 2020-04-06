@@ -1,5 +1,7 @@
 package ceui.lisa.fragments;
 
+import android.os.Bundle;
+
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.NAdapter;
 import ceui.lisa.core.NetControl;
@@ -8,6 +10,7 @@ import ceui.lisa.databinding.RecyNovelBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListNovel;
 import ceui.lisa.models.NovelBean;
+import ceui.lisa.utils.Params;
 import io.reactivex.Observable;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
@@ -22,10 +25,18 @@ public class FragmentUserNovel extends NetListFragment<FragmentBaseListBinding,
     private boolean showToolbar = false;
 
     public static FragmentUserNovel newInstance(int userID, boolean paramShowToolbar) {
-        FragmentUserNovel fragmentRelatedIllust = new FragmentUserNovel();
-        fragmentRelatedIllust.userID = userID;
-        fragmentRelatedIllust.showToolbar = paramShowToolbar;
-        return fragmentRelatedIllust;
+        Bundle args = new Bundle();
+        args.putInt(Params.USER_ID, userID);
+        args.putBoolean(Params.FLAG, paramShowToolbar);
+        FragmentUserNovel fragment = new FragmentUserNovel();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void initBundle(Bundle bundle) {
+        userID = bundle.getInt(Params.USER_ID);
+        showToolbar = bundle.getBoolean(Params.FLAG);
     }
 
     @Override

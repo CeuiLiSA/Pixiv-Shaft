@@ -12,12 +12,10 @@ import java.util.Collections;
 import javax.net.ssl.X509TrustManager;
 
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.cache.Cache;
 import ceui.lisa.utils.Common;
 import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
 import okhttp3.Request;
-import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -67,7 +65,8 @@ public class Retro {
         }
         if (Shaft.sSettings.isAutoFuckChina()) {
             builder.sslSocketFactory(new RubySSLSocketFactory(), new pixivOkHttpClient());
-            builder.dns(HttpDns.getInstance());
+            builder.dns(new CloudFlareDns(CloudFlareDNSService.Companion.invoke()));
+//            builder.dns(HttpDns.getInstance());
         }
         OkHttpClient client = builder.build();
         Gson gson = new GsonBuilder().setLenient().create();
