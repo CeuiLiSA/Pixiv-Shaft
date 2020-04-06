@@ -91,7 +91,6 @@ public class FragmentTest extends BaseFragment<FragmentTestBinding> {
                             @Override
                             public void success(ListUser listUser) {
                                 mModel.load(listUser.getList());
-                                isloaded = true;
                                 baseBind.refreshLayout.finishRefresh();
                             }
                         });

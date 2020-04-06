@@ -1,5 +1,7 @@
 package ceui.lisa.fragments;
 
+import android.os.Bundle;
+
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.UAdapter;
 import ceui.lisa.core.NetControl;
@@ -8,6 +10,7 @@ import ceui.lisa.databinding.RecyUserPreviewBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListUser;
 import ceui.lisa.models.UserPreviewsBean;
+import ceui.lisa.utils.Params;
 import io.reactivex.Observable;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
@@ -20,11 +23,20 @@ public class FragmentFollowUser extends NetListFragment<FragmentBaseListBinding,
     private boolean showToolbar = false;
 
     public static FragmentFollowUser newInstance(int userID, String starType, boolean pShowToolbar) {
-        FragmentFollowUser followUser = new FragmentFollowUser();
-        followUser.userID = userID;
-        followUser.starType = starType;
-        followUser.showToolbar = pShowToolbar;
-        return followUser;
+        Bundle args = new Bundle();
+        args.putInt(Params.USER_ID, userID);
+        args.putString(Params.STAR_TYPE, starType);
+        args.putBoolean(Params.FLAG, pShowToolbar);
+        FragmentFollowUser fragment = new FragmentFollowUser();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void initBundle(Bundle bundle) {
+        userID = bundle.getInt(Params.USER_ID);
+        starType = bundle.getString(Params.STAR_TYPE);
+        showToolbar = bundle.getBoolean(Params.FLAG);
     }
 
     @Override

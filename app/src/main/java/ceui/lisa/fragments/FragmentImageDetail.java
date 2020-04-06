@@ -35,10 +35,12 @@ public class FragmentImageDetail extends BaseFragment<FragmentImageDetailBinding
     private String url;
 
     public static FragmentImageDetail newInstance(IllustsBean illustsBean, int index) {
-        FragmentImageDetail fragmentImageDetail = new FragmentImageDetail();
-        fragmentImageDetail.mIllustsBean = illustsBean;
-        fragmentImageDetail.index = index;
-        return fragmentImageDetail;
+        Bundle args = new Bundle();
+        args.putSerializable(Params.CONTENT, illustsBean);
+        args.putInt(Params.INDEX, index);
+        FragmentImageDetail fragment = new FragmentImageDetail();
+        fragment.setArguments(args);
+        return fragment;
     }
 
     public static FragmentImageDetail newInstance(String pUrl) {
@@ -50,17 +52,10 @@ public class FragmentImageDetail extends BaseFragment<FragmentImageDetailBinding
     }
 
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (savedInstanceState != null) {
-            mIllustsBean = (IllustsBean) savedInstanceState.getSerializable("mIllustsBean");
-            index = savedInstanceState.getInt("index");
-        }
-    }
-
-    @Override
     public void initBundle(Bundle bundle) {
         url = bundle.getString(Params.URL);
+        mIllustsBean = (IllustsBean) bundle.getSerializable(Params.CONTENT);
+        index = bundle.getInt(Params.INDEX);
     }
 
     @Override

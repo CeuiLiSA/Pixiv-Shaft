@@ -1,6 +1,7 @@
 package ceui.lisa.fragments;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +18,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 
@@ -29,7 +31,7 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
     protected String className = getClass().getSimpleName() + " ";
     protected Layout baseBind;
     protected View parentView;
-    protected boolean isloaded = false;
+    protected boolean isVertical = true;
 
     public BaseFragment() {
         Common.showLog(className + "new instance");
@@ -49,6 +51,14 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
 
         if (eventBusEnable()) {
             EventBus.getDefault().register(this);
+        }
+
+        //获取屏幕方向
+        int ori = getResources().getConfiguration().orientation;
+        if (ori == Configuration.ORIENTATION_LANDSCAPE) {
+            isVertical = false;
+        } else if (ori == Configuration.ORIENTATION_PORTRAIT) {
+            isVertical = true;
         }
     }
 
@@ -79,6 +89,16 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
             }
         }
         return parentView;
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if (isVertical) {
+            vertical();
+        } else {
+            horizon();
+        }
     }
 
     public void initBundle(Bundle bundle) {
@@ -112,5 +132,14 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
     }
 
     public void handleEvent(Channel channel) {
+    }
+
+
+    public void horizon() {
+
+    }
+
+    public void vertical() {
+
     }
 }

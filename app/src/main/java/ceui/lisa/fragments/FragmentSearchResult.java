@@ -29,6 +29,7 @@ import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.TempTokenResponse;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
+import ceui.lisa.utils.Params;
 import ceui.lisa.view.GridItemDecoration;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -59,13 +60,23 @@ public class FragmentSearchResult extends NetListFragment<FragmentSearchResultBi
     }
 
     public static FragmentSearchResult newInstance(String keyWord, String sort, String searchTarget) {
-        FragmentSearchResult fragmentSearchResult = new FragmentSearchResult();
-        fragmentSearchResult.keyWord = keyWord;
-        fragmentSearchResult.sort = sort;
-        fragmentSearchResult.searchTarget = searchTarget;
-        fragmentSearchResult.starSize = Shaft.sSettings.getSearchFilter().contains("无限制") ?
-                "" : " " + (Shaft.sSettings.getSearchFilter());
-        return fragmentSearchResult;
+        Bundle args = new Bundle();
+        args.putString(Params.KEY_WORD, keyWord);
+        args.putString(Params.SORT_TYPE, sort);
+        args.putString(Params.SEARCH_TYPE, searchTarget);
+        args.putString(Params.STAR_SIZE, Shaft.sSettings.getSearchFilter().contains("无限制") ?
+                "" : " " + (Shaft.sSettings.getSearchFilter()));
+        FragmentSearchResult fragment = new FragmentSearchResult();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void initBundle(Bundle bundle) {
+        keyWord = bundle.getString(Params.KEY_WORD);
+        sort = bundle.getString(Params.SORT_TYPE);
+        searchTarget = bundle.getString(Params.SEARCH_TYPE);
+        starSize = bundle.getString(Params.STAR_SIZE);
     }
 
     @Override

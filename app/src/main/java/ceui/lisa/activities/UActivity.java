@@ -198,28 +198,28 @@ public class UActivity extends BaseActivity<ActicityUserBinding> implements Disp
             //如果看的是自己的主页，先展示收藏
             //如果看的是别人的主页，先展示作品
             if (currentUser.getProfile().getTotal_illust_bookmarks_public() > 0) {
-                transaction.replace(R.id.container1, FragmentLikeIllustHorizontal.
-                        newInstance(currentUser, 1));// 1插画收藏    2插画作品     3漫画作品
+                transaction.replace(R.id.container1,
+                        FragmentLikeIllustHorizontal.newInstance(currentUser, 1));// 1插画收藏    2插画作品     3漫画作品
             }
 
             if (currentUser.getProfile().getTotal_illusts() > 0) {
-                transaction.replace(R.id.container2, FragmentLikeIllustHorizontal.
-                        newInstance(currentUser, 2));// 1插画收藏    2插画作品     3漫画作品
+                transaction.replace(R.id.container2,
+                        FragmentLikeIllustHorizontal.newInstance(currentUser, 2));// 1插画收藏    2插画作品     3漫画作品
             }
 
             if (currentUser.getProfile().getTotal_manga() > 0) {
-                transaction.replace(R.id.container3, FragmentLikeIllustHorizontal.
-                        newInstance(currentUser, 3));// 1插画收藏    2插画作品     3漫画作品
+                transaction.replace(R.id.container3,
+                        FragmentLikeIllustHorizontal.newInstance(currentUser, 3));// 1插画收藏    2插画作品     3漫画作品
             }
         }
 
         if (currentUser.getProfile().getTotal_novels() > 0) {
-            transaction.replace(R.id.container4, FragmentLikeNovelHorizontal
-                    .newInstance(1));// 0收藏的小说， 1创作的小说
+            transaction.replace(R.id.container4,
+                    FragmentLikeNovelHorizontal.newInstance(1));// 0收藏的小说， 1创作的小说
         }
 
-        transaction.replace(R.id.container5, FragmentLikeNovelHorizontal
-                .newInstance(0));// 0收藏的小说， 1创作的小说
+        transaction.replace(R.id.container5,
+                FragmentLikeNovelHorizontal.newInstance(0));// 0收藏的小说， 1创作的小说
 
         transaction.commit();
 

@@ -38,7 +38,6 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
     private String title;
     private int parentCommentID;
 
-
     public static FragmentComment newInstance(int id, String title) {
         Bundle args = new Bundle();
         args.putInt(Params.ILLUST_ID, id);

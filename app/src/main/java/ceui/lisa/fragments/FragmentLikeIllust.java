@@ -3,7 +3,6 @@ package ceui.lisa.fragments;
 import android.os.Bundle;
 import android.text.TextUtils;
 
-import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -85,9 +84,7 @@ public class FragmentLikeIllust extends NetListFragment<FragmentBaseListBinding,
 
     @Override
     public void initRecyclerView() {
-        StaggeredGridLayoutManager manager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
-        baseBind.recyclerView.setLayoutManager(manager);
-        baseBind.recyclerView.addItemDecoration(new SpacesItemDecoration(DensityUtil.dp2px(8.0f)));
+        staggerRecyclerView();
     }
 
     @Override

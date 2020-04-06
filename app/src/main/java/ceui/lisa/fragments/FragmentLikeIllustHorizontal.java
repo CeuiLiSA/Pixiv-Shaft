@@ -1,6 +1,7 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -43,10 +44,18 @@ public class FragmentLikeIllustHorizontal extends BaseFragment<FragmentLikeIllus
     private int type; // 1插画收藏    2插画作品     3漫画作品
 
     public static FragmentLikeIllustHorizontal newInstance(UserDetailResponse userDetailResponse, int pType) {
-        FragmentLikeIllustHorizontal fragmentLikeIllustHorizontal = new FragmentLikeIllustHorizontal();
-        fragmentLikeIllustHorizontal.mUserDetailResponse = userDetailResponse;
-        fragmentLikeIllustHorizontal.type = pType;
-        return fragmentLikeIllustHorizontal;
+        Bundle args = new Bundle();
+        args.putSerializable(Params.CONTENT, userDetailResponse);
+        args.putInt(Params.DATA_TYPE, pType);
+        FragmentLikeIllustHorizontal fragment = new FragmentLikeIllustHorizontal();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void initBundle(Bundle bundle) {
+        mUserDetailResponse = (UserDetailResponse) bundle.getSerializable(Params.CONTENT);
+        type = bundle.getInt(Params.DATA_TYPE);
     }
 
     @Override

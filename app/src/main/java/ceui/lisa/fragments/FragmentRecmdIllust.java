@@ -84,11 +84,7 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentRecmdFinalBindi
 
     @Override
     public void initRecyclerView() {
-        StaggeredGridLayoutManager layoutManager =
-                new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
-        layoutManager.setGapStrategy(StaggeredGridLayoutManager.GAP_HANDLING_NONE);
-        baseBind.recyclerView.setLayoutManager(layoutManager);
-        baseBind.recyclerView.addItemDecoration(new SpacesItemWithHeadDecoration(DensityUtil.dp2px(8.0f)));
+        staggerRecyclerView();
     }
 
     @Override

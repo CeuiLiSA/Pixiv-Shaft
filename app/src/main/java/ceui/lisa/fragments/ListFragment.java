@@ -25,6 +25,7 @@ import ceui.lisa.core.BaseCtrl;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
+import ceui.lisa.view.SpacesItemDecoration;
 import ceui.lisa.viewmodel.BaseModel;
 import jp.wasabeef.recyclerview.animators.BaseItemAnimator;
 import jp.wasabeef.recyclerview.animators.LandingAnimator;
@@ -54,8 +55,6 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
 
     @Override
     void initData() {
-
-
 
     }
 
@@ -122,13 +121,27 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
         return "";
     }
 
-    /**
-     * 默认 LinearLayoutManager，想换其他LayoutManager @Override 这个方法即可
-     */
+
     public void initRecyclerView() {
+        verticalRecyclerView();
+    }
+
+    public void verticalRecyclerView() {
         mRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.addItemDecoration(new LinearItemDecoration(DensityUtil.dp2px(12.0f)));
+    }
+
+    protected void horizontalRecyclerView() {
+
+    }
+
+    protected void staggerRecyclerView() {
+        StaggeredGridLayoutManager manager = new StaggeredGridLayoutManager(
+                2, StaggeredGridLayoutManager.VERTICAL);
+        mRecyclerView.setLayoutManager(manager);
+        mRecyclerView.addItemDecoration(new SpacesItemDecoration(
+                DensityUtil.dp2px(8.0f)));
     }
 
     /**

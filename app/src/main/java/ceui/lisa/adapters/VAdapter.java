@@ -9,7 +9,6 @@ import ceui.lisa.databinding.FragmentSingleNovelBinding;
 
 public class VAdapter extends BaseAdapter<String, FragmentSingleNovelBinding> {
 
-
     public VAdapter(List<String> targetList, Context context) {
         super(targetList, context);
     }

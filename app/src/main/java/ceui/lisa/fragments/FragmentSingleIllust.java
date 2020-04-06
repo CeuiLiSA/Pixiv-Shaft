@@ -129,28 +129,6 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
 
     @Override
     void initData() {
-
-
-        Configuration mConfiguration = this.getResources().getConfiguration(); //获取设置的配置信息
-        int ori = mConfiguration.orientation; //获取屏幕方向
-        if (ori == Configuration.ORIENTATION_LANDSCAPE) {
-            //横屏
-            Common.showLog(illust.getTitle() + "screen 横屏");
-
-            ViewGroup.LayoutParams headParams = baseBind.head.getLayoutParams();
-            headParams.height = Shaft.statusHeight * 3 / 5 + Shaft.toolbarHeight;
-            baseBind.head.setLayoutParams(headParams);
-
-
-        } else if (ori == Configuration.ORIENTATION_PORTRAIT) {
-            //竖屏
-            ViewGroup.LayoutParams headParams = baseBind.head.getLayoutParams();
-            headParams.height = Shaft.statusHeight + Shaft.toolbarHeight;
-            baseBind.head.setLayoutParams(headParams);
-
-            baseBind.toolbar.setPadding(0, Shaft.statusHeight, 0, 0);
-            Common.showLog(illust.getTitle() + "screen 竖屏");
-        }
         loadImage();
     }
 
@@ -415,6 +393,27 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
         if (illust != null && "ugoira".equals(illust.getType()) && mDetailAdapter != null) {
             mDetailAdapter.nowStopGif();
         }
+    }
+
+    @Override
+    public void vertical() {
+        //竖屏
+        ViewGroup.LayoutParams headParams = baseBind.head.getLayoutParams();
+        headParams.height = Shaft.statusHeight + Shaft.toolbarHeight;
+        baseBind.head.setLayoutParams(headParams);
+
+        baseBind.toolbar.setPadding(0, Shaft.statusHeight, 0, 0);
+        Common.showLog(illust.getTitle() + "screen 竖屏");
+    }
+
+    @Override
+    public void horizon() {
+        //横屏
+        Common.showLog(illust.getTitle() + "screen 横屏");
+
+        ViewGroup.LayoutParams headParams = baseBind.head.getLayoutParams();
+        headParams.height = Shaft.statusHeight * 3 / 5 + Shaft.toolbarHeight;
+        baseBind.head.setLayoutParams(headParams);
     }
 
     @Override
