@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+<!--    <color name="colorPrimary">#56baec</color>-->
+<!--    <color name="colorPrimaryDark">#56baec</color>-->
+<!--    <color name="colorAccent">#D81B60</color>-->
+<!--    <color name="light_primary_color">#B3E5FC</color>-->
+
+    <color name="colorPrimary">#607D8B</color>
+    <color name="colorPrimaryDark">#455A64</color>
+    <color name="colorAccent">#009688</color>
+    <color name="light_primary_color">#CFD8DC</color>
+
+    <color name="hint_text">#607D8B</color>
+
+
+    <color name="background">#f2f2f2</color>
+    <color name="dark_bg">#999999</color>
+
+    <color name="light_bg">#1B1B1B</color>
+    <color name="settings_divider_bg">#373737</color>
+
+
+    <color name="second_light_bg">#fafafa</color>
+
+    <color name="follow_user_illust_divider">#ececec</color>
+
+
+    <color name="white">#303030</color>
+
+    <color name="always_white">#FFFFFF</color>
+
+    <color name="pivision_logo_color">#BDBDBD</color>
+
+    <color name="dark_text">#FFFFFF</color>
+
+    <color name="black_overlay">#66000000</color>
+    <color name="deep_dark">#212121</color>
+    <color name="hito_bg">#000339</color>
+    <color name="trans">#00eeeeee</color>
+    <color name="tag_text_unselect">#FFFFFF</color>
+
+
+    <color name="rank_text_color">#A9A9A9</color>
+    <color name="white_to_gray">#BDBDBD</color>
+    <color name="view_history_title">#BDBDBD</color>
+    <color name="card_user_detail">#BDBDBD</color>
+    <color name="card_user_head">#666666</color>
+    <color name="normal_bg">#434343</color>
+    <color name="second_text_color">#8E8E8E</color>
+    <color name="no_data_color">#BDBDBD</color>
+    <color name="white_to_deep_dark">#434343</color>
+    <color name="comment_content">#8E8E8E</color>
+    <color name="comment_parent_bg">#607D8B</color>
+
+
+    <color name="about_user_divider">#373737</color>
+    <color name="about_user_left">#777777</color>
+    <color name="about_user_right">#BBBBBB</color>
+    <color name="about_user_white">#434343</color>
+</resources>

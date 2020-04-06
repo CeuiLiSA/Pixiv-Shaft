@@ -16,7 +16,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/loginBackground"
+            android:background="@color/colorPrimary"
             android:elevation="@dimen/six_dp"
             android:fitsSystemWindows="true"
             android:theme="@style/AppTheme.AppBarOverlay"
@@ -52,7 +52,8 @@
             android:id="@+id/result"
             android:scaleType="centerCrop"
             android:visibility="gone"
-            android:src="@mipmap/no_data"
+            android:src="@mipmap/no_data_line"
+            android:tint="@color/colorPrimary"
             android:layout_height="wrap_content">
 
         </ImageView>

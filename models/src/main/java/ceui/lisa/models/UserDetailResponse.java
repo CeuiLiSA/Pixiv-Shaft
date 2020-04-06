@@ -8,7 +8,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class UserDetailResponse implements Serializable {
+public class UserDetailResponse implements Serializable, UserContainer {
 
     private UserBean user;
     private ProfileBean profile;
@@ -117,6 +117,11 @@ public class UserDetailResponse implements Serializable {
         }
 
         return result;
+    }
+
+    @Override
+    public int getUserId() {
+        return user.getId();
     }
 
     public static class ProfileBean implements Serializable {

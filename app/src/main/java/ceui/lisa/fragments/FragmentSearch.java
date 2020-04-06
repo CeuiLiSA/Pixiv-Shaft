@@ -34,7 +34,7 @@ import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.model.TrendingtagResponse;
+import ceui.lisa.model.ListTrendingtag;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
@@ -48,13 +48,13 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 import static ceui.lisa.fragments.FragmentFilter.SEARCH_TYPE;
 import static ceui.lisa.utils.Common.isNumeric;
 
-public class FragmentSearch extends BaseBindFragment<FragmentSearchBinding> {
+public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
 
     private ObservableEmitter<String> fuck = null;
     private int searchType = 0;
 
     @Override
-    void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.fragment_search;
     }
 
@@ -211,21 +211,21 @@ public class FragmentSearch extends BaseBindFragment<FragmentSearchBinding> {
         Retro.getAppApi().searchCompleteWord(sUserModel.getResponse().getAccess_token(), key)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new NullCtrl<TrendingtagResponse>() {
+                .subscribe(new NullCtrl<ListTrendingtag>() {
                     @Override
-                    public void success(TrendingtagResponse trendingtagResponse) {
+                    public void success(ListTrendingtag listTrendingtag) {
                         baseBind.hintList.setLayoutManager(new LinearLayoutManager(mContext));
                         SearchHintAdapter searchHintAdapter =
-                                new SearchHintAdapter(trendingtagResponse.getList(), mContext, key);
+                                new SearchHintAdapter(listTrendingtag.getList(), mContext, key);
                         searchHintAdapter.setOnItemClickListener(new OnItemClickListener() {
                             @Override
                             public void onItemClick(View v, int position, int viewType) {
-                                insertSearchHistory(trendingtagResponse.getList().get(position).getTag());
+                                insertSearchHistory(listTrendingtag.getList().get(position).getTag());
                                 baseBind.hintList.setVisibility(View.INVISIBLE);
 
                                 Intent intent = new Intent(mContext, TemplateActivity.class);
                                 intent.putExtra(TemplateActivity.EXTRA_KEYWORD,
-                                        trendingtagResponse.getList().get(position).getTag());
+                                        listTrendingtag.getList().get(position).getTag());
                                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT,
                                         "搜索结果");
                                 startActivity(intent);
@@ -251,14 +251,14 @@ public class FragmentSearch extends BaseBindFragment<FragmentSearchBinding> {
         Retro.getAppApi().getHotTags(sUserModel.getResponse().getAccess_token())
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new ErrorCtrl<TrendingtagResponse>() {
+                .subscribe(new ErrorCtrl<ListTrendingtag>() {
                     @Override
-                    public void onNext(TrendingtagResponse trendingtagResponse) {
-                        if (trendingtagResponse != null) {
-                            baseBind.hotTags.setAdapter(new TagAdapter<TrendingtagResponse.TrendTagsBean>(
-                                    trendingtagResponse.getList().subList(0, 15)) {
+                    public void onNext(ListTrendingtag listTrendingtag) {
+                        if (listTrendingtag != null) {
+                            baseBind.hotTags.setAdapter(new TagAdapter<ListTrendingtag.TrendTagsBean>(
+                                    listTrendingtag.getList().subList(0, 15)) {
                                 @Override
-                                public View getView(FlowLayout parent, int position, TrendingtagResponse.TrendTagsBean trendTagsBean) {
+                                public View getView(FlowLayout parent, int position, ListTrendingtag.TrendTagsBean trendTagsBean) {
                                     TextView tv = (TextView) LayoutInflater.from(mContext).inflate(R.layout.recy_single_line_text,
                                             parent, false);
                                     tv.setText(trendTagsBean.getTag());
@@ -268,12 +268,12 @@ public class FragmentSearch extends BaseBindFragment<FragmentSearchBinding> {
                             baseBind.hotTags.setOnTagClickListener(new TagFlowLayout.OnTagClickListener() {
                                 @Override
                                 public boolean onTagClick(View view, int position, FlowLayout parent) {
-                                    insertSearchHistory(trendingtagResponse.getList().get(position).getTag());
+                                    insertSearchHistory(listTrendingtag.getList().get(position).getTag());
                                     baseBind.hintList.setVisibility(View.INVISIBLE);
 
                                     Intent intent = new Intent(mContext, TemplateActivity.class);
                                     intent.putExtra(TemplateActivity.EXTRA_KEYWORD,
-                                            trendingtagResponse.getList().get(position).getTag());
+                                            listTrendingtag.getList().get(position).getTag());
                                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT,
                                             "搜索结果");
                                     startActivity(intent);

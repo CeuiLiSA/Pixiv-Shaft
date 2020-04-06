@@ -1,6 +1,8 @@
 package ceui.lisa.models;
 
-public class SeriesBean {
+import java.io.Serializable;
+
+public class SeriesBean implements Serializable {
 
     private String title;
     private int id;

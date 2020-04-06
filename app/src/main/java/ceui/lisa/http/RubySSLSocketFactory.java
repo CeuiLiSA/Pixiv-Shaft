@@ -59,7 +59,6 @@ public final class RubySSLSocketFactory extends SSLSocketFactory {
         if (socketFactory != null) {
             Socket socket = socketFactory.createSocket(inetAddress, paramInt);
             if (socket != null) {
-                socket = socket;
                 ((SSLSocket) socket).setEnabledProtocols(((SSLSocket) socket).getSupportedProtocols());
                 Log.i("X", "Setting SNI hostname");
                 SSLSession sSLSession = ((SSLSocket) socket).getSession();

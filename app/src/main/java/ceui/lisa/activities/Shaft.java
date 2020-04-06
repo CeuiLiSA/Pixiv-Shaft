@@ -2,23 +2,32 @@ package ceui.lisa.activities;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.SharedPreferences;
 
+import com.google.gson.Gson;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 import com.scwang.smartrefresh.layout.header.ClassicsHeader;
-import com.tencent.stat.StatConfig;
-import com.tencent.stat.StatService;
 
 import ceui.lisa.R;
 import ceui.lisa.models.UserModel;
+import ceui.lisa.helper.ThemeHelper;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Local;
+import ceui.lisa.utils.Params;
 import ceui.lisa.utils.Settings;
+
+import static ceui.lisa.utils.Local.LOCAL_DATA;
 
 public class Shaft extends Application {
 
     public static UserModel sUserModel;
     public static Settings sSettings;
+    public static Gson sGson;
+    public static SharedPreferences sPreferences;
+
     /**
      * 状态栏高度，初始化
      */
@@ -42,24 +51,30 @@ public class Shaft extends Application {
         return sContext;
     }
 
-    public static void setContext(Context context) {
-        sContext = context;
-    }
-
     @Override
     public void onCreate() {
         super.onCreate();
 
         //初始化context
         sContext = this;
+        sGson = new Gson();
+        //0.0127254
+
+        sPreferences = getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
+
+        final long before = System.nanoTime();
+
         sUserModel = Local.getUser();
+
+        Dev.isDev = Local.getBoolean(Params.USE_DEBUG, false);
+
+        final long after = System.nanoTime();
+
+        Common.showLog("一共耗时 " + (after - before));
+
         sSettings = Local.getSettings();
 
-
-        // 腾讯统计API
-        StatConfig.setDebugEnable(true);
-        StatService.registerActivityLifecycleCallbacks(this);
-
+        ThemeHelper.applyTheme(null, sSettings.getThemeType());
 
         //计算状态栏高度并赋值
         statusHeight = 0;
@@ -69,5 +84,17 @@ public class Shaft extends Application {
         }
         toolbarHeight = DensityUtil.dp2px(56.0f);
 
+        //如果使用旧文件名格式, 转换为新的
+        if (!sSettings.isUsingNewFileNameType()) {
+            sSettings.setUsingNewFileNameType(true);
+            if (Settings.stringLooksLikeOldFileNameType(sSettings.getFileNameType())) {
+                String oldType = sSettings.getFileNameType();
+                String newType = oldType.replace("123456789", "<id>").replace("title", "<title>").replace("p0", "<p>");
+                sSettings.setFileNameType(newType);
+                Local.setSettings(sSettings);
+                Common.showLog(oldType + " -> " + newType);
+                Common.showToast("新旧文件名格式转换\n" + oldType + " -> " + newType);
+            }
+        }
     }
 }

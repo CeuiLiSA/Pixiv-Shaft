@@ -102,6 +102,9 @@ public interface DownloadDao {
     @Query("SELECT * FROM user_table ORDER BY loginTime DESC")
     List<UserEntity> getAllUser();
 
+    @Query("SELECT * FROM user_table limit 1")
+    UserEntity getCurrentUser();
+
 
     @Query("SELECT * FROM upload_image_table ORDER BY uploadTime DESC")
     List<ImageEntity> getUploadedImage();

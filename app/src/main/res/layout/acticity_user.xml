@@ -75,7 +75,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:id="@+id/user_name"
-                                android:textColor="@color/white"
+                                android:textColor="@color/always_white"
                                 android:textSize="20sp"
                                 android:layout_marginStart="@dimen/twelve_dip"
                                 android:layout_above="@+id/center"
@@ -88,8 +88,9 @@
                                 android:layout_width="wrap_content"
                                 android:id="@+id/user_address"
                                 android:gravity="center_vertical"
+                                android:drawableTint="@color/rank_text_color"
                                 android:visibility="gone"
-                                android:textColor="@color/dark_text"
+                                android:textColor="@color/rank_text_color"
                                 android:drawableStart="@drawable/ic_location_on_black_24dp"
                                 android:layout_below="@+id/center"
                                 android:layout_marginTop="@dimen/eight_dp"
@@ -131,7 +132,7 @@
 
                         <FrameLayout
                             android:layout_width="match_parent"
-                            android:id="@+id/illust_collection"
+                            android:id="@+id/container1"
                             android:layout_height="wrap_content">
 
 
@@ -139,7 +140,7 @@
 
                         <FrameLayout
                             android:layout_width="match_parent"
-                            android:id="@+id/illust_works"
+                            android:id="@+id/container2"
                             android:layout_height="wrap_content">
 
 
@@ -147,7 +148,7 @@
 
                         <FrameLayout
                             android:layout_width="match_parent"
-                            android:id="@+id/manga_works"
+                            android:id="@+id/container3"
                             android:layout_height="wrap_content">
 
 
@@ -155,7 +156,7 @@
 
                         <FrameLayout
                             android:layout_width="match_parent"
-                            android:id="@+id/novel_works"
+                            android:id="@+id/container4"
                             android:layout_height="wrap_content">
 
 
@@ -163,7 +164,7 @@
 
                         <FrameLayout
                             android:layout_width="match_parent"
-                            android:id="@+id/like_novel"
+                            android:id="@+id/container5"
                             android:layout_height="wrap_content">
 
 

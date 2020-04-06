@@ -1,6 +1,6 @@
 package ceui.lisa.http;
 
-import ceui.lisa.model.HitoResponse;
+import ceui.lisa.models.HitoResponse;
 import io.reactivex.Observable;
 import retrofit2.http.GET;
 

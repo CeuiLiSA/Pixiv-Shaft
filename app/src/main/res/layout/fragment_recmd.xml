@@ -14,7 +14,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/loginBackground"
+            android:background="@color/colorPrimary"
             android:elevation="@dimen/six_dp"
             android:fitsSystemWindows="true"
             android:theme="@style/AppTheme.AppBarOverlay"
@@ -64,7 +64,7 @@
                             android:text="@string/ranking_illust"
                             android:gravity="center"
                             android:id="@+id/ranking_s"
-                            android:textColor="#2c333c"
+                            android:textColor="@color/rank_text_color"
                             android:textSize="15sp"
                             android:textStyle="bold" />
 
@@ -111,8 +111,8 @@
 
                             <TextView
                                 android:layout_width="wrap_content"
-                                android:textColor="#2c333c"
                                 android:textSize="15sp"
+                                android:textColor="@color/rank_text_color"
                                 android:text="@string/recmd_for_you"
                                 android:layout_marginTop="@dimen/six_dp"
                                 android:textStyle="bold"
@@ -148,7 +148,8 @@
                     android:layout_height="wrap_content"
                     android:layout_centerInParent="true"
                     android:scaleType="centerCrop"
-                    android:src="@mipmap/no_data"
+                    android:src="@mipmap/no_data_line"
+                    android:tint="@color/colorPrimary"
                     android:visibility="invisible"
                     app:layout_anchor="@+id/recyclerView"
                     app:layout_anchorGravity="center" />

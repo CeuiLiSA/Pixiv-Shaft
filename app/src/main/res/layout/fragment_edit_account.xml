@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+    </data>
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fitsSystemWindows="true"
+                android:background="@color/colorPrimary"
+                android:elevation="@dimen/six_dp"
+                app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
+                app:title="编辑账号信息"
+                app:titleTextColor="@android:color/white">
+
+            </androidx.appcompat.widget.Toolbar>
+
+            <com.rengwuxian.materialedittext.MaterialEditText
+                android:id="@+id/email_address"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/tweenty_four_dp"
+                android:layout_marginTop="40dp"
+                android:layout_marginEnd="@dimen/tweenty_four_dp"
+                android:hint="@string/email_address"
+                app:met_floatingLabel="highlight"
+                app:met_primaryColor="@color/colorPrimary"
+                app:met_singleLineEllipsis="true" />
+
+
+            <com.rengwuxian.materialedittext.MaterialEditText
+                android:id="@+id/pixiv_id"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/tweenty_four_dp"
+                android:layout_marginTop="@dimen/sixteen_dp"
+                android:layout_marginEnd="@dimen/tweenty_four_dp"
+                android:hint="pixiv ID (限小写英文和数字)"
+                app:met_floatingLabel="highlight"
+                app:met_primaryColor="@color/colorPrimary"
+                app:met_singleLineEllipsis="true" />
+
+
+            <com.rengwuxian.materialedittext.MaterialEditText
+                android:id="@+id/user_password"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/tweenty_four_dp"
+                android:layout_marginTop="@dimen/sixteen_dp"
+                android:layout_marginEnd="@dimen/tweenty_four_dp"
+                android:hint="新密码"
+                app:met_floatingLabel="highlight"
+                app:met_primaryColor="@color/colorPrimary"
+                app:met_singleLineEllipsis="true" />
+
+        </LinearLayout>
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:id="@+id/progress"
+            android:visibility="invisible"
+            android:layout_centerInParent="true"
+            android:layout_height="wrap_content">
+
+        </ProgressBar>
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_alignParentBottom="true"
+            android:text="更新账号信息"
+            android:layout_margin="@dimen/sixteen_dp"
+            android:id="@+id/submit"
+            android:layout_height="wrap_content">
+
+        </Button>
+    </RelativeLayout>
+
+</layout>

@@ -1,7 +1,6 @@
 package ceui.lisa.adapters;
 
 import android.content.Context;
-import android.content.Intent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -11,13 +10,12 @@ import com.bumptech.glide.Glide;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.UActivity;
 import ceui.lisa.databinding.RecyUserPreviewBinding;
 import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.interfaces.FullClickListener;
 import ceui.lisa.models.UserPreviewsBean;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
-import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 
 public class UAdapter extends BaseAdapter<UserPreviewsBean, RecyUserPreviewBinding> {
@@ -106,16 +104,16 @@ public class UAdapter extends BaseAdapter<UserPreviewsBean, RecyUserPreviewBindi
             @Override
             public void onItemClick(View v, int position, int viewType) {
                 if (viewType == 0) { //普通item
-                    Intent intent = new Intent(mContext, UActivity.class);
-                    intent.putExtra(Params.USER_ID, allIllust.get(position).getUser().getId());
-                    mContext.startActivity(intent);
+                    Common.showUser(mContext, allIllust.get(position));
                 } else if (viewType == 1) { //关注按钮
                     if (allIllust.get(position).getUser().isIs_followed()) {
                         PixivOperate.postUnFollowUser(allIllust.get(position).getUser().getId());
                         Button postFollow = ((Button) v);
+                        allIllust.get(position).getUser().setIs_followed(false);
                         postFollow.setText(mContext.getString(R.string.post_follow));
                     } else {
                         PixivOperate.postFollowUser(allIllust.get(position).getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC);
+                        allIllust.get(position).getUser().setIs_followed(true);
                         Button postFollow = ((Button) v);
                         postFollow.setText(mContext.getString(R.string.post_unfollow));
                     }

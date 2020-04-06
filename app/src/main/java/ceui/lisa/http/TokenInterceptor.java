@@ -1,10 +1,13 @@
 package ceui.lisa.http;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
 
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.fragments.FragmentL;
+import ceui.lisa.fragments.FragmentLogin;
 import ceui.lisa.models.UserModel;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import okhttp3.Interceptor;
 import okhttp3.Request;
@@ -16,35 +19,15 @@ import retrofit2.Call;
  */
 public class TokenInterceptor implements Interceptor {
 
+    private static final String TOKEN_ERROR = "Error occurred at the OAuth process";
 
-    public static boolean isTokenNew = true;
-
+    @NotNull
     @Override
     public Response intercept(Chain chain) throws IOException {
         Request request = chain.request();
         Response response = chain.proceed(request);
 
         if (isTokenExpired(response)) {
-
-            //isTokenNew = false
-//            response.close();
-//            Common.showLog("有一个请求被拦截");
-//
-//            if (isTokenNew) {
-//                Request newRequest = chain.request()
-//                        .newBuilder()
-//                        .header("Authorization", Local.getUser().getResponse().getAccess_token())
-//                        .build();
-//                return chain.proceed(newRequest);
-//            } else {
-//                String newToken = getNewToken();
-//                Request newRequest = chain.request()
-//                        .newBuilder()
-//                        .header("Authorization", newToken)
-//                        .build();
-//                return chain.proceed(newRequest);
-//            }
-
             response.close();
             String newToken = getNewToken();
             Request newRequest = chain.request()
@@ -64,12 +47,8 @@ public class TokenInterceptor implements Interceptor {
      * @return
      */
     private boolean isTokenExpired(Response response) {
-        if (response.code() == 400) {
-            isTokenNew = false;
-            return true;
-        }
-        isTokenNew = true;
-        return false;
+        return response.code() == 400 &&
+                Common.getResponseBody(response).contains(TOKEN_ERROR);
     }
 
     /**
@@ -80,8 +59,8 @@ public class TokenInterceptor implements Interceptor {
     private String getNewToken() throws IOException {
         UserModel userModel = Local.getUser();
         Call<UserModel> call = Retro.getAccountApi().refreshToken(
-                FragmentL.CLIENT_ID,
-                FragmentL.CLIENT_SECRET,
+                FragmentLogin.CLIENT_ID,
+                FragmentLogin.CLIENT_SECRET,
                 "refresh_token",
                 userModel.getResponse().getRefresh_token(),
                 userModel.getResponse().getDevice_token(),
@@ -89,10 +68,12 @@ public class TokenInterceptor implements Interceptor {
                 true);
         UserModel newUser = call.execute().body();
         if (newUser != null) {
-            newUser.getResponse().setUser(Shaft.sUserModel.getResponse().getUser());
+            newUser.getResponse().getUser().setPassword(
+                    Shaft.sUserModel.getResponse().getUser().getPassword()
+            );
+            newUser.getResponse().getUser().setIs_login(true);
         }
         Local.saveUser(newUser);
-        isTokenNew = true;
         if (newUser != null && newUser.getResponse() != null) {
             return newUser.getResponse().getAccess_token();
         } else {

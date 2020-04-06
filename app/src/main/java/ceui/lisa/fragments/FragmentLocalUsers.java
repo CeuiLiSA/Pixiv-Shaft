@@ -4,23 +4,19 @@ import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import androidx.appcompat.widget.Toolbar;
-
 import com.bumptech.glide.Glide;
-import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
+import ceui.lisa.databinding.FragmentLocalUserBinding;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.utils.Common;
@@ -40,31 +36,25 @@ import retrofit2.Response;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-public class FragmentLocalUsers extends BaseFragment {
+public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
 
-    private LinearLayout userList;
-    private ProgressBar mProgressBar;
     //private SimpleDateFormat formatter = new SimpleDateFormat("MM月dd日 HH:mm:ss");
     private List<UserModel> allItems = new ArrayList<>();
 
     @Override
-    void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.fragment_local_user;
     }
 
     @Override
-    View initView(View v) {
-        Toolbar toolbar = v.findViewById(R.id.toolbar);
-        mProgressBar = v.findViewById(R.id.progress);
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+    public void initView(View view) {
+        baseBind.toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 getActivity().finish();
             }
         });
-        userList = v.findViewById(R.id.user_list);
-        RelativeLayout loginOut = v.findViewById(R.id.login_out);
-        loginOut.setOnClickListener(new View.OnClickListener() {
+        baseBind.loginOut.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, TemplateActivity.class);
@@ -73,8 +63,7 @@ public class FragmentLocalUsers extends BaseFragment {
             }
         });
 
-        RelativeLayout addUser = v.findViewById(R.id.add_user);
-        addUser.setOnClickListener(new View.OnClickListener() {
+        baseBind.addUser.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, TemplateActivity.class);
@@ -82,7 +71,6 @@ public class FragmentLocalUsers extends BaseFragment {
                 startActivity(intent);
             }
         });
-        return v;
     }
 
     @Override
@@ -95,10 +83,9 @@ public class FragmentLocalUsers extends BaseFragment {
                 .map(new Function<List<UserEntity>, List<UserModel>>() {
                     @Override
                     public List<UserModel> apply(List<UserEntity> userEntities) throws Exception {
-                        Gson gson = new Gson();
                         allItems = new ArrayList<>();
                         for (int i = 0; i < userEntities.size(); i++) {
-                            allItems.add(gson.fromJson(userEntities.get(i).getUserGson(), UserModel.class));
+                            allItems.add(Shaft.sGson.fromJson(userEntities.get(i).getUserGson(), UserModel.class));
                         }
                         return allItems;
                     }
@@ -112,7 +99,7 @@ public class FragmentLocalUsers extends BaseFragment {
                                 for (int i = 0; i < userModels.size(); i++) {
                                     View v = LayoutInflater.from(mContext).inflate(R.layout.recy_loal_user, null);
                                     bindData(v, userModels.get(i));
-                                    userList.addView(v);
+                                    baseBind.userList.addView(v);
                                 }
                             }
                         }
@@ -153,26 +140,25 @@ public class FragmentLocalUsers extends BaseFragment {
         v.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mProgressBar.setVisibility(View.VISIBLE);
-                PixivOperate.changeUser(userModel, new Callback<UserModel>() {
+                baseBind.progress.setVisibility(View.VISIBLE);
+                PixivOperate.refreshUserData(userModel, new Callback<UserModel>() {
                     @Override
                     public void onResponse(Call<UserModel> call, Response<UserModel> response) {
                         if (response != null) {
                             UserModel newUser = response.body();
-//                            if (newUser != null) {
-//                                newUser.getResponse().setUser(Shaft.sUserModel.getResponse().getUser());
-//                            }
+                            newUser.getResponse().getUser().setPassword(userModel.getResponse().getUser().getPassword());
+                            newUser.getResponse().getUser().setIs_login(true);
                             Local.saveUser(newUser);
                             Dev.refreshUser = true;
-                            mProgressBar.setVisibility(View.INVISIBLE);
-                            getActivity().finish();
+                            mActivity.finish();
                         }
+                        baseBind.progress.setVisibility(View.INVISIBLE);
                     }
 
                     @Override
                     public void onFailure(Call<UserModel> call, Throwable t) {
                         Common.showToast(t.toString());
-                        mProgressBar.setVisibility(View.INVISIBLE);
+                        baseBind.progress.setVisibility(View.INVISIBLE);
                     }
                 });
             }

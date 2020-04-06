@@ -1,6 +1,7 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -20,7 +21,7 @@ import ceui.lisa.databinding.FragmentLikeIllustHorizontalBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.model.ListIllustResponse;
+import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.UserDetailResponse;
 import ceui.lisa.utils.DataChannel;
@@ -35,7 +36,7 @@ import jp.wasabeef.recyclerview.animators.FadeInLeftAnimator;
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-public class FragmentLikeIllustHorizontal extends BaseBindFragment<FragmentLikeIllustHorizontalBinding> {
+public class FragmentLikeIllustHorizontal extends BaseFragment<FragmentLikeIllustHorizontalBinding> {
 
     private List<IllustsBean> allItems = new ArrayList<>();
     private UserDetailResponse mUserDetailResponse;
@@ -43,14 +44,22 @@ public class FragmentLikeIllustHorizontal extends BaseBindFragment<FragmentLikeI
     private int type; // 1插画收藏    2插画作品     3漫画作品
 
     public static FragmentLikeIllustHorizontal newInstance(UserDetailResponse userDetailResponse, int pType) {
-        FragmentLikeIllustHorizontal fragmentLikeIllustHorizontal = new FragmentLikeIllustHorizontal();
-        fragmentLikeIllustHorizontal.mUserDetailResponse = userDetailResponse;
-        fragmentLikeIllustHorizontal.type = pType;
-        return fragmentLikeIllustHorizontal;
+        Bundle args = new Bundle();
+        args.putSerializable(Params.CONTENT, userDetailResponse);
+        args.putInt(Params.DATA_TYPE, pType);
+        FragmentLikeIllustHorizontal fragment = new FragmentLikeIllustHorizontal();
+        fragment.setArguments(args);
+        return fragment;
     }
 
     @Override
-    void initLayout() {
+    public void initBundle(Bundle bundle) {
+        mUserDetailResponse = (UserDetailResponse) bundle.getSerializable(Params.CONTENT);
+        type = bundle.getInt(Params.DATA_TYPE);
+    }
+
+    @Override
+    public void initLayout() {
         mLayoutID = R.layout.fragment_like_illust_horizontal;
     }
 
@@ -118,7 +127,7 @@ public class FragmentLikeIllustHorizontal extends BaseBindFragment<FragmentLikeI
 
     @Override
     void initData() {
-        Observable<ListIllustResponse> api = null;
+        Observable<ListIllust> api = null;
         if (type == 1) {
             api = Retro.getAppApi().getUserLikeIllust(sUserModel.getResponse().getAccess_token(),
                     mUserDetailResponse.getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC);
@@ -133,14 +142,14 @@ public class FragmentLikeIllustHorizontal extends BaseBindFragment<FragmentLikeI
         if (api != null) {
             api.subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new NullCtrl<ListIllustResponse>() {
+                    .subscribe(new NullCtrl<ListIllust>() {
                         @Override
-                        public void success(ListIllustResponse listIllustResponse) {
+                        public void success(ListIllust listIllust) {
                             allItems.clear();
-                            if (listIllustResponse.getList().size() > 10) {
-                                allItems.addAll(listIllustResponse.getList().subList(0, 10));
+                            if (listIllust.getList().size() > 10) {
+                                allItems.addAll(listIllust.getList().subList(0, 10));
                             } else {
-                                allItems.addAll(listIllustResponse.getList());
+                                allItems.addAll(listIllust.getList());
                             }
                             mAdapter.notifyItemRangeInserted(0, allItems.size());
                         }

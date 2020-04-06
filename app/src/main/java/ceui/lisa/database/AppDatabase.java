@@ -13,9 +13,10 @@ import androidx.room.RoomDatabase;
                 DownloadEntity.class, //下载历史
                 UserEntity.class, //多用户保存信息
                 SearchEntity.class, //搜索历史
-                ImageEntity.class //用不到
+                ImageEntity.class, //用不到
+                TagMuteEntity.class //记录用户屏蔽的标签
         },
-        version = 8,
+        version = 12,
         exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {

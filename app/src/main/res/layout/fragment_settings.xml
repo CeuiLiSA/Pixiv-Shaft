@@ -17,7 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fitsSystemWindows="true"
-            android:background="@color/loginBackground"
+            android:background="@color/colorPrimary"
             android:elevation="@dimen/six_dp"
             app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
             app:title="设置"
@@ -63,7 +63,7 @@
                                 android:layout_width="wrap_content"
                                 android:text="@string/account"
                                 android:textSize="13sp"
-                                android:textColor="@color/colorPrimary"
+                                android:textColor="@color/hint_text"
                                 android:layout_marginTop="@dimen/eight_dp"
                                 android:layout_marginBottom="@dimen/eight_dp"
                                 android:layout_marginStart="@dimen/sixteen_dp"
@@ -84,7 +84,7 @@
                                 android:text="@string/account_manage"
                                 android:textSize="15sp"
                                 android:layout_centerVertical="true"
-                                android:textColor="@color/dark_text"
+                                android:textColor="@color/rank_text_color"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content">
 
@@ -96,7 +96,7 @@
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="#e6e6e6"
+                            android:background="@color/settings_divider_bg"
                             android:layout_marginStart="@dimen/sixteen_dp"
                             android:layout_height="1dp">
 
@@ -105,18 +105,19 @@
 
                         <RelativeLayout
                             android:layout_width="match_parent"
-                            android:visibility="gone"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:id="@+id/edit_account"
                             android:layout_height="match_parent">
 
 
                             <TextView
                                 android:layout_margin="@dimen/sixteen_dp"
-                                android:text="用户信息"
+                                android:text="编辑账号信息与邮箱绑定"
                                 android:textSize="15sp"
-                                android:textColor="@color/dark_text"
+                                android:textColor="@color/rank_text_color"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content">
-
 
                             </TextView>
 
@@ -126,8 +127,38 @@
 
                         <View
                             android:layout_width="match_parent"
-                            android:visibility="gone"
-                            android:background="#e6e6e6"
+                            android:background="@color/settings_divider_bg"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_height="1dp">
+
+
+                        </View>
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:id="@+id/edit_file"
+                            android:layout_height="match_parent">
+
+
+                            <TextView
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="个人资料设置"
+                                android:textSize="15sp"
+                                android:textColor="@color/rank_text_color"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+                            </TextView>
+
+
+                        </RelativeLayout>
+
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="@color/settings_divider_bg"
                             android:layout_marginStart="@dimen/sixteen_dp"
                             android:layout_height="1dp">
 
@@ -148,7 +179,7 @@
                                 android:text="@string/login_out"
                                 android:textSize="15sp"
                                 android:layout_centerVertical="true"
-                                android:textColor="@color/dark_text"
+                                android:textColor="@color/rank_text_color"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content">
 
@@ -184,7 +215,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:textSize="13sp"
-                                android:textColor="@color/colorPrimary"
+                                android:textColor="@color/hint_text"
                                 android:text="@string/normal"
                                 android:layout_marginTop="@dimen/eight_dp"
                                 android:layout_marginBottom="@dimen/eight_dp"
@@ -208,7 +239,7 @@
                                 android:textSize="15sp"
                                 android:layout_toStartOf="@+id/auto_dns"
                                 android:id="@+id/fuck_china_s"
-                                android:textColor="@color/dark_text"
+                                android:textColor="@color/rank_text_color"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content">
 
@@ -222,7 +253,7 @@
                                 android:text="@string/see_pixiv_ez"
                                 android:layout_below="@+id/fuck_china_s"
                                 android:textSize="13sp"
-                                android:textColor="@color/colorPrimary"
+                                android:textColor="@color/hint_text"
                                 android:singleLine="true"
                                 android:ellipsize="start"
                                 android:id="@+id/fuck_china"
@@ -244,7 +275,7 @@
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="#e6e6e6"
+                            android:background="@color/settings_divider_bg"
                             android:visibility="gone"
                             android:layout_marginStart="@dimen/sixteen_dp"
                             android:layout_height="1dp" />
@@ -263,7 +294,7 @@
                                 android:text="图片详情样式"
                                 android:textSize="15sp"
                                 android:layout_centerVertical="true"
-                                android:textColor="@color/dark_text"
+                                android:textColor="@color/rank_text_color"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content">
 
@@ -284,7 +315,7 @@
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="#e6e6e6"
+                            android:background="@color/settings_divider_bg"
                             android:layout_marginStart="@dimen/sixteen_dp"
                             android:layout_height="1dp">
 
@@ -303,7 +334,7 @@
                                 android:text="@string/show_original_image"
                                 android:textSize="15sp"
                                 android:layout_centerVertical="true"
-                                android:textColor="@color/dark_text"
+                                android:textColor="@color/rank_text_color"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content">
 
@@ -325,7 +356,7 @@
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="#e6e6e6"
+                            android:background="@color/settings_divider_bg"
                             android:layout_marginStart="@dimen/sixteen_dp"
                             android:layout_height="1dp">
 
@@ -344,7 +375,7 @@
                                 android:text="@string/save_view_history"
                                 android:textSize="15sp"
                                 android:layout_centerVertical="true"
-                                android:textColor="@color/dark_text"
+                                android:textColor="@color/rank_text_color"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content">
 
@@ -366,7 +397,7 @@
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="#e6e6e6"
+                            android:background="@color/settings_divider_bg"
                             android:layout_marginStart="@dimen/sixteen_dp"
                             android:layout_height="1dp">
 
@@ -386,7 +417,7 @@
                                 android:text="@string/slide_down_endless"
                                 android:textSize="15sp"
                                 android:layout_toStartOf="@+id/related_no_limit"
-                                android:textColor="@color/dark_text"
+                                android:textColor="@color/rank_text_color"
                                 android:layout_centerVertical="true"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content">
@@ -429,7 +460,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:textSize="13sp"
-                                android:textColor="@color/colorPrimary"
+                                android:textColor="@color/hint_text"
                                 android:text="@string/other_settings"
                                 android:layout_marginTop="@dimen/eight_dp"
                                 android:layout_marginBottom="@dimen/eight_dp"
@@ -438,6 +469,52 @@
                         </RelativeLayout>
 
 
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:layout_height="match_parent">
+
+
+                            <TextView
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="@string/theme_mode"
+                                android:textSize="15sp"
+                                android:layout_centerVertical="true"
+                                android:id="@+id/theme_mode_s"
+                                android:textColor="@color/rank_text_color"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+
+                            </TextView>
+
+
+                            <TextView
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="主题"
+                                android:textSize="14sp"
+                                android:id="@+id/theme_mode"
+                                android:layout_alignParentEnd="true"
+                                android:textColor="@color/hint_text"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+
+                            </TextView>
+
+
+                        </RelativeLayout>
+
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="@color/settings_divider_bg"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_height="1dp">
+
+
+                        </View>
 
                         <RelativeLayout
                             android:layout_width="match_parent"
@@ -452,7 +529,7 @@
                                 android:textSize="15sp"
                                 android:layout_centerVertical="true"
                                 android:id="@+id/search_filter_s"
-                                android:textColor="@color/dark_text"
+                                android:textColor="@color/rank_text_color"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content">
 
@@ -466,7 +543,7 @@
                                 android:textSize="14sp"
                                 android:id="@+id/search_filter"
                                 android:layout_alignParentEnd="true"
-                                android:textColor="@color/colorPrimary"
+                                android:textColor="@color/hint_text"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content">
 
@@ -479,7 +556,7 @@
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="#e6e6e6"
+                            android:background="@color/settings_divider_bg"
                             android:layout_marginStart="@dimen/sixteen_dp"
                             android:layout_height="1dp">
 
@@ -499,7 +576,7 @@
                                 android:textSize="15sp"
                                 android:layout_centerVertical="true"
                                 android:id="@+id/app_language_s"
-                                android:textColor="@color/dark_text"
+                                android:textColor="@color/rank_text_color"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content">
 
@@ -513,7 +590,54 @@
                                 android:textSize="14sp"
                                 android:id="@+id/app_language"
                                 android:layout_alignParentEnd="true"
-                                android:textColor="@color/colorPrimary"
+                                android:textColor="@color/hint_text"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+
+                            </TextView>
+
+
+                        </RelativeLayout>
+
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="@color/settings_divider_bg"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_height="1dp">
+
+
+                        </View>
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:layout_height="match_parent">
+
+
+                            <TextView
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="@string/file_name_type"
+                                android:textSize="15sp"
+                                android:layout_centerVertical="true"
+                                android:id="@+id/file_name_s"
+                                android:textColor="@color/rank_text_color"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+
+                            </TextView>
+
+
+                            <TextView
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="标准"
+                                android:textSize="14sp"
+                                android:id="@+id/file_name"
+                                android:layout_alignParentEnd="true"
+                                android:textColor="@color/hint_text"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content">
 
@@ -546,7 +670,7 @@
                                 android:layout_width="wrap_content"
                                 android:text="@string/download_path"
                                 android:textSize="13sp"
-                                android:textColor="@color/colorPrimary"
+                                android:textColor="@color/hint_text"
                                 android:layout_marginTop="@dimen/eight_dp"
                                 android:layout_marginBottom="@dimen/eight_dp"
                                 android:layout_marginStart="@dimen/sixteen_dp"
@@ -569,7 +693,7 @@
                                 android:text="@string/illust_download_path"
                                 android:textSize="15sp"
                                 android:id="@+id/illust_path_s"
-                                android:textColor="@color/dark_text"
+                                android:textColor="@color/rank_text_color"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content">
 
@@ -583,7 +707,7 @@
                                 android:text="/storage/emulated/0/Shaft/SingleImages"
                                 android:layout_below="@+id/illust_path_s"
                                 android:textSize="13sp"
-                                android:textColor="@color/colorPrimary"
+                                android:textColor="@color/hint_text"
                                 android:singleLine="true"
                                 android:ellipsize="start"
                                 android:id="@+id/illust_path"
@@ -598,7 +722,7 @@
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="#e6e6e6"
+                            android:background="@color/settings_divider_bg"
                             android:layout_marginStart="@dimen/sixteen_dp"
                             android:layout_height="1dp">
 
@@ -619,7 +743,7 @@
                                 android:text="@string/gif_result_path"
                                 android:textSize="15sp"
                                 android:id="@+id/gif_result_s"
-                                android:textColor="@color/dark_text"
+                                android:textColor="@color/rank_text_color"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content">
 
@@ -632,7 +756,7 @@
                                 android:text="/storage/emulated/0/Shaft/SingleImages"
                                 android:layout_below="@+id/gif_result_s"
                                 android:textSize="13sp"
-                                android:textColor="@color/colorPrimary"
+                                android:textColor="@color/hint_text"
                                 android:singleLine="true"
                                 android:ellipsize="start"
                                 android:id="@+id/gif_result"
@@ -656,7 +780,7 @@
                                 android:layout_width="wrap_content"
                                 android:text="缓存"
                                 android:textSize="13sp"
-                                android:textColor="@color/colorPrimary"
+                                android:textColor="@color/hint_text"
                                 android:layout_marginTop="@dimen/eight_dp"
                                 android:layout_marginBottom="@dimen/eight_dp"
                                 android:layout_marginStart="@dimen/sixteen_dp"
@@ -677,7 +801,7 @@
                                 android:textSize="15sp"
                                 android:layout_centerVertical="true"
                                 android:id="@+id/clear_image_cache"
-                                android:textColor="@color/dark_text"
+                                android:textColor="@color/rank_text_color"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content">
 
@@ -691,7 +815,7 @@
                                 android:textSize="14sp"
                                 android:id="@+id/real_image_cache"
                                 android:layout_alignParentEnd="true"
-                                android:textColor="@color/colorPrimary"
+                                android:textColor="@color/hint_text"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content">
 
@@ -705,7 +829,7 @@
                         <View
                             android:layout_width="match_parent"
                             android:visibility="visible"
-                            android:background="#e6e6e6"
+                            android:background="@color/settings_divider_bg"
                             android:layout_marginStart="@dimen/sixteen_dp"
                             android:layout_height="1dp">
 
@@ -726,7 +850,7 @@
                                 android:text="清除GIF缓存"
                                 android:textSize="15sp"
                                 android:layout_centerVertical="true"
-                                android:textColor="@color/dark_text"
+                                android:textColor="@color/rank_text_color"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content">
 
@@ -740,7 +864,7 @@
                                 android:textSize="14sp"
                                 android:id="@+id/real_gif_cache"
                                 android:layout_alignParentEnd="true"
-                                android:textColor="@color/colorPrimary"
+                                android:textColor="@color/hint_text"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content">
 

@@ -1,91 +1,41 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import android.os.Bundle;
 import android.view.View;
-
-import com.google.gson.Gson;
-
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.activities.ImageDetailActivity;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.UActivity;
-import ceui.lisa.adapters.DownlistAdapter;
+import ceui.lisa.adapters.BaseAdapter;
+import ceui.lisa.adapters.DownloadedAdapter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.DownloadEntity;
+import ceui.lisa.databinding.FragmentBaseListBinding;
+import ceui.lisa.databinding.RecyViewHistoryBinding;
+import ceui.lisa.core.BaseCtrl;
+import ceui.lisa.core.DataControl;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
-import io.reactivex.Observable;
-import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.Observer;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
 
-public class FragmentDownloadFinish extends BaseAsyncFragment<DownlistAdapter, DownloadEntity> {
+public class FragmentDownloadFinish extends LocalListFragment<FragmentBaseListBinding,
+        DownloadEntity, RecyViewHistoryBinding> {
 
-    protected int nowIndex = 0;
-    private List<IllustsBean> allIllusts = new ArrayList<>();
+    private List<IllustsBean> all = new ArrayList<>();
     private List<String> filePaths = new ArrayList<>();
 
     @Override
-    public void getFirstData() {
-        allItems.clear();
-        nowIndex = 0;
-        Observable.create((ObservableOnSubscribe<String>) emitter -> {
-            List<DownloadEntity> temp = AppDatabase.getAppDatabase(mContext).downloadDao().getAll(PAGE_SIZE, nowIndex);
-            nowIndex += temp.size();
-            allItems.addAll(temp);
-            Thread.sleep(500);
-            Gson gson = new Gson();
-            allIllusts = new ArrayList<>();
-            filePaths = new ArrayList<>();
-            for (int i = 0; i < allItems.size(); i++) {
-                allIllusts.add(gson.fromJson(allItems.get(i).getIllustGson(), IllustsBean.class));
-                filePaths.add(allItems.get(i).getFilePath());
-            }
-            emitter.onComplete();
-        }).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<String>() {
-                    @Override
-                    public void onSubscribe(Disposable d) {
-
-                    }
-
-                    @Override
-                    public void onNext(String s) {
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        e.printStackTrace();
-                        Common.showToast(e.toString());
-                        mRefreshLayout.finishRefresh(false);
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        showFirstData();
-                    }
-                });
-    }
-
-    @Override
-    public void initAdapter() {
-        mAdapter = new DownlistAdapter(allItems, mContext);
-        mAdapter.setOnItemClickListener(new OnItemClickListener() {
+    public BaseAdapter<DownloadEntity, RecyViewHistoryBinding> adapter() {
+        return new DownloadedAdapter(allItems, mContext).setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
+                Common.showLog(className + position + " " + allItems.size());
                 if (viewType == 0) {
                     Intent intent = new Intent(mContext, ImageDetailActivity.class);
                     intent.putExtra("illust", (Serializable) filePaths);
@@ -94,7 +44,7 @@ public class FragmentDownloadFinish extends BaseAsyncFragment<DownlistAdapter, D
                     startActivity(intent);
                 } else if (viewType == 1) {
                     Intent intent = new Intent(mContext, UActivity.class);
-                    intent.putExtra(Params.USER_ID, allIllusts.get(position).getUser().getId());
+                    intent.putExtra(Params.USER_ID, all.get(position).getUser().getId());
                     startActivity(intent);
                 }
             }
@@ -102,87 +52,67 @@ public class FragmentDownloadFinish extends BaseAsyncFragment<DownlistAdapter, D
     }
 
     @Override
-    boolean hasNext() {
-        return true;
-    }
-
-    @Override
-    public void getNextData() {
-        Observable.create((ObservableOnSubscribe<String>) emitter -> {
-            emitter.onNext("开始查询数据库");
-            List<DownloadEntity> temp = AppDatabase.getAppDatabase(mContext).downloadDao().getAll(PAGE_SIZE, nowIndex);
-            final int lastSize = nowIndex;
-            nowIndex += temp.size();
-            allItems.addAll(temp);
-            emitter.onNext("开始转换数据类型");
-            Thread.sleep(500);
-            Gson gson = new Gson();
-            for (int i = lastSize; i < allItems.size(); i++) {
-                allIllusts.add(gson.fromJson(allItems.get(i).getIllustGson(), IllustsBean.class));
-                filePaths.add(allItems.get(i).getFilePath());
+    public BaseCtrl present() {
+        return new DataControl<List<DownloadEntity>>() {
+            @Override
+            public List<DownloadEntity> first() {
+                return AppDatabase.getAppDatabase(mContext).downloadDao().getAll(PAGE_SIZE, 0);
             }
-            mAdapter.notifyItemRangeChanged(lastSize, nowIndex);
-            emitter.onComplete();
-        }).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<String>() {
-                    @Override
-                    public void onSubscribe(Disposable d) {
 
-                    }
+            @Override
+            public List<DownloadEntity> next() {
+                return AppDatabase.getAppDatabase(mContext)
+                        .downloadDao().getAll(PAGE_SIZE, allItems.size());
+            }
 
-                    @Override
-                    public void onNext(String s) {
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        e.printStackTrace();
-                        Common.showToast(e.toString());
-                        mRefreshLayout.finishLoadMore(false);
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        mRefreshLayout.finishLoadMore(true);
-                    }
-                });
+            @Override
+            public boolean hasNext() {
+                return true;
+            }
+        };
     }
 
     @Override
-    boolean showToolbar() {
-        return false;
-    }
-
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(Channel event) {
-        if (className.contains(event.getReceiver())) {
-
-            nowIndex++;
-            mRecyclerView.setVisibility(View.VISIBLE);
-            noData.setVisibility(View.INVISIBLE);
-            DownloadEntity entity = (DownloadEntity) event.getObject();
-            allItems.add(0, entity);
-            allIllusts.add(new Gson().fromJson(entity.getIllustGson(), IllustsBean.class));
-            filePaths.add(0, entity.getFilePath());
-            mAdapter.notifyItemInserted(0);
-            mRecyclerView.scrollToPosition(0);
-            mAdapter.notifyItemRangeChanged(0, allItems.size());
+    public void onFirstLoaded(List<DownloadEntity> illustHistoryEntities) {
+        for (int i = 0; i < illustHistoryEntities.size(); i++) {
+            IllustsBean illustsBean = Shaft.sGson.fromJson(
+                    illustHistoryEntities.get(i).getIllustGson(), IllustsBean.class);
+            all.add(illustsBean);
+            filePaths.add(illustHistoryEntities.get(i).getFilePath());
         }
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        EventBus.getDefault().register(this);
-        Common.showLog(className + "EVENTBUS 注册了");
+    public void onNextLoaded(List<DownloadEntity> illustHistoryEntities) {
+        for (int i = 0; i < illustHistoryEntities.size(); i++) {
+            IllustsBean illustsBean = Shaft.sGson.fromJson(
+                    illustHistoryEntities.get(i).getIllustGson(), IllustsBean.class);
+            Common.showLog(className + "add " + i + illustsBean.getTitle());
+            all.add(illustsBean);
+            filePaths.add(illustHistoryEntities.get(i).getFilePath());
+        }
     }
 
     @Override
-    public void onDestroy() {
-        EventBus.getDefault().unregister(this);
-        super.onDestroy();
-        Common.showLog(className + "EVENTBUS 取消注册了");
+    public boolean showToolbar() {
+        return false;
+    }
+
+    @Override
+    public boolean eventBusEnable() {
+        return true;
+    }
+
+    @Override
+    public void handleEvent(Channel channel) {
+        mRecyclerView.setVisibility(View.VISIBLE);
+        noData.setVisibility(View.INVISIBLE);
+        DownloadEntity entity = (DownloadEntity) channel.getObject();
+        allItems.add(0, entity);
+        all.add(Shaft.sGson.fromJson(entity.getIllustGson(), IllustsBean.class));
+        filePaths.add(0, entity.getFilePath());
+        mAdapter.notifyItemInserted(0);
+        mRecyclerView.scrollToPosition(0);
+        mAdapter.notifyItemRangeChanged(0, allItems.size());
     }
 }

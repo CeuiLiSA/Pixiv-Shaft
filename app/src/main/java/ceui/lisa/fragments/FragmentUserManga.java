@@ -1,6 +1,7 @@
 package ceui.lisa.fragments;
 
-import androidx.recyclerview.widget.StaggeredGridLayoutManager;
+
+import android.os.Bundle;
 
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapter;
@@ -8,9 +9,10 @@ import ceui.lisa.core.NetControl;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.http.Retro;
-import ceui.lisa.model.ListIllustResponse;
+import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.DensityUtil;
+import ceui.lisa.utils.Params;
 import ceui.lisa.view.SpacesItemDecoration;
 import io.reactivex.Observable;
 
@@ -20,35 +22,41 @@ import static ceui.lisa.activities.Shaft.sUserModel;
  * 某人創作的漫画
  */
 public class FragmentUserManga extends NetListFragment<FragmentBaseListBinding,
-        ListIllustResponse, IllustsBean, RecyIllustStaggerBinding> {
+        ListIllust, IllustsBean, RecyIllustStaggerBinding> {
 
     private int userID;
     private boolean showToolbar = false;
 
     public static FragmentUserManga newInstance(int userID) {
-        FragmentUserManga fragmentRelatedIllust = new FragmentUserManga();
-        fragmentRelatedIllust.userID = userID;
-        return fragmentRelatedIllust;
+        return newInstance(userID, false);
     }
 
     public static FragmentUserManga newInstance(int userID, boolean paramShowToolbar) {
-        FragmentUserManga fragmentRelatedIllust = new FragmentUserManga();
-        fragmentRelatedIllust.userID = userID;
-        fragmentRelatedIllust.showToolbar = paramShowToolbar;
-        return fragmentRelatedIllust;
+        Bundle args = new Bundle();
+        args.putInt(Params.USER_ID, userID);
+        args.putBoolean(Params.FLAG, paramShowToolbar);
+        FragmentUserManga fragment = new FragmentUserManga();
+        fragment.setArguments(args);
+        return fragment;
     }
 
     @Override
-    public NetControl<ListIllustResponse> present() {
-        return new NetControl<ListIllustResponse>() {
+    public void initBundle(Bundle bundle) {
+        userID = bundle.getInt(Params.USER_ID);
+        showToolbar = bundle.getBoolean(Params.FLAG);
+    }
+
+    @Override
+    public NetControl<ListIllust> present() {
+        return new NetControl<ListIllust>() {
             @Override
-            public Observable<ListIllustResponse> initApi() {
+            public Observable<ListIllust> initApi() {
                 return Retro.getAppApi().getUserSubmitIllust(sUserModel.getResponse().getAccess_token(), userID, "manga");
             }
 
             @Override
-            public Observable<ListIllustResponse> initNextApi() {
-                return Retro.getAppApi().getNextIllust(sUserModel.getResponse().getAccess_token(), nextUrl);
+            public Observable<ListIllust> initNextApi() {
+                return Retro.getAppApi().getNextIllust(sUserModel.getResponse().getAccess_token(), mModel.getNextUrl());
             }
         };
     }
@@ -74,8 +82,6 @@ public class FragmentUserManga extends NetListFragment<FragmentBaseListBinding,
 
     @Override
     public void initRecyclerView() {
-        StaggeredGridLayoutManager manager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
-        baseBind.recyclerView.setLayoutManager(manager);
-        baseBind.recyclerView.addItemDecoration(new SpacesItemDecoration(DensityUtil.dp2px(8.0f)));
+        staggerRecyclerView();
     }
 }

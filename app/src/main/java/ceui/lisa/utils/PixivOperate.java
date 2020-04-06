@@ -5,25 +5,25 @@ import android.content.Context;
 import android.content.Intent;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ProgressBar;
 
-import org.greenrobot.eventbus.EventBus;
-
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.ViewPagerActivity;
-import ceui.lisa.download.FileCreator;
-import ceui.lisa.fragments.FragmentL;
+import ceui.lisa.database.AppDatabase;
+import ceui.lisa.database.IllustHistoryEntity;
+import ceui.lisa.database.TagMuteEntity;
+import ceui.lisa.fragments.FragmentLogin;
 import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
-import ceui.lisa.model.GifResponse;
-import ceui.lisa.model.IllustSearchResponse;
+import ceui.lisa.models.GifResponse;
+import ceui.lisa.models.IllustSearchResponse;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.NullResponse;
+import ceui.lisa.models.TagsBean;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.models.IllustsBean;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -37,10 +37,10 @@ import static com.blankj.utilcode.util.StringUtils.getString;
 
 public class PixivOperate {
 
-    public static void changeUser(UserModel userModel, Callback<UserModel> callback) {
+    public static void refreshUserData(UserModel userModel, Callback<UserModel> callback) {
         Call<UserModel> call = Retro.getAccountApi().refreshToken(
-                FragmentL.CLIENT_ID,
-                FragmentL.CLIENT_SECRET,
+                FragmentLogin.CLIENT_ID,
+                FragmentLogin.CLIENT_SECRET,
                 "refresh_token",
                 userModel.getResponse().getRefresh_token(),
                 userModel.getResponse().getDevice_token(),
@@ -51,7 +51,7 @@ public class PixivOperate {
 
     public static void postFollowUser(int userID, String followType) {
         Retro.getAppApi().postFollow(
-                Local.getUser().getResponse().getAccess_token(), userID, followType)
+                sUserModel.getResponse().getAccess_token(), userID, followType)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ErrorCtrl<NullResponse>() {
@@ -68,7 +68,7 @@ public class PixivOperate {
 
     public static void postUnFollowUser(int userID) {
         Retro.getAppApi().postUnFollow(
-                Local.getUser().getResponse().getAccess_token(), userID)
+                sUserModel.getResponse().getAccess_token(), userID)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ErrorCtrl<NullResponse>() {
@@ -204,5 +204,67 @@ public class PixivOperate {
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(errorCtrl);
+    }
+
+    public static void muteTag(TagsBean tagsBean) {
+        TagMuteEntity tagMuteEntity = new TagMuteEntity();
+        String tagName = tagsBean.getName();
+        tagMuteEntity.setId(tagName.hashCode());
+        tagMuteEntity.setTagJson(Shaft.sGson.toJson(tagsBean));
+        tagMuteEntity.setSearchTime(System.currentTimeMillis());
+        AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().insertMuteTag(tagMuteEntity);
+        Common.showLog("屏蔽了一个标签 " + tagsBean.getName());
+    }
+
+    public static void muteTags(List<TagsBean> tagsBeans) {
+        if (tagsBeans == null || tagsBeans.size() == 0) {
+            return;
+        }
+
+        for (TagsBean tagsBean : tagsBeans) {
+            muteTag(tagsBean);
+        }
+    }
+
+    public static void unMuteTag(TagsBean tagsBean) {
+        TagMuteEntity tagMuteEntity = new TagMuteEntity();
+        String tagName = tagsBean.getName();
+        tagMuteEntity.setId(tagName.hashCode());
+        tagMuteEntity.setTagJson(Shaft.sGson.toJson(tagsBean));
+        tagMuteEntity.setSearchTime(System.currentTimeMillis());
+        AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().unMuteTag(tagMuteEntity);
+        Common.showToast("操作成功");
+    }
+
+    public static void insertIllustViewHistory(IllustsBean illust) {
+        if (illust == null) {
+            return;
+        }
+
+        if (illust.getId() > 0) {
+            IllustHistoryEntity illustHistoryEntity = new IllustHistoryEntity();
+            illustHistoryEntity.setType(0);
+            illustHistoryEntity.setIllustID(illust.getId());
+            illustHistoryEntity.setIllustJson(Shaft.sGson.toJson(illust));
+            illustHistoryEntity.setTime(System.currentTimeMillis());
+            Common.showLog("插入了 " + illustHistoryEntity.getIllustID() + " time " + illustHistoryEntity.getTime());
+            AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(illustHistoryEntity);
+        }
+    }
+
+    public static void insertNovelViewHistory(NovelBean novelBean) {
+        if (novelBean == null) {
+            return;
+        }
+
+        if (novelBean.getId() > 0) {
+            IllustHistoryEntity illustHistoryEntity = new IllustHistoryEntity();
+            illustHistoryEntity.setIllustID(novelBean.getId());
+            illustHistoryEntity.setType(1);
+            illustHistoryEntity.setIllustJson(Shaft.sGson.toJson(novelBean));
+            illustHistoryEntity.setTime(System.currentTimeMillis());
+            Common.showLog("插入了 " + illustHistoryEntity.getIllustID() + " time " + illustHistoryEntity.getTime());
+            AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(illustHistoryEntity);
+        }
     }
 }

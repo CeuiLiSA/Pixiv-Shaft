@@ -6,9 +6,18 @@
 
     </data>
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
+        android:orientation="vertical"
         android:layout_height="match_parent">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:background="@color/colorPrimary"
+            android:id="@+id/head"
+            android:layout_height="1dp">
+
+        </ImageView>
 
         <androidx.coordinatorlayout.widget.CoordinatorLayout
             android:layout_width="match_parent"
@@ -19,10 +28,10 @@
                 android:layout_height="wrap_content"
                 android:background="@color/colorPrimary">
 
+
                 <androidx.appcompat.widget.Toolbar
                     android:id="@+id/toolbar"
                     android:layout_width="match_parent"
-                    android:fitsSystemWindows="true"
                     android:layout_height="wrap_content"
                     android:elevation="@dimen/six_dp"
                     app:layout_scrollFlags="scroll|enterAlways"
@@ -34,6 +43,7 @@
                     android:layout_width="match_parent"
                     android:id="@+id/tab_layout"
                     app:tabMode="fixed"
+                    android:background="@color/colorPrimary"
                     app:tabTextColor="@color/light_primary_color"
                     app:tabIndicatorFullWidth="false"
                     app:tabIndicatorColor="@android:color/white"
@@ -51,5 +61,5 @@
                 app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
         </androidx.coordinatorlayout.widget.CoordinatorLayout>
-    </RelativeLayout>
+    </LinearLayout>
 </layout>

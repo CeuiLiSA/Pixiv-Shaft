@@ -8,73 +8,71 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:layout_height="match_parent">
+        android:focusableInTouchMode="true">
 
 
         <ImageView
-            android:layout_width="match_parent"
             android:id="@+id/bg_image"
-            android:scaleType="centerCrop"
-            android:layout_height="match_parent" />
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop" />
 
 
         <com.scwang.smartrefresh.layout.SmartRefreshLayout
-            android:layout_width="match_parent"
             android:id="@+id/refreshLayout"
+            android:layout_width="match_parent"
             android:layout_height="match_parent">
 
 
             <androidx.core.widget.NestedScrollView
-                android:layout_width="match_parent"
                 android:id="@+id/scrollView"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
 
                 <LinearLayout
-                    android:layout_width="match_parent"
-                    android:orientation="vertical"
                     android:id="@+id/parent_view"
-                    android:layout_height="wrap_content">
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
 
 
                     <ImageView
-                        android:layout_width="match_parent"
                         android:id="@+id/head"
+                        android:layout_width="match_parent"
                         android:layout_height="50dp" />
 
 
                     <ceui.lisa.view.ExpandCard
-                        android:layout_width="match_parent"
-                        app:cardElevation="@dimen/four_dp"
                         android:id="@+id/illust_list"
-                        android:background="@drawable/side_rank_horizon"
-                        app:cardCornerRadius="@dimen/four_dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
                         android:layout_marginStart="@dimen/twelve_dp"
                         android:layout_marginEnd="@dimen/twelve_dp"
                         android:layout_marginBottom="@dimen/eight_dp"
-                        android:layout_height="wrap_content">
+                        android:background="@drawable/side_rank_horizon"
+                        app:cardCornerRadius="@dimen/four_dp"
+                        app:cardElevation="@dimen/four_dp">
+
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/recyclerView"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@color/light_bg">
+
+                        </androidx.recyclerview.widget.RecyclerView>
 
 
-
-                            <androidx.recyclerview.widget.RecyclerView
-                                android:layout_width="match_parent"
-                                android:id="@+id/recyclerView"
-                                android:background="@color/light_bg"
-                                android:layout_height="match_parent">
-
-                            </androidx.recyclerview.widget.RecyclerView>
-
-
-                            <View
-                                android:layout_width="match_parent"
-                                android:layout_alignBottom="@+id/user_background"
-                                android:layout_height="48dp"
-                                android:layout_alignParentBottom="true"
-                                android:id="@+id/dark_blank"
-                                android:layout_gravity="bottom"
-                                android:background="@drawable/black_gradient" />
+                        <View
+                            android:id="@+id/dark_blank"
+                            android:layout_width="match_parent"
+                            android:layout_height="48dp"
+                            android:layout_alignBottom="@+id/user_background"
+                            android:layout_alignParentBottom="true"
+                            android:layout_gravity="bottom"
+                            android:background="@drawable/black_gradient" />
 
                         <Button
                             android:id="@+id/see_all"
@@ -91,52 +89,65 @@
                             android:textSize="13sp"
                             android:textStyle="bold" />
 
+                        <TextView
+                            android:id="@+id/p_size"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="@dimen/twelve_dp"
+                            android:background="@drawable/tag_stroke"
+                            android:paddingStart="@dimen/four_dp"
+                            android:paddingTop="2dp"
+                            android:paddingEnd="@dimen/four_dp"
+                            android:paddingBottom="2dp"
+                            android:textColor="@color/always_white"
+                            android:textSize="12sp" />
+
                     </ceui.lisa.view.ExpandCard>
 
 
                     <androidx.cardview.widget.CardView
                         android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
                         android:layout_marginStart="@dimen/twelve_dp"
                         android:layout_marginEnd="@dimen/twelve_dp"
-                        app:cardElevation="@dimen/four_dp"
                         android:layout_marginBottom="@dimen/eight_dp"
                         app:cardCornerRadius="@dimen/four_dp"
-                        android:layout_height="wrap_content">
+                        app:cardElevation="@dimen/four_dp">
 
                         <LinearLayout
                             android:layout_width="match_parent"
-                            android:orientation="vertical"
-                            android:background="#FAFAFA"
-                            android:layout_height="wrap_content">
+                            android:layout_height="wrap_content"
+                            android:background="@color/card_user_detail"
+                            android:orientation="vertical">
 
 
                             <RelativeLayout
                                 android:layout_width="match_parent"
-                                android:background="@color/white"
-                                android:layout_height="wrap_content">
+                                android:layout_height="wrap_content"
+                                android:background="@color/card_user_head">
 
                                 <de.hdodenhof.circleimageview.CircleImageView
-                                    android:layout_width="45dp"
-                                    app:civ_border_color="#DDDDDD"
-                                    app:civ_border_width="2dp"
+                                    android:id="@+id/user_head"
+                                    android:layout_width="48dp"
+                                    android:layout_height="48dp"
                                     android:layout_marginStart="@dimen/twelve_dp"
                                     android:layout_marginTop="@dimen/eight_dp"
                                     android:layout_marginBottom="@dimen/eight_dp"
-                                    android:id="@+id/user_head"
-                                    android:layout_height="45dp" />
+                                    app:civ_border_color="#DDDDDD"
+                                    app:civ_border_width="1dp" />
 
                                 <TextView
-                                    android:layout_width="match_parent"
                                     android:id="@+id/user_name"
-                                    android:layout_toStartOf="@+id/follow"
-                                    android:layout_marginEnd="@dimen/eight_dp"
-                                    android:textStyle="bold"
-                                    android:textSize="16sp"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_centerVertical="true"
                                     android:layout_marginStart="@dimen/eight_dp"
+                                    android:layout_marginEnd="@dimen/eight_dp"
+                                    android:layout_toStartOf="@+id/follow"
                                     android:layout_toEndOf="@+id/user_head"
                                     android:textColor="@color/colorPrimary"
-                                    android:layout_centerVertical="true"
-                                    android:layout_height="wrap_content" />
+                                    android:textSize="16sp"
+                                    android:textStyle="bold" />
 
                                 <Button
                                     android:id="@+id/follow"
@@ -156,55 +167,55 @@
 
                             <org.sufficientlysecure.htmltextview.HtmlTextView
                                 android:id="@+id/description"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
                                 android:layout_marginStart="@dimen/twelve_dp"
-                                android:layout_marginEnd="@dimen/twelve_dp"
                                 android:layout_marginTop="@dimen/twelve_dp"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
+                                android:layout_marginEnd="@dimen/twelve_dp" />
 
                             <TextView
-                                android:layout_width="wrap_content"
-                                android:textSize="13sp"
-                                android:textStyle="bold"
-                                android:layout_marginStart="@dimen/twelve_dip"
-                                android:layout_marginTop="@dimen/eight_dp"
                                 android:id="@+id/user_id"
-                                android:layout_height="wrap_content">
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="@dimen/twelve_dip"
+                                android:layout_marginTop="@dimen/eight_dp"
+                                android:textSize="13sp"
+                                android:textStyle="bold">
 
                             </TextView>
 
 
                             <TextView
-                                android:layout_width="wrap_content"
-                                android:textSize="13sp"
-                                android:textStyle="bold"
-                                android:layout_marginStart="@dimen/twelve_dip"
-                                android:layout_marginTop="@dimen/eight_dp"
                                 android:id="@+id/illust_id"
-                                android:layout_height="wrap_content">
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="@dimen/twelve_dip"
+                                android:layout_marginTop="@dimen/eight_dp"
+                                android:textSize="13sp"
+                                android:textStyle="bold">
 
                             </TextView>
 
                             <TextView
-                                android:layout_width="wrap_content"
-                                android:textSize="13sp"
-                                android:layout_marginStart="@dimen/twelve_dip"
-                                android:textStyle="bold"
-                                android:layout_marginTop="@dimen/eight_dp"
                                 android:id="@+id/illust_px"
-                                android:layout_height="wrap_content">
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="@dimen/twelve_dip"
+                                android:layout_marginTop="@dimen/eight_dp"
+                                android:textSize="13sp"
+                                android:textStyle="bold">
 
                             </TextView>
 
                             <me.next.tagview.TagCloudView
-                                android:layout_marginTop="4dp"
-                                android:layout_width="match_parent"
-                                app:tcvBackground="@drawable/btn_follow"
                                 android:id="@+id/illust_tag"
-                                app:tcvItemBorderVertical="6dp"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:layout_marginTop="4dp"
                                 android:layout_marginEnd="@dimen/eight_dp"
+                                app:tcvBackground="@drawable/btn_follow"
                                 app:tcvBorder="@dimen/eight_dp"
-                                android:layout_height="match_parent">
+                                app:tcvItemBorderVertical="6dp">
 
 
                             </me.next.tagview.TagCloudView>
@@ -216,46 +227,46 @@
 
 
                                 <TextView
-                                    android:layout_width="wrap_content"
                                     android:id="@+id/illust_date"
-                                    android:drawablePadding="2dp"
-                                    android:drawableEnd="@drawable/ic_edit_black_24dp"
-                                    android:text="2019年05月28日18:47:21"
-                                    android:textSize="12sp"
-                                    android:drawableTint="@color/colorPrimary"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
                                     android:layout_marginStart="@dimen/sixteen_dp"
                                     android:layout_marginBottom="10dp"
-                                    android:layout_height="wrap_content" />
+                                    android:drawableEnd="@drawable/ic_edit_black_24dp"
+                                    android:drawablePadding="2dp"
+                                    android:drawableTint="@color/colorPrimary"
+                                    android:text="2019年05月28日18:47:21"
+                                    android:textSize="12sp" />
 
                                 <TextView
-                                    android:layout_width="wrap_content"
                                     android:id="@+id/illust_view"
-                                    android:textSize="12sp"
-                                    android:gravity="center"
-                                    android:drawablePadding="2dp"
-                                    android:text="20K喜欢"
-                                    android:textStyle="bold"
-                                    android:drawableEnd="@drawable/ic_remove_red_eye_black_24dp"
-                                    android:drawableTint="@color/colorPrimary"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
                                     android:layout_marginStart="@dimen/eight_dp"
                                     android:layout_marginBottom="10dp"
-                                    android:layout_height="wrap_content" />
+                                    android:drawableEnd="@drawable/ic_remove_red_eye_black_24dp"
+                                    android:drawablePadding="2dp"
+                                    android:drawableTint="@color/colorPrimary"
+                                    android:gravity="center"
+                                    android:text="20K喜欢"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold" />
 
 
                                 <TextView
-                                    android:layout_width="wrap_content"
                                     android:id="@+id/illust_like"
-                                    android:textSize="12sp"
-                                    android:gravity="center"
-                                    android:textStyle="bold"
-                                    android:drawablePadding="2dp"
-                                    android:text="20K喜欢"
-                                    android:drawableEnd="@drawable/ic_favorite_black_24dp"
-                                    android:drawableTint="@color/colorPrimary"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
                                     android:layout_marginStart="@dimen/eight_dp"
-                                    android:layout_marginBottom="10dp"
                                     android:layout_marginEnd="@dimen/sixteen_dp"
-                                    android:layout_height="wrap_content" />
+                                    android:layout_marginBottom="10dp"
+                                    android:drawableEnd="@drawable/ic_favorite_black_24dp"
+                                    android:drawablePadding="2dp"
+                                    android:drawableTint="@color/colorPrimary"
+                                    android:gravity="center"
+                                    android:text="20K喜欢"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold" />
 
 
                             </LinearLayout>
@@ -267,13 +278,13 @@
 
                     <androidx.cardview.widget.CardView
                         android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
                         android:layout_marginStart="@dimen/twelve_dp"
                         android:layout_marginEnd="@dimen/twelve_dp"
-                        app:cardElevation="0dp"
                         android:layout_marginBottom="@dimen/twelve_dp"
                         app:cardBackgroundColor="#33FFFFFF"
                         app:cardCornerRadius="@dimen/four_dp"
-                        android:layout_height="wrap_content">
+                        app:cardElevation="0dp">
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -327,6 +338,7 @@
                                 android:layout_marginEnd="@dimen/twelve_dp"
                                 android:layout_marginBottom="@dimen/eight_dp"
                                 android:layout_weight="1"
+                                android:foregroundTint="@color/white"
                                 android:src="@drawable/ic_favorite_black_24dp"
                                 app:backgroundTint="@color/colorPrimary" />
 
@@ -346,8 +358,9 @@
             android:layout_height="wrap_content"
             android:background="@android:color/transparent"
             android:elevation="@dimen/six_dp"
-            android:fitsSystemWindows="true"
+            android:theme="@style/AppTheme.AppBarOverlay"
             app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
+            app:popupTheme="@style/AppTheme.PopupOverlay"
             app:title=" "
             app:titleTextColor="@android:color/white">
 

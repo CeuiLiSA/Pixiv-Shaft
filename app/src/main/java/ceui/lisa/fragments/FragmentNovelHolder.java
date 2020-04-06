@@ -1,7 +1,6 @@
 package ceui.lisa.fragments;
 
 import android.animation.Animator;
-import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -15,14 +14,13 @@ import java.util.Collections;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.activities.UActivity;
 import ceui.lisa.adapters.VAdapter;
 import ceui.lisa.databinding.FragmentNovelHolderBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.NovelDetail;
-import ceui.lisa.utils.DataChannel;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
@@ -32,28 +30,28 @@ import ceui.lisa.view.ScrollChange;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
-public class FragmentNovelHolder extends BaseBindFragment<FragmentNovelHolderBinding> {
+public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding> {
 
     private boolean isOpen = false;
     private NovelBean mNovelBean;
 
-    public static FragmentNovelHolder newInstance(int index) {
+    public static FragmentNovelHolder newInstance(NovelBean novelBean) {
         Bundle args = new Bundle();
-        args.putInt(Params.INDEX, index);
+        args.putSerializable(Params.CONTENT, novelBean);
         FragmentNovelHolder fragment = new FragmentNovelHolder();
         fragment.setArguments(args);
         return fragment;
     }
 
     @Override
-    void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.fragment_novel_holder;
     }
 
     @Override
     public void initBundle(Bundle bundle) {
-        int index = bundle.getInt(Params.INDEX);
-        mNovelBean = DataChannel.get().getNovelList().get(index);
+        mNovelBean = (NovelBean) bundle.getSerializable(Params.CONTENT);
+        PixivOperate.insertNovelViewHistory(mNovelBean);
     }
 
     @Override
@@ -98,9 +96,7 @@ public class FragmentNovelHolder extends BaseBindFragment<FragmentNovelHolderBin
         View.OnClickListener seeUser = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(mContext, UActivity.class);
-                intent.putExtra(Params.USER_ID, mNovelBean.getUser().getId());
-                startActivity(intent);
+                Common.showUser(mContext, mNovelBean.getUser());
             }
         };
         baseBind.userHead.setOnClickListener(seeUser);

@@ -1,20 +1,15 @@
 package ceui.lisa.core;
 
-import android.content.Context;
-
-import com.scwang.smartrefresh.header.MaterialHeader;
-import com.scwang.smartrefresh.layout.api.RefreshFooter;
-import com.scwang.smartrefresh.layout.api.RefreshHeader;
-import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
-
-import java.util.List;
-
+import ceui.lisa.helper.TagFilter;
 import ceui.lisa.http.NullCtrl;
+import ceui.lisa.interfaces.ListShow;
+import ceui.lisa.models.IllustsBean;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 
-public abstract class NetControl<Response> {
+public abstract class NetControl<Response extends ListShow<?>> extends BaseCtrl {
 
     private Observable<Response> mApi;
 
@@ -27,6 +22,17 @@ public abstract class NetControl<Response> {
         if (mApi != null) {
             mApi.subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
+                    .map(new Function<Response, Response>() {
+                        @Override
+                        public Response apply(Response response) {
+                            for (Object o : response.getList()) {
+                                if (o instanceof IllustsBean) {
+                                    TagFilter.judge(((IllustsBean) o));
+                                }
+                            }
+                            return response;
+                        }
+                    })
                     .subscribe(nullCtrl);
         }
     }
@@ -36,23 +42,18 @@ public abstract class NetControl<Response> {
         if (mApi != null) {
             mApi.subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
+                    .map(new Function<Response, Response>() {
+                        @Override
+                        public Response apply(Response response) {
+                            for (Object o : response.getList()) {
+                                if (o instanceof IllustsBean) {
+                                    TagFilter.judge(((IllustsBean) o));
+                                }
+                            }
+                            return response;
+                        }
+                    })
                     .subscribe(nullCtrl);
         }
-    }
-
-    public boolean hasNext(){
-        return true;
-    }
-
-    public boolean enableRefresh(){
-        return true;
-    }
-
-    public RefreshHeader getHeader(Context context){
-        return new MaterialHeader(context);
-    }
-
-    public RefreshFooter getFooter(Context context){
-        return new ClassicsFooter(context);
     }
 }

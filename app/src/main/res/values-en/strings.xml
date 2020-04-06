@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="app_name">Shaft</string>
+	<string name="app_name">PixShaft</string>
 	<string name="navigation_drawer_open">Open navigation drawer</string>
 	<string name="navigation_drawer_close">Close navigation drawer</string>
 	<string name="nav_header_title">Android Studio</string>
@@ -140,4 +140,7 @@
 	<string name="r_eighteen">R</string>
 	<string name="ranking_list">Ranking List</string>
 	<string name="recmd_for_you">Recommend for you</string>
+    <string name="save">save</string>
+	<string name="shoud_not_be_empty">shoud not be empty</string>
+	<string name="never_show_again">never show again</string>
 </resources>

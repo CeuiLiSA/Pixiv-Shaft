@@ -1,11 +1,13 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.PagerSnapHelper;
 
@@ -19,13 +21,13 @@ import ceui.lisa.databinding.FragmentLikeIllustHorizontalBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.model.ListNovelResponse;
+import ceui.lisa.model.ListNovel;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.UserDetailResponse;
-import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
+import ceui.lisa.viewmodel.UserViewModel;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
@@ -33,22 +35,30 @@ import io.reactivex.schedulers.Schedulers;
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-public class FragmentLikeNovelHorizontal extends BaseBindFragment<FragmentLikeIllustHorizontalBinding> {
+public class FragmentLikeNovelHorizontal extends BaseFragment<FragmentLikeIllustHorizontalBinding> {
 
     private List<NovelBean> allItems = new ArrayList<>();
     private UserDetailResponse mUserDetailResponse;
     private NHAdapter mAdapter;
     private int type; // 0某人收藏的小说，1某人创作的小说
 
-    public static FragmentLikeNovelHorizontal newInstance(UserDetailResponse userDetailResponse, int pType) {
-        FragmentLikeNovelHorizontal fragmentLikeIllustHorizontal = new FragmentLikeNovelHorizontal();
-        fragmentLikeIllustHorizontal.mUserDetailResponse = userDetailResponse;
-        fragmentLikeIllustHorizontal.type = pType;
-        return fragmentLikeIllustHorizontal;
+    public static FragmentLikeNovelHorizontal newInstance(int pType) {
+        Bundle args = new Bundle();
+        args.putInt(Params.DATA_TYPE, pType);
+        FragmentLikeNovelHorizontal fragment = new FragmentLikeNovelHorizontal();
+        fragment.setArguments(args);
+        return fragment;
     }
 
     @Override
-    void initLayout() {
+    public void initBundle(Bundle bundle) {
+        type = bundle.getInt(Params.DATA_TYPE);
+        UserViewModel userViewModel = new ViewModelProvider(mActivity).get(UserViewModel.class);
+        mUserDetailResponse = userViewModel.getUser().getValue();
+    }
+
+    @Override
+    public void initLayout() {
         mLayoutID = R.layout.fragment_like_illust_horizontal;
     }
 
@@ -94,9 +104,8 @@ public class FragmentLikeNovelHorizontal extends BaseBindFragment<FragmentLikeIl
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                DataChannel.get().setNovelList(allItems);
                 Intent intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(Params.INDEX, position);
+                intent.putExtra(Params.CONTENT, allItems.get(position));
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情");
                 intent.putExtra("hideStatusBar", true);
                 startActivity(intent);
@@ -115,7 +124,7 @@ public class FragmentLikeNovelHorizontal extends BaseBindFragment<FragmentLikeIl
 
     @Override
     void initData() {
-        Observable<ListNovelResponse> mApi;
+        Observable<ListNovel> mApi;
         if (type == 0) {
             mApi = Retro.getAppApi().getUserLikeNovel(sUserModel.getResponse().getAccess_token(),
                     mUserDetailResponse.getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC);
@@ -125,15 +134,15 @@ public class FragmentLikeNovelHorizontal extends BaseBindFragment<FragmentLikeIl
         }
         mApi.subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new NullCtrl<ListNovelResponse>() {
+                .subscribe(new NullCtrl<ListNovel>() {
                     @Override
-                    public void success(ListNovelResponse listNovelResponse) {
-                        if (listNovelResponse.getList().size() > 0) {
+                    public void success(ListNovel listNovel) {
+                        if (listNovel.getList().size() > 0) {
                             allItems.clear();
-                            if (listNovelResponse.getList().size() > 10) {
-                                allItems.addAll(listNovelResponse.getList().subList(0, 10));
+                            if (listNovel.getList().size() > 10) {
+                                allItems.addAll(listNovel.getList().subList(0, 10));
                             } else {
-                                allItems.addAll(listNovelResponse.getList());
+                                allItems.addAll(listNovel.getList());
                             }
                             mAdapter.notifyItemRangeInserted(0, allItems.size());
                             baseBind.rootParentView.setVisibility(View.VISIBLE);

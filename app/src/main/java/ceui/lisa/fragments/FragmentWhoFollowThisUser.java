@@ -9,13 +9,13 @@ import ceui.lisa.core.NetControl;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyUserPreviewBinding;
 import ceui.lisa.http.Retro;
-import ceui.lisa.model.ListUserResponse;
+import ceui.lisa.model.ListUser;
 import ceui.lisa.models.UserPreviewsBean;
 import ceui.lisa.utils.Params;
 import io.reactivex.Observable;
 
 public class FragmentWhoFollowThisUser extends NetListFragment<FragmentBaseListBinding,
-        ListUserResponse, UserPreviewsBean, RecyUserPreviewBinding> {
+        ListUser, UserPreviewsBean, RecyUserPreviewBinding> {
 
     private int userID;
 
@@ -33,16 +33,17 @@ public class FragmentWhoFollowThisUser extends NetListFragment<FragmentBaseListB
     }
 
     @Override
-    public NetControl<ListUserResponse> present() {
-        return new NetControl<ListUserResponse>() {
+    public NetControl<ListUser> present() {
+        return new NetControl<ListUser>() {
             @Override
-            public Observable<ListUserResponse> initApi() {
+            public Observable<ListUser> initApi() {
                 return Retro.getAppApi().getWhoFollowThisUser(Shaft.sUserModel.getResponse().getAccess_token(), userID);
             }
 
             @Override
-            public Observable<ListUserResponse> initNextApi() {
-                return Retro.getAppApi().getNextUser(Shaft.sUserModel.getResponse().getAccess_token(), nextUrl);
+            public Observable<ListUser> initNextApi() {
+                return Retro.getAppApi().getNextUser(
+                        Shaft.sUserModel.getResponse().getAccess_token(), mModel.getNextUrl());
             }
         };
     }

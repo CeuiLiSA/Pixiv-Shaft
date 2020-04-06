@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Shaft</string>
+    <string name="app_name">PixShaft</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="nav_header_title">Android Studio</string>
@@ -78,6 +78,7 @@
     <string name="filter_by_bookmark">按标签筛选</string>
     <string name="access_denied">请给与足够的权限</string>
     <string name="view_history">浏览记录</string>
+    <string name="muted_history">屏蔽记录</string>
     <string name="app_settings">设置</string>
     <string name="full_about_app">关于软件</string>
     <string name="no_mail_address">未绑定邮箱</string>
@@ -124,6 +125,8 @@
     <string name="other_settings">其他</string>
     <string name="search_result_filter">搜索结果收藏量筛选</string>
     <string name="language">语言</string>
+    <string name="theme_mode">主题模式</string>
+    <string name="file_name_type">文件命名格式</string>
     <string name="download_path">下载路径</string>
     <string name="illust_download_path">图片下载路径</string>
     <string name="gif_unzip_path">GIF压缩包解压路径</string>
@@ -134,10 +137,7 @@
 
     <string name="finding_datas">资源解析中</string>
     <string name="dont_catch_me">
-        1、本应用为日本插画交流网站Pixiv的安卓客户端第三方重制版.\n
-        2、项目已开源且仅做交流和学习使用，不得用于任何商业用途。\n
-        3、APP内所有插画、漫画、小说作品版权均归属于其著作者或Pixiv所有\n
-        4、推荐使用原版Pixiv。
+        1、本应用为日本插画交流网站Pixiv的安卓客户端第三方重制版.\n2、项目已开源且仅做交流和学习使用，不得用于任何商业用途。\n3、APP内所有插画、漫画、小说作品版权均归属于其著作者或Pixiv所有\n4、推荐使用原版Pixiv。
     </string>
     <string name="clear">清空</string>
 
@@ -151,4 +151,9 @@
     <string name="r_eighteen">R</string>
     <string name="ranking_list">排行榜</string>
     <string name="recmd_for_you">为你推荐</string>
+    <string name="email_address">邮箱地址</string>
+    <string name="operate_success">操作成功</string>
+    <string name="save">保存</string>
+    <string name="shoud_not_be_empty">不应为空</string>
+    <string name="never_show_again">不再显示</string>
 </resources>

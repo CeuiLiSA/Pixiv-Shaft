@@ -1,13 +1,16 @@
 package ceui.lisa.fragments;
 
+import android.os.Bundle;
+
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.NAdapter;
 import ceui.lisa.core.NetControl;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyNovelBinding;
 import ceui.lisa.http.Retro;
-import ceui.lisa.model.ListNovelResponse;
+import ceui.lisa.model.ListNovel;
 import ceui.lisa.models.NovelBean;
+import ceui.lisa.utils.Params;
 import io.reactivex.Observable;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
@@ -16,32 +19,42 @@ import static ceui.lisa.activities.Shaft.sUserModel;
  * 某人收藏的小说
  */
 public class FragmentLikeNovel extends NetListFragment<FragmentBaseListBinding,
-        ListNovelResponse, NovelBean, RecyNovelBinding> {
+        ListNovel, NovelBean, RecyNovelBinding> {
 
     private int userID;
     private String starType;
     private boolean showToolbar = false;
 
     public static FragmentLikeNovel newInstance(int userID, String starType, boolean paramShowToolbar) {
-        FragmentLikeNovel fragmentRelatedIllust = new FragmentLikeNovel();
-        fragmentRelatedIllust.userID = userID;
-        fragmentRelatedIllust.starType = starType;
-        fragmentRelatedIllust.showToolbar = paramShowToolbar;
-        return fragmentRelatedIllust;
+        Bundle args = new Bundle();
+        args.putInt(Params.USER_ID, userID);
+        args.putString(Params.STAR_TYPE, starType);
+        args.putBoolean(Params.FLAG, paramShowToolbar);
+        FragmentLikeNovel fragment = new FragmentLikeNovel();
+        fragment.setArguments(args);
+        return fragment;
     }
 
     @Override
-    public NetControl<ListNovelResponse> present() {
-        return new NetControl<ListNovelResponse>() {
+    public void initBundle(Bundle bundle) {
+        userID = bundle.getInt(Params.USER_ID);
+        starType = bundle.getString(Params.STAR_TYPE);
+        showToolbar = bundle.getBoolean(Params.FLAG);
+    }
+
+    @Override
+    public NetControl<ListNovel> present() {
+        return new NetControl<ListNovel>() {
             @Override
-            public Observable<ListNovelResponse> initApi() {
+            public Observable<ListNovel> initApi() {
                 return Retro.getAppApi().getUserLikeNovel(sUserModel
                         .getResponse().getAccess_token(), userID, starType);
             }
 
             @Override
-            public Observable<ListNovelResponse> initNextApi() {
-                return Retro.getAppApi().getNextNovel(sUserModel.getResponse().getAccess_token(), nextUrl);
+            public Observable<ListNovel> initNextApi() {
+                return Retro.getAppApi().getNextNovel(
+                        sUserModel.getResponse().getAccess_token(), mModel.getNextUrl());
             }
         };
     }

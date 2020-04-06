@@ -46,7 +46,7 @@ public class TaskQueue {
 
                 //通知FragmentNowDownload 删除已经下载完成的这一项
                 Channel deleteChannel = new Channel();
-                deleteChannel.setReceiver("FragmentNowDownload");
+                deleteChannel.setReceiver("FragmentDownloading");
                 deleteChannel.setObject(i);
                 EventBus.getDefault().post(deleteChannel);
 
@@ -55,8 +55,7 @@ public class TaskQueue {
 
                     DownloadEntity downloadEntity = new DownloadEntity();
                     downloadEntity.setFileName(tempTask.getDownloadTask().getFilename());
-                    Gson gson = new Gson();
-                    downloadEntity.setIllustGson(gson.toJson(tempTask.getIllustsBean()));
+                    downloadEntity.setIllustGson(Shaft.sGson.toJson(tempTask.getIllustsBean()));
                     downloadEntity.setDownloadTime(System.currentTimeMillis());
                     downloadEntity.setFilePath(tempTask.getDownloadTask().getFile().getPath());
                     AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(downloadEntity);

@@ -82,9 +82,8 @@ public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
             @Override
             public void onItemClick(View v, int position, int viewType) {
                 if (viewType == 0) {
-                    DataChannel.get().setNovelList(allIllust);
                     Intent intent = new Intent(mContext, TemplateActivity.class);
-                    intent.putExtra(Params.INDEX, position);
+                    intent.putExtra(Params.CONTENT, allIllust.get(position));
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情");
                     intent.putExtra("hideStatusBar", true);
                     mContext.startActivity(intent);

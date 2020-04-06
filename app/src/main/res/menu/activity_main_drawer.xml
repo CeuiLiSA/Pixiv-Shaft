@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:showIn="navigation_view">
 
-    <group android:checkableBehavior="single">
+    <group android:checkableBehavior="none">
 
         <item
             android:id="@+id/main_page"
@@ -21,6 +21,12 @@
             android:id="@+id/nav_slideshow"
             android:icon="@drawable/ic_history_black_24dp"
             android:title="@string/view_history" />
+
+        <item
+            android:id="@+id/muted_list"
+            android:icon="@drawable/ic_not_interested_black_24dp"
+            android:title="@string/muted_history" />
+
         <item
             android:id="@+id/nav_manage"
             android:icon="@drawable/ic_menu_manage"

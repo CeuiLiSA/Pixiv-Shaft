@@ -2,7 +2,7 @@ package ceui.lisa.models;
 
 import java.io.Serializable;
 
-public class UserModel implements Serializable {
+public class UserModel implements Serializable, UserContainer {
 
 
     /**
@@ -17,6 +17,11 @@ public class UserModel implements Serializable {
 
     public void setResponse(ResponseBean response) {
         this.response = response;
+    }
+
+    @Override
+    public int getUserId() {
+        return response.user.getId();
     }
 
     public static class ResponseBean implements Serializable {
@@ -93,5 +98,25 @@ public class UserModel implements Serializable {
         public void setDevice_token(String device_token) {
             this.device_token = device_token;
         }
+
+        @Override
+        public String toString() {
+            return "ResponseBean{" +
+                    "access_token='" + access_token + '\'' +
+                    ", expires_in=" + expires_in +
+                    ", token_type='" + token_type + '\'' +
+                    ", scope='" + scope + '\'' +
+                    ", refresh_token='" + refresh_token + '\'' +
+                    ", user=" + user +
+                    ", device_token='" + device_token + '\'' +
+                    '}';
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "UserModel{" +
+                "response=" + response +
+                '}';
     }
 }

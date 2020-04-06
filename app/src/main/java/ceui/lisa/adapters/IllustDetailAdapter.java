@@ -1,6 +1,6 @@
 package ceui.lisa.adapters;
 
-import android.content.Context;
+import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
@@ -13,12 +13,12 @@ import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
-import com.liulishuo.okdownload.DownloadTask;
 
 import java.io.File;
 import java.util.Arrays;
@@ -36,7 +36,7 @@ import ceui.lisa.download.GifQueue;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.model.GifResponse;
+import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
@@ -47,23 +47,20 @@ import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
-import static ceui.lisa.download.IllustDownload.IMAGE_REFERER;
-import static ceui.lisa.download.IllustDownload.MAP_KEY;
-
 
 /**
  * 作品详情页竖向多P列表
  */
 public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    private Context mContext;
+    private FragmentActivity mContext;
     private OnItemClickListener mOnItemClickListener;
     private IllustsBean allIllust;
     private int imageSize = 0;
     private TagHolder gifHolder;
     private AnimationDrawable animationDrawable;
 
-    public IllustDetailAdapter(IllustsBean list, Context context) {
+    public IllustDetailAdapter(IllustsBean list, FragmentActivity context) {
         mContext = context;
         allIllust = list;
         imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
@@ -88,15 +85,20 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             params.height = imageSize * allIllust.getHeight() / allIllust.getWidth();
             params.width = imageSize;
             currentOne.illust.setLayoutParams(params);
-            if (Shaft.sSettings.isFirstImageSize()) {
-                Glide.with(mContext)
-                        .load(GlideUtil.getOriginal(allIllust, position))
-                        .into(currentOne.illust);
-            } else {
-                Glide.with(mContext)
-                        .load(GlideUtil.getLargeImage(allIllust, position))
-                        .into(currentOne.illust);
-            }
+//            if (Shaft.sSettings.isFirstImageSize()) {
+//                Glide.with(mContext)
+//                        .load(GlideUtil.getOriginal(allIllust, position))
+//                        .into(currentOne.illust);
+//            } else {
+//                Glide.with(mContext)
+//                        .load(GlideUtil.getLargeImage(allIllust, position))
+//                        .into(currentOne.illust);
+//            }
+
+            Glide.with(mContext)
+                    .load(GlideUtil.getLargeImage(allIllust, position))
+                    .into(currentOne.illust);
+
             Common.showLog("height " + params.height + "width " + params.width);
 
             //如果是GIF
@@ -120,7 +122,7 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                     };
 
                     //检查是否正在下载
-                    if(GifQueue.get().getTasks() != null &&
+                    if (GifQueue.get().getTasks() != null &&
                             GifQueue.get().getTasks().size() != 0) {
 
                         boolean isDownloading = false;
@@ -136,7 +138,7 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                                 break;
                             }
                         }
-                        if(isDownloading){
+                        if (isDownloading) {
                             currentOne.playGif.setVisibility(View.INVISIBLE);
                         } else {
                             currentOne.playGif.setVisibility(View.VISIBLE);
@@ -161,7 +163,7 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                                     GifListener gifListener = new GifListener(allIllust, gifResponse.getDelay());
                                     gifListener.bindProgress(currentOne.mProgressBar);
                                     gifListener.bindListener(onGifPrepared);
-                                    IllustDownload.downloadGif(gifResponse, allIllust, gifListener);
+                                    IllustDownload.downloadGif(mContext, gifResponse, allIllust, gifListener);
                                 }
                             }
                         });
@@ -188,7 +190,10 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         }
 
         if (mOnItemClickListener != null) {
-            currentOne.itemView.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 0));
+            currentOne.itemView.setOnClickListener(v -> {
+                currentOne.illust.setTransitionName("big_image_" + position);
+                mOnItemClickListener.onItemClick(currentOne.illust, position, 0);
+            });
         }
     }
 
@@ -201,20 +206,8 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         mOnItemClickListener = itemClickListener;
     }
 
-    public static class TagHolder extends RecyclerView.ViewHolder {
-        ImageView illust, playGif;
-        ProgressBar mProgressBar;
-
-        TagHolder(View itemView) {
-            super(itemView);
-            illust = itemView.findViewById(R.id.illust_image);
-            playGif = itemView.findViewById(R.id.play_gif);
-            mProgressBar = itemView.findViewById(R.id.gif_progress);
-        }
-    }
-
     public void nowPlayGif() {
-        if(animationDrawable != null && gifHolder != null) {
+        if (animationDrawable != null && gifHolder != null) {
             gifHolder.illust.setImageDrawable(animationDrawable);
             animationDrawable.start();
         }
@@ -222,7 +215,7 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     public void nowStopGif() {
         Common.showLog(allIllust.getTitle() + "IllustDetailAdapter 停止播放gif图");
-        if(animationDrawable != null){
+        if (animationDrawable != null) {
             animationDrawable.stop();
         }
     }
@@ -271,5 +264,17 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                         }
                     }
                 });
+    }
+
+    public static class TagHolder extends RecyclerView.ViewHolder {
+        ImageView illust, playGif;
+        ProgressBar mProgressBar;
+
+        TagHolder(View itemView) {
+            super(itemView);
+            illust = itemView.findViewById(R.id.illust_image);
+            playGif = itemView.findViewById(R.id.play_gif);
+            mProgressBar = itemView.findViewById(R.id.gif_progress);
+        }
     }
 }

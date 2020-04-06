@@ -12,6 +12,6 @@
     android:paddingEnd="@dimen/twelve_dp"
     android:paddingBottom="@dimen/eight_dp"
     android:text="哈哈哈哈哈哈"
-    android:textColor="#737373">
+    android:textColor="@color/tag_text_unselect">
 
 </TextView>

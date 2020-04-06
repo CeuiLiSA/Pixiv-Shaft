@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="app_name">シャフト</string>
+	<string name="app_name">PixShaft</string>
 	<string name="navigation_drawer_open">オープンナビゲーション引き出し</string>
 	<string name="navigation_drawer_close">閉じるナビゲーション引き出し</string>
 	<string name="nav_header_title">Androidのメーカー</string>

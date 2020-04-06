@@ -21,7 +21,7 @@ import ceui.lisa.utils.Common;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-public class FragmentCollection extends BaseBindFragment<ViewpagerWithTablayoutBinding> {
+public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBinding> {
 
     private static final String[] CHINESE_TITLES = new String[]{
             Shaft.getContext().getString(R.string.public_like_illust),
@@ -35,7 +35,7 @@ public class FragmentCollection extends BaseBindFragment<ViewpagerWithTablayoutB
 
 
     @Override
-    void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.viewpager_with_tablayout;
     }
 
@@ -126,10 +126,5 @@ public class FragmentCollection extends BaseBindFragment<ViewpagerWithTablayoutB
 
             }
         });
-    }
-
-    @Override
-    void initData() {
-
     }
 }

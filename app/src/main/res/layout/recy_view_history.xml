@@ -1,20 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="140dp"
-    android:clickable="true"
-    android:foreground="?attr/selectableItemBackground"
-    app:cardCornerRadius="@dimen/four_dp"
-    app:cardElevation="2dp">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <data>
 
+    </data>
 
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:clickable="true"
+        app:cardBackgroundColor="@color/white_to_deep_dark"
+        android:foreground="?attr/selectableItemBackground"
+        app:cardCornerRadius="@dimen/four_dp"
+        app:cardElevation="2dp">
 
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:background="@android:color/white"
             android:layout_height="wrap_content">
 
 
@@ -23,7 +26,6 @@
                 android:layout_width="200dp"
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop" />
-
 
 
             <TextView
@@ -35,7 +37,7 @@
                 android:textSize="15sp"
                 android:layout_marginTop="@dimen/eight_dp"
                 android:textStyle="bold"
-                android:textColor="#666666"
+                android:textColor="@color/view_history_title"
                 android:layout_marginBottom="@dimen/four_dp"
                 android:layout_marginEnd="@dimen/sixteen_dp"
                 android:ellipsize="end"
@@ -88,4 +90,5 @@
 
 
         </RelativeLayout>
-</androidx.cardview.widget.CardView>
+    </androidx.cardview.widget.CardView>
+</layout>

@@ -24,11 +24,12 @@ import ceui.lisa.databinding.FragmentSearchResultBinding;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
-import ceui.lisa.model.ListIllustResponse;
+import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.TempTokenResponse;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
+import ceui.lisa.utils.Params;
 import ceui.lisa.view.GridItemDecoration;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -40,7 +41,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
  * 搜索插画结果，
  */
 public class FragmentSearchResult extends NetListFragment<FragmentSearchResultBinding,
-        ListIllustResponse, IllustsBean, RecyIllustStaggerBinding> {
+        ListIllust, IllustsBean, RecyIllustStaggerBinding> {
 
     private String token = "";
     private String keyWord = "";
@@ -48,6 +49,7 @@ public class FragmentSearchResult extends NetListFragment<FragmentSearchResultBi
     private String sort = "date_desc";
     private String searchTarget = "partial_match_for_tags";
     private boolean isPopular = false;
+    private boolean hasR18 = false;
 
     public static FragmentSearchResult newInstance(String keyWord) {
         return newInstance(keyWord, "date_desc", "partial_match_for_tags");
@@ -58,13 +60,23 @@ public class FragmentSearchResult extends NetListFragment<FragmentSearchResultBi
     }
 
     public static FragmentSearchResult newInstance(String keyWord, String sort, String searchTarget) {
-        FragmentSearchResult fragmentSearchResult = new FragmentSearchResult();
-        fragmentSearchResult.keyWord = keyWord;
-        fragmentSearchResult.sort = sort;
-        fragmentSearchResult.searchTarget = searchTarget;
-        fragmentSearchResult.starSize = Shaft.sSettings.getSearchFilter().contains("无限制") ?
-                "" : " " + (Shaft.sSettings.getSearchFilter());
-        return fragmentSearchResult;
+        Bundle args = new Bundle();
+        args.putString(Params.KEY_WORD, keyWord);
+        args.putString(Params.SORT_TYPE, sort);
+        args.putString(Params.SEARCH_TYPE, searchTarget);
+        args.putString(Params.STAR_SIZE, Shaft.sSettings.getSearchFilter().contains("无限制") ?
+                "" : " " + (Shaft.sSettings.getSearchFilter()));
+        FragmentSearchResult fragment = new FragmentSearchResult();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void initBundle(Bundle bundle) {
+        keyWord = bundle.getString(Params.KEY_WORD);
+        sort = bundle.getString(Params.SORT_TYPE);
+        searchTarget = bundle.getString(Params.SEARCH_TYPE);
+        starSize = bundle.getString(Params.STAR_SIZE);
     }
 
     @Override
@@ -73,16 +85,16 @@ public class FragmentSearchResult extends NetListFragment<FragmentSearchResultBi
     }
 
     @Override
-    public NetControl<ListIllustResponse> present() {
-        return new NetControl<ListIllustResponse>() {
+    public NetControl<ListIllust> present() {
+        return new NetControl<ListIllust>() {
             @Override
-            public Observable<ListIllustResponse> initApi() {
+            public Observable<ListIllust> initApi() {
                 return Retro.getAppApi().searchIllust(token, baseBind.searchBox.getText().toString(), sort, searchTarget);
             }
 
             @Override
-            public Observable<ListIllustResponse> initNextApi() {
-                return Retro.getAppApi().getNextIllust(token, nextUrl);
+            public Observable<ListIllust> initNextApi() {
+                return Retro.getAppApi().getNextIllust(token, mModel.getNextUrl());
             }
         };
     }
@@ -136,8 +148,9 @@ public class FragmentSearchResult extends NetListFragment<FragmentSearchResultBi
             }
 
             @Override
-            public void onPopularChanged(boolean isPopular) {
+            void onPopularChanged(boolean isPopular, boolean hasR18) {
                 FragmentSearchResult.this.isPopular = isPopular;
+                FragmentSearchResult.this.hasR18 = hasR18;
             }
 
             @Override

@@ -2,35 +2,73 @@ package ceui.lisa.activities
 
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentPagerAdapter
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
+import androidx.viewpager.widget.ViewPager
 import ceui.lisa.R
 import ceui.lisa.databinding.ActivityViewPagerBinding
 import ceui.lisa.fragments.FragmentSingleIllust
 import ceui.lisa.models.IllustsBean
+import ceui.lisa.transformer.GalleryTransformer
+import ceui.lisa.utils.Common
 import ceui.lisa.utils.DataChannel
+import ceui.lisa.utils.DensityUtil
+import ceui.lisa.utils.PixivOperate.insertIllustViewHistory
+import ceui.lisa.viewmodel.Dust
 import com.ToxicBakery.viewpager.transforms.DrawerTransformer
-import java.util.*
 
 class ViewPagerActivity : BaseActivity<ActivityViewPagerBinding>() {
 
-    private val dataList = ArrayList<IllustsBean>()
+    private lateinit var holder: Dust
 
     override fun hideStatusBar(): Boolean {
         return true
     }
 
     override fun initView() {
-        dataList.addAll(DataChannel.get().illustList)
+        holder = ViewModelProvider(this).get(Dust::class.java)
+
+        holder.dust.observe(this, Observer<List<IllustsBean>> { dust: List<IllustsBean> ->
+            baseBind.viewPager.adapter = object : FragmentPagerAdapter(supportFragmentManager, 0) {
+                override fun getItem(i: Int): Fragment {
+                    Common.showLog(className + "setPageTransformer " + i)
+                    return FragmentSingleIllust.newInstance(i)
+                }
+
+                override fun getCount(): Int {
+                    return dust.size
+                }
+            }
+        })
+        holder.index.observe(this, Observer{ index ->
+            run {
+                baseBind.viewPager.currentItem = index
+            }
+        })
+
         baseBind.viewPager.setPageTransformer(true, DrawerTransformer())
-        baseBind.viewPager.adapter = object : FragmentPagerAdapter(supportFragmentManager) {
-            override fun getItem(i: Int): Fragment {
-                return FragmentSingleIllust.newInstance(dataList[i])
+        baseBind.viewPager.addOnPageChangeListener(object :ViewPager.OnPageChangeListener{
+            override fun onPageScrollStateChanged(state: Int) {
             }
 
-            override fun getCount(): Int {
-                return dataList.size
+            override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
             }
+
+            override fun onPageSelected(position: Int) {
+                holder.index.value = position
+                if (Shaft.sSettings.isSaveViewHistory) {
+                    insertIllustViewHistory(holder.dust?.value!![position])
+                }
+            }
+        })
+
+        holder.dust.value = DataChannel.get().illustList
+
+
+        val p = intent.getIntExtra("position", -1)
+        if (p != -1) {
+            holder.index.value = p
         }
-        baseBind.viewPager.currentItem = intent.getIntExtra("position", 0)
     }
 
     override fun initLayout(): Int {

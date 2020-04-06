@@ -7,16 +7,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.cardview.widget.CardView;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-import com.facebook.rebound.SimpleSpringListener;
-import com.facebook.rebound.Spring;
-import com.facebook.rebound.SpringConfig;
-import com.facebook.rebound.SpringSystem;
-
-import ceui.lisa.key.XHAnim;
-import ceui.lisa.utils.Common;
 
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
@@ -66,8 +57,7 @@ public class ExpandCard extends CardView {
         isExpand = true;
     }
 
-    public void close(boolean hasAnime) {
-        hasAnime = false;
+    public void close() {
         if(isExpand){
             ViewGroup.LayoutParams layoutParams = getLayoutParams();
             layoutParams.height = maxHeight;

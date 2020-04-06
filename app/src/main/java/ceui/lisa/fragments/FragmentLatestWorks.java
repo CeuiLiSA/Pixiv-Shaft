@@ -11,14 +11,14 @@ import ceui.lisa.core.NetControl;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.http.Retro;
-import ceui.lisa.model.ListIllustResponse;
+import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.SpacesItemDecoration;
 import io.reactivex.Observable;
 
-public class FragmentLatestWorks extends NetListFragment<FragmentBaseListBinding, ListIllustResponse,
+public class FragmentLatestWorks extends NetListFragment<FragmentBaseListBinding, ListIllust,
         IllustsBean, RecyIllustStaggerBinding> {
 
     private String workType;
@@ -37,16 +37,17 @@ public class FragmentLatestWorks extends NetListFragment<FragmentBaseListBinding
     }
 
     @Override
-    public NetControl<ListIllustResponse> present() {
-        return new NetControl<ListIllustResponse>() {
+    public NetControl<ListIllust> present() {
+        return new NetControl<ListIllust>() {
             @Override
-            public Observable<ListIllustResponse> initApi() {
+            public Observable<ListIllust> initApi() {
                 return Retro.getAppApi().getNewWorks(Shaft.sUserModel.getResponse().getAccess_token(), workType);
             }
 
             @Override
-            public Observable<ListIllustResponse> initNextApi() {
-                return Retro.getAppApi().getNextIllust(Shaft.sUserModel.getResponse().getAccess_token(), nextUrl);
+            public Observable<ListIllust> initNextApi() {
+                return Retro.getAppApi().getNextIllust(
+                        Shaft.sUserModel.getResponse().getAccess_token(), mModel.getNextUrl());
             }
         };
     }
@@ -63,9 +64,6 @@ public class FragmentLatestWorks extends NetListFragment<FragmentBaseListBinding
 
     @Override
     public void initRecyclerView() {
-        StaggeredGridLayoutManager layoutManager =
-                new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
-        baseBind.recyclerView.setLayoutManager(layoutManager);
-        baseBind.recyclerView.addItemDecoration(new SpacesItemDecoration(DensityUtil.dp2px(8.0f)));
+        staggerRecyclerView();
     }
 }

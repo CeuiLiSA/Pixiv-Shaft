@@ -1,5 +1,6 @@
 package ceui.lisa.http;
 
+import ceui.lisa.models.AccountEditResponse;
 import ceui.lisa.models.UserModel;
 import io.reactivex.Observable;
 import retrofit2.Call;
@@ -8,6 +9,9 @@ import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.POST;
 
 public interface AccountApi {
+
+    //用作登录，刷新token
+    String ACCOUNT_BASE_URL = "https://oauth.secure.pixiv.net/";
 
     /**
      * 用户登录
@@ -54,4 +58,5 @@ public interface AccountApi {
                                  @Field("device_token") String device_token,
                                  @Field("get_secure_url") boolean get_secure_url,
                                  @Field("include_policy") boolean include_policy);
+
 }

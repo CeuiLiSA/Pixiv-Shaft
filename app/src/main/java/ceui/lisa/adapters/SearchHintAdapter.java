@@ -13,13 +13,13 @@ import java.util.regex.Pattern;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.RecySearchHintBinding;
-import ceui.lisa.model.TrendingtagResponse;
+import ceui.lisa.model.ListTrendingtag;
 
-public class SearchHintAdapter extends BaseAdapter<TrendingtagResponse.TrendTagsBean, RecySearchHintBinding> {
+public class SearchHintAdapter extends BaseAdapter<ListTrendingtag.TrendTagsBean, RecySearchHintBinding> {
 
     private String mKeyword;
 
-    public SearchHintAdapter(List<TrendingtagResponse.TrendTagsBean> targetList, Context context, String keyword) {
+    public SearchHintAdapter(List<ListTrendingtag.TrendTagsBean> targetList, Context context, String keyword) {
         super(targetList, context);
         mKeyword = keyword;
     }
@@ -30,7 +30,7 @@ public class SearchHintAdapter extends BaseAdapter<TrendingtagResponse.TrendTags
     }
 
     @Override
-    public void bindData(TrendingtagResponse.TrendTagsBean target, ViewHolder<RecySearchHintBinding> bindView, int position) {
+    public void bindData(ListTrendingtag.TrendTagsBean target, ViewHolder<RecySearchHintBinding> bindView, int position) {
         SpannableString string = matcherSearchText(mContext.getResources().getColor(R.color.colorPrimary),
                 target.getName(), mKeyword);
         bindView.baseBind.titleText.setText(string);

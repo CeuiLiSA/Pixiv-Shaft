@@ -4,7 +4,7 @@ import android.text.TextUtils;
 
 import java.io.Serializable;
 
-public class UserBean implements Serializable {
+public class UserBean implements Serializable, UserContainer {
     /**
      * profile_image_urls : {"px_16x16":"https://i.pximg.net/user-profile/img/2018/06/20/23/27/47/14384932_69771f95cafdac1a1d3da88fcfe4ecab_16.jpg","px_50x50":"https://i.pximg.net/user-profile/img/2018/06/20/23/27/47/14384932_69771f95cafdac1a1d3da88fcfe4ecab_50.jpg","px_170x170":"https://i.pximg.net/user-profile/img/2018/06/20/23/27/47/14384932_69771f95cafdac1a1d3da88fcfe4ecab_170.jpg"}
      * id : 31655571
@@ -24,8 +24,8 @@ public class UserBean implements Serializable {
     private String account;
     private String password;
     private String mail_address;
-    private boolean is_premium;
     private boolean is_login;
+    private boolean is_premium;
     private boolean is_followed;
     private long lastTokenTime = -1;
     private int x_restrict;
@@ -54,14 +54,6 @@ public class UserBean implements Serializable {
 
     public void setLastTokenTime(long lastTokenTime) {
         this.lastTokenTime = lastTokenTime;
-    }
-
-    public boolean isIs_login() {
-        return is_login;
-    }
-
-    public void setIs_login(boolean is_login) {
-        this.is_login = is_login;
     }
 
     public ProfileImageUrlsBean getProfile_image_urls() {
@@ -140,8 +132,21 @@ public class UserBean implements Serializable {
         return password;
     }
 
+    public boolean isIs_login() {
+        return is_login;
+    }
+
+    public void setIs_login(boolean is_login) {
+        this.is_login = is_login;
+    }
+
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    @Override
+    public int getUserId() {
+        return id;
     }
 
     public static class ProfileImageUrlsBean implements Serializable {
@@ -201,6 +206,34 @@ public class UserBean implements Serializable {
                 return "";
             }
         }
+
+        @Override
+        public String toString() {
+            return "ProfileImageUrlsBean{" +
+                    "px_16x16='" + px_16x16 + '\'' +
+                    ", px_50x50='" + px_50x50 + '\'' +
+                    ", px_170x170='" + px_170x170 + '\'' +
+                    ", medium='" + medium + '\'' +
+                    '}';
+        }
     }
 
+    @Override
+    public String toString() {
+        return "UserBean{" +
+                "profile_image_urls=" + profile_image_urls +
+                ", id=" + id +
+                ", name='" + name + '\'' +
+                ", comment='" + comment + '\'' +
+                ", account='" + account + '\'' +
+                ", password='" + password + '\'' +
+                ", mail_address='" + mail_address + '\'' +
+                ", is_premium=" + is_premium +
+                ", is_followed=" + is_followed +
+                ", lastTokenTime=" + lastTokenTime +
+                ", x_restrict=" + x_restrict +
+                ", is_mail_authorized=" + is_mail_authorized +
+                ", require_policy_agreement=" + require_policy_agreement +
+                '}';
+    }
 }

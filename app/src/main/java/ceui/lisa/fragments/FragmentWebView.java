@@ -2,6 +2,7 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Bundle;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -11,8 +12,6 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.RelativeLayout;
 
-import androidx.appcompat.widget.Toolbar;
-
 import com.google.android.material.snackbar.Snackbar;
 import com.just.agentweb.AgentWeb;
 import com.just.agentweb.WebViewClient;
@@ -21,6 +20,7 @@ import java.util.Objects;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.UActivity;
+import ceui.lisa.databinding.FragmentWebviewBinding;
 import ceui.lisa.download.WebDownload;
 import ceui.lisa.utils.ClipBoardUtils;
 import ceui.lisa.utils.Common;
@@ -30,7 +30,7 @@ import ceui.lisa.view.ContextMenuTitleView;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-public class FragmentWebView extends BaseFragment {
+public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
 
     //private static final String ILLUST_HEAD = "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=";
     private static final String USER_HEAD = "https://www.pixiv.net/member.php?id=";
@@ -40,58 +40,60 @@ public class FragmentWebView extends BaseFragment {
     private String response = null;
     private String mime = null;
     private String encoding = null;
-    private String history_url = null;
+    private String historyUrl = null;
     private AgentWeb mAgentWeb;
     private WebView mWebView;
-    private RelativeLayout webViewParent;
     private String mIntentUrl;
     private WebViewClickHandler handler = new WebViewClickHandler();
 
     public static FragmentWebView newInstance(String title, String url) {
-        FragmentWebView fragmentWebView = new FragmentWebView();
-        fragmentWebView.title = title;
-        fragmentWebView.url = url;
-        return fragmentWebView;
-    }
-
-    /**
-     * Loads with local html source
-     *
-     * @param title
-     * @param url
-     * @param response
-     * @param mime
-     * @param encoding
-     * @param history_url
-     * @return
-     */
-    public static FragmentWebView newInstance(String title, String url, String response, String mime, String encoding, String history_url) {
-        FragmentWebView fragmentWebView = newInstance(title, url);
-        fragmentWebView.response = response;
-        fragmentWebView.mime = mime;
-        fragmentWebView.encoding = encoding;
-        fragmentWebView.history_url = history_url;
-        return fragmentWebView;
+        Bundle args = new Bundle();
+        args.putString(Params.TITLE, title);
+        args.putString(Params.URL, url);
+        FragmentWebView fragment = new FragmentWebView();
+        fragment.setArguments(args);
+        return fragment;
     }
 
     @Override
-    void initLayout() {
+    public void initBundle(Bundle bundle) {
+        title = bundle.getString(Params.TITLE);
+        url = bundle.getString(Params.URL);
+        response = bundle.getString(Params.RESPONSE);
+        mime = bundle.getString(Params.MIME);
+        encoding = bundle.getString(Params.ENCODING);
+        historyUrl = bundle.getString(Params.HISTORY_URL);
+    }
+
+    public static FragmentWebView newInstance(String title, String url, String response,
+                                              String mime, String encoding, String history_url) {
+        Bundle args = new Bundle();
+        args.putString(Params.TITLE, title);
+        args.putString(Params.URL, url);
+        args.putString(Params.RESPONSE, response);
+        args.putString(Params.MIME, mime);
+        args.putString(Params.ENCODING, encoding);
+        args.putString(Params.HISTORY_URL, history_url);
+        FragmentWebView fragment = new FragmentWebView();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void initLayout() {
         mLayoutID = R.layout.fragment_webview;
     }
 
     @Override
-    View initView(View v) {
-        Toolbar toolbar = v.findViewById(R.id.toolbar);
-        toolbar.setTitle(title);
-        toolbar.setNavigationOnClickListener(view -> getActivity().finish());
-        webViewParent = v.findViewById(R.id.web_view_parent);
-        return v;
+    public void initView(View view) {
+        baseBind.toolbar.setTitle(title);
+        baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
     }
 
     @Override
     void initData() {
         AgentWeb.PreAgentWeb ready = AgentWeb.with(this)
-                .setAgentWebParent(webViewParent, new RelativeLayout.LayoutParams(-1, -1))
+                .setAgentWebParent(baseBind.webViewParent, new RelativeLayout.LayoutParams(-1, -1))
                 .useDefaultIndicator()
                 .setWebViewClient(new WebViewClient() {
                     @Override
@@ -124,7 +126,7 @@ public class FragmentWebView extends BaseFragment {
             mAgentWeb = ready.go(url);
         } else {
             mAgentWeb = ready.get();
-            mAgentWeb.getUrlLoader().loadDataWithBaseURL(url, response, mime, encoding, history_url);
+            mAgentWeb.getUrlLoader().loadDataWithBaseURL(url, response, mime, encoding, historyUrl);
         }
 
         mWebView = mAgentWeb.getWebCreator().getWebView();

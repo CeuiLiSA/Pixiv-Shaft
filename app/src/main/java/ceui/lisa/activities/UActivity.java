@@ -6,8 +6,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 
+import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelProviders;
 
 import com.bumptech.glide.Glide;
 import com.zhy.view.flowlayout.FlowLayout;
@@ -30,6 +34,7 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
+import ceui.lisa.viewmodel.UserViewModel;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
@@ -41,7 +46,7 @@ import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOption
  */
 public class UActivity extends BaseActivity<ActicityUserBinding> implements Display<UserDetailResponse> {
 
-    private UserDetailResponse currentUser;
+    private UserViewModel mUserViewModel;
 
     @Override
     protected int initLayout() {
@@ -57,13 +62,20 @@ public class UActivity extends BaseActivity<ActicityUserBinding> implements Disp
     @Override
     protected void initData() {
         int userID = getIntent().getIntExtra(Params.USER_ID, 0);
+        mUserViewModel = new ViewModelProvider(this).get(UserViewModel.class);
+        mUserViewModel.getUser().observe(this, new Observer<UserDetailResponse>() {
+            @Override
+            public void onChanged(UserDetailResponse userDetailResponse) {
+                invoke(userDetailResponse);
+            }
+        });
         Retro.getAppApi().getUserDetail(sUserModel.getResponse().getAccess_token(), userID)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ErrorCtrl<UserDetailResponse>() {
                     @Override
                     public void onNext(UserDetailResponse user) {
-                        invoke(user);
+                        mUserViewModel.getUser().setValue(user);
                     }
                 });
     }
@@ -74,8 +86,7 @@ public class UActivity extends BaseActivity<ActicityUserBinding> implements Disp
     }
 
     @Override
-    public void invoke(UserDetailResponse pUserDetailResponse) {
-        currentUser = pUserDetailResponse;
+    public void invoke(UserDetailResponse currentUser) {
         Glide.with(mContext).load(GlideUtil.getMediumImg(currentUser
                 .getUser().getProfile_image_urls().getMaxImage()))
                 .placeholder(R.color.light_bg).into(baseBind.userHead);
@@ -128,7 +139,27 @@ public class UActivity extends BaseActivity<ActicityUserBinding> implements Disp
         });
 
 
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+
         if (currentUser.getUser().getId() != sUserModel.getResponse().getUser().getId()) {
+            //如果看的是自己的主页，先展示收藏
+            //如果看的是别人的主页，先展示作品
+            if (currentUser.getProfile().getTotal_illusts() > 0) {
+                transaction.replace(R.id.container1, FragmentLikeIllustHorizontal.
+                        newInstance(currentUser, 2));// 1插画收藏    2插画作品     3漫画作品
+            }
+
+            if (currentUser.getProfile().getTotal_manga() > 0) {
+                transaction.replace(R.id.container2, FragmentLikeIllustHorizontal.
+                        newInstance(currentUser, 3));// 1插画收藏    2插画作品     3漫画作品
+            }
+
+            if (currentUser.getProfile().getTotal_illust_bookmarks_public() > 0) {
+                transaction.replace(R.id.container3, FragmentLikeIllustHorizontal.
+                        newInstance(currentUser, 1));// 1插画收藏    2插画作品     3漫画作品
+            }
+
             if (currentUser.getUser().isIs_followed()) {
                 baseBind.send.setImageResource(R.drawable.ic_favorite_accent_24dp);
             } else {
@@ -163,7 +194,34 @@ public class UActivity extends BaseActivity<ActicityUserBinding> implements Disp
                 }
             });
             baseBind.send.show();
+        } else {
+            //如果看的是自己的主页，先展示收藏
+            //如果看的是别人的主页，先展示作品
+            if (currentUser.getProfile().getTotal_illust_bookmarks_public() > 0) {
+                transaction.replace(R.id.container1,
+                        FragmentLikeIllustHorizontal.newInstance(currentUser, 1));// 1插画收藏    2插画作品     3漫画作品
+            }
+
+            if (currentUser.getProfile().getTotal_illusts() > 0) {
+                transaction.replace(R.id.container2,
+                        FragmentLikeIllustHorizontal.newInstance(currentUser, 2));// 1插画收藏    2插画作品     3漫画作品
+            }
+
+            if (currentUser.getProfile().getTotal_manga() > 0) {
+                transaction.replace(R.id.container3,
+                        FragmentLikeIllustHorizontal.newInstance(currentUser, 3));// 1插画收藏    2插画作品     3漫画作品
+            }
         }
+
+        if (currentUser.getProfile().getTotal_novels() > 0) {
+            transaction.replace(R.id.container4,
+                    FragmentLikeNovelHorizontal.newInstance(1));// 0收藏的小说， 1创作的小说
+        }
+
+        transaction.replace(R.id.container5,
+                FragmentLikeNovelHorizontal.newInstance(0));// 0收藏的小说， 1创作的小说
+
+        transaction.commit();
 
         if (!TextUtils.isEmpty(currentUser.getWorkspace().getWorkspace_image_url())) {
             Glide.with(mContext)
@@ -181,33 +239,5 @@ public class UActivity extends BaseActivity<ActicityUserBinding> implements Disp
                 }
             });
         }
-
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
-
-        if (currentUser.getProfile().getTotal_illust_bookmarks_public() > 0) {
-            transaction.replace(R.id.illust_collection, FragmentLikeIllustHorizontal
-                    .newInstance(currentUser, 1));// 1插画收藏    2插画作品     3漫画作品
-        }
-
-        if (currentUser.getProfile().getTotal_illusts() > 0) {
-            transaction.replace(R.id.illust_works, FragmentLikeIllustHorizontal
-                    .newInstance(currentUser, 2));// 1插画收藏    2插画作品     3漫画作品
-        }
-
-        if (currentUser.getProfile().getTotal_manga() > 0) {
-            transaction.replace(R.id.manga_works, FragmentLikeIllustHorizontal
-                    .newInstance(currentUser, 3));// 1插画收藏    2插画作品     3漫画作品
-        }
-
-        if (currentUser.getProfile().getTotal_novels() > 0) {
-            transaction.replace(R.id.novel_works, FragmentLikeNovelHorizontal
-                    .newInstance(currentUser, 1));// 0收藏的小说， 1创作的小说
-        }
-
-        transaction.replace(R.id.like_novel, FragmentLikeNovelHorizontal
-                .newInstance(currentUser, 0));// 0收藏的小说， 1创作的小说
-
-        transaction.commit();
     }
 }

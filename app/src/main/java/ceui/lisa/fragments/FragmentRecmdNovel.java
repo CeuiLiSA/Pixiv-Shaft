@@ -8,6 +8,7 @@ import android.view.animation.Animation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.PagerSnapHelper;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,28 +24,31 @@ import ceui.lisa.databinding.FragmentRecmdBinding;
 import ceui.lisa.databinding.RecyNovelBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.model.ListNovelResponse;
+import ceui.lisa.model.ListNovel;
 import ceui.lisa.models.NovelBean;
-import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
 import io.reactivex.Observable;
 
 public class FragmentRecmdNovel extends NetListFragment<FragmentRecmdBinding,
-        ListNovelResponse, NovelBean, RecyNovelBinding> {
+        ListNovel, NovelBean, RecyNovelBinding> {
+
+    private List<NovelBean> ranking = new ArrayList<>();
+    private NHAdapter horizontalAdapter;
 
     @Override
-    public NetControl<ListNovelResponse> present() {
-        return new NetControl<ListNovelResponse>() {
+    public NetControl<ListNovel> present() {
+        return new NetControl<ListNovel>() {
             @Override
-            public Observable<ListNovelResponse> initApi() {
+            public Observable<ListNovel> initApi() {
                 return Retro.getAppApi().getRecmdNovel(Shaft.sUserModel.getResponse().getAccess_token());
             }
 
             @Override
-            public Observable<ListNovelResponse> initNextApi() {
-                return Retro.getAppApi().getNextNovel(Shaft.sUserModel.getResponse().getAccess_token(), nextUrl);
+            public Observable<ListNovel> initNextApi() {
+                return Retro.getAppApi().getNextNovel(
+                        Shaft.sUserModel.getResponse().getAccess_token(), mModel.getNextUrl());
             }
         };
     }
@@ -65,6 +69,25 @@ public class FragmentRecmdNovel extends NetListFragment<FragmentRecmdBinding,
                 startActivity(intent);
             }
         });
+
+        LinearLayoutManager manager = new LinearLayoutManager(mContext, LinearLayoutManager.HORIZONTAL, false);
+        baseBind.ranking.setLayoutManager(manager);
+        baseBind.ranking.setHasFixedSize(true);
+        baseBind.ranking.addItemDecoration(new LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
+        PagerSnapHelper snapHelper = new PagerSnapHelper();
+        snapHelper.attachToRecyclerView(baseBind.ranking);
+        horizontalAdapter = new NHAdapter(ranking, mContext);
+        horizontalAdapter.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(View v, int position, int viewType) {
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(Params.CONTENT, ranking.get(position));
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情");
+                intent.putExtra("hideStatusBar", true);
+                startActivity(intent);
+            }
+        });
+        baseBind.ranking.setAdapter(horizontalAdapter);
     }
 
     @Override
@@ -78,30 +101,18 @@ public class FragmentRecmdNovel extends NetListFragment<FragmentRecmdBinding,
     }
 
     @Override
-    public void firstSuccess() {
-        List<NovelBean> ranking = new ArrayList<>(mResponse.getRanking_novels());
-        baseBind.ranking.addItemDecoration(new LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
-        LinearLayoutManager manager = new LinearLayoutManager(mContext, LinearLayoutManager.HORIZONTAL, false);
-        baseBind.ranking.setLayoutManager(manager);
-        baseBind.ranking.setHasFixedSize(true);
-        PagerSnapHelper snapHelper = new PagerSnapHelper();
-        snapHelper.attachToRecyclerView(baseBind.ranking);
-        NHAdapter adapter = new NHAdapter(ranking, mContext);
-        adapter.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(View v, int position, int viewType) {
-                DataChannel.get().setNovelList(allItems);
-                Intent intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(Params.INDEX, position);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情");
-                intent.putExtra("hideStatusBar", true);
-                startActivity(intent);
-            }
-        });
-        baseBind.ranking.setAdapter(adapter);
+    public void onFirstLoaded(List<NovelBean> novelBeans) {
+        ranking.addAll(mResponse.getRanking_novels());
+        horizontalAdapter.notifyItemRangeInserted(0, ranking.size());
         baseBind.topRela.setVisibility(View.VISIBLE);
         Animation animation = new AlphaAnimation(0.0f, 1.0f);
         animation.setDuration(800L);
         baseBind.topRela.startAnimation(animation);
+    }
+
+    @Override
+    public void clear() {
+        super.clear();
+        horizontalAdapter.clear();
     }
 }

@@ -8,6 +8,7 @@
         android:layout_width="wrap_content"
         android:text="@string/finding_datas"
         android:textSize="16sp"
+        android:textColor="@color/rank_text_color"
         android:id="@+id/text"
         android:layout_centerInParent="true"
         android:layout_height="wrap_content" />

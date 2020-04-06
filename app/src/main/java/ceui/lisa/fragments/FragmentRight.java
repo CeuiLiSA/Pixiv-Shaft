@@ -3,58 +3,51 @@ package ceui.lisa.fragments;
 import android.content.Intent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 
 import androidx.fragment.app.FragmentTransaction;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
+import ceui.lisa.databinding.FragmentRightBinding;
 
-public class FragmentRight extends BaseFragment {
+public class FragmentRight extends BaseFragment<FragmentRightBinding> {
 
     private boolean isLoad = false;
 
     @Override
-    void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.fragment_right;
     }
 
     @Override
-    View initView(View v) {
-
-        ImageView head = v.findViewById(R.id.head);
-        ViewGroup.LayoutParams headParams = head.getLayoutParams();
+    public void initView(View view) {
+        ViewGroup.LayoutParams headParams = baseBind.head.getLayoutParams();
         headParams.height = Shaft.statusHeight;
-        head.setLayoutParams(headParams);
+        baseBind.head.setLayoutParams(headParams);
 
-        v.findViewById(R.id.see_more).setOnClickListener(view -> {
+        baseBind.seeMore.setOnClickListener(v -> {
             Intent intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "推荐用户");
             startActivity(intent);
         });
-
-        return v;
     }
-
-    @Override
-    void initData() {
-
-    }
-
 
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
 
         if (isVisibleToUser && !isLoad && isAdded()) {
-            FragmentRecmdUserHorizontal recmdUser = new FragmentRecmdUserHorizontal();
             FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
-            transaction.add(R.id.fragment_container, recmdUser).commit();
 
-            FragmentP fragmentFollowIllust = new FragmentP();
-            transaction = getChildFragmentManager().beginTransaction();
-            transaction.add(R.id.fragment_recy, fragmentFollowIllust).commit();
+            FragmentRecmdUserHorizontal recmdUser = new FragmentRecmdUserHorizontal();
+            transaction.add(R.id.fragment_container, recmdUser);
+
+            FragmentEvent fragmentFollowIllust = new FragmentEvent();
+            transaction.add(R.id.fragment_recy, fragmentFollowIllust);
+
+            transaction.commitNow();
+
             isLoad = true;
         }
     }

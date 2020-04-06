@@ -7,7 +7,7 @@
     </data>
 
     <androidx.cardview.widget.CardView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:clickable="true"
         android:foreground="?attr/selectableItemBackground"
@@ -47,7 +47,7 @@
                     android:layout_marginEnd="@dimen/six_dp"
                     android:paddingBottom="2dp"
                     android:text="4P"
-                    android:textColor="@color/white"
+                    android:textColor="@color/always_white"
                     android:textSize="12sp" />
 
 
@@ -61,12 +61,25 @@
                     android:paddingEnd="@dimen/four_dp"
                     android:paddingBottom="2dp"
                     android:text="GIF"
-                    android:textColor="@color/white"
+                    android:textColor="@color/always_white"
                     android:textSize="12sp" />
 
             </LinearLayout>
 
-
+            <Button
+                android:id="@+id/hide"
+                style="@android:style/Widget.DeviceDefault.Button.Borderless.Small"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|bottom"
+                android:shadowColor="#FF000000"
+                android:shadowDx="1.5"
+                android:layout_centerInParent="true"
+                android:shadowDy="1.5"
+                android:visibility="invisible"
+                android:shadowRadius="1.5"
+                android:text="取消屏蔽"
+                android:textColor="@android:color/white"/>
 
         </RelativeLayout>
     </androidx.cardview.widget.CardView>

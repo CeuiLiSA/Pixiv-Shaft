@@ -10,6 +10,7 @@ import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.blankj.utilcode.util.FileUtils;
 import com.blankj.utilcode.util.LanguageUtils;
@@ -29,15 +30,19 @@ import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.FragmentSettingsBinding;
+import ceui.lisa.dialogs.FileNameDialog;
+import ceui.lisa.helper.ThemeHelper;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
+import ceui.lisa.utils.Params;
 
 import static ceui.lisa.fragments.FragmentFilter.ALL_LANGUAGE;
 import static ceui.lisa.fragments.FragmentFilter.ALL_SIZE;
 import static ceui.lisa.fragments.FragmentFilter.ALL_SIZE_VALUE;
+import static ceui.lisa.fragments.FragmentFilter.THEME_NAME;
 
 
-public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> {
+public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
 
     private static final int illustPath_CODE = 10086;
     private static final int gifResultPath_CODE = 10087;
@@ -45,7 +50,7 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
     private static final int gifUnzipPath_CODE = 10089;
 
     @Override
-    void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.fragment_settings;
     }
 
@@ -57,10 +62,17 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
         baseBind.loginOut.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "登录注册");
-                startActivity(intent);
-                mActivity.finish();
+                new AlertDialog.Builder(mContext)
+                        .setTitle(getString(R.string.login_out) + "?")
+                        .setPositiveButton(R.string.login_out, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Common.logOut(mContext);
+                                mActivity.finish();
+                            }
+                        })
+                        .setNegativeButton(android.R.string.cancel, null)
+                        .show();
             }
         });
 
@@ -70,7 +82,24 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
                 Intent intent = new Intent(mContext, TemplateActivity.class);
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "账号管理");
                 startActivity(intent);
-                mActivity.finish();
+            }
+        });
+
+        baseBind.editAccount.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "绑定邮箱");
+                startActivity(intent);
+            }
+        });
+
+        baseBind.editFile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "编辑个人资料");
+                startActivity(intent);
             }
         });
 
@@ -177,8 +206,8 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, TemplateActivity.class);
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
-                intent.putExtra("url", "https://github.com/Notsfsssf/Pix-EzViewer");
-                intent.putExtra("title", "PxEz项目主页");
+                intent.putExtra(Params.URL, "https://github.com/Notsfsssf/Pix-EzViewer");
+                intent.putExtra(Params.TITLE, "PxEz项目主页");
                 startActivity(intent);
             }
         });
@@ -228,6 +257,44 @@ public class FragmentSettings extends BaseBindFragment<FragmentSettingsBinding> 
                 alertDialog.show();
             }
         });
+
+        baseBind.fileName.setText(Shaft.sSettings.getFileNameType());
+        baseBind.fileName.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new FileNameDialog()
+                        .setOnDismissListener(d -> {
+                            baseBind.fileName.setText(Shaft.sSettings.getFileNameType());
+                        })
+                        .show(getParentFragmentManager(), "fileNameDialog");
+            }
+        });
+
+        baseBind.themeMode.setText(Shaft.sSettings.getThemeType());
+        baseBind.themeMode.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+                builder.setTitle(getString(R.string.theme_mode));
+                final int index = ThemeHelper.getThemeType();
+                builder.setSingleChoiceItems(THEME_NAME, index, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (which == index) {
+                            Common.showLog("什么也不做");
+                        } else {
+                            Shaft.sSettings.setThemeType(((AppCompatActivity) mActivity), THEME_NAME[which]);
+                            baseBind.themeMode.setText(THEME_NAME[which]);
+                            Local.setSettings(Shaft.sSettings);
+                        }
+                        dialog.dismiss();
+                    }
+                });
+                AlertDialog alertDialog = builder.create();
+                alertDialog.show();
+            }
+        });
+
 
         baseBind.clearGifCache.setOnClickListener(new View.OnClickListener() {
             @Override

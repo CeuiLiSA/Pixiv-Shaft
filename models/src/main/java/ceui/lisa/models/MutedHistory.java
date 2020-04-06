@@ -75,14 +75,14 @@ public class MutedHistory {
          * is_premium_slot : false
          */
 
-        private TagBean tag;
+        private TagsBean tag;
         private boolean is_premium_slot;
 
-        public TagBean getTag() {
+        public TagsBean getTag() {
             return tag;
         }
 
-        public void setTag(TagBean tag) {
+        public void setTag(TagsBean tag) {
             this.tag = tag;
         }
 
@@ -92,22 +92,6 @@ public class MutedHistory {
 
         public void setIs_premium_slot(boolean is_premium_slot) {
             this.is_premium_slot = is_premium_slot;
-        }
-
-        public static class TagBean {
-            /**
-             * name : 極上の乳
-             */
-
-            private String name;
-
-            public String getName() {
-                return name;
-            }
-
-            public void setName(String name) {
-                this.name = name;
-            }
         }
     }
 

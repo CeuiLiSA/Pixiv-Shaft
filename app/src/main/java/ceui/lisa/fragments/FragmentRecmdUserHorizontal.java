@@ -2,102 +2,90 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.view.View;
-import android.widget.ProgressBar;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
-import com.github.ybq.android.spinkit.style.DoubleBounce;
-
-import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.UActivity;
-import ceui.lisa.adapters.UserHorizontalAdapter;
-import ceui.lisa.http.NullCtrl;
+import ceui.lisa.adapters.BaseAdapter;
+import ceui.lisa.adapters.UserHAdapter;
+import ceui.lisa.core.NetControl;
+import ceui.lisa.databinding.FragmentUserHorizontalBinding;
+import ceui.lisa.databinding.RecyUserPreviewHorizontalBinding;
 import ceui.lisa.http.Retro;
+import ceui.lisa.core.BaseCtrl;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.model.ListUserResponse;
+import ceui.lisa.model.ListUser;
 import ceui.lisa.models.UserPreviewsBean;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
+import io.reactivex.Observable;
+import jp.wasabeef.recyclerview.animators.BaseItemAnimator;
 import jp.wasabeef.recyclerview.animators.FadeInLeftAnimator;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-/**
- * 推荐用户
- */
-public class FragmentRecmdUserHorizontal extends BaseFragment {
-
-    private ProgressBar mProgressBar;
-    private RecyclerView mRecyclerView;
-    private List<UserPreviewsBean> allItems = new ArrayList<>();
-    private UserHorizontalAdapter mAdapter;
+public class FragmentRecmdUserHorizontal extends NetListFragment<FragmentUserHorizontalBinding,
+        ListUser, UserPreviewsBean, RecyUserPreviewHorizontalBinding> {
 
     @Override
-    void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.fragment_user_horizontal;
     }
 
     @Override
-    View initView(View v) {
-        mProgressBar = v.findViewById(R.id.progress);
-        DoubleBounce doubleBounce = new DoubleBounce();
-        doubleBounce.setColor(getResources().getColor(R.color.white));
-        mProgressBar.setIndeterminateDrawable(doubleBounce);
-        mRecyclerView = v.findViewById(R.id.recyclerView);
-        mRecyclerView.addItemDecoration(new LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
-        FadeInLeftAnimator landingAnimator = new FadeInLeftAnimator();
-        final long animateDuration = 400L;
-        landingAnimator.setAddDuration(animateDuration);
-        landingAnimator.setRemoveDuration(animateDuration);
-        landingAnimator.setMoveDuration(animateDuration);
-        landingAnimator.setChangeDuration(animateDuration);
-        mRecyclerView.setItemAnimator(landingAnimator);
-        LinearLayoutManager manager = new LinearLayoutManager(mContext, LinearLayoutManager.HORIZONTAL, false);
-        mRecyclerView.setLayoutManager(manager);
-        mRecyclerView.setHasFixedSize(true);
-        mAdapter = new UserHorizontalAdapter(allItems, mContext);
-        mAdapter.setOnItemClickListener(new OnItemClickListener() {
+    public BaseAdapter<UserPreviewsBean, RecyUserPreviewHorizontalBinding> adapter() {
+        return new UserHAdapter(allItems, mContext).setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                Intent intent;
-                intent = new Intent(mContext, UActivity.class);
+                Intent intent = new Intent(mContext, UActivity.class);
                 intent.putExtra(Params.USER_ID, allItems.get(position).getUser().getId());
                 startActivity(intent);
-
             }
         });
-        mRecyclerView.setAdapter(mAdapter);
-        return v;
     }
 
     @Override
-    void initData() {
-        getFirstData();
+    public BaseCtrl present() {
+        return new NetControl<ListUser>() {
+            @Override
+            public Observable<ListUser> initApi() {
+                return Retro.getAppApi().getRecmdUser(sUserModel.getResponse().getAccess_token());
+            }
+
+            @Override
+            public Observable<ListUser> initNextApi() {
+                return null;
+            }
+        };
     }
 
-    private void getFirstData() {
-        Retro.getAppApi().getRecmdUser(sUserModel.getResponse().getAccess_token())
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new NullCtrl<ListUserResponse>() {
-                    @Override
-                    public void success(ListUserResponse listUserResponse) {
-                        allItems.clear();
-                        allItems.addAll(listUserResponse.getList());
-                        mAdapter.notifyItemRangeInserted(0, listUserResponse.getList().size());
-                    }
+    @Override
+    public BaseItemAnimator animation() {
+        FadeInLeftAnimator fade = new FadeInLeftAnimator();
+        fade.setAddDuration(animateDuration);
+        fade.setRemoveDuration(animateDuration);
+        fade.setMoveDuration(animateDuration);
+        fade.setChangeDuration(animateDuration);
+        return fade;
+    }
 
-                    @Override
-                    public void must(boolean isSuccess) {
-                        mProgressBar.setVisibility(View.INVISIBLE);
-                    }
-                });
+    @Override
+    public void onFirstLoaded(List<UserPreviewsBean> userPreviewsBeans) {
+        mRefreshLayout.setEnableRefresh(false);
+        mRefreshLayout.setEnableLoadMore(false);
+    }
+
+    @Override
+    public void initRecyclerView() {
+        baseBind.recyclerView.addItemDecoration(new LinearItemHorizontalDecoration(
+                DensityUtil.dp2px(8.0f)));
+        LinearLayoutManager manager = new LinearLayoutManager(mContext,
+                LinearLayoutManager.HORIZONTAL, false);
+        baseBind.recyclerView.setLayoutManager(manager);
+        baseBind.recyclerView.setHasFixedSize(true);
     }
 }

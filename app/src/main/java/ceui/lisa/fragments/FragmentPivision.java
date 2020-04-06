@@ -8,15 +8,15 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateActivity;
-import ceui.lisa.adapters.AAdapter;
+import ceui.lisa.adapters.ArticleAdapter;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.core.NetControl;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyArticalBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.model.ArticleResponse;
-import ceui.lisa.model.SpotlightArticlesBean;
+import ceui.lisa.model.ListArticle;
+import ceui.lisa.models.SpotlightArticlesBean;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.LinearItemDecoration;
@@ -25,7 +25,7 @@ import io.reactivex.Observable;
 import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class FragmentPivision extends NetListFragment<FragmentBaseListBinding,
-        ArticleResponse, SpotlightArticlesBean, RecyArticalBinding> {
+        ListArticle, SpotlightArticlesBean, RecyArticalBinding> {
 
     private String dataType;
 
@@ -48,29 +48,30 @@ public class FragmentPivision extends NetListFragment<FragmentBaseListBinding,
     }
 
     @Override
-    public NetControl<ArticleResponse> present() {
-        return new NetControl<ArticleResponse>() {
+    public NetControl<ListArticle> present() {
+        return new NetControl<ListArticle>() {
             @Override
-            public Observable<ArticleResponse> initApi() {
+            public Observable<ListArticle> initApi() {
                 return Retro.getAppApi().getArticles(sUserModel.getResponse().getAccess_token(), dataType);
             }
 
             @Override
-            public Observable<ArticleResponse> initNextApi() {
-                return Retro.getAppApi().getNextArticals(sUserModel.getResponse().getAccess_token(), nextUrl);
+            public Observable<ListArticle> initNextApi() {
+                return Retro.getAppApi().getNextArticals(
+                        sUserModel.getResponse().getAccess_token(), mModel.getNextUrl());
             }
         };
     }
 
     @Override
     public BaseAdapter<SpotlightArticlesBean, RecyArticalBinding> adapter() {
-        return new AAdapter(allItems, mContext).setOnItemClickListener(new OnItemClickListener() {
+        return new ArticleAdapter(allItems, mContext).setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
                 Intent intent = new Intent(mContext, TemplateActivity.class);
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
-                intent.putExtra("url", allItems.get(position).getArticle_url());
-                intent.putExtra("title", getString(R.string.pixiv_special));
+                intent.putExtra(Params.URL, allItems.get(position).getArticle_url());
+                intent.putExtra(Params.TITLE, getString(R.string.pixiv_special));
                 startActivity(intent);
             }
         });

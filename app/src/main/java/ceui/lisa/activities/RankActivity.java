@@ -1,6 +1,7 @@
 package ceui.lisa.activities;
 
 import android.content.Intent;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -17,7 +18,7 @@ import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 import java.util.Calendar;
 
 import ceui.lisa.R;
-import ceui.lisa.fragments.FragmentRank;
+import ceui.lisa.fragments.FragmentRankIllust;
 import ceui.lisa.fragments.FragmentRankNovel;
 import ceui.lisa.fragments.NetListFragment;
 import ceui.lisa.utils.Common;
@@ -29,6 +30,7 @@ public class RankActivity extends BaseActivity implements DatePickerDialog.OnDat
     private ViewPager mViewPager;
     private NetListFragment[] allPages = new NetListFragment[]{null, null, null, null, null, null, null, null};
     private String dataType = "";
+    private String queryDate = "";
 
     @Override
     protected int initLayout() {
@@ -43,7 +45,7 @@ public class RankActivity extends BaseActivity implements DatePickerDialog.OnDat
         TabLayout tabLayout = findViewById(R.id.tab_layout);
         dataType = getIntent().getStringExtra("dataType");
         mViewPager = findViewById(R.id.view_pager);
-        String queryDate = getIntent().getStringExtra("date");
+        queryDate = getIntent().getStringExtra("date");
         mViewPager.setPageTransformer(true, new DrawerTransformer());
 
         final String[] CHINESE_TITLES = new String[]{
@@ -63,9 +65,9 @@ public class RankActivity extends BaseActivity implements DatePickerDialog.OnDat
             public Fragment getItem(int i) {
                 if (allPages[i] == null) {
                     if ("插画".equals(dataType)) {
-                        allPages[i] = FragmentRank.newInstance(i, queryDate, false);
+                        allPages[i] = FragmentRankIllust.newInstance(i, queryDate, false);
                     } else if ("漫画".equals(dataType)) {
-                        allPages[i] = FragmentRank.newInstance(i, queryDate, true);
+                        allPages[i] = FragmentRankIllust.newInstance(i, queryDate, true);
                     } else if ("小说".equals(dataType)) {
                         allPages[i] = FragmentRankNovel.newInstance(i, queryDate);
                     }
@@ -121,14 +123,25 @@ public class RankActivity extends BaseActivity implements DatePickerDialog.OnDat
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_select_date) {
+            DatePickerDialog dpd;
             Calendar now = Calendar.getInstance();
             now.add(Calendar.DAY_OF_MONTH, -1);
-            DatePickerDialog dpd = DatePickerDialog.newInstance(
-                    RankActivity.this,
-                    now.get(Calendar.YEAR), // Initial year selection
-                    now.get(Calendar.MONTH), // Initial month selection
-                    now.get(Calendar.DAY_OF_MONTH) // Inital day selection
-            );
+            if (!TextUtils.isEmpty(queryDate) && queryDate.contains("-")) {
+                String[] t = queryDate.split("-");
+                dpd = DatePickerDialog.newInstance(
+                        RankActivity.this,
+                        Integer.parseInt(t[0]), // Initial year selection
+                        Integer.parseInt(t[1]) - 1, // Initial month selection
+                        Integer.parseInt(t[2]) - 1 // Inital day selection
+                );
+            } else {
+                dpd = DatePickerDialog.newInstance(
+                        RankActivity.this,
+                        now.get(Calendar.YEAR), // Initial year selection
+                        now.get(Calendar.MONTH), // Initial month selection
+                        now.get(Calendar.DAY_OF_MONTH) // Inital day selection
+                );
+            }
             Calendar start = Calendar.getInstance();
             start.set(2008, 1, 1);
             dpd.setMinDate(start);

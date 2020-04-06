@@ -13,7 +13,7 @@ import ceui.lisa.core.NetControl;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyNovelBinding;
 import ceui.lisa.http.Retro;
-import ceui.lisa.model.ListNovelResponse;
+import ceui.lisa.model.ListNovel;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.utils.Params;
 import io.reactivex.Observable;
@@ -22,7 +22,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 
 
 public class FragmentRankNovel extends NetListFragment<FragmentBaseListBinding,
-        ListNovelResponse, NovelBean, RecyNovelBinding> {
+        ListNovel, NovelBean, RecyNovelBinding> {
 
     private static final String[] API_TITLES = new String[]{"day", "week",
             "day_male", "day_female", "week_rookie", "day_r18"};
@@ -50,17 +50,19 @@ public class FragmentRankNovel extends NetListFragment<FragmentBaseListBinding,
     }
 
     @Override
-    public NetControl<ListNovelResponse> present() {
-        return new NetControl<ListNovelResponse>() {
+    public NetControl<ListNovel> present() {
+        return new NetControl<ListNovel>() {
             @Override
-            public Observable<ListNovelResponse> initApi() {
-                return Retro.getAppApi().getRankNovel(Shaft.sUserModel.getResponse().getAccess_token(),
+            public Observable<ListNovel> initApi() {
+                return Retro.getAppApi().getRankNovel(
+                        Shaft.sUserModel.getResponse().getAccess_token(),
                         API_TITLES[mIndex], queryDate);
             }
 
             @Override
-            public Observable<ListNovelResponse> initNextApi() {
-                return Retro.getAppApi().getNextNovel(sUserModel.getResponse().getAccess_token(), nextUrl);
+            public Observable<ListNovel> initNextApi() {
+                return Retro.getAppApi().getNextNovel(
+                        sUserModel.getResponse().getAccess_token(), mModel.getNextUrl());
             }
 
             @Override

@@ -3,18 +3,15 @@ package ceui.lisa.fragments;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.CompoundButton;
-import android.widget.Switch;
-
-import androidx.appcompat.widget.AppCompatSpinner;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.databinding.FragmentFilterBinding;
 import ceui.lisa.utils.Local;
 
 
-public class FragmentFilter extends BaseFragment {
+public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
 
     public static final String[] TAG_MATCH = new String[]{"标签 部分匹配(建议)", "标签 完全匹配", "标题/简介 匹配"};
     public static final String[] TAG_MATCH_VALUE = new String[]{"partial_match_for_tags",
@@ -28,6 +25,13 @@ public class FragmentFilter extends BaseFragment {
 
     //, "Русский язык"
     public static final String[] ALL_LANGUAGE = new String[]{"简体中文", "日本語", "English", "繁體中文"};
+
+    public static final String[] THEME_NAME = new String[]{
+            "默认模式（跟随系统）"
+            ,
+            "白天模式（浅色）",
+            "黑暗模式（深色）"
+    };
 
 
     public static final String[] DATE_SORT = new String[]{"最新作品(建议)", "由旧到新"};
@@ -43,25 +47,23 @@ public class FragmentFilter extends BaseFragment {
     }
 
     @Override
-    void initLayout() {
+    public void initLayout() {
         mLayoutID = R.layout.fragment_filter;
     }
 
     @Override
-    View initView(View v) {
-        Button submit = v.findViewById(R.id.submit);
-        submit.setOnClickListener(new View.OnClickListener() {
+    public void initView(View view) {
+        baseBind.submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mSearchFilter.closeDrawer();
                 mSearchFilter.startSearch();
             }
         });
-        AppCompatSpinner tagSpinner = v.findViewById(R.id.tag_spinner);
         ArrayAdapter<String> tagAdapter = new ArrayAdapter<>(mContext,
-                R.layout.support_simple_spinner_dropdown_item, TAG_MATCH);
-        tagSpinner.setAdapter(tagAdapter);
-        tagSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                R.layout.spinner_item, TAG_MATCH);
+        baseBind.tagSpinner.setAdapter(tagAdapter);
+        baseBind.tagSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 mSearchFilter.onTagMatchChanged(TAG_MATCH_VALUE[position]);
@@ -74,17 +76,16 @@ public class FragmentFilter extends BaseFragment {
         });
 
 
-        AppCompatSpinner starSpinner = v.findViewById(R.id.star_size_spinner);
         ArrayAdapter<String> starAdapter = new ArrayAdapter<>(mContext,
-                R.layout.support_simple_spinner_dropdown_item, ALL_SIZE);
-        starSpinner.setAdapter(starAdapter);
+                R.layout.spinner_item, ALL_SIZE);
+        baseBind.starSizeSpinner.setAdapter(starAdapter);
         for (int i = 0; i < ALL_SIZE_VALUE.length; i++) {
             if (ALL_SIZE_VALUE[i].equals(Shaft.sSettings.getSearchFilter())) {
-                starSpinner.setSelection(i);
+                baseBind.starSizeSpinner.setSelection(i);
                 break;
             }
         }
-        starSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        baseBind.starSizeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 Shaft.sSettings.setSearchFilter(ALL_SIZE_VALUE[position]);
@@ -99,11 +100,10 @@ public class FragmentFilter extends BaseFragment {
         });
 
 
-        AppCompatSpinner dateSpinner = v.findViewById(R.id.date_spinner);
         ArrayAdapter<String> dateAdapter = new ArrayAdapter<>(mContext,
-                R.layout.support_simple_spinner_dropdown_item, DATE_SORT);
-        dateSpinner.setAdapter(dateAdapter);
-        dateSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                R.layout.spinner_item, DATE_SORT);
+        baseBind.dateSpinner.setAdapter(dateAdapter);
+        baseBind.dateSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 mSearchFilter.onDateSortChanged(DATE_SORT_VALUE[position]);
@@ -116,22 +116,25 @@ public class FragmentFilter extends BaseFragment {
         });
 
 
-        Switch popSwitch = v.findViewById(R.id.pop_switch);
-        popSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        baseBind.popSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                mSearchFilter.onPopularChanged(isChecked);
+                if (isChecked) {
+                    baseBind.r18Rela.setVisibility(View.VISIBLE);
+                    mSearchFilter.onPopularChanged(true, baseBind.r18Switch.isChecked());
+                } else {
+                    baseBind.r18Rela.setVisibility(View.GONE);
+                    mSearchFilter.onPopularChanged(false, false);
+                }
             }
         });
-
-        return v;
+        baseBind.r18Switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                mSearchFilter.onPopularChanged(true, isChecked);
+            }
+        });
     }
-
-    @Override
-    void initData() {
-
-    }
-
 
     static abstract class SearchFilter {
 
@@ -141,7 +144,7 @@ public class FragmentFilter extends BaseFragment {
 
         abstract void onStarSizeChanged(String starSize);
 
-        abstract void onPopularChanged(boolean isPopular);
+        abstract void onPopularChanged(boolean isPopular, boolean hasR18);
 
         abstract void startSearch();
 

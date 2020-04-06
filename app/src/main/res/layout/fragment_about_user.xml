@@ -15,7 +15,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/loginBackground"
+            android:background="@color/colorPrimary"
             android:elevation="@dimen/six_dp"
             android:fitsSystemWindows="true"
             android:theme="@style/AppTheme.AppBarOverlay"
@@ -28,9 +28,15 @@
 
         </androidx.appcompat.widget.Toolbar>
 
+        <com.scwang.smartrefresh.layout.SmartRefreshLayout
+            android:layout_width="match_parent"
+            android:id="@+id/refreshLayout"
+            android:layout_below="@+id/toolbar"
+            android:layout_height="match_parent">
+
+
         <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
-            android:layout_below="@+id/toolbar"
             android:layout_height="match_parent">
 
 
@@ -39,16 +45,28 @@
                 android:orientation="vertical"
                 android:layout_height="match_parent">
 
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_marginTop="40dp"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
+
                 <RelativeLayout
                     android:layout_width="match_parent"
+                    android:background="@color/about_user_white"
                     android:layout_height="wrap_content">
 
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="80dp"
                         android:id="@+id/description_s"
+                        android:textSize="15sp"
+                        android:textColor="@color/about_user_left"
                         android:layout_margin="@dimen/sixteen_dp"
-                        android:text="个人介绍："
+                        android:text="个人介绍"
                         android:layout_height="wrap_content" />
 
 
@@ -56,72 +74,106 @@
                         android:layout_width="wrap_content"
                         android:id="@+id/description"
                         android:autoLink="all"
+                        android:textSize="15sp"
+                        android:layout_marginBottom="@dimen/twelve_dp"
+                        android:textColor="@color/about_user_right"
                         android:layout_toEndOf="@+id/description_s"
                         android:layout_marginTop="@dimen/sixteen_dp"
                         android:layout_height="wrap_content" />
 
                 </RelativeLayout>
 
+                <View
+                    android:layout_width="match_parent"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
 
                 <RelativeLayout
                     android:layout_width="match_parent"
+                    android:background="@color/about_user_white"
                     android:layout_height="wrap_content">
 
 
                     <TextView
-                        android:layout_width="wrap_content"
-                        android:id="@+id/main_page_s"
+                        android:layout_width="80dp"
+                        android:textSize="15sp"
+                        android:textColor="@color/about_user_left"        android:id="@+id/main_page_s"
                         android:layout_margin="@dimen/sixteen_dp"
-                        android:text="个人主页："
+                        android:text="个人主页"
                         android:layout_height="wrap_content" />
 
 
                     <org.sufficientlysecure.htmltextview.HtmlTextView
                         android:layout_width="wrap_content"
                         android:id="@+id/main_page"
+                        android:textSize="15sp"
                         android:layout_toEndOf="@+id/main_page_s"
+                        android:layout_marginBottom="@dimen/twelve_dp"
                         android:autoLink="all"
-
+                        android:textColor="@color/about_user_right"
                         android:layout_marginTop="@dimen/sixteen_dp"
                         android:layout_height="wrap_content" />
 
                 </RelativeLayout>
 
+                <View
+                    android:layout_width="match_parent"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
 
                 <RelativeLayout
                     android:layout_width="match_parent"
+                    android:background="@color/about_user_white"
                     android:layout_height="wrap_content">
 
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="80dp"
                         android:id="@+id/twitter_s"
-                        android:layout_margin="@dimen/sixteen_dp"
-                        android:text="Twitter："
+                        android:textSize="15sp"
+                        android:textColor="@color/about_user_left"          android:layout_margin="@dimen/sixteen_dp"
+                        android:text="Twitter"
                         android:layout_height="wrap_content" />
 
 
                     <org.sufficientlysecure.htmltextview.HtmlTextView
                         android:layout_width="wrap_content"
                         android:autoLink="all"
+                        android:textSize="15sp"
                         android:id="@+id/twitter"
                         android:layout_toEndOf="@+id/twitter_s"
+                        android:layout_marginBottom="@dimen/twelve_dp"
+                        android:textColor="@color/about_user_right"
                         android:layout_marginTop="@dimen/sixteen_dp"
                         android:layout_height="wrap_content" />
 
                 </RelativeLayout>
 
 
+                <View
+                    android:layout_width="match_parent"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
+
                 <RelativeLayout
                     android:layout_width="match_parent"
+                    android:background="@color/about_user_white"
                     android:layout_height="wrap_content">
 
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="80dp"
                         android:id="@+id/pawoo_s"
+                        android:textSize="15sp"
+                        android:textColor="@color/about_user_left"
                         android:layout_margin="@dimen/sixteen_dp"
-                        android:text="Pawoo："
+                        android:text="Pawoo"
                         android:layout_height="wrap_content" />
 
 
@@ -130,19 +182,42 @@
                         android:id="@+id/pawoo"
                         android:autoLink="all"
                         android:layout_toEndOf="@+id/pawoo_s"
+                        android:textSize="15sp"
+                        android:textColor="@color/about_user_right"
+                        android:layout_marginBottom="@dimen/twelve_dp"
                         android:layout_marginTop="@dimen/sixteen_dp"
                         android:layout_height="wrap_content" />
 
                 </RelativeLayout>
 
 
+                <View
+                    android:layout_width="match_parent"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
+
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_marginTop="@dimen/tweenty_four_dp"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
+
+
                 <RelativeLayout
                     android:layout_width="match_parent"
+                    android:background="@color/about_user_white"
                     android:layout_height="wrap_content">
 
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="80dp"
+                        android:textSize="15sp"
+                        android:textColor="@color/about_user_left"
                         android:id="@+id/computer_s"
                         android:layout_margin="@dimen/sixteen_dp"
                         android:text="电脑："
@@ -153,20 +228,34 @@
                         android:layout_width="wrap_content"
                         android:autoLink="all"
                         android:id="@+id/computer"
+                        android:textSize="15sp"
+                        android:layout_marginBottom="@dimen/twelve_dp"
+                        android:textColor="@color/about_user_right"
                         android:layout_toEndOf="@+id/computer_s"
                         android:layout_marginTop="@dimen/sixteen_dp"
                         android:layout_height="wrap_content" />
 
                 </RelativeLayout>
 
+                <View
+                    android:layout_width="match_parent"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
+
+
 
                 <RelativeLayout
                     android:layout_width="match_parent"
+                    android:background="@color/about_user_white"
                     android:layout_height="wrap_content">
 
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="80dp"
+                        android:textSize="15sp"
+                        android:textColor="@color/about_user_left"
                         android:id="@+id/monitor_s"
                         android:layout_margin="@dimen/sixteen_dp"
                         android:text="显示器："
@@ -176,20 +265,41 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:id="@+id/monitor"
+                        android:textSize="15sp"
+                        android:textColor="@color/about_user_right"
+                        android:layout_marginBottom="@dimen/twelve_dp"
                         android:layout_toEndOf="@+id/monitor_s"
                         android:layout_marginTop="@dimen/sixteen_dp"
                         android:layout_height="wrap_content" />
 
                 </RelativeLayout>
 
+                <View
+                    android:layout_width="match_parent"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
+
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_marginTop="@dimen/tweenty_four_dp"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
 
                 <RelativeLayout
+                    android:background="@color/about_user_white"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="80dp"
+                        android:textSize="15sp"
+                        android:textColor="@color/about_user_left"
                         android:id="@+id/app_s"
                         android:layout_margin="@dimen/sixteen_dp"
                         android:text="软体："
@@ -200,19 +310,32 @@
                         android:layout_width="wrap_content"
                         android:id="@+id/app"
                         android:layout_toEndOf="@+id/app_s"
+                        android:layout_marginBottom="@dimen/twelve_dp"
+                        android:textSize="15sp"
+                        android:textColor="@color/about_user_right"
                         android:layout_marginTop="@dimen/sixteen_dp"
                         android:layout_height="wrap_content" />
 
                 </RelativeLayout>
 
 
+                <View
+                    android:layout_width="match_parent"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
+
                 <RelativeLayout
                     android:layout_width="match_parent"
+                    android:background="@color/about_user_white"
                     android:layout_height="wrap_content">
 
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="80dp"
+                        android:textSize="15sp"
+                        android:textColor="@color/about_user_left"
                         android:id="@+id/scanner_s"
                         android:layout_margin="@dimen/sixteen_dp"
                         android:text="扫描仪："
@@ -222,6 +345,9 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:id="@+id/scanner"
+                        android:textSize="15sp"
+                        android:textColor="@color/about_user_right"
+                        android:layout_marginBottom="@dimen/twelve_dp"
                         android:layout_toEndOf="@+id/scanner_s"
                         android:layout_marginTop="@dimen/sixteen_dp"
                         android:layout_height="wrap_content" />
@@ -229,13 +355,23 @@
                 </RelativeLayout>
 
 
+                <View
+                    android:layout_width="match_parent"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
+
                 <RelativeLayout
                     android:layout_width="match_parent"
+                    android:background="@color/about_user_white"
                     android:layout_height="wrap_content">
 
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="80dp"
+                        android:textSize="15sp"
+                        android:textColor="@color/about_user_left"
                         android:id="@+id/draw_board_s"
                         android:layout_margin="@dimen/sixteen_dp"
                         android:text="绘图板："
@@ -245,20 +381,40 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:id="@+id/draw_board"
+                        android:textSize="15sp"
+                        android:textColor="@color/about_user_right"
                         android:layout_toEndOf="@+id/draw_board_s"
+                        android:layout_marginBottom="@dimen/twelve_dp"
                         android:layout_marginTop="@dimen/sixteen_dp"
                         android:layout_height="wrap_content" />
 
                 </RelativeLayout>
 
+                <View
+                    android:layout_width="match_parent"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_marginTop="@dimen/tweenty_four_dp"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
 
                 <RelativeLayout
+                    android:background="@color/about_user_white"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="80dp"
+                        android:textSize="15sp"
+                        android:textColor="@color/about_user_left"
                         android:id="@+id/mouse_s"
                         android:layout_margin="@dimen/sixteen_dp"
                         android:text="鼠标："
@@ -269,19 +425,32 @@
                         android:layout_width="wrap_content"
                         android:id="@+id/mouse"
                         android:layout_toEndOf="@+id/mouse_s"
+                        android:textSize="15sp"
+                        android:textColor="@color/about_user_right"
+                        android:layout_marginBottom="@dimen/twelve_dp"
                         android:layout_marginTop="@dimen/sixteen_dp"
                         android:layout_height="wrap_content" />
 
                 </RelativeLayout>
 
 
+                <View
+                    android:layout_width="match_parent"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
+
                 <RelativeLayout
                     android:layout_width="match_parent"
+                    android:background="@color/about_user_white"
                     android:layout_height="wrap_content">
 
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="80dp"
+                        android:textSize="15sp"
+                        android:textColor="@color/about_user_left"
                         android:id="@+id/printer_s"
                         android:layout_margin="@dimen/sixteen_dp"
                         android:text="打印机："
@@ -292,19 +461,32 @@
                         android:layout_width="wrap_content"
                         android:id="@+id/printer"
                         android:layout_toEndOf="@+id/printer_s"
+                        android:textSize="15sp"
+                        android:textColor="@color/about_user_right"
                         android:layout_marginTop="@dimen/sixteen_dp"
+                        android:layout_marginBottom="@dimen/twelve_dp"
                         android:layout_height="wrap_content" />
 
                 </RelativeLayout>
 
+                <View
+                    android:layout_width="match_parent"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
+
 
                 <RelativeLayout
                     android:layout_width="match_parent"
+                    android:background="@color/about_user_white"
                     android:layout_height="wrap_content">
 
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="80dp"
+                        android:textSize="15sp"
+                        android:textColor="@color/about_user_left"
                         android:id="@+id/table_objects_s"
                         android:layout_margin="@dimen/sixteen_dp"
                         android:text="桌上物品："
@@ -314,20 +496,32 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:id="@+id/table_objects"
+                        android:layout_marginBottom="@dimen/twelve_dp"
+                        android:textSize="15sp"
+                        android:textColor="@color/about_user_right"
                         android:layout_toEndOf="@+id/table_objects_s"
                         android:layout_marginTop="@dimen/sixteen_dp"
                         android:layout_height="wrap_content" />
 
                 </RelativeLayout>
 
+                <View
+                    android:layout_width="match_parent"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
 
                 <RelativeLayout
                     android:layout_width="match_parent"
+                    android:background="@color/about_user_white"
                     android:layout_height="wrap_content">
 
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="80dp"
+                        android:textSize="15sp"
+                        android:textColor="@color/about_user_left"
                         android:id="@+id/like_music_s"
                         android:layout_margin="@dimen/sixteen_dp"
                         android:text="绘画BGM："
@@ -337,20 +531,40 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:id="@+id/like_music"
+                        android:textSize="15sp"
+                        android:layout_marginBottom="@dimen/twelve_dp"
+                        android:textColor="@color/about_user_right"
                         android:layout_toEndOf="@+id/like_music_s"
                         android:layout_marginTop="@dimen/sixteen_dp"
                         android:layout_height="wrap_content" />
 
                 </RelativeLayout>
 
+                <View
+                    android:layout_width="match_parent"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_marginTop="@dimen/tweenty_four_dp"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
 
                 <RelativeLayout
                     android:layout_width="match_parent"
+                    android:background="@color/about_user_white"
                     android:layout_height="wrap_content">
 
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="80dp"
+                        android:textSize="15sp"
+                        android:textColor="@color/about_user_left"
                         android:id="@+id/table_s"
                         android:layout_margin="@dimen/sixteen_dp"
                         android:text="桌子："
@@ -360,6 +574,9 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:id="@+id/table"
+                        android:textSize="15sp"
+                        android:textColor="@color/about_user_right"
+                        android:layout_marginBottom="@dimen/twelve_dp"
                         android:layout_toEndOf="@+id/table_s"
                         android:layout_marginTop="@dimen/sixteen_dp"
                         android:layout_height="wrap_content" />
@@ -367,13 +584,23 @@
                 </RelativeLayout>
 
 
+                <View
+                    android:layout_width="match_parent"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
+
                 <RelativeLayout
                     android:layout_width="match_parent"
+                    android:background="@color/about_user_white"
                     android:layout_height="wrap_content">
 
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="80dp"
+                        android:textSize="15sp"
+                        android:textColor="@color/about_user_left"
                         android:id="@+id/chair_s"
                         android:layout_margin="@dimen/sixteen_dp"
                         android:text="椅子："
@@ -382,14 +609,28 @@
 
                     <TextView
                         android:layout_width="wrap_content"
+                        android:textSize="15sp"
+                        android:textColor="@color/about_user_right"
+                        android:layout_marginBottom="@dimen/twelve_dp"
                         android:id="@+id/chair"
                         android:layout_toEndOf="@+id/chair_s"
                         android:layout_marginTop="@dimen/sixteen_dp"
                         android:layout_height="wrap_content" />
 
                 </RelativeLayout>
+
+
+
+                <View
+                    android:layout_width="match_parent"
+                    android:background="@color/about_user_divider"
+                    android:layout_marginBottom="48dp"
+                    android:layout_height="1dp">
+
+                </View>
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
+        </com.scwang.smartrefresh.layout.SmartRefreshLayout>
 
     </RelativeLayout>
 

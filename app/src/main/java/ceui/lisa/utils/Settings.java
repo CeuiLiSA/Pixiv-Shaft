@@ -2,9 +2,12 @@ package ceui.lisa.utils;
 
 import android.text.TextUtils;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.blankj.utilcode.util.PathUtils;
 
 import ceui.lisa.fragments.FragmentFilter;
+import ceui.lisa.helper.ThemeHelper;
 
 public class Settings {
 
@@ -26,6 +29,9 @@ public class Settings {
     //WEB下载
     public static final String WEB_DOWNLOAD_PATH = PathUtils.getExternalPicturesPath() + "/ShaftWeb";
 
+    public static boolean stringLooksLikeOldFileNameType(String type) {
+        return type.startsWith("title_123456789") || type.startsWith("123456789_title");
+    }
 
     //瀑布流List点击动画
     private boolean mainListAnimate = true;
@@ -71,6 +77,10 @@ public class Settings {
 
     private String webDownloadPath = "";
 
+    private boolean reverseDialogNeverShowAgain = false;
+
+    private boolean usingNewFileNameType = false;
+
     public String getAppLanguage() {
         if(!TextUtils.isEmpty(appLanguage)){
             return appLanguage;
@@ -79,11 +89,39 @@ public class Settings {
         }
     }
 
+    public String getFileNameType() {
+        if(!TextUtils.isEmpty(fileNameType)){
+            return fileNameType;
+        } else {
+            return "<title>_<id>_<p>.png";
+        }
+    }
+
     public void setAppLanguage(String appLanguage) {
         this.appLanguage = appLanguage;
     }
 
+    public void setFileNameType(String fileNameType) {
+        this.fileNameType = fileNameType;
+    }
+
     private String appLanguage = "";
+
+    private String fileNameType = "";
+
+    public String getThemeType() {
+        if (TextUtils.isEmpty(themeType)) {
+            return ThemeHelper.DEFAULT_MODE;
+        }
+        return themeType;
+    }
+
+    public void setThemeType(AppCompatActivity activity, String themeType) {
+        this.themeType = themeType;
+        ThemeHelper.applyTheme(activity, themeType);
+    }
+
+    private String themeType = "";
 
     //收藏量筛选搜索结果
     private String searchFilter = "";
@@ -245,5 +283,21 @@ public class Settings {
 
     public void setShowPixivDialog(boolean showPixivDialog) {
         this.showPixivDialog = showPixivDialog;
+    }
+
+    public boolean isReverseDialogNeverShowAgain() {
+        return reverseDialogNeverShowAgain;
+    }
+
+    public void setReverseDialogNeverShowAgain(boolean reverseDialogNeverShowAgain) {
+        this.reverseDialogNeverShowAgain = reverseDialogNeverShowAgain;
+    }
+
+    public boolean isUsingNewFileNameType() {
+        return usingNewFileNameType;
+    }
+
+    public void setUsingNewFileNameType(boolean usingNewFileNameType) {
+        this.usingNewFileNameType = usingNewFileNameType;
     }
 }
