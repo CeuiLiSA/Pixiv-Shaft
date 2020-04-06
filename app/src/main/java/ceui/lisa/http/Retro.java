@@ -65,7 +65,8 @@ public class Retro {
         }
         if (Shaft.sSettings.isAutoFuckChina()) {
             builder.sslSocketFactory(new RubySSLSocketFactory(), new pixivOkHttpClient());
-            builder.dns(HttpDns.getInstance());
+            builder.dns(new CloudFlareDns(CloudFlareDNSService.Companion.invoke()));
+//            builder.dns(HttpDns.getInstance());
         }
         OkHttpClient client = builder.build();
         Gson gson = new GsonBuilder().setLenient().create();
