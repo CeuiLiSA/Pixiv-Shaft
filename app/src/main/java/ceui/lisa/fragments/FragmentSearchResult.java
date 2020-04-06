@@ -106,7 +106,7 @@ public class FragmentSearchResult extends NetListFragment<FragmentSearchResultBi
 
     @Override
     public void initData() {
-        ((TemplateActivity) getActivity()).setSupportActionBar(baseBind.toolbar);
+        ((TemplateActivity) mActivity).setSupportActionBar(baseBind.toolbar);
         baseBind.toolbar.setTitle(getToolbarTitle());
         baseBind.toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
@@ -129,7 +129,8 @@ public class FragmentSearchResult extends NetListFragment<FragmentSearchResultBi
 
         baseBind.drawerlayout.setTouchMode(ElasticDrawer.TOUCH_MODE_BEZEL);
         token = sUserModel.getResponse().getAccess_token();
-        FragmentFilter fragmentFilter = FragmentFilter.newInstance(new FragmentFilter.SearchFilter() {
+        FragmentFilter fragmentFilter = FragmentFilter.newInstance();
+        fragmentFilter.setSearchFilter(new FragmentFilter.SearchFilter() {
             @Override
             public void onTagMatchChanged(String tagMatch) {
                 searchTarget = tagMatch;

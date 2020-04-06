@@ -12,12 +12,10 @@ import java.util.Collections;
 import javax.net.ssl.X509TrustManager;
 
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.cache.Cache;
 import ceui.lisa.utils.Common;
 import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
 import okhttp3.Request;
-import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;

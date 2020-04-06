@@ -36,112 +36,92 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
     protected Response mResponse;
 
     @Override
-    public void initView(View view) {
-        super.initView(view);
+    public void fresh() {
+        if (mNetControl.initApi() != null) {
+            mNetControl.getFirstData(new NullCtrl<Response>() {
+                @Override
+                public void success(Response response) {
+                    mResponse = response;
+                    if (response.getList() != null && response.getList().size() != 0) {
+                        List<Item> firstList = response.getList();
+                        if (mModel != null) {
+                            mModel.load(firstList);
+                        }
+                        onFirstLoaded(firstList);
+                        mRecyclerView.setVisibility(View.VISIBLE);
+                        noData.setVisibility(View.INVISIBLE);
+                        mAdapter.notifyItemRangeInserted(getStartSize(), firstList.size());
+                    } else {
+                        mRecyclerView.setVisibility(View.INVISIBLE);
+                        noData.setVisibility(View.VISIBLE);
+                        noData.setImageResource(R.mipmap.no_data_line);
+                    }
+                    mModel.setNextUrl(response.getNextUrl());
+                    if (!TextUtils.isEmpty(response.getNextUrl())) {
+                        mRefreshLayout.setRefreshFooter(new ClassicsFooter(mContext));
+                    } else {
+                        mRefreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
+                    }
+                }
+
+                @Override
+                public void must(boolean isSuccess) {
+                    mRefreshLayout.finishRefresh(isSuccess);
+                }
+
+                @Override
+                public void onError(Throwable e) {
+                    super.onError(e);
+                    mRecyclerView.setVisibility(View.INVISIBLE);
+                    noData.setVisibility(View.VISIBLE);
+                    noData.setImageResource(R.mipmap.no_data_line);
+                }
+            });
+        } else {
+            if (className.equals("FragmentRecmdIllust ")) {
+                showDataBase();
+            }
+        }
+    }
+
+    @Override
+    public void loadMore() {
+        if (!TextUtils.isEmpty(mModel.getNextUrl())) {
+            mNetControl.getNextData(new NullCtrl<Response>() {
+                @Override
+                public void success(Response response) {
+                    mResponse = response;
+                    if (response.getList() != null && response.getList().size() != 0) {
+                        List<Item> nextList = response.getList();
+                        if (mModel != null) {
+                            mModel.load(nextList);
+                        }
+                        onNextLoaded(nextList);
+                        mAdapter.notifyItemRangeInserted(getStartSize(), nextList.size());
+                    }
+                    mModel.setNextUrl(response.getNextUrl());
+                }
+
+                @Override
+                public void must(boolean isSuccess) {
+                    mRefreshLayout.finishLoadMore(isSuccess);
+                }
+            });
+        } else {
+            mRefreshLayout.finishLoadMore();
+            if (mNetControl.showNoDataHint()) {
+                Common.showToast("没有更多数据啦");
+            }
+        }
+    }
+
+    @Override
+    void initData() {
         mNetControl = (NetControl<Response>) mBaseCtrl;
-        mRefreshLayout.setOnRefreshListener(new OnRefreshListener() {
-            @Override
-            public void onRefresh(@NonNull RefreshLayout refreshLayout) {
-                Common.showLog(className + "onRefresh ");
-                clear();
-                if (mNetControl.initApi() != null) {
-                    mNetControl.getFirstData(new NullCtrl<Response>() {
-                        @Override
-                        public void success(Response response) {
-                            mResponse = response;
-                            if (response.getList() != null && response.getList().size() != 0) {
-                                List<Item> firstList = response.getList();
-                                if (mModel != null) {
-                                    mModel.load(firstList);
-                                }
-                                onFirstLoaded(firstList);
-                                mRecyclerView.setVisibility(View.VISIBLE);
-                                noData.setVisibility(View.INVISIBLE);
-                                mAdapter.notifyItemRangeInserted(mModel.getLastSize(), firstList.size());
-                            } else {
-                                mRecyclerView.setVisibility(View.INVISIBLE);
-                                noData.setVisibility(View.VISIBLE);
-                                noData.setImageResource(R.mipmap.no_data_line);
-                            }
-                            mModel.setNextUrl(response.getNextUrl());
-                            if (!TextUtils.isEmpty(response.getNextUrl())) {
-                                mRefreshLayout.setRefreshFooter(new ClassicsFooter(mContext));
-                            } else {
-                                mRefreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
-                            }
-                        }
-
-                        @Override
-                        public void must(boolean isSuccess) {
-                            mRefreshLayout.finishRefresh(isSuccess);
-                        }
-
-                        @Override
-                        public void onError(Throwable e) {
-                            super.onError(e);
-                            mRecyclerView.setVisibility(View.INVISIBLE);
-                            noData.setVisibility(View.VISIBLE);
-                            noData.setImageResource(R.mipmap.no_data_line);
-                        }
-                    });
-                } else {
-                    if (className.equals("FragmentRecmdIllust ")) {
-                        showDataBase();
-                    }
-                }
-            }
-        });
-        mRefreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
-            @Override
-            public void onLoadMore(@NonNull RefreshLayout refreshLayout) {
-                Common.showLog(className + "onLoadMore ");
-                if (!TextUtils.isEmpty(mModel.getNextUrl())) {
-                    mNetControl.getNextData(new NullCtrl<Response>() {
-                        @Override
-                        public void success(Response response) {
-                            mResponse = response;
-                            if (response.getList() != null && response.getList().size() != 0) {
-                                List<Item> nextList = response.getList();
-                                if (mModel != null) {
-                                    mModel.load(nextList);
-                                }
-                                onNextLoaded(nextList);
-                                mAdapter.notifyItemRangeInserted(mModel.getLastSize(), nextList.size());
-                            }
-                            mModel.setNextUrl(response.getNextUrl());
-                        }
-
-                        @Override
-                        public void must(boolean isSuccess) {
-                            mRefreshLayout.finishLoadMore(isSuccess);
-                        }
-                    });
-                } else {
-                    mRefreshLayout.finishLoadMore();
-                    if (mNetControl.showNoDataHint()) {
-                        Common.showToast("没有更多数据啦");
-                    }
-                }
-            }
-        });
     }
 
     /**
-     * 决定刚进入页面是否直接刷新，一般都是直接刷新，但是FragmentHotTag，不要直接刷新
-     *
-     * @return default true
-     */
-    public boolean autoRefresh() {
-        return true;
-    }
-
-    public void nowRefresh() {
-        mRecyclerView.smoothScrollToPosition(0);
-        mRefreshLayout.autoRefresh();
-    }
-
-    /**
-     * FragmentR页面，调试过程中不需要每次都刷新，就调用这个方法来家在数据。只是为了方便测试
+     * FragmentR页面，调试过程中不需要每次都刷新，就调用这个方法来加载数据。只是为了方便测试
      */
     public void showDataBase() {
     }

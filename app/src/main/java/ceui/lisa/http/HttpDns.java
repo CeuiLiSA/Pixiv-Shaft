@@ -19,7 +19,19 @@ public class HttpDns implements Dns {
      */
 
     //private static final String[] addresses = {"123.207.56.160", "8.8.8.8", "134.175.87.79", "123.207.137.88"};
-    private static final String[] addresses = {"210.140.131.208", "210.140.131.206", "210.140.131.203", "210.140.131.209", "111.230.37.44"};
+//    private static final String[] addresses = {
+//            "210.140.131.208",
+//            "210.140.131.206",
+//            "210.140.131.203",
+//            "210.140.131.209",
+//            "111.230.37.44"
+//    };
+
+    private static final String[] addresses = {
+            "210.140.131.187",
+            "210.140.131.188",
+            "210.140.131.189"
+    };
     public static List<InetAddress> newDns = new ArrayList<>();
     private static HttpDns sHttpDns = null;
 
@@ -33,16 +45,6 @@ public class HttpDns implements Dns {
         }
     }
 
-    public static void reformatLocalDns() {
-        newDns.clear();
-        for (String address : addresses) {
-            try {
-                newDns.add(InetAddress.getByName(address));
-            } catch (UnknownHostException e) {
-                e.printStackTrace();
-            }
-        }
-    }
 
     /*private static final String[] addresses = {"123.207.56.160", "123.207.252.208", "202.141.162.123",
             "40.73.101.101", "123.207.5.191", "210.129.120.45"};*/

@@ -21,51 +21,45 @@ public abstract class LocalListFragment<Layout extends ViewDataBinding, Item,
     protected DataControl<List<Item>> mDataControl;
 
     @Override
-    public void initView(View view) {
-        super.initView(view);
+    public void fresh() {
+        if (mDataControl.first() != null && mDataControl.first().size() != 0) {
+            List<Item> firstList = mDataControl.first();
+            if (mModel != null) {
+                mModel.load(firstList);
+            }
+            onFirstLoaded(firstList);
+            mRecyclerView.setVisibility(View.VISIBLE);
+            noData.setVisibility(View.INVISIBLE);
+            mAdapter.notifyItemRangeInserted(getStartSize(), firstList.size());
+        } else {
+            mRecyclerView.setVisibility(View.INVISIBLE);
+            noData.setVisibility(View.VISIBLE);
+            noData.setImageResource(R.mipmap.no_data_line);
+        }
+        mRefreshLayout.finishRefresh(true);
+    }
+
+    @Override
+    public void loadMore() {
+        if (mDataControl.hasNext() &&
+                mDataControl.next() != null &&
+                mDataControl.next().size() != 0) {
+            List<Item> nextList = mDataControl.next();
+            if (mModel != null) {
+                mModel.load(nextList);
+            }
+            onNextLoaded(nextList);
+            mAdapter.notifyItemRangeInserted(getStartSize(), mDataControl.next().size());
+        } else {
+            if (mDataControl.showNoDataHint()) {
+                Common.showToast("没有更多数据啦");
+            }
+        }
+        mRefreshLayout.finishLoadMore(true);
+    }
+
+    @Override
+    void initData() {
         mDataControl = (DataControl<List<Item>>) mBaseCtrl;
-        mRefreshLayout.setOnRefreshListener(new OnRefreshListener() {
-            @Override
-            public void onRefresh(@NonNull RefreshLayout refreshLayout) {
-                Common.showLog(className + "onRefresh ");
-                clear();
-                if (mDataControl.first() != null && mDataControl.first().size() != 0) {
-                    List<Item> firstList = mDataControl.first();
-                    if (mModel != null) {
-                        mModel.load(firstList);
-                    }
-                    onFirstLoaded(firstList);
-                    mRecyclerView.setVisibility(View.VISIBLE);
-                    noData.setVisibility(View.INVISIBLE);
-                    mAdapter.notifyItemRangeInserted(mModel.getLastSize(), firstList.size());
-                } else {
-                    mRecyclerView.setVisibility(View.INVISIBLE);
-                    noData.setVisibility(View.VISIBLE);
-                    noData.setImageResource(R.mipmap.no_data_line);
-                }
-                mRefreshLayout.finishRefresh(true);
-            }
-        });
-        mRefreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
-            @Override
-            public void onLoadMore(@NonNull RefreshLayout refreshLayout) {
-                if (mDataControl.hasNext() &&
-                        mDataControl.next() != null &&
-                        mDataControl.next().size() != 0) {
-                    int lastSize = allItems.size();
-                    List<Item> nextList = mDataControl.next();
-                    if (mModel != null) {
-                        mModel.load(nextList);
-                    }
-                    onNextLoaded(nextList);
-                    mAdapter.notifyItemRangeInserted(lastSize, mDataControl.next().size());
-                } else {
-                    if (mDataControl.showNoDataHint()) {
-                        Common.showToast("没有更多数据啦");
-                    }
-                }
-                mRefreshLayout.finishLoadMore(true);
-            }
-        });
     }
 }
