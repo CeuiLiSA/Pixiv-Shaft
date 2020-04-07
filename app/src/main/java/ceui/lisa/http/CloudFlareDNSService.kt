@@ -23,8 +23,8 @@ interface CloudFlareDNSService {
         operator fun invoke(): CloudFlareDNSService {
             return Retrofit.Builder()
                     .baseUrl("https://1.0.0.1/")
-//                    .client(client)
                     .addConverterFactory(GsonConverterFactory.create())
+                    .client(Retro.getLogClient().build())
                     .build()
                     .create(CloudFlareDNSService::class.java)
         }

@@ -15,6 +15,7 @@
             android:layout_width="wrap_content"
             android:textSize="16sp"
             android:layout_margin="@dimen/sixteen_dp"
+            android:id="@+id/dialog_title"
             android:textColor="@color/dark_text"
             android:text="添加标签"
             android:layout_height="wrap_content" />
@@ -27,7 +28,6 @@
             android:layout_marginStart="@dimen/sixteen_dp"
             android:layout_marginEnd="@dimen/sixteen_dp"
             android:gravity="bottom"
-            android:hint="请输入标签（可视为收藏夹）名"
             app:met_floatingLabel="highlight"
             app:met_primaryColor="@color/colorPrimary"
             app:met_singleLineEllipsis="true" />
