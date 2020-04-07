@@ -98,6 +98,7 @@ public class PixivOperate {
         } else { //没有收藏
             illustsBean.setIs_bookmarked(true);
             Retro.getAppApi().postLike(userModel.getResponse().getAccess_token(), illustsBean.getId(), starType)
+                    .compose(RxThreadUtils.observableToMain())
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {

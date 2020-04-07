@@ -155,7 +155,7 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 if (item.getItemId() == R.id.action_add) {
-                    AddTagDialog dialog = new AddTagDialog();
+                    AddTagDialog dialog = AddTagDialog.newInstance(0);
                     dialog.show(getChildFragmentManager(), "AddTagDialog");
                     return true;
                 }

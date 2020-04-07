@@ -11,6 +11,7 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.BookedTagAdapter;
+import ceui.lisa.dialogs.AddTagDialog;
 import ceui.lisa.helper.TagFilter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.databinding.FragmentBaseListBinding;
@@ -18,6 +19,7 @@ import ceui.lisa.databinding.RecyBookTagBinding;
 import ceui.lisa.core.DataControl;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.PixivOperate;
 
 public class FragmentMutedTags extends LocalListFragment<FragmentBaseListBinding, TagsBean, RecyBookTagBinding> {
 
@@ -67,10 +69,35 @@ public class FragmentMutedTags extends LocalListFragment<FragmentBaseListBinding
                         AlertDialog alertDialog = builder.create();
                         alertDialog.show();
                     }
+                } else if (item.getItemId() == R.id.action_add) {
+                    AddTagDialog dialog = AddTagDialog.newInstance(1);
+                    dialog.show(getChildFragmentManager(), "AddTagDialog");
                 }
                 return true;
             }
         });
+    }
+
+    public void addMutedTag(String tagName) {
+        boolean isExist = false;
+        for (TagsBean allItem : allItems) {
+            if (allItem.getName().equals(tagName)) {
+                isExist = true;
+                break;
+            }
+        }
+        if (!isExist) {
+            TagsBean tagsBean = new TagsBean();
+            tagsBean.setName(tagName);
+            tagsBean.setTranslated_name(tagName);
+            PixivOperate.muteTag(tagsBean);
+            mModel.getContent().getValue().add(0, tagsBean);
+            mAdapter.notifyItemInserted(0);
+            mRecyclerView.scrollToPosition(0);
+            mAdapter.notifyItemRangeChanged(0, allItems.size());
+        } else {
+            Common.showToast(tagName + "已存在于屏蔽列表");
+        }
     }
 
     @Override
