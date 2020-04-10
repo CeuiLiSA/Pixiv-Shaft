@@ -151,7 +151,8 @@ public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownload
 
     @Override
     public String getToolbarTitle() {
-        if (allItems.size() == 0) {
+        if (mModel == null || mModel.getContent() == null ||
+                mModel.getContent().getValue() == null || allItems.size() == 0) {
             return "计算中";
         } else {
             int selectCount = 0;
