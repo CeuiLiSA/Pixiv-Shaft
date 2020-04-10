@@ -68,11 +68,6 @@ public class FragmentPivisionHorizontal extends NetListFragment<FragmentPivision
     }
 
     @Override
-    public boolean isVertical() {
-        return false;
-    }
-
-    @Override
     public void initRecyclerView() {
         baseBind.recyclerView.addItemDecoration(new LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
         LinearLayoutManager manager = new LinearLayoutManager(mContext, LinearLayoutManager.HORIZONTAL, false);

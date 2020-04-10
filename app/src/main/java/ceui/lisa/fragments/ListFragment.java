@@ -107,7 +107,6 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
         mRefreshLayout.setOnRefreshListener(new OnRefreshListener() {
             @Override
             public void onRefresh(@NonNull RefreshLayout refreshLayout) {
-                Common.showLog(className + "onRefresh ");
                 clear();
                 fresh();
             }
@@ -115,7 +114,6 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
         mRefreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
             @Override
             public void onLoadMore(@NonNull RefreshLayout refreshLayout) {
-                Common.showLog(className + "onLoadMore ");
                 loadMore();
             }
         });
@@ -205,10 +203,6 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
         if (mRefreshLayout != null) {
             mRefreshLayout.autoRefresh();
         }
-    }
-
-    public boolean isVertical() {
-        return true;
     }
 
     public BaseItemAnimator animation() {
