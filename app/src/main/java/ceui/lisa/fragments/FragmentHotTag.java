@@ -103,7 +103,6 @@ public class FragmentHotTag extends NetListFragment<FragmentBaseListBinding,
 
     @Override
     public void handleEvent(Channel channel) {
-        Common.showLog(className + "正在刷新");
         nowRefresh();
     }
 }

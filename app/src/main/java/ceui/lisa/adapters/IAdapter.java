@@ -56,8 +56,12 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
 
     private void initImageSize() {
         if (isSquare) {
+
             imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
                     mContext.getResources().getDimensionPixelSize(R.dimen.tweenty_four_dp)) / 2;
+
+            Common.showLog("iadapter " + mContext.getResources().getDisplayMetrics().widthPixels +
+                    " " + imageSize + " " + mContext.getResources().getDimensionPixelSize(R.dimen.tweenty_four_dp));
         } else {
             imageSize = (mContext.getResources().getDisplayMetrics().widthPixels) / 2;
         }
