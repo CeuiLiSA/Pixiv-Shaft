@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.CompoundButton;
 import android.widget.TextView;
 
 import androidx.fragment.app.FragmentActivity;
@@ -78,6 +79,12 @@ public class UActivity extends BaseActivity<ActicityUserBinding> implements Disp
                         mUserViewModel.getUser().setValue(user);
                     }
                 });
+        baseBind.turnGray.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                gray(isChecked);
+            }
+        });
     }
 
     @Override

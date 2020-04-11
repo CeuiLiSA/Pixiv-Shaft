@@ -155,7 +155,7 @@ public class RankActivity extends BaseActivity implements DatePickerDialog.OnDat
 
     @Override
     public void onDateSet(DatePickerDialog view, int year, int monthOfYear, int dayOfMonth) {
-        String date = year + "-" + (monthOfYear + 1) + "-" + (dayOfMonth + 1);
+        String date = year + "-" + (monthOfYear + 1) + "-" + dayOfMonth;
         Common.showLog(date);
         Intent intent = new Intent(mContext, RankActivity.class);
         intent.putExtra("date", date);

@@ -1,9 +1,11 @@
 package ceui.lisa.activities;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.view.View;
 
@@ -56,4 +58,19 @@ public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCo
     public static void newInstance(Intent intent, Context context) {
         context.startActivity(intent);
     }
+
+    public void gray(boolean gray) {
+        if (gray) {
+            ColorMatrix colorMatrix = new ColorMatrix();
+            colorMatrix.setSaturation(0.0f);
+            grayPaint.setColorFilter(new ColorMatrixColorFilter(colorMatrix));
+            getWindow().getDecorView().setLayerType(View.LAYER_TYPE_HARDWARE, grayPaint);
+        } else {
+            getWindow().getDecorView().setLayerType(View.LAYER_TYPE_HARDWARE, normalPaint);
+        }
+    }
+
+    private Paint normalPaint = new Paint();
+    private Paint grayPaint = new Paint();
+
 }

@@ -23,6 +23,7 @@
 
     <TextView
         android:id="@+id/login_time"
+        android:inputType="textPassword"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignBottom="@+id/user_head"
@@ -31,13 +32,32 @@
         android:textColor="@color/dark_text"
         android:textSize="12sp" />
 
+
+
     <TextView
         android:id="@+id/double_pwd"
+        android:paddingTop="@dimen/twelve_dip"
+        android:paddingStart="@dimen/twelve_dip"
+        android:paddingEnd="@dimen/twelve_dip"
         android:layout_width="wrap_content"
+        android:layout_marginStart="@dimen/eight_dp"
         android:layout_height="wrap_content"
         android:layout_alignBottom="@+id/user_head"
         android:layout_toEndOf="@+id/login_time"
         android:text="复制"
+        android:textColor="@color/colorPrimary"
+        android:textSize="13sp" />
+
+    <TextView
+        android:id="@+id/show_pwd"
+        android:layout_width="wrap_content"
+        android:paddingTop="@dimen/twelve_dip"
+        android:paddingStart="@dimen/twelve_dip"
+        android:paddingEnd="@dimen/twelve_dip"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/user_head"
+        android:layout_toEndOf="@+id/double_pwd"
+        android:text="显示"
         android:textColor="@color/colorPrimary"
         android:textSize="13sp" />
 

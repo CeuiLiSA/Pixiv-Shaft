@@ -26,8 +26,7 @@
         android:roundIcon="@mipmap/logo_final_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activities.MainActivity"
-            android:configChanges="screenSize|screenLayout|orientation|smallestScreenSize">
+        <activity android:name=".activities.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -110,8 +109,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <activity android:name=".activities.UActivity"
-            android:configChanges="screenSize|screenLayout|orientation|smallestScreenSize"/>
+        <activity android:name=".activities.UActivity"/>
     </application>
 
 </manifest>

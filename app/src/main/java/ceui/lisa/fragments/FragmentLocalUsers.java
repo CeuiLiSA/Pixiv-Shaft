@@ -1,6 +1,8 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
+import android.text.method.HideReturnsTransformationMethod;
+import android.text.method.PasswordTransformationMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
@@ -115,7 +117,7 @@ public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
         CircleImageView userHead = v.findViewById(R.id.user_head);
         ImageView current = v.findViewById(R.id.current_user);
         ImageView delete = v.findViewById(R.id.delete_user);
-
+        TextView showPwd = v.findViewById(R.id.show_pwd);
         userName.setText(String.format("%s (%s)", userModel.getResponse().getUser().getName(),
                 userModel.getResponse().getUser().getAccount()));
 //        loginTime.setText(TextUtils.isEmpty(userModel.getResponse().getUser().getMail_address()) ?
@@ -125,6 +127,18 @@ public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
             @Override
             public void onClick(View v) {
                 Common.copy(mContext, userModel.getResponse().getUser().getPassword());
+            }
+        });
+        showPwd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (showPwd.getText().toString().equals("显示")) {
+                    showPwd.setText("隐藏");
+                    loginTime.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+                } else {
+                    showPwd.setText("显示");
+                    loginTime.setTransformationMethod(PasswordTransformationMethod.getInstance());
+                }
             }
         });
         Glide.with(mContext).load(GlideUtil.getHead(userModel.getResponse().getUser())).into(userHead);
