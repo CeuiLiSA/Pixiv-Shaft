@@ -138,7 +138,7 @@ public class UActivity extends BaseActivity<ActicityUserBinding> implements Disp
                 } else if (position == 2) {
                     Intent intent = new Intent(mContext, TemplateActivity.class);
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "详细信息");
-                    intent.putExtra(TemplateActivity.EXTRA_OBJECT, currentUser);
+                    intent.putExtra(Params.CONTENT, currentUser);
                     startActivity(intent);
                 }
                 return false;

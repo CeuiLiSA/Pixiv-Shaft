@@ -58,9 +58,7 @@ import ceui.lisa.utils.ReverseResult;
 public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
 
     public static final String EXTRA_FRAGMENT = "dataType";
-    public static final String EXTRA_OBJECT = "object";
     public static final String EXTRA_KEYWORD = "keyword";
-    public static final String EXTRA_ILLUST_TITLE = "illust title";
     protected Fragment childFragment;
 
     protected Fragment createNewFragment() {
@@ -78,7 +76,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                 }
                 case "相关作品": {
                     int id = intent.getIntExtra(Params.ILLUST_ID, 0);
-                    String title = intent.getStringExtra(EXTRA_ILLUST_TITLE);
+                    String title = intent.getStringExtra(Params.ILLUST_TITLE);
                     return FragmentRelatedIllust.newInstance(id, title);
                 }
                 case "浏览记录":
