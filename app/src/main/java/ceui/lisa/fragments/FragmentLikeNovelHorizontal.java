@@ -76,8 +76,7 @@ public class FragmentLikeNovelHorizontal extends BaseFragment<FragmentLikeIllust
                 @Override
                 public void onClick(View view) {
                     Intent intent = new Intent(mContext, TemplateActivity.class);
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT,
-                            baseBind.title.getText().toString());
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, baseBind.title.getText().toString());
                     intent.putExtra(Params.USER_ID, mUserDetailResponse.getUser().getId());
                     startActivity(intent);
                 }
@@ -89,8 +88,7 @@ public class FragmentLikeNovelHorizontal extends BaseFragment<FragmentLikeIllust
                 @Override
                 public void onClick(View view) {
                     Intent intent = new Intent(mContext, TemplateActivity.class);
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT,
-                            baseBind.title.getText().toString());
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, baseBind.title.getText().toString());
                     intent.putExtra(Params.USER_ID, mUserDetailResponse.getUser().getId());
                     startActivity(intent);
                 }

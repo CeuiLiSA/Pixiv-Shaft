@@ -14,7 +14,7 @@ import ceui.lisa.utils.GlideUtil;
 
 public class LAdapter extends BaseAdapter<IllustsBean, RecyCardIllustBinding> {
 
-    private int imageSize = 0;
+    private int imageSize;
 
     public LAdapter(List<IllustsBean> targetList, Context context) {
         super(targetList, context);
@@ -23,10 +23,6 @@ public class LAdapter extends BaseAdapter<IllustsBean, RecyCardIllustBinding> {
 
     public int getImageSize() {
         return imageSize;
-    }
-
-    public void setImageSize(int pImageSize) {
-        imageSize = pImageSize;
     }
 
     @Override

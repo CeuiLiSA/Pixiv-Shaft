@@ -175,8 +175,7 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         } else {
             Glide.with(mContext)
                     .asBitmap()
-                    .load(Shaft.sSettings.isFirstImageSize() ? GlideUtil.getOriginal(allIllust, position) :
-                            GlideUtil.getLargeImage(allIllust, position))
+                    .load(GlideUtil.getLargeImage(allIllust, position))
                     .into(new SimpleTarget<Bitmap>() {
                         @Override
                         public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {

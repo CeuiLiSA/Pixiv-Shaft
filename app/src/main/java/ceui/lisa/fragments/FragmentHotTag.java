@@ -69,8 +69,7 @@ public class FragmentHotTag extends NetListFragment<FragmentBaseListBinding,
                 Intent intent = new Intent(mContext, TemplateActivity.class);
                 intent.putExtra(TemplateActivity.EXTRA_KEYWORD,
                         allItems.get(position).getTag());
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT,
-                        "搜索结果");
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "搜索结果");
                 startActivity(intent);
             }
         });
@@ -103,7 +102,6 @@ public class FragmentHotTag extends NetListFragment<FragmentBaseListBinding,
 
     @Override
     public void handleEvent(Channel channel) {
-        Common.showLog(className + "正在刷新");
         nowRefresh();
     }
 }

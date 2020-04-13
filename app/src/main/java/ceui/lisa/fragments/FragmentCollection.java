@@ -50,16 +50,14 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
                     Intent intent = new Intent(mContext, TemplateActivity.class);
                     intent.putExtra(TemplateActivity.EXTRA_KEYWORD,
                             FragmentLikeIllust.TYPE_PUBLUC);
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT,
-                            mContext.getString(R.string.filter_by_bookmark));
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签筛选");
                     startActivity(intent);
                     return true;
                 } else if (baseBind.viewPager.getCurrentItem() == 1) {
                     Intent intent = new Intent(mContext, TemplateActivity.class);
                     intent.putExtra(TemplateActivity.EXTRA_KEYWORD,
                             FragmentLikeIllust.TYPE_PRIVATE);
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT,
-                            mContext.getString(R.string.filter_by_bookmark));
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签筛选");
                     startActivity(intent);
                     return true;
                 }

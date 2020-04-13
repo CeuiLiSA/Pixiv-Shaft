@@ -35,6 +35,7 @@ import jp.wasabeef.recyclerview.animators.FadeInLeftAnimator;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static ceui.lisa.activities.Shaft.sUserModel;
+import static ceui.lisa.fragments.ListFragment.animateDuration;
 
 public class FragmentLikeIllustHorizontal extends BaseFragment<FragmentLikeIllustHorizontalBinding> {
 
@@ -43,7 +44,8 @@ public class FragmentLikeIllustHorizontal extends BaseFragment<FragmentLikeIllus
     private LAdapter mAdapter;
     private int type; // 1插画收藏    2插画作品     3漫画作品
 
-    public static FragmentLikeIllustHorizontal newInstance(UserDetailResponse userDetailResponse, int pType) {
+    public static FragmentLikeIllustHorizontal newInstance(UserDetailResponse userDetailResponse,
+                                                           int pType) {
         Bundle args = new Bundle();
         args.putSerializable(Params.CONTENT, userDetailResponse);
         args.putInt(Params.DATA_TYPE, pType);
@@ -71,7 +73,6 @@ public class FragmentLikeIllustHorizontal extends BaseFragment<FragmentLikeIllus
         baseBind.recyclerView.addItemDecoration(new
                 LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
         FadeInLeftAnimator landingAnimator = new FadeInLeftAnimator();
-        final long animateDuration = 400L;
         landingAnimator.setAddDuration(animateDuration);
         landingAnimator.setRemoveDuration(animateDuration);
         landingAnimator.setMoveDuration(animateDuration);
@@ -117,8 +118,7 @@ public class FragmentLikeIllustHorizontal extends BaseFragment<FragmentLikeIllus
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT,
-                        baseBind.title.getText().toString());
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, baseBind.title.getText().toString());
                 intent.putExtra(Params.USER_ID, mUserDetailResponse.getUser().getId());
                 startActivity(intent);
             }

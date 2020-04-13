@@ -56,23 +56,23 @@
                         android:layout_marginBottom="@dimen/eight_dp"
                         android:layout_height="wrap_content">
 
-                            <androidx.recyclerview.widget.RecyclerView
-                                android:layout_width="match_parent"
-                                android:id="@+id/recyclerView"
-                                android:background="@color/light_bg"
-                                android:layout_height="match_parent">
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:layout_width="match_parent"
+                            android:id="@+id/recyclerView"
+                            android:background="@color/light_bg"
+                            android:layout_height="match_parent">
 
-                            </androidx.recyclerview.widget.RecyclerView>
+                        </androidx.recyclerview.widget.RecyclerView>
 
 
-                            <View
-                                android:layout_width="match_parent"
-                                android:layout_alignBottom="@+id/user_background"
-                                android:layout_height="48dp"
-                                android:layout_alignParentBottom="true"
-                                android:id="@+id/dark_blank"
-                                android:layout_gravity="bottom"
-                                android:background="@drawable/black_gradient" />
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_alignBottom="@+id/user_background"
+                            android:layout_height="48dp"
+                            android:layout_alignParentBottom="true"
+                            android:id="@+id/dark_blank"
+                            android:layout_gravity="bottom"
+                            android:background="@drawable/black_gradient" />
 
                         <Button
                             android:id="@+id/see_all"

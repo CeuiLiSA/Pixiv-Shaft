@@ -30,6 +30,7 @@ import ceui.lisa.models.TempTokenResponse;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Params;
+import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.view.GridItemDecoration;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -89,6 +90,7 @@ public class FragmentSearchResult extends NetListFragment<FragmentSearchResultBi
         return new NetControl<ListIllust>() {
             @Override
             public Observable<ListIllust> initApi() {
+                PixivOperate.insertSearchHistory(baseBind.searchBox.getText().toString(), 0);
                 return Retro.getAppApi().searchIllust(token, baseBind.searchBox.getText().toString(), sort, searchTarget);
             }
 
