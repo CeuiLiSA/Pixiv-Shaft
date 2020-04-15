@@ -1,14 +1,18 @@
 package ceui.lisa.fragments;
 
-import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.view.DisplayCutout;
 import android.view.View;
+import android.view.ViewGroup;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.BaseActivity;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UActivity;
 import ceui.lisa.adapters.BaseAdapter;
@@ -131,94 +135,84 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
     @Override
     public void initView(View view) {
         super.initView(view);
-        baseBind.post.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!sUserModel.getResponse().getUser().isIs_mail_authorized()) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                    builder.setMessage("发布评论需要先绑定邮箱");
-                    builder.setPositiveButton("立即绑定", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            Intent intent = new Intent(mContext, TemplateActivity.class);
-                            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "绑定邮箱");
-                            startActivity(intent);
-                        }
-                    });
-                    builder.setNegativeButton("取消", null);
-                    AlertDialog alertDialog = builder.create();
-                    alertDialog.show();
-                    alertDialog
-                            .getButton(AlertDialog.BUTTON_POSITIVE)
-                            .setTextColor(
-                                    getResources().getColor(R.color.colorPrimary)
-                            );
-                    alertDialog
-                            .getButton(AlertDialog.BUTTON_NEGATIVE)
-                            .setTextColor(
-                                    getResources().getColor(R.color.colorPrimary)
-                            );
-                    return;
+        baseBind.post.setOnClickListener(v -> {
+            if (!sUserModel.getResponse().getUser().isIs_mail_authorized()) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+                builder.setMessage("发布评论需要先绑定邮箱");
+                builder.setPositiveButton("立即绑定", (dialog, which) -> {
+                    Intent intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "绑定邮箱");
+                    startActivity(intent);
+                });
+                builder.setNegativeButton("取消", null);
+                AlertDialog alertDialog = builder.create();
+                alertDialog.show();
+                alertDialog
+                        .getButton(AlertDialog.BUTTON_POSITIVE)
+                        .setTextColor(
+                                getResources().getColor(R.color.colorPrimary)
+                        );
+                alertDialog
+                        .getButton(AlertDialog.BUTTON_NEGATIVE)
+                        .setTextColor(
+                                getResources().getColor(R.color.colorPrimary)
+                        );
+                return;
+            }
+
+            if (baseBind.inputBox.getText().toString().length() == 0) {
+                Common.showToast("请输入评论内容");
+                return;
+            }
+
+            NullCtrl<CommentHolder> nullCtrl = new NullCtrl<CommentHolder>() {
+                @Override
+                public void onSubscribe(Disposable d) {
+                    Common.hideKeyboard(mActivity);
+                    baseBind.inputBox.setHint("请输入评论内容");
+                    baseBind.inputBox.setText("");
+                    baseBind.progress.setVisibility(View.VISIBLE);
                 }
 
-                if (baseBind.inputBox.getText().toString().length() == 0) {
-                    Common.showToast("请输入评论内容");
-                    return;
+                @Override
+                public void success(CommentHolder commentHolder) {
+                    if (allItems.size() == 0) {
+                        mRecyclerView.setVisibility(View.VISIBLE);
+                        noData.setVisibility(View.INVISIBLE);
+                    }
+
+                    allItems.add(0, commentHolder.getComment());
+                    mAdapter.notifyItemInserted(0);
+                    baseBind.recyclerView.scrollToPosition(0);
                 }
 
-                NullCtrl<CommentHolder> nullCtrl = new NullCtrl<CommentHolder>() {
-                    @Override
-                    public void onSubscribe(Disposable d) {
-                        Common.hideKeyboard(mActivity);
-                        baseBind.inputBox.setHint("请输入评论内容");
-                        baseBind.inputBox.setText("");
-                        baseBind.progress.setVisibility(View.VISIBLE);
-                    }
-
-                    @Override
-                    public void success(CommentHolder commentHolder) {
-                        if (allItems.size() == 0) {
-                            mRecyclerView.setVisibility(View.VISIBLE);
-                            noData.setVisibility(View.INVISIBLE);
-                        }
-
-                        allItems.add(0, commentHolder.getComment());
-                        mAdapter.notifyItemInserted(0);
-                        baseBind.recyclerView.scrollToPosition(0);
-                    }
-
-                    @Override
-                    public void must(boolean isSuccess) {
-                        baseBind.progress.setVisibility(View.GONE);
-                    }
-                };
-                if (parentCommentID != 0) {
-                    Retro.getAppApi().postComment(sUserModel.getResponse().getAccess_token(), illustID,
-                            baseBind.inputBox.getText().toString(), parentCommentID)
-                            .subscribeOn(Schedulers.newThread())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(nullCtrl);
-                } else {
-                    Retro.getAppApi().postComment(sUserModel.getResponse().getAccess_token(), illustID,
-                            baseBind.inputBox.getText().toString())
-                            .subscribeOn(Schedulers.newThread())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(nullCtrl);
+                @Override
+                public void must(boolean isSuccess) {
+                    baseBind.progress.setVisibility(View.GONE);
                 }
+            };
+            if (parentCommentID != 0) {
+                Retro.getAppApi().postComment(sUserModel.getResponse().getAccess_token(), illustID,
+                        baseBind.inputBox.getText().toString(), parentCommentID)
+                        .subscribeOn(Schedulers.newThread())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(nullCtrl);
+            } else {
+                Retro.getAppApi().postComment(sUserModel.getResponse().getAccess_token(), illustID,
+                        baseBind.inputBox.getText().toString())
+                        .subscribeOn(Schedulers.newThread())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(nullCtrl);
             }
         });
-        baseBind.clear.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (baseBind.inputBox.getText().toString().length() != 0) {
-                    baseBind.inputBox.setText("");
-                    return;
-                }
-                if (parentCommentID != 0) {
-                    baseBind.inputBox.setHint("留下你的评论吧");
-                    parentCommentID = 0;
-                    return;
-                }
+        baseBind.clear.setOnClickListener(v -> {
+            if (baseBind.inputBox.getText().toString().length() != 0) {
+                baseBind.inputBox.setText("");
+                return;
+            }
+            if (parentCommentID != 0) {
+                baseBind.inputBox.setHint("留下你的评论吧");
+                parentCommentID = 0;
             }
         });
     }
