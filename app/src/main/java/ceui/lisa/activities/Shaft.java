@@ -31,7 +31,7 @@ public class Shaft extends Application {
     /**
      * 状态栏高度，初始化
      */
-    public static int statusHeight = 0, toolbarHeight = 0, navigationBarHeight = 0;
+    public static int statusHeight = 0, toolbarHeight = 0;
     /**
      * 全局context
      */
@@ -83,13 +83,6 @@ public class Shaft extends Application {
             statusHeight = sContext.getResources().getDimensionPixelSize(resourceId);
         }
         toolbarHeight = DensityUtil.dp2px(56.0f);
-
-        //获取导航栏高度并赋值
-        navigationBarHeight = 0;
-        resourceId = getResources().getIdentifier("navigation_bar_height", "dimen", "android");
-        if (resourceId > 0) {
-            navigationBarHeight = getResources().getDimensionPixelSize(resourceId);
-        }
 
         //如果使用旧文件名格式, 转换为新的
         if (!sSettings.isUsingNewFileNameType()) {
