@@ -1,4 +1,4 @@
-package ceui.lisa.adapters;
+ package ceui.lisa.adapters;
 
 import android.content.Context;
 import android.view.ViewGroup;

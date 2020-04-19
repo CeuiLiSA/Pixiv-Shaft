@@ -22,6 +22,8 @@ import com.nononsenseapps.filepicker.Utils;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
 
+import org.greenrobot.eventbus.EventBus;
+
 import java.io.File;
 import java.util.List;
 import java.util.Locale;
@@ -32,6 +34,7 @@ import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.FragmentSettingsBinding;
 import ceui.lisa.dialogs.FileNameDialog;
 import ceui.lisa.helper.ThemeHelper;
+import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
@@ -48,6 +51,7 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
     private static final int gifResultPath_CODE = 10087;
     private static final int gifZipPath_CODE = 10088;
     private static final int gifUnzipPath_CODE = 10089;
+    private boolean shouldRefreshFragmentRight = false;
 
     @Override
     public void initLayout() {
@@ -111,6 +115,20 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
                     Shaft.sSettings.setSaveViewHistory(true);
                 } else {
                     Shaft.sSettings.setSaveViewHistory(false);
+                }
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+
+        shouldRefreshFragmentRight = Shaft.sSettings.isDoubleStaggerData();
+        baseBind.staggerData.setChecked(Shaft.sSettings.isDoubleStaggerData());
+        baseBind.staggerData.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    Shaft.sSettings.setDoubleStaggerData(true);
+                } else {
+                    Shaft.sSettings.setDoubleStaggerData(false);
                 }
                 Local.setSettings(Shaft.sSettings);
             }
@@ -371,5 +389,16 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
             }
             return;
         }
+    }
+
+    @Override
+    public void onDestroyView() {
+        if (shouldRefreshFragmentRight != Shaft.sSettings.isDoubleStaggerData()) {
+            Channel channel = new Channel();
+            channel.setReceiver("FragmentRight");
+            EventBus.getDefault().post(channel);
+        }
+
+        super.onDestroyView();
     }
 }

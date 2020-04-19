@@ -1,5 +1,7 @@
 package ceui.lisa.fragments;
 
+import androidx.databinding.ViewDataBinding;
+
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapter;
@@ -15,8 +17,7 @@ import ceui.lisa.ui.presenter.IllustListPresenter;
 import ceui.lisa.ui.presenter.ListPresenter;
 import io.reactivex.Observable;
 
-public class FragmentTestIllust extends FragmentTest<ListIllust, IllustsBean,
-        RecyIllustStaggerBinding> {
+public class FragmentTestIllust extends FragmentTest<ListIllust, IllustsBean> {
 
     @Override
     public IPresent<ListIllust> present() {
@@ -24,7 +25,7 @@ public class FragmentTestIllust extends FragmentTest<ListIllust, IllustsBean,
     }
 
     @Override
-    public BaseAdapter<IllustsBean, RecyIllustStaggerBinding> adapter() {
+    public BaseAdapter<?, ? extends ViewDataBinding> adapter() {
         return new IAdapter(allItems, mContext);
     }
 }

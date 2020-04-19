@@ -21,18 +21,17 @@ import ceui.lisa.interfaces.ListShow;
 import ceui.lisa.ui.IPresent;
 import ceui.lisa.ui.IView;
 
-public abstract class FragmentTest<Response extends ListShow<Item>, Item,
-        ItemView extends ViewDataBinding> extends BaseFragment<FragmentTestBinding> implements
+public abstract class FragmentTest<Response extends ListShow<Item>, Item> extends BaseFragment<FragmentTestBinding> implements
         IView<Response> {
 
     protected List<Item> allItems = new ArrayList<>();
 
-    private BaseAdapter<Item, ItemView> mAdapter;
+    private BaseAdapter mAdapter;
     private IPresent<Response> mPresent;
 
     public abstract IPresent<Response> present();
 
-    public abstract BaseAdapter<Item, ItemView> adapter();
+    public abstract BaseAdapter<?, ? extends ViewDataBinding> adapter();
 
     @Override
     public void initLayout() {

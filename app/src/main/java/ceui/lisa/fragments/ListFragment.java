@@ -41,7 +41,7 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
     protected RecyclerView mRecyclerView;
     protected RefreshLayout mRefreshLayout;
     protected ImageView noData;
-    protected BaseAdapter<Item, ItemLayout> mAdapter;
+    protected BaseAdapter mAdapter;
     protected List<Item> allItems = null;
     protected BaseModel<Item> mModel;
     protected Toolbar mToolbar;
@@ -52,7 +52,7 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
         mLayoutID = R.layout.fragment_base_list;
     }
 
-    public abstract BaseAdapter<Item, ItemLayout> adapter();
+    public abstract BaseAdapter<?, ? extends ViewDataBinding> adapter();
 
     public abstract BaseCtrl present();
 

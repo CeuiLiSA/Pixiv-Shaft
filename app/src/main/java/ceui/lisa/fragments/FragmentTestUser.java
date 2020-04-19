@@ -1,5 +1,7 @@
 package ceui.lisa.fragments;
 
+import androidx.databinding.ViewDataBinding;
+
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.UAdapter;
 import ceui.lisa.databinding.RecyUserPreviewBinding;
@@ -14,7 +16,7 @@ import ceui.lisa.ui.presenter.ListPresenter;
 import ceui.lisa.ui.presenter.UserListPresenter;
 import io.reactivex.Observable;
 
-public class FragmentTestUser extends FragmentTest<ListUser, UserPreviewsBean, RecyUserPreviewBinding> {
+public class FragmentTestUser extends FragmentTest<ListUser, UserPreviewsBean> {
 
     @Override
     public IPresent<ListUser> present() {
@@ -22,7 +24,7 @@ public class FragmentTestUser extends FragmentTest<ListUser, UserPreviewsBean, R
     }
 
     @Override
-    public BaseAdapter<UserPreviewsBean, RecyUserPreviewBinding> adapter() {
+    public BaseAdapter<?, ? extends ViewDataBinding> adapter() {
         return new UAdapter(allItems, mContext);
     }
 }
