@@ -71,6 +71,8 @@
                 android:layout_below="@+id/top_rela"
                 android:layout_marginEnd="@dimen/eight_dp"
                 android:maxLines="1"
+                android:layout_marginTop="@dimen/four_dp"
+                android:textColor="@color/colorPrimary"
                 android:layout_toStartOf="@+id/cover"
                 android:textSize="13sp"
                 android:layout_marginStart="@dimen/eight_dp"

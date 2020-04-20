@@ -6,14 +6,18 @@ import androidx.lifecycle.ViewModel;
 import java.util.ArrayList;
 import java.util.List;
 
+import ceui.lisa.activities.Shaft;
+
 
 public class BaseModel<T> extends ViewModel {
 
     private MutableLiveData<List<T>> content;
     private String nextUrl = "";
+    private String token = "";
     private boolean isLoaded = false;
 
     public BaseModel() {
+        token = Shaft.sUserModel.getResponse().getAccess_token();
         content = new MutableLiveData<>();
         content.setValue(new ArrayList<>());
     }
@@ -41,5 +45,13 @@ public class BaseModel<T> extends ViewModel {
 
     public void setNextUrl(String nextUrl) {
         this.nextUrl = nextUrl;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
     }
 }

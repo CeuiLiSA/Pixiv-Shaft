@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Environment;
 import android.view.View;
 import android.widget.CompoundButton;
@@ -56,6 +57,13 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
     @Override
     public void initLayout() {
         mLayoutID = R.layout.fragment_settings;
+    }
+
+    private FragmentSettings() {
+    }
+
+    public static FragmentSettings newInstance() {
+        return new FragmentSettings();
     }
 
     @Override

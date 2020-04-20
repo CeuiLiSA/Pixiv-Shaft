@@ -4,7 +4,7 @@ import ceui.lisa.model.ListUser;
 import ceui.lisa.ui.IModel;
 import ceui.lisa.ui.model.UserListModel;
 
-public class UserListPresenter extends ListPresenter<ListUser> {
+public class UserPresenter extends ListPresenter<ListUser> {
 
     @Override
     public IModel<ListUser> model() {

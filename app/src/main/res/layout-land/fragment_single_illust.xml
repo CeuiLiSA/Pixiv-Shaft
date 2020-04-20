@@ -232,7 +232,7 @@
                                     android:drawablePadding="2dp"
                                     android:drawableEnd="@drawable/ic_edit_black_24dp"
                                     android:text="2019年05月28日18:47:21"
-                                    android:textSize="12sp"
+                                    android:textSize="14sp"
                                     android:drawableTint="@color/colorPrimary"
                                     android:layout_marginStart="@dimen/sixteen_dp"
                                     android:layout_marginBottom="10dp"
@@ -241,7 +241,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:id="@+id/illust_view"
-                                    android:textSize="12sp"
+                                    android:textSize="14sp"
                                     android:gravity="center"
                                     android:drawablePadding="2dp"
                                     android:text="20K喜欢"
@@ -256,7 +256,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:id="@+id/illust_like"
-                                    android:textSize="12sp"
+                                    android:textSize="14sp"
                                     android:gravity="center"
                                     android:textStyle="bold"
                                     android:drawablePadding="2dp"

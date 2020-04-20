@@ -12,7 +12,9 @@ import com.blankj.utilcode.util.BarUtils;
 import ceui.lisa.R;
 import ceui.lisa.databinding.ActivityFragmentBinding;
 import ceui.lisa.fragments.FragmentAboutApp;
+import ceui.lisa.fragments.FragmentListSimpleUser;
 import ceui.lisa.fragments.FragmentMultiDownld;
+import ceui.lisa.fragments.FragmentNovelSeries;
 import ceui.lisa.fragments.FragmentRecmdIllust;
 import ceui.lisa.fragments.FragmentSB;
 import ceui.lisa.fragments.FragmentTest;
@@ -50,6 +52,7 @@ import ceui.lisa.fragments.FragmentUserNovel;
 import ceui.lisa.fragments.FragmentWalkThrough;
 import ceui.lisa.fragments.FragmentWebView;
 import ceui.lisa.fragments.FragmentWhoFollowThisUser;
+import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
@@ -87,7 +90,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                     return FragmentWebView.newInstance(title, url);
                 }
                 case "设置":
-                    return new FragmentSettings();
+                    return FragmentSettings.newInstance();
                 case "推荐用户":
                     return new FragmentRecmdUser();
                 case "特辑":
@@ -142,6 +145,10 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                     return new FragmentNew();
                 case "粉丝":
                     return FragmentWhoFollowThisUser.newInstance(intent.getIntExtra(Params.USER_ID, 0));
+                case "喜欢这个作品的用户":
+                    return FragmentListSimpleUser.newInstance((IllustsBean) intent.getSerializableExtra(Params.CONTENT));
+                case "小说系列作品":
+                    return FragmentNovelSeries.newInstance((NovelBean) intent.getSerializableExtra(Params.CONTENT));
                 case "插画作品":
                     return FragmentUserIllust.newInstance(intent.getIntExtra(Params.USER_ID, 0),
                             true);

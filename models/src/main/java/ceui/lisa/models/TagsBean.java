@@ -11,6 +11,7 @@ public class TagsBean implements Serializable {
 
     private String name;
     private String translated_name;
+    private boolean added_by_uploaded_user;
 
     private int count;
     private boolean isSelected = false;
@@ -45,5 +46,13 @@ public class TagsBean implements Serializable {
 
     public void setTranslated_name(String translated_name) {
         this.translated_name = translated_name;
+    }
+
+    public boolean isAdded_by_uploaded_user() {
+        return added_by_uploaded_user;
+    }
+
+    public void setAdded_by_uploaded_user(boolean added_by_uploaded_user) {
+        this.added_by_uploaded_user = added_by_uploaded_user;
     }
 }

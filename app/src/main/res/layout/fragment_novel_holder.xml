@@ -122,6 +122,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:gravity="center_vertical"
+                        android:id="@+id/show_prev"
                         android:drawableStart="@drawable/ic_chevron_left_black_24dp"
                         android:layout_marginStart="@dimen/six_dp"
                         android:text="上一章节"
@@ -150,6 +151,7 @@
                         android:drawableEnd="@drawable/ic_chevron_right_black_24dp"
                         android:layout_alignParentEnd="true"
                         android:gravity="center_vertical"
+                        android:id="@+id/show_next"
                         android:layout_marginEnd="@dimen/six_dp"
                         android:text="下一章节"
                         android:textColor="@color/white_to_gray">
