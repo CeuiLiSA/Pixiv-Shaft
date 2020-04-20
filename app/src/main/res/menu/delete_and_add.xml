@@ -6,5 +6,12 @@
         android:orderInCategory="100"
         android:icon="@drawable/ic_delete_black_24dp"
         android:title="@string/delete_all"
-        app:showAsAction="always" />
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_add"
+        android:orderInCategory="80"
+        android:icon="@drawable/ic_add_black_24dp"
+        android:title="@string/add"
+        app:showAsAction="ifRoom" />
 </menu>

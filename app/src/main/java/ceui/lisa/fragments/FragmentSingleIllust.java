@@ -219,6 +219,15 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
                     startActivity(intent);
                 }
             });
+            baseBind.illustLike.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(Params.CONTENT, illust);
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "喜欢这个作品的用户");
+                    startActivity(intent);
+                }
+            });
             if (illust.isIs_bookmarked()) {
                 baseBind.postLike.setImageResource(R.drawable.ic_favorite_accent_24dp);
             } else {

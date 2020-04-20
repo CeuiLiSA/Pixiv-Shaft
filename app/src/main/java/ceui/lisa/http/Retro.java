@@ -132,7 +132,7 @@ public class Retro {
         private static Retrofit appRetrofit = buildRetrofit(API_BASE_URL);
     }
 
-    public static Retrofit get() {
+    private static Retrofit get() {
         return Holder.appRetrofit;
     }
 

@@ -5,7 +5,9 @@ import java.util.Map;
 
 import ceui.lisa.model.ListArticle;
 import ceui.lisa.model.ListLive;
+import ceui.lisa.model.ListSimpleUser;
 import ceui.lisa.model.ListTag;
+import ceui.lisa.model.NovelSeries;
 import ceui.lisa.models.GifResponse;
 import ceui.lisa.model.ListBookmarkTag;
 import ceui.lisa.model.ListComment;
@@ -325,6 +327,10 @@ public interface AppApi {
     Observable<ListUser> getNextUser(@Header("Authorization") String token,
                                      @Url String next_url);
 
+    @GET
+    Observable<ListSimpleUser> getNextSimpleUser(@Header("Authorization") String token,
+                                           @Url String next_url);
+
 
     @GET
     Observable<ListIllust> getNextIllust(@Header("Authorization") String token,
@@ -333,6 +339,10 @@ public interface AppApi {
     @GET
     Observable<ListNovel> getNextNovel(@Header("Authorization") String token,
                                        @Url String next_url);
+
+    @GET
+    Observable<NovelSeries> getNextSeriesNovel(@Header("Authorization") String token,
+                                               @Url String next_url);
 
     @GET
     Observable<ListArticle> getNextArticals(@Header("Authorization") String token,
@@ -358,4 +368,12 @@ public interface AppApi {
     @GET("v1/live/list")
     Observable<ListLive> getLiveList(@Header("Authorization") String token,
                                      @Query("list_type") String list_type);
+
+    @GET("v1/illust/bookmark/users?filter=for_android")
+    Observable<ListSimpleUser> getUsersWhoLikeThisIllust(@Header("Authorization") String token,
+                                     @Query("illust_id") int illust_id);
+
+    @GET("v2/novel/series")
+    Observable<NovelSeries> getNovelSeries(@Header("Authorization") String token,
+                                                         @Query("series_id") int series_id);
 }

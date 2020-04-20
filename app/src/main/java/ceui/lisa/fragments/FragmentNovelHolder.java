@@ -1,6 +1,7 @@
 package ceui.lisa.fragments;
 
 import android.animation.Animator;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -14,6 +15,7 @@ import java.util.Collections;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.adapters.VAdapter;
 import ceui.lisa.databinding.FragmentNovelHolderBinding;
 import ceui.lisa.http.NullCtrl;
@@ -107,16 +109,26 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
         baseBind.novelTitle.setText("标题：" + mNovelBean.getTitle());
         if (mNovelBean.getSeries() != null && !TextUtils.isEmpty(mNovelBean.getSeries().getTitle())) {
             baseBind.novelSeries.setText("系列：" + mNovelBean.getSeries().getTitle());
+            baseBind.novelSeries.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(Params.CONTENT, mNovelBean);
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说系列作品");
+                    startActivity(intent);
+                }
+            });
         }
         Glide.with(mContext).load(GlideUtil.getHead(mNovelBean.getUser())).into(baseBind.userHead);
     }
 
     @Override
     void initData() {
-        if (Dev.isDev) {
-            mNovelBean.setId(10900170);
-        }
-        Retro.getAppApi().getNovelDetail(Shaft.sUserModel.getResponse().getAccess_token(), mNovelBean.getId())
+        getNovel(mNovelBean);
+    }
+
+    private void getNovel(NovelBean novelBean) {
+        Retro.getAppApi().getNovelDetail(Shaft.sUserModel.getResponse().getAccess_token(), novelBean.getId())
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new NullCtrl<NovelDetail>() {
@@ -129,6 +141,32 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                         } else {
                             baseBind.viewPager.setAdapter(new VAdapter(
                                     Collections.singletonList(novelDetail.getNovel_text()), mContext));
+                        }
+                        if (novelDetail.getSeries_prev() != null && novelDetail.getSeries_prev().getId() != 0) {
+                            baseBind.showPrev.setVisibility(View.VISIBLE);
+                            baseBind.showPrev.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    close();
+                                    Common.showToast("获取上一章节");
+                                    getNovel(novelDetail.getSeries_prev());
+                                }
+                            });
+                        } else {
+                            baseBind.showPrev.setVisibility(View.INVISIBLE);
+                        }
+                        if (novelDetail.getSeries_next() != null && novelDetail.getSeries_next().getId() != 0) {
+                            baseBind.showNext.setVisibility(View.VISIBLE);
+                            baseBind.showNext.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    close();
+                                    Common.showToast("获取下一章节");
+                                    getNovel(novelDetail.getSeries_next());
+                                }
+                            });
+                        } else {
+                            baseBind.showNext.setVisibility(View.INVISIBLE);
                         }
                     }
 

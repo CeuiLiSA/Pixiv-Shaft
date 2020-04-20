@@ -23,9 +23,17 @@ import ceui.lisa.utils.PixivOperate;
 
 public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
 
+    private boolean showShop = false;
+
     public NAdapter(List<NovelBean> targetList, Context context) {
         super(targetList, context);
         handleClick();
+    }
+
+    public NAdapter(List<NovelBean> targetList, Context context, boolean showShop) {
+        super(targetList, context);
+        handleClick();
+        this.showShop = showShop;
     }
 
     @Override
@@ -35,9 +43,26 @@ public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
 
     @Override
     public void bindData(NovelBean target, ViewHolder<RecyNovelBinding> bindView, int position) {
-        bindView.baseBind.title.setText(target.getTitle());
         if (target.getSeries() != null && !TextUtils.isEmpty(target.getSeries().getTitle())) {
             bindView.baseBind.series.setText(String.format("系列：%s", target.getSeries().getTitle()));
+            if (showShop) {
+
+            } else {
+                bindView.baseBind.series.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Intent intent = new Intent(mContext, TemplateActivity.class);
+                        intent.putExtra(Params.CONTENT, allIllust.get(position));
+                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说系列作品");
+                        mContext.startActivity(intent);
+                    }
+                });
+            }
+        }
+        if (showShop) {
+            bindView.baseBind.title.setText("#" + (position + 1) + " " + target.getTitle());
+        } else {
+            bindView.baseBind.title.setText(target.getTitle());
         }
         bindView.baseBind.author.setText(target.getUser().getName());
         bindView.baseBind.howManyWord.setText(target.getText_length() + "字");

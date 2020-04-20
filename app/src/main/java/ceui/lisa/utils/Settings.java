@@ -63,6 +63,8 @@ public class Settings {
 
     private boolean saveViewHistory = true;
 
+    private boolean doubleStaggerData = false;
+
     private boolean staggerAnime = true;
 
     private boolean gridAnime = true;
@@ -129,6 +131,14 @@ public class Settings {
     private String searchFilter = "";
 
     public Settings() {
+    }
+
+    public boolean isDoubleStaggerData() {
+        return doubleStaggerData;
+    }
+
+    public void setDoubleStaggerData(boolean doubleStaggerData) {
+        this.doubleStaggerData = doubleStaggerData;
     }
 
     public boolean isGridAnime() {

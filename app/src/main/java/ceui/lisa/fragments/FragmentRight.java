@@ -10,6 +10,7 @@ import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.FragmentRightBinding;
+import ceui.lisa.utils.Channel;
 
 public class FragmentRight extends BaseFragment<FragmentRightBinding> {
 
@@ -50,5 +51,18 @@ public class FragmentRight extends BaseFragment<FragmentRightBinding> {
 
             isLoad = true;
         }
+    }
+
+    @Override
+    public boolean eventBusEnable() {
+        return true;
+    }
+
+    @Override
+    public void handleEvent(Channel channel) {
+        FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
+        FragmentEvent fragmentFollowIllust = new FragmentEvent();
+        transaction.add(R.id.fragment_recy, fragmentFollowIllust);
+        transaction.commitNowAllowingStateLoss();
     }
 }

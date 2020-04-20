@@ -2,6 +2,7 @@ package ceui.lisa.fragments;
 
 import android.content.DialogInterface;
 import android.view.MenuItem;
+import android.view.View;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
@@ -46,7 +47,7 @@ public class FragmentMutedTags extends LocalListFragment<FragmentBaseListBinding
     @Override
     public void initToolbar(Toolbar toolbar) {
         super.initToolbar(toolbar);
-        baseBind.toolbar.inflateMenu(R.menu.delete_all);
+        baseBind.toolbar.inflateMenu(R.menu.delete_and_add);
         baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
@@ -62,7 +63,8 @@ public class FragmentMutedTags extends LocalListFragment<FragmentBaseListBinding
                             public void onClick(DialogInterface dialog, int which) {
                                 AppDatabase.getAppDatabase(mContext).searchDao().deleteAllMutedTags();
                                 Common.showToast("删除成功");
-                                mRefreshLayout.autoRefresh();
+                                mAdapter.clear();
+                                noData.setVisibility(View.VISIBLE);
                             }
                         });
                         builder.setNegativeButton("取消", null);
@@ -87,6 +89,10 @@ public class FragmentMutedTags extends LocalListFragment<FragmentBaseListBinding
             }
         }
         if (!isExist) {
+            if (allItems.size() == 0) {
+                mRecyclerView.setVisibility(View.VISIBLE);
+                noData.setVisibility(View.INVISIBLE);
+            }
             TagsBean tagsBean = new TagsBean();
             tagsBean.setName(tagName);
             tagsBean.setTranslated_name(tagName);

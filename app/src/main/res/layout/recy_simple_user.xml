@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+    </data>
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/card_pixiv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        app:cardCornerRadius="30dp"
+        app:cardElevation="@dimen/four_dp"
+        android:foreground="?attr/selectableItemBackground">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:id="@+id/bottom_rela"
+            android:layout_height="wrap_content">
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/user_head"
+                android:layout_width="50dp"
+                android:layout_marginTop="@dimen/eight_dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="@dimen/twelve_dp"
+                android:layout_marginBottom="@dimen/eight_dp"
+                app:civ_border_color="#DDDDDD"
+                app:civ_border_width="1dp" />
+
+            <TextView
+                android:id="@+id/user_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="@dimen/four_dp"
+                android:layout_marginStart="80dp"
+                android:layout_centerVertical="true"
+                android:layout_toStartOf="@+id/post_like_user"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/colorPrimary" />
+
+            <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
+                android:id="@+id/post_like_user"
+                android:layout_width="wrap_content"
+                android:paddingStart="@dimen/sixteen_dp"
+                android:paddingTop="@dimen/four_dp"
+                android:paddingBottom="@dimen/four_dp"
+                android:textSize="13sp"
+                android:paddingEnd="@dimen/sixteen_dp"
+                app:qmui_borderColor="@color/colorPrimary"
+                android:layout_height="30dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:layout_margin="@dimen/twelve_dip"
+                android:background="@drawable/btn_follow"
+                android:gravity="center"
+                android:text="+ 关注"
+                android:textColor="@color/colorPrimary" />
+
+        </RelativeLayout>
+
+    </androidx.cardview.widget.CardView>
+</layout>

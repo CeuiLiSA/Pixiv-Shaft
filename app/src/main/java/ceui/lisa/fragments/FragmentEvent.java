@@ -7,6 +7,8 @@ import android.view.View;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 
+import androidx.databinding.ViewDataBinding;
+
 import com.qmuiteam.qmui.util.QMUIDisplayHelper;
 import com.qmuiteam.qmui.widget.popup.QMUIPopup;
 import com.qmuiteam.qmui.widget.popup.QMUIPopups;
@@ -16,11 +18,13 @@ import com.scwang.smartrefresh.layout.api.RefreshHeader;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UActivity;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.EventAdapter;
+import ceui.lisa.adapters.IAdapter;
 import ceui.lisa.core.NetControl;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyUserEventBinding;
@@ -39,6 +43,114 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class FragmentEvent extends NetListFragment<FragmentBaseListBinding,
         ListIllust, IllustsBean, RecyUserEventBinding> {
+
+    @Override
+    public BaseAdapter<?, ? extends ViewDataBinding> adapter() {
+        if (Shaft.sSettings.isDoubleStaggerData()) {
+            return new IAdapter(allItems, mContext);
+        } else {
+            return new EventAdapter(allItems, mContext).setOnItemClickListener(new OnItemClickListener() {
+                @Override
+                public void onItemClick(View v, int position, int viewType) {
+                    if (viewType == 0) {
+                        DataChannel.get().setIllustList(allItems);
+                        Intent intent = new Intent(mContext, ViewPagerActivity.class);
+                        intent.putExtra("position", position);
+                        startActivity(intent);
+                    } else if (viewType == 1) {
+                        Intent intent = new Intent(mContext, UActivity.class);
+                        intent.putExtra(Params.USER_ID, allItems.get(position).getUser().getId());
+                        startActivity(intent);
+                    } else if (viewType == 2) {
+                        if (allItems.get(position).getPage_count() == 1) {
+                            IllustDownload.downloadIllust(mActivity, allItems.get(position));
+                        } else {
+                            IllustDownload.downloadAllIllust(mActivity, allItems.get(position));
+                        }
+                    } else if (viewType == 3) {
+                        PixivOperate.postLike(allItems.get(position), sUserModel, FragmentLikeIllust.TYPE_PUBLUC);
+                    } else if (viewType == 4) {
+                        View popView = LayoutInflater.from(mContext).inflate(R.layout.pop_window, null);
+                        QMUIPopup mNormalPopup = QMUIPopups.popup(mContext, QMUIDisplayHelper.dp2px(getContext(), 250))
+                                .preferredDirection(QMUIPopup.DIRECTION_BOTTOM)
+                                .view(popView)
+                                .dimAmount(0.5f)
+                                .edgeProtection(QMUIDisplayHelper.dp2px(getContext(), 20))
+                                .offsetX(QMUIDisplayHelper.dp2px(getContext(), 80))
+                                .offsetYIfBottom(QMUIDisplayHelper.dp2px(getContext(), 5))
+                                .shadow(true)
+                                .arrow(true)
+                                .animStyle(QMUIPopup.ANIM_GROW_FROM_RIGHT)
+                                .onDismiss(new PopupWindow.OnDismissListener() {
+                                    @Override
+                                    public void onDismiss() {
+                                    }
+                                })
+                                .show(v);
+
+                        popView.findViewById(R.id.share).setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                new ShareIllust(mContext, allItems.get(position)) {
+                                    @Override
+                                    public void onPrepare() {
+
+                                    }
+
+                                    @Override
+                                    public void onExecuteSuccess(Void aVoid) {
+
+                                    }
+
+                                    @Override
+                                    public void onExecuteFail(Exception e) {
+
+                                    }
+                                }.execute();
+                                mNormalPopup.dismiss();
+                            }
+                        });
+                        popView.findViewById(R.id.show_comment).setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Intent intent = new Intent(mContext, TemplateActivity.class);
+                                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关评论");
+                                intent.putExtra(Params.ILLUST_ID, allItems.get(position).getId());
+                                intent.putExtra(Params.ILLUST_TITLE, allItems.get(position).getTitle());
+                                startActivity(intent);
+                                mNormalPopup.dismiss();
+                            }
+                        });
+
+                        TextView follow = popView.findViewById(R.id.follow);
+                        if (allItems.get(position).getUser().isIs_followed()) {
+                            follow.setText("取消关注");
+                        } else {
+                            follow.setText("添加关注");
+                        }
+
+
+                        popView.findViewById(R.id.stop_follow).setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                if (allItems.get(position).getUser().isIs_followed()) {
+                                    PixivOperate.postUnFollowUser(allItems.get(position).getUser().getUserId());
+                                    allItems.get(position).getUser().setIs_followed(false);
+                                    follow.setText("添加关注");
+                                } else {
+                                    PixivOperate.postFollowUser(allItems.get(position).getUser().getUserId(),
+                                            FragmentLikeIllust.TYPE_PUBLUC);
+                                    allItems.get(position).getUser().setIs_followed(true);
+                                    follow.setText("取消关注");
+                                }
+                                mNormalPopup.dismiss();
+                            }
+                        });
+                    }
+                }
+            });
+        }
+    }
 
     @Override
     public NetControl<ListIllust> present() {
@@ -69,117 +181,17 @@ public class FragmentEvent extends NetListFragment<FragmentBaseListBinding,
     }
 
     @Override
-    public BaseAdapter<IllustsBean, RecyUserEventBinding> adapter() {
-        return new EventAdapter(allItems, mContext).setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(View v, int position, int viewType) {
-                if (viewType == 0) {
-                    DataChannel.get().setIllustList(allItems);
-                    Intent intent = new Intent(mContext, ViewPagerActivity.class);
-                    intent.putExtra("position", position);
-                    startActivity(intent);
-                } else if (viewType == 1) {
-                    Intent intent = new Intent(mContext, UActivity.class);
-                    intent.putExtra(Params.USER_ID, allItems.get(position).getUser().getId());
-                    startActivity(intent);
-                } else if (viewType == 2) {
-                    if (allItems.get(position).getPage_count() == 1) {
-                        IllustDownload.downloadIllust(mActivity, allItems.get(position));
-                    } else {
-                        IllustDownload.downloadAllIllust(mActivity, allItems.get(position));
-                    }
-                } else if (viewType == 3) {
-                    PixivOperate.postLike(allItems.get(position), sUserModel, FragmentLikeIllust.TYPE_PUBLUC);
-                } else if (viewType == 4) {
-                    View popView = LayoutInflater.from(mContext).inflate(R.layout.pop_window, null);
-                    QMUIPopup mNormalPopup = QMUIPopups.popup(mContext, QMUIDisplayHelper.dp2px(getContext(), 250))
-                            .preferredDirection(QMUIPopup.DIRECTION_BOTTOM)
-                            .view(popView)
-                            .dimAmount(0.5f)
-                            .edgeProtection(QMUIDisplayHelper.dp2px(getContext(), 20))
-                            .offsetX(QMUIDisplayHelper.dp2px(getContext(), 80))
-                            .offsetYIfBottom(QMUIDisplayHelper.dp2px(getContext(), 5))
-                            .shadow(true)
-                            .arrow(true)
-                            .animStyle(QMUIPopup.ANIM_GROW_FROM_RIGHT)
-                            .onDismiss(new PopupWindow.OnDismissListener() {
-                                @Override
-                                public void onDismiss() {
-                                }
-                            })
-                            .show(v);
-
-                    popView.findViewById(R.id.share).setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            new ShareIllust(mContext, allItems.get(position)) {
-                                @Override
-                                public void onPrepare() {
-
-                                }
-
-                                @Override
-                                public void onExecuteSuccess(Void aVoid) {
-
-                                }
-
-                                @Override
-                                public void onExecuteFail(Exception e) {
-
-                                }
-                            }.execute();
-                            mNormalPopup.dismiss();
-                        }
-                    });
-                    popView.findViewById(R.id.show_comment).setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            Intent intent = new Intent(mContext, TemplateActivity.class);
-                            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关评论");
-                            intent.putExtra(Params.ILLUST_ID, allItems.get(position).getId());
-                            intent.putExtra(Params.ILLUST_TITLE, allItems.get(position).getTitle());
-                            startActivity(intent);
-                            mNormalPopup.dismiss();
-                        }
-                    });
-
-                    TextView follow = popView.findViewById(R.id.follow);
-                    if (allItems.get(position).getUser().isIs_followed()) {
-                        follow.setText("取消关注");
-                    } else {
-                        follow.setText("添加关注");
-                    }
-
-
-                    popView.findViewById(R.id.stop_follow).setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            if (allItems.get(position).getUser().isIs_followed()) {
-                                PixivOperate.postUnFollowUser(allItems.get(position).getUser().getUserId());
-                                allItems.get(position).getUser().setIs_followed(false);
-                                follow.setText("添加关注");
-                            } else {
-                                PixivOperate.postFollowUser(allItems.get(position).getUser().getUserId(),
-                                        FragmentLikeIllust.TYPE_PUBLUC);
-                                allItems.get(position).getUser().setIs_followed(true);
-                                follow.setText("取消关注");
-                            }
-                            mNormalPopup.dismiss();
-                        }
-                    });
-                }
-            }
-        });
-    }
-
-    @Override
     public boolean showToolbar() {
         return false;
     }
 
     @Override
     public void initRecyclerView() {
-        super.initRecyclerView();
+        if (Shaft.sSettings.isDoubleStaggerData()) {
+            staggerRecyclerView();
+        } else {
+            super.initRecyclerView();
+        }
         baseBind.recyclerView.setBackgroundColor(getResources().getColor(R.color.white));
         baseBind.refreshLayout.setPrimaryColorsId(R.color.white);
     }
