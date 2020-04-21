@@ -160,5 +160,6 @@
 
     <string name="add">添加</string>
     <string name="fullscreen_layout">全屏布局</string>
+    <string name="how_many_novels">%d个作品，%d个字，看完需要：%d小时 %d分钟</string>
 
 </resources>

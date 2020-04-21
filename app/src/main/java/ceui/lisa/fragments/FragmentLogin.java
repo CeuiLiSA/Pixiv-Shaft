@@ -148,6 +148,9 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
     private void setTitle() {
         if (Local.getBoolean(Params.USE_DEBUG, false)) {
             baseBind.title.setText("Shaft(测试版)");
+            baseBind.userName.setText(Dev.USER_ACCOUNT);
+            baseBind.password.setText(Dev.USER_PWD);
+            baseBind.password.setSelection(Dev.USER_PWD.length());
         } else {
             baseBind.title.setText("Shaft");
         }

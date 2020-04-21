@@ -53,26 +53,29 @@ public class FragmentEditFile extends BaseFragment<FragmentEditFileBinding> {
 
     @Override
     void initData() {
-        if (sUserModel != null) {
-            Glide.with(mContext)
-                    .load(GlideUtil.getHead(sUserModel.getResponse().getUser()))
-                    .into(baseBind.userHead);
-            baseBind.submit.setOnClickListener(v -> submit());
-            baseBind.changeHead.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Matisse.from(mActivity)
-                            .choose(MimeType.ofImage())// 选择 mime 的类型
-                            .countable(true)
-                            .maxSelectable(1) // 图片选择的最多数量
-                            .restrictOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED)
-                            .thumbnailScale(1.0f) // 缩略图的比例
-                            .imageEngine(new GlideEngine()) // 使用的图片加载引擎
-                            .forResult(Params.REQUEST_CODE_CHOOSE);
-                }
-            });
-            baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
+        if (sUserModel == null) {
+            Common.showToast("你还没有登录");
+            mActivity.finish();
+            return;
         }
+        Glide.with(mContext)
+                .load(GlideUtil.getHead(sUserModel.getResponse().getUser()))
+                .into(baseBind.userHead);
+        baseBind.submit.setOnClickListener(v -> submit());
+        baseBind.changeHead.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Matisse.from(mActivity)
+                        .choose(MimeType.ofImage())// 选择 mime 的类型
+                        .countable(true)
+                        .maxSelectable(1) // 图片选择的最多数量
+                        .restrictOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED)
+                        .thumbnailScale(1.0f) // 缩略图的比例
+                        .imageEngine(new GlideEngine()) // 使用的图片加载引擎
+                        .forResult(Params.REQUEST_CODE_CHOOSE);
+            }
+        });
+        baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
     }
 
     private void submit() {
