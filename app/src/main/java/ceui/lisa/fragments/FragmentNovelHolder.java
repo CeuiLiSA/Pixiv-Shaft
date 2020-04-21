@@ -53,7 +53,6 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
     @Override
     public void initBundle(Bundle bundle) {
         mNovelBean = (NovelBean) bundle.getSerializable(Params.CONTENT);
-        PixivOperate.insertNovelViewHistory(mNovelBean);
     }
 
     @Override
@@ -63,7 +62,6 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
             @Override
             public void onClick(View v) {
                 if (isOpen) {
-                    isOpen = false;
                     close();
                 } else {
                     isOpen = true;
@@ -128,12 +126,16 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
     }
 
     private void getNovel(NovelBean novelBean) {
+        PixivOperate.insertNovelViewHistory(novelBean);
+        baseBind.viewPager.setVisibility(View.INVISIBLE);
+        baseBind.progressRela.setVisibility(View.VISIBLE);
         Retro.getAppApi().getNovelDetail(Shaft.sUserModel.getResponse().getAccess_token(), novelBean.getId())
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new NullCtrl<NovelDetail>() {
                     @Override
                     public void success(NovelDetail novelDetail) {
+                        baseBind.viewPager.setVisibility(View.VISIBLE);
                         if (novelDetail.getNovel_text().contains("[newpage]")) {
                             String[] partList = novelDetail.getNovel_text().split("\\[newpage]");
                             baseBind.viewPager.setAdapter(new VAdapter(
@@ -148,7 +150,6 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                                 @Override
                                 public void onClick(View view) {
                                     close();
-                                    Common.showToast("获取上一章节");
                                     getNovel(novelDetail.getSeries_prev());
                                 }
                             });
@@ -161,7 +162,6 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                                 @Override
                                 public void onClick(View view) {
                                     close();
-                                    Common.showToast("获取下一章节");
                                     getNovel(novelDetail.getSeries_next());
                                 }
                             });
@@ -178,6 +178,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
     }
 
     private void open() {
+        isOpen = true;
         ((ScrollChange) baseBind.viewPager.getLayoutManager()).setScrollEnabled(false);
         int centerX = baseBind.awesomeCard.getRight();
         int centerY = baseBind.awesomeCard.getBottom();
@@ -196,6 +197,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
     }
 
     private void close() {
+        isOpen = false;
         ((ScrollChange) baseBind.viewPager.getLayoutManager()).setScrollEnabled(true);
         int centerX = baseBind.awesomeCard.getRight();
         int centerY = baseBind.awesomeCard.getBottom();

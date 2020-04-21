@@ -22,7 +22,6 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
     public static final String[] TAG_MATCH_VALUE = new String[]{"partial_match_for_tags",
             "exact_match_for_tags", "title_and_caption"};
 
-
     public static final String[] ALL_SIZE = new String[]{" 无限制", " 500人收藏", " 1000人收藏", " 2000人收藏",
             " 5000人收藏(建议)", " 7500人收藏", " 10000人收藏", " 20000人收藏", " 50000人收藏"};
     public static final String[] ALL_SIZE_VALUE = new String[]{"", "500users入り", "1000users入り", "2000users入り",
@@ -124,6 +123,11 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
         });
 
 
+        if (Shaft.sUserModel.getResponse().getUser().isIs_premium()) {
+            baseBind.popSwitch.setEnabled(true);
+        } else {
+            baseBind.popSwitch.setEnabled(false);
+        }
         baseBind.popSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {

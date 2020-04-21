@@ -42,6 +42,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                 @Override
                 public void success(Response response) {
                     mResponse = response;
+                    onResponse(mResponse);
                     if (response.getList() != null && response.getList().size() != 0) {
                         List<Item> firstList = response.getList();
                         if (mModel != null) {
@@ -124,5 +125,9 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
      * FragmentR页面，调试过程中不需要每次都刷新，就调用这个方法来加载数据。只是为了方便测试
      */
     public void showDataBase() {
+    }
+
+    public void onResponse(Response response) {
+
     }
 }
