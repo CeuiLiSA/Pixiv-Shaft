@@ -18,6 +18,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
@@ -141,5 +142,14 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
 
     public void vertical() {
 
+    }
+
+    @Nullable
+    public BaseActivity getBaseActivity() {
+        if (getActivity() instanceof BaseActivity) {
+            return (BaseActivity) getActivity();
+        } else {
+            return null;
+        }
     }
 }

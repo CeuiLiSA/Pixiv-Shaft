@@ -10,6 +10,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.TextUtils;
+import android.view.DisplayCutout;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
@@ -319,6 +320,17 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 return true;
             }
             return false;
+        }
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (Shaft.sSettings.isFullscreenLayout() && navigationBarOnButton) {
+            baseBind.navigationView.setPadding(0,0,0, navigationBarHeight);
+        }
+        if (Shaft.sSettings.isFullscreenLayout() && displayCutout != null) {
+            baseBind.navigationView.setPadding(0,0,0, navigationBarHeight + displayCutout.getSafeInsetBottom());
         }
     }
 

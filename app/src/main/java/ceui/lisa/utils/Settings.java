@@ -83,6 +83,8 @@ public class Settings {
 
     private boolean usingNewFileNameType = false;
 
+    private boolean fullscreenLayout = false;
+
     public String getAppLanguage() {
         if(!TextUtils.isEmpty(appLanguage)){
             return appLanguage;
@@ -309,5 +311,13 @@ public class Settings {
 
     public void setUsingNewFileNameType(boolean usingNewFileNameType) {
         this.usingNewFileNameType = usingNewFileNameType;
+    }
+
+    public boolean isFullscreenLayout() {
+        return fullscreenLayout;
+    }
+
+    public void setFullscreenLayout(boolean fullscreenLayout) {
+        this.fullscreenLayout = fullscreenLayout;
     }
 }

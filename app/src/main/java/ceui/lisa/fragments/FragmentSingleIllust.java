@@ -2,11 +2,13 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
+import android.view.DisplayCutout;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.ImageDetailActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
@@ -391,6 +394,16 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
                     }
                 }
             });
+        }
+        BaseActivity baseActivity = getBaseActivity();
+        if (baseActivity != null && Shaft.sSettings.isFullscreenLayout()) {
+            ViewGroup.LayoutParams params = baseBind.v.getLayoutParams();
+            params.height = baseActivity.navigationBarHeight;
+            baseBind.v.setLayoutParams(params);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                baseActivity.getWindow().getDecorView().setSystemUiVisibility(baseActivity.getWindow().getDecorView().getSystemUiVisibility()
+                        & ~View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
+            }
         }
     }
 
