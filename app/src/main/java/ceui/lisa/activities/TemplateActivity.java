@@ -1,8 +1,10 @@
 package ceui.lisa.activities;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.view.KeyEvent;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -63,7 +65,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
     public static final String EXTRA_KEYWORD = "keyword";
     protected Fragment childFragment;
 
-    private boolean needFixTop;
+    private boolean needFixTop = false;
     private boolean needDisableFullscreenLayout = false;
 
     @Override
@@ -76,12 +78,20 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
         return needDisableFullscreenLayout;
     }
 
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            needFixTop = savedInstanceState.getBoolean("needFixTop");
+        }
+        super.onCreate(savedInstanceState);
+    }
+
     protected Fragment createNewFragment() {
         Intent intent = getIntent();
         String dataType = intent.getStringExtra(EXTRA_FRAGMENT);
 
         if (dataType != null) {
-            needDisableFullscreenLayout = false;
+            //在顶部进入状态栏时使用 needFixTop = true 来修复
             switch (dataType) {
                 case "登录注册":
                     needFixTop = false;
@@ -108,9 +118,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                     return FragmentWebView.newInstance(title, url);
                 }
                 case "设置":
-                needFixTop = false;
-                return FragmentSettings.newInstance();
-
+                    needFixTop = false;
+                    return FragmentSettings.newInstance();
                 case "推荐用户":
                     return new FragmentRecmdUser();
                 case "特辑":
@@ -290,5 +299,14 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
     @Override
     public boolean hideStatusBar() {
         return getIntent().getBooleanExtra("hideStatusBar", true);
+    }
+
+    /**
+     *  这里要存储 needFixTop, 否则重构后顶部视图会进入状态栏
+     */
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean("needFixTop", needFixTop);
     }
 }
