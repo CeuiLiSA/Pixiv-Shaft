@@ -12,6 +12,7 @@ import com.blankj.utilcode.util.BarUtils;
 import ceui.lisa.R;
 import ceui.lisa.databinding.ActivityFragmentBinding;
 import ceui.lisa.fragments.FragmentAboutApp;
+import ceui.lisa.fragments.FragmentAnime;
 import ceui.lisa.fragments.FragmentListSimpleUser;
 import ceui.lisa.fragments.FragmentMultiDownld;
 import ceui.lisa.fragments.FragmentNovelSeries;
@@ -65,16 +66,6 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
 
     private boolean needFixTop;
     private boolean needDisableFullscreenLayout = false;
-
-    @Override
-    public boolean fixTop() {
-        return needFixTop;
-    }
-
-    @Override
-    public boolean disableFullscreenLayout() {
-        return needDisableFullscreenLayout;
-    }
 
     protected Fragment createNewFragment() {
         Intent intent = getIntent();
@@ -182,6 +173,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                 case "粉丝":
                     needFixTop = true;
                     return FragmentWhoFollowThisUser.newInstance(intent.getIntExtra(Params.USER_ID, 0));
+                case "开发者预览":
+                    return FragmentAnime.newInstance();
                 case "喜欢这个作品的用户":
                     return FragmentListSimpleUser.newInstance((IllustsBean) intent.getSerializableExtra(Params.CONTENT));
                 case "小说系列作品":

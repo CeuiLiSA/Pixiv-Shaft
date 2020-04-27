@@ -27,17 +27,24 @@
 
             </androidx.viewpager.widget.ViewPager>
 
-            <com.google.android.material.bottomnavigation.BottomNavigationView
+
+            <nl.joery.animatedbottombar.AnimatedBottomBar
                 android:id="@+id/navigation_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
+                app:abb_selectedTabType="text"
+                app:abb_indicatorAppearance="round"
                 android:background="?android:attr/windowBackground"
                 android:elevation="@dimen/four_dp"
-                app:elevation="@dimen/four_dp"
-                app:menu="@menu/main_activity">
-
-            </com.google.android.material.bottomnavigation.BottomNavigationView>
+                app:abb_indicatorLocation="bottom"
+                app:abb_indicatorMargin="16dp"
+                app:abb_rippleEnabled="true"
+                app:abb_iconSize="30dp"
+                app:abb_textSize="16sp"
+                app:abb_indicatorHeight="4dp"
+                app:abb_tabs="@menu/main_activity"
+                app:abb_selectedIndex="0" />
 
         </RelativeLayout>
 

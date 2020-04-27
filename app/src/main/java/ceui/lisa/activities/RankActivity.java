@@ -33,11 +33,6 @@ public class RankActivity extends BaseActivity implements DatePickerDialog.OnDat
     private String queryDate = "";
 
     @Override
-    public boolean fixTop() {
-        return true;
-    }
-
-    @Override
     protected int initLayout() {
         return R.layout.activity_multi_view_pager;
     }

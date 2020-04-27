@@ -172,6 +172,10 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
                     } else if (menuItem.getItemId() == R.id.action_dislike) {
                         MuteDialog muteDialog = MuteDialog.newInstance(illust);
                         muteDialog.show(getChildFragmentManager(), "MuteDialog");
+                    } else if (menuItem.getItemId() == R.id.action_preview) {
+                        Intent intent = new Intent(mContext, TemplateActivity.class);
+                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "开发者预览");
+                        startActivity(intent);
                     }
                     return false;
                 }
@@ -394,16 +398,6 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
                     }
                 }
             });
-        }
-        BaseActivity baseActivity = getBaseActivity();
-        if (baseActivity != null && Shaft.sSettings.isFullscreenLayout()) {
-            ViewGroup.LayoutParams params = baseBind.v.getLayoutParams();
-            params.height = baseActivity.navigationBarHeight;
-            baseBind.v.setLayoutParams(params);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                baseActivity.getWindow().getDecorView().setSystemUiVisibility(baseActivity.getWindow().getDecorView().getSystemUiVisibility()
-                        & ~View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
-            }
         }
     }
 

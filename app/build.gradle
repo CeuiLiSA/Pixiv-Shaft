@@ -112,6 +112,10 @@ dependencies {
 
     annotationProcessor 'com.github.bumptech.glide:compiler:4.10.0'
 
+    implementation 'nl.joery.animatedbottombar:library:1.0.8'
+    implementation "com.github.skydoves:transformationlayout:1.0.4"
+
+    
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
