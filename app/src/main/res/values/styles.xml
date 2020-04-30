@@ -17,6 +17,7 @@
     </style>
 
     <style name="AppTheme.Launcher">
+        <item name="android:statusBarColor">@color/white</item>
         <item name="android:windowBackground">@drawable/splash</item>
     </style>
 

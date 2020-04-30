@@ -111,6 +111,49 @@ public class Common {
         toast.setView(view);
         toast.show();
     }
+//
+//    /**
+//     * 不显示任何icon
+//     */
+//    public static final int ICON_TYPE_NOTHING = 0;
+//    /**
+//     * 显示 Loading 图标
+//     */
+//    public static final int ICON_TYPE_LOADING = 1;
+//    /**
+//     * 显示成功图标
+//     */
+//    public static final int ICON_TYPE_SUCCESS = 2;
+//    /**
+//     * 显示失败图标
+//     */
+//    public static final int ICON_TYPE_FAIL = 3;
+//    /**
+//     * 显示信息图标
+//     */
+//    public static final int ICON_TYPE_INFO = 4;
+//
+//    public static <T> void showToast(T t, View pView, int type) {
+//        final QMUITipDialog tipDialog = new QMUITipDialog.Builder(Shaft.getContext())
+//                .setIconType(type)
+//                .setTipWord(String.valueOf(t))
+//                .create();
+//        tipDialog.show();
+//        pView.postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                tipDialog.dismiss();
+//            }
+//        }, 1000L);
+//    }
+//
+//    public static <T> void showToast(T t, View pView) {
+//        showToast(t, pView, 2);
+//    }
+//
+//
+//
+
 
     public static void success(Context context, String s, View view) {
         QMUITipDialog dialog = new QMUITipDialog.Builder(context)
