@@ -162,4 +162,17 @@
     <string name="fullscreen_layout">全屏布局</string>
     <string name="how_many_novels">%d个作品，%d个字，看完需要：%d小时 %d分钟</string>
 
+
+    <string name="scroll_behavior">ceui.lisa.pixiv.ScrollBehavior</string>
+    <string name="head_behavior">ceui.lisa.pixiv.HeadBehavior</string>
+    <string name="title_activity_splash">SplashActivity</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+
+    <string name="hello_first_fragment">Hello first fragment</string>
+    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+
 </resources>

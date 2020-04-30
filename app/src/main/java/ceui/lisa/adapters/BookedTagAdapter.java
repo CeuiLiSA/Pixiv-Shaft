@@ -42,10 +42,7 @@ public class BookedTagAdapter extends BaseAdapter<TagsBean, RecyBookTagBinding> 
                 bindView.baseBind.illustCount.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        PixivOperate.unMuteTag(target);
-                        allIllust.remove(target);
-                        notifyItemRemoved(position);
-                        notifyItemRangeChanged(position, allIllust.size() - position);
+                        mOnItemClickListener.onItemClick(v, position, 1);
                     }
                 });
             } else {

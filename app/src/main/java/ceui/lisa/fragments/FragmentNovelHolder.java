@@ -153,11 +153,14 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                         });
                         if (novelDetail.getNovel_text().contains("[newpage]")) {
                             String[] partList = novelDetail.getNovel_text().split("\\[newpage]");
+                            String temp = partList[0];
+                            temp = "\n\n" + temp;
+                            partList[0] = temp;
                             baseBind.viewPager.setAdapter(new VAdapter(
                                     Arrays.asList(partList), mContext));
                         } else {
                             baseBind.viewPager.setAdapter(new VAdapter(
-                                    Collections.singletonList(novelDetail.getNovel_text()), mContext));
+                                    Collections.singletonList("\n\n" + novelDetail.getNovel_text()), mContext));
                         }
                         if (novelDetail.getSeries_prev() != null && novelDetail.getSeries_prev().getId() != 0) {
                             baseBind.showPrev.setVisibility(View.VISIBLE);

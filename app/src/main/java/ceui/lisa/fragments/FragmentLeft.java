@@ -78,8 +78,4 @@ public class FragmentLeft extends BaseFragment<FragmentLeftBinding> {
         });
         baseBind.tabLayout.setupWithViewPager(baseBind.viewPager);
     }
-
-    public ViewPager getViewPager() {
-        return baseBind.viewPager;
-    }
 }

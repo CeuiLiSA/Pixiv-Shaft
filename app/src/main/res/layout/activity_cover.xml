@@ -31,7 +31,7 @@
             <nl.joery.animatedbottombar.AnimatedBottomBar
                 android:id="@+id/navigation_view"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="54dp"
                 android:layout_alignParentBottom="true"
                 app:abb_selectedTabType="text"
                 app:abb_indicatorAppearance="round"

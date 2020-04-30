@@ -197,7 +197,7 @@
         <com.skydoves.transformationlayout.TransformationLayout
             android:layout_width="wrap_content"
             android:layout_alignParentBottom="true"
-            app:transformation_duration="550"
+            app:transformation_duration="400"
             android:id="@+id/transformation_layout"
             app:transformation_targetView="@id/awesome_card"
             android:layout_alignParentEnd="true"

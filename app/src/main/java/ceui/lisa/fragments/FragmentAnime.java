@@ -3,8 +3,14 @@ package ceui.lisa.fragments;
 import android.os.Bundle;
 import android.view.View;
 
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentPagerAdapter;
+
 import ceui.lisa.R;
 import ceui.lisa.databinding.FragmentAnimeBinding;
+import ceui.lisa.transformer.Abc;
+import ceui.lisa.transformer.CustPagerTransformer;
 
 public class FragmentAnime extends BaseFragment<FragmentAnimeBinding> {
 
@@ -20,21 +26,32 @@ public class FragmentAnime extends BaseFragment<FragmentAnimeBinding> {
         mLayoutID = R.layout.fragment_anime;
     }
 
+    private static final String[] COLORS = new String[]{
+            "#d50000",
+            "#c51162",
+            "#aa00ff",
+            "#6200ea",
+            "#304ffe",
+            "#2962ff",
+            "#0091ea",
+            "#00b8d4",
+            "#00bfa5",
+    };
+
     @Override
     public void initView(View view) {
-        baseBind.reflect.bindTargetView(baseBind.cardPixiv);
-        baseBind.fab.setOnClickListener(new View.OnClickListener() {
+        baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
+            @NonNull
             @Override
-            public void onClick(View v) {
-                baseBind.reflect.startTransform();
+            public Fragment getItem(int position) {
+                return FragmentColor.newInstance(COLORS[position]);
             }
-        });
 
-        baseBind.cardPixiv.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                baseBind.reflect.finishTransform();
+            public int getCount() {
+                return COLORS.length;
             }
         });
+        baseBind.viewPager.setPageTransformer(false, new Abc());
     }
 }

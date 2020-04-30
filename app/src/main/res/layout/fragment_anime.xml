@@ -11,35 +11,12 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <com.skydoves.transformationlayout.TransformationLayout
-            android:layout_width="wrap_content"
-            android:id="@+id/reflect"
-            android:layout_alignParentEnd="true"
-            android:layout_marginTop="300dp"
-            app:transformation_duration="550"
-            app:transformation_targetView="@id/card_pixiv"
-            android:layout_height="wrap_content">
+        <androidx.viewpager.widget.ViewPager
+            android:layout_width="match_parent"
+            android:id="@+id/view_pager"
+            android:layout_height="match_parent">
 
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/fab"
-                android:layout_width="wrap_content"
-                android:layout_margin="@dimen/eight_dp"
-                android:layout_gravity="end|bottom"
-                android:src="@drawable/ic_check_circle_black_24dp"
-                android:layout_height="wrap_content" />
-
-
-        </com.skydoves.transformationlayout.TransformationLayout>
-
-
-        <androidx.cardview.widget.CardView
-            android:layout_width="250dp"
-            android:layout_margin="@dimen/sixteen_dp"
-            app:cardBackgroundColor="@color/colorPrimary"
-            android:id="@+id/card_pixiv"
-            android:layout_height="200dp">
-
-        </androidx.cardview.widget.CardView>
+        </androidx.viewpager.widget.ViewPager>
 
 
     </RelativeLayout>

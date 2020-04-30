@@ -334,11 +334,11 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
         baseBind.refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));
         baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
 
-        baseBind.fullscreenLayout.setChecked(Shaft.sSettings.isFullscreenLayout());
-        baseBind.fullscreenLayout.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            Shaft.sSettings.setFullscreenLayout(isChecked);
-            Local.setSettings(Shaft.sSettings);
-        });
+//        baseBind.fullscreenLayout.setChecked(Shaft.sSettings.isFullscreenLayout());
+//        baseBind.fullscreenLayout.setOnCheckedChangeListener((buttonView, isChecked) -> {
+//            Shaft.sSettings.setFullscreenLayout(isChecked);
+//            Local.setSettings(Shaft.sSettings);
+//        });
     }
 
     private void animate(LinearLayout linearLayout) {
