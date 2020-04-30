@@ -58,6 +58,9 @@ public class Settings {
     //是否显示开屏 dialog
     private boolean showPixivDialog = true;
 
+    //列表页面是否显示收藏按钮
+    private boolean showLikeButton = false;
+
     //直接下载单个作品所有P
     private boolean directDownloadAllImage = true;
 
@@ -319,5 +322,13 @@ public class Settings {
 
     public void setFullscreenLayout(boolean fullscreenLayout) {
         this.fullscreenLayout = fullscreenLayout;
+    }
+
+    public boolean isShowLikeButton() {
+        return showLikeButton;
+    }
+
+    public void setShowLikeButton(boolean pShowLikeButton) {
+        showLikeButton = pShowLikeButton;
     }
 }

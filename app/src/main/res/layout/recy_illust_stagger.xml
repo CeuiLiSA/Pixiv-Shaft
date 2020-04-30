@@ -81,6 +81,19 @@
                 android:text="取消屏蔽"
                 android:textColor="@android:color/white"/>
 
+            <ImageButton
+                android:layout_width="36dp"
+                android:padding="@dimen/four_dp"
+                android:id="@+id/like_button"
+                android:scaleType="fitCenter"
+                android:layout_alignParentEnd="true"
+                android:tint="#a4afb3"
+                android:layout_alignParentBottom="true"
+                android:src="@drawable/ic_like_illust_6"
+                android:layout_height="36dp">
+
+            </ImageButton>
+
         </RelativeLayout>
     </androidx.cardview.widget.CardView>
 </layout>

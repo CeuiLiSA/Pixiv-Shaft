@@ -68,7 +68,7 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
 
     @Override
     void initData() {
-        baseBind.toolbar.setNavigationOnClickListener(view -> getActivity().finish());
+        baseBind.toolbar.setNavigationOnClickListener(view -> mActivity.finish());
         animate(baseBind.parentLinear);
 
         baseBind.loginOut.setOnClickListener(new View.OnClickListener() {
@@ -137,6 +137,19 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
                     Shaft.sSettings.setDoubleStaggerData(true);
                 } else {
                     Shaft.sSettings.setDoubleStaggerData(false);
+                }
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+
+        baseBind.showLikeButton.setChecked(Shaft.sSettings.isShowLikeButton());
+        baseBind.showLikeButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    Shaft.sSettings.setShowLikeButton(true);
+                } else {
+                    Shaft.sSettings.setShowLikeButton(false);
                 }
                 Local.setSettings(Shaft.sSettings);
             }

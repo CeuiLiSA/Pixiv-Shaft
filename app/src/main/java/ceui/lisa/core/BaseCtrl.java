@@ -7,6 +7,8 @@ import com.scwang.smartrefresh.layout.api.RefreshFooter;
 import com.scwang.smartrefresh.layout.api.RefreshHeader;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 
+import ceui.lisa.activities.Shaft;
+
 public class BaseCtrl {
 
     public boolean hasNext(){
@@ -27,5 +29,12 @@ public class BaseCtrl {
 
     public boolean showNoDataHint() {
         return true;
+    }
+
+    public String token() {
+        if (Shaft.sUserModel != null) {
+            return Shaft.sUserModel.getResponse().getAccess_token();
+        }
+        return "";
     }
 }

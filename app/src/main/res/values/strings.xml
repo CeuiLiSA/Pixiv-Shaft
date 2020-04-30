@@ -122,6 +122,7 @@
     <string name="show_original_image">图片详情展示原图</string>
     <string name="save_view_history">保存浏览历史</string>
     <string name="double_stagger_data">动态页面双列瀑布流</string>
+    <string name="show_like_button">列表页展示收藏按钮</string>
     <string name="slide_down_endless">相关作品无限下滑（可能出现重复）</string>
     <string name="other_settings">其他</string>
     <string name="search_result_filter">搜索结果收藏量筛选</string>

@@ -59,14 +59,22 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
             @Override
             public Observable<ListIllust> initApi() {
                 if (Dev.isDev) {
-                    return null;
+                    List<IllustRecmdEntity> temp = AppDatabase.getAppDatabase(mContext).recmdDao().getAll();
+                    if (temp != null && temp.size() != 0) {
+                        //如果本地的浏览数据不为空，就return null, 展示本地的
+                        return null;
+                    } else {
+                        if ("漫画".equals(dataType)) {
+                            return Retro.getAppApi().getRecmdManga(token());
+                        } else {
+                            return Retro.getAppApi().getRecmdIllust(token());
+                        }
+                    }
                 } else {
                     if ("漫画".equals(dataType)) {
-                        return Retro.getAppApi().getRecmdManga(
-                                Shaft.sUserModel.getResponse().getAccess_token());
+                        return Retro.getAppApi().getRecmdManga(token());
                     } else {
-                        return Retro.getAppApi().getRecmdIllust(
-                                Shaft.sUserModel.getResponse().getAccess_token());
+                        return Retro.getAppApi().getRecmdIllust(token());
                     }
                 }
             }
@@ -107,14 +115,14 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
     public void onFirstLoaded(List<IllustsBean> illustsBeans) {
         Observable.create((ObservableOnSubscribe<String>) emitter -> {
             emitter.onNext("开始写入数据库");
-            if (allItems != null) {
-                if (allItems.size() >= 20) {
+            if (mResponse.getRanking_illusts() != null) {
+                if (mResponse.getRanking_illusts().size() >= 20) {
                     for (int i = 0; i < 20; i++) {
-                        insertViewHistory(allItems.get(i));
+                        insertViewHistory(mResponse.getRanking_illusts().get(i));
                     }
                 } else {
-                    for (int i = 0; i < allItems.size(); i++) {
-                        insertViewHistory(allItems.get(i));
+                    for (int i = 0; i < mResponse.getRanking_illusts().size(); i++) {
+                        insertViewHistory(mResponse.getRanking_illusts().get(i));
                     }
                 }
             }
