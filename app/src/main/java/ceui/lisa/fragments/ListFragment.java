@@ -114,7 +114,12 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
         mRefreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
             @Override
             public void onLoadMore(@NonNull RefreshLayout refreshLayout) {
-                loadMore();
+                if (mBaseCtrl.hasNext()) {
+                    loadMore();
+                } else {
+                    mRefreshLayout.finishLoadMore();
+                    mRefreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
+                }
             }
         });
     }

@@ -22,7 +22,7 @@ public interface IllustRecmdDao {
     void delete(IllustRecmdEntity userEntity);
 
 
-    @Query("SELECT * FROM illust_recmd_table LIMIT 30 OFFSET 0")
+    @Query("SELECT * FROM illust_recmd_table ORDER BY time DESC LIMIT 30 OFFSET 0 ")
     List<IllustRecmdEntity> getAll();
 
 }

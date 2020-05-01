@@ -4,11 +4,13 @@ import android.animation.Animator;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewAnimationUtils;
 
 import com.blankj.utilcode.util.BarUtils;
 import com.bumptech.glide.Glide;
+import com.skydoves.transformationlayout.OnTransformFinishListener;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -61,14 +63,16 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
         baseBind.fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isOpen) {
-                    close();
-                } else {
-                    isOpen = true;
-                    open();
-                }
+                baseBind.transformationLayout.startTransform();
             }
         });
+        baseBind.transformationLayout.onTransformFinishListener = new OnTransformFinishListener() {
+            @Override
+            public void onFinish(boolean isTransformed) {
+                Common.showLog(className + isTransformed);
+                isOpen = isTransformed;
+            }
+        };
         if (mNovelBean.isIs_bookmarked()) {
             baseBind.like.setText("取消收藏");
         } else {
@@ -136,20 +140,34 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                     @Override
                     public void success(NovelDetail novelDetail) {
                         baseBind.viewPager.setVisibility(View.VISIBLE);
+                        baseBind.viewPager.setOnTouchListener(new View.OnTouchListener() {
+                            @Override
+                            public boolean onTouch(View v, MotionEvent event) {
+                                if (isOpen) {
+                                    Common.showLog(className + "关闭card");
+                                    baseBind.transformationLayout.finishTransform();
+                                    isOpen = false;
+                                }
+                                return false;
+                            }
+                        });
                         if (novelDetail.getNovel_text().contains("[newpage]")) {
                             String[] partList = novelDetail.getNovel_text().split("\\[newpage]");
+                            String temp = partList[0];
+                            temp = "\n\n" + temp;
+                            partList[0] = temp;
                             baseBind.viewPager.setAdapter(new VAdapter(
                                     Arrays.asList(partList), mContext));
                         } else {
                             baseBind.viewPager.setAdapter(new VAdapter(
-                                    Collections.singletonList(novelDetail.getNovel_text()), mContext));
+                                    Collections.singletonList("\n\n" + novelDetail.getNovel_text()), mContext));
                         }
                         if (novelDetail.getSeries_prev() != null && novelDetail.getSeries_prev().getId() != 0) {
                             baseBind.showPrev.setVisibility(View.VISIBLE);
                             baseBind.showPrev.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View view) {
-                                    close();
+                                    baseBind.transformationLayout.finishTransform();
                                     getNovel(novelDetail.getSeries_prev());
                                 }
                             });
@@ -161,7 +179,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                             baseBind.showNext.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View view) {
-                                    close();
+                                    baseBind.transformationLayout.finishTransform();
                                     getNovel(novelDetail.getSeries_next());
                                 }
                             });
@@ -175,43 +193,5 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                         baseBind.progressRela.setVisibility(View.INVISIBLE);
                     }
                 });
-    }
-
-    private void open() {
-        isOpen = true;
-        ((ScrollChange) baseBind.viewPager.getLayoutManager()).setScrollEnabled(false);
-        int centerX = baseBind.awesomeCard.getRight();
-        int centerY = baseBind.awesomeCard.getBottom();
-        float finalRadius = (float) Math.hypot((double) centerX, (double) centerY);
-        Animator mCircularReveal = ViewAnimationUtils.createCircularReveal(
-                baseBind.awesomeCard, centerX, centerY, 0, finalRadius);
-        mCircularReveal.setDuration(600);
-        mCircularReveal.addListener(new AnimeListener() {
-            @Override
-            public void onAnimationStart(Animator animation) {
-                baseBind.fab.setImageResource(R.drawable.ic_close_black_24dp);
-                baseBind.awesomeCard.setVisibility(View.VISIBLE);
-            }
-        });
-        mCircularReveal.start();
-    }
-
-    private void close() {
-        isOpen = false;
-        ((ScrollChange) baseBind.viewPager.getLayoutManager()).setScrollEnabled(true);
-        int centerX = baseBind.awesomeCard.getRight();
-        int centerY = baseBind.awesomeCard.getBottom();
-        float finalRadius = (float) Math.hypot((double) centerX, (double) centerY);
-        Animator mCircularReveal = ViewAnimationUtils.createCircularReveal(
-                baseBind.awesomeCard, centerX, centerY, finalRadius, 0);
-        mCircularReveal.setDuration(600);
-        mCircularReveal.addListener(new AnimeListener() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                baseBind.awesomeCard.setVisibility(View.INVISIBLE);
-                baseBind.fab.setImageResource(R.drawable.ic_keyboard_arrow_up_black_24dp);
-            }
-        });
-        mCircularReveal.start();
     }
 }

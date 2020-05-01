@@ -441,6 +441,46 @@
 
                         </View>
 
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:layout_height="match_parent">
+
+
+                            <TextView
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="@string/show_like_button"
+                                android:textSize="15sp"
+                                android:layout_centerVertical="true"
+                                android:textColor="@color/rank_text_color"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+                            </TextView>
+
+
+                            <Switch
+                                android:layout_width="wrap_content"
+                                android:checked="true"
+                                android:id="@+id/show_like_button"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:layout_height="wrap_content" />
+
+
+                        </RelativeLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="@color/settings_divider_bg"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_height="1dp">
+
+
+                        </View>
+
 
                         <RelativeLayout
                             android:layout_width="match_parent"
@@ -684,38 +724,38 @@
 
                         </RelativeLayout>
 
-                        <View
-                            android:layout_width="match_parent"
-                            android:layout_height="1dp"
-                            android:layout_marginStart="@dimen/sixteen_dp"
-                            android:background="@color/settings_divider_bg" />
+<!--                        <View-->
+<!--                            android:layout_width="match_parent"-->
+<!--                            android:layout_height="1dp"-->
+<!--                            android:layout_marginStart="@dimen/sixteen_dp"-->
+<!--                            android:background="@color/settings_divider_bg" />-->
 
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:background="?android:attr/selectableItemBackground"
-                            android:clickable="true">
+<!--                        <RelativeLayout-->
+<!--                            android:layout_width="match_parent"-->
+<!--                            android:layout_height="match_parent"-->
+<!--                            android:background="?android:attr/selectableItemBackground"-->
+<!--                            android:clickable="true">-->
 
-                            <TextView
-                                android:id="@+id/fullscreen_layout_s"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_centerVertical="true"
-                                android:layout_margin="@dimen/sixteen_dp"
-                                android:text="@string/fullscreen_layout"
-                                android:textColor="@color/rank_text_color"
-                                android:textSize="15sp" />
+<!--                            <TextView-->
+<!--                                android:id="@+id/fullscreen_layout_s"-->
+<!--                                android:layout_width="wrap_content"-->
+<!--                                android:layout_height="wrap_content"-->
+<!--                                android:layout_centerVertical="true"-->
+<!--                                android:layout_margin="@dimen/sixteen_dp"-->
+<!--                                android:text="@string/fullscreen_layout"-->
+<!--                                android:textColor="@color/rank_text_color"-->
+<!--                                android:textSize="15sp" />-->
 
-                            <Switch
-                                android:id="@+id/fullscreen_layout"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_alignParentEnd="true"
-                                android:layout_centerVertical="true"
-                                android:layout_margin="@dimen/sixteen_dp"
-                                android:checked="false" />
+<!--                            <Switch-->
+<!--                                android:id="@+id/fullscreen_layout"-->
+<!--                                android:layout_width="wrap_content"-->
+<!--                                android:layout_height="wrap_content"-->
+<!--                                android:layout_alignParentEnd="true"-->
+<!--                                android:layout_centerVertical="true"-->
+<!--                                android:layout_margin="@dimen/sixteen_dp"-->
+<!--                                android:checked="false" />-->
 
-                        </RelativeLayout>
+<!--                        </RelativeLayout>-->
                     </LinearLayout>
 
 

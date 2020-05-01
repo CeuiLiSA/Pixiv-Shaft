@@ -49,4 +49,8 @@
     <color name="about_user_right">#BBBBBB</color>
     <color name="about_user_white">#FFFFFF</color>
 
+
+    <color name="not_bookmarked">#a4afb3</color>
+    <color name="has_bookmarked">#FA3A3A</color>
+
 </resources>

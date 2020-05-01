@@ -6,11 +6,7 @@ import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
-import android.os.Build;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
-import android.util.Log;
-import android.view.DisplayCutout;
 import android.view.View;
 
 import androidx.annotation.Nullable;
@@ -19,8 +15,6 @@ import androidx.databinding.DataBindingUtil;
 import androidx.databinding.ViewDataBinding;
 import androidx.fragment.app.FragmentActivity;
 
-import ceui.lisa.R;
-
 public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCompatActivity {
 
     protected Context mContext;
@@ -28,6 +22,7 @@ public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCo
     protected int mLayoutID;
     protected Layout baseBind;
     protected String className = this.getClass().getSimpleName() + " ";
+
 
     public int navigationBarHeight;
     public int statusBarHeight;
@@ -42,7 +37,6 @@ public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCo
         mContext = this;
         mActivity = this;
 
-
         if (hideStatusBar()) {
             getWindow().setStatusBarColor(Color.TRANSPARENT);
             getWindow().getDecorView().setSystemUiVisibility(
@@ -51,6 +45,7 @@ public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCo
         }
 
         baseBind = DataBindingUtil.setContentView(mActivity, mLayoutID);
+
 
         //获取 navigationBar 和 statusBar 的高度
         //navigation_bar_height 和 navigation_bar_width 是相同的
@@ -151,6 +146,13 @@ public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCo
         }
     }
 
+
+        initView();
+        initData();
+    }
+
+
+
     protected abstract int initLayout();
 
     protected abstract void initView();
@@ -158,24 +160,6 @@ public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCo
     protected abstract void initData();
 
     public boolean hideStatusBar() {
-        return false;
-    }
-
-    public boolean fixLayout() {
-        return true;
-    }
-
-    /**
-     * 只在 fixLayout() == true 时有意义
-     */
-    public boolean fixTop() {
-        return false;
-    }
-
-    /**
-     * 用以在难以对全屏布局优化时禁用全屏布局
-     */
-    public boolean disableFullscreenLayout() {
         return false;
     }
 

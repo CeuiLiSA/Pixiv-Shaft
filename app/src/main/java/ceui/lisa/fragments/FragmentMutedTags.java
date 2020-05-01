@@ -18,6 +18,7 @@ import ceui.lisa.database.AppDatabase;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyBookTagBinding;
 import ceui.lisa.core.DataControl;
+import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.PixivOperate;
@@ -41,7 +42,22 @@ public class FragmentMutedTags extends LocalListFragment<FragmentBaseListBinding
 
     @Override
     public BaseAdapter<TagsBean, RecyBookTagBinding> adapter() {
-        return new BookedTagAdapter(allItems, mContext, true);
+        return new BookedTagAdapter(allItems, mContext, true).setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(View v, int position, int viewType) {
+                if (viewType == 1) {
+                    final TagsBean target = allItems.get(position);
+                    PixivOperate.unMuteTag(target);
+                    allItems.remove(target);
+                    mAdapter.notifyItemRemoved(position);
+                    mAdapter.notifyItemRangeChanged(position, allItems.size() - position);
+                    if (allItems.size() == 0) {
+                        mRecyclerView.setVisibility(View.INVISIBLE);
+                        noData.setVisibility(View.VISIBLE);
+                    }
+                }
+            }
+        });
     }
 
     @Override

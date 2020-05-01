@@ -7,10 +7,8 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.TextUtils;
-import android.view.DisplayCutout;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,23 +17,16 @@ import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
-import androidx.databinding.ViewDataBinding;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
-import androidx.viewpager.widget.ViewPager;
 
 import com.bumptech.glide.Glide;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
-
-import org.greenrobot.eventbus.EventBus;
 
 import java.io.File;
 
@@ -43,11 +34,9 @@ import ceui.lisa.R;
 import ceui.lisa.databinding.ActivityCoverBinding;
 import ceui.lisa.download.TaskQueue;
 import ceui.lisa.fragments.BaseFragment;
-import ceui.lisa.fragments.FragmentCT;
 import ceui.lisa.fragments.FragmentCenter;
 import ceui.lisa.fragments.FragmentLeft;
 import ceui.lisa.fragments.FragmentRight;
-import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
@@ -96,64 +85,13 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 Common.showUser(mContext, sUserModel);
             }
         });
-        BottomNavigationView bottomNavigationView = findViewById(R.id.navigation_view);
-        bottomNavigationView.setOnNavigationItemSelectedListener(menuItem -> {
-            if (menuItem.getItemId() == R.id.action_1) {
-                baseBind.viewPager.setCurrentItem(0);
-                return true;
-            } else if (menuItem.getItemId() == R.id.action_2) {
-                baseBind.viewPager.setCurrentItem(1);
-                return true;
-            } else if (menuItem.getItemId() == R.id.action_3) {
-                baseBind.viewPager.setCurrentItem(2);
-                return true;
-            } else {
-                return false;
-            }
-        });
-        bottomNavigationView.setOnNavigationItemReselectedListener(new BottomNavigationView.OnNavigationItemReselectedListener() {
-            @Override
-            public void onNavigationItemReselected(@NonNull MenuItem item) {
-                //重复点击底部导航栏，刷新当前页面
-                if (item.getItemId() == R.id.action_1) {
-                    Channel channel = new Channel();
-                    if (((FragmentLeft) baseFragments[0]).getViewPager().getCurrentItem() == 0) {
-                        channel.setReceiver("FragmentRecmdIllust");//刷新推荐
-                    } else {
-                        channel.setReceiver("FragmentHotTag");//刷新热门标签
-                    }
-                    EventBus.getDefault().post(channel);
-                }
-            }
-        });
         baseBind.viewPager.setOffscreenPageLimit(3);
-        baseBind.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-            @Override
-            public void onPageScrolled(int i, float v, int i1) {
-
-            }
-
-            @Override
-            public void onPageSelected(int i) {
-                bottomNavigationView.getMenu().getItem(i).setChecked(true);
-//                if (i == 1) {
-//                    BarUtils.setStatusBarLightMode(mActivity, true);
-//                } else {
-//                    BarUtils.setStatusBarLightMode(mActivity, false);
-//                }
-            }
-
-            @Override
-            public void onPageScrollStateChanged(int i) {
-
-            }
-        });
     }
 
     private void initFragment() {
         baseFragments = new BaseFragment[]{
                 new FragmentLeft(),
-                (Dev.isDev && false) ? new FragmentCT() : new FragmentCenter(),
+                new FragmentCenter(),
                 new FragmentRight()
         };
         baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
@@ -167,6 +105,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 return baseFragments.length;
             }
         });
+        baseBind.navigationView.setupWithViewPager(baseBind.viewPager);
     }
 
     @Override
@@ -320,17 +259,6 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 return true;
             }
             return false;
-        }
-    }
-
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (Shaft.sSettings.isFullscreenLayout() && navigationBarOnButton) {
-            baseBind.navigationView.setPadding(0,0,0, navigationBarHeight);
-        }
-        if (Shaft.sSettings.isFullscreenLayout() && displayCutout != null) {
-            baseBind.navigationView.setPadding(0,0,0, navigationBarHeight + displayCutout.getSafeInsetBottom());
         }
     }
 

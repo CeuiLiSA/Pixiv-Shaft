@@ -4,6 +4,7 @@ import android.os.Bundle;
 
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapter;
 import ceui.lisa.core.NetControl;
@@ -61,6 +62,11 @@ public class FragmentRelatedIllust extends NetListFragment<FragmentBaseListBindi
             public Observable<ListIllust> initNextApi() {
                 return Retro.getAppApi().getNextIllust(sUserModel.getResponse().getAccess_token(),
                         mModel.getNextUrl());
+            }
+
+            @Override
+            public boolean hasNext() {
+                return Shaft.sSettings.isRelatedIllustNoLimit();
             }
         };
     }
