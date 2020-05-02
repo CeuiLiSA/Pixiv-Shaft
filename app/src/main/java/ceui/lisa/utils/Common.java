@@ -111,6 +111,25 @@ public class Common {
         toast.setView(view);
         toast.show();
     }
+
+    public static <T> void showToast(T t, View view) {
+        showToast(t, view, QMUITipDialog.Builder.ICON_TYPE_SUCCESS);
+    }
+
+    //2成功， 3失败， 4info
+    public static <T> void showToast(T t, View view, int type) {
+        QMUITipDialog tipDialog = new QMUITipDialog.Builder(view.getContext())
+                .setIconType(type)
+                .setTipWord(String.valueOf(t))
+                .create();
+        tipDialog.show();
+        view.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                tipDialog.dismiss();
+            }
+        }, 1000L);
+    }
 //
 //    /**
 //     * 不显示任何icon

@@ -89,7 +89,7 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
 
     @Override
     public BaseAdapter<IllustsBean, RecyIllustStaggerBinding> adapter() {
-        return new IAdapterWithHeadView(allItems, mContext);
+        return new IAdapterWithHeadView(allItems, mContext, baseBind.recyclerView);
     }
 
     @Override

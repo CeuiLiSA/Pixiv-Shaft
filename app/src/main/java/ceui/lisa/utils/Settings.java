@@ -59,7 +59,7 @@ public class Settings {
     private boolean showPixivDialog = true;
 
     //列表页面是否显示收藏按钮
-    private boolean showLikeButton = false;
+    private boolean showLikeButton = true;
 
     //直接下载单个作品所有P
     private boolean directDownloadAllImage = true;

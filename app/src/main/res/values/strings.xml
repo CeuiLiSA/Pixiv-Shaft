@@ -58,6 +58,7 @@
     <string name="latest_work">最新</string>
     <string name="search">搜索</string>
     <string name="hito">一言</string>
+    <string name="develop">开发者预览</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>

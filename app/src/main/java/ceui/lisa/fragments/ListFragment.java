@@ -90,7 +90,14 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
         mRecyclerView = view.findViewById(R.id.recyclerView);
         initRecyclerView();
 
-        mRecyclerView.setItemAnimator(animation());
+
+        if (mRecyclerView.getLayoutManager() instanceof StaggeredGridLayoutManager) {
+            //do nothing
+        } else {
+            //设置item动画
+            mRecyclerView.setItemAnimator(animation());
+        }
+
 
         mRefreshLayout = view.findViewById(R.id.refreshLayout);
         noData = view.findViewById(R.id.no_data);
@@ -211,18 +218,13 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
     }
 
     public BaseItemAnimator animation() {
-        if (mRecyclerView.getLayoutManager() instanceof StaggeredGridLayoutManager) {
-            //do nothing
-            return null;
-        } else {
-            //设置item动画
-            BaseItemAnimator baseItemAnimator = new LandingAnimator();
-            baseItemAnimator.setAddDuration(animateDuration);
-            baseItemAnimator.setRemoveDuration(animateDuration);
-            baseItemAnimator.setMoveDuration(animateDuration);
-            baseItemAnimator.setChangeDuration(animateDuration);
-            return baseItemAnimator;
-        }
+        //设置item动画
+        BaseItemAnimator baseItemAnimator = new LandingAnimator();
+        baseItemAnimator.setAddDuration(animateDuration);
+        baseItemAnimator.setRemoveDuration(animateDuration);
+        baseItemAnimator.setMoveDuration(animateDuration);
+        baseItemAnimator.setChangeDuration(animateDuration);
+        return baseItemAnimator;
     }
 
     public int getStartSize() {

@@ -56,7 +56,7 @@
             <item
                 android:id="@+id/web_test"
                 android:icon="@drawable/ic_loyalty_black_24dp"
-                android:title="@string/hito" />
+                android:title="@string/develop" />
         </menu>
     </item>
 
