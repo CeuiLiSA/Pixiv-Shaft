@@ -41,7 +41,7 @@ public class AddTagDialog extends BaseDialog<DialogAddTagBinding> {
             @Override
             public void onClick(View v) {
                 if (TextUtils.isEmpty(baseBind.tagName.getText().toString())) {
-                    Common.showToast("请输入标签名");
+                    Common.showToast("请输入标签名", sure, 3);
                     return;
                 }
 

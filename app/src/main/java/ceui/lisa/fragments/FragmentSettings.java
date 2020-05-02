@@ -124,6 +124,7 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
                 } else {
                     Shaft.sSettings.setSaveViewHistory(false);
                 }
+                Common.showToast("设置成功", baseBind.saveHistory);
                 Local.setSettings(Shaft.sSettings);
             }
         });
@@ -138,6 +139,7 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
                 } else {
                     Shaft.sSettings.setDoubleStaggerData(false);
                 }
+                Common.showToast("设置成功", baseBind.staggerData);
                 Local.setSettings(Shaft.sSettings);
             }
         });
@@ -151,6 +153,7 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
                 } else {
                     Shaft.sSettings.setShowLikeButton(false);
                 }
+                Common.showToast("重启APP生效", baseBind.showLikeButton);
                 Local.setSettings(Shaft.sSettings);
             }
         });
@@ -164,6 +167,7 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
                 } else {
                     Shaft.sSettings.setRelatedIllustNoLimit(false);
                 }
+                Common.showToast("设置成功", baseBind.relatedNoLimit);
                 Local.setSettings(Shaft.sSettings);
             }
         });
@@ -177,6 +181,7 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
                 } else {
                     Shaft.sSettings.setAutoFuckChina(false);
                 }
+                Common.showToast("设置成功", baseBind.autoDns);
                 Local.setSettings(Shaft.sSettings);
             }
         });
@@ -190,6 +195,7 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
                 } else {
                     Shaft.sSettings.setFirstImageSize(false);
                 }
+                Common.showToast("设置成功", baseBind.firstDetailOrigin);
                 Local.setSettings(Shaft.sSettings);
             }
         });
@@ -261,6 +267,7 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         Shaft.sSettings.setSearchFilter(ALL_SIZE_VALUE[which]);
+                        Common.showToast("设置成功", baseBind.searchFilter);
                         Local.setSettings(Shaft.sSettings);
                         baseBind.searchFilter.setText(ALL_SIZE[which]);
                     }
@@ -280,6 +287,7 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
                     public void onClick(DialogInterface dialog, int which) {
                         Shaft.sSettings.setAppLanguage(ALL_LANGUAGE[which]);
                         baseBind.appLanguage.setText(ALL_LANGUAGE[which]);
+                        Common.showToast("设置成功", baseBind.appLanguage);
                         Local.setSettings(Shaft.sSettings);
                         if (which == 0) {
                             LanguageUtils.applyLanguage(Locale.SIMPLIFIED_CHINESE, "");
