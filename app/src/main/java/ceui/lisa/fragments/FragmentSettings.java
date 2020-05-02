@@ -59,9 +59,6 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
         mLayoutID = R.layout.fragment_settings;
     }
 
-    private FragmentSettings() {
-    }
-
     public static FragmentSettings newInstance() {
         return new FragmentSettings();
     }

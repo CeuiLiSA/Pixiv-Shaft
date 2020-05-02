@@ -13,6 +13,7 @@ import ceui.lisa.R;
 import ceui.lisa.databinding.ActivityFragmentBinding;
 import ceui.lisa.fragments.FragmentAboutApp;
 import ceui.lisa.fragments.FragmentAnime;
+import ceui.lisa.fragments.FragmentColor;
 import ceui.lisa.fragments.FragmentListSimpleUser;
 import ceui.lisa.fragments.FragmentLock;
 import ceui.lisa.fragments.FragmentMultiDownld;
@@ -162,12 +163,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                     needFixTop = false;
                     return new FragmentUserInfo();
                 case "一言":
-                    needFixTop = false;
-                    if (Dev.isDev) {
-                        return FragmentLock.newInstance();
-                    } else {
-                        return new FragmentHitokoto();
-                    }
+                    return FragmentAnime.newInstance();
                 case "最新作品":
                     needFixTop = true;
                     return new FragmentNew();
