@@ -5,6 +5,9 @@ import android.content.Intent;
 import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
@@ -114,10 +117,10 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
                     if (baseBind.password.getText().toString().length() != 0) {
                         login(baseBind.userName.getText().toString(), baseBind.password.getText().toString());
                     } else {
-                        Common.showToast("请输入密码");
+                        Common.showToast("请输入密码", baseBind.login, 3);
                     }
                 } else {
-                    Common.showToast("请输入用户名");
+                    Common.showToast("请输入用户名", baseBind.login, 3);
                 }
             }
         });
@@ -127,7 +130,7 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
                 if (baseBind.signUserName.getText().toString().length() != 0) {
                     sign();
                 } else {
-                    Common.showToast("请输入用户名");
+                    Common.showToast("请输入用户名", baseBind.sign, 3);
                 }
             }
         });
@@ -184,6 +187,20 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
         }
         rotate = springSystem.createSpring();
         rotate.setSpringConfig(SpringConfig.fromOrigamiTensionAndFriction(15, 8));
+
+        //使两个cardview高度，大小保持一致
+        baseBind.cardLogin.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                final int height = baseBind.cardLogin.getHeight();
+
+                ViewGroup.LayoutParams paramsSign = baseBind.cardSign.getLayoutParams();
+                paramsSign.height = height;
+                baseBind.cardSign.setLayoutParams(paramsSign);
+
+                baseBind.cardLogin.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+            }
+        });
     }
 
     public void showSignCard() {

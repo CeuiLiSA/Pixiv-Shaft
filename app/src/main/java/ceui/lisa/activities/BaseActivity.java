@@ -15,6 +15,10 @@ import androidx.databinding.DataBindingUtil;
 import androidx.databinding.ViewDataBinding;
 import androidx.fragment.app.FragmentActivity;
 
+import com.blankj.utilcode.util.BarUtils;
+
+import ceui.lisa.R;
+
 public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCompatActivity {
 
     protected Context mContext;
@@ -39,6 +43,7 @@ public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCo
         }
 
         baseBind = DataBindingUtil.setContentView(mActivity, mLayoutID);
+        BarUtils.setNavBarColor(mActivity, getResources().getColor(R.color.trans));
 
         initView();
         initData();

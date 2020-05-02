@@ -27,6 +27,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 
+import com.blankj.utilcode.util.BarUtils;
 import com.bumptech.glide.Glide;
 import com.google.android.material.navigation.NavigationView;
 
