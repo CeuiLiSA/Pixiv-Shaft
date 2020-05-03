@@ -12,6 +12,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.lifecycle.ViewModelProvider;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.FragmentNewSearchBinding;
@@ -20,16 +21,19 @@ import ceui.lisa.fragments.FragmentSearchIllust;
 import ceui.lisa.fragments.FragmentSearchNovel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
+import ceui.lisa.viewmodel.SearchModel;
 
 public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 
     private static final String[] TITLES = new String[]{"插画/漫画", "小说"};
     private BaseFragment[] allPages = new BaseFragment[]{null, null};
     private String keyWord = "";
+    private SearchModel searchModel;
 
     @Override
     protected void initBundle(Bundle bundle) {
         keyWord = bundle.getString(Params.KEY_WORD);
+        searchModel = new ViewModelProvider(this).get(SearchModel.class);
     }
 
     @Override
@@ -95,10 +99,11 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
         baseBind.searchBox.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (TextUtils.isEmpty(keyWord)) {
+                if (TextUtils.isEmpty(baseBind.searchBox.getText().toString())) {
                     Common.showToast("请输入搜索内容");
-                    return true;
+                    return false;
                 }
+                searchModel.getKeyword().setValue(baseBind.searchBox.getText().toString());
                 Common.hideKeyboard(mActivity);
                 return true;
             }

@@ -2,7 +2,11 @@ package ceui.lisa.fragments;
 
 import android.os.Bundle;
 
+import androidx.annotation.Nullable;
 import androidx.databinding.ViewDataBinding;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.GridLayoutManager;
 
 import ceui.lisa.activities.Shaft;
@@ -15,10 +19,12 @@ import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.view.GridItemDecoration;
+import ceui.lisa.viewmodel.SearchModel;
 import io.reactivex.Observable;
 
 public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBinding, ListIllust,
@@ -31,6 +37,20 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
     private String searchTarget = "partial_match_for_tags";
     private boolean isPopular = false;
     private boolean hasR18 = false;
+
+    private SearchModel searchModel;
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        searchModel = new ViewModelProvider(requireActivity()).get(SearchModel.class);
+        searchModel.getKeyword().observe(getViewLifecycleOwner(), new Observer<String>() {
+            @Override
+            public void onChanged(String s) {
+                Common.showLog(className + "开始刷新 " + s);
+            }
+        });
+        super.onActivityCreated(savedInstanceState);
+    }
 
     public static FragmentSearchIllust newInstance(String keyWord) {
         return newInstance(keyWord, "date_desc", "partial_match_for_tags");
