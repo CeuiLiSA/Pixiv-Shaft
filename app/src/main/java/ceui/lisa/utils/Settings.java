@@ -11,6 +11,8 @@ import ceui.lisa.helper.ThemeHelper;
 
 public class Settings {
 
+    public static final String[] ALL_LANGUAGE = new String[]{"简体中文", "日本語", "English", "繁體中文"};
+
     //只包含1P图片的下载路径
     public static final String FILE_PATH_SINGLE = PathUtils.getExternalPicturesPath() + "/ShaftImages";
 
@@ -92,7 +94,7 @@ public class Settings {
         if(!TextUtils.isEmpty(appLanguage)){
             return appLanguage;
         } else {
-            return FragmentFilter.ALL_LANGUAGE[0];
+            return ALL_LANGUAGE[0];
         }
     }
 

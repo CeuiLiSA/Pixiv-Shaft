@@ -17,6 +17,7 @@ import ceui.lisa.fragments.FragmentColor;
 import ceui.lisa.fragments.FragmentListSimpleUser;
 import ceui.lisa.fragments.FragmentLock;
 import ceui.lisa.fragments.FragmentMultiDownld;
+import ceui.lisa.fragments.FragmentNewNovel;
 import ceui.lisa.fragments.FragmentNovelSeries;
 import ceui.lisa.fragments.FragmentRecmdIllust;
 import ceui.lisa.fragments.FragmentSB;
@@ -45,7 +46,6 @@ import ceui.lisa.fragments.FragmentRecmdNovel;
 import ceui.lisa.fragments.FragmentRecmdUser;
 import ceui.lisa.fragments.FragmentRelatedIllust;
 import ceui.lisa.fragments.FragmentSearch;
-import ceui.lisa.fragments.FragmentSearchResult;
 import ceui.lisa.fragments.FragmentSearchUser;
 import ceui.lisa.fragments.FragmentSettings;
 import ceui.lisa.fragments.FragmentUserIllust;
@@ -80,11 +80,6 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                     needFixTop = false;
                     BarUtils.setNavBarColor(mActivity, getResources().getColor(R.color.colorPrimary));
                     return new FragmentLogin();
-                case "搜索结果": {
-                    needFixTop = false;
-                    String keyword = intent.getStringExtra(EXTRA_KEYWORD);
-                    return FragmentSearchResult.newInstance(keyword);
-                }
                 case "相关作品": {
                     needFixTop = false;
                     int id = intent.getIntExtra(Params.ILLUST_ID, 0);
@@ -200,7 +195,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                     return FragmentRecmdIllust.newInstance("漫画");
                 case "推荐小说":
                     needFixTop = true;
-                    return new FragmentRecmdNovel();
+                    return new FragmentNewNovel();
                 case "小说收藏":
                     needFixTop = true;
                     return FragmentLikeNovel.newInstance(intent.getIntExtra(Params.USER_ID, 0),

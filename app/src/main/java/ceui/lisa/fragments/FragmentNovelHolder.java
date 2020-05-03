@@ -4,26 +4,35 @@ import android.animation.Animator;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewAnimationUtils;
+import android.widget.TextView;
 
 import com.blankj.utilcode.util.BarUtils;
 import com.bumptech.glide.Glide;
 import com.skydoves.transformationlayout.OnTransformFinishListener;
+import com.zhy.view.flowlayout.FlowLayout;
+import com.zhy.view.flowlayout.TagAdapter;
+import com.zhy.view.flowlayout.TagFlowLayout;
 
 import java.util.Arrays;
 import java.util.Collections;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.RankActivity;
+import ceui.lisa.activities.SearchActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.adapters.VAdapter;
 import ceui.lisa.databinding.FragmentNovelHolderBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
+import ceui.lisa.model.ListTrendingtag;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.NovelDetail;
+import ceui.lisa.models.TagsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
@@ -118,6 +127,28 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                     intent.putExtra(Params.CONTENT, mNovelBean);
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说系列作品");
                     startActivity(intent);
+                }
+            });
+        }
+        if (mNovelBean.getTags() != null && mNovelBean.getTags().size() != 0) {
+            baseBind.hotTags.setAdapter(new TagAdapter<TagsBean>(
+                    mNovelBean.getTags()) {
+                @Override
+                public View getView(FlowLayout parent, int position, TagsBean trendTagsBean) {
+                    TextView tv = (TextView) LayoutInflater.from(mContext).inflate(R.layout.recy_single_novel_tag_text,
+                            parent, false);
+                    tv.setText(trendTagsBean.getName());
+                    return tv;
+                }
+            });
+            baseBind.hotTags.setOnTagClickListener(new TagFlowLayout.OnTagClickListener() {
+                @Override
+                public boolean onTagClick(View view, int position, FlowLayout parent) {
+                    Intent intent = new Intent(mContext, SearchActivity.class);
+                    intent.putExtra(Params.KEY_WORD, mNovelBean.getTags().get(position).getName());
+                    intent.putExtra(Params.INDEX, 1);
+                    startActivity(intent);
+                    return false;
                 }
             });
         }

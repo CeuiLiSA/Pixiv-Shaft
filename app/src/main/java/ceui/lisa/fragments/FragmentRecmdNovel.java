@@ -17,9 +17,12 @@ import ceui.lisa.activities.RankActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.adapters.BaseAdapter;
+import ceui.lisa.adapters.IAdapterWithHeadView;
 import ceui.lisa.adapters.NAdapter;
+import ceui.lisa.adapters.NAdapterWithHeadView;
 import ceui.lisa.adapters.NHAdapter;
 import ceui.lisa.core.NetControl;
+import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.FragmentRecmdBinding;
 import ceui.lisa.databinding.RecyNovelBinding;
 import ceui.lisa.http.Retro;
@@ -28,14 +31,16 @@ import ceui.lisa.model.ListNovel;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Params;
+import ceui.lisa.view.LinearItemDecoration;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
+import ceui.lisa.view.LinearItemWithHeadDecoration;
+import ceui.lisa.view.SpacesItemWithHeadDecoration;
 import io.reactivex.Observable;
 
-public class FragmentRecmdNovel extends NetListFragment<FragmentRecmdBinding,
+public class FragmentRecmdNovel extends NetListFragment<FragmentBaseListBinding,
         ListNovel, NovelBean, RecyNovelBinding> {
 
     private List<NovelBean> ranking = new ArrayList<>();
-    private NHAdapter horizontalAdapter;
 
     @Override
     public NetControl<ListNovel> present() {
@@ -55,64 +60,24 @@ public class FragmentRecmdNovel extends NetListFragment<FragmentRecmdBinding,
 
     @Override
     public BaseAdapter<NovelBean, RecyNovelBinding> adapter() {
-        return new NAdapter(allItems, mContext);
+        return new NAdapterWithHeadView(allItems, mContext);
     }
 
     @Override
-    public void initView(View view) {
-        super.initView(view);
-        baseBind.seeMore.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(mContext, RankActivity.class);
-                intent.putExtra("dataType", "小说");
-                startActivity(intent);
-            }
-        });
-
-        LinearLayoutManager manager = new LinearLayoutManager(mContext, LinearLayoutManager.HORIZONTAL, false);
-        baseBind.ranking.setLayoutManager(manager);
-        baseBind.ranking.setHasFixedSize(true);
-        baseBind.ranking.addItemDecoration(new LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
-        PagerSnapHelper snapHelper = new PagerSnapHelper();
-        snapHelper.attachToRecyclerView(baseBind.ranking);
-        horizontalAdapter = new NHAdapter(ranking, mContext);
-        horizontalAdapter.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(View v, int position, int viewType) {
-                Intent intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(Params.CONTENT, ranking.get(position));
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情");
-                intent.putExtra("hideStatusBar", true);
-                startActivity(intent);
-            }
-        });
-        baseBind.ranking.setAdapter(horizontalAdapter);
-    }
-
-    @Override
-    public void initLayout() {
-        mLayoutID = R.layout.fragment_recmd;
-    }
-
-    @Override
-    public String getToolbarTitle() {
-        return "推荐小说";
+    public boolean showToolbar() {
+        return false;
     }
 
     @Override
     public void onFirstLoaded(List<NovelBean> novelBeans) {
         ranking.addAll(mResponse.getRanking_novels());
-        horizontalAdapter.notifyItemRangeInserted(0, ranking.size());
-        baseBind.topRela.setVisibility(View.VISIBLE);
-        Animation animation = new AlphaAnimation(0.0f, 1.0f);
-        animation.setDuration(800L);
-        baseBind.topRela.startAnimation(animation);
+        ((NAdapterWithHeadView) mAdapter).setHeadData(ranking);
     }
 
     @Override
-    public void clear() {
-        super.clear();
-        horizontalAdapter.clear();
+    public void initRecyclerView() {
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
+        mRecyclerView.setHasFixedSize(true);
+        mRecyclerView.addItemDecoration(new LinearItemWithHeadDecoration(DensityUtil.dp2px(12.0f)));
     }
 }

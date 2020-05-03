@@ -1,7 +1,9 @@
 package ceui.lisa.activities;
 
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
@@ -11,17 +13,24 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+
+import com.mxn.soul.flowingdrawer_core.ElasticDrawer;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.FragmentNewSearchBinding;
 import ceui.lisa.fragments.BaseFragment;
+import ceui.lisa.fragments.FragmentFilter;
 import ceui.lisa.fragments.FragmentSearchIllust;
 import ceui.lisa.fragments.FragmentSearchNovel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 import ceui.lisa.viewmodel.SearchModel;
+
+import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 
@@ -29,11 +38,20 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
     private BaseFragment[] allPages = new BaseFragment[]{null, null};
     private String keyWord = "";
     private SearchModel searchModel;
+    private int index = 0;
 
     @Override
     protected void initBundle(Bundle bundle) {
         keyWord = bundle.getString(Params.KEY_WORD);
+        index = bundle.getInt(Params.INDEX);
         searchModel = new ViewModelProvider(this).get(SearchModel.class);
+        searchModel.getKeyword().setValue(keyWord);
+        searchModel.getNowGo().observe(this, new Observer<String>() {
+            @Override
+            public void onChanged(String s) {
+                baseBind.drawerlayout.closeMenu(true);
+            }
+        });
     }
 
     @Override
@@ -50,9 +68,9 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
             public Fragment getItem(int position) {
                 if (allPages[position] == null) {
                     if (position == 0) {
-                        allPages[position] = FragmentSearchIllust.newInstance(baseBind.searchBox.getText().toString());
+                        allPages[position] = FragmentSearchIllust.newInstance();
                     } else  {
-                        allPages[position] = FragmentSearchNovel.newInstance(baseBind.searchBox.getText().toString());
+                        allPages[position] = FragmentSearchNovel.newInstance();
                     }
                 }
                 return allPages[position];
@@ -70,6 +88,9 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
             }
         });
         baseBind.tabLayout.setupWithViewPager(baseBind.viewPager);
+        if (index != 0) {
+            baseBind.viewPager.setCurrentItem(index);
+        }
     }
 
     @Override
@@ -96,6 +117,22 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                 return false;
             }
         });
+        baseBind.searchBox.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                searchModel.getKeyword().setValue(baseBind.searchBox.getText().toString());
+            }
+        });
         baseBind.searchBox.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
@@ -103,10 +140,23 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                     Common.showToast("请输入搜索内容");
                     return false;
                 }
-                searchModel.getKeyword().setValue(baseBind.searchBox.getText().toString());
+                searchModel.getNowGo().setValue("search_now");
                 Common.hideKeyboard(mActivity);
                 return true;
             }
         });
+
+        baseBind.drawerlayout.setTouchMode(ElasticDrawer.TOUCH_MODE_BEZEL);
+        FragmentFilter fragmentFilter = FragmentFilter.newInstance();
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        if (!fragmentFilter.isAdded()) {
+            fragmentManager.beginTransaction()
+                    .add(R.id.id_container_menu, fragmentFilter)
+                    .commit();
+        } else {
+            fragmentManager.beginTransaction()
+                    .show(fragmentFilter)
+                    .commit();
+        }
     }
 }

@@ -10,20 +10,20 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
-import androidx.viewpager.widget.ViewPager;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.FragmentLeftBinding;
+import ceui.lisa.databinding.FragmentNewNovelBinding;
 import ceui.lisa.utils.Params;
 
-public class FragmentLeft extends BaseFragment<FragmentLeftBinding> {
+public class FragmentNewNovel extends BaseFragment<FragmentNewNovelBinding> {
 
     @Override
     public void initLayout() {
-        mLayoutID = R.layout.fragment_left;
+        mLayoutID = R.layout.fragment_new_novel;
     }
 
     @Override
@@ -38,9 +38,7 @@ public class FragmentLeft extends BaseFragment<FragmentLeftBinding> {
         baseBind.head.setLayoutParams(headParams);
 
         baseBind.toolbar.setNavigationOnClickListener(v -> {
-            if (getActivity() instanceof MainActivity) {
-                ((MainActivity) getActivity()).getDrawer().openDrawer(Gravity.START);
-            }
+            mActivity.finish();
         });
         baseBind.toolbar.inflateMenu(R.menu.fragment_left);
         baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
@@ -60,9 +58,9 @@ public class FragmentLeft extends BaseFragment<FragmentLeftBinding> {
             @Override
             public Fragment getItem(int i) {
                 if (i == 0) {
-                    return FragmentRecmdIllust.newInstance("插画");
+                    return new FragmentRecmdNovel();
                 } else {
-                    return FragmentHotTag.newInstance(Params.TYPE_ILLUST);
+                    return FragmentHotTag.newInstance(Params.TYPE_NOVEL);
                 }
             }
 

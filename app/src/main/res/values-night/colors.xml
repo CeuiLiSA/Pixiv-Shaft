@@ -38,6 +38,7 @@
     <color name="hito_bg">#000339</color>
     <color name="trans">#00eeeeee</color>
     <color name="tag_text_unselect">#FFFFFF</color>
+    <color name="novel_text_unselect">#F0F0F0</color>
 
 
     <color name="rank_text_color">#A9A9A9</color>

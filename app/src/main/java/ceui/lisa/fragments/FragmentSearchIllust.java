@@ -30,57 +30,26 @@ import io.reactivex.Observable;
 public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBinding, ListIllust,
         IllustsBean, RecyIllustStaggerBinding> {
 
-    private String token = "";
-    private String keyWord = "";
-    private String starSize = "";
-    private String sort = "date_desc";
-    private String searchTarget = "partial_match_for_tags";
-    private boolean isPopular = false;
-    private boolean hasR18 = false;
-
     private SearchModel searchModel;
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         searchModel = new ViewModelProvider(requireActivity()).get(SearchModel.class);
-        searchModel.getKeyword().observe(getViewLifecycleOwner(), new Observer<String>() {
+        searchModel.getNowGo().observe(this, new Observer<String>() {
             @Override
             public void onChanged(String s) {
-                Common.showLog(className + "开始刷新 " + s);
+                mRefreshLayout.autoRefresh();
             }
         });
         super.onActivityCreated(savedInstanceState);
     }
 
-    public static FragmentSearchIllust newInstance(String keyWord) {
-        return newInstance(keyWord, "date_desc", "partial_match_for_tags");
-    }
-
-    public static FragmentSearchIllust newInstance(String keyWord, String sort) {
-        return newInstance(keyWord, sort, "partial_match_for_tags");
-    }
-
-    public static FragmentSearchIllust newInstance(String keyWord, String sort,
-                                                   String searchTarget) {
+    public static FragmentSearchIllust newInstance() {
         Bundle args = new Bundle();
-        args.putString(Params.KEY_WORD, keyWord);
-        args.putString(Params.SORT_TYPE, sort);
-        args.putString(Params.SEARCH_TYPE, searchTarget);
-        args.putString(Params.STAR_SIZE, Shaft.sSettings.getSearchFilter().contains("无限制") ?
-                "" : " " + (Shaft.sSettings.getSearchFilter()));
         FragmentSearchIllust fragment = new FragmentSearchIllust();
         fragment.setArguments(args);
         return fragment;
     }
-
-    @Override
-    public void initBundle(Bundle bundle) {
-        keyWord = bundle.getString(Params.KEY_WORD);
-        sort = bundle.getString(Params.SORT_TYPE);
-        searchTarget = bundle.getString(Params.SEARCH_TYPE);
-        starSize = bundle.getString(Params.STAR_SIZE);
-    }
-
 
     @Override
     public BaseAdapter<?, ? extends ViewDataBinding> adapter() {
@@ -92,13 +61,19 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
         return new NetControl<ListIllust>() {
             @Override
             public Observable<ListIllust> initApi() {
-                PixivOperate.insertSearchHistory(keyWord, 0);
-                return Retro.getAppApi().searchIllust(token, keyWord, sort, searchTarget);
+                PixivOperate.insertSearchHistory(searchModel.getKeyword().getValue(), 0);
+                return Retro.getAppApi().searchIllust(
+                        token(),
+                        searchModel.getKeyword().getValue() +
+                                (Shaft.sSettings.getSearchFilter().contains("无限制") ?
+                                        "" : " " + (Shaft.sSettings.getSearchFilter())),
+                        searchModel.getSortType().getValue(),
+                        searchModel.getSearchType().getValue());
             }
 
             @Override
             public Observable<ListIllust> initNextApi() {
-                return Retro.getAppApi().getNextIllust(token, mModel.getNextUrl());
+                return Retro.getAppApi().getNextIllust(token(), mModel.getNextUrl());
             }
         };
     }

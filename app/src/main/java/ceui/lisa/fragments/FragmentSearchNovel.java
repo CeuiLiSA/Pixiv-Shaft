@@ -2,7 +2,10 @@ package ceui.lisa.fragments;
 
 import android.os.Bundle;
 
+import androidx.annotation.Nullable;
 import androidx.databinding.ViewDataBinding;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
@@ -19,48 +22,32 @@ import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
+import ceui.lisa.viewmodel.SearchModel;
 import io.reactivex.Observable;
 
 public class FragmentSearchNovel extends NetListFragment<FragmentBaseListBinding, ListNovel,
         NovelBean, RecyIllustStaggerBinding> {
 
-    private String token = "";
-    private String keyWord = "";
-    private String starSize = "";
-    private String sort = "date_desc";
-    private String searchTarget = "partial_match_for_tags";
-    private boolean isPopular = false;
-    private boolean hasR18 = false;
+    private SearchModel searchModel;
 
-    public static FragmentSearchNovel newInstance(String keyWord) {
-        return newInstance(keyWord, "date_desc", "partial_match_for_tags");
-    }
-
-    public static FragmentSearchNovel newInstance(String keyWord, String sort) {
-        return newInstance(keyWord, sort, "partial_match_for_tags");
-    }
-
-    public static FragmentSearchNovel newInstance(String keyWord, String sort,
-                                                  String searchTarget) {
+    public static FragmentSearchNovel newInstance() {
         Bundle args = new Bundle();
-        args.putString(Params.KEY_WORD, keyWord);
-        args.putString(Params.SORT_TYPE, sort);
-        args.putString(Params.SEARCH_TYPE, searchTarget);
-        args.putString(Params.STAR_SIZE, Shaft.sSettings.getSearchFilter().contains("无限制") ?
-                "" : " " + (Shaft.sSettings.getSearchFilter()));
         FragmentSearchNovel fragment = new FragmentSearchNovel();
         fragment.setArguments(args);
         return fragment;
     }
 
     @Override
-    public void initBundle(Bundle bundle) {
-        keyWord = bundle.getString(Params.KEY_WORD);
-        sort = bundle.getString(Params.SORT_TYPE);
-        searchTarget = bundle.getString(Params.SEARCH_TYPE);
-        starSize = bundle.getString(Params.STAR_SIZE);
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        searchModel = new ViewModelProvider(requireActivity()).get(SearchModel.class);
+        searchModel.getNowGo().observe(this, new Observer<String>() {
+            @Override
+            public void onChanged(String s) {
+                mRefreshLayout.autoRefresh();
+            }
+        });
+        super.onActivityCreated(savedInstanceState);
     }
-
 
     @Override
     public BaseAdapter<?, ? extends ViewDataBinding> adapter() {
@@ -72,13 +59,16 @@ public class FragmentSearchNovel extends NetListFragment<FragmentBaseListBinding
         return new NetControl<ListNovel>() {
             @Override
             public Observable<ListNovel> initApi() {
-                PixivOperate.insertSearchHistory(keyWord, 0);
-                return Retro.getAppApi().searchNovel(token, keyWord, sort, searchTarget);
+                return Retro.getAppApi().searchNovel(
+                        token(),
+                        searchModel.getKeyword().getValue(),
+                        searchModel.getSortType().getValue(),
+                        searchModel.getSearchType().getValue());
             }
 
             @Override
             public Observable<ListNovel> initNextApi() {
-                return Retro.getAppApi().getNextNovel(token, mModel.getNextUrl());
+                return Retro.getAppApi().getNextNovel(token(), mModel.getNextUrl());
             }
         };
     }

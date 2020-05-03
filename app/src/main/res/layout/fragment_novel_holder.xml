@@ -32,19 +32,19 @@
             android:visibility="invisible"
             android:layout_marginEnd="@dimen/sixteen_dp"
             android:id="@+id/awesome_card"
-            android:layout_height="260dp">
+            android:layout_height="wrap_content">
 
 
-            <RelativeLayout
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:orientation="vertical"
+                android:layout_height="wrap_content">
 
 
 
 
                 <RelativeLayout
                     android:layout_width="match_parent"
-                    android:id="@+id/user_rela"
                     android:layout_height="wrap_content">
 
                     <de.hdodenhof.circleimageview.CircleImageView
@@ -74,9 +74,7 @@
 
                 <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_below="@+id/user_rela"
-                    android:layout_above="@+id/operate_rela"
-                    android:layout_height="match_parent">
+                    android:layout_height="wrap_content">
 
 
                     <TextView
@@ -101,6 +99,7 @@
                         android:textSize="15sp"
                         android:textStyle="bold"
                         android:maxLines="2"
+                        android:layout_marginBottom="@dimen/eight_dp"
                         android:ellipsize="end"
                         android:layout_below="@+id/novel_title"
                         android:layout_marginStart="@dimen/sixteen_dp"
@@ -115,8 +114,24 @@
 
                 <RelativeLayout
                     android:layout_width="match_parent"
-                    android:id="@+id/operate_rela"
-                    android:layout_alignParentBottom="true"
+                    android:layout_height="wrap_content">
+
+                    <com.zhy.view.flowlayout.TagFlowLayout
+                        android:layout_width="match_parent"
+                        android:layout_marginTop="@dimen/four_dp"
+                        android:layout_marginStart="@dimen/twelve_dp"
+                        android:layout_marginEnd="@dimen/four_dp"
+                        android:layout_marginBottom="@dimen/four_dp"
+                        android:id="@+id/hot_tags"
+                        android:layout_height="wrap_content">
+
+
+                    </com.zhy.view.flowlayout.TagFlowLayout>
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
                     <Button
@@ -161,7 +176,7 @@
                     </Button>
 
                 </RelativeLayout>
-            </RelativeLayout>
+            </LinearLayout>
 
         </androidx.cardview.widget.CardView>
 
