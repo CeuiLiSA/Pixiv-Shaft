@@ -1,5 +1,9 @@
 package ceui.lisa.fragments;
 
+import android.os.Bundle;
+
+import java.util.List;
+
 import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.UAdapter;

@@ -17,6 +17,7 @@ import ceui.lisa.model.ListTrendingtag;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
+import ceui.lisa.utils.Params;
 import ceui.lisa.view.TagItemDecoration;
 import io.reactivex.Observable;
 
@@ -51,7 +52,7 @@ public class FragmentHotTag extends NetListFragment<FragmentBaseListBinding,
         return new NetControl<ListTrendingtag>() {
             @Override
             public Observable<ListTrendingtag> initApi() {
-                return Retro.getAppApi().getHotTags(sUserModel.getResponse().getAccess_token());
+                return Retro.getAppApi().getHotTags(token(), Params.TYPE_ILLUST);
             }
 
             @Override

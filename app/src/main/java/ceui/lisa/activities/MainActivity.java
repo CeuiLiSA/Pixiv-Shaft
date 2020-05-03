@@ -203,8 +203,8 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "画廊");
                 break;
             case R.id.web_test:
-                intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "一言");
+                intent = new Intent(mContext, SearchActivity.class);
+                intent.putExtra(Params.KEY_WORD, "东方");
                 break;
             case R.id.nav_new_work:
                 intent = new Intent(mContext, TemplateActivity.class);

@@ -6,11 +6,16 @@ import android.view.ViewGroup;
 
 import androidx.fragment.app.FragmentTransaction;
 
+import java.io.Serializable;
+import java.util.List;
+
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.FragmentRightBinding;
+import ceui.lisa.models.UserPreviewsBean;
 import ceui.lisa.utils.Channel;
+import ceui.lisa.utils.Params;
 
 public class FragmentRight extends BaseFragment<FragmentRightBinding> {
 
@@ -42,7 +47,7 @@ public class FragmentRight extends BaseFragment<FragmentRightBinding> {
             FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
 
             FragmentRecmdUserHorizontal recmdUser = new FragmentRecmdUserHorizontal();
-            transaction.add(R.id.fragment_container, recmdUser);
+            transaction.add(R.id.fragment_container, recmdUser, "FragmentRecmdUserHorizontal");
 
             FragmentEvent fragmentFollowIllust = new FragmentEvent();
             transaction.add(R.id.fragment_recy, fragmentFollowIllust);

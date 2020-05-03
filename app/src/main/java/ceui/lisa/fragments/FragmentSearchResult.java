@@ -60,7 +60,8 @@ public class FragmentSearchResult extends NetListFragment<FragmentSearchResultBi
         return newInstance(keyWord, sort, "partial_match_for_tags");
     }
 
-    public static FragmentSearchResult newInstance(String keyWord, String sort, String searchTarget) {
+    public static FragmentSearchResult newInstance(String keyWord, String sort,
+                                                   String searchTarget) {
         Bundle args = new Bundle();
         args.putString(Params.KEY_WORD, keyWord);
         args.putString(Params.SORT_TYPE, sort);
@@ -91,7 +92,8 @@ public class FragmentSearchResult extends NetListFragment<FragmentSearchResultBi
             @Override
             public Observable<ListIllust> initApi() {
                 PixivOperate.insertSearchHistory(baseBind.searchBox.getText().toString(), 0);
-                return Retro.getAppApi().searchIllust(token, baseBind.searchBox.getText().toString(), sort, searchTarget);
+                return Retro.getAppApi().searchIllust(token,
+                        baseBind.searchBox.getText().toString(), sort, searchTarget);
             }
 
             @Override

@@ -53,7 +53,7 @@ public class FragmentRecmdUserHorizontal extends NetListFragment<FragmentUserHor
         return new NetControl<ListUser>() {
             @Override
             public Observable<ListUser> initApi() {
-                return Retro.getAppApi().getRecmdUser(sUserModel.getResponse().getAccess_token());
+                return Retro.getAppApi().getRecmdUser(token());
             }
 
             @Override

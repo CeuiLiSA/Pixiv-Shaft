@@ -138,6 +138,11 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
     @Override
     public void initView(View view) {
         Dust dust = new ViewModelProvider(mActivity).get(Dust.class);
+        if (dust == null || dust.getDust() == null ||
+                dust.getDust().getValue() == null || dust.getDust().getValue().size() == 0) {
+            mActivity.finish();
+            return;
+        }
         illust = dust.getDust().getValue().get(index);
 
         baseBind.refreshLayout.setEnableLoadMore(true);

@@ -115,14 +115,18 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
     public void onFirstLoaded(List<IllustsBean> illustsBeans) {
         Observable.create((ObservableOnSubscribe<String>) emitter -> {
             emitter.onNext("开始写入数据库");
-            if (mResponse.getRanking_illusts() != null) {
-                if (mResponse.getRanking_illusts().size() >= 20) {
+            if (allItems != null) {
+                if (allItems.size() >= 20) {
                     for (int i = 0; i < 20; i++) {
-                        insertViewHistory(mResponse.getRanking_illusts().get(i));
+                        Common.showLog(className + "uuu 写入第" + i + "条数据" +
+                                allItems.get(i).getTitle());
+                        insertViewHistory(allItems.get(i));
                     }
                 } else {
-                    for (int i = 0; i < mResponse.getRanking_illusts().size(); i++) {
-                        insertViewHistory(mResponse.getRanking_illusts().get(i));
+                    for (int i = 0; i < allItems.size(); i++) {
+                        Common.showLog(className + "bbb 写入第" + i + "条数据" +
+                                allItems.get(i).getTitle());
+                        insertViewHistory(allItems.get(i));
                     }
                 }
             }
@@ -157,6 +161,7 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .map(entities -> {
+                    Common.showLog(className + entities.size());
                     List<IllustsBean> temp = new ArrayList<>();
                     for (int i = 0; i < entities.size(); i++) {
                         IllustsBean illustsBean = Shaft.sGson.fromJson(

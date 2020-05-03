@@ -233,7 +233,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
     }
 
     private void getHotTags() {
-        Retro.getAppApi().getHotTags(sUserModel.getResponse().getAccess_token())
+        Retro.getAppApi().getHotTags(sUserModel.getResponse().getAccess_token(), Params.TYPE_ILLUST)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ErrorCtrl<ListTrendingtag>() {

@@ -45,10 +45,22 @@ public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCo
         baseBind = DataBindingUtil.setContentView(mActivity, mLayoutID);
         BarUtils.setNavBarColor(mActivity, getResources().getColor(R.color.trans));
 
+        Intent intent = getIntent();
+        if (intent != null) {
+            Bundle bundle = intent.getExtras();
+            if (bundle != null) {
+                initBundle(bundle);
+            }
+        }
+
+
         initView();
         initData();
     }
 
+    protected void initBundle(Bundle bundle) {
+
+    }
 
     protected abstract int initLayout();
 

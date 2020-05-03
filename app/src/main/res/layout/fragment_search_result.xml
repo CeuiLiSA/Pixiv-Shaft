@@ -31,6 +31,7 @@
                 android:singleLine="true"
                 android:maxLines="1"
                 android:ellipsize="end"
+                android:textSize="14sp"
                 android:textColor="@color/rank_text_color"
                 android:background="@drawable/stroke"
                 android:paddingStart="@dimen/eight_dp"
