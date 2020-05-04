@@ -13,22 +13,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.fragments.ListFragment;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
-import jp.wasabeef.recyclerview.animators.BaseItemAnimator;
-import jp.wasabeef.recyclerview.animators.LandingAnimator;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
-import static ceui.lisa.fragments.ListFragment.animateDuration;
 
 public class IAdapterWithHeadView extends IAdapter {
 
-    private RecmdHeader mRecmdHeader = null;
+    private IllustHeader mIllustHeader = null;
     private RecyclerView mRecyclerView = null;
 
     public IAdapterWithHeadView(List<IllustsBean> targetList, Context context, RecyclerView recyclerView) {
@@ -43,16 +39,16 @@ public class IAdapterWithHeadView extends IAdapter {
 
     @Override
     public ViewHolder getHeader(ViewGroup parent) {
-        mRecmdHeader = new RecmdHeader(DataBindingUtil.inflate(
+        mIllustHeader = new IllustHeader(DataBindingUtil.inflate(
                 LayoutInflater.from(mContext), R.layout.recy_recmd_header,
                 null, false).getRoot());
-        mRecmdHeader.initView(mContext);
-        return mRecmdHeader;
+        mIllustHeader.initView(mContext);
+        return mIllustHeader;
     }
 
     public void setHeadData(List<IllustsBean> illustsBeans) {
-        if (mRecmdHeader != null) {
-            mRecmdHeader.show(mContext, illustsBeans);
+        if (mIllustHeader != null) {
+            mIllustHeader.show(mContext, illustsBeans);
         }
     }
 

@@ -235,4 +235,11 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item,
         mRecyclerView.smoothScrollToPosition(0);
         mRefreshLayout.autoRefresh();
     }
+
+    public List<Item> getContent() {
+        if (mModel == null) {
+            return new ArrayList<>();
+        }
+        return mModel.getContent().getValue();
+    }
 }

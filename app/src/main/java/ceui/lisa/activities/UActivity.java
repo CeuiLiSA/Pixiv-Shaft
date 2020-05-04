@@ -222,11 +222,11 @@ public class UActivity extends BaseActivity<ActicityUserBinding> implements Disp
 
         if (currentUser.getProfile().getTotal_novels() > 0) {
             transaction.replace(R.id.container4,
-                    FragmentLikeNovelHorizontal.newInstance(1));// 0收藏的小说， 1创作的小说
+                    FragmentLikeNovelHorizontal.newInstance(1, currentUser.getUserId()));// 0收藏的小说， 1创作的小说
         }
 
         transaction.replace(R.id.container5,
-                FragmentLikeNovelHorizontal.newInstance(0));// 0收藏的小说， 1创作的小说
+                FragmentLikeNovelHorizontal.newInstance(0, currentUser.getUserId()));// 0收藏的小说， 1创作的小说
 
         transaction.commit();
 

@@ -23,9 +23,9 @@ import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
 
-public class RecmdHeader extends ViewHolder<RecyRecmdHeaderBinding> {
+public class IllustHeader extends ViewHolder<RecyRecmdHeaderBinding> {
 
-    public RecmdHeader(@NonNull View itemView) {
+    public IllustHeader(@NonNull View itemView) {
         super(itemView);
     }
 

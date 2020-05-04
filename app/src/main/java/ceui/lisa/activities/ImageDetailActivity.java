@@ -1,7 +1,10 @@
 package ceui.lisa.activities;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.DocumentsContract;
 import android.util.Log;
 import android.view.DisplayCutout;
 import android.view.View;
@@ -164,6 +167,17 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
                 }
             });
             downloadSingle.setText("路径：" + localIllust.get(index));
+            downloadSingle.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+//                    Uri uri = Uri.parse("content://com.android.externalstorage.documents/document/primary:");
+//                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+//                    intent.addCategory(Intent.CATEGORY_OPENABLE);
+//                    intent.setType("*/*");
+//                    intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, uri);
+//                    startActivityForResult(intent, 1);
+                }
+            });
         }
     }
 

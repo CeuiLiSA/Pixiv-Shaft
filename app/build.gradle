@@ -6,14 +6,14 @@ apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
 
     defaultConfig {
         applicationId "ceui.lisa.pixiv"
         minSdkVersion 21
-        targetSdkVersion 28
-        versionCode 78
-        versionName "1.7.3"
+        targetSdkVersion 29
+        versionCode 81
+        versionName "1.8.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 

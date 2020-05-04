@@ -112,6 +112,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".activities.UActivity" />
+        <activity android:name=".activities.SearchActivity" />
     </application>
 
 </manifest>

@@ -4,26 +4,39 @@ import android.animation.Animator;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewAnimationUtils;
+import android.widget.TextView;
 
 import com.blankj.utilcode.util.BarUtils;
+import com.blankj.utilcode.util.PathUtils;
 import com.bumptech.glide.Glide;
 import com.skydoves.transformationlayout.OnTransformFinishListener;
+import com.zhy.view.flowlayout.FlowLayout;
+import com.zhy.view.flowlayout.TagAdapter;
+import com.zhy.view.flowlayout.TagFlowLayout;
 
 import java.util.Arrays;
 import java.util.Collections;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.RankActivity;
+import ceui.lisa.activities.SearchActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.adapters.VAdapter;
+import ceui.lisa.cache.Cache;
+import ceui.lisa.database.AppDatabase;
+import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.databinding.FragmentNovelHolderBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
+import ceui.lisa.model.ListTrendingtag;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.NovelDetail;
+import ceui.lisa.models.TagsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
@@ -38,6 +51,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
 
     private boolean isOpen = false;
     private NovelBean mNovelBean;
+    private NovelDetail mNovelDetail;
 
     public static FragmentNovelHolder newInstance(NovelBean novelBean) {
         Bundle args = new Bundle();
@@ -73,6 +87,22 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                 isOpen = isTransformed;
             }
         };
+        baseBind.saveNovel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mNovelBean.setLocalSaved(true);
+                String fileName = Params.NOVEL_KEY + mNovelBean.getId();
+                Cache.get().saveModel(fileName, mNovelDetail);
+                DownloadEntity downloadEntity = new DownloadEntity();
+                downloadEntity.setFileName(fileName);
+                downloadEntity.setDownloadTime(System.currentTimeMillis());
+                downloadEntity.setFilePath(PathUtils.getInternalAppCachePath());
+                downloadEntity.setIllustGson(Shaft.sGson.toJson(mNovelBean));
+                AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(downloadEntity);
+                Common.showToast("保存成功", baseBind.saveNovel);
+                baseBind.transformationLayout.finishTransform();
+            }
+        });
         if (mNovelBean.isIs_bookmarked()) {
             baseBind.like.setText("取消收藏");
         } else {
@@ -121,6 +151,28 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                 }
             });
         }
+        if (mNovelBean.getTags() != null && mNovelBean.getTags().size() != 0) {
+            baseBind.hotTags.setAdapter(new TagAdapter<TagsBean>(
+                    mNovelBean.getTags()) {
+                @Override
+                public View getView(FlowLayout parent, int position, TagsBean trendTagsBean) {
+                    TextView tv = (TextView) LayoutInflater.from(mContext).inflate(R.layout.recy_single_novel_tag_text,
+                            parent, false);
+                    tv.setText(trendTagsBean.getName());
+                    return tv;
+                }
+            });
+            baseBind.hotTags.setOnTagClickListener(new TagFlowLayout.OnTagClickListener() {
+                @Override
+                public boolean onTagClick(View view, int position, FlowLayout parent) {
+                    Intent intent = new Intent(mContext, SearchActivity.class);
+                    intent.putExtra(Params.KEY_WORD, mNovelBean.getTags().get(position).getName());
+                    intent.putExtra(Params.INDEX, 1);
+                    startActivity(intent);
+                    return false;
+                }
+            });
+        }
         Glide.with(mContext).load(GlideUtil.getHead(mNovelBean.getUser())).into(baseBind.userHead);
     }
 
@@ -132,66 +184,77 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
     private void getNovel(NovelBean novelBean) {
         PixivOperate.insertNovelViewHistory(novelBean);
         baseBind.viewPager.setVisibility(View.INVISIBLE);
-        baseBind.progressRela.setVisibility(View.VISIBLE);
-        Retro.getAppApi().getNovelDetail(Shaft.sUserModel.getResponse().getAccess_token(), novelBean.getId())
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new NullCtrl<NovelDetail>() {
-                    @Override
-                    public void success(NovelDetail novelDetail) {
-                        baseBind.viewPager.setVisibility(View.VISIBLE);
-                        baseBind.viewPager.setOnTouchListener(new View.OnTouchListener() {
-                            @Override
-                            public boolean onTouch(View v, MotionEvent event) {
-                                if (isOpen) {
-                                    Common.showLog(className + "关闭card");
-                                    baseBind.transformationLayout.finishTransform();
-                                    isOpen = false;
-                                }
-                                return false;
-                            }
-                        });
-                        if (novelDetail.getNovel_text().contains("[newpage]")) {
-                            String[] partList = novelDetail.getNovel_text().split("\\[newpage]");
-                            String temp = partList[0];
-                            temp = "\n\n" + temp;
-                            partList[0] = temp;
-                            baseBind.viewPager.setAdapter(new VAdapter(
-                                    Arrays.asList(partList), mContext));
-                        } else {
-                            baseBind.viewPager.setAdapter(new VAdapter(
-                                    Collections.singletonList("\n\n" + novelDetail.getNovel_text()), mContext));
+        if (novelBean.isLocalSaved()) {
+            baseBind.progressRela.setVisibility(View.INVISIBLE);
+            mNovelDetail = Cache.get().getModel(Params.NOVEL_KEY + mNovelBean.getId(), NovelDetail.class);
+            refreshDetail(mNovelDetail);
+        } else {
+            baseBind.progressRela.setVisibility(View.VISIBLE);
+            Retro.getAppApi().getNovelDetail(Shaft.sUserModel.getResponse().getAccess_token(), novelBean.getId())
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new NullCtrl<NovelDetail>() {
+                        @Override
+                        public void success(NovelDetail novelDetail) {
+                            refreshDetail(novelDetail);
                         }
-                        if (novelDetail.getSeries_prev() != null && novelDetail.getSeries_prev().getId() != 0) {
-                            baseBind.showPrev.setVisibility(View.VISIBLE);
-                            baseBind.showPrev.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View view) {
-                                    baseBind.transformationLayout.finishTransform();
-                                    getNovel(novelDetail.getSeries_prev());
-                                }
-                            });
-                        } else {
-                            baseBind.showPrev.setVisibility(View.INVISIBLE);
-                        }
-                        if (novelDetail.getSeries_next() != null && novelDetail.getSeries_next().getId() != 0) {
-                            baseBind.showNext.setVisibility(View.VISIBLE);
-                            baseBind.showNext.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View view) {
-                                    baseBind.transformationLayout.finishTransform();
-                                    getNovel(novelDetail.getSeries_next());
-                                }
-                            });
-                        } else {
-                            baseBind.showNext.setVisibility(View.INVISIBLE);
-                        }
-                    }
 
-                    @Override
-                    public void must(boolean isSuccess) {
-                        baseBind.progressRela.setVisibility(View.INVISIBLE);
-                    }
-                });
+                        @Override
+                        public void must(boolean isSuccess) {
+                            baseBind.progressRela.setVisibility(View.INVISIBLE);
+                        }
+                    });
+        }
+    }
+
+    private void refreshDetail(NovelDetail novelDetail) {
+        mNovelDetail = novelDetail;
+        baseBind.viewPager.setVisibility(View.VISIBLE);
+        baseBind.viewPager.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (isOpen) {
+                    Common.showLog(className + "关闭card");
+                    baseBind.transformationLayout.finishTransform();
+                    isOpen = false;
+                }
+                return false;
+            }
+        });
+        if (novelDetail.getNovel_text().contains("[newpage]")) {
+            String[] partList = novelDetail.getNovel_text().split("\\[newpage]");
+            String temp = partList[0];
+            temp = "\n\n" + temp;
+            partList[0] = temp;
+            baseBind.viewPager.setAdapter(new VAdapter(
+                    Arrays.asList(partList), mContext));
+        } else {
+            baseBind.viewPager.setAdapter(new VAdapter(
+                    Collections.singletonList("\n\n" + novelDetail.getNovel_text()), mContext));
+        }
+        if (novelDetail.getSeries_prev() != null && novelDetail.getSeries_prev().getId() != 0) {
+            baseBind.showPrev.setVisibility(View.VISIBLE);
+            baseBind.showPrev.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    baseBind.transformationLayout.finishTransform();
+                    getNovel(novelDetail.getSeries_prev());
+                }
+            });
+        } else {
+            baseBind.showPrev.setVisibility(View.INVISIBLE);
+        }
+        if (novelDetail.getSeries_next() != null && novelDetail.getSeries_next().getId() != 0) {
+            baseBind.showNext.setVisibility(View.VISIBLE);
+            baseBind.showNext.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    baseBind.transformationLayout.finishTransform();
+                    getNovel(novelDetail.getSeries_next());
+                }
+            });
+        } else {
+            baseBind.showNext.setVisibility(View.INVISIBLE);
+        }
     }
 }

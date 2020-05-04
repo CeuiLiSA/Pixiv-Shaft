@@ -1,10 +1,12 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.view.View;
 
 import androidx.recyclerview.widget.GridLayoutManager;
 
+import ceui.lisa.activities.SearchActivity;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.TagAdapter;
@@ -17,6 +19,7 @@ import ceui.lisa.model.ListTrendingtag;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
+import ceui.lisa.utils.Params;
 import ceui.lisa.view.TagItemDecoration;
 import io.reactivex.Observable;
 
@@ -27,6 +30,20 @@ public class FragmentHotTag extends NetListFragment<FragmentBaseListBinding,
         ListTrendingtag, ListTrendingtag.TrendTagsBean, RecyTagGridBinding> {
 
     private boolean isLoad = false;
+    private String contentType = "";
+
+    public static FragmentHotTag newInstance(String type) {
+        Bundle args = new Bundle();
+        args.putString(Params.CONTENT_TYPE, type);
+        FragmentHotTag fragment = new FragmentHotTag();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void initBundle(Bundle bundle) {
+        contentType = bundle.getString(Params.CONTENT_TYPE);
+    }
 
     @Override
     public void initRecyclerView() {
@@ -51,7 +68,7 @@ public class FragmentHotTag extends NetListFragment<FragmentBaseListBinding,
         return new NetControl<ListTrendingtag>() {
             @Override
             public Observable<ListTrendingtag> initApi() {
-                return Retro.getAppApi().getHotTags(sUserModel.getResponse().getAccess_token());
+                return Retro.getAppApi().getHotTags(token(), contentType);
             }
 
             @Override
@@ -66,10 +83,9 @@ public class FragmentHotTag extends NetListFragment<FragmentBaseListBinding,
         return new TagAdapter(allItems, mContext).setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                Intent intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_KEYWORD,
-                        allItems.get(position).getTag());
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "搜索结果");
+                Intent intent = new Intent(mContext, SearchActivity.class);
+                intent.putExtra(Params.KEY_WORD, allItems.get(position).getTag());
+                intent.putExtra(Params.INDEX, Params.TYPE_ILLUST.equals(contentType) ? 0 : 1);
                 startActivity(intent);
             }
         });

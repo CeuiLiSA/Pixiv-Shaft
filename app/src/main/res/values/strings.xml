@@ -6,6 +6,8 @@
     <string name="nav_header_subtitle">android.studio@android.com</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">设置</string>
+    <string name="action_import">从剪切板导入</string>
+    <string name="action_qcode">扫描二维码</string>
     <string name="title_activity_blank">BlankActivity</string>
 
 
@@ -107,6 +109,8 @@
     <string name="user_collections">收藏夹</string>
     <string name="download_manager">下载管理</string>
     <string name="recommend_illust">推荐作品</string>
+    <string name="recommend_novel">推荐小说</string>
+    <string name="novel_tag">小说标签</string>
     <string name="hot_tag">热门标签</string>
     <string name="ranking_illust">排行榜</string>
     <string name="see_more">查看更多</string>

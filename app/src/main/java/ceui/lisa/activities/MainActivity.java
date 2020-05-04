@@ -204,7 +204,8 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 break;
             case R.id.web_test:
                 intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "一言");
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "开发者预览");
+                intent.putExtra("hideStatusBar", true);
                 break;
             case R.id.nav_new_work:
                 intent = new Intent(mContext, TemplateActivity.class);

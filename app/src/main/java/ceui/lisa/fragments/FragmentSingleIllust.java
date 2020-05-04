@@ -32,6 +32,7 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.ImageDetailActivity;
+import ceui.lisa.activities.SearchActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UActivity;
@@ -138,6 +139,11 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
     @Override
     public void initView(View view) {
         Dust dust = new ViewModelProvider(mActivity).get(Dust.class);
+        if (dust == null || dust.getDust() == null ||
+                dust.getDust().getValue() == null || dust.getDust().getValue().size() == 0) {
+            mActivity.finish();
+            return;
+        }
         illust = dust.getDust().getValue().get(index);
 
         baseBind.refreshLayout.setEnableLoadMore(true);
@@ -323,10 +329,9 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
         baseBind.illustTag.setOnTagClickListener(new TagCloudView.OnTagClickListener() {
             @Override
             public void onTagClick(int position) {
-                Intent intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_KEYWORD,
-                        illust.getTags().get(position).getName());
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "搜索结果");
+                Intent intent = new Intent(mContext, SearchActivity.class);
+                intent.putExtra(Params.KEY_WORD, illust.getTags().get(position).getName());
+                intent.putExtra(Params.INDEX, 0);
                 startActivity(intent);
             }
         });

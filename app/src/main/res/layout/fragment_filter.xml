@@ -148,7 +148,7 @@
 
             <TextView
                 android:layout_width="wrap_content"
-                android:text="热度排序"
+                android:text="热度排序(仅会员可用)"
                 android:textSize="16sp"
                 android:textColor="@color/colorPrimary"
                 android:layout_margin="@dimen/sixteen_dp"
@@ -160,35 +160,6 @@
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
                 android:id="@+id/pop_switch"
-                android:layout_marginEnd="@dimen/sixteen_dp"
-                android:layout_height="wrap_content">
-
-
-            </Switch>
-
-        </RelativeLayout>
-
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:id="@+id/r_18_rela"
-            android:visibility="gone"
-            android:layout_height="wrap_content">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:text="R"
-                android:textSize="16sp"
-                android:textColor="@color/colorPrimary"
-                android:layout_margin="@dimen/sixteen_dp"
-                android:layout_height="wrap_content" />
-
-
-            <Switch
-                android:layout_width="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:id="@+id/r_18_switch"
                 android:layout_marginEnd="@dimen/sixteen_dp"
                 android:layout_height="wrap_content">
 

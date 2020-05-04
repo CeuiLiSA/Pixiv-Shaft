@@ -30,8 +30,10 @@ import ceui.lisa.databinding.ActivityLoginBinding;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
+import ceui.lisa.model.ExportUser;
 import ceui.lisa.models.SignResponse;
 import ceui.lisa.models.UserModel;
+import ceui.lisa.utils.ClipBoardUtils;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Local;
@@ -67,7 +69,7 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
     @Override
     public void initView(View view) {
         baseBind.toolbar.setPadding(0, Shaft.statusHeight, 0, 0);
-        baseBind.toolbar.inflateMenu(R.menu.main);
+        baseBind.toolbar.inflateMenu(R.menu.login_menu);
         baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
@@ -75,6 +77,23 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
                     Intent intent = new Intent(mContext, TemplateActivity.class);
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "设置");
                     startActivity(intent);
+                    return true;
+                } else if (item.getItemId() == R.id.action_import) {
+                    String userJson = ClipBoardUtils.getClipboardContent(mContext);
+                    if (userJson != null
+                            && !TextUtils.isEmpty(userJson)
+                            && userJson.contains(Params.USER_KEY)) {
+                        ExportUser exportUser = Shaft.sGson.fromJson(userJson, ExportUser.class);
+                        baseBind.userName.setText(exportUser.getUserName());
+                        baseBind.password.setText(exportUser.getUserPassword());
+                        baseBind.login.performClick();
+                        Common.showToast("导入成功", baseBind.toolbar);
+                    } else {
+                        Common.showToast("剪贴板无用户信息", baseBind.toolbar, 3);
+                    }
+                    return true;
+                } else if (item.getItemId() == R.id.action_qcode) {
+                    Common.showToast("开发中", baseBind.toolbar, 4);
                     return true;
                 }
                 return false;
