@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.database.AppDatabase;
@@ -150,11 +151,8 @@ public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
         exp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ExportUser expUser = new ExportUser();
-                expUser.setUserName(userModel.getResponse().getUser().getAccount());
-                expUser.setUserPassword(userModel.getResponse().getUser().getPassword());
-                expUser.setLOCAL_USER(Params.USER_KEY);
-                String userJson = Shaft.sGson.toJson(expUser);
+                userModel.getResponse().setLocal_user(Params.USER_KEY);
+                String userJson = Shaft.sGson.toJson(userModel);
                 Common.copy(mContext, userJson, false);
                 Common.showToast("已导出到剪切板", exp);
             }
@@ -163,27 +161,34 @@ public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
         v.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                baseBind.progress.setVisibility(View.VISIBLE);
-                PixivOperate.refreshUserData(userModel, new Callback<UserModel>() {
-                    @Override
-                    public void onResponse(Call<UserModel> call, Response<UserModel> response) {
-                        if (response != null) {
-                            UserModel newUser = response.body();
-                            newUser.getResponse().getUser().setPassword(userModel.getResponse().getUser().getPassword());
-                            newUser.getResponse().getUser().setIs_login(true);
-                            Local.saveUser(newUser);
-                            Dev.refreshUser = true;
-                            mActivity.finish();
-                        }
-                        baseBind.progress.setVisibility(View.INVISIBLE);
-                    }
+                Local.saveUser(userModel);
+                Dev.refreshUser = true;
+                Shaft.sUserModel = userModel;
+                Intent intent = new Intent(mContext, MainActivity.class);
+                MainActivity.newInstance(intent, mContext);
+                mActivity.finish();
 
-                    @Override
-                    public void onFailure(Call<UserModel> call, Throwable t) {
-                        Common.showToast(t.toString());
-                        baseBind.progress.setVisibility(View.INVISIBLE);
-                    }
-                });
+//                baseBind.progress.setVisibility(View.VISIBLE);
+//                PixivOperate.refreshUserData(userModel, new Callback<UserModel>() {
+//                    @Override
+//                    public void onResponse(Call<UserModel> call, Response<UserModel> response) {
+//                        if (response != null) {
+//                            UserModel newUser = response.body();
+//                            newUser.getResponse().getUser().setPassword(userModel.getResponse().getUser().getPassword());
+//                            newUser.getResponse().getUser().setIs_login(true);
+//                            Local.saveUser(newUser);
+//                            Dev.refreshUser = true;
+//                            mActivity.finish();
+//                        }
+//                        baseBind.progress.setVisibility(View.INVISIBLE);
+//                    }
+//
+//                    @Override
+//                    public void onFailure(Call<UserModel> call, Throwable t) {
+//                        Common.showToast(t.toString());
+//                        baseBind.progress.setVisibility(View.INVISIBLE);
+//                    }
+//                });
             }
         });
     }

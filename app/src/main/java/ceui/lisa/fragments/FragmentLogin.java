@@ -83,17 +83,17 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
                     if (userJson != null
                             && !TextUtils.isEmpty(userJson)
                             && userJson.contains(Params.USER_KEY)) {
-                        ExportUser exportUser = Shaft.sGson.fromJson(userJson, ExportUser.class);
-                        baseBind.userName.setText(exportUser.getUserName());
-                        baseBind.password.setText(exportUser.getUserPassword());
-                        baseBind.login.performClick();
                         Common.showToast("导入成功", baseBind.toolbar);
+                        UserModel exportUser = Shaft.sGson.fromJson(userJson, UserModel.class);
+                        Local.saveUser(exportUser);
+                        Dev.refreshUser = true;
+                        Shaft.sUserModel = exportUser;
+                        Intent intent = new Intent(mContext, MainActivity.class);
+                        MainActivity.newInstance(intent, mContext);
+                        mActivity.finish();
                     } else {
                         Common.showToast("剪贴板无用户信息", baseBind.toolbar, 3);
                     }
-                    return true;
-                } else if (item.getItemId() == R.id.action_qcode) {
-                    Common.showToast("开发中", baseBind.toolbar, 4);
                     return true;
                 }
                 return false;
