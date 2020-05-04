@@ -20,7 +20,9 @@ import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
 import ceui.lisa.databinding.FragmentLocalUserBinding;
 import ceui.lisa.http.ErrorCtrl;
+import ceui.lisa.model.ExportUser;
 import ceui.lisa.models.UserModel;
+import ceui.lisa.utils.ClipBoardUtils;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
@@ -116,7 +118,7 @@ public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
         TextView doublePwd = v.findViewById(R.id.double_pwd);
         CircleImageView userHead = v.findViewById(R.id.user_head);
         ImageView current = v.findViewById(R.id.current_user);
-        ImageView delete = v.findViewById(R.id.delete_user);
+        ImageView exp = v.findViewById(R.id.export_user);
         TextView showPwd = v.findViewById(R.id.show_pwd);
         userName.setText(String.format("%s (%s)", userModel.getResponse().getUser().getName(),
                 userModel.getResponse().getUser().getAccount()));
@@ -144,10 +146,15 @@ public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
         Glide.with(mContext).load(GlideUtil.getHead(userModel.getResponse().getUser())).into(userHead);
         current.setVisibility(userModel.getResponse().getUser().getId() ==
                 sUserModel.getResponse().getUser().getId() ? View.VISIBLE : View.GONE);
-        delete.setOnClickListener(new View.OnClickListener() {
+        exp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Common.showToast("删除还没做");
+                ExportUser expUser = new ExportUser();
+                expUser.setUserName(userModel.getResponse().getUser().getAccount());
+                expUser.setUserPassword(userModel.getResponse().getUser().getPassword());
+                String userJson = Shaft.sGson.toJson(expUser);
+                Common.copy(mContext, userJson, false);
+                Common.showToast("已导出到剪切板", exp);
             }
         });
 

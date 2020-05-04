@@ -67,19 +67,19 @@
         android:layout_height="26dp"
         android:layout_centerVertical="true"
         android:layout_marginEnd="@dimen/sixteen_dp"
-        android:layout_toStartOf="@+id/delete_user"
+        android:layout_toStartOf="@+id/export_user"
         android:scaleType="centerCrop"
         android:src="@drawable/ic_check_circle_black_24dp" />
 
     <ImageView
-        android:id="@+id/delete_user"
+        android:id="@+id/export_user"
         android:layout_width="26dp"
         android:layout_height="26dp"
         android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
         android:layout_marginEnd="@dimen/sixteen_dp"
         android:scaleType="centerCrop"
-        android:src="@drawable/ic_remove_circle_outline_black_24dp" />
+        android:src="@drawable/ic_reply_all_black_24dp" />
 
     <View
         android:layout_width="match_parent"

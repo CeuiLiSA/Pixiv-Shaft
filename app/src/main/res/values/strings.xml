@@ -6,6 +6,8 @@
     <string name="nav_header_subtitle">android.studio@android.com</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">设置</string>
+    <string name="action_import">从剪切板导入</string>
+    <string name="action_qcode">扫描二维码</string>
     <string name="title_activity_blank">BlankActivity</string>
 
 
