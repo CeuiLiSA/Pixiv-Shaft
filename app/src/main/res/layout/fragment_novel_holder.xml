@@ -62,12 +62,30 @@
                         android:id="@+id/user_name"
                         android:layout_marginEnd="@dimen/eight_dp"
                         android:textStyle="bold"
+                        android:layout_toStartOf="@+id/save_novel"
                         android:textSize="16sp"
                         android:layout_marginStart="@dimen/eight_dp"
                         android:layout_toEndOf="@+id/user_head"
                         android:textColor="@color/always_white"
                         android:layout_centerVertical="true"
                         android:layout_height="wrap_content" />
+
+
+                    <Button
+                        style="@style/Widget.AppCompat.Button.Borderless"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:drawableEnd="@drawable/ic_save_black_24dp"
+                        android:layout_alignParentEnd="true"
+                        android:drawablePadding="1dp"
+                        android:gravity="center_vertical"
+                        android:id="@+id/save_novel"
+                        android:layout_marginEnd="@dimen/six_dp"
+                        android:text="保存"
+                        android:layout_centerVertical="true"
+                        android:textColor="@color/white_to_gray">
+
+                    </Button>
 
 
                 </RelativeLayout>

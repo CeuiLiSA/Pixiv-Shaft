@@ -46,6 +46,7 @@ public class NovelBean implements Serializable {
     private int total_bookmarks;
     private int total_view;
     private boolean visible;
+    private boolean isLocalSaved;
     private int total_comments;
     private boolean is_muted;
     private boolean is_mypixiv_only;
@@ -219,5 +220,13 @@ public class NovelBean implements Serializable {
 
     public void setSeries(SeriesBean series) {
         this.series = series;
+    }
+
+    public boolean isLocalSaved() {
+        return isLocalSaved;
+    }
+
+    public void setLocalSaved(boolean localSaved) {
+        isLocalSaved = localSaved;
     }
 }

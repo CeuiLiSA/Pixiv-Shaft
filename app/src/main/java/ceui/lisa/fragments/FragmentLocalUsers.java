@@ -27,6 +27,7 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Local;
+import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import de.hdodenhof.circleimageview.CircleImageView;
 import io.reactivex.Observable;
@@ -152,6 +153,7 @@ public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
                 ExportUser expUser = new ExportUser();
                 expUser.setUserName(userModel.getResponse().getUser().getAccount());
                 expUser.setUserPassword(userModel.getResponse().getUser().getPassword());
+                expUser.setLOCAL_USER(Params.USER_KEY);
                 String userJson = Shaft.sGson.toJson(expUser);
                 Common.copy(mContext, userJson, false);
                 Common.showToast("已导出到剪切板", exp);

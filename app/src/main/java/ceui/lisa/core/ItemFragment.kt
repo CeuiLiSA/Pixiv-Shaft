@@ -14,7 +14,7 @@ class ItemFragment : Fragment() {
         super.onCreate(savedInstanceState)
 
         arguments?.let {
-            title = it.getString(ARG_TITLE)
+            title = it.getString(ARG_TITLE).toString()
         }
     }
 

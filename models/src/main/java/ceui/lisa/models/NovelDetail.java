@@ -1,6 +1,8 @@
 package ceui.lisa.models;
 
-public class NovelDetail {
+import java.io.Serializable;
+
+public class NovelDetail implements Serializable {
 
 
     /**
@@ -53,6 +55,6 @@ public class NovelDetail {
         this.series_next = series_next;
     }
 
-    public static class NovelMarkerBean {
+    public static class NovelMarkerBean implements Serializable {
     }
 }

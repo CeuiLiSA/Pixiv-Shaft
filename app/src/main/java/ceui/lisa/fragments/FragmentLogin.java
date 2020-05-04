@@ -82,7 +82,7 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
                     String userJson = ClipBoardUtils.getClipboardContent(mContext);
                     if (userJson != null
                             && !TextUtils.isEmpty(userJson)
-                            && userJson.contains("pixiv_shaft_local_user")) {
+                            && userJson.contains(Params.USER_KEY)) {
                         ExportUser exportUser = Shaft.sGson.fromJson(userJson, ExportUser.class);
                         baseBind.userName.setText(exportUser.getUserName());
                         baseBind.password.setText(exportUser.getUserPassword());

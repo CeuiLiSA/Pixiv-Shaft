@@ -1,10 +1,12 @@
 package ceui.lisa.model;
 
+import ceui.lisa.utils.Params;
+
 public class ExportUser {
 
     private String userName;
     private String userPassword;
-    private String LOCAL_USER = "pixiv_shaft_local_user";
+    private String LOCAL_USER = Params.USER_KEY;
 
     public String getUserName() {
         return userName;
