@@ -53,10 +53,6 @@
                 android:icon="@drawable/ic_fiber_new_black_24dp"
                 android:title="@string/latest_work" />
 
-            <item
-                android:id="@+id/web_test"
-                android:icon="@drawable/ic_loyalty_black_24dp"
-                android:title="@string/develop" />
         </menu>
     </item>
 

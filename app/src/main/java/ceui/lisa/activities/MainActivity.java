@@ -27,7 +27,6 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 
-import com.blankj.utilcode.util.BarUtils;
 import com.bumptech.glide.Glide;
 import com.google.android.material.navigation.NavigationView;
 
@@ -76,11 +75,10 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     protected void initView() {
         Dev.isDev = Local.getBoolean(Params.USE_DEBUG, false);
         baseBind.drawerLayout.setScrimColor(Color.TRANSPARENT);
-        NavigationView navigationView = findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-        userHead = navigationView.getHeaderView(0).findViewById(R.id.user_head);
-        username = navigationView.getHeaderView(0).findViewById(R.id.user_name);
-        user_email = navigationView.getHeaderView(0).findViewById(R.id.user_email);
+        baseBind.navView.setNavigationItemSelectedListener(this);
+        userHead = baseBind.navView.getHeaderView(0).findViewById(R.id.user_head);
+        username = baseBind.navView.getHeaderView(0).findViewById(R.id.user_name);
+        user_email = baseBind.navView.getHeaderView(0).findViewById(R.id.user_email);
         initDrawerHeader();
         userHead.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -183,7 +181,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                             .setView(checkBox)
                             .setPositiveButton(android.R.string.yes, (dialog, which) -> {
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                    String[] permissions = new String[] {Manifest.permission.READ_EXTERNAL_STORAGE};
+                                    String[] permissions = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE};
                                     int i = ContextCompat.checkSelfPermission(this, permissions[0]);
                                     if (i != PackageManager.PERMISSION_GRANTED) {
                                         ActivityCompat.requestPermissions(this, permissions, 1);
@@ -201,11 +199,6 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             case R.id.nav_send:
                 intent = new Intent(mContext, TemplateActivity.class);
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "画廊");
-                break;
-            case R.id.web_test:
-                intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "开发者预览");
-                intent.putExtra("hideStatusBar", true);
                 break;
             case R.id.nav_new_work:
                 intent = new Intent(mContext, TemplateActivity.class);
@@ -280,6 +273,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 builder.setPositiveButton(mContext.getString(R.string.sure), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        TaskQueue.get().clearTask();
                         finish();
                     }
                 });

@@ -115,7 +115,6 @@ public class FileCreator {
             return null;
         }
 
-        StringBuilder stringBuilder = new StringBuilder(format);
         String out = String.copyValueOf(format.toCharArray());
         Set<String> keys = params.keySet();
         for (String key : keys) {
