@@ -53,6 +53,7 @@ public class IllustDownload {
                         file.getParentFile())
                         .setFilename(file.getName())
                         .setMinIntervalMillisCallbackProcess(30)
+                        .setConnectionCount(1)
                         .setPassIfAlreadyCompleted(false);
                 builder.addHeader(MAP_KEY, IMAGE_REFERER);
                 DownloadTask task = builder.build();
@@ -92,7 +93,7 @@ public class IllustDownload {
                             .setMinIntervalMillisCallbackProcess(30)
                             .setPassIfAlreadyCompleted(false);
                     builder.addHeader(MAP_KEY, IMAGE_REFERER);
-                    DownloadTask task = builder.build();
+                    DownloadTask task = builder.setConnectionCount(1).build();
                     IllustTask illustTask = new IllustTask();
                     illustTask.setIllustsBean(illustsBean);
                     illustTask.setDownloadTask(task);
@@ -129,6 +130,7 @@ public class IllustDownload {
                         DownloadTask.Builder builder = new DownloadTask.Builder(illustsBean.getMeta_pages().get(i).getImage_urls().getOriginal(),
                                 file.getParentFile())
                                 .setFilename(file.getName())
+                                .setConnectionCount(1)
                                 .setMinIntervalMillisCallbackProcess(30)
                                 .setPassIfAlreadyCompleted(false);
                         builder.addHeader(MAP_KEY, IMAGE_REFERER);
@@ -185,6 +187,7 @@ public class IllustDownload {
                                 DownloadTask.Builder builder = new DownloadTask.Builder(
                                         currentIllust.getMeta_single_page().getOriginal_image_url(),
                                         file.getParentFile())
+                                        .setConnectionCount(1)
                                         .setFilename(file.getName())
                                         .setMinIntervalMillisCallbackProcess(30)
                                         .setPassIfAlreadyCompleted(false);
@@ -205,6 +208,7 @@ public class IllustDownload {
                                     DownloadTask.Builder builder = new DownloadTask.Builder(
                                             currentIllust.getMeta_pages().get(j).getImage_urls().getOriginal(),
                                             file.getParentFile())
+                                            .setConnectionCount(1)
                                             .setFilename(file.getName())
                                             .setMinIntervalMillisCallbackProcess(30)
                                             .setPassIfAlreadyCompleted(false);
@@ -241,6 +245,7 @@ public class IllustDownload {
                 DownloadTask.Builder builder = new DownloadTask.Builder(
                         response.getUgoira_metadata().getZip_urls().getMedium(),
                         file.getParentFile())
+                        .setConnectionCount(1)
                         .setFilename(file.getName())
                         .setMinIntervalMillisCallbackProcess(30)
                         .setPassIfAlreadyCompleted(true);

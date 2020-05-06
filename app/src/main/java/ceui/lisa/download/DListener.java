@@ -1,5 +1,6 @@
 package ceui.lisa.download;
 
+import android.text.TextUtils;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -17,6 +18,8 @@ import net.lingala.zip4j.exception.ZipException;
 
 import org.greenrobot.eventbus.EventBus;
 
+import java.io.File;
+
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.IllustTask;
 import ceui.lisa.utils.Channel;
@@ -27,6 +30,7 @@ public class DListener extends DownloadListener1 {
     private ProgressBar mProgressBar;
     private TextView currentSize;
     private int nowID = 0, max = 0, nowOffset = 0;
+    private long total = 0L;
 
     public void bind(ProgressBar progressBar, TextView textView) {
         mProgressBar = progressBar;
@@ -45,7 +49,7 @@ public class DListener extends DownloadListener1 {
 
     @Override
     public void connected(@NonNull DownloadTask task, int blockCount, long currentOffset, long totalLength) {
-
+        total = totalLength;
     }
 
     @Override
@@ -83,8 +87,18 @@ public class DListener extends DownloadListener1 {
         Common.showLog("taskEnd " + task.getFilename());
 
         try {
-            Common.showLog(task.getFile().getPath());
-            if (task.getFilename().contains(".zip")) {
+            File file = task.getFile();
+            if (file != null) {
+                Common.showLog(file.getPath());
+
+                if (total == new File(file.getPath()).length()) {
+                    Common.showLog("下载成功");
+                } else {
+                    Common.showLog("下载失败");
+                    file.delete();
+                }
+            }
+            if (!TextUtils.isEmpty(task.getFilename()) && task.getFilename().contains(".zip")) {
                 try {
                     ZipFile zipFile = new ZipFile(task.getFile().getPath());
                     zipFile.extractAll(Shaft.sSettings.getGifUnzipPath() +
@@ -110,23 +124,12 @@ public class DListener extends DownloadListener1 {
         return nowID;
     }
 
-    public void setNowID(int nowID) {
-        this.nowID = nowID;
-    }
-
     public int getMax() {
         return max;
-    }
-
-    public void setMax(int max) {
-        this.max = max;
     }
 
     public int getNowOffset() {
         return nowOffset;
     }
 
-    public void setNowOffset(int nowOffset) {
-        this.nowOffset = nowOffset;
-    }
 }

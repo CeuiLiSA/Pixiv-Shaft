@@ -1,6 +1,7 @@
 package ceui.lisa.download;
 
 import com.google.gson.Gson;
+import com.liulishuo.okdownload.DownloadTask;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -17,6 +18,7 @@ import ceui.lisa.utils.Common;
 public class TaskQueue {
 
     private ArrayList<IllustTask> allTasks = new ArrayList<>();
+    private ArrayList<DownloadTask> realTask = new ArrayList<>();
 
     private TaskQueue() {
     }
@@ -32,6 +34,7 @@ public class TaskQueue {
     public void addTask(IllustTask downloadTask) {
         Common.showLog("TaskQueue addTask " + downloadTask.toString());
         allTasks.add(downloadTask);
+        realTask.add(downloadTask.getDownloadTask());
     }
 
     public void removeTask(IllustTask downloadTask) {
@@ -42,7 +45,7 @@ public class TaskQueue {
                 final IllustTask tempTask = allTasks.get(i);
 
                 allTasks.remove(i);
-
+                realTask.remove(i);
 
                 //通知FragmentNowDownload 删除已经下载完成的这一项
                 Channel deleteChannel = new Channel();
@@ -79,20 +82,41 @@ public class TaskQueue {
                         }
                     }.execute();
 
-                    break;
 
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+
+                break;
             }
         }
     }
 
     public void clearTask() {
+        if (allTasks.size() != 0) {
+            for (IllustTask allTask : allTasks) {
+                File file = allTask.getDownloadTask().getFile();
+                if (file.length() > 0) {
+                    //删除下载到一半的作品
+                    file.delete();
+                }
+            }
+        }
         allTasks.clear();
+        if (realTask != null) {
+            DownloadTask[] strings = new DownloadTask[realTask.size()];
+            realTask.toArray(strings);
+            DownloadTask.cancel(strings);
+        }
     }
 
     private static class SingletonHolder {
         private static TaskQueue instance = new TaskQueue();
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        clearTask();
+        super.finalize();
     }
 }
