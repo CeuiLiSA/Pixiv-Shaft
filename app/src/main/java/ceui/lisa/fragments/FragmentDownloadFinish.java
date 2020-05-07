@@ -16,8 +16,8 @@ import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyViewHistoryBinding;
-import ceui.lisa.core.BaseCtrl;
-import ceui.lisa.core.DataControl;
+import ceui.lisa.core.BaseRepo;
+import ceui.lisa.core.LocalRepo;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Channel;
@@ -52,8 +52,8 @@ public class FragmentDownloadFinish extends LocalListFragment<FragmentBaseListBi
     }
 
     @Override
-    public BaseCtrl present() {
-        return new DataControl<List<DownloadEntity>>() {
+    public BaseRepo repository() {
+        return new LocalRepo<List<DownloadEntity>>() {
             @Override
             public List<DownloadEntity> first() {
                 return AppDatabase.getAppDatabase(mContext).downloadDao().getAll(PAGE_SIZE, 0);

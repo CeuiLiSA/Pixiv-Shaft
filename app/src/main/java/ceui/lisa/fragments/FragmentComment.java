@@ -1,23 +1,18 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
-import android.view.DisplayCutout;
 import android.view.View;
-import android.view.ViewGroup;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.BaseActivity;
-import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.CommentAdapter;
-import ceui.lisa.core.NetControl;
+import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentCommentBinding;
 import ceui.lisa.databinding.RecyCommentListBinding;
 import ceui.lisa.http.NullCtrl;
@@ -63,8 +58,8 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
     }
 
     @Override
-    public NetControl<ListComment> present() {
-        return new NetControl<ListComment>() {
+    public RemoteRepo<ListComment> repository() {
+        return new RemoteRepo<ListComment>() {
             @Override
             public Observable<ListComment> initApi() {
                 return Retro.getAppApi().getComment(sUserModel.getResponse().getAccess_token(), illustID);

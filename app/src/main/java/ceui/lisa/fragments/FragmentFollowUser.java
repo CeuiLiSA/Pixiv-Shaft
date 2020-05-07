@@ -4,7 +4,7 @@ import android.os.Bundle;
 
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.UAdapter;
-import ceui.lisa.core.NetControl;
+import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyUserPreviewBinding;
 import ceui.lisa.http.Retro;
@@ -40,17 +40,16 @@ public class FragmentFollowUser extends NetListFragment<FragmentBaseListBinding,
     }
 
     @Override
-    public NetControl<ListUser> present() {
-        return new NetControl<ListUser>() {
+    public RemoteRepo<ListUser> repository() {
+        return new RemoteRepo<ListUser>() {
             @Override
             public Observable<ListUser> initApi() {
-                return Retro.getAppApi().getFollowUser(sUserModel.getResponse().getAccess_token(), userID, starType);
+                return Retro.getAppApi().getFollowUser(token(), userID, starType);
             }
 
             @Override
             public Observable<ListUser> initNextApi() {
-                return Retro.getAppApi().getNextUser(sUserModel.getResponse().getAccess_token(),
-                        mModel.getNextUrl());
+                return Retro.getAppApi().getNextUser(token(), mModel.getNextUrl());
             }
         };
     }

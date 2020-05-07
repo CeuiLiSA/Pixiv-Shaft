@@ -5,15 +5,13 @@ import android.os.Bundle;
 
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapter;
-import ceui.lisa.core.NetControl;
+import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
-import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Params;
-import ceui.lisa.view.SpacesItemDecoration;
 import io.reactivex.Observable;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
@@ -47,8 +45,8 @@ public class FragmentUserManga extends NetListFragment<FragmentBaseListBinding,
     }
 
     @Override
-    public NetControl<ListIllust> present() {
-        return new NetControl<ListIllust>() {
+    public RemoteRepo<ListIllust> repository() {
+        return new RemoteRepo<ListIllust>() {
             @Override
             public Observable<ListIllust> initApi() {
                 return Retro.getAppApi().getUserSubmitIllust(sUserModel.getResponse().getAccess_token(), userID, "manga");

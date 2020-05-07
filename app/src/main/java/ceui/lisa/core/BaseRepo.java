@@ -9,7 +9,7 @@ import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 
 import ceui.lisa.activities.Shaft;
 
-public class BaseCtrl {
+public class BaseRepo {
 
     public boolean hasNext(){
         return true;

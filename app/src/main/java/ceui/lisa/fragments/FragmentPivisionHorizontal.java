@@ -12,11 +12,11 @@ import ceui.lisa.R;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.PivisionHAdapter;
-import ceui.lisa.core.NetControl;
+import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentPivisionHorizontalBinding;
 import ceui.lisa.databinding.RecyArticalHorizonBinding;
 import ceui.lisa.http.Retro;
-import ceui.lisa.core.BaseCtrl;
+import ceui.lisa.core.BaseRepo;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListArticle;
 import ceui.lisa.models.SpotlightArticlesBean;
@@ -53,8 +53,8 @@ public class FragmentPivisionHorizontal extends NetListFragment<FragmentPivision
     }
 
     @Override
-    public BaseCtrl present() {
-        return new NetControl<ListArticle>() {
+    public BaseRepo repository() {
+        return new RemoteRepo<ListArticle>() {
             @Override
             public Observable<ListArticle> initApi() {
                 return Retro.getAppApi().getArticles(sUserModel.getResponse().getAccess_token(), "all");

@@ -9,7 +9,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 
-public abstract class NetControl<Response extends ListShow<?>> extends BaseCtrl {
+public abstract class RemoteRepo<Response extends ListShow<?>> extends BaseRepo {
 
     private Observable<Response> mApi;
 

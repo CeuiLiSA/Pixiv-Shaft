@@ -3,7 +3,7 @@ package ceui.lisa.fragments
 import ceui.lisa.activities.Shaft.sUserModel
 import ceui.lisa.adapters.BaseAdapter
 import ceui.lisa.adapters.LiveAdapter
-import ceui.lisa.core.NetControl
+import ceui.lisa.core.RemoteRepo
 import ceui.lisa.databinding.FragmentBaseListBinding
 import ceui.lisa.databinding.RecyItemLiveBinding
 import ceui.lisa.http.Retro
@@ -14,8 +14,8 @@ import io.reactivex.Observable
 class FragmentLive : NetListFragment<FragmentBaseListBinding, ListLive,
         Live>() {
 
-    override fun present(): NetControl<ListLive> {
-        return object : NetControl<ListLive>() {
+    override fun repository(): RemoteRepo<ListLive> {
+        return object : RemoteRepo<ListLive>() {
             override fun initApi(): Observable<ListLive> {
                 return Retro.getAppApi().getLiveList(sUserModel.response.access_token, "popular")
             }

@@ -19,9 +19,9 @@ import ceui.lisa.helper.TextWriter;
 import ceui.lisa.databinding.FragmentMultiDownloadBinding;
 import ceui.lisa.databinding.RecyMultiDownloadBinding;
 import ceui.lisa.download.IllustDownload;
-import ceui.lisa.core.BaseCtrl;
+import ceui.lisa.core.BaseRepo;
 import ceui.lisa.interfaces.Callback;
-import ceui.lisa.core.DataControl;
+import ceui.lisa.core.LocalRepo;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
@@ -127,8 +127,8 @@ public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownload
     }
 
     @Override
-    public BaseCtrl present() {
-        return new DataControl<List<IllustsBean>>() {
+    public BaseRepo repository() {
+        return new LocalRepo<List<IllustsBean>>() {
             @Override
             public List<IllustsBean> first() {
                 return DataChannel.get().getDownloadList();

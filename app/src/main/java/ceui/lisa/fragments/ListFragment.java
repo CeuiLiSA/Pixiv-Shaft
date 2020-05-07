@@ -24,8 +24,7 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
-import ceui.lisa.core.BaseCtrl;
-import ceui.lisa.utils.Common;
+import ceui.lisa.core.BaseRepo;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
 import ceui.lisa.view.SpacesItemDecoration;
@@ -45,7 +44,7 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
     protected List<Item> allItems = null;
     protected BaseModel<Item> mModel;
     protected Toolbar mToolbar;
-    protected BaseCtrl mBaseCtrl;
+    protected BaseRepo mBaseRepo;
 
     @Override
     public void initLayout() {
@@ -54,7 +53,7 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
 
     public abstract BaseAdapter<?, ? extends ViewDataBinding> adapter();
 
-    public abstract BaseCtrl present();
+    public abstract BaseRepo repository();
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
@@ -105,11 +104,11 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
             noData.setVisibility(View.INVISIBLE);
             mRefreshLayout.autoRefresh();
         });
-        mBaseCtrl = present();
-        mRefreshLayout.setRefreshHeader(mBaseCtrl.enableRefresh() ?
-                mBaseCtrl.getHeader(mContext) : new FalsifyHeader(mContext));
-        mRefreshLayout.setRefreshFooter(mBaseCtrl.hasNext() ?
-                mBaseCtrl.getFooter(mContext) : new FalsifyFooter(mContext));
+        mBaseRepo = repository();
+        mRefreshLayout.setRefreshHeader(mBaseRepo.enableRefresh() ?
+                mBaseRepo.getHeader(mContext) : new FalsifyHeader(mContext));
+        mRefreshLayout.setRefreshFooter(mBaseRepo.hasNext() ?
+                mBaseRepo.getFooter(mContext) : new FalsifyFooter(mContext));
 
         mRefreshLayout.setOnRefreshListener(new OnRefreshListener() {
             @Override
@@ -121,7 +120,7 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
         mRefreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
             @Override
             public void onLoadMore(@NonNull RefreshLayout refreshLayout) {
-                if (mBaseCtrl.hasNext()) {
+                if (mBaseRepo.hasNext()) {
                     loadMore();
                 } else {
                     mRefreshLayout.finishLoadMore();

@@ -4,7 +4,7 @@ import android.os.Bundle;
 
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.NAdapter;
-import ceui.lisa.core.NetControl;
+import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyNovelBinding;
 import ceui.lisa.http.Retro;
@@ -40,8 +40,8 @@ public class FragmentUserNovel extends NetListFragment<FragmentBaseListBinding,
     }
 
     @Override
-    public NetControl<ListNovel> present() {
-        return new NetControl<ListNovel>() {
+    public RemoteRepo<ListNovel> repository() {
+        return new RemoteRepo<ListNovel>() {
             @Override
             public Observable<ListNovel> initApi() {
                 return Retro.getAppApi().getUserSubmitNovel(sUserModel

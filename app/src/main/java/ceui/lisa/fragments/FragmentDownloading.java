@@ -8,8 +8,8 @@ import ceui.lisa.database.IllustTask;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyDownloadTaskBinding;
 import ceui.lisa.download.TaskQueue;
-import ceui.lisa.core.BaseCtrl;
-import ceui.lisa.core.DataControl;
+import ceui.lisa.core.BaseRepo;
+import ceui.lisa.core.LocalRepo;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 
@@ -22,8 +22,8 @@ public class FragmentDownloading extends LocalListFragment<FragmentBaseListBindi
     }
 
     @Override
-    public BaseCtrl present() {
-        return new DataControl<List<IllustTask>>() {
+    public BaseRepo repository() {
+        return new LocalRepo<List<IllustTask>>() {
             @Override
             public List<IllustTask> first() {
                 return TaskQueue.get().getTasks();

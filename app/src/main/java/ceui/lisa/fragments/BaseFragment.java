@@ -143,13 +143,4 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
     public void vertical() {
 
     }
-
-    @Nullable
-    public BaseActivity getBaseActivity() {
-        if (getActivity() instanceof BaseActivity) {
-            return (BaseActivity) getActivity();
-        } else {
-            return null;
-        }
-    }
 }

@@ -6,22 +6,18 @@ import androidx.annotation.Nullable;
 import androidx.databinding.ViewDataBinding;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.GridLayoutManager;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapter;
-import ceui.lisa.core.BaseCtrl;
-import ceui.lisa.core.NetControl;
+import ceui.lisa.core.BaseRepo;
+import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentBaseListBinding;
-import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
-import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.view.GridItemDecoration;
 import ceui.lisa.viewmodel.SearchModel;
@@ -57,8 +53,8 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
     }
 
     @Override
-    public BaseCtrl present() {
-        return new NetControl<ListIllust>() {
+    public BaseRepo repository() {
+        return new RemoteRepo<ListIllust>() {
             @Override
             public Observable<ListIllust> initApi() {
                 PixivOperate.insertSearchHistory(searchModel.getKeyword().getValue(), 0);

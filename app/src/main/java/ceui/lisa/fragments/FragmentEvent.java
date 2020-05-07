@@ -25,9 +25,8 @@ import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.EventAdapter;
 import ceui.lisa.adapters.IAdapter;
-import ceui.lisa.core.NetControl;
+import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentBaseListBinding;
-import ceui.lisa.databinding.RecyUserEventBinding;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
@@ -153,8 +152,8 @@ public class FragmentEvent extends NetListFragment<FragmentBaseListBinding,
     }
 
     @Override
-    public NetControl<ListIllust> present() {
-        return new NetControl<ListIllust>() {
+    public RemoteRepo<ListIllust> repository() {
+        return new RemoteRepo<ListIllust>() {
             @Override
             public Observable<ListIllust> initApi() {
                 return Retro.getAppApi().getFollowUserIllust(sUserModel.getResponse().getAccess_token());

@@ -5,9 +5,7 @@ import android.content.Context;
 import com.scwang.smartrefresh.header.DeliveryHeader;
 import com.scwang.smartrefresh.layout.api.RefreshHeader;
 
-import ceui.lisa.core.BaseCtrl;
-
-public abstract class DataControl<T> extends BaseCtrl {
+public abstract class LocalRepo<T> extends BaseRepo {
 
     public abstract T first();
 

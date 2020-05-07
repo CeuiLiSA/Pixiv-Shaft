@@ -11,7 +11,7 @@ import java.util.List;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.BookedTagAdapter;
-import ceui.lisa.core.NetControl;
+import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyBookTagBinding;
 import ceui.lisa.http.Retro;
@@ -35,8 +35,8 @@ public class FragmentBookedTag extends NetListFragment<FragmentBaseListBinding,
     }
 
     @Override
-    public NetControl<ListTag> present() {
-        return new NetControl<ListTag>() {
+    public RemoteRepo<ListTag> repository() {
+        return new RemoteRepo<ListTag>() {
             @Override
             public Observable<ListTag> initApi() {
                 return Retro.getAppApi().getBookmarkTags(Shaft.sUserModel.getResponse().getAccess_token(),

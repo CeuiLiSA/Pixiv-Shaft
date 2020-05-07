@@ -1,22 +1,15 @@
 package ceui.lisa.fragments;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 
 import androidx.databinding.ViewDataBinding;
 
-import ceui.lisa.activities.Shaft;
-import ceui.lisa.activities.UActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.SimpleUserAdapter;
-import ceui.lisa.adapters.UAdapter;
-import ceui.lisa.core.BaseCtrl;
-import ceui.lisa.core.NetControl;
+import ceui.lisa.core.BaseRepo;
+import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentBaseListBinding;
-import ceui.lisa.databinding.RecySimpleUserBinding;
 import ceui.lisa.http.Retro;
-import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListSimpleUser;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.UserBean;
@@ -47,8 +40,8 @@ public class FragmentListSimpleUser extends NetListFragment<FragmentBaseListBind
     }
 
     @Override
-    public BaseCtrl present() {
-        return new NetControl<ListSimpleUser>() {
+    public BaseRepo repository() {
+        return new RemoteRepo<ListSimpleUser>() {
             @Override
             public Observable<ListSimpleUser> initApi() {
                 return Retro.getAppApi().getUsersWhoLikeThisIllust(mModel.getToken(),

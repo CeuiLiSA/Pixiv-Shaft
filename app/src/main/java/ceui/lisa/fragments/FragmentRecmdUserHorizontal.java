@@ -11,11 +11,11 @@ import ceui.lisa.R;
 import ceui.lisa.activities.UActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.UserHAdapter;
-import ceui.lisa.core.NetControl;
+import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentUserHorizontalBinding;
 import ceui.lisa.databinding.RecyUserPreviewHorizontalBinding;
 import ceui.lisa.http.Retro;
-import ceui.lisa.core.BaseCtrl;
+import ceui.lisa.core.BaseRepo;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListUser;
 import ceui.lisa.models.UserPreviewsBean;
@@ -48,8 +48,8 @@ public class FragmentRecmdUserHorizontal extends NetListFragment<FragmentUserHor
     }
 
     @Override
-    public BaseCtrl present() {
-        return new NetControl<ListUser>() {
+    public BaseRepo repository() {
+        return new RemoteRepo<ListUser>() {
             @Override
             public Observable<ListUser> initApi() {
                 return Retro.getAppApi().getRecmdUser(token());

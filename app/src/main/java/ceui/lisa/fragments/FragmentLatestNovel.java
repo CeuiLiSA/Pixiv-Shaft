@@ -1,25 +1,22 @@
 package ceui.lisa.fragments;
 
-import android.os.Bundle;
-
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.NAdapter;
-import ceui.lisa.core.NetControl;
+import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyNovelBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListNovel;
 import ceui.lisa.models.NovelBean;
-import ceui.lisa.utils.Params;
 import io.reactivex.Observable;
 
 public class FragmentLatestNovel extends NetListFragment<FragmentBaseListBinding, ListNovel,
         NovelBean> {
 
     @Override
-    public NetControl<ListNovel> present() {
-        return new NetControl<ListNovel>() {
+    public RemoteRepo<ListNovel> repository() {
+        return new RemoteRepo<ListNovel>() {
             @Override
             public Observable<ListNovel> initApi() {
                 return Retro.getAppApi().getNewNovels(Shaft.sUserModel.getResponse().getAccess_token());

@@ -10,7 +10,7 @@ import ceui.lisa.R;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.adapters.ArticleAdapter;
 import ceui.lisa.adapters.BaseAdapter;
-import ceui.lisa.core.NetControl;
+import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyArticalBinding;
 import ceui.lisa.http.Retro;
@@ -48,8 +48,8 @@ public class FragmentPivision extends NetListFragment<FragmentBaseListBinding,
     }
 
     @Override
-    public NetControl<ListArticle> present() {
-        return new NetControl<ListArticle>() {
+    public RemoteRepo<ListArticle> repository() {
+        return new RemoteRepo<ListArticle>() {
             @Override
             public Observable<ListArticle> initApi() {
                 return Retro.getAppApi().getArticles(sUserModel.getResponse().getAccess_token(), dataType);

@@ -7,21 +7,14 @@ import androidx.databinding.ViewDataBinding;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
-import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
-import ceui.lisa.adapters.IAdapter;
 import ceui.lisa.adapters.NAdapter;
-import ceui.lisa.core.BaseCtrl;
-import ceui.lisa.core.NetControl;
+import ceui.lisa.core.BaseRepo;
+import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentBaseListBinding;
-import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.http.Retro;
-import ceui.lisa.model.ListIllust;
 import ceui.lisa.model.ListNovel;
-import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.NovelBean;
-import ceui.lisa.utils.Params;
-import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.viewmodel.SearchModel;
 import io.reactivex.Observable;
 
@@ -55,8 +48,8 @@ public class FragmentSearchNovel extends NetListFragment<FragmentBaseListBinding
     }
 
     @Override
-    public BaseCtrl present() {
-        return new NetControl<ListNovel>() {
+    public BaseRepo repository() {
+        return new RemoteRepo<ListNovel>() {
             @Override
             public Observable<ListNovel> initApi() {
                 return Retro.getAppApi().searchNovel(
