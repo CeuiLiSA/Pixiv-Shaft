@@ -39,9 +39,14 @@ public class IAdapterWithHeadView extends IAdapter {
 
     @Override
     public ViewHolder getHeader(ViewGroup parent) {
-        mIllustHeader = new IllustHeader(DataBindingUtil.inflate(
-                LayoutInflater.from(mContext), R.layout.recy_recmd_header,
-                null, false).getRoot());
+        mIllustHeader = new IllustHeader(
+                DataBindingUtil.inflate(
+                        LayoutInflater.from(mContext),
+                        R.layout.recy_recmd_header,
+                        null,
+                        false
+                )
+        );
         mIllustHeader.initView(mContext);
         return mIllustHeader;
     }

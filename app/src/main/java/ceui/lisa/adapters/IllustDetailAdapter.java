@@ -17,6 +17,7 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
 
@@ -46,6 +47,8 @@ import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
+
+import static com.bumptech.glide.load.resource.bitmap.BitmapTransitionOptions.withCrossFade;
 
 
 /**
@@ -97,6 +100,7 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
             Glide.with(mContext)
                     .load(GlideUtil.getLargeImage(allIllust, position))
+                    .transition(DrawableTransitionOptions.withCrossFade())
                     .into(currentOne.illust);
 
             Common.showLog("height " + params.height + "width " + params.width);
@@ -176,6 +180,7 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             Glide.with(mContext)
                     .asBitmap()
                     .load(GlideUtil.getLargeImage(allIllust, position))
+                    .transition(withCrossFade())
                     .into(new SimpleTarget<Bitmap>() {
                         @Override
                         public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {

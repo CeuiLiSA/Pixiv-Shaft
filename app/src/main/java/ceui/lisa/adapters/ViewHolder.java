@@ -1,9 +1,6 @@
 package ceui.lisa.adapters;
 
-import android.view.View;
 
-import androidx.annotation.NonNull;
-import androidx.databinding.DataBindingUtil;
 import androidx.databinding.ViewDataBinding;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -11,8 +8,8 @@ public class ViewHolder<BindView extends ViewDataBinding> extends RecyclerView.V
 
     protected BindView baseBind;
 
-    public ViewHolder(@NonNull View itemView) {
-        super(itemView);
-        baseBind = DataBindingUtil.bind(itemView);
+    public ViewHolder(BindView pBaseBind) {
+        super(pBaseBind.getRoot());
+        baseBind = pBaseBind;
     }
 }

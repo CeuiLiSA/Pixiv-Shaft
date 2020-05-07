@@ -153,12 +153,14 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
             Glide.with(mContext)
                     .load(GlideUtil.getMediumImg(target))
                     .apply(bitmapTransform(new BlurTransformation(5, 15)))
+                    .transition(DrawableTransitionOptions.withCrossFade())
                     .into(bindView.baseBind.illustImage);
         } else {
             bindView.baseBind.hide.setVisibility(View.INVISIBLE);
             Glide.with(mContext)
                     .load(GlideUtil.getMediumImg(target))
                     .placeholder(R.color.second_light_bg)
+                    .transition(DrawableTransitionOptions.withCrossFade())
                     .into(bindView.baseBind.illustImage);
         }
         bindView.baseBind.hide.setOnClickListener(new View.OnClickListener() {

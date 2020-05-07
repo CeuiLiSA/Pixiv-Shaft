@@ -195,6 +195,14 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
         });
     }
 
+    public void beforeFirstLoad(List<Item> items) {
+
+    }
+
+    public void beforeNextLoad(List<Item> items) {
+
+    }
+
     public void onFirstLoaded(List<Item> items) {
 
     }

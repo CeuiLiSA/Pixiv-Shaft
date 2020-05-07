@@ -39,6 +39,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                     onResponse(mResponse);
                     if (response.getList() != null && response.getList().size() != 0) {
                         List<Item> firstList = response.getList();
+                        beforeFirstLoad(firstList);
                         if (mModel != null) {
                             mModel.load(firstList);
                         }
@@ -88,6 +89,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                     mResponse = response;
                     if (response.getList() != null && response.getList().size() != 0) {
                         List<Item> nextList = response.getList();
+                        beforeNextLoad(nextList);
                         if (mModel != null) {
                             mModel.load(nextList);
                         }

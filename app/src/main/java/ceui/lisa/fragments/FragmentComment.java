@@ -7,6 +7,8 @@ import android.view.View;
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import java.util.List;
+
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UActivity;
@@ -21,6 +23,7 @@ import ceui.lisa.model.ListComment;
 import ceui.lisa.models.CommentHolder;
 import ceui.lisa.models.CommentsBean;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Emoji;
 import ceui.lisa.utils.Params;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -125,6 +128,44 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
     @Override
     public void initRecyclerView() {
         baseBind.recyclerView.setLayoutManager(new LinearLayoutManager(mContext));
+    }
+
+    @Override
+    public void beforeFirstLoad(List<CommentsBean> items) {
+        for (CommentsBean allItem : items) {
+            String comment = allItem.getComment();
+            if (Emoji.hasEmoji(comment)) {
+                String newComment = Emoji.transform(comment);
+                allItem.setComment(newComment);
+            }
+
+            if (allItem.getParent_comment() != null) {
+                String parentComment = allItem.getParent_comment().getComment();
+                if (Emoji.hasEmoji(parentComment)) {
+                    String newComment = Emoji.transform(parentComment);
+                    allItem.getParent_comment().setComment(newComment);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void beforeNextLoad(List<CommentsBean> items) {
+        for (CommentsBean allItem : items) {
+            String comment = allItem.getComment();
+            if (Emoji.hasEmoji(comment)) {
+                String newComment = Emoji.transform(comment);
+                allItem.setComment(newComment);
+            }
+
+            if (allItem.getParent_comment() != null) {
+                String parentComment = allItem.getParent_comment().getComment();
+                if (Emoji.hasEmoji(parentComment)) {
+                    String newComment = Emoji.transform(parentComment);
+                    allItem.getParent_comment().setComment(newComment);
+                }
+            }
+        }
     }
 
     @Override

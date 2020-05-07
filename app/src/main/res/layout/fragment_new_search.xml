@@ -20,6 +20,7 @@
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
+                app:layout_scrollFlags="scroll|enterAlways"
                 android:layout_height="wrap_content"
                 android:background="@color/colorPrimary"
                 android:elevation="0dp"
@@ -67,6 +68,27 @@
 
         </com.google.android.material.appbar.AppBarLayout>
 
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:id="@+id/no_data"
+            android:src="@mipmap/no_data_line"
+            android:tint="@color/colorPrimary"
+            android:scaleType="centerCrop"
+            android:visibility="invisible"
+            android:layout_centerInParent="true"
+            android:layout_height="wrap_content" />
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:id="@+id/progress"
+            android:layout_centerInParent="true"
+            android:visibility="gone"
+            android:layout_height="wrap_content">
+
+        </ProgressBar>
+
+
         <com.mxn.soul.flowingdrawer_core.FlowingDrawer
             android:id="@+id/drawerlayout"
             android:layout_width="match_parent"
@@ -80,7 +102,7 @@
 
             <androidx.viewpager.widget.ViewPager
                 android:layout_width="match_parent"
-                android:id="@+id/view_pager"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior"    android:id="@+id/view_pager"
                 android:layout_height="match_parent">
 
             </androidx.viewpager.widget.ViewPager>
@@ -101,23 +123,6 @@
         </com.mxn.soul.flowingdrawer_core.FlowingDrawer>
 
 
-        <ImageView
-            android:layout_width="wrap_content"
-            android:id="@+id/no_data"
-            android:src="@mipmap/no_data_line"
-            android:tint="@color/colorPrimary"
-            android:scaleType="centerCrop"
-            android:visibility="invisible"
-            android:layout_centerInParent="true"
-            android:layout_height="wrap_content" />
 
-        <ProgressBar
-            android:layout_width="wrap_content"
-            android:id="@+id/progress"
-            android:layout_centerInParent="true"
-            android:visibility="gone"
-            android:layout_height="wrap_content">
-
-        </ProgressBar>
     </RelativeLayout>
 </layout>
