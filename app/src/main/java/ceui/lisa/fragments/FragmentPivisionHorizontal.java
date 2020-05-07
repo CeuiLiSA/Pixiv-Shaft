@@ -31,7 +31,7 @@ import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class FragmentPivisionHorizontal extends NetListFragment<FragmentPivisionHorizontalBinding,
-        ListArticle, SpotlightArticlesBean, RecyArticalHorizonBinding> {
+        ListArticle, SpotlightArticlesBean> {
 
     @Override
     public BaseAdapter<SpotlightArticlesBean, RecyArticalHorizonBinding> adapter() {

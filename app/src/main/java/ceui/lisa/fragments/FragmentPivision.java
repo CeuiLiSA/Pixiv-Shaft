@@ -25,7 +25,7 @@ import io.reactivex.Observable;
 import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class FragmentPivision extends NetListFragment<FragmentBaseListBinding,
-        ListArticle, SpotlightArticlesBean, RecyArticalBinding> {
+        ListArticle, SpotlightArticlesBean> {
 
     private String dataType;
 

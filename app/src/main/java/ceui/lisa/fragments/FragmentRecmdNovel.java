@@ -38,7 +38,7 @@ import ceui.lisa.view.SpacesItemWithHeadDecoration;
 import io.reactivex.Observable;
 
 public class FragmentRecmdNovel extends NetListFragment<FragmentBaseListBinding,
-        ListNovel, NovelBean, RecyNovelBinding> {
+        ListNovel, NovelBean> {
 
     private List<NovelBean> ranking = new ArrayList<>();
 

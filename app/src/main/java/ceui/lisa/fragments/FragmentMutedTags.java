@@ -23,7 +23,7 @@ import ceui.lisa.models.TagsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.PixivOperate;
 
-public class FragmentMutedTags extends LocalListFragment<FragmentBaseListBinding, TagsBean, RecyBookTagBinding> {
+public class FragmentMutedTags extends LocalListFragment<FragmentBaseListBinding, TagsBean> {
 
     @Override
     public DataControl<List<TagsBean>> present() {

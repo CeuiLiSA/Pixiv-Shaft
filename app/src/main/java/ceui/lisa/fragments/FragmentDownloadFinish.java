@@ -25,7 +25,7 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 
 public class FragmentDownloadFinish extends LocalListFragment<FragmentBaseListBinding,
-        DownloadEntity, RecyViewHistoryBinding> {
+        DownloadEntity> {
 
     private List<IllustsBean> all = new ArrayList<>();
     private List<String> filePaths = new ArrayList<>();

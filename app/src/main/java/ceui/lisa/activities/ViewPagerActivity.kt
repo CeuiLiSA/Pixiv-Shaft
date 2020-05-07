@@ -27,25 +27,13 @@ class ViewPagerActivity : BaseActivity<ActivityViewPagerBinding>() {
 
     override fun initView() {
         holder = ViewModelProvider(this).get(Dust::class.java)
-
-        holder.dust.observe(this, Observer<List<IllustsBean>> { dust: List<IllustsBean> ->
-            baseBind.viewPager.adapter = object : FragmentPagerAdapter(supportFragmentManager, 0) {
-                override fun getItem(i: Int): Fragment {
-                    Common.showLog(className + "setPageTransformer " + i)
-                    return FragmentSingleIllust.newInstance(i)
-                }
-
-                override fun getCount(): Int {
-                    return dust.size
-                }
-            }
-        })
+        holder.dust.value = ArrayList()
+        holder.dust.value?.addAll(DataChannel.get().illustList)
         holder.index.observe(this, Observer{ index ->
             run {
                 baseBind.viewPager.currentItem = index
             }
         })
-
         baseBind.viewPager.setPageTransformer(true, DrawerTransformer())
         baseBind.viewPager.addOnPageChangeListener(object :ViewPager.OnPageChangeListener{
             override fun onPageScrollStateChanged(state: Int) {
@@ -62,9 +50,15 @@ class ViewPagerActivity : BaseActivity<ActivityViewPagerBinding>() {
             }
         })
 
-        holder.dust.value = DataChannel.get().illustList
+        baseBind.viewPager.adapter = object : FragmentPagerAdapter(supportFragmentManager, 0) {
+            override fun getItem(i: Int): Fragment {
+                return FragmentSingleIllust.newInstance(i)
+            }
 
-
+            override fun getCount(): Int {
+                return holder.dust.value?.size!!
+            }
+        }
         val p = intent.getIntExtra("position", -1)
         if (p != -1) {
             holder.index.value = p

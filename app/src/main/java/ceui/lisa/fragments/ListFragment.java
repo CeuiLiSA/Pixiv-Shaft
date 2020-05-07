@@ -33,8 +33,8 @@ import ceui.lisa.viewmodel.BaseModel;
 import jp.wasabeef.recyclerview.animators.BaseItemAnimator;
 import jp.wasabeef.recyclerview.animators.LandingAnimator;
 
-public abstract class ListFragment<Layout extends ViewDataBinding, Item,
-        ItemLayout extends ViewDataBinding> extends BaseFragment<Layout> {
+public abstract class ListFragment<Layout extends ViewDataBinding, Item>
+        extends BaseFragment<Layout> {
 
     public static final long animateDuration = 400L;
     public static final int PAGE_SIZE = 20;

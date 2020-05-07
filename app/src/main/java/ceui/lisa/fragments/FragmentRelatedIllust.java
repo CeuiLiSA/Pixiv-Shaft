@@ -2,10 +2,12 @@ package ceui.lisa.fragments;
 
 import android.os.Bundle;
 
+import androidx.databinding.ViewDataBinding;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
+import ceui.lisa.adapters.FAdapter;
 import ceui.lisa.adapters.IAdapter;
 import ceui.lisa.core.NetControl;
 import ceui.lisa.databinding.FragmentBaseListBinding;
@@ -25,7 +27,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
  * 相关插画
  */
 public class FragmentRelatedIllust extends NetListFragment<FragmentBaseListBinding,
-        ListIllust, IllustsBean, RecyIllustStaggerBinding> {
+        ListIllust, IllustsBean> {
 
     private int illustID;
     private String mTitle;
@@ -51,6 +53,11 @@ public class FragmentRelatedIllust extends NetListFragment<FragmentBaseListBindi
     }
 
     @Override
+    public BaseAdapter<?, ? extends ViewDataBinding> adapter() {
+        return new FAdapter(allItems, mContext);
+    }
+
+    @Override
     public NetControl<ListIllust> present() {
         return new NetControl<ListIllust>() {
             @Override
@@ -71,10 +78,7 @@ public class FragmentRelatedIllust extends NetListFragment<FragmentBaseListBindi
         };
     }
 
-    @Override
-    public BaseAdapter<IllustsBean, RecyIllustStaggerBinding> adapter() {
-        return new IAdapter(allItems, mContext);
-    }
+
 
     @Override
     public String getToolbarTitle() {

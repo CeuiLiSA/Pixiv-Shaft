@@ -26,10 +26,9 @@ import io.reactivex.Observable;
 import jp.wasabeef.recyclerview.animators.BaseItemAnimator;
 import jp.wasabeef.recyclerview.animators.FadeInLeftAnimator;
 
-import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class FragmentRecmdUserHorizontal extends NetListFragment<FragmentUserHorizontalBinding,
-        ListUser, UserPreviewsBean, RecyUserPreviewHorizontalBinding> {
+        ListUser, UserPreviewsBean> {
 
     @Override
     public void initLayout() {

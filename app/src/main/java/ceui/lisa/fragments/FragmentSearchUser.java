@@ -19,7 +19,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
  * 搜索用户
  */
 public class FragmentSearchUser extends NetListFragment<FragmentBaseListBinding,
-        ListUser, UserPreviewsBean, RecyUserPreviewBinding> {
+        ListUser, UserPreviewsBean> {
 
     private String word;
 

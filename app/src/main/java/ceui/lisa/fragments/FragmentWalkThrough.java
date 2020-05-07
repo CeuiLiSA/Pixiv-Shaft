@@ -17,7 +17,7 @@ import io.reactivex.Observable;
 import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class FragmentWalkThrough extends NetListFragment<FragmentBaseListBinding,
-        ListIllust, IllustsBean, RecyIllustStaggerBinding> {
+        ListIllust, IllustsBean> {
 
     @Override
     public NetControl<ListIllust> present() {

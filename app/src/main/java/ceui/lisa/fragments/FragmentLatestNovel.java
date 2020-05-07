@@ -15,7 +15,7 @@ import ceui.lisa.utils.Params;
 import io.reactivex.Observable;
 
 public class FragmentLatestNovel extends NetListFragment<FragmentBaseListBinding, ListNovel,
-        NovelBean, RecyNovelBinding> {
+        NovelBean> {
 
     @Override
     public NetControl<ListNovel> present() {

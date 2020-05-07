@@ -27,7 +27,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
  * 某人收藏的插畫
  */
 public class FragmentLikeIllust extends NetListFragment<FragmentBaseListBinding,
-        ListIllust, IllustsBean, RecyIllustStaggerBinding> {
+        ListIllust, IllustsBean> {
 
     public static final String TYPE_PUBLUC = "public";
     public static final String TYPE_PRIVATE = "private";

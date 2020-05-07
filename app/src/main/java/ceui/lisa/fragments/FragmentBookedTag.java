@@ -24,7 +24,7 @@ import ceui.lisa.view.LinearItemDecoration;
 import io.reactivex.Observable;
 
 public class FragmentBookedTag extends NetListFragment<FragmentBaseListBinding,
-        ListTag, TagsBean, RecyBookTagBinding> {
+        ListTag, TagsBean> {
 
     private String bookType = "";
 

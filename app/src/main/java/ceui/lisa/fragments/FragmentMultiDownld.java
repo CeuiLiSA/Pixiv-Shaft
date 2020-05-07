@@ -33,7 +33,7 @@ import gdut.bsx.share2.Share2;
 import gdut.bsx.share2.ShareContentType;
 
 public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownloadBinding,
-        IllustsBean, RecyMultiDownloadBinding> {
+        IllustsBean> {
 
     @Override
     public void initLayout() {

@@ -22,7 +22,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 
 
 public class FragmentRankNovel extends NetListFragment<FragmentBaseListBinding,
-        ListNovel, NovelBean, RecyNovelBinding> {
+        ListNovel, NovelBean> {
 
     private static final String[] API_TITLES = new String[]{"day", "week",
             "day_male", "day_female", "week_rookie", "day_r18"};

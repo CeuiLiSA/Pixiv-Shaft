@@ -26,11 +26,9 @@ import ceui.lisa.utils.Common;
  * @param <Layout>     这个列表的LayoutBinding
  * @param <Response>   这次请求的Response
  * @param <Item>       这个列表的单个Item实体类
- * @param <ItemLayout> 单个Item的LayoutBinding
  */
 public abstract class NetListFragment<Layout extends ViewDataBinding,
-        Response extends ListShow<Item>, Item, ItemLayout extends ViewDataBinding>
-        extends ListFragment<Layout, Item, ItemLayout> {
+        Response extends ListShow<Item>, Item> extends ListFragment<Layout, Item> {
 
     protected NetControl<Response> mNetControl;
     protected Response mResponse;

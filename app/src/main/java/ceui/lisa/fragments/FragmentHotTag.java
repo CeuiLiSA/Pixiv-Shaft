@@ -27,7 +27,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 
 
 public class FragmentHotTag extends NetListFragment<FragmentBaseListBinding,
-        ListTrendingtag, ListTrendingtag.TrendTagsBean, RecyTagGridBinding> {
+        ListTrendingtag, ListTrendingtag.TrendTagsBean> {
 
     private boolean isLoad = false;
     private String contentType = "";

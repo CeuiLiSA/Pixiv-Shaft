@@ -2,13 +2,11 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.os.Build;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
-import android.view.DisplayCutout;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,7 +28,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.ImageDetailActivity;
 import ceui.lisa.activities.SearchActivity;
 import ceui.lisa.activities.Shaft;
@@ -90,7 +87,6 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
     }
 
     private void loadImage() {
-
         int currentNightMode = getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
         switch (currentNightMode) {
             case Configuration.UI_MODE_NIGHT_NO:
@@ -117,7 +113,7 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
                     intent.putExtra("dataType", "二级详情");
                     intent.putExtra("index", position);
                     if (Shaft.sSettings.isFirstImageSize()) {
-                        mContext.startActivity(intent);
+                        requireActivity().startActivity(intent);
                     } else {
                         Bundle bundle = ActivityOptionsCompat.makeSceneTransitionAnimation(mActivity,
                                 v, "big_image_" + position).toBundle();
@@ -133,12 +129,14 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
 
     @Override
     void initData() {
-        loadImage();
+        if (illust != null) {
+            loadImage();
+        }
     }
 
     @Override
     public void initView(View view) {
-        Dust dust = new ViewModelProvider(mActivity).get(Dust.class);
+        Dust dust = new ViewModelProvider(requireActivity()).get(Dust.class);
         if (dust == null || dust.getDust() == null ||
                 dust.getDust().getValue() == null || dust.getDust().getValue().size() == 0) {
             mActivity.finish();

@@ -33,7 +33,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
 public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
-        ListBookmarkTag, TagsBean, RecySelectTagBinding> {
+        ListBookmarkTag, TagsBean> {
 
     private int illustID;
 

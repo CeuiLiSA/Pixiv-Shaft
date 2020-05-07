@@ -24,7 +24,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
  * illust / manga 排行榜都用这个
  */
 public class FragmentRankIllust extends NetListFragment<FragmentBaseListBinding,
-        ListIllust, IllustsBean, RecyIllustStaggerBinding> {
+        ListIllust, IllustsBean> {
 
     private static final String[] API_TITLES = new String[]{"day", "week",
             "month", "day_male", "day_female", "week_original", "week_rookie",

@@ -19,7 +19,7 @@ import ceui.lisa.view.SpacesItemDecoration;
 import io.reactivex.Observable;
 
 public class FragmentLatestWorks extends NetListFragment<FragmentBaseListBinding, ListIllust,
-        IllustsBean, RecyIllustStaggerBinding> {
+        IllustsBean> {
 
     private String workType;
 

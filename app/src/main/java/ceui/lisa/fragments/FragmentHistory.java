@@ -35,7 +35,7 @@ import ceui.lisa.viewmodel.HistoryModel;
 
 
 public class FragmentHistory extends LocalListFragment<FragmentBaseListBinding,
-        IllustHistoryEntity, RecyViewHistoryBinding> {
+        IllustHistoryEntity> {
 
     @Override
     public BaseAdapter<IllustHistoryEntity, RecyViewHistoryBinding> adapter() {

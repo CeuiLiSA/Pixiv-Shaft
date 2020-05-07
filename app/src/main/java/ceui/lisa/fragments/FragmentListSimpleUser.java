@@ -24,7 +24,7 @@ import ceui.lisa.utils.Params;
 import io.reactivex.Observable;
 
 public class FragmentListSimpleUser extends NetListFragment<FragmentBaseListBinding,
-        ListSimpleUser, UserBean, RecySimpleUserBinding> {
+        ListSimpleUser, UserBean> {
 
     private IllustsBean illustsBean;
 

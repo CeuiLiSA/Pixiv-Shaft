@@ -15,7 +15,7 @@ import ceui.lisa.utils.Params;
 import io.reactivex.Observable;
 
 public class FragmentWhoFollowThisUser extends NetListFragment<FragmentBaseListBinding,
-        ListUser, UserPreviewsBean, RecyUserPreviewBinding> {
+        ListUser, UserPreviewsBean> {
 
     private int userID;
 

@@ -26,7 +26,7 @@ import ceui.lisa.viewmodel.SearchModel;
 import io.reactivex.Observable;
 
 public class FragmentSearchNovel extends NetListFragment<FragmentBaseListBinding, ListNovel,
-        NovelBean, RecyIllustStaggerBinding> {
+        NovelBean> {
 
     private SearchModel searchModel;
 

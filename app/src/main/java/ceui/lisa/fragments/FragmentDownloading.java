@@ -14,7 +14,7 @@ import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 
 public class FragmentDownloading extends LocalListFragment<FragmentBaseListBinding,
-        IllustTask, RecyDownloadTaskBinding> {
+        IllustTask> {
 
     @Override
     public BaseAdapter<IllustTask, RecyDownloadTaskBinding> adapter() {

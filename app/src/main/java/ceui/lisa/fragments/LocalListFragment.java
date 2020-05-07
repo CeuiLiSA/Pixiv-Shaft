@@ -15,8 +15,8 @@ import ceui.lisa.R;
 import ceui.lisa.core.DataControl;
 import ceui.lisa.utils.Common;
 
-public abstract class LocalListFragment<Layout extends ViewDataBinding, Item,
-        ItemLayout extends ViewDataBinding> extends ListFragment<Layout, Item, ItemLayout> {
+public abstract class LocalListFragment<Layout extends ViewDataBinding, Item>
+        extends ListFragment<Layout, Item> {
 
     protected DataControl<List<Item>> mDataControl;
 

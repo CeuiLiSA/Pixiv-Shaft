@@ -21,7 +21,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
  * 推荐用户
  */
 public class FragmentRecmdUser extends NetListFragment<FragmentBaseListBinding,
-        ListUser, UserPreviewsBean, RecyUserPreviewBinding> {
+        ListUser, UserPreviewsBean> {
 
     @Override
     public NetControl<ListUser> present() {

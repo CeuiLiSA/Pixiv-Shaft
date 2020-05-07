@@ -13,7 +13,7 @@ import ceui.lisa.utils.Params
 import io.reactivex.Observable
 
 class FragmentNiceFriend : NetListFragment<FragmentBaseListBinding,
-        ListUser, UserPreviewsBean, RecyUserPreviewBinding>() {
+        ListUser, UserPreviewsBean>() {
 
     override fun present(): NetControl<ListUser> {
         return object : NetControl<ListUser>() {

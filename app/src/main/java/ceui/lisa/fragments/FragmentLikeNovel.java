@@ -19,7 +19,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
  * 某人收藏的小说
  */
 public class FragmentLikeNovel extends NetListFragment<FragmentBaseListBinding,
-        ListNovel, NovelBean, RecyNovelBinding> {
+        ListNovel, NovelBean> {
 
     private int userID;
     private String starType;

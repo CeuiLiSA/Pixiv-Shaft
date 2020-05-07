@@ -32,7 +32,7 @@ import ceui.lisa.view.ScrollChange;
 import io.reactivex.Observable;
 
 public class FragmentNovelSeries extends NetListFragment<FragmentNovelSeriesBinding,
-        NovelSeries, NovelBean, RecyNovelBinding>{
+        NovelSeries, NovelBean>{
 
     private NovelBean novelBean;
 

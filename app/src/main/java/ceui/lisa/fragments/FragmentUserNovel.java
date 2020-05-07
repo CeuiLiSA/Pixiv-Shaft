@@ -19,7 +19,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
  * 某人创作的小说
  */
 public class FragmentUserNovel extends NetListFragment<FragmentBaseListBinding,
-        ListNovel, NovelBean, RecyNovelBinding> {
+        ListNovel, NovelBean> {
 
     private int userID;
     private boolean showToolbar = false;

@@ -42,7 +42,7 @@ import io.reactivex.Observable;
 import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class FragmentEvent extends NetListFragment<FragmentBaseListBinding,
-        ListIllust, IllustsBean, RecyUserEventBinding> {
+        ListIllust, IllustsBean> {
 
     @Override
     public BaseAdapter<?, ? extends ViewDataBinding> adapter() {

@@ -43,7 +43,7 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
         super.onCreate(savedInstanceState);
 
         mContext = getContext();
-        mActivity = getActivity();
+        mActivity = requireActivity();
 
         Bundle bundle = getArguments();
         if (bundle != null) {

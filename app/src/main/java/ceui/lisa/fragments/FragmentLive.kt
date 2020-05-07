@@ -12,7 +12,7 @@ import ceui.lisa.models.Live
 import io.reactivex.Observable
 
 class FragmentLive : NetListFragment<FragmentBaseListBinding, ListLive,
-        Live, RecyItemLiveBinding>() {
+        Live>() {
 
     override fun present(): NetControl<ListLive> {
         return object : NetControl<ListLive>() {

@@ -22,7 +22,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
  * 某人創作的漫画
  */
 public class FragmentUserManga extends NetListFragment<FragmentBaseListBinding,
-        ListIllust, IllustsBean, RecyIllustStaggerBinding> {
+        ListIllust, IllustsBean> {
 
     private int userID;
     private boolean showToolbar = false;

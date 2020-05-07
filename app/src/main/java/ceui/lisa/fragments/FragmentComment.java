@@ -35,7 +35,7 @@ import io.reactivex.schedulers.Schedulers;
 import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class FragmentComment extends NetListFragment<FragmentCommentBinding,
-        ListComment, CommentsBean, RecyCommentListBinding> {
+        ListComment, CommentsBean> {
 
     private static final String[] OPTIONS = new String[]{"回复评论", "复制评论"};
     private int illustID;
