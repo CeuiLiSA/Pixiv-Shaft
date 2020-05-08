@@ -35,7 +35,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 public class FragmentComment extends NetListFragment<FragmentCommentBinding,
         ListComment, CommentsBean> {
 
-    private static final String[] OPTIONS = new String[]{"回复评论", "复制评论"};
+    private static final String[] OPTIONS = new String[]{"回复评论", "复制评论", "查看用户"};
     private int illustID;
     private String title;
     private int parentCommentID;
@@ -88,6 +88,11 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
                         parentCommentID = allItems.get(position).getId();
                     } else if (which == 1) {
                         Common.copy(mContext, allItems.get(position).getComment());
+                    } else if (which == 2) {
+                        Intent userIntent = new Intent(mContext, UActivity.class);
+                        userIntent.putExtra(Params.USER_ID, allItems.get(position)
+                                .getUser().getId());
+                        startActivity(userIntent);
                     }
                 });
                 AlertDialog alertDialog = builder.create();
@@ -107,6 +112,11 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
                                 allItems.get(position).getParent_comment().getId();
                     } else if (which == 1) {
                         Common.copy(mContext, allItems.get(position).getParent_comment().getComment());
+                    } else if (which == 2) {
+                        Intent userIntent = new Intent(mContext, UActivity.class);
+                        userIntent.putExtra(Params.USER_ID, allItems.get(position)
+                                .getParent_comment().getUser().getId());
+                        startActivity(userIntent);
                     }
                 });
                 AlertDialog alertDialog = builder.create();
@@ -197,7 +207,7 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
             }
 
             if (baseBind.inputBox.getText().toString().length() == 0) {
-                Common.showToast("请输入评论内容");
+                Common.showToast("请输入评论内容", baseBind.inputBox, 3);
                 return;
             }
 

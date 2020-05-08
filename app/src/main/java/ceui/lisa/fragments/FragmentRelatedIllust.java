@@ -6,7 +6,7 @@ import androidx.databinding.ViewDataBinding;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
-import ceui.lisa.adapters.FAdapter;
+import ceui.lisa.adapters.IAdapter;
 import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.http.Retro;
@@ -48,7 +48,7 @@ public class FragmentRelatedIllust extends NetListFragment<FragmentBaseListBindi
 
     @Override
     public BaseAdapter<?, ? extends ViewDataBinding> adapter() {
-        return new FAdapter(allItems, mContext);
+        return new IAdapter(allItems, mContext);
     }
 
     @Override

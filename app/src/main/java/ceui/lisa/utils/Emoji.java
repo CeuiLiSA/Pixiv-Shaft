@@ -64,7 +64,6 @@ public class Emoji {
     public static String transform(String origin) {
         String before = origin;
         while (hasEmoji(before)) {
-
             int startIndex = before.indexOf("(");
             int endIndex = before.indexOf(")");
             if (startIndex >= 0 && endIndex >= startIndex) {
