@@ -2,28 +2,23 @@ package ceui.lisa.fragments;
 
 import android.view.View;
 
-import androidx.annotation.NonNull;
 import androidx.databinding.ViewDataBinding;
-
-import com.scwang.smartrefresh.layout.api.RefreshLayout;
-import com.scwang.smartrefresh.layout.listener.OnLoadMoreListener;
-import com.scwang.smartrefresh.layout.listener.OnRefreshListener;
 
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.core.DataControl;
+import ceui.lisa.core.LocalRepo;
 import ceui.lisa.utils.Common;
 
-public abstract class LocalListFragment<Layout extends ViewDataBinding, Item,
-        ItemLayout extends ViewDataBinding> extends ListFragment<Layout, Item, ItemLayout> {
+public abstract class LocalListFragment<Layout extends ViewDataBinding, Item>
+        extends ListFragment<Layout, Item> {
 
-    protected DataControl<List<Item>> mDataControl;
+    protected LocalRepo<List<Item>> mLocalRepo;
 
     @Override
     public void fresh() {
-        if (mDataControl.first() != null && mDataControl.first().size() != 0) {
-            List<Item> firstList = mDataControl.first();
+        if (mLocalRepo.first() != null && mLocalRepo.first().size() != 0) {
+            List<Item> firstList = mLocalRepo.first();
             if (mModel != null) {
                 mModel.load(firstList);
             }
@@ -41,17 +36,17 @@ public abstract class LocalListFragment<Layout extends ViewDataBinding, Item,
 
     @Override
     public void loadMore() {
-        if (mDataControl.hasNext() &&
-                mDataControl.next() != null &&
-                mDataControl.next().size() != 0) {
-            List<Item> nextList = mDataControl.next();
+        if (mLocalRepo.hasNext() &&
+                mLocalRepo.next() != null &&
+                mLocalRepo.next().size() != 0) {
+            List<Item> nextList = mLocalRepo.next();
             if (mModel != null) {
                 mModel.load(nextList);
             }
             onNextLoaded(nextList);
-            mAdapter.notifyItemRangeInserted(getStartSize(), mDataControl.next().size());
+            mAdapter.notifyItemRangeInserted(getStartSize(), mLocalRepo.next().size());
         } else {
-            if (mDataControl.showNoDataHint()) {
+            if (mLocalRepo.showNoDataHint()) {
                 Common.showToast("没有更多数据啦");
             }
         }
@@ -60,6 +55,6 @@ public abstract class LocalListFragment<Layout extends ViewDataBinding, Item,
 
     @Override
     void initData() {
-        mDataControl = (DataControl<List<Item>>) mBaseCtrl;
+        mLocalRepo = (LocalRepo<List<Item>>) mBaseRepo;
     }
 }

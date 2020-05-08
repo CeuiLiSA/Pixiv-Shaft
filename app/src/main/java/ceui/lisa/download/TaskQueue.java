@@ -113,10 +113,4 @@ public class TaskQueue {
     private static class SingletonHolder {
         private static TaskQueue instance = new TaskQueue();
     }
-
-    @Override
-    protected void finalize() throws Throwable {
-        clearTask();
-        super.finalize();
-    }
 }

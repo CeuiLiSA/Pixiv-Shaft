@@ -310,9 +310,11 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
                         userEntity.setUserGson(Shaft.sGson.toJson(userModel));
                         AppDatabase.getAppDatabase(mContext).downloadDao().insertUser(userEntity);
                         baseBind.progress.setVisibility(View.INVISIBLE);
-                        Intent intent = new Intent(mContext, MainActivity.class);
-                        startActivity(intent);
-                        mActivity.finish();
+                        if (isAdded()) {
+                            Intent intent = new Intent(mContext, MainActivity.class);
+                            requireActivity().startActivity(intent);
+                            mActivity.finish();
+                        }
                     }
 
                     @Override

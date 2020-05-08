@@ -3,19 +3,15 @@ package ceui.lisa.fragments;
 import android.text.TextUtils;
 import android.view.View;
 
-import androidx.annotation.NonNull;
 import androidx.databinding.ViewDataBinding;
 
-import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
-import com.scwang.smartrefresh.layout.listener.OnLoadMoreListener;
-import com.scwang.smartrefresh.layout.listener.OnRefreshListener;
 
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.core.NetControl;
+import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.interfaces.ListShow;
 import ceui.lisa.utils.Common;
@@ -26,25 +22,24 @@ import ceui.lisa.utils.Common;
  * @param <Layout>     这个列表的LayoutBinding
  * @param <Response>   这次请求的Response
  * @param <Item>       这个列表的单个Item实体类
- * @param <ItemLayout> 单个Item的LayoutBinding
  */
 public abstract class NetListFragment<Layout extends ViewDataBinding,
-        Response extends ListShow<Item>, Item, ItemLayout extends ViewDataBinding>
-        extends ListFragment<Layout, Item, ItemLayout> {
+        Response extends ListShow<Item>, Item> extends ListFragment<Layout, Item> {
 
-    protected NetControl<Response> mNetControl;
+    protected RemoteRepo<Response> mRemoteRepo;
     protected Response mResponse;
 
     @Override
     public void fresh() {
-        if (mNetControl.initApi() != null) {
-            mNetControl.getFirstData(new NullCtrl<Response>() {
+        if (mRemoteRepo.initApi() != null) {
+            mRemoteRepo.getFirstData(new NullCtrl<Response>() {
                 @Override
                 public void success(Response response) {
                     mResponse = response;
                     onResponse(mResponse);
                     if (response.getList() != null && response.getList().size() != 0) {
                         List<Item> firstList = response.getList();
+                        beforeFirstLoad(firstList);
                         if (mModel != null) {
                             mModel.load(firstList);
                         }
@@ -88,12 +83,13 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
     @Override
     public void loadMore() {
         if (!TextUtils.isEmpty(mModel.getNextUrl())) {
-            mNetControl.getNextData(new NullCtrl<Response>() {
+            mRemoteRepo.getNextData(new NullCtrl<Response>() {
                 @Override
                 public void success(Response response) {
                     mResponse = response;
                     if (response.getList() != null && response.getList().size() != 0) {
                         List<Item> nextList = response.getList();
+                        beforeNextLoad(nextList);
                         if (mModel != null) {
                             mModel.load(nextList);
                         }
@@ -110,7 +106,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
             });
         } else {
             mRefreshLayout.finishLoadMore();
-            if (mNetControl.showNoDataHint()) {
+            if (mRemoteRepo.showNoDataHint()) {
                 Common.showToast("没有更多数据啦");
             }
         }
@@ -118,7 +114,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
 
     @Override
     void initData() {
-        mNetControl = (NetControl<Response>) mBaseCtrl;
+        mRemoteRepo = (RemoteRepo<Response>) mBaseRepo;
     }
 
     /**

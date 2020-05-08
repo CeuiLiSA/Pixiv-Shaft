@@ -87,17 +87,7 @@ public class DListener extends DownloadListener1 {
         Common.showLog("taskEnd " + task.getFilename());
 
         try {
-            File file = task.getFile();
-            if (file != null) {
-                Common.showLog(file.getPath());
-
-                if (total == new File(file.getPath()).length()) {
-                    Common.showLog("下载成功");
-                } else {
-                    Common.showLog("下载失败");
-                    file.delete();
-                }
-            }
+            Common.showLog(task.getFile().getPath());
             if (!TextUtils.isEmpty(task.getFilename()) && task.getFilename().contains(".zip")) {
                 try {
                     ZipFile zipFile = new ZipFile(task.getFile().getPath());

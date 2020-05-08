@@ -7,27 +7,23 @@ import android.view.View;
 import androidx.recyclerview.widget.GridLayoutManager;
 
 import ceui.lisa.activities.SearchActivity;
-import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.TagAdapter;
-import ceui.lisa.core.NetControl;
+import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyTagGridBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListTrendingtag;
 import ceui.lisa.utils.Channel;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.TagItemDecoration;
 import io.reactivex.Observable;
 
-import static ceui.lisa.activities.Shaft.sUserModel;
-
 
 public class FragmentHotTag extends NetListFragment<FragmentBaseListBinding,
-        ListTrendingtag, ListTrendingtag.TrendTagsBean, RecyTagGridBinding> {
+        ListTrendingtag, ListTrendingtag.TrendTagsBean> {
 
     private boolean isLoad = false;
     private String contentType = "";
@@ -64,8 +60,8 @@ public class FragmentHotTag extends NetListFragment<FragmentBaseListBinding,
     }
 
     @Override
-    public NetControl<ListTrendingtag> present() {
-        return new NetControl<ListTrendingtag>() {
+    public RemoteRepo<ListTrendingtag> repository() {
+        return new RemoteRepo<ListTrendingtag>() {
             @Override
             public Observable<ListTrendingtag> initApi() {
                 return Retro.getAppApi().getHotTags(token(), contentType);

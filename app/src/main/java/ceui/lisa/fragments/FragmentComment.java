@@ -1,23 +1,20 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
-import android.view.DisplayCutout;
 import android.view.View;
-import android.view.ViewGroup;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import java.util.List;
+
 import ceui.lisa.R;
-import ceui.lisa.activities.BaseActivity;
-import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.CommentAdapter;
-import ceui.lisa.core.NetControl;
+import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentCommentBinding;
 import ceui.lisa.databinding.RecyCommentListBinding;
 import ceui.lisa.http.NullCtrl;
@@ -26,6 +23,7 @@ import ceui.lisa.model.ListComment;
 import ceui.lisa.models.CommentHolder;
 import ceui.lisa.models.CommentsBean;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Emoji;
 import ceui.lisa.utils.Params;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -35,9 +33,9 @@ import io.reactivex.schedulers.Schedulers;
 import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class FragmentComment extends NetListFragment<FragmentCommentBinding,
-        ListComment, CommentsBean, RecyCommentListBinding> {
+        ListComment, CommentsBean> {
 
-    private static final String[] OPTIONS = new String[]{"回复评论", "复制评论"};
+    private static final String[] OPTIONS = new String[]{"回复评论", "复制评论", "查看用户"};
     private int illustID;
     private String title;
     private int parentCommentID;
@@ -63,8 +61,8 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
     }
 
     @Override
-    public NetControl<ListComment> present() {
-        return new NetControl<ListComment>() {
+    public RemoteRepo<ListComment> repository() {
+        return new RemoteRepo<ListComment>() {
             @Override
             public Observable<ListComment> initApi() {
                 return Retro.getAppApi().getComment(sUserModel.getResponse().getAccess_token(), illustID);
@@ -90,6 +88,11 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
                         parentCommentID = allItems.get(position).getId();
                     } else if (which == 1) {
                         Common.copy(mContext, allItems.get(position).getComment());
+                    } else if (which == 2) {
+                        Intent userIntent = new Intent(mContext, UActivity.class);
+                        userIntent.putExtra(Params.USER_ID, allItems.get(position)
+                                .getUser().getId());
+                        startActivity(userIntent);
                     }
                 });
                 AlertDialog alertDialog = builder.create();
@@ -109,6 +112,11 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
                                 allItems.get(position).getParent_comment().getId();
                     } else if (which == 1) {
                         Common.copy(mContext, allItems.get(position).getParent_comment().getComment());
+                    } else if (which == 2) {
+                        Intent userIntent = new Intent(mContext, UActivity.class);
+                        userIntent.putExtra(Params.USER_ID, allItems.get(position)
+                                .getParent_comment().getUser().getId());
+                        startActivity(userIntent);
                     }
                 });
                 AlertDialog alertDialog = builder.create();
@@ -130,6 +138,44 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
     @Override
     public void initRecyclerView() {
         baseBind.recyclerView.setLayoutManager(new LinearLayoutManager(mContext));
+    }
+
+    @Override
+    public void beforeFirstLoad(List<CommentsBean> items) {
+        for (CommentsBean allItem : items) {
+            String comment = allItem.getComment();
+            if (Emoji.hasEmoji(comment)) {
+                String newComment = Emoji.transform(comment);
+                allItem.setComment(newComment);
+            }
+
+            if (allItem.getParent_comment() != null) {
+                String parentComment = allItem.getParent_comment().getComment();
+                if (Emoji.hasEmoji(parentComment)) {
+                    String newComment = Emoji.transform(parentComment);
+                    allItem.getParent_comment().setComment(newComment);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void beforeNextLoad(List<CommentsBean> items) {
+        for (CommentsBean allItem : items) {
+            String comment = allItem.getComment();
+            if (Emoji.hasEmoji(comment)) {
+                String newComment = Emoji.transform(comment);
+                allItem.setComment(newComment);
+            }
+
+            if (allItem.getParent_comment() != null) {
+                String parentComment = allItem.getParent_comment().getComment();
+                if (Emoji.hasEmoji(parentComment)) {
+                    String newComment = Emoji.transform(parentComment);
+                    allItem.getParent_comment().setComment(newComment);
+                }
+            }
+        }
     }
 
     @Override
@@ -161,7 +207,7 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
             }
 
             if (baseBind.inputBox.getText().toString().length() == 0) {
-                Common.showToast("请输入评论内容");
+                Common.showToast("请输入评论内容", baseBind.inputBox, 3);
                 return;
             }
 

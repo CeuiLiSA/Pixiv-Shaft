@@ -112,7 +112,10 @@ public class DownloadedAdapter extends BaseAdapter<DownloadEntity, RecyViewHisto
 
     @Override
     public ViewHolder<RecyViewHistoryBinding> getNormalItem(ViewGroup parent) {
-        return new SpringHolder(DataBindingUtil.inflate(
-                LayoutInflater.from(mContext), mLayoutID, parent, false).getRoot());
+        return new SpringHolder(
+                DataBindingUtil.inflate(
+                        LayoutInflater.from(mContext), mLayoutID, parent, false
+                )
+        );
     }
 }

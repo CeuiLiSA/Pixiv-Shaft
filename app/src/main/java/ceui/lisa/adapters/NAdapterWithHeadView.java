@@ -38,9 +38,14 @@ public class NAdapterWithHeadView extends NAdapter {
 
     @Override
     public ViewHolder getHeader(ViewGroup parent) {
-        novelHeader = new NovelHeader(DataBindingUtil.inflate(
-                LayoutInflater.from(mContext), R.layout.recy_recmd_header,
-                null, false).getRoot());
+        novelHeader = new NovelHeader(
+                DataBindingUtil.inflate(
+                        LayoutInflater.from(mContext),
+                        R.layout.recy_recmd_header,
+                        null,
+                        false
+                )
+        );
         novelHeader.initView(mContext);
         return novelHeader;
     }

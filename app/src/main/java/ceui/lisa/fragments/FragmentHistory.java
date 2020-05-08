@@ -2,15 +2,12 @@ package ceui.lisa.fragments;
 
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
@@ -23,8 +20,8 @@ import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyViewHistoryBinding;
-import ceui.lisa.core.BaseCtrl;
-import ceui.lisa.core.DataControl;
+import ceui.lisa.core.BaseRepo;
+import ceui.lisa.core.LocalRepo;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
@@ -35,7 +32,7 @@ import ceui.lisa.viewmodel.HistoryModel;
 
 
 public class FragmentHistory extends LocalListFragment<FragmentBaseListBinding,
-        IllustHistoryEntity, RecyViewHistoryBinding> {
+        IllustHistoryEntity> {
 
     @Override
     public BaseAdapter<IllustHistoryEntity, RecyViewHistoryBinding> adapter() {
@@ -58,8 +55,8 @@ public class FragmentHistory extends LocalListFragment<FragmentBaseListBinding,
     }
 
     @Override
-    public BaseCtrl present() {
-        return new DataControl<List<IllustHistoryEntity>>() {
+    public BaseRepo repository() {
+        return new LocalRepo<List<IllustHistoryEntity>>() {
             @Override
             public List<IllustHistoryEntity> first() {
                 return AppDatabase.getAppDatabase(mContext)

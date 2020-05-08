@@ -1,25 +1,18 @@
 package ceui.lisa.fragments;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.View;
 
 import androidx.databinding.ViewDataBinding;
 
 import com.bumptech.glide.Glide;
 
-import java.util.List;
-
 import ceui.lisa.R;
-import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.NAdapter;
-import ceui.lisa.core.BaseCtrl;
-import ceui.lisa.core.NetControl;
-import ceui.lisa.databinding.FragmentBaseListBinding;
+import ceui.lisa.core.BaseRepo;
+import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentNovelSeriesBinding;
-import ceui.lisa.databinding.RecyNovelBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.NovelSeries;
 import ceui.lisa.models.NovelBean;
@@ -28,11 +21,10 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
-import ceui.lisa.view.ScrollChange;
 import io.reactivex.Observable;
 
 public class FragmentNovelSeries extends NetListFragment<FragmentNovelSeriesBinding,
-        NovelSeries, NovelBean, RecyNovelBinding>{
+        NovelSeries, NovelBean>{
 
     private NovelBean novelBean;
 
@@ -60,8 +52,8 @@ public class FragmentNovelSeries extends NetListFragment<FragmentNovelSeriesBind
     }
 
     @Override
-    public BaseCtrl present() {
-        return new NetControl<NovelSeries>() {
+    public BaseRepo repository() {
+        return new RemoteRepo<NovelSeries>() {
             @Override
             public Observable<NovelSeries> initApi() {
                 return Retro.getAppApi().getNovelSeries(mModel.getToken(), novelBean.getSeries().getId());

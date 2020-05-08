@@ -9,11 +9,10 @@ import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import java.util.ArrayList;
 import java.util.List;
 
-import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapterWithHeadView;
-import ceui.lisa.core.NetControl;
+import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.helper.TagFilter;
 import ceui.lisa.database.AppDatabase;
@@ -35,7 +34,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
 public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding,
-        ListIllust, IllustsBean, RecyIllustStaggerBinding> {
+        ListIllust, IllustsBean> {
 
     private String dataType;
     private List<IllustsBean> ranking = new ArrayList<>();
@@ -54,8 +53,8 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
     }
 
     @Override
-    public NetControl<ListIllust> present() {
-        return new NetControl<ListIllust>() {
+    public RemoteRepo<ListIllust> repository() {
+        return new RemoteRepo<ListIllust>() {
             @Override
             public Observable<ListIllust> initApi() {
                 if (Dev.isDev) {

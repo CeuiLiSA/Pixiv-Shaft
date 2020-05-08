@@ -25,8 +25,8 @@ import ceui.lisa.view.LinearItemHorizontalDecoration;
 
 public class IllustHeader extends ViewHolder<RecyRecmdHeaderBinding> {
 
-    public IllustHeader(@NonNull View itemView) {
-        super(itemView);
+    public IllustHeader(RecyRecmdHeaderBinding bindView) {
+        super(bindView);
     }
 
     public void show(Context context, List<IllustsBean> illustsBeans) {

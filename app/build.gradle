@@ -12,8 +12,8 @@ android {
         applicationId "ceui.lisa.pixiv"
         minSdkVersion 21
         targetSdkVersion 29
-        versionCode 82
-        versionName "1.8.2"
+        versionCode 87
+        versionName "1.8.7"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -134,7 +134,6 @@ dependencies {
     implementation 'com.google.firebase:firebase-crashlytics:17.0.0'
 
     implementation project(path: ':models')
-
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'

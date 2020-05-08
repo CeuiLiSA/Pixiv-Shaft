@@ -64,7 +64,7 @@
             android:textColor="#999999"
             android:textSize="14sp" />
 
-        <TextView
+        <org.sufficientlysecure.htmltextview.HtmlTextView
             android:id="@+id/content"
             android:layout_width="wrap_content"
             android:lineSpacingExtra="@dimen/four_dp"
@@ -87,7 +87,7 @@
             android:background="@color/light_bg">
 
 
-            <TextView
+            <org.sufficientlysecure.htmltextview.HtmlTextView
                 android:id="@+id/reply_content"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
