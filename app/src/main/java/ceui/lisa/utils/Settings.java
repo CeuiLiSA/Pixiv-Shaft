@@ -88,6 +88,8 @@ public class Settings {
 
     private String appLanguage = "";
 
+    private String fileNameType;
+
     public String getAppLanguage() {
         if(!TextUtils.isEmpty(appLanguage)){
             return appLanguage;
@@ -298,5 +300,13 @@ public class Settings {
 
     public void setShowLikeButton(boolean pShowLikeButton) {
         showLikeButton = pShowLikeButton;
+    }
+
+    public String getFileNameType() {
+        return fileNameType;
+    }
+
+    public void setFileNameType(String fileNameType) {
+        this.fileNameType = fileNameType;
     }
 }

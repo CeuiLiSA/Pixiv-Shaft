@@ -84,6 +84,10 @@ public class DListener extends DownloadListener1 {
         illustTask.setDownloadTask(task);
         File endFile = task.getFile();
 
+        if(realCause != null) {
+            realCause.printStackTrace();
+        }
+
         switch (cause) {
             case COMPLETED:
                 Common.showLog("taskEnd COMPLETED");

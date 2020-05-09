@@ -1,8 +1,10 @@
 package ceui.lisa.download;
 
 import android.text.TextUtils;
+import android.util.Log;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -44,12 +46,6 @@ public class FileCreator {
     }
 
     /**
-     *
-     * index 0 "title_123456789_p0.png"
-     * index 1 "title_123456789_p0.jpg"
-     * index 2 "123456789_title_p0.png"
-     * index 3 "123456789_title_p0.jpg"
-     *
      * @param illustsBean illustsBean
      * @return file
      */
@@ -57,30 +53,28 @@ public class FileCreator {
         return createIllustFile(illustsBean, 0);
     }
 
-
-    private static final String DASH = "_";
-    /**
-     *
-     * index 0 "title_123456789_p0.png"
-     * index 1 "title_123456789_p0.jpg"
-     * index 2 "123456789_title_p0.png"
-     * index 3 "123456789_title_p0.jpg"
-     *
-     */
     public static File createIllustFile(IllustsBean illustsBean, int index) {
         if (illustsBean == null) {
             return null;
         }
 
-        String title = illustsBean.getTitle();
-        int id = illustsBean.getId();
+        Map<String, String> params = new HashMap<>();
+        params.put("title", illustsBean.getTitle());
+        params.put("id", String.valueOf(illustsBean.getId()));
+        params.put("p", "p" + (index + 1));
+        params.put("author", illustsBean.getUser().getName());
+        params.put("width", String.valueOf(illustsBean.getWidth()));
+        params.put("height", String.valueOf(illustsBean.getHeight()));
+        params.put("ts", String.valueOf(System.currentTimeMillis()));
 
-        //只有1P，不带P数
-        return illustsBean.getPage_count() == 1 ?
-                new File(Shaft.sSettings.getIllustPath(),
-                        deleteSpecialWords(title + DASH + id + ".png")) :
-                new File(Shaft.sSettings.getIllustPath(),
-                        deleteSpecialWords(title + DASH + id + DASH + "p" + index + ".png"));
+        String[] pathStrings = deleteSpecialWords(fileNameFormat(Shaft.sSettings.getFileNameType(), params)).split("<separator>");
+
+        StringBuilder path = new StringBuilder("./");
+        for (int i = 0; i < pathStrings.length - 1; i++) {
+            path.append(pathStrings[i]).append(File.separator);
+        }
+        Log.d("FileCreator", "createIllustFile: path " + Shaft.sSettings.getIllustPath() + File.separator + path.toString() + pathStrings[pathStrings.length - 1]);
+        return new File(Shaft.sSettings.getIllustPath() + File.separator + path.toString(), pathStrings[pathStrings.length - 1]);
     }
 
     private static String deleteSpecialWords(String before) {
@@ -93,6 +87,7 @@ public class FileCreator {
             return "untitle_" + System.currentTimeMillis() + ".png";
         }
     }
+
 
     public static File createWebFile(String name) {
         File parent = new File(Shaft.sSettings.getIllustPath());
@@ -108,5 +103,18 @@ public class FileCreator {
             parent.mkdir();
         }
         return new File(parent, deleteSpecialWords(name));
+    }
+
+    private static String fileNameFormat(String format, Map<String, String > params) {
+        if (format == null) {
+            return null;
+        }
+
+        String out = String.copyValueOf(format.toCharArray());
+        Set<String> keys = params.keySet();
+        for (String key : keys) {
+            out = out.replace("<" + key + ">", params.get(key));
+        }
+        return out;
     }
 }

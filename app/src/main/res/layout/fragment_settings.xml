@@ -677,6 +677,53 @@
 
                         </RelativeLayout>
 
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:background="@color/settings_divider_bg">
+
+
+                        </View>
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true">
+
+
+                            <TextView
+                                android:id="@+id/file_name_s"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_centerVertical="true"
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="@string/file_name_type"
+                                android:textColor="@color/rank_text_color"
+                                android:textSize="15sp">
+
+
+                            </TextView>
+
+
+                            <TextView
+                                android:id="@+id/file_name"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="标准"
+                                android:textColor="@color/hint_text"
+                                android:textSize="14sp">
+
+
+                            </TextView>
+
+
+                        </RelativeLayout>
+
 <!--                        <View-->
 <!--                            android:layout_width="match_parent"-->
 <!--                            android:layout_height="1dp"-->

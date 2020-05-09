@@ -32,6 +32,7 @@ import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.FragmentSettingsBinding;
+import ceui.lisa.dialogs.FileNameDialog;
 import ceui.lisa.helper.ThemeHelper;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
@@ -299,6 +300,15 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
                 alertDialog.show();
             }
         });
+
+        baseBind.fileName.setText(Shaft.sSettings.getFileNameType());
+        baseBind.fileName.setOnClickListener(v -> new FileNameDialog()
+                .setOnDismissListener(d -> {
+                    baseBind.fileName.setText(Shaft.sSettings.getFileNameType());
+                })
+                .show(getParentFragmentManager(), "fileNameDialog"));
+
+
 
         baseBind.themeMode.setText(Shaft.sSettings.getThemeType());
         baseBind.themeMode.setOnClickListener(new View.OnClickListener() {

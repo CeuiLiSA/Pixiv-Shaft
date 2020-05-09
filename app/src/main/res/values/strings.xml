@@ -180,5 +180,7 @@
 
     <string name="hello_first_fragment">Hello first fragment</string>
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
-
+    <string name="dialog_filename">
+        <![CDATA[格式化文件名\n<title> 作品标题\n<id> 作品id\n<p> 插画第几p\n<author> 作者名\n<width> 宽\n<height> 高\n<ts> 保存时毫秒时间戳\n<separator> 分割符\n- / , 被替换为 _\n其余不会被替换]]>
+    </string>
 </resources>
