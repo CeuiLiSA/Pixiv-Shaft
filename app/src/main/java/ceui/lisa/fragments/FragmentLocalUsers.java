@@ -57,7 +57,7 @@ public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
         baseBind.toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getActivity().finish();
+                mActivity.finish();
             }
         });
         baseBind.loginOut.setOnClickListener(new View.OnClickListener() {

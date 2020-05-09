@@ -86,9 +86,7 @@ public class Settings {
 
     private boolean reverseDialogNeverShowAgain = false;
 
-    private boolean usingNewFileNameType = false;
-
-    private boolean fullscreenLayout = false;
+    private String appLanguage = "";
 
     public String getAppLanguage() {
         if(!TextUtils.isEmpty(appLanguage)){
@@ -98,25 +96,9 @@ public class Settings {
         }
     }
 
-    public String getFileNameType() {
-        if(!TextUtils.isEmpty(fileNameType)){
-            return fileNameType;
-        } else {
-            return "<title>_<id>_<p>.png";
-        }
-    }
-
     public void setAppLanguage(String appLanguage) {
         this.appLanguage = appLanguage;
     }
-
-    public void setFileNameType(String fileNameType) {
-        this.fileNameType = fileNameType;
-    }
-
-    private String appLanguage = "";
-
-    private String fileNameType = "";
 
     public String getThemeType() {
         if (TextUtils.isEmpty(themeType)) {
@@ -308,22 +290,6 @@ public class Settings {
 
     public void setReverseDialogNeverShowAgain(boolean reverseDialogNeverShowAgain) {
         this.reverseDialogNeverShowAgain = reverseDialogNeverShowAgain;
-    }
-
-    public boolean isUsingNewFileNameType() {
-        return usingNewFileNameType;
-    }
-
-    public void setUsingNewFileNameType(boolean usingNewFileNameType) {
-        this.usingNewFileNameType = usingNewFileNameType;
-    }
-
-    public boolean isFullscreenLayout() {
-        return fullscreenLayout;
-    }
-
-    public void setFullscreenLayout(boolean fullscreenLayout) {
-        this.fullscreenLayout = fullscreenLayout;
     }
 
     public boolean isShowLikeButton() {

@@ -36,7 +36,7 @@ public class FragmentWalkThrough extends NetListFragment<FragmentBaseListBinding
 
     @Override
     public BaseAdapter<IllustsBean, RecyIllustStaggerBinding> adapter() {
-        return new IAdapter(allItems, mContext, true);
+        return new IAdapter(allItems, mContext);
     }
 
     @Override
@@ -46,9 +46,6 @@ public class FragmentWalkThrough extends NetListFragment<FragmentBaseListBinding
 
     @Override
     public void initRecyclerView() {
-        GridLayoutManager manager = new GridLayoutManager(mContext, 2);
-        baseBind.recyclerView.setLayoutManager(manager);
-        baseBind.recyclerView.addItemDecoration(new GridItemDecoration(2,
-                DensityUtil.dp2px(8.0f), true));
+        staggerRecyclerView();
     }
 }

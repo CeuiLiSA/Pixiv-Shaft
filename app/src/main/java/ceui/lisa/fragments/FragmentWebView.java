@@ -159,7 +159,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         WebView.HitTestResult result = mWebView.getHitTestResult();
         mIntentUrl = result.getExtra();
-        menu.setHeaderView(new ContextMenuTitleView(getContext(), mIntentUrl));
+        menu.setHeaderView(new ContextMenuTitleView(mContext, mIntentUrl));
 
         if (result.getType() == WebView.HitTestResult.SRC_ANCHOR_TYPE) {
             mIntentUrl = result.getExtra();
@@ -207,13 +207,13 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
 
                 case OPEN_IN_BROWSER: {
                     Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(mIntentUrl));
-                    Objects.requireNonNull(getActivity()).startActivity(intent);
+                    mActivity.startActivity(intent);
                     break;
                 }
                 case OPEN_IMAGE: {
                     Intent intent = new Intent(Intent.ACTION_VIEW);
                     intent.setDataAndType(Uri.parse(mIntentUrl), "image/*");
-                    Objects.requireNonNull(getActivity()).startActivity(intent);
+                    mActivity.startActivity(intent);
                     break;
                 }
                 case COPY_LINK_ADDRESS: {
@@ -235,7 +235,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                 }
                 case SHARE_LINK: {
                     Intent intent = new Intent(Intent.ACTION_SEND, Uri.parse(mIntentUrl));
-                    Objects.requireNonNull(getActivity()).startActivity(intent);
+                    mActivity.startActivity(intent);
                     break;
                 }
             }

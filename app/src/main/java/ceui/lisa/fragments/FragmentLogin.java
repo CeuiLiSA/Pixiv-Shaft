@@ -111,7 +111,7 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
                         if (mHitToast != null) {
                             mHitToast.cancel();
                         }
-                        mHitToast = Toast.makeText(getActivity(), String.format(Locale.getDefault(),
+                        mHitToast = Toast.makeText(mActivity, String.format(Locale.getDefault(),
                                 "点击%d次切换版本", mHitCountDown), Toast.LENGTH_SHORT);
                         mHitToast.show();
                     }

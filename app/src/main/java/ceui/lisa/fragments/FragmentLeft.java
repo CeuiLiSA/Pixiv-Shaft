@@ -38,8 +38,8 @@ public class FragmentLeft extends BaseFragment<FragmentLeftBinding> {
         baseBind.head.setLayoutParams(headParams);
 
         baseBind.toolbar.setNavigationOnClickListener(v -> {
-            if (getActivity() instanceof MainActivity) {
-                ((MainActivity) getActivity()).getDrawer().openDrawer(Gravity.START);
+            if (requireActivity() instanceof MainActivity) {
+                ((MainActivity) requireActivity()).getDrawer().openDrawer(Gravity.START);
             }
         });
         baseBind.toolbar.inflateMenu(R.menu.fragment_left);

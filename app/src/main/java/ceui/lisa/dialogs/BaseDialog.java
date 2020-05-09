@@ -32,8 +32,8 @@ public abstract class BaseDialog<Layout extends ViewDataBinding> extends DialogF
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mContext = getContext();
-        mActivity = getActivity();
+        mContext = requireContext();
+        mActivity = requireActivity();
 
         Bundle bundle = getArguments();
         if (bundle != null) {

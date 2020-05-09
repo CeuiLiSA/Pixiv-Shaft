@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Bundle;
 import android.os.Environment;
 import android.view.View;
 import android.widget.CompoundButton;
@@ -33,7 +32,6 @@ import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.FragmentSettingsBinding;
-import ceui.lisa.dialogs.FileNameDialog;
 import ceui.lisa.helper.ThemeHelper;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
@@ -299,18 +297,6 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
                 });
                 AlertDialog alertDialog = builder.create();
                 alertDialog.show();
-            }
-        });
-
-        baseBind.fileName.setText(Shaft.sSettings.getFileNameType());
-        baseBind.fileName.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new FileNameDialog()
-                        .setOnDismissListener(d -> {
-                            baseBind.fileName.setText(Shaft.sSettings.getFileNameType());
-                        })
-                        .show(getParentFragmentManager(), "fileNameDialog");
             }
         });
 

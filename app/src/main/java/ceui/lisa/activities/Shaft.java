@@ -83,18 +83,5 @@ public class Shaft extends Application {
             statusHeight = sContext.getResources().getDimensionPixelSize(resourceId);
         }
         toolbarHeight = DensityUtil.dp2px(56.0f);
-
-        //如果使用旧文件名格式, 转换为新的
-        if (!sSettings.isUsingNewFileNameType()) {
-            sSettings.setUsingNewFileNameType(true);
-            if (Settings.stringLooksLikeOldFileNameType(sSettings.getFileNameType())) {
-                String oldType = sSettings.getFileNameType();
-                String newType = oldType.replace("123456789", "<id>").replace("title", "<title>").replace("p0", "<p>");
-                sSettings.setFileNameType(newType);
-                Local.setSettings(sSettings);
-                Common.showLog(oldType + " -> " + newType);
-                Common.showToast("新旧文件名格式转换\n" + oldType + " -> " + newType);
-            }
-        }
     }
 }
