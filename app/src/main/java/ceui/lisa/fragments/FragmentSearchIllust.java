@@ -49,7 +49,7 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
 
     @Override
     public BaseAdapter<?, ? extends ViewDataBinding> adapter() {
-        return new IAdapter(allItems, mContext, true);
+        return new IAdapter(allItems, mContext);
     }
 
     @Override

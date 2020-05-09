@@ -53,7 +53,6 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
     private static final int MIN_HEIGHT = 350;
     private static final int MAX_HEIGHT = 600;
     private int imageSize;
-    private boolean isSquare = false;
     private boolean showLikeButton = false;
 
     public IAdapter(List<IllustsBean> targetList, Context context) {
@@ -62,23 +61,8 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
         handleClick();
     }
 
-    public IAdapter(List<IllustsBean> targetList, Context context, boolean paramSquare) {
-        super(targetList, context);
-        isSquare = paramSquare;
-        initImageSize();
-        handleClick();
-    }
-
     private void initImageSize() {
-        if (isSquare) {
-            imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
-                    mContext.getResources().getDimensionPixelSize(R.dimen.tweenty_four_dp)) / 2;
-
-            Common.showLog("iadapter " + mContext.getResources().getDisplayMetrics().widthPixels +
-                    " " + imageSize + " " + mContext.getResources().getDimensionPixelSize(R.dimen.tweenty_four_dp));
-        } else {
-            imageSize = (mContext.getResources().getDisplayMetrics().widthPixels) / 2;
-        }
+        imageSize = (mContext.getResources().getDisplayMetrics().widthPixels) / 2;
         showLikeButton = Shaft.sSettings.isShowLikeButton();
     }
 
@@ -91,19 +75,13 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
     @Override
     public void bindData(IllustsBean target, ViewHolder<RecyIllustStaggerBinding> bindView, int position) {
         ViewGroup.LayoutParams params = bindView.baseBind.illustImage.getLayoutParams();
-
         params.width = imageSize;
+        params.height = target.getHeight() * imageSize / target.getWidth();
 
-        if (isSquare) {
-            params.height = imageSize;
-        } else {
-            params.height = target.getHeight() * imageSize / target.getWidth();
-
-            if (params.height < MIN_HEIGHT) {
-                params.height = MIN_HEIGHT;
-            } else if (params.height > MAX_HEIGHT) {
-                params.height = MAX_HEIGHT;
-            }
+        if (params.height < MIN_HEIGHT) {
+            params.height = MIN_HEIGHT;
+        } else if (params.height > MAX_HEIGHT) {
+            params.height = MAX_HEIGHT;
         }
         bindView.baseBind.illustImage.setLayoutParams(params);
 
@@ -234,13 +212,13 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
 
     private void handleLongClick(View v, IllustsBean illust) {
         View popView = LayoutInflater.from(mContext).inflate(R.layout.pop_window_2, null);
-        QMUIPopup mNormalPopup = QMUIPopups.popup(mContext, QMUIDisplayHelper.dp2px(getContext(), 250))
+        QMUIPopup mNormalPopup = QMUIPopups.popup(mContext, QMUIDisplayHelper.dp2px(mContext, 250))
                 .preferredDirection(QMUIPopup.DIRECTION_BOTTOM)
                 .view(popView)
                 .dimAmount(0.5f)
-                .edgeProtection(QMUIDisplayHelper.dp2px(getContext(), 20))
-                .offsetX(QMUIDisplayHelper.dp2px(getContext(), 80))
-                .offsetYIfBottom(QMUIDisplayHelper.dp2px(getContext(), 5))
+                .edgeProtection(QMUIDisplayHelper.dp2px(mContext, 20))
+                .offsetX(QMUIDisplayHelper.dp2px(mContext, 80))
+                .offsetYIfBottom(QMUIDisplayHelper.dp2px(mContext, 5))
                 .shadow(true)
                 .arrow(true)
                 .animStyle(QMUIPopup.ANIM_GROW_FROM_RIGHT)

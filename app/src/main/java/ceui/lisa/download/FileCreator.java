@@ -57,6 +57,8 @@ public class FileCreator {
         return createIllustFile(illustsBean, 0);
     }
 
+
+    private static final String DASH = "_";
     /**
      *
      * index 0 "title_123456789_p0.png"
@@ -70,16 +72,15 @@ public class FileCreator {
             return null;
         }
 
-        Map<String, String> params = new HashMap<>();
-        params.put("title", illustsBean.getTitle());
-        params.put("id", String.valueOf(illustsBean.getId()));
-        params.put("p", "p" + (index + 1));
-        params.put("author", illustsBean.getUser().getName());
-        params.put("width", String.valueOf(illustsBean.getWidth()));
-        params.put("height", String.valueOf(illustsBean.getHeight()));
-        params.put("ts", String.valueOf(System.currentTimeMillis()));
+        String title = illustsBean.getTitle();
+        int id = illustsBean.getId();
 
-        return new File(Shaft.sSettings.getIllustPath(), deleteSpecialWords(fileNameFormat(Shaft.sSettings.getFileNameType(), params)));
+        //只有1P，不带P数
+        return illustsBean.getPage_count() == 1 ?
+                new File(Shaft.sSettings.getIllustPath(),
+                        deleteSpecialWords(title + DASH + id + ".png")) :
+                new File(Shaft.sSettings.getIllustPath(),
+                        deleteSpecialWords(title + DASH + id + DASH + "p" + index + ".png"));
     }
 
     private static String deleteSpecialWords(String before) {
@@ -92,7 +93,6 @@ public class FileCreator {
             return "untitle_" + System.currentTimeMillis() + ".png";
         }
     }
-
 
     public static File createWebFile(String name) {
         File parent = new File(Shaft.sSettings.getIllustPath());
@@ -108,18 +108,5 @@ public class FileCreator {
             parent.mkdir();
         }
         return new File(parent, deleteSpecialWords(name));
-    }
-
-    private static String fileNameFormat(String format, Map<String, String > params) {
-        if (format == null) {
-            return null;
-        }
-
-        String out = String.copyValueOf(format.toCharArray());
-        Set<String> keys = params.keySet();
-        for (String key : keys) {
-            out = out.replace("<" + key + ">", params.get(key));
-        }
-        return out;
     }
 }

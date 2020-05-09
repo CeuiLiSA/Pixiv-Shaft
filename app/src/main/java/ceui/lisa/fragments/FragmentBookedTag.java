@@ -1,5 +1,6 @@
 package ceui.lisa.fragments;
 
+import android.os.Bundle;
 import android.view.View;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -20,6 +21,7 @@ import ceui.lisa.model.ListTag;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.DensityUtil;
+import ceui.lisa.utils.Params;
 import ceui.lisa.view.LinearItemDecoration;
 import io.reactivex.Observable;
 
@@ -29,9 +31,16 @@ public class FragmentBookedTag extends NetListFragment<FragmentBaseListBinding,
     private String bookType = "";
 
     public static FragmentBookedTag newInstance(String bookType) {
+        Bundle args = new Bundle();
+        args.putString(Params.DATA_TYPE, bookType);
         FragmentBookedTag fragment = new FragmentBookedTag();
-        fragment.bookType = bookType;
+        fragment.setArguments(args);
         return fragment;
+    }
+
+    @Override
+    public void initBundle(Bundle bundle) {
+        bookType = bundle.getString(Params.DATA_TYPE);
     }
 
     @Override
@@ -61,7 +70,7 @@ public class FragmentBookedTag extends NetListFragment<FragmentBaseListBinding,
                 channel.setObject(allItems.get(position).getName());
                 EventBus.getDefault().post(channel);
 
-                getActivity().finish();
+                mActivity.finish();
             }
         });
     }

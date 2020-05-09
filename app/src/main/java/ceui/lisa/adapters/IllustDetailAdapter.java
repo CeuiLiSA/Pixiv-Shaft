@@ -25,7 +25,9 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import ceui.lisa.R;
@@ -63,11 +65,24 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     private TagHolder gifHolder;
     private AnimationDrawable animationDrawable;
 
+    public Map<Integer, Boolean> getHasLoad() {
+        if (hasLoad == null) {
+            hasLoad = new HashMap<>();
+        }
+        return hasLoad;
+    }
+
+    private Map<Integer, Boolean> hasLoad = new HashMap<>();
+
     public IllustDetailAdapter(IllustsBean list, FragmentActivity context) {
         mContext = context;
         allIllust = list;
         imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
                 2 * mContext.getResources().getDimensionPixelSize(R.dimen.twelve_dp));
+        hasLoad.clear();
+        for (int i = 0; i < list.getPage_count(); i++) {
+            hasLoad.put(i, false);
+        }
     }
 
     @NonNull
@@ -88,20 +103,18 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             params.height = imageSize * allIllust.getHeight() / allIllust.getWidth();
             params.width = imageSize;
             currentOne.illust.setLayoutParams(params);
-//            if (Shaft.sSettings.isFirstImageSize()) {
-//                Glide.with(mContext)
-//                        .load(GlideUtil.getOriginal(allIllust, position))
-//                        .into(currentOne.illust);
-//            } else {
-//                Glide.with(mContext)
-//                        .load(GlideUtil.getLargeImage(allIllust, position))
-//                        .into(currentOne.illust);
-//            }
 
             Glide.with(mContext)
+                    .asDrawable()
                     .load(GlideUtil.getLargeImage(allIllust, position))
                     .transition(DrawableTransitionOptions.withCrossFade())
-                    .into(currentOne.illust);
+                    .into(new SimpleTarget<Drawable>() {
+                        @Override
+                        public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
+                            currentOne.illust.setImageDrawable(resource);
+                            hasLoad.put(0, true);
+                        }
+                    });
 
             Common.showLog("height " + params.height + "width " + params.width);
 
@@ -189,6 +202,7 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                             params.height = imageSize * resource.getHeight() / resource.getWidth();
                             currentOne.illust.setLayoutParams(params);
                             currentOne.illust.setImageBitmap(resource);
+                            hasLoad.put(position, true);
                         }
                     });
         }

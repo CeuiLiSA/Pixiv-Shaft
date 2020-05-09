@@ -30,7 +30,6 @@ public class DListener extends DownloadListener1 {
     private ProgressBar mProgressBar;
     private TextView currentSize;
     private int nowID = 0, max = 0, nowOffset = 0;
-    private long total = 0L;
 
     public void bind(ProgressBar progressBar, TextView textView) {
         mProgressBar = progressBar;
@@ -49,7 +48,6 @@ public class DListener extends DownloadListener1 {
 
     @Override
     public void connected(@NonNull DownloadTask task, int blockCount, long currentOffset, long totalLength) {
-        total = totalLength;
     }
 
     @Override
@@ -81,33 +79,72 @@ public class DListener extends DownloadListener1 {
 
     @Override
     public void taskEnd(@NonNull DownloadTask task, @NonNull EndCause cause, @Nullable Exception realCause, @NonNull Listener1Assist.Listener1Model model) {
+
         IllustTask illustTask = new IllustTask();
         illustTask.setDownloadTask(task);
+        File endFile = task.getFile();
 
-        Common.showLog("taskEnd " + task.getFilename());
-
-        try {
-            Common.showLog(task.getFile().getPath());
-            if (!TextUtils.isEmpty(task.getFilename()) && task.getFilename().contains(".zip")) {
+        switch (cause) {
+            case COMPLETED:
+                Common.showLog("taskEnd COMPLETED");
                 try {
-                    ZipFile zipFile = new ZipFile(task.getFile().getPath());
-                    zipFile.extractAll(Shaft.sSettings.getGifUnzipPath() +
-                            task.getFilename().substring(0, task.getFilename().length() - 4));
-                    Common.showToast("图组ZIP解压完成");
+                    if (!TextUtils.isEmpty(task.getFilename()) && task.getFilename().contains(".zip")) {
+                        try {
+                            ZipFile zipFile = new ZipFile(task.getFile().getPath());
+                            zipFile.extractAll(Shaft.sSettings.getGifUnzipPath() +
+                                    task.getFilename().substring(0, task.getFilename().length() - 4));
+                            Common.showToast("图组ZIP解压完成");
 
-                    //通知FragmentSingleIllust 开始播放gif
-                    Channel channel = new Channel();
-                    channel.setReceiver("FragmentSingleIllust");
-                    EventBus.getDefault().post(channel);
-                } catch (ZipException e) {
+                            //通知FragmentSingleIllust 开始播放gif
+                            Channel channel = new Channel();
+                            channel.setReceiver("FragmentSingleIllust");
+                            EventBus.getDefault().post(channel);
+                        } catch (ZipException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+                TaskQueue.get().removeTask(illustTask, true);
+                break;
+            case ERROR:
+                Common.showLog("taskEnd ERROR");
+                Common.showToast("TASK ERROR " + endFile.getName());
+                endFile.delete();
+                TaskQueue.get().removeTask(illustTask, false);
+                break;
+            case CANCELED:
+                Common.showLog("taskEnd CANCELED");
+                Common.showToast(endFile.getName() + "下载取消");
+                endFile.delete();
+                TaskQueue.get().removeTask(illustTask, false);
+                break;
+            case FILE_BUSY:
+                Common.showLog("taskEnd FILE_BUSY");
+                Common.showToast("TASK FILE_BUSY " + endFile.getName());
+                endFile.delete();
+                TaskQueue.get().removeTask(illustTask, false);
+                break;
+            case SAME_TASK_BUSY:
+                Common.showLog("taskEnd SAME_TASK_BUSY");
+                Common.showToast("TASK SAME_TASK_BUSY " + endFile.getName());
+                endFile.delete();
+                TaskQueue.get().removeTask(illustTask, false);
+                break;
+            case PRE_ALLOCATE_FAILED:
+                Common.showLog("taskEnd PRE_ALLOCATE_FAILED");
+                Common.showToast("TASK PRE_ALLOCATE_FAILED " + endFile.getName());
+                endFile.delete();
+                TaskQueue.get().removeTask(illustTask, false);
+                break;
+            default:
+                Common.showLog("taskEnd default");
+                Common.showToast("TASK PRE_ALLOCATE_FAILED " + endFile.getName());
+                endFile.delete();
+                TaskQueue.get().removeTask(illustTask, false);
+                break;
         }
-
-        TaskQueue.get().removeTask(illustTask);
     }
 
     public int getNowID() {
