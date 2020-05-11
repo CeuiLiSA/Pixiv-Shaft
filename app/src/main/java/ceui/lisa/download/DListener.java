@@ -19,26 +19,27 @@ import net.lingala.zip4j.exception.ZipException;
 import org.greenrobot.eventbus.EventBus;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.adapters.ViewHolder;
 import ceui.lisa.database.IllustTask;
+import ceui.lisa.databinding.RecyDownloadTaskBinding;
+import ceui.lisa.databinding.RecyMultiDownloadBinding;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 
 public class DListener extends DownloadListener1 {
 
-    private ProgressBar mProgressBar;
-    private TextView currentSize;
-    private int nowID = 0, max = 0, nowOffset = 0;
+    private Map<Integer, ViewHolder<RecyDownloadTaskBinding>> hashMap = new HashMap<>();
 
-    public void bind(ProgressBar progressBar, TextView textView) {
-        mProgressBar = progressBar;
-        currentSize = textView;
+    public void bind(Integer id, ViewHolder<RecyDownloadTaskBinding> view) {
+        hashMap.put(id, view);
     }
 
     @Override
     public void taskStart(@NonNull DownloadTask task, @NonNull Listener1Assist.Listener1Model model) {
-        nowID = task.getId();
     }
 
     @Override
@@ -53,28 +54,19 @@ public class DListener extends DownloadListener1 {
     @Override
     public void progress(@NonNull DownloadTask task, long currentOffset, long totalLength) {
         Common.showLog("progress " + task.getFilename() + " " + currentOffset + "/" + totalLength);
-        if (mProgressBar != null){
-            if ("update".equals(mProgressBar.getTag())) {
-                mProgressBar.setMax((int) totalLength);
-                mProgressBar.setProgress((int) currentOffset);
-            } else {
-                mProgressBar.setProgress(0);
-            }
+
+        ViewHolder<RecyDownloadTaskBinding> view = hashMap.get(task.getId());
+
+        if (view != null) {
+            view.baseBind.progress.setMax((int) totalLength);
+            view.baseBind.progress.setProgress((int) currentOffset);
+
+
+            view.baseBind.currentSize.setText(String.format("%s / %s",
+                    FileSizeUtil.formatFileSize(currentOffset),
+                    FileSizeUtil.formatFileSize(totalLength)));
         }
 
-
-        if (currentSize != null) {
-            if ("update".equals(currentSize.getTag())) {
-                currentSize.setText(String.format("%s / %s",
-                        FileSizeUtil.formatFileSize(currentOffset),
-                        FileSizeUtil.formatFileSize(totalLength)));
-            } else {
-                currentSize.setText("0.00KB / 未知大小");
-            }
-        }
-
-        max = (int) totalLength;
-        nowOffset = (int) currentOffset;
     }
 
     @Override
@@ -145,18 +137,6 @@ public class DListener extends DownloadListener1 {
                 TaskQueue.get().removeTask(illustTask, false);
                 break;
         }
-    }
-
-    public int getNowID() {
-        return nowID;
-    }
-
-    public int getMax() {
-        return max;
-    }
-
-    public int getNowOffset() {
-        return nowOffset;
     }
 
 }

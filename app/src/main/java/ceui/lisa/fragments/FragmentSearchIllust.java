@@ -31,7 +31,7 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         searchModel = new ViewModelProvider(requireActivity()).get(SearchModel.class);
-        searchModel.getNowGo().observe(this, new Observer<String>() {
+        searchModel.getNowGo().observe(getViewLifecycleOwner(), new Observer<String>() {
             @Override
             public void onChanged(String s) {
                 mRefreshLayout.autoRefresh();
@@ -81,8 +81,6 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
 
     @Override
     public void initRecyclerView() {
-        GridLayoutManager manager = new GridLayoutManager(mContext, 2);
-        baseBind.recyclerView.setLayoutManager(manager);
-        baseBind.recyclerView.addItemDecoration(new GridItemDecoration(2, DensityUtil.dp2px(8.0f), true));
+        staggerRecyclerView();
     }
 }

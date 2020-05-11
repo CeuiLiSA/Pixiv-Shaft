@@ -6,7 +6,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 public class ViewHolder<BindView extends ViewDataBinding> extends RecyclerView.ViewHolder {
 
-    protected BindView baseBind;
+    public BindView baseBind;
 
     public ViewHolder(BindView pBaseBind) {
         super(pBaseBind.getRoot());
