@@ -4,7 +4,7 @@ import android.os.Bundle;
 
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.NAdapter;
-import ceui.lisa.core.NetControl;
+import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyNovelBinding;
 import ceui.lisa.http.Retro;
@@ -19,7 +19,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
  * 某人收藏的小说
  */
 public class FragmentLikeNovel extends NetListFragment<FragmentBaseListBinding,
-        ListNovel, NovelBean, RecyNovelBinding> {
+        ListNovel, NovelBean> {
 
     private int userID;
     private String starType;
@@ -43,8 +43,8 @@ public class FragmentLikeNovel extends NetListFragment<FragmentBaseListBinding,
     }
 
     @Override
-    public NetControl<ListNovel> present() {
-        return new NetControl<ListNovel>() {
+    public RemoteRepo<ListNovel> repository() {
+        return new RemoteRepo<ListNovel>() {
             @Override
             public Observable<ListNovel> initApi() {
                 return Retro.getAppApi().getUserLikeNovel(sUserModel

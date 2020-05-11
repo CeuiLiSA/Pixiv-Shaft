@@ -18,26 +18,22 @@ public abstract class ImageSaver {
             return;
         }
 
-        if (Dev.isDev) {
-            //调试模式啥也不干
+        String[] path = new String[1];
+        String[] mime = new String[1];
+        String filePath = file.getPath();
+        Common.showLog("ImageSaver before " + filePath);
+        path[0] = filePath;
+        if (filePath.endsWith(".gif")) {
+            mime[0] = "image/gif";
+        } else if (filePath.endsWith(".jpeg") || filePath.endsWith(".jpg")) {
+            mime[0] = "image/jpeg";
         } else {
-            String[] path = new String[1];
-            String[] mime = new String[1];
-            String filePath = file.getPath();
-            Common.showLog("ImageSaver before " + filePath);
-            path[0] = filePath;
-            if (filePath.endsWith(".gif")) {
-                mime[0] = "image/gif";
-            } else if (filePath.endsWith(".jpeg") || filePath.endsWith(".jpg")) {
-                mime[0] = "image/jpeg";
-            } else {
-                mime[0] = "image/png";
-            }
-            MediaScannerConnection.scanFile(
-                    Shaft.getContext(), path, mime, (path1, uri) -> {
-                    }
-            );
+            mime[0] = "image/png";
         }
+        MediaScannerConnection.scanFile(
+                Shaft.getContext(), path, mime, (path1, uri) -> {
+                }
+        );
     }
 
     /**

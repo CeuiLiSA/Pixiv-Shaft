@@ -8,17 +8,17 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:orientation="vertical"
+        android:layout_height="match_parent"
         android:background="@color/light_bg"
-        android:layout_height="match_parent">
+        android:orientation="vertical">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fitsSystemWindows="true"
             android:background="@color/colorPrimary"
             android:elevation="@dimen/six_dp"
+            android:fitsSystemWindows="true"
             app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
             app:title="设置"
             app:titleTextColor="@android:color/white">
@@ -26,8 +26,8 @@
         </androidx.appcompat.widget.Toolbar>
 
         <com.scwang.smartrefresh.layout.SmartRefreshLayout
-            android:layout_width="match_parent"
             android:id="@+id/refreshLayout"
+            android:layout_width="match_parent"
             android:layout_height="match_parent">
 
             <androidx.core.widget.NestedScrollView
@@ -35,22 +35,22 @@
                 android:layout_height="match_parent">
 
                 <LinearLayout
-                    android:layout_width="match_parent"
-                    android:orientation="vertical"
                     android:id="@+id/parent_linear"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
                     android:background="@color/white"
-                    android:layout_height="match_parent">
+                    android:orientation="vertical">
 
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:orientation="vertical"
-                        android:layout_height="wrap_content">
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="@color/light_bg"
-                            android:layout_height="20dp">
+                            android:layout_height="20dp"
+                            android:background="@color/light_bg">
 
 
                         </View>
@@ -61,32 +61,32 @@
 
                             <TextView
                                 android:layout_width="wrap_content"
-                                android:text="@string/account"
-                                android:textSize="13sp"
-                                android:textColor="@color/hint_text"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="@dimen/sixteen_dp"
                                 android:layout_marginTop="@dimen/eight_dp"
                                 android:layout_marginBottom="@dimen/eight_dp"
-                                android:layout_marginStart="@dimen/sixteen_dp"
-                                android:layout_height="wrap_content" />
+                                android:text="@string/account"
+                                android:textColor="@color/hint_text"
+                                android:textSize="13sp" />
                         </RelativeLayout>
 
 
                         <RelativeLayout
                             android:id="@+id/user_manage"
-                            android:background="?android:attr/selectableItemBackground"
-                            android:clickable="true"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent">
+                            android:layout_height="match_parent"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true">
 
 
                             <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_centerVertical="true"
                                 android:layout_margin="@dimen/sixteen_dp"
                                 android:text="@string/account_manage"
-                                android:textSize="15sp"
-                                android:layout_centerVertical="true"
                                 android:textColor="@color/rank_text_color"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
+                                android:textSize="15sp">
 
 
                             </TextView>
@@ -96,28 +96,28 @@
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="@color/settings_divider_bg"
+                            android:layout_height="1dp"
                             android:layout_marginStart="@dimen/sixteen_dp"
-                            android:layout_height="1dp">
+                            android:background="@color/settings_divider_bg">
 
 
                         </View>
 
                         <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:background="?android:attr/selectableItemBackground"
-                            android:clickable="true"
                             android:id="@+id/edit_account"
-                            android:layout_height="match_parent">
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true">
 
 
                             <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
                                 android:layout_margin="@dimen/sixteen_dp"
                                 android:text="编辑账号信息与邮箱绑定"
-                                android:textSize="15sp"
                                 android:textColor="@color/rank_text_color"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
+                                android:textSize="15sp">
 
                             </TextView>
 
@@ -127,28 +127,28 @@
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="@color/settings_divider_bg"
+                            android:layout_height="1dp"
                             android:layout_marginStart="@dimen/sixteen_dp"
-                            android:layout_height="1dp">
+                            android:background="@color/settings_divider_bg">
 
 
                         </View>
 
                         <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:background="?android:attr/selectableItemBackground"
-                            android:clickable="true"
                             android:id="@+id/edit_file"
-                            android:layout_height="match_parent">
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true">
 
 
                             <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
                                 android:layout_margin="@dimen/sixteen_dp"
                                 android:text="个人资料设置"
-                                android:textSize="15sp"
                                 android:textColor="@color/rank_text_color"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
+                                android:textSize="15sp">
 
                             </TextView>
 
@@ -158,9 +158,9 @@
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="@color/settings_divider_bg"
+                            android:layout_height="1dp"
                             android:layout_marginStart="@dimen/sixteen_dp"
-                            android:layout_height="1dp">
+                            android:background="@color/settings_divider_bg">
 
 
                         </View>
@@ -168,20 +168,20 @@
 
                         <RelativeLayout
                             android:id="@+id/login_out"
-                            android:background="?android:attr/selectableItemBackground"
-                            android:clickable="true"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent">
+                            android:layout_height="match_parent"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true">
 
 
                             <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_centerVertical="true"
                                 android:layout_margin="@dimen/sixteen_dp"
                                 android:text="@string/login_out"
-                                android:textSize="15sp"
-                                android:layout_centerVertical="true"
                                 android:textColor="@color/rank_text_color"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
+                                android:textSize="15sp">
 
 
                             </TextView>
@@ -192,18 +192,15 @@
                     </LinearLayout>
 
 
-
-
-
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:orientation="vertical"
-                        android:layout_height="wrap_content">
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="@color/light_bg"
-                            android:layout_height="20dp">
+                            android:layout_height="20dp"
+                            android:background="@color/light_bg">
 
 
                         </View>
@@ -214,171 +211,211 @@
 
                             <TextView
                                 android:layout_width="wrap_content"
-                                android:textSize="13sp"
-                                android:textColor="@color/hint_text"
-                                android:text="@string/normal"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="@dimen/sixteen_dp"
                                 android:layout_marginTop="@dimen/eight_dp"
                                 android:layout_marginBottom="@dimen/eight_dp"
-                                android:layout_marginStart="@dimen/sixteen_dp"
-                                android:layout_height="wrap_content" />
+                                android:text="@string/normal"
+                                android:textColor="@color/hint_text"
+                                android:textSize="13sp" />
                         </RelativeLayout>
 
 
                         <RelativeLayout
-                            android:background="?android:attr/selectableItemBackground"
-                            android:clickable="true"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent">
+                            android:layout_height="match_parent"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true">
 
 
                             <TextView
+                                android:id="@+id/fuck_china_s"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
                                 android:layout_marginStart="@dimen/sixteen_dp"
                                 android:layout_marginTop="@dimen/sixteen_dp"
                                 android:layout_marginBottom="@dimen/six_dp"
-                                android:text="@string/open_direct_connection"
-                                android:textSize="15sp"
                                 android:layout_toStartOf="@+id/auto_dns"
-                                android:id="@+id/fuck_china_s"
+                                android:text="@string/open_direct_connection"
                                 android:textColor="@color/rank_text_color"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content">
+                                android:textSize="15sp">
 
 
                             </TextView>
 
 
                             <TextView
-                                android:layout_marginStart="@dimen/sixteen_dp"
-                                android:layout_marginBottom="@dimen/sixteen_dp"
-                                android:text="@string/see_pixiv_ez"
-                                android:layout_below="@+id/fuck_china_s"
-                                android:textSize="13sp"
-                                android:textColor="@color/hint_text"
-                                android:singleLine="true"
-                                android:ellipsize="start"
                                 android:id="@+id/fuck_china"
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
+                                android:layout_height="wrap_content"
+                                android:layout_below="@+id/fuck_china_s"
+                                android:layout_marginStart="@dimen/sixteen_dp"
+                                android:layout_marginBottom="@dimen/sixteen_dp"
+                                android:ellipsize="start"
+                                android:singleLine="true"
+                                android:text="@string/see_pixiv_ez"
+                                android:textColor="@color/hint_text"
+                                android:textSize="13sp" />
 
 
                             <Switch
-                                android:layout_width="wrap_content"
-                                android:checked="true"
                                 android:id="@+id/auto_dns"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
                                 android:layout_alignParentEnd="true"
                                 android:layout_centerVertical="true"
                                 android:layout_margin="@dimen/sixteen_dp"
-                                android:layout_height="wrap_content" />
+                                android:checked="true" />
 
 
                         </RelativeLayout>
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="@color/settings_divider_bg"
-                            android:visibility="gone"
+                            android:layout_height="1dp"
                             android:layout_marginStart="@dimen/sixteen_dp"
-                            android:layout_height="1dp" />
+                            android:background="@color/settings_divider_bg"
+                            android:visibility="gone" />
 
 
                         <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
                             android:background="?android:attr/selectableItemBackground"
                             android:clickable="true"
-                            android:layout_width="match_parent"
-                            android:visibility="gone"
-                            android:layout_height="match_parent">
+                            android:visibility="gone">
 
 
                             <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_centerVertical="true"
                                 android:layout_margin="@dimen/sixteen_dp"
                                 android:text="图片详情样式"
-                                android:textSize="15sp"
-                                android:layout_centerVertical="true"
                                 android:textColor="@color/rank_text_color"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
+                                android:textSize="15sp">
 
                             </TextView>
 
 
                             <Switch
-                                android:layout_width="wrap_content"
-                                android:checked="true"
                                 android:id="@+id/detail_type"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
                                 android:layout_alignParentEnd="true"
                                 android:layout_centerVertical="true"
                                 android:layout_margin="@dimen/sixteen_dp"
-                                android:layout_height="wrap_content" />
+                                android:checked="true" />
 
 
                         </RelativeLayout>
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="@color/settings_divider_bg"
+                            android:layout_height="1dp"
                             android:layout_marginStart="@dimen/sixteen_dp"
-                            android:layout_height="1dp">
+                            android:background="@color/settings_divider_bg">
 
 
                         </View>
 
                         <RelativeLayout
                             android:layout_width="match_parent"
-                            android:clickable="true"
+                            android:layout_height="match_parent"
                             android:background="?android:attr/selectableItemBackground"
-                            android:layout_height="match_parent">
+                            android:clickable="true">
 
 
                             <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_centerVertical="true"
                                 android:layout_margin="@dimen/sixteen_dp"
                                 android:text="@string/show_original_image"
-                                android:textSize="15sp"
-                                android:layout_centerVertical="true"
                                 android:textColor="@color/rank_text_color"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
+                                android:textSize="15sp">
 
 
                             </TextView>
 
 
                             <Switch
-                                android:layout_width="wrap_content"
-                                android:checked="true"
                                 android:id="@+id/first_detail_origin"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
                                 android:layout_alignParentEnd="true"
                                 android:layout_centerVertical="true"
                                 android:layout_margin="@dimen/sixteen_dp"
-                                android:layout_height="wrap_content" />
+                                android:checked="true" />
 
 
                         </RelativeLayout>
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="@color/settings_divider_bg"
+                            android:layout_height="1dp"
                             android:layout_marginStart="@dimen/sixteen_dp"
-                            android:layout_height="1dp">
+                            android:background="@color/settings_divider_bg">
 
 
                         </View>
 
                         <RelativeLayout
                             android:layout_width="match_parent"
+                            android:layout_height="match_parent"
                             android:background="?android:attr/selectableItemBackground"
-                            android:clickable="true"
-                            android:layout_height="match_parent">
+                            android:clickable="true">
 
 
                             <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_centerVertical="true"
                                 android:layout_margin="@dimen/sixteen_dp"
                                 android:text="@string/save_view_history"
+                                android:textColor="@color/rank_text_color"
+                                android:textSize="15sp">
+
+
+                            </TextView>
+
+
+                            <Switch
+                                android:id="@+id/save_history"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:checked="true" />
+
+
+                        </RelativeLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:background="@color/settings_divider_bg">
+
+
+                        </View>
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:layout_height="match_parent">
+
+
+                            <TextView
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="@string/double_stagger_data"
                                 android:textSize="15sp"
                                 android:layout_centerVertical="true"
                                 android:textColor="@color/rank_text_color"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content">
-
 
                             </TextView>
 
@@ -386,7 +423,47 @@
                             <Switch
                                 android:layout_width="wrap_content"
                                 android:checked="true"
-                                android:id="@+id/save_history"
+                                android:id="@+id/stagger_data"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:layout_height="wrap_content" />
+
+
+                        </RelativeLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="@color/settings_divider_bg"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_height="1dp">
+
+
+                        </View>
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:layout_height="match_parent">
+
+
+                            <TextView
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="@string/show_like_button"
+                                android:textSize="15sp"
+                                android:layout_centerVertical="true"
+                                android:textColor="@color/rank_text_color"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+                            </TextView>
+
+
+                            <Switch
+                                android:layout_width="wrap_content"
+                                android:checked="true"
+                                android:id="@+id/show_like_button"
                                 android:layout_alignParentEnd="true"
                                 android:layout_centerVertical="true"
                                 android:layout_margin="@dimen/sixteen_dp"
@@ -407,33 +484,33 @@
 
                         <RelativeLayout
                             android:layout_width="match_parent"
+                            android:layout_height="match_parent"
                             android:background="?android:attr/selectableItemBackground"
-                            android:clickable="true"
-                            android:layout_height="match_parent">
+                            android:clickable="true">
 
 
                             <TextView
-                                android:layout_margin="@dimen/sixteen_dp"
-                                android:text="@string/slide_down_endless"
-                                android:textSize="15sp"
-                                android:layout_toStartOf="@+id/related_no_limit"
-                                android:textColor="@color/rank_text_color"
-                                android:layout_centerVertical="true"
                                 android:layout_width="match_parent"
-                                android:layout_height="wrap_content">
+                                android:layout_height="wrap_content"
+                                android:layout_centerVertical="true"
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:layout_toStartOf="@+id/related_no_limit"
+                                android:text="@string/slide_down_endless"
+                                android:textColor="@color/rank_text_color"
+                                android:textSize="15sp">
 
 
                             </TextView>
 
 
                             <Switch
-                                android:layout_width="wrap_content"
-                                android:checked="true"
                                 android:id="@+id/related_no_limit"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
                                 android:layout_alignParentEnd="true"
                                 android:layout_centerVertical="true"
                                 android:layout_margin="@dimen/sixteen_dp"
-                                android:layout_height="wrap_content" />
+                                android:checked="true" />
 
 
                         </RelativeLayout>
@@ -441,14 +518,14 @@
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:orientation="vertical"
-                        android:layout_height="wrap_content">
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
 
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="@color/light_bg"
-                            android:layout_height="20dp">
+                            android:layout_height="20dp"
+                            android:background="@color/light_bg">
 
 
                         </View>
@@ -459,46 +536,46 @@
 
                             <TextView
                                 android:layout_width="wrap_content"
-                                android:textSize="13sp"
-                                android:textColor="@color/hint_text"
-                                android:text="@string/other_settings"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="@dimen/sixteen_dp"
                                 android:layout_marginTop="@dimen/eight_dp"
                                 android:layout_marginBottom="@dimen/eight_dp"
-                                android:layout_marginStart="@dimen/sixteen_dp"
-                                android:layout_height="wrap_content" />
+                                android:text="@string/other_settings"
+                                android:textColor="@color/hint_text"
+                                android:textSize="13sp" />
                         </RelativeLayout>
 
 
                         <RelativeLayout
                             android:layout_width="match_parent"
+                            android:layout_height="match_parent"
                             android:background="?android:attr/selectableItemBackground"
-                            android:clickable="true"
-                            android:layout_height="match_parent">
+                            android:clickable="true">
 
 
                             <TextView
+                                android:id="@+id/theme_mode_s"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_centerVertical="true"
                                 android:layout_margin="@dimen/sixteen_dp"
                                 android:text="@string/theme_mode"
-                                android:textSize="15sp"
-                                android:layout_centerVertical="true"
-                                android:id="@+id/theme_mode_s"
                                 android:textColor="@color/rank_text_color"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
+                                android:textSize="15sp">
 
 
                             </TextView>
 
 
                             <TextView
+                                android:id="@+id/theme_mode"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
                                 android:layout_margin="@dimen/sixteen_dp"
                                 android:text="主题"
-                                android:textSize="14sp"
-                                android:id="@+id/theme_mode"
-                                android:layout_alignParentEnd="true"
                                 android:textColor="@color/hint_text"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
+                                android:textSize="14sp">
 
 
                             </TextView>
@@ -509,43 +586,43 @@
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="@color/settings_divider_bg"
+                            android:layout_height="1dp"
                             android:layout_marginStart="@dimen/sixteen_dp"
-                            android:layout_height="1dp">
+                            android:background="@color/settings_divider_bg">
 
 
                         </View>
 
                         <RelativeLayout
                             android:layout_width="match_parent"
+                            android:layout_height="match_parent"
                             android:background="?android:attr/selectableItemBackground"
-                            android:clickable="true"
-                            android:layout_height="match_parent">
+                            android:clickable="true">
 
 
                             <TextView
+                                android:id="@+id/search_filter_s"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_centerVertical="true"
                                 android:layout_margin="@dimen/sixteen_dp"
                                 android:text="@string/search_result_filter"
-                                android:textSize="15sp"
-                                android:layout_centerVertical="true"
-                                android:id="@+id/search_filter_s"
                                 android:textColor="@color/rank_text_color"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
+                                android:textSize="15sp">
 
 
                             </TextView>
 
 
                             <TextView
+                                android:id="@+id/search_filter"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
                                 android:layout_margin="@dimen/sixteen_dp"
                                 android:text="10000"
-                                android:textSize="14sp"
-                                android:id="@+id/search_filter"
-                                android:layout_alignParentEnd="true"
                                 android:textColor="@color/hint_text"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
+                                android:textSize="14sp">
 
 
                             </TextView>
@@ -556,43 +633,43 @@
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="@color/settings_divider_bg"
+                            android:layout_height="1dp"
                             android:layout_marginStart="@dimen/sixteen_dp"
-                            android:layout_height="1dp">
+                            android:background="@color/settings_divider_bg">
 
 
                         </View>
 
                         <RelativeLayout
                             android:layout_width="match_parent"
+                            android:layout_height="match_parent"
                             android:background="?android:attr/selectableItemBackground"
-                            android:clickable="true"
-                            android:layout_height="match_parent">
+                            android:clickable="true">
 
 
                             <TextView
+                                android:id="@+id/app_language_s"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_centerVertical="true"
                                 android:layout_margin="@dimen/sixteen_dp"
                                 android:text="@string/language"
-                                android:textSize="15sp"
-                                android:layout_centerVertical="true"
-                                android:id="@+id/app_language_s"
                                 android:textColor="@color/rank_text_color"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
+                                android:textSize="15sp">
 
 
                             </TextView>
 
 
                             <TextView
+                                android:id="@+id/app_language"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
                                 android:layout_margin="@dimen/sixteen_dp"
                                 android:text="简体中文"
-                                android:textSize="14sp"
-                                android:id="@+id/app_language"
-                                android:layout_alignParentEnd="true"
                                 android:textColor="@color/hint_text"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
+                                android:textSize="14sp">
 
 
                             </TextView>
@@ -600,65 +677,50 @@
 
                         </RelativeLayout>
 
+<!--                        <View-->
+<!--                            android:layout_width="match_parent"-->
+<!--                            android:layout_height="1dp"-->
+<!--                            android:layout_marginStart="@dimen/sixteen_dp"-->
+<!--                            android:background="@color/settings_divider_bg" />-->
 
-                        <View
-                            android:layout_width="match_parent"
-                            android:background="@color/settings_divider_bg"
-                            android:layout_marginStart="@dimen/sixteen_dp"
-                            android:layout_height="1dp">
+<!--                        <RelativeLayout-->
+<!--                            android:layout_width="match_parent"-->
+<!--                            android:layout_height="match_parent"-->
+<!--                            android:background="?android:attr/selectableItemBackground"-->
+<!--                            android:clickable="true">-->
 
+<!--                            <TextView-->
+<!--                                android:id="@+id/fullscreen_layout_s"-->
+<!--                                android:layout_width="wrap_content"-->
+<!--                                android:layout_height="wrap_content"-->
+<!--                                android:layout_centerVertical="true"-->
+<!--                                android:layout_margin="@dimen/sixteen_dp"-->
+<!--                                android:text="@string/fullscreen_layout"-->
+<!--                                android:textColor="@color/rank_text_color"-->
+<!--                                android:textSize="15sp" />-->
 
-                        </View>
+<!--                            <Switch-->
+<!--                                android:id="@+id/fullscreen_layout"-->
+<!--                                android:layout_width="wrap_content"-->
+<!--                                android:layout_height="wrap_content"-->
+<!--                                android:layout_alignParentEnd="true"-->
+<!--                                android:layout_centerVertical="true"-->
+<!--                                android:layout_margin="@dimen/sixteen_dp"-->
+<!--                                android:checked="false" />-->
 
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:background="?android:attr/selectableItemBackground"
-                            android:clickable="true"
-                            android:layout_height="match_parent">
-
-
-                            <TextView
-                                android:layout_margin="@dimen/sixteen_dp"
-                                android:text="@string/file_name_type"
-                                android:textSize="15sp"
-                                android:layout_centerVertical="true"
-                                android:id="@+id/file_name_s"
-                                android:textColor="@color/rank_text_color"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
-
-
-                            </TextView>
-
-
-                            <TextView
-                                android:layout_margin="@dimen/sixteen_dp"
-                                android:text="标准"
-                                android:textSize="14sp"
-                                android:id="@+id/file_name"
-                                android:layout_alignParentEnd="true"
-                                android:textColor="@color/hint_text"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
-
-
-                            </TextView>
-
-
-                        </RelativeLayout>
-
+<!--                        </RelativeLayout>-->
                     </LinearLayout>
 
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:orientation="vertical"
-                        android:layout_height="wrap_content">
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="@color/light_bg"
-                            android:layout_height="20dp">
+                            android:layout_height="20dp"
+                            android:background="@color/light_bg">
 
                         </View>
 
@@ -668,51 +730,51 @@
 
                             <TextView
                                 android:layout_width="wrap_content"
-                                android:text="@string/download_path"
-                                android:textSize="13sp"
-                                android:textColor="@color/hint_text"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="@dimen/sixteen_dp"
                                 android:layout_marginTop="@dimen/eight_dp"
                                 android:layout_marginBottom="@dimen/eight_dp"
-                                android:layout_marginStart="@dimen/sixteen_dp"
-                                android:layout_height="wrap_content" />
+                                android:text="@string/download_path"
+                                android:textColor="@color/hint_text"
+                                android:textSize="13sp" />
                         </RelativeLayout>
 
 
                         <RelativeLayout
                             android:id="@+id/single_illust_path"
-                            android:background="?android:attr/selectableItemBackground"
-                            android:clickable="true"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent">
+                            android:layout_height="match_parent"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true">
 
 
                             <TextView
+                                android:id="@+id/illust_path_s"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
                                 android:layout_marginStart="@dimen/sixteen_dp"
                                 android:layout_marginTop="@dimen/sixteen_dp"
                                 android:layout_marginBottom="@dimen/six_dp"
                                 android:text="@string/illust_download_path"
-                                android:textSize="15sp"
-                                android:id="@+id/illust_path_s"
                                 android:textColor="@color/rank_text_color"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
+                                android:textSize="15sp">
 
 
                             </TextView>
 
 
                             <TextView
-                                android:layout_marginStart="@dimen/sixteen_dp"
-                                android:layout_marginBottom="@dimen/sixteen_dp"
-                                android:text="/storage/emulated/0/Shaft/SingleImages"
-                                android:layout_below="@+id/illust_path_s"
-                                android:textSize="13sp"
-                                android:textColor="@color/hint_text"
-                                android:singleLine="true"
-                                android:ellipsize="start"
                                 android:id="@+id/illust_path"
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
+                                android:layout_height="wrap_content"
+                                android:layout_below="@+id/illust_path_s"
+                                android:layout_marginStart="@dimen/sixteen_dp"
+                                android:layout_marginBottom="@dimen/sixteen_dp"
+                                android:ellipsize="start"
+                                android:singleLine="true"
+                                android:text="/storage/emulated/0/Shaft/SingleImages"
+                                android:textColor="@color/hint_text"
+                                android:textSize="13sp">
 
 
                             </TextView>
@@ -722,9 +784,9 @@
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="@color/settings_divider_bg"
+                            android:layout_height="1dp"
                             android:layout_marginStart="@dimen/sixteen_dp"
-                            android:layout_height="1dp">
+                            android:background="@color/settings_divider_bg">
 
 
                         </View>
@@ -732,43 +794,43 @@
 
                         <RelativeLayout
                             android:id="@+id/gif_unzip_path"
-                            android:background="?android:attr/selectableItemBackground"
-                            android:clickable="true"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent">
+                            android:layout_height="match_parent"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true">
 
 
                             <TextView
+                                android:id="@+id/gif_result_s"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
                                 android:layout_margin="@dimen/sixteen_dp"
                                 android:text="@string/gif_result_path"
-                                android:textSize="15sp"
-                                android:id="@+id/gif_result_s"
                                 android:textColor="@color/rank_text_color"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
+                                android:textSize="15sp">
 
 
                             </TextView>
 
                             <TextView
-                                android:layout_marginStart="@dimen/sixteen_dp"
-                                android:layout_marginBottom="@dimen/sixteen_dp"
-                                android:text="/storage/emulated/0/Shaft/SingleImages"
-                                android:layout_below="@+id/gif_result_s"
-                                android:textSize="13sp"
-                                android:textColor="@color/hint_text"
-                                android:singleLine="true"
-                                android:ellipsize="start"
                                 android:id="@+id/gif_result"
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
+                                android:layout_height="wrap_content"
+                                android:layout_below="@+id/gif_result_s"
+                                android:layout_marginStart="@dimen/sixteen_dp"
+                                android:layout_marginBottom="@dimen/sixteen_dp"
+                                android:ellipsize="start"
+                                android:singleLine="true"
+                                android:text="/storage/emulated/0/Shaft/SingleImages"
+                                android:textColor="@color/hint_text"
+                                android:textSize="13sp" />
 
                         </RelativeLayout>
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="@color/light_bg"
-                            android:layout_height="20dp">
+                            android:layout_height="20dp"
+                            android:background="@color/light_bg">
 
                         </View>
 
@@ -778,46 +840,46 @@
 
                             <TextView
                                 android:layout_width="wrap_content"
-                                android:text="缓存"
-                                android:textSize="13sp"
-                                android:textColor="@color/hint_text"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="@dimen/sixteen_dp"
                                 android:layout_marginTop="@dimen/eight_dp"
                                 android:layout_marginBottom="@dimen/eight_dp"
-                                android:layout_marginStart="@dimen/sixteen_dp"
-                                android:layout_height="wrap_content" />
+                                android:text="缓存"
+                                android:textColor="@color/hint_text"
+                                android:textSize="13sp" />
                         </RelativeLayout>
 
 
                         <RelativeLayout
                             android:layout_width="match_parent"
+                            android:layout_height="match_parent"
                             android:background="?android:attr/selectableItemBackground"
-                            android:clickable="true"
-                            android:layout_height="match_parent">
+                            android:clickable="true">
 
 
                             <TextView
+                                android:id="@+id/clear_image_cache"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_centerVertical="true"
                                 android:layout_margin="@dimen/sixteen_dp"
                                 android:text="清除图片缓存"
-                                android:textSize="15sp"
-                                android:layout_centerVertical="true"
-                                android:id="@+id/clear_image_cache"
                                 android:textColor="@color/rank_text_color"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
+                                android:textSize="15sp">
 
 
                             </TextView>
 
 
                             <TextView
+                                android:id="@+id/real_image_cache"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
                                 android:layout_margin="@dimen/sixteen_dp"
                                 android:text="50M"
-                                android:textSize="14sp"
-                                android:id="@+id/real_image_cache"
-                                android:layout_alignParentEnd="true"
                                 android:textColor="@color/hint_text"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
+                                android:textSize="14sp">
 
 
                             </TextView>
@@ -828,45 +890,45 @@
 
                         <View
                             android:layout_width="match_parent"
-                            android:visibility="visible"
-                            android:background="@color/settings_divider_bg"
+                            android:layout_height="1dp"
                             android:layout_marginStart="@dimen/sixteen_dp"
-                            android:layout_height="1dp">
+                            android:background="@color/settings_divider_bg"
+                            android:visibility="visible">
 
 
                         </View>
 
 
                         <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:background="?android:attr/selectableItemBackground"
                             android:id="@+id/clear_gif_cache"
-                            android:clickable="true"
-                            android:layout_height="match_parent">
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true">
 
 
                             <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_centerVertical="true"
                                 android:layout_margin="@dimen/sixteen_dp"
                                 android:text="清除GIF缓存"
-                                android:textSize="15sp"
-                                android:layout_centerVertical="true"
                                 android:textColor="@color/rank_text_color"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
+                                android:textSize="15sp">
 
 
                             </TextView>
 
 
                             <TextView
+                                android:id="@+id/real_gif_cache"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
                                 android:layout_margin="@dimen/sixteen_dp"
                                 android:text="200M"
-                                android:textSize="14sp"
-                                android:id="@+id/real_gif_cache"
-                                android:layout_alignParentEnd="true"
                                 android:textColor="@color/hint_text"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
+                                android:textSize="14sp">
 
 
                             </TextView>
@@ -876,8 +938,8 @@
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="@color/light_bg"
-                            android:layout_height="20dp">
+                            android:layout_height="20dp"
+                            android:background="@color/light_bg">
 
 
                         </View>

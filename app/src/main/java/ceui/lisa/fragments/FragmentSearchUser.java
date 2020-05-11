@@ -4,7 +4,7 @@ import android.os.Bundle;
 
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.UAdapter;
-import ceui.lisa.core.NetControl;
+import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyUserPreviewBinding;
 import ceui.lisa.http.Retro;
@@ -19,7 +19,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
  * 搜索用户
  */
 public class FragmentSearchUser extends NetListFragment<FragmentBaseListBinding,
-        ListUser, UserPreviewsBean, RecyUserPreviewBinding> {
+        ListUser, UserPreviewsBean> {
 
     private String word;
 
@@ -37,8 +37,8 @@ public class FragmentSearchUser extends NetListFragment<FragmentBaseListBinding,
     }
 
     @Override
-    public NetControl<ListUser> present() {
-        return new NetControl<ListUser>() {
+    public RemoteRepo<ListUser> repository() {
+        return new RemoteRepo<ListUser>() {
             @Override
             public Observable<ListUser> initApi() {
                 return Retro.getAppApi().searchUser(sUserModel.getResponse().getAccess_token(), word);

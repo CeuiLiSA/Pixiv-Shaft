@@ -33,6 +33,9 @@
     <color name="hito_bg">#000339</color>
     <color name="trans">#00eeeeee</color>
     <color name="tag_text_unselect">#737373</color>
+    <color name="novel_text_unselect">#F0F0F0</color>
+
+
     <color name="rank_text_color">#2c333c</color>
     <color name="white_to_gray">#FFFFFF</color>
     <color name="view_history_title">#666666</color>
@@ -48,5 +51,9 @@
     <color name="about_user_left">#777777</color>
     <color name="about_user_right">#BBBBBB</color>
     <color name="about_user_white">#FFFFFF</color>
+
+
+    <color name="not_bookmarked">#a4afb3</color>
+    <color name="has_bookmarked">#FA3A3A</color>
 
 </resources>

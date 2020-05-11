@@ -9,6 +9,7 @@
     <RelativeLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
+        android:id="@+id/rela_root"
         android:background="#000339"
         android:layout_height="match_parent">
 
@@ -25,24 +26,25 @@
             app:cardCornerRadius="@dimen/four_dp"
             app:cardBackgroundColor="#7323c3"
             app:cardElevation="@dimen/four_dp"
-            android:layout_above="@+id/fab"
+            android:layout_marginBottom="160dp"
+            android:layout_alignParentBottom="true"
             android:layout_marginStart="@dimen/sixteen_dp"
             android:visibility="invisible"
             android:layout_marginEnd="@dimen/sixteen_dp"
             android:id="@+id/awesome_card"
-            android:layout_height="260dp">
+            android:layout_height="wrap_content">
 
 
-            <RelativeLayout
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:orientation="vertical"
+                android:layout_height="wrap_content">
 
 
 
 
                 <RelativeLayout
                     android:layout_width="match_parent"
-                    android:id="@+id/user_rela"
                     android:layout_height="wrap_content">
 
                     <de.hdodenhof.circleimageview.CircleImageView
@@ -60,6 +62,7 @@
                         android:id="@+id/user_name"
                         android:layout_marginEnd="@dimen/eight_dp"
                         android:textStyle="bold"
+                        android:layout_toStartOf="@+id/save_novel"
                         android:textSize="16sp"
                         android:layout_marginStart="@dimen/eight_dp"
                         android:layout_toEndOf="@+id/user_head"
@@ -68,13 +71,28 @@
                         android:layout_height="wrap_content" />
 
 
+                    <Button
+                        style="@style/Widget.AppCompat.Button.Borderless"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:drawableEnd="@drawable/ic_save_black_24dp"
+                        android:layout_alignParentEnd="true"
+                        android:drawablePadding="1dp"
+                        android:gravity="center_vertical"
+                        android:id="@+id/save_novel"
+                        android:layout_marginEnd="@dimen/six_dp"
+                        android:text="保存"
+                        android:layout_centerVertical="true"
+                        android:textColor="@color/white_to_gray">
+
+                    </Button>
+
+
                 </RelativeLayout>
 
                 <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_below="@+id/user_rela"
-                    android:layout_above="@+id/operate_rela"
-                    android:layout_height="match_parent">
+                    android:layout_height="wrap_content">
 
 
                     <TextView
@@ -99,6 +117,7 @@
                         android:textSize="15sp"
                         android:textStyle="bold"
                         android:maxLines="2"
+                        android:layout_marginBottom="@dimen/eight_dp"
                         android:ellipsize="end"
                         android:layout_below="@+id/novel_title"
                         android:layout_marginStart="@dimen/sixteen_dp"
@@ -113,8 +132,24 @@
 
                 <RelativeLayout
                     android:layout_width="match_parent"
-                    android:id="@+id/operate_rela"
-                    android:layout_alignParentBottom="true"
+                    android:layout_height="wrap_content">
+
+                    <com.zhy.view.flowlayout.TagFlowLayout
+                        android:layout_width="match_parent"
+                        android:layout_marginTop="@dimen/four_dp"
+                        android:layout_marginStart="@dimen/twelve_dp"
+                        android:layout_marginEnd="@dimen/four_dp"
+                        android:layout_marginBottom="@dimen/four_dp"
+                        android:id="@+id/hot_tags"
+                        android:layout_height="wrap_content">
+
+
+                    </com.zhy.view.flowlayout.TagFlowLayout>
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
                     <Button
@@ -122,6 +157,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:gravity="center_vertical"
+                        android:id="@+id/show_prev"
                         android:drawableStart="@drawable/ic_chevron_left_black_24dp"
                         android:layout_marginStart="@dimen/six_dp"
                         android:text="上一章节"
@@ -150,6 +186,7 @@
                         android:drawableEnd="@drawable/ic_chevron_right_black_24dp"
                         android:layout_alignParentEnd="true"
                         android:gravity="center_vertical"
+                        android:id="@+id/show_next"
                         android:layout_marginEnd="@dimen/six_dp"
                         android:text="下一章节"
                         android:textColor="@color/white_to_gray">
@@ -157,7 +194,7 @@
                     </Button>
 
                 </RelativeLayout>
-            </RelativeLayout>
+            </LinearLayout>
 
         </androidx.cardview.widget.CardView>
 
@@ -190,16 +227,27 @@
         </RelativeLayout>
 
 
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
+        <com.skydoves.transformationlayout.TransformationLayout
             android:layout_width="wrap_content"
-            android:id="@+id/fab"
-            android:layout_alignParentEnd="true"
-            android:src="@drawable/ic_keyboard_arrow_up_black_24dp"
             android:layout_alignParentBottom="true"
-            android:layout_margin="@dimen/sixteen_dp"
+            app:transformation_duration="400"
+            android:id="@+id/transformation_layout"
+            app:transformation_targetView="@id/awesome_card"
+            android:layout_alignParentEnd="true"
             android:layout_height="wrap_content">
 
-        </com.google.android.material.floatingactionbutton.FloatingActionButton>
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:layout_width="wrap_content"
+                android:id="@+id/fab"
+                android:src="@drawable/ic_keyboard_arrow_up_black_24dp"
+                android:layout_margin="@dimen/sixteen_dp"
+                android:layout_height="wrap_content">
+
+            </com.google.android.material.floatingactionbutton.FloatingActionButton>
+
+        </com.skydoves.transformationlayout.TransformationLayout>
+
 
     </RelativeLayout>
 </layout>

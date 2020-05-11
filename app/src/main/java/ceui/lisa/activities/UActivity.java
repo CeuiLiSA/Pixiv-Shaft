@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.CompoundButton;
 import android.widget.TextView;
 
 import androidx.fragment.app.FragmentActivity;
@@ -78,6 +79,12 @@ public class UActivity extends BaseActivity<ActicityUserBinding> implements Disp
                         mUserViewModel.getUser().setValue(user);
                     }
                 });
+        baseBind.turnGray.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                gray(isChecked);
+            }
+        });
     }
 
     @Override
@@ -131,7 +138,7 @@ public class UActivity extends BaseActivity<ActicityUserBinding> implements Disp
                 } else if (position == 2) {
                     Intent intent = new Intent(mContext, TemplateActivity.class);
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "详细信息");
-                    intent.putExtra(TemplateActivity.EXTRA_OBJECT, currentUser);
+                    intent.putExtra(Params.CONTENT, currentUser);
                     startActivity(intent);
                 }
                 return false;
@@ -215,11 +222,11 @@ public class UActivity extends BaseActivity<ActicityUserBinding> implements Disp
 
         if (currentUser.getProfile().getTotal_novels() > 0) {
             transaction.replace(R.id.container4,
-                    FragmentLikeNovelHorizontal.newInstance(1));// 0收藏的小说， 1创作的小说
+                    FragmentLikeNovelHorizontal.newInstance(1, currentUser.getUserId()));// 0收藏的小说， 1创作的小说
         }
 
         transaction.replace(R.id.container5,
-                FragmentLikeNovelHorizontal.newInstance(0));// 0收藏的小说， 1创作的小说
+                FragmentLikeNovelHorizontal.newInstance(0, currentUser.getUserId()));// 0收藏的小说， 1创作的小说
 
         transaction.commit();
 

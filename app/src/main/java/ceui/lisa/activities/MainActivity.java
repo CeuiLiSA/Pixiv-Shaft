@@ -5,6 +5,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.media.Image;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -19,7 +21,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -27,27 +28,24 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
-import androidx.viewpager.widget.ViewPager;
 
 import com.bumptech.glide.Glide;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 
-import org.greenrobot.eventbus.EventBus;
-
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.ActivityCoverBinding;
 import ceui.lisa.download.TaskQueue;
 import ceui.lisa.fragments.BaseFragment;
-import ceui.lisa.fragments.FragmentCT;
 import ceui.lisa.fragments.FragmentCenter;
 import ceui.lisa.fragments.FragmentLeft;
 import ceui.lisa.fragments.FragmentRight;
-import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
+import ceui.lisa.utils.Emoji;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
@@ -82,11 +80,10 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     protected void initView() {
         Dev.isDev = Local.getBoolean(Params.USE_DEBUG, false);
         baseBind.drawerLayout.setScrimColor(Color.TRANSPARENT);
-        NavigationView navigationView = findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-        userHead = navigationView.getHeaderView(0).findViewById(R.id.user_head);
-        username = navigationView.getHeaderView(0).findViewById(R.id.user_name);
-        user_email = navigationView.getHeaderView(0).findViewById(R.id.user_email);
+        baseBind.navView.setNavigationItemSelectedListener(this);
+        userHead = baseBind.navView.getHeaderView(0).findViewById(R.id.user_head);
+        username = baseBind.navView.getHeaderView(0).findViewById(R.id.user_name);
+        user_email = baseBind.navView.getHeaderView(0).findViewById(R.id.user_email);
         initDrawerHeader();
         userHead.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -94,64 +91,13 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 Common.showUser(mContext, sUserModel);
             }
         });
-        BottomNavigationView bottomNavigationView = findViewById(R.id.navigation_view);
-        bottomNavigationView.setOnNavigationItemSelectedListener(menuItem -> {
-            if (menuItem.getItemId() == R.id.action_1) {
-                baseBind.viewPager.setCurrentItem(0);
-                return true;
-            } else if (menuItem.getItemId() == R.id.action_2) {
-                baseBind.viewPager.setCurrentItem(1);
-                return true;
-            } else if (menuItem.getItemId() == R.id.action_3) {
-                baseBind.viewPager.setCurrentItem(2);
-                return true;
-            } else {
-                return false;
-            }
-        });
-        bottomNavigationView.setOnNavigationItemReselectedListener(new BottomNavigationView.OnNavigationItemReselectedListener() {
-            @Override
-            public void onNavigationItemReselected(@NonNull MenuItem item) {
-                //重复点击底部导航栏，刷新当前页面
-                if (item.getItemId() == R.id.action_1) {
-                    Channel channel = new Channel();
-                    if (((FragmentLeft) baseFragments[0]).getViewPager().getCurrentItem() == 0) {
-                        channel.setReceiver("FragmentRecmdIllust");//刷新推荐
-                    } else {
-                        channel.setReceiver("FragmentHotTag");//刷新热门标签
-                    }
-                    EventBus.getDefault().post(channel);
-                }
-            }
-        });
         baseBind.viewPager.setOffscreenPageLimit(3);
-        baseBind.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-            @Override
-            public void onPageScrolled(int i, float v, int i1) {
-
-            }
-
-            @Override
-            public void onPageSelected(int i) {
-                bottomNavigationView.getMenu().getItem(i).setChecked(true);
-//                if (i == 1) {
-//                    BarUtils.setStatusBarLightMode(mActivity, true);
-//                } else {
-//                    BarUtils.setStatusBarLightMode(mActivity, false);
-//                }
-            }
-
-            @Override
-            public void onPageScrollStateChanged(int i) {
-
-            }
-        });
     }
 
     private void initFragment() {
         baseFragments = new BaseFragment[]{
                 new FragmentLeft(),
-                (Dev.isDev && false) ? new FragmentCT() : new FragmentCenter(),
+                new FragmentCenter(),
                 new FragmentRight()
         };
         baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
@@ -165,6 +111,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 return baseFragments.length;
             }
         });
+        baseBind.navigationView.setupWithViewPager(baseBind.viewPager);
     }
 
     @Override
@@ -239,7 +186,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                             .setView(checkBox)
                             .setPositiveButton(android.R.string.yes, (dialog, which) -> {
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                    String[] permissions = new String[] {Manifest.permission.READ_EXTERNAL_STORAGE};
+                                    String[] permissions = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE};
                                     int i = ContextCompat.checkSelfPermission(this, permissions[0]);
                                     if (i != PackageManager.PERMISSION_GRANTED) {
                                         ActivityCompat.requestPermissions(this, permissions, 1);
@@ -258,10 +205,6 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 intent = new Intent(mContext, TemplateActivity.class);
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "画廊");
                 break;
-            case R.id.web_test:
-                intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "一言");
-                break;
             case R.id.nav_new_work:
                 intent = new Intent(mContext, TemplateActivity.class);
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "最新作品");
@@ -278,6 +221,11 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
         baseBind.drawerLayout.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        //super.onSaveInstanceState(outState);
     }
 
     private void gotoReverse() {
@@ -330,6 +278,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 builder.setPositiveButton(mContext.getString(R.string.sure), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        TaskQueue.get().clearTask();
                         finish();
                     }
                 });

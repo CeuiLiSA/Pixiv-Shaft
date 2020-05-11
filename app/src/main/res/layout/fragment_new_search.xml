@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+    </data>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:id="@+id/top_parent"
+        android:layout_height="match_parent">
+
+        <com.google.android.material.appbar.AppBarLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/app_bar"
+            android:background="@color/colorPrimary">
+
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                app:layout_scrollFlags="scroll|enterAlways"
+                android:layout_height="wrap_content"
+                android:background="@color/colorPrimary"
+                android:elevation="0dp"
+                android:fitsSystemWindows="true"
+                android:theme="@style/AppTheme.AppBarOverlay"
+                app:popupTheme="@style/AppTheme.PopupOverlay"
+                app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
+                app:title=" "
+                app:titleTextColor="@android:color/white">
+
+
+                <EditText
+                    android:layout_width="match_parent"
+                    android:id="@+id/search_box"
+                    android:imeOptions="actionSearch"
+                    android:singleLine="true"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:text="东方"
+                    android:textSize="15sp"
+                    android:textColor="@color/rank_text_color"
+                    android:background="@drawable/stroke"
+                    android:paddingStart="@dimen/eight_dp"
+                    android:paddingEnd="@dimen/sixteen_dp"
+                    android:paddingTop="@dimen/eight_dp"
+                    android:paddingBottom="@dimen/eight_dp"
+                    android:layout_height="wrap_content">
+
+
+                </EditText>
+
+            </androidx.appcompat.widget.Toolbar>
+
+            <com.google.android.material.tabs.TabLayout
+                android:layout_width="match_parent"
+                android:id="@+id/tab_layout"
+                app:tabMode="fixed"
+                app:tabTextColor="@color/light_primary_color"
+                app:tabIndicatorFullWidth="false"
+                app:tabIndicatorColor="@android:color/white"
+                app:tabSelectedTextColor="@android:color/white"
+                android:layout_height="35dp">
+
+            </com.google.android.material.tabs.TabLayout>
+
+        </com.google.android.material.appbar.AppBarLayout>
+
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:id="@+id/no_data"
+            android:src="@mipmap/no_data_line"
+            android:tint="@color/colorPrimary"
+            android:scaleType="centerCrop"
+            android:visibility="invisible"
+            android:layout_centerInParent="true"
+            android:layout_height="wrap_content" />
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:id="@+id/progress"
+            android:layout_centerInParent="true"
+            android:visibility="gone"
+            android:layout_height="wrap_content">
+
+        </ProgressBar>
+
+
+        <com.mxn.soul.flowingdrawer_core.FlowingDrawer
+            android:id="@+id/drawerlayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipChildren="false"
+            android:layout_below="@+id/app_bar"
+            android:clipToPadding="false"
+            app:edPosition="2"
+            app:edMenuSize="280dp"
+            app:edMenuBackground="@color/white">
+
+            <androidx.viewpager.widget.ViewPager
+                android:layout_width="match_parent"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior"    android:id="@+id/view_pager"
+                android:layout_height="match_parent">
+
+            </androidx.viewpager.widget.ViewPager>
+
+
+            <com.mxn.soul.flowingdrawer_core.FlowingMenuLayout
+                android:id="@+id/menulayout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <FrameLayout
+                    android:id="@+id/id_container_menu"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+            </com.mxn.soul.flowingdrawer_core.FlowingMenuLayout>
+
+        </com.mxn.soul.flowingdrawer_core.FlowingDrawer>
+
+
+
+    </RelativeLayout>
+</layout>

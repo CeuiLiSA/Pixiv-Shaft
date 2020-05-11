@@ -2,16 +2,18 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-android-extensions'
+apply plugin: 'com.google.gms.google-services'
+apply plugin: 'com.google.firebase.crashlytics'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
 
     defaultConfig {
         applicationId "ceui.lisa.pixiv"
         minSdkVersion 21
-        targetSdkVersion 28
-        versionCode 72
-        versionName "1.5.7"
+        targetSdkVersion 29
+        versionCode 88
+        versionName "1.8.8"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -53,7 +55,7 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'androidx.appcompat:appcompat:1.2.0-alpha03'
+    implementation 'androidx.appcompat:appcompat:1.2.0-beta01'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'com.google.android.material:material:1.1.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.0-beta4'
@@ -84,6 +86,8 @@ dependencies {
     implementation 'com.github.ybq:Android-SpinKit:1.4.0'
 
     implementation 'androidx.room:room-runtime:2.1.0'
+    implementation 'androidx.navigation:navigation-fragment:2.2.2'
+    implementation 'androidx.navigation:navigation-ui:2.2.2'
     annotationProcessor 'androidx.room:room-compiler:2.1.0'
 
     implementation 'org.greenrobot:eventbus:3.2.0'
@@ -98,7 +102,7 @@ dependencies {
     implementation 'com.wdullaer:materialdatetimepicker:3.5.0'
     implementation 'com.zhihu.android:matisse:0.5.3-beta3'
     implementation 'com.nononsenseapps:filepicker:4.1.0'
-    implementation 'com.qmuiteam:qmui:2.0.0-alpha02'
+    implementation 'com.qmuiteam:qmui:2.0.0-alpha07'
     implementation 'com.mxn.soul:flowingdrawer-core:2.1.0'
     implementation 'com.ToxicBakery.viewpager.transforms:view-pager-transforms:2.0.24'
     implementation 'com.hyman:flowlayout-lib:1.1.2'
@@ -112,7 +116,10 @@ dependencies {
 
     annotationProcessor 'com.github.bumptech.glide:compiler:4.10.0'
 
-    testImplementation 'junit:junit:4.12'
+    implementation 'nl.joery.animatedbottombar:library:1.0.8'
+    implementation "com.github.skydoves:transformationlayout:1.0.4"
+
+    testImplementation 'junit:junit:4.13'
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 
@@ -122,8 +129,11 @@ dependencies {
     implementation 'com.safframework.log:saf-logginginterceptor:1.4.6'
     implementation 'com.github.devlight.shadowlayout:library:1.0.2'
 
-    implementation project(path: ':models')
 
+    implementation 'com.google.firebase:firebase-analytics:17.4.0'
+    implementation 'com.google.firebase:firebase-crashlytics:17.0.0'
+
+    implementation project(path: ':models')
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'

@@ -42,17 +42,20 @@ public class DownloadingAdapter extends BaseAdapter<IllustTask, RecyDownloadTask
         } else {
             bindView.baseBind.state.setText("最坏的情况");
         }
-        if (listener.getNowID() == target.getDownloadTask().getId()) {
-            bindView.baseBind.progress.setTag("update");
-            bindView.baseBind.currentSize.setTag("update");
-            bindView.baseBind.progress.setProgress(listener.getNowOffset());
-            bindView.baseBind.progress.setMax(listener.getMax());
-            listener.bind(bindView.baseBind.progress, bindView.baseBind.currentSize);
-        } else {
-            bindView.baseBind.progress.setTag("wtf");
-            bindView.baseBind.currentSize.setTag("wtf");
-            bindView.baseBind.progress.setProgress(0);
-            bindView.baseBind.currentSize.setText("0.00KB / 未知大小");
-        }
+
+
+//        if (listener.getNowID() == target.getDownloadTask().getId()) {
+//            bindView.baseBind.progress.setTag("update");
+//            bindView.baseBind.currentSize.setTag("update");
+//            bindView.baseBind.progress.setProgress(listener.getNowOffset());
+//            bindView.baseBind.progress.setMax(listener.getMax());
+//            listener.bind(bindView.baseBind.progress, bindView.baseBind.currentSize);
+//        } else {
+//            bindView.baseBind.progress.setTag("wtf");
+//            bindView.baseBind.currentSize.setTag("wtf");
+//            bindView.baseBind.progress.setProgress(0);
+//            bindView.baseBind.currentSize.setText("0.00KB / 未知大小");
+//        }
+        listener.bind(target.getDownloadTask().getId(), bindView);
     }
 }

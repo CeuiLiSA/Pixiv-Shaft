@@ -3,12 +3,15 @@ package ceui.lisa.adapters;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.PopupWindow;
 
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
@@ -16,22 +19,33 @@ import com.qmuiteam.qmui.util.QMUIDisplayHelper;
 import com.qmuiteam.qmui.widget.popup.QMUIPopup;
 import com.qmuiteam.qmui.widget.popup.QMUIPopups;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.dialogs.MuteDialog;
+import ceui.lisa.fragments.FragmentLikeIllust;
+import ceui.lisa.http.NullCtrl;
+import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.MultiDownload;
 import ceui.lisa.interfaces.OnItemClickListener;
+import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
+import ceui.lisa.utils.PixivOperate;
+import io.reactivex.Scheduler;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 import jp.wasabeef.glide.transformations.BlurTransformation;
 
+import static ceui.lisa.activities.Shaft.sUserModel;
 import static com.bumptech.glide.request.RequestOptions.bitmapTransform;
 
 public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding> implements MultiDownload {
@@ -39,7 +53,7 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
     private static final int MIN_HEIGHT = 350;
     private static final int MAX_HEIGHT = 600;
     private int imageSize;
-    private boolean isSquare = false;
+    private boolean showLikeButton = false;
 
     public IAdapter(List<IllustsBean> targetList, Context context) {
         super(targetList, context);
@@ -47,20 +61,9 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
         handleClick();
     }
 
-    public IAdapter(List<IllustsBean> targetList, Context context, boolean paramSquare) {
-        super(targetList, context);
-        isSquare = paramSquare;
-        initImageSize();
-        handleClick();
-    }
-
     private void initImageSize() {
-        if (isSquare) {
-            imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
-                    mContext.getResources().getDimensionPixelSize(R.dimen.tweenty_four_dp)) / 2;
-        } else {
-            imageSize = (mContext.getResources().getDisplayMetrics().widthPixels) / 2;
-        }
+        imageSize = (mContext.getResources().getDisplayMetrics().widthPixels) / 2;
+        showLikeButton = Shaft.sSettings.isShowLikeButton();
     }
 
     @Override
@@ -72,34 +75,70 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
     @Override
     public void bindData(IllustsBean target, ViewHolder<RecyIllustStaggerBinding> bindView, int position) {
         ViewGroup.LayoutParams params = bindView.baseBind.illustImage.getLayoutParams();
-
         params.width = imageSize;
+        params.height = target.getHeight() * imageSize / target.getWidth();
 
-        if (isSquare) {
-            params.height = imageSize;
-        } else {
-            params.height = target.getHeight() * imageSize / target.getWidth();
-
-            if (params.height < MIN_HEIGHT) {
-                params.height = MIN_HEIGHT;
-            } else if (params.height > MAX_HEIGHT) {
-                params.height = MAX_HEIGHT;
-            }
+        if (params.height < MIN_HEIGHT) {
+            params.height = MIN_HEIGHT;
+        } else if (params.height > MAX_HEIGHT) {
+            params.height = MAX_HEIGHT;
         }
         bindView.baseBind.illustImage.setLayoutParams(params);
 
+        if (showLikeButton) {
+            bindView.baseBind.likeButton.setVisibility(View.VISIBLE);
+            if (target.isIs_bookmarked()) {
+                bindView.baseBind.likeButton.setImageTintList(
+                        ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.has_bookmarked)));
+            } else {
+                bindView.baseBind.likeButton.setImageTintList(
+                        ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.not_bookmarked)));
+            }
+            bindView.baseBind.likeButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (target.isIs_bookmarked()) {
+                        bindView.baseBind.likeButton.setImageTintList(
+                                ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.not_bookmarked)));
+                    } else {
+                        getRelated(target, position);
+                        bindView.baseBind.likeButton.setImageTintList(
+                                ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.has_bookmarked)));
+                    }
+                    PixivOperate.postLike(target, sUserModel, FragmentLikeIllust.TYPE_PUBLUC);
+                }
+            });
+            bindView.baseBind.likeButton.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    if (!target.isIs_bookmarked()) {
+                        getRelated(target, position);
+                        Intent intent = new Intent(mContext, TemplateActivity.class);
+                        intent.putExtra(Params.ILLUST_ID, target.getId());
+                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏");
+                        mContext.startActivity(intent);
+                    }
+                    return true;
+                }
+            });
+
+        } else {
+            bindView.baseBind.likeButton.setVisibility(View.GONE);
+        }
 
         if (target.isShield()) {
             bindView.baseBind.hide.setVisibility(View.VISIBLE);
             Glide.with(mContext)
                     .load(GlideUtil.getMediumImg(target))
                     .apply(bitmapTransform(new BlurTransformation(5, 15)))
+                    .transition(DrawableTransitionOptions.withCrossFade())
                     .into(bindView.baseBind.illustImage);
         } else {
             bindView.baseBind.hide.setVisibility(View.INVISIBLE);
             Glide.with(mContext)
                     .load(GlideUtil.getMediumImg(target))
                     .placeholder(R.color.second_light_bg)
+                    .transition(DrawableTransitionOptions.withCrossFade())
                     .into(bindView.baseBind.illustImage);
         }
         bindView.baseBind.hide.setOnClickListener(new View.OnClickListener() {
@@ -138,10 +177,13 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
             @Override
             public boolean onLongClick(View v) {
                 handleLongClick(v, target);
-                //startDownload();
                 return true;
             }
         });
+    }
+
+    public void getRelated(IllustsBean illust, int position) {
+
     }
 
     @Override
@@ -170,13 +212,13 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
 
     private void handleLongClick(View v, IllustsBean illust) {
         View popView = LayoutInflater.from(mContext).inflate(R.layout.pop_window_2, null);
-        QMUIPopup mNormalPopup = QMUIPopups.popup(mContext, QMUIDisplayHelper.dp2px(getContext(), 250))
+        QMUIPopup mNormalPopup = QMUIPopups.popup(mContext, QMUIDisplayHelper.dp2px(mContext, 250))
                 .preferredDirection(QMUIPopup.DIRECTION_BOTTOM)
                 .view(popView)
                 .dimAmount(0.5f)
-                .edgeProtection(QMUIDisplayHelper.dp2px(getContext(), 20))
-                .offsetX(QMUIDisplayHelper.dp2px(getContext(), 80))
-                .offsetYIfBottom(QMUIDisplayHelper.dp2px(getContext(), 5))
+                .edgeProtection(QMUIDisplayHelper.dp2px(mContext, 20))
+                .offsetX(QMUIDisplayHelper.dp2px(mContext, 80))
+                .offsetYIfBottom(QMUIDisplayHelper.dp2px(mContext, 5))
                 .shadow(true)
                 .arrow(true)
                 .animStyle(QMUIPopup.ANIM_GROW_FROM_RIGHT)

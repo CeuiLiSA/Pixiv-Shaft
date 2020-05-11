@@ -14,6 +14,7 @@ public class Params {
     public static final String TITLE         = "title";
     public static final String KEY_WORD      = "key word";
     public static final String SORT_TYPE     = "sort type";
+    public static final String CONTENT_TYPE  = "content type";
     public static final String SEARCH_TYPE   = "search type";
     public static final String STAR_SIZE     = "star size";
     public static final String MANGA         = "is manga";
@@ -27,6 +28,10 @@ public class Params {
     public static final String MIME          = "mime";
     public static final String ENCODING      = "encoding";
     public static final String HISTORY_URL   = "history url";
+    public static final String TYPE_ILLUST   = "illust";
+    public static final String TYPE_NOVEL    = "novel";
+    public static final String NOVEL_KEY     = "pixiv_shaft_novel_";
+    public static final String USER_KEY      = "pixiv_shaft_local_user";
 
     public static final String IMAGE_UNKNOWN = "https://s.pximg.net/common/images/limit_unknown_360.png";
     public static final String HEAD_UNKNOWN  = "https://s.pximg.net/common/images/no_profile.png";

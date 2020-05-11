@@ -7,6 +7,7 @@ import ceui.lisa.databinding.FragmentAboutUserBinding
 import ceui.lisa.interfaces.Display
 import ceui.lisa.models.UserDetailResponse
 import ceui.lisa.utils.Common
+import ceui.lisa.utils.Params
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter
 import com.scwang.smartrefresh.layout.header.FalsifyHeader
 
@@ -21,7 +22,7 @@ class FragmentUserInfo : BaseFragment<FragmentAboutUserBinding>(), Display<UserD
             mActivity.finish()
         }
         val user = mActivity.intent.getSerializableExtra(
-                TemplateActivity.EXTRA_OBJECT) as UserDetailResponse
+                Params.CONTENT) as UserDetailResponse
         invoke(user)
     }
 

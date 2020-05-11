@@ -13,7 +13,6 @@ import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
@@ -26,18 +25,12 @@ import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
-import java.util.ArrayList;
-import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UActivity;
-import ceui.lisa.model.MenuItem;
-import ceui.lisa.models.UserBean;
 import ceui.lisa.models.UserContainer;
-import ceui.lisa.models.UserModel;
-import ceui.lisa.models.UserPreviewsBean;
 import okhttp3.MediaType;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
@@ -119,6 +112,68 @@ public class Common {
         toast.show();
     }
 
+    public static <T> void showToast(T t, View view) {
+        showToast(t, view, QMUITipDialog.Builder.ICON_TYPE_SUCCESS);
+    }
+
+    //2成功， 3失败， 4info
+    public static <T> void showToast(T t, View view, int type) {
+        QMUITipDialog tipDialog = new QMUITipDialog.Builder(view.getContext())
+                .setIconType(type)
+                .setTipWord(String.valueOf(t))
+                .create();
+        tipDialog.show();
+        view.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                tipDialog.dismiss();
+            }
+        }, 1000L);
+    }
+//
+//    /**
+//     * 不显示任何icon
+//     */
+//    public static final int ICON_TYPE_NOTHING = 0;
+//    /**
+//     * 显示 Loading 图标
+//     */
+//    public static final int ICON_TYPE_LOADING = 1;
+//    /**
+//     * 显示成功图标
+//     */
+//    public static final int ICON_TYPE_SUCCESS = 2;
+//    /**
+//     * 显示失败图标
+//     */
+//    public static final int ICON_TYPE_FAIL = 3;
+//    /**
+//     * 显示信息图标
+//     */
+//    public static final int ICON_TYPE_INFO = 4;
+//
+//    public static <T> void showToast(T t, View pView, int type) {
+//        final QMUITipDialog tipDialog = new QMUITipDialog.Builder(Shaft.getContext())
+//                .setIconType(type)
+//                .setTipWord(String.valueOf(t))
+//                .create();
+//        tipDialog.show();
+//        pView.postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                tipDialog.dismiss();
+//            }
+//        }, 1000L);
+//    }
+//
+//    public static <T> void showToast(T t, View pView) {
+//        showToast(t, pView, 2);
+//    }
+//
+//
+//
+
+
     public static void success(Context context, String s, View view) {
         QMUITipDialog dialog = new QMUITipDialog.Builder(context)
                 .setIconType(QMUITipDialog.Builder.ICON_TYPE_SUCCESS)
@@ -148,10 +203,16 @@ public class Common {
     }
 
     public static void copy(Context context, String s) {
+        copy(context, s, true);
+    }
+
+    public static void copy(Context context, String s, boolean hasHint) {
         ClipboardManager cm = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData mClipData = ClipData.newPlainText("Label", s);
         cm.setPrimaryClip(mClipData);
-        showToast(s + context.getString(R.string.has_copyed));
+        if (hasHint) {
+            showToast(s + context.getString(R.string.has_copyed));
+        }
     }
 
     public static String checkEmpty(String before) {
@@ -206,60 +267,9 @@ public class Common {
         return buffer.clone().readString(charset);
     }
 
-    public static void showUser(Context context, int userID) {
-
-    }
-
     public static void showUser(Context context, UserContainer userContainer) {
         Intent intent = new Intent(context, UActivity.class);
         intent.putExtra(Params.USER_ID, userContainer.getUserId());
         context.startActivity(intent);
-    }
-
-    public static List<MenuItem> getMenuList() {
-        List<MenuItem> itemList = new ArrayList<>();
-        itemList.add(new MenuItem("漫画", R.mipmap.main_manga, new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-            }
-        }));
-        itemList.add(new MenuItem("小说", R.mipmap.main_novel, new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-            }
-        }));
-        itemList.add(new MenuItem("最新", 0, new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-            }
-        }));
-        itemList.add(new MenuItem("特辑", 0, new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-            }
-        }));
-        itemList.add(new MenuItem("画廊", 0, new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-            }
-        }));
-        itemList.add(new MenuItem("一言", 0, new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-            }
-        }));
-        itemList.add(new MenuItem("以图搜源", 0, new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-            }
-        }));
-        return itemList;
     }
 }

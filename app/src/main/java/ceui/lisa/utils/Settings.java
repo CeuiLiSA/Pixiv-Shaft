@@ -11,6 +11,8 @@ import ceui.lisa.helper.ThemeHelper;
 
 public class Settings {
 
+    public static final String[] ALL_LANGUAGE = new String[]{"简体中文", "日本語", "English", "繁體中文"};
+
     //只包含1P图片的下载路径
     public static final String FILE_PATH_SINGLE = PathUtils.getExternalPicturesPath() + "/ShaftImages";
 
@@ -58,10 +60,15 @@ public class Settings {
     //是否显示开屏 dialog
     private boolean showPixivDialog = true;
 
+    //列表页面是否显示收藏按钮
+    private boolean showLikeButton = true;
+
     //直接下载单个作品所有P
     private boolean directDownloadAllImage = true;
 
     private boolean saveViewHistory = true;
+
+    private boolean doubleStaggerData = false;
 
     private boolean staggerAnime = true;
 
@@ -79,35 +86,19 @@ public class Settings {
 
     private boolean reverseDialogNeverShowAgain = false;
 
-    private boolean usingNewFileNameType = false;
+    private String appLanguage = "";
 
     public String getAppLanguage() {
         if(!TextUtils.isEmpty(appLanguage)){
             return appLanguage;
         } else {
-            return FragmentFilter.ALL_LANGUAGE[0];
-        }
-    }
-
-    public String getFileNameType() {
-        if(!TextUtils.isEmpty(fileNameType)){
-            return fileNameType;
-        } else {
-            return "<title>_<id>_<p>.png";
+            return ALL_LANGUAGE[0];
         }
     }
 
     public void setAppLanguage(String appLanguage) {
         this.appLanguage = appLanguage;
     }
-
-    public void setFileNameType(String fileNameType) {
-        this.fileNameType = fileNameType;
-    }
-
-    private String appLanguage = "";
-
-    private String fileNameType = "";
 
     public String getThemeType() {
         if (TextUtils.isEmpty(themeType)) {
@@ -127,6 +118,14 @@ public class Settings {
     private String searchFilter = "";
 
     public Settings() {
+    }
+
+    public boolean isDoubleStaggerData() {
+        return doubleStaggerData;
+    }
+
+    public void setDoubleStaggerData(boolean doubleStaggerData) {
+        this.doubleStaggerData = doubleStaggerData;
     }
 
     public boolean isGridAnime() {
@@ -293,11 +292,11 @@ public class Settings {
         this.reverseDialogNeverShowAgain = reverseDialogNeverShowAgain;
     }
 
-    public boolean isUsingNewFileNameType() {
-        return usingNewFileNameType;
+    public boolean isShowLikeButton() {
+        return showLikeButton;
     }
 
-    public void setUsingNewFileNameType(boolean usingNewFileNameType) {
-        this.usingNewFileNameType = usingNewFileNameType;
+    public void setShowLikeButton(boolean pShowLikeButton) {
+        showLikeButton = pShowLikeButton;
     }
 }

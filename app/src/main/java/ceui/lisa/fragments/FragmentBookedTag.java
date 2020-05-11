@@ -1,5 +1,6 @@
 package ceui.lisa.fragments;
 
+import android.os.Bundle;
 import android.view.View;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -11,7 +12,7 @@ import java.util.List;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.BookedTagAdapter;
-import ceui.lisa.core.NetControl;
+import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyBookTagBinding;
 import ceui.lisa.http.Retro;
@@ -20,23 +21,31 @@ import ceui.lisa.model.ListTag;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.DensityUtil;
+import ceui.lisa.utils.Params;
 import ceui.lisa.view.LinearItemDecoration;
 import io.reactivex.Observable;
 
 public class FragmentBookedTag extends NetListFragment<FragmentBaseListBinding,
-        ListTag, TagsBean, RecyBookTagBinding> {
+        ListTag, TagsBean> {
 
     private String bookType = "";
 
     public static FragmentBookedTag newInstance(String bookType) {
+        Bundle args = new Bundle();
+        args.putString(Params.DATA_TYPE, bookType);
         FragmentBookedTag fragment = new FragmentBookedTag();
-        fragment.bookType = bookType;
+        fragment.setArguments(args);
         return fragment;
     }
 
     @Override
-    public NetControl<ListTag> present() {
-        return new NetControl<ListTag>() {
+    public void initBundle(Bundle bundle) {
+        bookType = bundle.getString(Params.DATA_TYPE);
+    }
+
+    @Override
+    public RemoteRepo<ListTag> repository() {
+        return new RemoteRepo<ListTag>() {
             @Override
             public Observable<ListTag> initApi() {
                 return Retro.getAppApi().getBookmarkTags(Shaft.sUserModel.getResponse().getAccess_token(),
@@ -61,7 +70,7 @@ public class FragmentBookedTag extends NetListFragment<FragmentBaseListBinding,
                 channel.setObject(allItems.get(position).getName());
                 EventBus.getDefault().post(channel);
 
-                getActivity().finish();
+                mActivity.finish();
             }
         });
     }

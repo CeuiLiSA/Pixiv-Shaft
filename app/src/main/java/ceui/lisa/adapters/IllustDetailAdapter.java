@@ -17,6 +17,7 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
 
@@ -24,7 +25,9 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import ceui.lisa.R;
@@ -47,6 +50,8 @@ import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
+import static com.bumptech.glide.load.resource.bitmap.BitmapTransitionOptions.withCrossFade;
+
 
 /**
  * 作品详情页竖向多P列表
@@ -60,11 +65,24 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     private TagHolder gifHolder;
     private AnimationDrawable animationDrawable;
 
+    public Map<Integer, Boolean> getHasLoad() {
+        if (hasLoad == null) {
+            hasLoad = new HashMap<>();
+        }
+        return hasLoad;
+    }
+
+    private Map<Integer, Boolean> hasLoad = new HashMap<>();
+
     public IllustDetailAdapter(IllustsBean list, FragmentActivity context) {
         mContext = context;
         allIllust = list;
         imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
                 2 * mContext.getResources().getDimensionPixelSize(R.dimen.twelve_dp));
+        hasLoad.clear();
+        for (int i = 0; i < list.getPage_count(); i++) {
+            hasLoad.put(i, false);
+        }
     }
 
     @NonNull
@@ -85,19 +103,18 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             params.height = imageSize * allIllust.getHeight() / allIllust.getWidth();
             params.width = imageSize;
             currentOne.illust.setLayoutParams(params);
-//            if (Shaft.sSettings.isFirstImageSize()) {
-//                Glide.with(mContext)
-//                        .load(GlideUtil.getOriginal(allIllust, position))
-//                        .into(currentOne.illust);
-//            } else {
-//                Glide.with(mContext)
-//                        .load(GlideUtil.getLargeImage(allIllust, position))
-//                        .into(currentOne.illust);
-//            }
 
             Glide.with(mContext)
+                    .asDrawable()
                     .load(GlideUtil.getLargeImage(allIllust, position))
-                    .into(currentOne.illust);
+                    .transition(DrawableTransitionOptions.withCrossFade())
+                    .into(new SimpleTarget<Drawable>() {
+                        @Override
+                        public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
+                            currentOne.illust.setImageDrawable(resource);
+                            hasLoad.put(0, true);
+                        }
+                    });
 
             Common.showLog("height " + params.height + "width " + params.width);
 
@@ -175,8 +192,8 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         } else {
             Glide.with(mContext)
                     .asBitmap()
-                    .load(Shaft.sSettings.isFirstImageSize() ? GlideUtil.getOriginal(allIllust, position) :
-                            GlideUtil.getLargeImage(allIllust, position))
+                    .load(GlideUtil.getLargeImage(allIllust, position))
+                    .transition(withCrossFade())
                     .into(new SimpleTarget<Bitmap>() {
                         @Override
                         public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
@@ -185,6 +202,7 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                             params.height = imageSize * resource.getHeight() / resource.getWidth();
                             currentOne.illust.setLayoutParams(params);
                             currentOne.illust.setImageBitmap(resource);
+                            hasLoad.put(position, true);
                         }
                     });
         }

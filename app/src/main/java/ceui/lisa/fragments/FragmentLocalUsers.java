@@ -1,6 +1,8 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
+import android.text.method.HideReturnsTransformationMethod;
+import android.text.method.PasswordTransformationMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
@@ -12,17 +14,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
 import ceui.lisa.databinding.FragmentLocalUserBinding;
 import ceui.lisa.http.ErrorCtrl;
+import ceui.lisa.model.ExportUser;
 import ceui.lisa.models.UserModel;
+import ceui.lisa.utils.ClipBoardUtils;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Local;
+import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import de.hdodenhof.circleimageview.CircleImageView;
 import io.reactivex.Observable;
@@ -51,7 +57,7 @@ public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
         baseBind.toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getActivity().finish();
+                mActivity.finish();
             }
         });
         baseBind.loginOut.setOnClickListener(new View.OnClickListener() {
@@ -114,8 +120,8 @@ public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
         TextView doublePwd = v.findViewById(R.id.double_pwd);
         CircleImageView userHead = v.findViewById(R.id.user_head);
         ImageView current = v.findViewById(R.id.current_user);
-        ImageView delete = v.findViewById(R.id.delete_user);
-
+        ImageView exp = v.findViewById(R.id.export_user);
+        TextView showPwd = v.findViewById(R.id.show_pwd);
         userName.setText(String.format("%s (%s)", userModel.getResponse().getUser().getName(),
                 userModel.getResponse().getUser().getAccount()));
 //        loginTime.setText(TextUtils.isEmpty(userModel.getResponse().getUser().getMail_address()) ?
@@ -127,40 +133,62 @@ public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
                 Common.copy(mContext, userModel.getResponse().getUser().getPassword());
             }
         });
+        showPwd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (showPwd.getText().toString().equals("显示")) {
+                    showPwd.setText("隐藏");
+                    loginTime.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+                } else {
+                    showPwd.setText("显示");
+                    loginTime.setTransformationMethod(PasswordTransformationMethod.getInstance());
+                }
+            }
+        });
         Glide.with(mContext).load(GlideUtil.getHead(userModel.getResponse().getUser())).into(userHead);
         current.setVisibility(userModel.getResponse().getUser().getId() ==
                 sUserModel.getResponse().getUser().getId() ? View.VISIBLE : View.GONE);
-        delete.setOnClickListener(new View.OnClickListener() {
+        exp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Common.showToast("删除还没做");
+                userModel.getResponse().setLocal_user(Params.USER_KEY);
+                String userJson = Shaft.sGson.toJson(userModel);
+                Common.copy(mContext, userJson, false);
+                Common.showToast("已导出到剪切板", exp);
             }
         });
 
         v.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                baseBind.progress.setVisibility(View.VISIBLE);
-                PixivOperate.refreshUserData(userModel, new Callback<UserModel>() {
-                    @Override
-                    public void onResponse(Call<UserModel> call, Response<UserModel> response) {
-                        if (response != null) {
-                            UserModel newUser = response.body();
-                            newUser.getResponse().getUser().setPassword(userModel.getResponse().getUser().getPassword());
-                            newUser.getResponse().getUser().setIs_login(true);
-                            Local.saveUser(newUser);
-                            Dev.refreshUser = true;
-                            mActivity.finish();
-                        }
-                        baseBind.progress.setVisibility(View.INVISIBLE);
-                    }
+                Local.saveUser(userModel);
+                Dev.refreshUser = true;
+                Shaft.sUserModel = userModel;
+                Intent intent = new Intent(mContext, MainActivity.class);
+                MainActivity.newInstance(intent, mContext);
+                mActivity.finish();
 
-                    @Override
-                    public void onFailure(Call<UserModel> call, Throwable t) {
-                        Common.showToast(t.toString());
-                        baseBind.progress.setVisibility(View.INVISIBLE);
-                    }
-                });
+//                baseBind.progress.setVisibility(View.VISIBLE);
+//                PixivOperate.refreshUserData(userModel, new Callback<UserModel>() {
+//                    @Override
+//                    public void onResponse(Call<UserModel> call, Response<UserModel> response) {
+//                        if (response != null) {
+//                            UserModel newUser = response.body();
+//                            newUser.getResponse().getUser().setPassword(userModel.getResponse().getUser().getPassword());
+//                            newUser.getResponse().getUser().setIs_login(true);
+//                            Local.saveUser(newUser);
+//                            Dev.refreshUser = true;
+//                            mActivity.finish();
+//                        }
+//                        baseBind.progress.setVisibility(View.INVISIBLE);
+//                    }
+//
+//                    @Override
+//                    public void onFailure(Call<UserModel> call, Throwable t) {
+//                        Common.showToast(t.toString());
+//                        baseBind.progress.setVisibility(View.INVISIBLE);
+//                    }
+//                });
             }
         });
     }

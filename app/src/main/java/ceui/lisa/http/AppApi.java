@@ -5,7 +5,9 @@ import java.util.Map;
 
 import ceui.lisa.model.ListArticle;
 import ceui.lisa.model.ListLive;
+import ceui.lisa.model.ListSimpleUser;
 import ceui.lisa.model.ListTag;
+import ceui.lisa.model.NovelSeries;
 import ceui.lisa.models.GifResponse;
 import ceui.lisa.model.ListBookmarkTag;
 import ceui.lisa.model.ListComment;
@@ -32,6 +34,7 @@ import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.Part;
 import retrofit2.http.PartMap;
+import retrofit2.http.Path;
 import retrofit2.http.Query;
 import retrofit2.http.Url;
 
@@ -73,8 +76,10 @@ public interface AppApi {
     Observable<ListNovel> getRecmdNovel(@Header("Authorization") String token);
 
 
-    @GET("v1/trending-tags/illust?filter=for_android&include_translated_tag_results=true")
-    Observable<ListTrendingtag> getHotTags(@Header("Authorization") String token);
+    @GET("v1/trending-tags/{type}?filter=for_android&include_translated_tag_results=true")
+    Observable<ListTrendingtag> getHotTags(@Header("Authorization") String token,
+                                           @Path("type") String type);
+
 
 
     /**
@@ -100,6 +105,12 @@ public interface AppApi {
      */
     @GET("v1/search/illust?filter=for_android&include_translated_tag_results=true")
     Observable<ListIllust> searchIllust(@Header("Authorization") String token,
+                                        @Query("word") String word,
+                                        @Query("sort") String sort,
+                                        @Query("search_target") String search_target);
+
+    @GET("v1/search/novel?filter=for_android&include_translated_tag_results=true")
+    Observable<ListNovel> searchNovel(@Header("Authorization") String token,
                                         @Query("word") String word,
                                         @Query("sort") String sort,
                                         @Query("search_target") String search_target);
@@ -325,6 +336,10 @@ public interface AppApi {
     Observable<ListUser> getNextUser(@Header("Authorization") String token,
                                      @Url String next_url);
 
+    @GET
+    Observable<ListSimpleUser> getNextSimpleUser(@Header("Authorization") String token,
+                                           @Url String next_url);
+
 
     @GET
     Observable<ListIllust> getNextIllust(@Header("Authorization") String token,
@@ -333,6 +348,10 @@ public interface AppApi {
     @GET
     Observable<ListNovel> getNextNovel(@Header("Authorization") String token,
                                        @Url String next_url);
+
+    @GET
+    Observable<NovelSeries> getNextSeriesNovel(@Header("Authorization") String token,
+                                               @Url String next_url);
 
     @GET
     Observable<ListArticle> getNextArticals(@Header("Authorization") String token,
@@ -358,4 +377,12 @@ public interface AppApi {
     @GET("v1/live/list")
     Observable<ListLive> getLiveList(@Header("Authorization") String token,
                                      @Query("list_type") String list_type);
+
+    @GET("v1/illust/bookmark/users?filter=for_android")
+    Observable<ListSimpleUser> getUsersWhoLikeThisIllust(@Header("Authorization") String token,
+                                     @Query("illust_id") int illust_id);
+
+    @GET("v2/novel/series")
+    Observable<NovelSeries> getNovelSeries(@Header("Authorization") String token,
+                                                         @Query("series_id") int series_id);
 }

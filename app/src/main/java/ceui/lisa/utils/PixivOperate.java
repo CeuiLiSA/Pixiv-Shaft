@@ -14,6 +14,7 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustHistoryEntity;
+import ceui.lisa.database.SearchEntity;
 import ceui.lisa.database.TagMuteEntity;
 import ceui.lisa.fragments.FragmentLogin;
 import ceui.lisa.fragments.FragmentLikeIllust;
@@ -98,6 +99,7 @@ public class PixivOperate {
         } else { //没有收藏
             illustsBean.setIs_bookmarked(true);
             Retro.getAppApi().postLike(userModel.getResponse().getAccess_token(), illustsBean.getId(), starType)
+                    .compose(RxThreadUtils.observableToMain())
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {
@@ -266,5 +268,15 @@ public class PixivOperate {
             Common.showLog("插入了 " + illustHistoryEntity.getIllustID() + " time " + illustHistoryEntity.getTime());
             AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(illustHistoryEntity);
         }
+    }
+
+    public static void insertSearchHistory(String key, int searchType) {
+        SearchEntity searchEntity = new SearchEntity();
+        searchEntity.setKeyword(key);
+        searchEntity.setSearchType(searchType);
+        searchEntity.setSearchTime(System.currentTimeMillis());
+        searchEntity.setId(searchEntity.getKeyword().hashCode() + searchEntity.getSearchType());
+        Common.showLog("insertSearchHistory " + searchType + " " + searchEntity.getId());
+        AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().insert(searchEntity);
     }
 }

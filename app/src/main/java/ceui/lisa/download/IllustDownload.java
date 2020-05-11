@@ -118,7 +118,6 @@ public class IllustDownload {
                     downloadIllust(activity, illustsBean);
                     return;
                 }
-                DownloadDispatcher.setMaxParallelRunningCount(1);
 
 
                 List<DownloadTask> tempList = new ArrayList<>();
@@ -154,12 +153,7 @@ public class IllustDownload {
         checkPermission(activity, new Callback<Object>() {
             @Override
             public void doSomething(Object t) {
-                if (beans == null) {
-                    Common.showToast(Shaft.getContext().getString(R.string.cannot_download));
-                    return;
-                }
-
-                if (beans.size() <= 0) {
+                if (beans == null || beans.size() <= 0) {
                     Common.showToast(Shaft.getContext().getString(R.string.cannot_download));
                     return;
                 }
@@ -168,8 +162,6 @@ public class IllustDownload {
                     downloadAllIllust(activity, beans.get(0));
                     return;
                 }
-
-                DownloadDispatcher.setMaxParallelRunningCount(1);
 
 
                 List<DownloadTask> tempList = new ArrayList<>();
@@ -225,6 +217,7 @@ public class IllustDownload {
                 if (tempList.size() == 0) {
                     return;
                 }
+
 
                 DownloadTask[] taskArray = new DownloadTask[tempList.size()];
                 DownloadTask.enqueue(tempList.toArray(taskArray), new DListener());

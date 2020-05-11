@@ -1,7 +1,5 @@
 package ceui.lisa.http;
 
-import android.util.Log;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.safframework.http.interceptor.LoggingInterceptor;
@@ -12,12 +10,9 @@ import java.util.Collections;
 import javax.net.ssl.X509TrustManager;
 
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.cache.Cache;
-import ceui.lisa.utils.Common;
 import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
 import okhttp3.Request;
-import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -42,23 +37,21 @@ public class Retro {
 
     private static Request.Builder addHeader(Request.Builder before) {
         PixivHeaders pixivHeaders = new PixivHeaders();
-        return before
-                .addHeader("User-Agent", "PixivAndroidApp/5.0.175 (Android 6.0.1; D6653)")
+        before.addHeader("User-Agent", "PixivAndroidApp/5.0.175 (Android 6.0.1; D6653)")
                 .addHeader("Accept-Language", "zh_CN")
                 .addHeader("X-Client-Time", pixivHeaders.getXClientTime())
                 .addHeader("X-Client-Hash", pixivHeaders.getXClientHash());
+//        if (addAuth && Shaft.sUserModel != null) {
+//            before.addHeader("Authorization", Shaft.sUserModel.getResponse().getAccess_token());
+//        }
+        return before;
     }
 
     private static Retrofit buildRetrofit(String baseUrl) {
-        Common.showLog(baseUrl + "生成了一个实例");
-        OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        OkHttpClient.Builder builder = getLogClient();
         try {
-            builder.addInterceptor(getLogger())
-                    .protocols(Collections.singletonList(Protocol.HTTP_1_1))
-                    .addInterceptor(chain -> chain.proceed(
-                            addHeader(chain.request().newBuilder()).build())
-                    )
-                    .build();
+            builder.addInterceptor(chain ->
+                    chain.proceed(addHeader(chain.request().newBuilder()).build()));
             if (!baseUrl.equals(ACCOUNT_BASE_URL)) {
                 builder.addInterceptor(new TokenInterceptor());
             }
@@ -67,8 +60,8 @@ public class Retro {
         }
         if (Shaft.sSettings.isAutoFuckChina()) {
             builder.sslSocketFactory(new RubySSLSocketFactory(), new pixivOkHttpClient());
-            builder.dns(new CloudFlareDns(CloudFlareDNSService.Companion.invoke()));
-//            builder.dns(HttpDns.getInstance());
+            //builder.dns(new CloudFlareDns(CloudFlareDNSService.Companion.invoke()));
+            builder.dns(HttpDns.getInstance());
         }
         OkHttpClient client = builder.build();
         Gson gson = new GsonBuilder().setLenient().create();
@@ -81,14 +74,9 @@ public class Retro {
     }
 
     public static RankTokenApi getRankApi() {
-        OkHttpClient okHttpClient = new OkHttpClient
-                .Builder()
-                .addInterceptor(getLogger())
-                .protocols(Collections.singletonList(Protocol.HTTP_1_1))
-                .build();
         Gson gson = new GsonBuilder().setLenient().create();
         Retrofit retrofit = new Retrofit.Builder()
-                .client(okHttpClient)
+                .client(getLogClient().build())
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .baseUrl(RankTokenApi.BASE_URL)
@@ -97,14 +85,9 @@ public class Retro {
     }
 
     public static HitoApi getHitoApi() {
-        OkHttpClient okHttpClient = new OkHttpClient
-                .Builder()
-                .addInterceptor(getLogger())
-                .protocols(Collections.singletonList(Protocol.HTTP_1_1))
-                .build();
         Gson gson = new GsonBuilder().setLenient().create();
         Retrofit retrofit = new Retrofit.Builder()
-                .client(okHttpClient)
+                .client(getLogClient().build())
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .baseUrl(HitoApi.BASE_URL)
@@ -113,22 +96,18 @@ public class Retro {
     }
 
     public static <T> T create(String baseUrl, final Class<T> service) {
-        OkHttpClient okHttpClient = new OkHttpClient
-                .Builder()
-                .addInterceptor(getLogger())
-                .protocols(Collections.singletonList(Protocol.HTTP_1_1))
-                .addInterceptor(chain -> {
-                    Request localRequest = chain.request().newBuilder()
-                            .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.80 Safari/537.36")
-                            .addHeader("Accept-Encoding:", "gzip, deflate")
-                            .addHeader("Accept:", "text/html")
-                            .build();
-                    return chain.proceed(localRequest);
-                })
-                .build();
         Gson gson = new GsonBuilder().setLenient().create();
         Retrofit retrofit = new Retrofit.Builder()
-                .client(okHttpClient)
+                .client(
+                        getLogClient().addInterceptor(chain -> {
+                            Request localRequest = chain.request().newBuilder()
+                                    .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.80 Safari/537.36")
+                                    .addHeader("Accept-Encoding:", "gzip, deflate")
+                                    .addHeader("Accept:", "text/html")
+                                    .build();
+                            return chain.proceed(localRequest);
+                        }).build()
+                )
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .baseUrl(baseUrl)
@@ -153,17 +132,22 @@ public class Retro {
         private static Retrofit appRetrofit = buildRetrofit(API_BASE_URL);
     }
 
-    public static Retrofit get() {
+    private static Retrofit get() {
         return Holder.appRetrofit;
     }
 
-    private static LoggingInterceptor getLogger() {
-        return new LoggingInterceptor.Builder()
-                .loggable(true)
-                .request()
-                .requestTag("Request")
-                .response()
-                .responseTag("Response")
-                .build();
+    public static OkHttpClient.Builder getLogClient() {
+        return new OkHttpClient
+                .Builder()
+                .addInterceptor(
+                        new LoggingInterceptor.Builder()
+                                .loggable(true)
+                                .request()
+                                .requestTag("Request")
+                                .response()
+                                .responseTag("Response")
+                                .build()
+                )
+                .protocols(Collections.singletonList(Protocol.HTTP_1_1));
     }
 }

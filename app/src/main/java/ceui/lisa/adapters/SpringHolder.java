@@ -15,8 +15,8 @@ class SpringHolder extends ViewHolder<RecyViewHistoryBinding> {
 
     Spring spring;
 
-    SpringHolder(@NonNull View itemView) {
-        super(itemView);
+    SpringHolder(RecyViewHistoryBinding bindView) {
+        super(bindView);
 
         SpringSystem springSystem = SpringSystem.create();
         spring = springSystem.createSpring();

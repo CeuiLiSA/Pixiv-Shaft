@@ -28,7 +28,9 @@ public class FragmentDownload extends BaseFragment<ViewpagerWithTablayoutBinding
             Shaft.getContext().getString(R.string.now_downloading),
             Shaft.getContext().getString(R.string.has_download)
     };
+
     private Fragment[] allPages = new Fragment[]{new FragmentDownloading(), new FragmentDownloadFinish()};
+    //private Fragment[] allPages = new Fragment[]{new FragmentTestUser(), new FragmentTestIllust()};
 
     @Override
     public void initLayout() {

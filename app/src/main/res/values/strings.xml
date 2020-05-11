@@ -6,6 +6,8 @@
     <string name="nav_header_subtitle">android.studio@android.com</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">设置</string>
+    <string name="action_import">从剪切板导入</string>
+    <string name="action_qcode">扫描二维码</string>
     <string name="title_activity_blank">BlankActivity</string>
 
 
@@ -58,6 +60,7 @@
     <string name="latest_work">最新</string>
     <string name="search">搜索</string>
     <string name="hito">一言</string>
+    <string name="develop">开发者预览</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
@@ -106,6 +109,8 @@
     <string name="user_collections">收藏夹</string>
     <string name="download_manager">下载管理</string>
     <string name="recommend_illust">推荐作品</string>
+    <string name="recommend_novel">推荐小说</string>
+    <string name="novel_tag">小说标签</string>
     <string name="hot_tag">热门标签</string>
     <string name="ranking_illust">排行榜</string>
     <string name="see_more">查看更多</string>
@@ -121,6 +126,8 @@
     <string name="see_pixiv_ez">详见 Notsfsssf/Pix-EzViewer</string>
     <string name="show_original_image">图片详情展示原图</string>
     <string name="save_view_history">保存浏览历史</string>
+    <string name="double_stagger_data">动态页面双列瀑布流</string>
+    <string name="show_like_button">列表页展示收藏按钮</string>
     <string name="slide_down_endless">相关作品无限下滑（可能出现重复）</string>
     <string name="other_settings">其他</string>
     <string name="search_result_filter">搜索结果收藏量筛选</string>
@@ -156,4 +163,22 @@
     <string name="save">保存</string>
     <string name="shoud_not_be_empty">不应为空</string>
     <string name="never_show_again">不再显示</string>
+
+    <string name="add">添加</string>
+    <string name="fullscreen_layout">全屏布局</string>
+    <string name="how_many_novels">%d个作品，%d个字，看完需要：%d小时 %d分钟</string>
+
+
+    <string name="scroll_behavior">ceui.lisa.pixiv.ScrollBehavior</string>
+    <string name="head_behavior">ceui.lisa.pixiv.HeadBehavior</string>
+    <string name="title_activity_splash">SplashActivity</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+
+    <string name="hello_first_fragment">Hello first fragment</string>
+    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+
 </resources>

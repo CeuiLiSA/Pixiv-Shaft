@@ -9,17 +9,27 @@ import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.http.NullCtrl;
+import ceui.lisa.http.Retro;
+import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
+
+import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class IAdapterWithHeadView extends IAdapter {
 
-    private RecmdHeader mRecmdHeader = null;
+    private IllustHeader mIllustHeader = null;
+    private RecyclerView mRecyclerView = null;
 
-    public IAdapterWithHeadView(List<IllustsBean> targetList, Context context) {
+    public IAdapterWithHeadView(List<IllustsBean> targetList, Context context, RecyclerView recyclerView) {
         super(targetList, context);
+        mRecyclerView = recyclerView;
     }
 
     @Override
@@ -29,17 +39,46 @@ public class IAdapterWithHeadView extends IAdapter {
 
     @Override
     public ViewHolder getHeader(ViewGroup parent) {
-        mRecmdHeader = new RecmdHeader(DataBindingUtil.inflate(
-                LayoutInflater.from(mContext), R.layout.recy_recmd_header,
-                null, false).getRoot());
-        mRecmdHeader.initView(mContext);
-        return mRecmdHeader;
+        mIllustHeader = new IllustHeader(
+                DataBindingUtil.inflate(
+                        LayoutInflater.from(mContext),
+                        R.layout.recy_recmd_header,
+                        null,
+                        false
+                )
+        );
+        mIllustHeader.initView(mContext);
+        return mIllustHeader;
     }
 
     public void setHeadData(List<IllustsBean> illustsBeans) {
-        if (mRecmdHeader != null) {
-            mRecmdHeader.show(mContext, illustsBeans);
+        if (mIllustHeader != null) {
+            mIllustHeader.show(mContext, illustsBeans);
         }
+    }
+
+    @Override
+    public void getRelated(IllustsBean illust, int position) {
+        Retro.getAppApi().relatedIllust(sUserModel.getResponse().getAccess_token(), illust.getId())
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new NullCtrl<ListIllust>() {
+                    @Override
+                    public void success(ListIllust listIllust) {
+                        if (listIllust.getIllusts() != null) {
+                            final int realP = position + 1;
+                            if (listIllust.getIllusts().size() >= 6) {
+                                List<IllustsBean> related = new ArrayList<>();
+                                for (int i = 0; i < 6; i++) {
+                                    related.add(listIllust.getIllusts().get(i));
+                                }
+                                allIllust.addAll(realP, related);
+                                notifyItemRangeInserted(realP, related.size());
+                                notifyItemRangeChanged(realP, allIllust.size() - realP);
+                            }
+                        }
+                    }
+                });
     }
 
     @Override

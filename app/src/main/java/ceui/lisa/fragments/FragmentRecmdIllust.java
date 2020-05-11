@@ -9,15 +9,14 @@ import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import java.util.ArrayList;
 import java.util.List;
 
-import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapterWithHeadView;
-import ceui.lisa.core.NetControl;
+import ceui.lisa.core.RemoteRepo;
+import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.helper.TagFilter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustRecmdEntity;
-import ceui.lisa.databinding.FragmentRecmdFinalBinding;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
@@ -34,8 +33,8 @@ import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
-public class FragmentRecmdIllust extends NetListFragment<FragmentRecmdFinalBinding,
-        ListIllust, IllustsBean, RecyIllustStaggerBinding> {
+public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding,
+        ListIllust, IllustsBean> {
 
     private String dataType;
     private List<IllustsBean> ranking = new ArrayList<>();
@@ -54,17 +53,27 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentRecmdFinalBindi
     }
 
     @Override
-    public NetControl<ListIllust> present() {
-        return new NetControl<ListIllust>() {
+    public RemoteRepo<ListIllust> repository() {
+        return new RemoteRepo<ListIllust>() {
             @Override
             public Observable<ListIllust> initApi() {
                 if (Dev.isDev) {
-                    return null;
+                    List<IllustRecmdEntity> temp = AppDatabase.getAppDatabase(mContext).recmdDao().getAll();
+                    if (temp != null && temp.size() != 0) {
+                        //如果本地的浏览数据不为空，就return null, 展示本地的
+                        return null;
+                    } else {
+                        if ("漫画".equals(dataType)) {
+                            return Retro.getAppApi().getRecmdManga(token());
+                        } else {
+                            return Retro.getAppApi().getRecmdIllust(token());
+                        }
+                    }
                 } else {
                     if ("漫画".equals(dataType)) {
-                        return Retro.getAppApi().getRecmdManga(Shaft.sUserModel.getResponse().getAccess_token());
+                        return Retro.getAppApi().getRecmdManga(token());
                     } else {
-                        return Retro.getAppApi().getRecmdIllust(Shaft.sUserModel.getResponse().getAccess_token());
+                        return Retro.getAppApi().getRecmdIllust(token());
                     }
                 }
             }
@@ -79,17 +88,16 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentRecmdFinalBindi
 
     @Override
     public BaseAdapter<IllustsBean, RecyIllustStaggerBinding> adapter() {
-        return new IAdapterWithHeadView(allItems, mContext);
+        return new IAdapterWithHeadView(allItems, mContext, baseBind.recyclerView);
     }
 
     @Override
     public void initRecyclerView() {
-        staggerRecyclerView();
-    }
-
-    @Override
-    public void initLayout() {
-        mLayoutID = R.layout.fragment_recmd_final;
+        StaggeredGridLayoutManager layoutManager =
+                new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
+        layoutManager.setGapStrategy(StaggeredGridLayoutManager.GAP_HANDLING_NONE);
+        baseBind.recyclerView.setLayoutManager(layoutManager);
+        baseBind.recyclerView.addItemDecoration(new SpacesItemWithHeadDecoration(DensityUtil.dp2px(8.0f)));
     }
 
     @Override
@@ -104,16 +112,19 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentRecmdFinalBindi
 
     @Override
     public void onFirstLoaded(List<IllustsBean> illustsBeans) {
-        super.onFirstLoaded(illustsBeans);
         Observable.create((ObservableOnSubscribe<String>) emitter -> {
             emitter.onNext("开始写入数据库");
             if (allItems != null) {
                 if (allItems.size() >= 20) {
                     for (int i = 0; i < 20; i++) {
+                        Common.showLog(className + "uuu 写入第" + i + "条数据" +
+                                allItems.get(i).getTitle());
                         insertViewHistory(allItems.get(i));
                     }
                 } else {
                     for (int i = 0; i < allItems.size(); i++) {
+                        Common.showLog(className + "bbb 写入第" + i + "条数据" +
+                                allItems.get(i).getTitle());
                         insertViewHistory(allItems.get(i));
                     }
                 }
@@ -149,6 +160,7 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentRecmdFinalBindi
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .map(entities -> {
+                    Common.showLog(className + entities.size());
                     List<IllustsBean> temp = new ArrayList<>();
                     for (int i = 0; i < entities.size(); i++) {
                         IllustsBean illustsBean = Shaft.sGson.fromJson(

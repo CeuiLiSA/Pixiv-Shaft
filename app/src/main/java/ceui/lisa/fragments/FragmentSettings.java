@@ -22,6 +22,8 @@ import com.nononsenseapps.filepicker.Utils;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
 
+import org.greenrobot.eventbus.EventBus;
+
 import java.io.File;
 import java.util.List;
 import java.util.Locale;
@@ -30,16 +32,16 @@ import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.FragmentSettingsBinding;
-import ceui.lisa.dialogs.FileNameDialog;
 import ceui.lisa.helper.ThemeHelper;
+import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 
-import static ceui.lisa.fragments.FragmentFilter.ALL_LANGUAGE;
 import static ceui.lisa.fragments.FragmentFilter.ALL_SIZE;
 import static ceui.lisa.fragments.FragmentFilter.ALL_SIZE_VALUE;
 import static ceui.lisa.fragments.FragmentFilter.THEME_NAME;
+import static ceui.lisa.utils.Settings.ALL_LANGUAGE;
 
 
 public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
@@ -48,15 +50,20 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
     private static final int gifResultPath_CODE = 10087;
     private static final int gifZipPath_CODE = 10088;
     private static final int gifUnzipPath_CODE = 10089;
+    private boolean shouldRefreshFragmentRight = false;
 
     @Override
     public void initLayout() {
         mLayoutID = R.layout.fragment_settings;
     }
 
+    public static FragmentSettings newInstance() {
+        return new FragmentSettings();
+    }
+
     @Override
     void initData() {
-        baseBind.toolbar.setNavigationOnClickListener(view -> getActivity().finish());
+        baseBind.toolbar.setNavigationOnClickListener(view -> mActivity.finish());
         animate(baseBind.parentLinear);
 
         baseBind.loginOut.setOnClickListener(new View.OnClickListener() {
@@ -112,6 +119,36 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
                 } else {
                     Shaft.sSettings.setSaveViewHistory(false);
                 }
+                Common.showToast("设置成功", baseBind.saveHistory);
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+
+        shouldRefreshFragmentRight = Shaft.sSettings.isDoubleStaggerData();
+        baseBind.staggerData.setChecked(Shaft.sSettings.isDoubleStaggerData());
+        baseBind.staggerData.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    Shaft.sSettings.setDoubleStaggerData(true);
+                } else {
+                    Shaft.sSettings.setDoubleStaggerData(false);
+                }
+                Common.showToast("设置成功", baseBind.staggerData);
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+
+        baseBind.showLikeButton.setChecked(Shaft.sSettings.isShowLikeButton());
+        baseBind.showLikeButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    Shaft.sSettings.setShowLikeButton(true);
+                } else {
+                    Shaft.sSettings.setShowLikeButton(false);
+                }
+                Common.showToast("重启APP生效", baseBind.showLikeButton);
                 Local.setSettings(Shaft.sSettings);
             }
         });
@@ -125,6 +162,7 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
                 } else {
                     Shaft.sSettings.setRelatedIllustNoLimit(false);
                 }
+                Common.showToast("设置成功", baseBind.relatedNoLimit);
                 Local.setSettings(Shaft.sSettings);
             }
         });
@@ -138,6 +176,7 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
                 } else {
                     Shaft.sSettings.setAutoFuckChina(false);
                 }
+                Common.showToast("设置成功", baseBind.autoDns);
                 Local.setSettings(Shaft.sSettings);
             }
         });
@@ -151,6 +190,7 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
                 } else {
                     Shaft.sSettings.setFirstImageSize(false);
                 }
+                Common.showToast("设置成功", baseBind.firstDetailOrigin);
                 Local.setSettings(Shaft.sSettings);
             }
         });
@@ -222,6 +262,7 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         Shaft.sSettings.setSearchFilter(ALL_SIZE_VALUE[which]);
+                        Common.showToast("设置成功", baseBind.searchFilter);
                         Local.setSettings(Shaft.sSettings);
                         baseBind.searchFilter.setText(ALL_SIZE[which]);
                     }
@@ -241,6 +282,7 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
                     public void onClick(DialogInterface dialog, int which) {
                         Shaft.sSettings.setAppLanguage(ALL_LANGUAGE[which]);
                         baseBind.appLanguage.setText(ALL_LANGUAGE[which]);
+                        Common.showToast("设置成功", baseBind.appLanguage);
                         Local.setSettings(Shaft.sSettings);
                         if (which == 0) {
                             LanguageUtils.applyLanguage(Locale.SIMPLIFIED_CHINESE, "");
@@ -255,18 +297,6 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
                 });
                 AlertDialog alertDialog = builder.create();
                 alertDialog.show();
-            }
-        });
-
-        baseBind.fileName.setText(Shaft.sSettings.getFileNameType());
-        baseBind.fileName.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new FileNameDialog()
-                        .setOnDismissListener(d -> {
-                            baseBind.fileName.setText(Shaft.sSettings.getFileNameType());
-                        })
-                        .show(getParentFragmentManager(), "fileNameDialog");
             }
         });
 
@@ -307,6 +337,12 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
         });
         baseBind.refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));
         baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
+
+//        baseBind.fullscreenLayout.setChecked(Shaft.sSettings.isFullscreenLayout());
+//        baseBind.fullscreenLayout.setOnCheckedChangeListener((buttonView, isChecked) -> {
+//            Shaft.sSettings.setFullscreenLayout(isChecked);
+//            Local.setSettings(Shaft.sSettings);
+//        });
     }
 
     private void animate(LinearLayout linearLayout) {
@@ -371,5 +407,16 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
             }
             return;
         }
+    }
+
+    @Override
+    public void onDestroyView() {
+        if (shouldRefreshFragmentRight != Shaft.sSettings.isDoubleStaggerData()) {
+            Channel channel = new Channel();
+            channel.setReceiver("FragmentRight");
+            EventBus.getDefault().post(channel);
+        }
+
+        super.onDestroyView();
     }
 }

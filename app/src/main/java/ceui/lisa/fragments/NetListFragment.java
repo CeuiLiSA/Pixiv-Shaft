@@ -3,19 +3,15 @@ package ceui.lisa.fragments;
 import android.text.TextUtils;
 import android.view.View;
 
-import androidx.annotation.NonNull;
 import androidx.databinding.ViewDataBinding;
 
-import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
-import com.scwang.smartrefresh.layout.listener.OnLoadMoreListener;
-import com.scwang.smartrefresh.layout.listener.OnRefreshListener;
 
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.core.NetControl;
+import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.interfaces.ListShow;
 import ceui.lisa.utils.Common;
@@ -26,123 +22,108 @@ import ceui.lisa.utils.Common;
  * @param <Layout>     这个列表的LayoutBinding
  * @param <Response>   这次请求的Response
  * @param <Item>       这个列表的单个Item实体类
- * @param <ItemLayout> 单个Item的LayoutBinding
  */
 public abstract class NetListFragment<Layout extends ViewDataBinding,
-        Response extends ListShow<Item>, Item, ItemLayout extends ViewDataBinding>
-        extends ListFragment<Layout, Item, ItemLayout> {
+        Response extends ListShow<Item>, Item> extends ListFragment<Layout, Item> {
 
-    protected NetControl<Response> mNetControl;
+    protected RemoteRepo<Response> mRemoteRepo;
     protected Response mResponse;
 
     @Override
-    public void initView(View view) {
-        super.initView(view);
-        mNetControl = (NetControl<Response>) mBaseCtrl;
-        mRefreshLayout.setOnRefreshListener(new OnRefreshListener() {
-            @Override
-            public void onRefresh(@NonNull RefreshLayout refreshLayout) {
-                Common.showLog(className + "onRefresh ");
-                clear();
-                if (mNetControl.initApi() != null) {
-                    mNetControl.getFirstData(new NullCtrl<Response>() {
-                        @Override
-                        public void success(Response response) {
-                            mResponse = response;
-                            if (response.getList() != null && response.getList().size() != 0) {
-                                List<Item> firstList = response.getList();
-                                if (mModel != null) {
-                                    mModel.load(firstList);
-                                }
-                                onFirstLoaded(firstList);
-                                mRecyclerView.setVisibility(View.VISIBLE);
-                                noData.setVisibility(View.INVISIBLE);
-                                mAdapter.notifyItemRangeInserted(mModel.getLastSize(), firstList.size());
-                            } else {
-                                mRecyclerView.setVisibility(View.INVISIBLE);
-                                noData.setVisibility(View.VISIBLE);
-                                noData.setImageResource(R.mipmap.no_data_line);
-                            }
-                            mModel.setNextUrl(response.getNextUrl());
-                            if (!TextUtils.isEmpty(response.getNextUrl())) {
-                                mRefreshLayout.setRefreshFooter(new ClassicsFooter(mContext));
-                            } else {
-                                mRefreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
-                            }
+    public void fresh() {
+        if (mRemoteRepo.initApi() != null) {
+            mRemoteRepo.getFirstData(new NullCtrl<Response>() {
+                @Override
+                public void success(Response response) {
+                    mResponse = response;
+                    onResponse(mResponse);
+                    if (response.getList() != null && response.getList().size() != 0) {
+                        List<Item> firstList = response.getList();
+                        beforeFirstLoad(firstList);
+                        if (mModel != null) {
+                            mModel.load(firstList);
                         }
-
-                        @Override
-                        public void must(boolean isSuccess) {
-                            mRefreshLayout.finishRefresh(isSuccess);
-                        }
-
-                        @Override
-                        public void onError(Throwable e) {
-                            super.onError(e);
-                            mRecyclerView.setVisibility(View.INVISIBLE);
-                            noData.setVisibility(View.VISIBLE);
-                            noData.setImageResource(R.mipmap.no_data_line);
-                        }
-                    });
-                } else {
-                    if (className.equals("FragmentRecmdIllust ")) {
-                        showDataBase();
+                        onFirstLoaded(firstList);
+                        mRecyclerView.setVisibility(View.VISIBLE);
+                        noData.setVisibility(View.INVISIBLE);
+                        mAdapter.notifyItemRangeInserted(getStartSize(), firstList.size());
+                    } else {
+                        mRecyclerView.setVisibility(View.INVISIBLE);
+                        noData.setVisibility(View.VISIBLE);
+                        noData.setImageResource(R.mipmap.no_data_line);
+                    }
+                    mModel.setNextUrl(response.getNextUrl());
+                    if (!TextUtils.isEmpty(response.getNextUrl())) {
+                        mRefreshLayout.setRefreshFooter(new ClassicsFooter(mContext));
+                    } else {
+                        mRefreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
                     }
                 }
-            }
-        });
-        mRefreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
-            @Override
-            public void onLoadMore(@NonNull RefreshLayout refreshLayout) {
-                Common.showLog(className + "onLoadMore ");
-                if (!TextUtils.isEmpty(mModel.getNextUrl())) {
-                    mNetControl.getNextData(new NullCtrl<Response>() {
-                        @Override
-                        public void success(Response response) {
-                            mResponse = response;
-                            if (response.getList() != null && response.getList().size() != 0) {
-                                List<Item> nextList = response.getList();
-                                if (mModel != null) {
-                                    mModel.load(nextList);
-                                }
-                                onNextLoaded(nextList);
-                                mAdapter.notifyItemRangeInserted(mModel.getLastSize(), nextList.size());
-                            }
-                            mModel.setNextUrl(response.getNextUrl());
-                        }
 
-                        @Override
-                        public void must(boolean isSuccess) {
-                            mRefreshLayout.finishLoadMore(isSuccess);
-                        }
-                    });
-                } else {
-                    mRefreshLayout.finishLoadMore();
-                    if (mNetControl.showNoDataHint()) {
-                        Common.showToast("没有更多数据啦");
-                    }
+                @Override
+                public void must(boolean isSuccess) {
+                    mRefreshLayout.finishRefresh(isSuccess);
                 }
+
+                @Override
+                public void onError(Throwable e) {
+                    super.onError(e);
+                    mRecyclerView.setVisibility(View.INVISIBLE);
+                    noData.setVisibility(View.VISIBLE);
+                    noData.setImageResource(R.mipmap.no_data_line);
+                }
+            });
+        } else {
+            if (className.equals("FragmentRecmdIllust ")) {
+                showDataBase();
             }
-        });
+        }
+    }
+
+    @Override
+    public void loadMore() {
+        if (!TextUtils.isEmpty(mModel.getNextUrl())) {
+            mRemoteRepo.getNextData(new NullCtrl<Response>() {
+                @Override
+                public void success(Response response) {
+                    mResponse = response;
+                    if (response.getList() != null && response.getList().size() != 0) {
+                        List<Item> nextList = response.getList();
+                        beforeNextLoad(nextList);
+                        if (mModel != null) {
+                            mModel.load(nextList);
+                        }
+                        onNextLoaded(nextList);
+                        mAdapter.notifyItemRangeInserted(getStartSize(), nextList.size());
+                    }
+                    mModel.setNextUrl(response.getNextUrl());
+                }
+
+                @Override
+                public void must(boolean isSuccess) {
+                    mRefreshLayout.finishLoadMore(isSuccess);
+                }
+            });
+        } else {
+            mRefreshLayout.finishLoadMore();
+            if (mRemoteRepo.showNoDataHint()) {
+                Common.showToast("没有更多数据啦");
+            }
+        }
+    }
+
+    @Override
+    void initData() {
+        mRemoteRepo = (RemoteRepo<Response>) mBaseRepo;
     }
 
     /**
-     * 决定刚进入页面是否直接刷新，一般都是直接刷新，但是FragmentHotTag，不要直接刷新
-     *
-     * @return default true
-     */
-    public boolean autoRefresh() {
-        return true;
-    }
-
-    public void nowRefresh() {
-        mRecyclerView.smoothScrollToPosition(0);
-        mRefreshLayout.autoRefresh();
-    }
-
-    /**
-     * FragmentR页面，调试过程中不需要每次都刷新，就调用这个方法来家在数据。只是为了方便测试
+     * FragmentR页面，调试过程中不需要每次都刷新，就调用这个方法来加载数据。只是为了方便测试
      */
     public void showDataBase() {
+    }
+
+    public void onResponse(Response response) {
+
     }
 }

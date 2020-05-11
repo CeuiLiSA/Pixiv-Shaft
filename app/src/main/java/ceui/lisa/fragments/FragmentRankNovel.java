@@ -9,7 +9,7 @@ import com.scwang.smartrefresh.layout.api.RefreshHeader;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.NAdapter;
-import ceui.lisa.core.NetControl;
+import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyNovelBinding;
 import ceui.lisa.http.Retro;
@@ -22,7 +22,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 
 
 public class FragmentRankNovel extends NetListFragment<FragmentBaseListBinding,
-        ListNovel, NovelBean, RecyNovelBinding> {
+        ListNovel, NovelBean> {
 
     private static final String[] API_TITLES = new String[]{"day", "week",
             "day_male", "day_female", "week_rookie", "day_r18"};
@@ -50,8 +50,8 @@ public class FragmentRankNovel extends NetListFragment<FragmentBaseListBinding,
     }
 
     @Override
-    public NetControl<ListNovel> present() {
-        return new NetControl<ListNovel>() {
+    public RemoteRepo<ListNovel> repository() {
+        return new RemoteRepo<ListNovel>() {
             @Override
             public Observable<ListNovel> initApi() {
                 return Retro.getAppApi().getRankNovel(

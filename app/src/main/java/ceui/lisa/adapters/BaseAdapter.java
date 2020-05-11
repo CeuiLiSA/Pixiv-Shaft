@@ -90,7 +90,13 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
     }
 
     public ViewHolder<BindView> getNormalItem(ViewGroup parent) {
-        return new ViewHolder<>(DataBindingUtil.inflate(
-                LayoutInflater.from(mContext), mLayoutID, parent, false).getRoot());
+        return new ViewHolder<>(
+                DataBindingUtil.inflate(
+                        LayoutInflater.from(mContext),
+                        mLayoutID,
+                        parent,
+                        false
+                )
+        );
     }
 }

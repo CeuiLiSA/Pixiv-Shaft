@@ -1,9 +1,11 @@
 package ceui.lisa.activities;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.view.View;
 
@@ -12,6 +14,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 import androidx.databinding.ViewDataBinding;
 import androidx.fragment.app.FragmentActivity;
+
+import com.blankj.utilcode.util.BarUtils;
+
+import ceui.lisa.R;
 
 public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCompatActivity {
 
@@ -37,11 +43,24 @@ public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCo
         }
 
         baseBind = DataBindingUtil.setContentView(mActivity, mLayoutID);
+        BarUtils.setNavBarColor(mActivity, getResources().getColor(R.color.trans));
+
+        Intent intent = getIntent();
+        if (intent != null) {
+            Bundle bundle = intent.getExtras();
+            if (bundle != null) {
+                initBundle(bundle);
+            }
+        }
+
 
         initView();
         initData();
     }
 
+    protected void initBundle(Bundle bundle) {
+
+    }
 
     protected abstract int initLayout();
 
@@ -56,4 +75,19 @@ public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCo
     public static void newInstance(Intent intent, Context context) {
         context.startActivity(intent);
     }
+
+    public void gray(boolean gray) {
+        if (gray) {
+            ColorMatrix colorMatrix = new ColorMatrix();
+            colorMatrix.setSaturation(0.0f);
+            grayPaint.setColorFilter(new ColorMatrixColorFilter(colorMatrix));
+            getWindow().getDecorView().setLayerType(View.LAYER_TYPE_HARDWARE, grayPaint);
+        } else {
+            getWindow().getDecorView().setLayerType(View.LAYER_TYPE_HARDWARE, normalPaint);
+        }
+    }
+
+    private Paint normalPaint = new Paint();
+    private Paint grayPaint = new Paint();
+
 }

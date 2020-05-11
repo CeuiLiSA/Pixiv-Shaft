@@ -41,10 +41,12 @@ public class FragmentLikeNovelHorizontal extends BaseFragment<FragmentLikeIllust
     private UserDetailResponse mUserDetailResponse;
     private NHAdapter mAdapter;
     private int type; // 0某人收藏的小说，1某人创作的小说
+    private int userID;
 
-    public static FragmentLikeNovelHorizontal newInstance(int pType) {
+    public static FragmentLikeNovelHorizontal newInstance(int pType, int userID) {
         Bundle args = new Bundle();
         args.putInt(Params.DATA_TYPE, pType);
+        args.putInt(Params.USER_ID, userID);
         FragmentLikeNovelHorizontal fragment = new FragmentLikeNovelHorizontal();
         fragment.setArguments(args);
         return fragment;
@@ -53,6 +55,7 @@ public class FragmentLikeNovelHorizontal extends BaseFragment<FragmentLikeIllust
     @Override
     public void initBundle(Bundle bundle) {
         type = bundle.getInt(Params.DATA_TYPE);
+        userID = bundle.getInt(Params.USER_ID);
         UserViewModel userViewModel = new ViewModelProvider(mActivity).get(UserViewModel.class);
         mUserDetailResponse = userViewModel.getUser().getValue();
     }
@@ -76,9 +79,8 @@ public class FragmentLikeNovelHorizontal extends BaseFragment<FragmentLikeIllust
                 @Override
                 public void onClick(View view) {
                     Intent intent = new Intent(mContext, TemplateActivity.class);
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT,
-                            baseBind.title.getText().toString());
-                    intent.putExtra(Params.USER_ID, mUserDetailResponse.getUser().getId());
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, baseBind.title.getText().toString());
+                    intent.putExtra(Params.USER_ID, userID);
                     startActivity(intent);
                 }
             });
@@ -89,9 +91,8 @@ public class FragmentLikeNovelHorizontal extends BaseFragment<FragmentLikeIllust
                 @Override
                 public void onClick(View view) {
                     Intent intent = new Intent(mContext, TemplateActivity.class);
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT,
-                            baseBind.title.getText().toString());
-                    intent.putExtra(Params.USER_ID, mUserDetailResponse.getUser().getId());
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, baseBind.title.getText().toString());
+                    intent.putExtra(Params.USER_ID, userID);
                     startActivity(intent);
                 }
             });
@@ -127,10 +128,10 @@ public class FragmentLikeNovelHorizontal extends BaseFragment<FragmentLikeIllust
         Observable<ListNovel> mApi;
         if (type == 0) {
             mApi = Retro.getAppApi().getUserLikeNovel(sUserModel.getResponse().getAccess_token(),
-                    mUserDetailResponse.getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC);
+                    userID, FragmentLikeIllust.TYPE_PUBLUC);
         } else {
             mApi = Retro.getAppApi().getUserSubmitNovel(sUserModel.getResponse().getAccess_token(),
-                    mUserDetailResponse.getUser().getId());
+                    userID);
         }
         mApi.subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())

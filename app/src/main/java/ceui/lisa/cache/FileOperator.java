@@ -46,7 +46,6 @@ public class FileOperator implements IOperate {
             oos.writeObject(pT);
             oos.flush();
             oos.close();
-            ToastUtils.showShort("保存成功！");
         } catch (IOException pE) {
             pE.printStackTrace();
         }

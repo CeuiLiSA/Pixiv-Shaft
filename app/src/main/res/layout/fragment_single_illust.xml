@@ -346,6 +346,10 @@
 
                     </androidx.cardview.widget.CardView>
 
+                    <View
+                        android:id="@+id/v"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp" />
                 </LinearLayout>
 
             </androidx.core.widget.NestedScrollView>

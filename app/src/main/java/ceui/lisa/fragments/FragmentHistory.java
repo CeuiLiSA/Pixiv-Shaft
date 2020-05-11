@@ -8,7 +8,6 @@ import android.view.View;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
@@ -21,19 +20,19 @@ import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyViewHistoryBinding;
-import ceui.lisa.core.BaseCtrl;
-import ceui.lisa.core.DataControl;
+import ceui.lisa.core.BaseRepo;
+import ceui.lisa.core.LocalRepo;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.Params;
+import ceui.lisa.viewmodel.BaseModel;
+import ceui.lisa.viewmodel.HistoryModel;
 
 
 public class FragmentHistory extends LocalListFragment<FragmentBaseListBinding,
-        IllustHistoryEntity, RecyViewHistoryBinding> {
-
-    private List<IllustsBean> all = new ArrayList<>();
+        IllustHistoryEntity> {
 
     @Override
     public BaseAdapter<IllustHistoryEntity, RecyViewHistoryBinding> adapter() {
@@ -42,7 +41,7 @@ public class FragmentHistory extends LocalListFragment<FragmentBaseListBinding,
             public void onItemClick(View v, int position, int viewType) {
                 Common.showLog(className + position + " " + allItems.size());
                 if (viewType == 0) {
-                    DataChannel.get().setIllustList(all);
+                    DataChannel.get().setIllustList(((HistoryModel)mModel).getAll());
                     Intent intent = new Intent(mContext, ViewPagerActivity.class);
                     intent.putExtra("position", position);
                     mContext.startActivity(intent);
@@ -56,8 +55,8 @@ public class FragmentHistory extends LocalListFragment<FragmentBaseListBinding,
     }
 
     @Override
-    public BaseCtrl present() {
-        return new DataControl<List<IllustHistoryEntity>>() {
+    public BaseRepo repository() {
+        return new LocalRepo<List<IllustHistoryEntity>>() {
             @Override
             public List<IllustHistoryEntity> first() {
                 return AppDatabase.getAppDatabase(mContext)
@@ -79,11 +78,12 @@ public class FragmentHistory extends LocalListFragment<FragmentBaseListBinding,
 
     @Override
     public void onFirstLoaded(List<IllustHistoryEntity> illustHistoryEntities) {
+        ((HistoryModel)mModel).getAll().clear();
         for (int i = 0; i < illustHistoryEntities.size(); i++) {
             if (illustHistoryEntities.get(i).getType() == 0) {
                 IllustsBean illustsBean = Shaft.sGson.fromJson(
                         illustHistoryEntities.get(i).getIllustJson(), IllustsBean.class);
-                all.add(illustsBean);
+                ((HistoryModel)mModel).getAll().add(illustsBean);
             }
         }
     }
@@ -94,7 +94,7 @@ public class FragmentHistory extends LocalListFragment<FragmentBaseListBinding,
             if (illustHistoryEntities.get(i).getType() == 0) {
                 IllustsBean illustsBean = Shaft.sGson.fromJson(
                         illustHistoryEntities.get(i).getIllustJson(), IllustsBean.class);
-                all.add(illustsBean);
+                ((HistoryModel)mModel).getAll().add(illustsBean);
             }
         }
     }
@@ -129,6 +129,11 @@ public class FragmentHistory extends LocalListFragment<FragmentBaseListBinding,
                 return true;
             }
         });
+    }
+
+    @Override
+    public Class<? extends BaseModel> modelClass() {
+        return HistoryModel.class;
     }
 
     @Override

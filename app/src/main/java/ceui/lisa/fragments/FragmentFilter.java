@@ -1,49 +1,57 @@
 package ceui.lisa.fragments;
 
+import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
 
+import androidx.annotation.Nullable;
+import androidx.lifecycle.ViewModelProvider;
+
+import java.io.Serializable;
+
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.FragmentFilterBinding;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
+import ceui.lisa.utils.Params;
+import ceui.lisa.viewmodel.SearchModel;
 
 
 public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
 
-    public static final String[] TAG_MATCH = new String[]{"标签 部分匹配(建议)", "标签 完全匹配", "标题/简介 匹配"};
+    public static final String[] TAG_MATCH = new String[]{"标签 部分匹配", "标签 完全匹配", "标题/简介 匹配"};
     public static final String[] TAG_MATCH_VALUE = new String[]{"partial_match_for_tags",
             "exact_match_for_tags", "title_and_caption"};
 
-
     public static final String[] ALL_SIZE = new String[]{" 无限制", " 500人收藏", " 1000人收藏", " 2000人收藏",
-            " 5000人收藏(建议)", " 7500人收藏", " 10000人收藏", " 20000人收藏", " 50000人收藏"};
+            " 5000人收藏", " 7500人收藏", " 10000人收藏", " 20000人收藏", " 50000人收藏"};
     public static final String[] ALL_SIZE_VALUE = new String[]{"", "500users入り", "1000users入り", "2000users入り",
             "5000users入り", "7500users入り", "10000users入り", "20000users入り", "50000users入り"};
 
-    //, "Русский язык"
-    public static final String[] ALL_LANGUAGE = new String[]{"简体中文", "日本語", "English", "繁體中文"};
 
     public static final String[] THEME_NAME = new String[]{
-            "默认模式（跟随系统）"
-            ,
+            "默认模式（跟随系统）",
             "白天模式（浅色）",
             "黑暗模式（深色）"
     };
 
 
-    public static final String[] DATE_SORT = new String[]{"最新作品(建议)", "由旧到新"};
-    public static final String[] SEARCH_TYPE = new String[]{"标签搜作品", "ID搜作品", "关键字搜画师", "ID搜画师"};
+    public static final String[] DATE_SORT = new String[]{"最新作品", "由旧到新"};
     public static final String[] DATE_SORT_VALUE = new String[]{"date_desc", "date_asc"};
 
-    public SearchFilter mSearchFilter;
+    private SearchModel searchModel;
 
-    public static FragmentFilter newInstance(SearchFilter filter) {
-        FragmentFilter fragmentFilter = new FragmentFilter();
-        fragmentFilter.mSearchFilter = filter;
-        return fragmentFilter;
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        searchModel = new ViewModelProvider(requireActivity()).get(SearchModel.class);
+        super.onActivityCreated(savedInstanceState);
+    }
+
+    public static FragmentFilter newInstance() {
+        return new FragmentFilter();
     }
 
     @Override
@@ -56,8 +64,7 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
         baseBind.submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mSearchFilter.closeDrawer();
-                mSearchFilter.startSearch();
+                searchModel.getNowGo().setValue("search_now");
             }
         });
         ArrayAdapter<String> tagAdapter = new ArrayAdapter<>(mContext,
@@ -66,7 +73,7 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
         baseBind.tagSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                mSearchFilter.onTagMatchChanged(TAG_MATCH_VALUE[position]);
+                searchModel.getSearchType().setValue(TAG_MATCH_VALUE[position]);
             }
 
             @Override
@@ -90,7 +97,7 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 Shaft.sSettings.setSearchFilter(ALL_SIZE_VALUE[position]);
                 Local.setSettings(Shaft.sSettings);
-                mSearchFilter.onStarSizeChanged(ALL_SIZE_VALUE[position]);
+                searchModel.getStarSize().setValue(ALL_SIZE_VALUE[position]);
             }
 
             @Override
@@ -106,7 +113,8 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
         baseBind.dateSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                mSearchFilter.onDateSortChanged(DATE_SORT_VALUE[position]);
+                searchModel.getStarSize().setValue(DATE_SORT_VALUE[position]);
+                searchModel.getLastSortType().setValue(DATE_SORT_VALUE[position]);
             }
 
             @Override
@@ -116,38 +124,21 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
         });
 
 
+        if (Shaft.sUserModel.getResponse().getUser().isIs_premium()) {
+            baseBind.popSwitch.setEnabled(true);
+        } else {
+            baseBind.popSwitch.setEnabled(false);
+        }
         baseBind.popSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
-                    baseBind.r18Rela.setVisibility(View.VISIBLE);
-                    mSearchFilter.onPopularChanged(true, baseBind.r18Switch.isChecked());
+                    searchModel.getSortType().setValue("popular_desc");
                 } else {
-                    baseBind.r18Rela.setVisibility(View.GONE);
-                    mSearchFilter.onPopularChanged(false, false);
+                    String lastSortType = searchModel.getLastSortType().getValue();
+                    searchModel.getSortType().setValue(lastSortType);
                 }
             }
         });
-        baseBind.r18Switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                mSearchFilter.onPopularChanged(true, isChecked);
-            }
-        });
-    }
-
-    static abstract class SearchFilter {
-
-        abstract void onTagMatchChanged(String tagMatch);
-
-        abstract void onDateSortChanged(String dateSort);
-
-        abstract void onStarSizeChanged(String starSize);
-
-        abstract void onPopularChanged(boolean isPopular, boolean hasR18);
-
-        abstract void startSearch();
-
-        abstract void closeDrawer();
     }
 }

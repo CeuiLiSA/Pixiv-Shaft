@@ -5,6 +5,9 @@ import android.content.Intent;
 import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
@@ -27,8 +30,10 @@ import ceui.lisa.databinding.ActivityLoginBinding;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
+import ceui.lisa.model.ExportUser;
 import ceui.lisa.models.SignResponse;
 import ceui.lisa.models.UserModel;
+import ceui.lisa.utils.ClipBoardUtils;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Local;
@@ -64,7 +69,7 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
     @Override
     public void initView(View view) {
         baseBind.toolbar.setPadding(0, Shaft.statusHeight, 0, 0);
-        baseBind.toolbar.inflateMenu(R.menu.main);
+        baseBind.toolbar.inflateMenu(R.menu.login_menu);
         baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
@@ -72,6 +77,23 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
                     Intent intent = new Intent(mContext, TemplateActivity.class);
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "设置");
                     startActivity(intent);
+                    return true;
+                } else if (item.getItemId() == R.id.action_import) {
+                    String userJson = ClipBoardUtils.getClipboardContent(mContext);
+                    if (userJson != null
+                            && !TextUtils.isEmpty(userJson)
+                            && userJson.contains(Params.USER_KEY)) {
+                        Common.showToast("导入成功", baseBind.toolbar);
+                        UserModel exportUser = Shaft.sGson.fromJson(userJson, UserModel.class);
+                        Local.saveUser(exportUser);
+                        Dev.refreshUser = true;
+                        Shaft.sUserModel = exportUser;
+                        Intent intent = new Intent(mContext, MainActivity.class);
+                        MainActivity.newInstance(intent, mContext);
+                        mActivity.finish();
+                    } else {
+                        Common.showToast("剪贴板无用户信息", baseBind.toolbar, 3);
+                    }
                     return true;
                 }
                 return false;
@@ -89,7 +111,7 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
                         if (mHitToast != null) {
                             mHitToast.cancel();
                         }
-                        mHitToast = Toast.makeText(getActivity(), String.format(Locale.getDefault(),
+                        mHitToast = Toast.makeText(mActivity, String.format(Locale.getDefault(),
                                 "点击%d次切换版本", mHitCountDown), Toast.LENGTH_SHORT);
                         mHitToast.show();
                     }
@@ -114,10 +136,10 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
                     if (baseBind.password.getText().toString().length() != 0) {
                         login(baseBind.userName.getText().toString(), baseBind.password.getText().toString());
                     } else {
-                        Common.showToast("请输入密码");
+                        Common.showToast("请输入密码", baseBind.login, 3);
                     }
                 } else {
-                    Common.showToast("请输入用户名");
+                    Common.showToast("请输入用户名", baseBind.login, 3);
                 }
             }
         });
@@ -127,7 +149,7 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
                 if (baseBind.signUserName.getText().toString().length() != 0) {
                     sign();
                 } else {
-                    Common.showToast("请输入用户名");
+                    Common.showToast("请输入用户名", baseBind.sign, 3);
                 }
             }
         });
@@ -148,6 +170,9 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
     private void setTitle() {
         if (Local.getBoolean(Params.USE_DEBUG, false)) {
             baseBind.title.setText("Shaft(测试版)");
+            baseBind.userName.setText(Dev.USER_ACCOUNT);
+            baseBind.password.setText(Dev.USER_PWD);
+            baseBind.password.setSelection(Dev.USER_PWD.length());
         } else {
             baseBind.title.setText("Shaft");
         }
@@ -181,6 +206,20 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
         }
         rotate = springSystem.createSpring();
         rotate.setSpringConfig(SpringConfig.fromOrigamiTensionAndFriction(15, 8));
+
+        //使两个cardview高度，大小保持一致
+        baseBind.cardLogin.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                final int height = baseBind.cardLogin.getHeight();
+
+                ViewGroup.LayoutParams paramsSign = baseBind.cardSign.getLayoutParams();
+                paramsSign.height = height;
+                baseBind.cardSign.setLayoutParams(paramsSign);
+
+                baseBind.cardLogin.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+            }
+        });
     }
 
     public void showSignCard() {
@@ -271,9 +310,11 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
                         userEntity.setUserGson(Shaft.sGson.toJson(userModel));
                         AppDatabase.getAppDatabase(mContext).downloadDao().insertUser(userEntity);
                         baseBind.progress.setVisibility(View.INVISIBLE);
-                        Intent intent = new Intent(mContext, MainActivity.class);
-                        startActivity(intent);
-                        mActivity.finish();
+                        if (isAdded()) {
+                            Intent intent = new Intent(mContext, MainActivity.class);
+                            requireActivity().startActivity(intent);
+                            mActivity.finish();
+                        }
                     }
 
                     @Override

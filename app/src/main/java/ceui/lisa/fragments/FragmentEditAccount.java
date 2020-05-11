@@ -29,6 +29,11 @@ public class FragmentEditAccount extends BaseFragment<FragmentEditAccountBinding
 
     @Override
     void initData() {
+        if (sUserModel == null) {
+            Common.showToast("你还没有登录");
+            mActivity.finish();
+            return;
+        }
         Retro.getAppApi().getAccountState(Shaft.sUserModel.getResponse().getAccess_token())
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())

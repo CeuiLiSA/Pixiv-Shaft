@@ -19,9 +19,9 @@ import ceui.lisa.helper.TextWriter;
 import ceui.lisa.databinding.FragmentMultiDownloadBinding;
 import ceui.lisa.databinding.RecyMultiDownloadBinding;
 import ceui.lisa.download.IllustDownload;
-import ceui.lisa.core.BaseCtrl;
+import ceui.lisa.core.BaseRepo;
 import ceui.lisa.interfaces.Callback;
-import ceui.lisa.core.DataControl;
+import ceui.lisa.core.LocalRepo;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
@@ -33,7 +33,7 @@ import gdut.bsx.share2.Share2;
 import gdut.bsx.share2.ShareContentType;
 
 public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownloadBinding,
-        IllustsBean, RecyMultiDownloadBinding> {
+        IllustsBean> {
 
     @Override
     public void initLayout() {
@@ -127,8 +127,8 @@ public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownload
     }
 
     @Override
-    public BaseCtrl present() {
-        return new DataControl<List<IllustsBean>>() {
+    public BaseRepo repository() {
+        return new LocalRepo<List<IllustsBean>>() {
             @Override
             public List<IllustsBean> first() {
                 return DataChannel.get().getDownloadList();
@@ -151,7 +151,8 @@ public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownload
 
     @Override
     public String getToolbarTitle() {
-        if (allItems.size() == 0) {
+        if (mModel == null || mModel.getContent() == null ||
+                mModel.getContent().getValue() == null || allItems.size() == 0) {
             return "计算中";
         } else {
             int selectCount = 0;

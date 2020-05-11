@@ -17,6 +17,7 @@ import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.FragmentLeftBinding;
+import ceui.lisa.utils.Params;
 
 public class FragmentLeft extends BaseFragment<FragmentLeftBinding> {
 
@@ -37,8 +38,8 @@ public class FragmentLeft extends BaseFragment<FragmentLeftBinding> {
         baseBind.head.setLayoutParams(headParams);
 
         baseBind.toolbar.setNavigationOnClickListener(v -> {
-            if (getActivity() instanceof MainActivity) {
-                ((MainActivity) getActivity()).getDrawer().openDrawer(Gravity.START);
+            if (requireActivity() instanceof MainActivity) {
+                ((MainActivity) requireActivity()).getDrawer().openDrawer(Gravity.START);
             }
         });
         baseBind.toolbar.inflateMenu(R.menu.fragment_left);
@@ -61,7 +62,7 @@ public class FragmentLeft extends BaseFragment<FragmentLeftBinding> {
                 if (i == 0) {
                     return FragmentRecmdIllust.newInstance("插画");
                 } else {
-                    return new FragmentHotTag();
+                    return FragmentHotTag.newInstance(Params.TYPE_ILLUST);
                 }
             }
 
@@ -77,9 +78,5 @@ public class FragmentLeft extends BaseFragment<FragmentLeftBinding> {
             }
         });
         baseBind.tabLayout.setupWithViewPager(baseBind.viewPager);
-    }
-
-    public ViewPager getViewPager() {
-        return baseBind.viewPager;
     }
 }

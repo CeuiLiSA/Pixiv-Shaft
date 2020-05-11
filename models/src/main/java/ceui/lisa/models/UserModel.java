@@ -42,6 +42,7 @@ public class UserModel implements Serializable, UserContainer {
         private String refresh_token;
         private UserBean user;
         private String device_token;
+        private String local_user;
 
         public String getAccess_token() {
             return access_token;
@@ -97,6 +98,14 @@ public class UserModel implements Serializable, UserContainer {
 
         public void setDevice_token(String device_token) {
             this.device_token = device_token;
+        }
+
+        public String getLocal_user() {
+            return local_user;
+        }
+
+        public void setLocal_user(String local_user) {
+            this.local_user = local_user;
         }
 
         @Override

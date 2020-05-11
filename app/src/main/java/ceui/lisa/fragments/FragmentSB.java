@@ -15,13 +15,13 @@ import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.SAdapter;
-import ceui.lisa.core.NetControl;
+import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentSelectTagBinding;
 import ceui.lisa.databinding.RecySelectTagBinding;
 import ceui.lisa.dialogs.AddTagDialog;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
-import ceui.lisa.core.BaseCtrl;
+import ceui.lisa.core.BaseRepo;
 import ceui.lisa.model.ListBookmarkTag;
 import ceui.lisa.models.NullResponse;
 import ceui.lisa.models.TagsBean;
@@ -33,7 +33,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
 public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
-        ListBookmarkTag, TagsBean, RecySelectTagBinding> {
+        ListBookmarkTag, TagsBean> {
 
     private int illustID;
 
@@ -61,8 +61,8 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
     }
 
     @Override
-    public BaseCtrl present() {
-        return new NetControl<ListBookmarkTag>() {
+    public BaseRepo repository() {
+        return new RemoteRepo<ListBookmarkTag>() {
             @Override
             public Observable<ListBookmarkTag> initApi() {
                 return Retro.getAppApi().getIllustBookmarkTags(Shaft.sUserModel.getResponse().getAccess_token(), illustID);
@@ -155,7 +155,7 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 if (item.getItemId() == R.id.action_add) {
-                    AddTagDialog dialog = new AddTagDialog();
+                    AddTagDialog dialog = AddTagDialog.newInstance(0);
                     dialog.show(getChildFragmentManager(), "AddTagDialog");
                     return true;
                 }
