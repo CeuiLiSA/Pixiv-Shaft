@@ -12,7 +12,7 @@ class DownloadHolder(binding: RecyDownloadTaskBinding) : ViewHolder<RecyDownload
         baseBind.currentSize.text = progress.text
     }
 
-    class Progress() {
+    class Progress {
         var progress: Int = 0
         var max: Int = 0
         var text: String = ""

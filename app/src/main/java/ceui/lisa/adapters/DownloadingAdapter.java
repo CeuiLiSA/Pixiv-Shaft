@@ -21,9 +21,8 @@ import ceui.lisa.download.DownloadHolder;
 //正在下载
 public class DownloadingAdapter extends BaseAdapter<IllustTask, RecyDownloadTaskBinding> {
 
-    @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public ViewHolder<RecyDownloadTaskBinding> getNormalItem(ViewGroup parent) {
         return new DownloadHolder(
                 DataBindingUtil.inflate(
                         LayoutInflater.from(mContext),
@@ -45,15 +44,6 @@ public class DownloadingAdapter extends BaseAdapter<IllustTask, RecyDownloadTask
 
     @Override
     public void bindData(IllustTask target, ViewHolder<RecyDownloadTaskBinding> bindView, int position) {
-
-    }
-
-    @Override
-    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        super.onBindViewHolder(holder, position);
-        ViewHolder<RecyDownloadTaskBinding> bindView = (ViewHolder<RecyDownloadTaskBinding>) holder;
-        IllustTask target = allIllust.get(position);
-
         bindView.baseBind.taskName.setText(target.getDownloadTask().getFilename());
 
         DListener listener = (DListener) allIllust.get(position).getDownloadTask().getListener();
@@ -72,22 +62,9 @@ public class DownloadingAdapter extends BaseAdapter<IllustTask, RecyDownloadTask
             bindView.baseBind.state.setText("最坏的情况");
         }
 
-
-//        if (listener.getNowID() == target.getDownloadTask().getId()) {
-//            bindView.baseBind.progress.setTag("update");
-//            bindView.baseBind.currentSize.setTag("update");
-//            bindView.baseBind.progress.setProgress(listener.getNowOffset());
-//            bindView.baseBind.progress.setMax(listener.getMax());
-//            listener.bind(bindView.baseBind.progress, bindView.baseBind.currentSize);
-//        } else {
-//            bindView.baseBind.progress.setTag("wtf");
-//            bindView.baseBind.currentSize.setTag("wtf");
-//            bindView.baseBind.progress.setProgress(0);
-//            bindView.baseBind.currentSize.setText("0.00KB / 未知大小");
-//        }
         DownloadHolder downloadView = (DownloadHolder) bindView;
         downloadView.setTaskId(target.getDownloadTask().getId());
-        System.out.println("DownloadHolder");
         listener.bind(target.getDownloadTask().getId(), downloadView);
     }
+
 }
