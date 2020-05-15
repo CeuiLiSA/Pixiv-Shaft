@@ -27,6 +27,7 @@ import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.DensityUtil;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.view.DownloadItemDecoration;
 import gdut.bsx.share2.FileUtil;
 import gdut.bsx.share2.Share2;
@@ -65,13 +66,20 @@ public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownload
                     StringBuilder content = new StringBuilder();
                     for (IllustsBean illustsBean : allItems) {
                         if (illustsBean.isChecked()) {
-                            if (illustsBean.getPage_count() == 1) {
-                                content.append(illustsBean.getMeta_single_page().getOriginal_image_url());
-                                content.append("\n");
-                            } else {
-                                for (int i = 0; i < illustsBean.getPage_count(); i++) {
-                                    content.append(illustsBean.getMeta_pages().get(i).getImage_urls().getMaxImage());
+                            if (Dev.isDev) {
+                                if (illustsBean.getPage_count() == 1) {
+                                    content.append("https://pixiv.cat/" + illustsBean.getId() +".jpg");
                                     content.append("\n");
+                                }
+                            } else {
+                                if (illustsBean.getPage_count() == 1) {
+                                    content.append(illustsBean.getMeta_single_page().getOriginal_image_url());
+                                    content.append("\n");
+                                } else {
+                                    for (int i = 0; i < illustsBean.getPage_count(); i++) {
+                                        content.append(illustsBean.getMeta_pages().get(i).getImage_urls().getMaxImage());
+                                        content.append("\n");
+                                    }
                                 }
                             }
                         }

@@ -38,15 +38,16 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 public class FragmentLikeNovelHorizontal extends BaseFragment<FragmentLikeIllustHorizontalBinding> {
 
     private List<NovelBean> allItems = new ArrayList<>();
-    private UserDetailResponse mUserDetailResponse;
     private NHAdapter mAdapter;
     private int type; // 0某人收藏的小说，1某人创作的小说
     private int userID;
+    private int novelSize;
 
-    public static FragmentLikeNovelHorizontal newInstance(int pType, int userID) {
+    public static FragmentLikeNovelHorizontal newInstance(int pType, int userID, int novelSize) {
         Bundle args = new Bundle();
         args.putInt(Params.DATA_TYPE, pType);
         args.putInt(Params.USER_ID, userID);
+        args.putInt(Params.SIZE, novelSize);
         FragmentLikeNovelHorizontal fragment = new FragmentLikeNovelHorizontal();
         fragment.setArguments(args);
         return fragment;
@@ -56,8 +57,7 @@ public class FragmentLikeNovelHorizontal extends BaseFragment<FragmentLikeIllust
     public void initBundle(Bundle bundle) {
         type = bundle.getInt(Params.DATA_TYPE);
         userID = bundle.getInt(Params.USER_ID);
-        UserViewModel userViewModel = new ViewModelProvider(mActivity).get(UserViewModel.class);
-        mUserDetailResponse = userViewModel.getUser().getValue();
+        novelSize = bundle.getInt(Params.SIZE);
     }
 
     @Override
@@ -73,8 +73,7 @@ public class FragmentLikeNovelHorizontal extends BaseFragment<FragmentLikeIllust
                 LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
         if (type == 1) {
             baseBind.title.setText("小说作品");
-            baseBind.howMany.setText(String.format(getString(R.string.how_many_illust_works),
-                    mUserDetailResponse.getProfile().getTotal_novels()));
+            baseBind.howMany.setText(String.format(getString(R.string.how_many_illust_works), novelSize));
             baseBind.howMany.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {

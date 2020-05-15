@@ -222,6 +222,7 @@
 
 
                         <RelativeLayout
+                            android:id="@+id/fuck_china_rela"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:background="?android:attr/selectableItemBackground"
@@ -321,6 +322,7 @@
 
                         <RelativeLayout
                             android:layout_width="match_parent"
+                            android:id="@+id/first_detail_origin_rela"
                             android:layout_height="match_parent"
                             android:background="?android:attr/selectableItemBackground"
                             android:clickable="true">
@@ -361,6 +363,7 @@
                         </View>
 
                         <RelativeLayout
+                            android:id="@+id/save_history_rela"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:background="?android:attr/selectableItemBackground"
@@ -402,6 +405,7 @@
                         </View>
 
                         <RelativeLayout
+                            android:id="@+id/stagger_data_rela"
                             android:layout_width="match_parent"
                             android:background="?android:attr/selectableItemBackground"
                             android:clickable="true"
@@ -442,6 +446,7 @@
                         </View>
 
                         <RelativeLayout
+                            android:id="@+id/show_like_button_rela"
                             android:layout_width="match_parent"
                             android:background="?android:attr/selectableItemBackground"
                             android:clickable="true"
@@ -483,6 +488,7 @@
 
 
                         <RelativeLayout
+                            android:id="@+id/related_no_limit_rela"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:background="?android:attr/selectableItemBackground"
@@ -547,6 +553,7 @@
 
 
                         <RelativeLayout
+                            android:id="@+id/theme_mode_rela"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:background="?android:attr/selectableItemBackground"
@@ -594,6 +601,7 @@
                         </View>
 
                         <RelativeLayout
+                            android:id="@+id/search_filter_rela"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:background="?android:attr/selectableItemBackground"
@@ -641,6 +649,7 @@
                         </View>
 
                         <RelativeLayout
+                            android:id="@+id/app_language_rela"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:background="?android:attr/selectableItemBackground"

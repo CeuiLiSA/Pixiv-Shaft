@@ -15,6 +15,7 @@ public class Params {
     public static final String KEY_WORD      = "key word";
     public static final String SORT_TYPE     = "sort type";
     public static final String CONTENT_TYPE  = "content type";
+    public static final String SIZE          = "size";
     public static final String SEARCH_TYPE   = "search type";
     public static final String STAR_SIZE     = "star size";
     public static final String MANGA         = "is manga";
