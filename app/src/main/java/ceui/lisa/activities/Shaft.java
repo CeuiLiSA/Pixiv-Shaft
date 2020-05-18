@@ -4,6 +4,8 @@ import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import androidx.security.crypto.EncryptedSharedPreferences;
+
 import com.google.gson.Gson;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
@@ -27,6 +29,7 @@ public class Shaft extends Application {
     public static Settings sSettings;
     public static Gson sGson;
     public static SharedPreferences sPreferences;
+    public static SharedPreferences sEncryptedPreferences;
 
     /**
      * 状态栏高度，初始化
@@ -61,6 +64,19 @@ public class Shaft extends Application {
         //0.0127254
 
         sPreferences = getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
+
+        try {
+            sEncryptedPreferences = EncryptedSharedPreferences
+                    .create(
+                            "e_preferences",
+                            "XMyfAAFJ89drW43S",
+                            this,
+                            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+                    );
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         final long before = System.nanoTime();
 

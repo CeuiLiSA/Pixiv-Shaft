@@ -20,7 +20,7 @@ public class Local {
                 userModel.getResponse().setAccess_token("Bearer " + token);
             }
             String userString = Shaft.sGson.toJson(userModel, UserModel.class);
-            SharedPreferences.Editor editor = Shaft.sPreferences.edit();
+            SharedPreferences.Editor editor = Shaft.sEncryptedPreferences.edit();
             editor.putString(USER, userString);
             if (editor.commit()) {
                 Shaft.sUserModel = userModel;
@@ -30,7 +30,7 @@ public class Local {
 
     public static UserModel getUser() {
         return Shaft.sGson.fromJson(
-                Shaft.sPreferences
+                Shaft.sEncryptedPreferences
                         .getString(USER, ""),
                 UserModel.class);
     }
