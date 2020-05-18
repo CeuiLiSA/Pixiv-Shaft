@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId "ceui.lisa.pixiv"
-        minSdkVersion 21
+        minSdkVersion 23
         targetSdkVersion 28
         versionCode 90
         versionName "1.9.0"
@@ -137,6 +137,8 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+
+    implementation "androidx.security:security-crypto:1.0.0-rc01"
 
     configurations {
         all*.exclude group: 'com.android.support', module: 'support-v13'
