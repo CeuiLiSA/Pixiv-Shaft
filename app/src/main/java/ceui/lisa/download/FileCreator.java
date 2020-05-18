@@ -21,7 +21,8 @@ public class FileCreator {
         }
 
         return new File(Shaft.sSettings.getGifZipPath(), deleteSpecialWords(
-                illustsBean.getTitle() + "_" + illustsBean.getId() + ".zip"));
+                illustsBean.getTitle() + "_" + illustsBean.getId() + ".zip")
+        );
     }
 
     public static File createGifFile(IllustsBean illustsBean) {
@@ -30,7 +31,8 @@ public class FileCreator {
         }
 
         return new File(Shaft.sSettings.getGifResultPath(), deleteSpecialWords(
-                illustsBean.getTitle() + "_" + illustsBean.getId() + ".gif"));
+                illustsBean.getTitle() + "_" + illustsBean.getId() + ".gif")
+        );
     }
 
 
@@ -40,7 +42,8 @@ public class FileCreator {
         }
 
         return new File(Shaft.sSettings.getGifUnzipPath() + deleteSpecialWords(
-                illustsBean.getTitle() + "_" + illustsBean.getId()));
+                illustsBean.getTitle() + "_" + illustsBean.getId())
+        );
     }
 
     /**
@@ -78,9 +81,11 @@ public class FileCreator {
         //只有1P，不带P数
         return illustsBean.getPage_count() == 1 ?
                 new File(Shaft.sSettings.getIllustPath(),
-                        deleteSpecialWords(title + DASH + id + ".png")) :
+                        deleteSpecialWords(title + DASH + id + ".png")
+                ) :
                 new File(Shaft.sSettings.getIllustPath(),
-                        deleteSpecialWords(title + DASH + id + DASH + "p" + index + ".png"));
+                        deleteSpecialWords(title + DASH + id + DASH + "p" + index + ".png")
+                );
     }
 
     private static String deleteSpecialWords(String before) {

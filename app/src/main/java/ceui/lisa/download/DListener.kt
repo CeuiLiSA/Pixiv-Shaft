@@ -45,7 +45,6 @@ class DListener : DownloadListener1() {
             println(_progresses[view.taskId])
             _progresses[view.taskId]?.let { view.onUpdate(it) }
         }
-
     }
 
     override fun taskEnd(task: DownloadTask, cause: EndCause, realCause: Exception?, model: Listener1Model) {

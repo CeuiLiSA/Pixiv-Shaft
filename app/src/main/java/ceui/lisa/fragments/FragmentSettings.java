@@ -123,6 +123,12 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
                 Local.setSettings(Shaft.sSettings);
             }
         });
+        baseBind.saveHistoryRela.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                baseBind.saveHistory.performClick();
+            }
+        });
 
         shouldRefreshFragmentRight = Shaft.sSettings.isDoubleStaggerData();
         baseBind.staggerData.setChecked(Shaft.sSettings.isDoubleStaggerData());
@@ -136,6 +142,12 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
                 }
                 Common.showToast("设置成功", baseBind.staggerData);
                 Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.staggerDataRela.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                baseBind.staggerData.performClick();
             }
         });
 
@@ -152,6 +164,12 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
                 Local.setSettings(Shaft.sSettings);
             }
         });
+        baseBind.showLikeButtonRela.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                baseBind.showLikeButton.performClick();
+            }
+        });
 
         baseBind.relatedNoLimit.setChecked(Shaft.sSettings.isRelatedIllustNoLimit());
         baseBind.relatedNoLimit.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -164,6 +182,12 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
                 }
                 Common.showToast("设置成功", baseBind.relatedNoLimit);
                 Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.relatedNoLimitRela.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                baseBind.relatedNoLimit.performClick();
             }
         });
 
@@ -180,6 +204,12 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
                 Local.setSettings(Shaft.sSettings);
             }
         });
+        baseBind.fuckChinaRela.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                baseBind.autoDns.performClick();
+            }
+        });
 
         baseBind.firstDetailOrigin.setChecked(Shaft.sSettings.isFirstImageSize());
         baseBind.firstDetailOrigin.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -192,6 +222,12 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
                 }
                 Common.showToast("设置成功", baseBind.firstDetailOrigin);
                 Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.firstDetailOriginRela.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                baseBind.firstDetailOrigin.performClick();
             }
         });
 
@@ -253,7 +289,7 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
         });
 
         baseBind.searchFilter.setText(Shaft.sSettings.getSearchFilter());
-        baseBind.searchFilter.setOnClickListener(new View.OnClickListener() {
+        baseBind.searchFilterRela.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
@@ -272,7 +308,7 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
             }
         });
         baseBind.appLanguage.setText(Shaft.sSettings.getAppLanguage());
-        baseBind.appLanguage.setOnClickListener(new View.OnClickListener() {
+        baseBind.appLanguageRela.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
@@ -301,7 +337,7 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
         });
 
         baseBind.themeMode.setText(Shaft.sSettings.getThemeType());
-        baseBind.themeMode.setOnClickListener(new View.OnClickListener() {
+        baseBind.themeModeRela.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
@@ -329,10 +365,7 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
         baseBind.clearGifCache.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (FileUtils.delete(Shaft.sSettings.getGifUnzipPath())) {
-                    Common.showLog(className + Shaft.sSettings.getGifUnzipPath());
-                    Common.showToast("GIF缓存清理成功");
-                }
+
             }
         });
         baseBind.refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));

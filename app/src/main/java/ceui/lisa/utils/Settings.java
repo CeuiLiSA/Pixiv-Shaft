@@ -20,7 +20,7 @@ public class Settings {
     public static final String FILE_GIF_PATH = PathUtils.getExternalDownloadsPath();
 
     //log日志，
-    public static final String FILE_LOG_PATH = PathUtils.getInternalAppFilesPath();
+    public static final String FILE_LOG_PATH = PathUtils.getExternalDownloadsPath();
 
     //下载的GIF 压缩包解压之后的结果存放在这里
     public static final String FILE_GIF_CHILD_PATH = PathUtils.getExternalAppCachePath();
@@ -30,10 +30,6 @@ public class Settings {
 
     //WEB下载
     public static final String WEB_DOWNLOAD_PATH = PathUtils.getExternalPicturesPath() + "/ShaftWeb";
-
-    public static boolean stringLooksLikeOldFileNameType(String type) {
-        return type.startsWith("title_123456789") || type.startsWith("123456789_title");
-    }
 
     //瀑布流List点击动画
     private boolean mainListAnimate = true;
