@@ -10,10 +10,10 @@ android {
 
     defaultConfig {
         applicationId "ceui.lisa.pixiv"
-        minSdkVersion 23
+        minSdkVersion 21
         targetSdkVersion 28
-        versionCode 90
-        versionName "1.9.0"
+        versionCode 91
+        versionName "1.9.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -72,7 +72,7 @@ dependencies {
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
 
 
-    implementation 'com.squareup.okhttp3:logging-interceptor:4.2.1'
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.4.0'
 
     implementation 'com.scwang.smartrefresh:SmartRefreshLayout:1.1.2'
     implementation 'com.scwang.smartrefresh:SmartRefreshHeader:1.1.2'
@@ -80,7 +80,7 @@ dependencies {
 
     implementation 'com.rengwuxian.materialedittext:library:2.1.4'
     implementation 'com.github.bumptech.glide:glide:4.11.0'
-    implementation 'jp.wasabeef:glide-transformations:4.0.1'
+    implementation 'jp.wasabeef:glide-transformations:4.1.0'
     implementation 'jp.co.cyberagent.android:gpuimage:2.0.3'
     implementation 'de.hdodenhof:circleimageview:3.0.1'
     implementation 'com.github.ybq:Android-SpinKit:1.4.0'
@@ -100,7 +100,6 @@ dependencies {
     implementation 'org.sufficientlysecure:html-textview:3.6'
 
     implementation 'com.wdullaer:materialdatetimepicker:3.5.0'
-    implementation 'com.zhihu.android:matisse:0.5.3-beta3'
     implementation 'com.nononsenseapps:filepicker:4.1.0'
     implementation 'com.qmuiteam:qmui:2.0.0-alpha07'
     implementation 'com.mxn.soul:flowingdrawer-core:2.1.0'
@@ -130,7 +129,7 @@ dependencies {
     implementation 'com.github.devlight.shadowlayout:library:1.0.2'
 
 
-    implementation 'com.google.firebase:firebase-analytics:17.4.0'
+    implementation 'com.google.firebase:firebase-analytics:17.4.2'
     implementation 'com.google.firebase:firebase-crashlytics:17.0.0'
 
     implementation project(path: ':models')
@@ -138,7 +137,7 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 
-    implementation "androidx.security:security-crypto:1.0.0-rc01"
+//    implementation "androidx.security:security-crypto:1.0.0-rc01"
 
     configurations {
         all*.exclude group: 'com.android.support', module: 'support-v13'

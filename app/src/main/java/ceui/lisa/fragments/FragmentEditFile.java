@@ -1,18 +1,21 @@
 package ceui.lisa.fragments;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
+import android.provider.MediaStore;
 import android.view.View;
 
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.blankj.utilcode.util.UriUtils;
 import com.bumptech.glide.Glide;
-import com.zhihu.matisse.Matisse;
-import com.zhihu.matisse.MimeType;
-import com.zhihu.matisse.engine.impl.GlideEngine;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -31,6 +34,8 @@ import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
+import ceui.lisa.utils.ReverseImage;
+import ceui.lisa.utils.ReverseWebviewCallback;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.MediaType;
@@ -40,6 +45,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import static android.app.Activity.RESULT_OK;
 import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class FragmentEditFile extends BaseFragment<FragmentEditFileBinding> {
@@ -65,14 +71,17 @@ public class FragmentEditFile extends BaseFragment<FragmentEditFileBinding> {
         baseBind.changeHead.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Matisse.from(mActivity)
-                        .choose(MimeType.ofImage())// 选择 mime 的类型
-                        .countable(true)
-                        .maxSelectable(1) // 图片选择的最多数量
-                        .restrictOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED)
-                        .thumbnailScale(1.0f) // 缩略图的比例
-                        .imageEngine(new GlideEngine()) // 使用的图片加载引擎
-                        .forResult(Params.REQUEST_CODE_CHOOSE);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    String[] permissions = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE};
+                    int i = ContextCompat.checkSelfPermission(mContext, permissions[0]);
+                    if (i != PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions(mActivity, permissions, 1);
+                    } else {
+                        selectPhoto();
+                    }
+                } else {
+                    selectPhoto();
+                }
             }
         });
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
@@ -133,19 +142,28 @@ public class FragmentEditFile extends BaseFragment<FragmentEditFileBinding> {
                 });
     }
 
+    private void selectPhoto() {
+        Intent intentToPickPic = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        intentToPickPic.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*");
+        startActivityForResult(intentToPickPic, Params.REQUEST_CODE_CHOOSE);
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         Common.showLog(className + "activity result");
-        if (requestCode == Params.REQUEST_CODE_CHOOSE) {
-            if (resultCode == Activity.RESULT_OK && data != null) {
-                List<Uri> result = Matisse.obtainResult(data);
-                if (result != null && result.size() == 1) {
-                    imageFile = UriUtils.uri2File(result.get(0));
-                    Glide.with(mContext)
-                            .load(imageFile)
-                            .into(baseBind.userHead);
-                }
+        if (resultCode == RESULT_OK
+                && requestCode == Params.REQUEST_CODE_CHOOSE
+                && data != null) {
+            Uri imageUri = data.getData();
+
+            if (imageUri == null) {
+                Common.showToast("图片选择失败");
+                return;
             }
+            imageFile = UriUtils.uri2File(imageUri);
+            Glide.with(mContext)
+                    .load(imageFile)
+                    .into(baseBind.userHead);
         }
     }
 }

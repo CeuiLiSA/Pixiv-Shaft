@@ -42,11 +42,11 @@ public class PixivOperate {
         Call<UserModel> call = Retro.getAccountApi().refreshToken(
                 FragmentLogin.CLIENT_ID,
                 FragmentLogin.CLIENT_SECRET,
-                "refresh_token",
+                FragmentLogin.REFRESH_TOKEN,
                 userModel.getResponse().getRefresh_token(),
                 userModel.getResponse().getDevice_token(),
-                true,
-                true);
+                Boolean.TRUE,
+                Boolean.TRUE);
         call.enqueue(callback);
     }
 

@@ -12,6 +12,7 @@ public class Local {
 
     public static final String LOCAL_DATA = "local_data";
     public static final String USER = "user";
+    public static final String SETTINGS = "settings";
 
     public static void saveUser(UserModel userModel) {
         if (userModel != null) {
@@ -20,7 +21,7 @@ public class Local {
                 userModel.getResponse().setAccess_token("Bearer " + token);
             }
             String userString = Shaft.sGson.toJson(userModel, UserModel.class);
-            SharedPreferences.Editor editor = Shaft.sEncryptedPreferences.edit();
+            SharedPreferences.Editor editor = Shaft.sPreferences.edit();
             editor.putString(USER, userString);
             if (editor.commit()) {
                 Shaft.sUserModel = userModel;
@@ -30,13 +31,13 @@ public class Local {
 
     public static UserModel getUser() {
         return Shaft.sGson.fromJson(
-                Shaft.sEncryptedPreferences
+                Shaft.sPreferences
                         .getString(USER, ""),
                 UserModel.class);
     }
 
     public static Settings getSettings() {
-        String settingsString = Shaft.sPreferences.getString("settings", "");
+        String settingsString = Shaft.sPreferences.getString(SETTINGS, "");
         Settings settings = Shaft.sGson.fromJson(settingsString, Settings.class);
         return settings == null ? new Settings() : settings;
     }
@@ -44,7 +45,7 @@ public class Local {
     public static void setSettings(Settings settings) {
         String settingsGson = Shaft.sGson.toJson(settings);
         SharedPreferences.Editor editor = Shaft.sPreferences.edit();
-        editor.putString("settings", settingsGson);
+        editor.putString(SETTINGS, settingsGson);
         editor.apply();
         Shaft.sSettings = settings;
     }

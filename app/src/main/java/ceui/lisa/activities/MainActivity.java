@@ -5,8 +5,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
-import android.media.Image;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -33,8 +31,6 @@ import com.bumptech.glide.Glide;
 import com.google.android.material.navigation.NavigationView;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.ActivityCoverBinding;
@@ -45,7 +41,6 @@ import ceui.lisa.fragments.FragmentLeft;
 import ceui.lisa.fragments.FragmentRight;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
-import ceui.lisa.utils.Emoji;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
@@ -166,7 +161,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             case R.id.nav_reverse:
                 // TODO: 20-3-16 国际化 向用户索要权限
                 if (Shaft.sSettings.isReverseDialogNeverShowAgain()) {
-                    gotoReverse();
+                    selectPhoto();
                 } else {
                     CheckBox checkBox = new CheckBox(this);
                     checkBox.setText(R.string.never_show_again);
@@ -191,10 +186,10 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                                     if (i != PackageManager.PERMISSION_GRANTED) {
                                         ActivityCompat.requestPermissions(this, permissions, 1);
                                     } else {
-                                        gotoReverse();
+                                        selectPhoto();
                                     }
                                 } else {
-                                    gotoReverse();
+                                    selectPhoto();
                                 }
                             })
                             .setNegativeButton(android.R.string.cancel, null)
@@ -228,9 +223,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         //super.onSaveInstanceState(outState);
     }
 
-    private void gotoReverse() {
+    private void selectPhoto() {
         Intent intentToPickPic = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        intentToPickPic.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/jpeg");
+        intentToPickPic.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*");
         startActivityForResult(intentToPickPic, Params.REQUEST_CODE_CHOOSE);
     }
 

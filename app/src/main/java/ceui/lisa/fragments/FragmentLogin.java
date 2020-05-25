@@ -47,6 +47,7 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
     public static final String CLIENT_SECRET = "lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj";
     public static final String DEVICE_TOKEN = "pixiv";
     public static final String TYPE_PASSWORD = "password";
+    public static final String REFRESH_TOKEN = "refresh_token";
     private static final String SIGN_TOKEN = "Bearer l-f9qZ0ZyqSwRyZs8-MymbtWBbSxmCu1pmbOlyisou8";
     private static final String SIGN_REF = "pixiv_android_app_provisional_account";
     private static final int TAPS_TO_BE_A_DEVELOPER = 7;
@@ -292,9 +293,9 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
                 CLIENT_ID,
                 CLIENT_SECRET,
                 DEVICE_TOKEN,
-                true,
+                Boolean.TRUE,
                 TYPE_PASSWORD,
-                true,
+                Boolean.TRUE,
                 pwd,
                 username).subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -304,10 +305,15 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
                         userModel.getResponse().getUser().setPassword(pwd);
                         userModel.getResponse().getUser().setIs_login(true);
                         Local.saveUser(userModel);
+
+
                         UserEntity userEntity = new UserEntity();
                         userEntity.setLoginTime(System.currentTimeMillis());
                         userEntity.setUserID(userModel.getResponse().getUser().getId());
-                        userEntity.setUserGson(Shaft.sGson.toJson(userModel));
+                        userEntity.setUserGson(Shaft.sGson.toJson(Local.getUser()));
+
+
+
                         AppDatabase.getAppDatabase(mContext).downloadDao().insertUser(userEntity);
                         baseBind.progress.setVisibility(View.INVISIBLE);
                         if (isAdded()) {
