@@ -13,8 +13,6 @@ import ceui.lisa.models.UserPreviewsBean;
 import ceui.lisa.utils.Params;
 import io.reactivex.Observable;
 
-import static ceui.lisa.activities.Shaft.sUserModel;
-
 public class FragmentFollowUser extends NetListFragment<FragmentBaseListBinding,
         ListUser, UserPreviewsBean> {
 

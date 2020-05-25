@@ -1,13 +1,11 @@
 package ceui.lisa.fragments;
 
-import android.animation.Animator;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewAnimationUtils;
 import android.widget.TextView;
 
 import com.blankj.utilcode.util.BarUtils;
@@ -22,7 +20,6 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.RankActivity;
 import ceui.lisa.activities.SearchActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
@@ -33,16 +30,13 @@ import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.databinding.FragmentNovelHolderBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
-import ceui.lisa.model.ListTrendingtag;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.NovelDetail;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
-import ceui.lisa.view.AnimeListener;
 import ceui.lisa.view.ScrollChange;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;

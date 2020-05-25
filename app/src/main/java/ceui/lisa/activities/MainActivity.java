@@ -155,7 +155,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "关于软件");
                 break;
             case R.id.main_page:
-                intent = new Intent(mContext, UActivity.class);
+                intent = new Intent(mContext, UserActivity.class);
                 intent.putExtra(Params.USER_ID, sUserModel.getResponse().getUser().getId());
                 break;
             case R.id.nav_reverse:

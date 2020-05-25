@@ -21,30 +21,23 @@ import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
 import ceui.lisa.databinding.FragmentLocalUserBinding;
 import ceui.lisa.http.ErrorCtrl;
-import ceui.lisa.model.ExportUser;
 import ceui.lisa.models.UserModel;
-import ceui.lisa.utils.ClipBoardUtils;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
-import ceui.lisa.utils.PixivOperate;
 import de.hdodenhof.circleimageview.CircleImageView;
 import io.reactivex.Observable;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
 
-    //private SimpleDateFormat formatter = new SimpleDateFormat("MM月dd日 HH:mm:ss");
     private List<UserModel> allItems = new ArrayList<>();
 
     @Override
@@ -167,28 +160,6 @@ public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
                 Intent intent = new Intent(mContext, MainActivity.class);
                 MainActivity.newInstance(intent, mContext);
                 mActivity.finish();
-
-//                baseBind.progress.setVisibility(View.VISIBLE);
-//                PixivOperate.refreshUserData(userModel, new Callback<UserModel>() {
-//                    @Override
-//                    public void onResponse(Call<UserModel> call, Response<UserModel> response) {
-//                        if (response != null) {
-//                            UserModel newUser = response.body();
-//                            newUser.getResponse().getUser().setPassword(userModel.getResponse().getUser().getPassword());
-//                            newUser.getResponse().getUser().setIs_login(true);
-//                            Local.saveUser(newUser);
-//                            Dev.refreshUser = true;
-//                            mActivity.finish();
-//                        }
-//                        baseBind.progress.setVisibility(View.INVISIBLE);
-//                    }
-//
-//                    @Override
-//                    public void onFailure(Call<UserModel> call, Throwable t) {
-//                        Common.showToast(t.toString());
-//                        baseBind.progress.setVisibility(View.INVISIBLE);
-//                    }
-//                });
             }
         });
     }

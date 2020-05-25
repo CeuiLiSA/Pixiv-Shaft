@@ -2,7 +2,6 @@ package ceui.lisa.fragments
 
 import android.view.View
 import ceui.lisa.R
-import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.FragmentAboutUserBinding
 import ceui.lisa.interfaces.Display
 import ceui.lisa.models.UserDetailResponse

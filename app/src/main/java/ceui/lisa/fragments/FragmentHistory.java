@@ -12,16 +12,16 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.activities.UActivity;
+import ceui.lisa.activities.UserActivity;
 import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.HistoryAdapter;
+import ceui.lisa.core.BaseRepo;
+import ceui.lisa.core.LocalRepo;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyViewHistoryBinding;
-import ceui.lisa.core.BaseRepo;
-import ceui.lisa.core.LocalRepo;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
@@ -46,7 +46,7 @@ public class FragmentHistory extends LocalListFragment<FragmentBaseListBinding,
                     intent.putExtra("position", position);
                     mContext.startActivity(intent);
                 } else if (viewType == 1) {
-                    Intent intent = new Intent(mContext, UActivity.class);
+                    Intent intent = new Intent(mContext, UserActivity.class);
                     intent.putExtra(Params.USER_ID, (int) v.getTag());
                     mContext.startActivity(intent);
                 }

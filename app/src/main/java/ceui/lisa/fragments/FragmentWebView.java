@@ -16,10 +16,8 @@ import com.google.android.material.snackbar.Snackbar;
 import com.just.agentweb.AgentWeb;
 import com.just.agentweb.WebViewClient;
 
-import java.util.Objects;
-
 import ceui.lisa.R;
-import ceui.lisa.activities.UActivity;
+import ceui.lisa.activities.UserActivity;
 import ceui.lisa.databinding.FragmentWebviewBinding;
 import ceui.lisa.download.WebDownload;
 import ceui.lisa.utils.ClipBoardUtils;
@@ -110,7 +108,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
 
                         if (destiny.contains(USER_HEAD)) {
                             Common.showLog("点击了USER， 拦截调回APP");
-                            Intent intent = new Intent(mContext, UActivity.class);
+                            Intent intent = new Intent(mContext, UserActivity.class);
                             intent.putExtra(Params.USER_ID, Integer.valueOf(destiny.substring(USER_HEAD.length())));
                             startActivity(intent);
                             return true;

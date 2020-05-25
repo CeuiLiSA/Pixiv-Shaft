@@ -162,7 +162,7 @@ public interface AppApi {
     Observable<ListIllust> getFollowUserIllust(@Header("Authorization") String token);
 
 
-    @GET("v1/spotlight/articles?filter=for_android&offset=10")
+    @GET("v1/spotlight/articles?filter=for_android")
     Observable<ListArticle> getArticles(@Header("Authorization") String token,
                                         @Query("category") String category);
 

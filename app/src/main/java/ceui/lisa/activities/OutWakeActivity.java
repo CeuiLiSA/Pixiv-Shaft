@@ -67,7 +67,7 @@ public class OutWakeActivity extends BaseActivity {
 
                         String userID = uri.getQueryParameter("id");
                         if (!TextUtils.isEmpty(userID)) {
-                            Intent userIntent = new Intent(mContext, UActivity.class);
+                            Intent userIntent = new Intent(mContext, UserActivity.class);
                             userIntent.putExtra(Params.USER_ID, Integer.valueOf(userID));
                             startActivity(userIntent);
                             finish();
@@ -82,7 +82,7 @@ public class OutWakeActivity extends BaseActivity {
                         if (!TextUtils.isEmpty(host)) {
                             if (host.contains("users")) {
                                 String path = uri.getPath();
-                                Intent userIntent = new Intent(mContext, UActivity.class);
+                                Intent userIntent = new Intent(mContext, UserActivity.class);
                                 userIntent.putExtra(Params.USER_ID, Integer.valueOf(path.substring(1)));
                                 startActivity(userIntent);
                                 finish();

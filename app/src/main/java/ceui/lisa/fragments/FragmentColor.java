@@ -4,11 +4,6 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
-import com.bumptech.glide.Glide;
-
 import ceui.lisa.R;
 import ceui.lisa.databinding.FragmentColorBinding;
 import ceui.lisa.utils.Params;

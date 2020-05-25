@@ -9,15 +9,15 @@ import java.util.List;
 
 import ceui.lisa.activities.ImageDetailActivity;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.activities.UActivity;
+import ceui.lisa.activities.UserActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.DownloadedAdapter;
+import ceui.lisa.core.BaseRepo;
+import ceui.lisa.core.LocalRepo;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyViewHistoryBinding;
-import ceui.lisa.core.BaseRepo;
-import ceui.lisa.core.LocalRepo;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Channel;
@@ -43,7 +43,7 @@ public class FragmentDownloadFinish extends LocalListFragment<FragmentBaseListBi
                     intent.putExtra("index", position);
                     startActivity(intent);
                 } else if (viewType == 1) {
-                    Intent intent = new Intent(mContext, UActivity.class);
+                    Intent intent = new Intent(mContext, UserActivity.class);
                     intent.putExtra(Params.USER_ID, all.get(position).getUser().getId());
                     startActivity(intent);
                 }

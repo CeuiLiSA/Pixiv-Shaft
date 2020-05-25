@@ -4,12 +4,12 @@ import java.util.List;
 
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.DownloadingAdapter;
+import ceui.lisa.core.BaseRepo;
+import ceui.lisa.core.LocalRepo;
 import ceui.lisa.database.IllustTask;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyDownloadTaskBinding;
 import ceui.lisa.download.TaskQueue;
-import ceui.lisa.core.BaseRepo;
-import ceui.lisa.core.LocalRepo;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 

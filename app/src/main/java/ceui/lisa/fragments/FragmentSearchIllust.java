@@ -6,7 +6,6 @@ import androidx.annotation.Nullable;
 import androidx.databinding.ViewDataBinding;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.GridLayoutManager;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
@@ -17,9 +16,7 @@ import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
-import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.PixivOperate;
-import ceui.lisa.view.GridItemDecoration;
 import ceui.lisa.viewmodel.SearchModel;
 import io.reactivex.Observable;
 

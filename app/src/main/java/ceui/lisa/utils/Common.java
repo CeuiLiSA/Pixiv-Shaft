@@ -29,7 +29,7 @@ import java.nio.charset.UnsupportedCharsetException;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
-import ceui.lisa.activities.UActivity;
+import ceui.lisa.activities.UserActivity;
 import ceui.lisa.models.UserContainer;
 import okhttp3.MediaType;
 import okhttp3.Response;
@@ -268,7 +268,7 @@ public class Common {
     }
 
     public static void showUser(Context context, UserContainer userContainer) {
-        Intent intent = new Intent(context, UActivity.class);
+        Intent intent = new Intent(context, UserActivity.class);
         intent.putExtra(Params.USER_ID, userContainer.getUserId());
         context.startActivity(intent);
     }

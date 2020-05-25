@@ -8,14 +8,14 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.UActivity;
+import ceui.lisa.activities.UserActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.UserHAdapter;
+import ceui.lisa.core.BaseRepo;
 import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentUserHorizontalBinding;
 import ceui.lisa.databinding.RecyUserPreviewHorizontalBinding;
 import ceui.lisa.http.Retro;
-import ceui.lisa.core.BaseRepo;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListUser;
 import ceui.lisa.models.UserPreviewsBean;
@@ -40,7 +40,7 @@ public class FragmentRecmdUserHorizontal extends NetListFragment<FragmentUserHor
         return new UserHAdapter(allItems, mContext).setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                Intent intent = new Intent(mContext, UActivity.class);
+                Intent intent = new Intent(mContext, UserActivity.class);
                 intent.putExtra(Params.USER_ID, allItems.get(position).getUser().getId());
                 startActivity(intent);
             }

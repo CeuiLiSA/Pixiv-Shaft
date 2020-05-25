@@ -1,7 +1,5 @@
 package ceui.lisa.fragments;
 
-import androidx.recyclerview.widget.GridLayoutManager;
-
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapter;
 import ceui.lisa.core.RemoteRepo;
@@ -10,8 +8,6 @@ import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
-import ceui.lisa.utils.DensityUtil;
-import ceui.lisa.view.GridItemDecoration;
 import io.reactivex.Observable;
 
 import static ceui.lisa.activities.Shaft.sUserModel;

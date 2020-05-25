@@ -9,14 +9,10 @@ import android.widget.CompoundButton;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProvider;
 
-import java.io.Serializable;
-
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.FragmentFilterBinding;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
-import ceui.lisa.utils.Params;
 import ceui.lisa.viewmodel.SearchModel;
 
 

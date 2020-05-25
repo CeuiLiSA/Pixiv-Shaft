@@ -10,7 +10,6 @@ import androidx.fragment.app.FragmentPagerAdapter;
 import ceui.lisa.R;
 import ceui.lisa.databinding.FragmentAnimeBinding;
 import ceui.lisa.transformer.Abc;
-import ceui.lisa.transformer.CustPagerTransformer;
 
 public class FragmentAnime extends BaseFragment<FragmentAnimeBinding> {
 

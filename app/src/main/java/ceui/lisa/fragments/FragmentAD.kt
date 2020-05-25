@@ -4,8 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
-import ceui.lisa.model.AdItem
 import ceui.lisa.databinding.FragmentAdBinding
+import ceui.lisa.model.AdItem
 import ceui.lisa.utils.Params
 import com.bumptech.glide.Glide
 

@@ -7,7 +7,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
@@ -30,7 +29,6 @@ import ceui.lisa.databinding.ActivityLoginBinding;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
-import ceui.lisa.model.ExportUser;
 import ceui.lisa.models.SignResponse;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.utils.ClipBoardUtils;

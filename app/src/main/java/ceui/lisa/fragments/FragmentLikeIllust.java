@@ -3,7 +3,6 @@ package ceui.lisa.fragments;
 import android.os.Bundle;
 import android.text.TextUtils;
 
-
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
