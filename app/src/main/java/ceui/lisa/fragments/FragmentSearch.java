@@ -106,7 +106,9 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
             @Override
             public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
                 if (!TextUtils.isEmpty(baseBind.inputBox.getText().toString())) {
+                    Common.showLog(className + "点击了一次输入框的搜索");
                     dispatchClick(baseBind.inputBox.getText().toString(), searchType);
+                    return true;
                 } else {
                     Common.showToast("请输入搜索内容");
                 }
