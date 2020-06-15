@@ -51,5 +51,7 @@ class FragmentAboutApp : BaseFragment<FragmentAboutBinding>() {
         baseBind.dontCatchMe.setOnClickListener {
             Common.createDialog(context)
         }
+        baseBind.name.text = Common.getAppVersionName(mContext)
+        baseBind.code.text = Common.getAppVersionCode(mContext)
     }
 }

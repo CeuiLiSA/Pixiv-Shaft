@@ -1,7 +1,10 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
+import android.graphics.Rect;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 
 import androidx.appcompat.app.AlertDialog;
@@ -17,6 +20,7 @@ import ceui.lisa.adapters.CommentAdapter;
 import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentCommentBinding;
 import ceui.lisa.databinding.RecyCommentListBinding;
+import ceui.lisa.dialogs.SoftKeyboardStateHelper;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListComment;
@@ -259,6 +263,20 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
             if (parentCommentID != 0) {
                 baseBind.inputBox.setHint("留下你的评论吧");
                 parentCommentID = 0;
+            }
+        });
+
+        //让rootview scroll一下，避免软键盘遮挡底部的输入框
+        SoftKeyboardStateHelper softKeyboardStateHelper = new SoftKeyboardStateHelper(parentView);
+        softKeyboardStateHelper.addSoftKeyboardStateListener(new SoftKeyboardStateHelper.SoftKeyboardStateListener() {
+            @Override
+            public void onSoftKeyboardOpened(int keyboardHeightInPx) {
+                baseBind.fuckingRoot.scrollTo(0, keyboardHeightInPx);
+            }
+
+            @Override
+            public void onSoftKeyboardClosed() {
+                baseBind.fuckingRoot.scrollTo(0, 0);
             }
         });
     }

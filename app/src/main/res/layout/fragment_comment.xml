@@ -9,6 +9,7 @@
     <RelativeLayout
         android:orientation="vertical"
         android:background="@color/white"
+        android:id="@+id/fucking_root"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -50,8 +51,8 @@
 
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
-            android:layout_alignParentBottom="true"
             android:id="@+id/bottom_rela"
+            android:layout_alignParentBottom="true"
             app:cardBackgroundColor="@color/white"
             app:cardElevation="@dimen/four_dp"
             app:cardCornerRadius="0dp"

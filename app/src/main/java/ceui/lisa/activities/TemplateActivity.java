@@ -2,6 +2,8 @@ package ceui.lisa.activities;
 
 import android.content.Intent;
 import android.view.KeyEvent;
+import android.view.Window;
+import android.view.WindowManager;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -122,8 +124,6 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                     return new FragmentMultiDownld();
                 case "画廊":
                     return new FragmentWalkThrough();
-//                case "License":
-//                    return new FragmentLicense();
                 case "正在关注":
                     return FragmentFollowUser.newInstance(
                             getIntent().getIntExtra(Params.USER_ID, 0),

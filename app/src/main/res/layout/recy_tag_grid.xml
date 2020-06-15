@@ -25,6 +25,25 @@
 
         <TextView
             android:layout_width="wrap_content"
+            android:id="@+id/chinese_title"
+            android:layout_marginStart="@dimen/six_dp"
+            android:layout_marginEnd="@dimen/six_dp"
+            android:layout_above="@+id/title"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:layout_marginBottom="@dimen/four_dp"
+            android:textColor="@android:color/white"
+            android:shadowColor="#FF000000"
+            android:shadowDx="2"
+            android:shadowDy="2"
+            android:shadowRadius="2"
+            android:layout_centerHorizontal="true"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:layout_width="wrap_content"
             android:id="@+id/title"
             android:layout_marginStart="@dimen/six_dp"
             android:layout_marginEnd="@dimen/six_dp"
@@ -37,7 +56,7 @@
             android:shadowDy="2"
             android:shadowRadius="2"
             android:layout_centerHorizontal="true"
-            android:textSize="14sp"
+            android:textSize="13sp"
             android:textStyle="bold"
             android:layout_alignBottom="@+id/illust_image"
             android:layout_height="wrap_content" />

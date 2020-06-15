@@ -78,7 +78,11 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
         if (parentView == null) {
             initLayout();
             baseBind = DataBindingUtil.inflate(inflater, mLayoutID, container, false);
-            parentView = baseBind.getRoot();
+            if (baseBind != null) {
+                parentView = baseBind.getRoot();
+            } else {
+                parentView = inflater.inflate(mLayoutID, container, false);
+            }
             initView(parentView);
             initData();
         } else {

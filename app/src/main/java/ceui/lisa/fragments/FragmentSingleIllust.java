@@ -328,6 +328,9 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
         List<String> tags = new ArrayList<>();
         for (int i = 0; i < illust.getTags().size(); i++) {
             String temp = illust.getTags().get(i).getName();
+            if (!TextUtils.isEmpty(illust.getTags().get(i).getTranslated_name())) {
+                temp = temp + "/" + illust.getTags().get(i).getTranslated_name();
+            }
             tags.add(temp);
         }
         baseBind.illustTag.setOnTagClickListener(new TagCloudView.OnTagClickListener() {

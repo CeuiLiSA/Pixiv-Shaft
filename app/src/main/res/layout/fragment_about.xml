@@ -53,6 +53,81 @@
 
                 </RelativeLayout>
 
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:text="Shaft"
+                    android:textColor="@color/colorPrimary"
+                    android:textSize="19sp"
+                    android:textStyle="bold"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_height="wrap_content">
+
+                </TextView>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:gravity="center"
+                    android:layout_marginTop="@dimen/eight_dp"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:gravity="end"
+                        android:id="@+id/name_s"
+                        android:textColor="@color/rank_text_color"
+                        android:text="版本名称："
+                        android:layout_height="wrap_content">
+
+                    </TextView>
+
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:paddingStart="@dimen/eight_dp"
+                        android:textColor="@color/rank_text_color"
+                        android:id="@+id/name"
+                        android:layout_height="wrap_content">
+
+                    </TextView>
+
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:gravity="center"
+                    android:layout_marginTop="@dimen/eight_dp"
+                    android:layout_marginBottom="@dimen/sixteen_dp"
+                    android:layout_height="wrap_content">
+
+
+                    <TextView
+                        android:textColor="@color/rank_text_color"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:id="@+id/code_s"
+                        android:gravity="end"
+                        android:text="版本型号："
+                        android:layout_height="wrap_content">
+
+                    </TextView>
+
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:id="@+id/code"
+                        android:paddingStart="@dimen/eight_dp"
+                        android:textColor="@color/rank_text_color"
+                        android:layout_height="wrap_content">
+
+                    </TextView>
+
+
+                </LinearLayout>
+
 
                 <LinearLayout
                     android:layout_width="match_parent"
