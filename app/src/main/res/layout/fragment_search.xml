@@ -39,6 +39,7 @@
                     android:paddingStart="@dimen/twelve_dp"
                     android:drawablePadding="@dimen/six_dp"
                     android:textSize="14sp"
+                    android:textColor="@color/rank_text_color"
                     android:imeOptions="actionSearch"
                     android:singleLine="true"
                     android:layout_toStartOf="@+id/more"
