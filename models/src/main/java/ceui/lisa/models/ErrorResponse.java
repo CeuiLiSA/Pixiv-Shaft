@@ -11,7 +11,7 @@ public class ErrorResponse {
     private boolean has_error;
     private ErrorsBean errors;
     private ErrorBean error;
-    private BodyBean body;
+    private ErrorBodyBean body;
 
     public ErrorBean getError() {
         return error;
@@ -37,11 +37,11 @@ public class ErrorResponse {
         this.errors = errors;
     }
 
-    public BodyBean getBody() {
+    public ErrorBodyBean getBody() {
         return body;
     }
 
-    public void setBody(BodyBean body) {
+    public void setBody(ErrorBodyBean body) {
         this.body = body;
     }
 
@@ -135,48 +135,6 @@ public class ErrorResponse {
 
         public void setUser_message_details(User_message_details user_message_details) {
             this.user_message_details = user_message_details;
-        }
-    }
-
-    public static class BodyBean {
-        /**
-         * is_succeed : false
-         * validation_errors : {"mail_address":"您不可以使用这个电邮网址"}
-         */
-
-        private boolean is_succeed;
-        private ValidationErrorsBean validation_errors;
-
-        public boolean isIs_succeed() {
-            return is_succeed;
-        }
-
-        public void setIs_succeed(boolean is_succeed) {
-            this.is_succeed = is_succeed;
-        }
-
-        public ValidationErrorsBean getValidation_errors() {
-            return validation_errors;
-        }
-
-        public void setValidation_errors(ValidationErrorsBean validation_errors) {
-            this.validation_errors = validation_errors;
-        }
-
-        public static class ValidationErrorsBean {
-            /**
-             * mail_address : 您不可以使用这个电邮网址
-             */
-
-            private String mail_address;
-
-            public String getMail_address() {
-                return mail_address;
-            }
-
-            public void setMail_address(String mail_address) {
-                this.mail_address = mail_address;
-            }
         }
     }
 }

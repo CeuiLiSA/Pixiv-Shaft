@@ -13,7 +13,7 @@ public class BaseModel<T> extends ViewModel {
 
     private MutableLiveData<List<T>> content;
     private String nextUrl = "";
-    private String token = "";
+    private String token;
     private boolean isLoaded = false;
 
     public BaseModel() {

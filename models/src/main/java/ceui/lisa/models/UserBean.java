@@ -228,6 +228,7 @@ public class UserBean implements Serializable, UserContainer {
                 ", account='" + account + '\'' +
                 ", password='" + password + '\'' +
                 ", mail_address='" + mail_address + '\'' +
+                ", is_login=" + is_login +
                 ", is_premium=" + is_premium +
                 ", is_followed=" + is_followed +
                 ", lastTokenTime=" + lastTokenTime +

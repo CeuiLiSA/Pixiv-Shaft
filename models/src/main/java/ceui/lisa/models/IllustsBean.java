@@ -56,7 +56,7 @@ public class IllustsBean implements Serializable {
     private boolean visible;
     private boolean is_muted;
     private List<TagsBean> tags;
-    private List<?> tools;
+    private List<String> tools;
     private List<MetaPagesBean> meta_pages;
     private boolean isShield; //是否被屏蔽
 
@@ -232,11 +232,11 @@ public class IllustsBean implements Serializable {
         this.tags = tags;
     }
 
-    public List<?> getTools() {
+    public List<String> getTools() {
         return tools;
     }
 
-    public void setTools(List<?> tools) {
+    public void setTools(List<String> tools) {
         this.tools = tools;
     }
 

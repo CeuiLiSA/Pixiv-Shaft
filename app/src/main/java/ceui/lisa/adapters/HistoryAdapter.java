@@ -60,6 +60,7 @@ public class HistoryAdapter extends BaseAdapter<IllustHistoryEntity, RecyViewHis
             bindView.baseBind.time.setText(mTime.format(allIllust.get(position).getTime()));
 
             if (current.isGif()) {
+                bindView.baseBind.pSize.setVisibility(View.VISIBLE);
                 bindView.baseBind.pSize.setText("GIF");
             } else {
                 if (current.getPage_count() == 1) {
@@ -92,6 +93,7 @@ public class HistoryAdapter extends BaseAdapter<IllustHistoryEntity, RecyViewHis
             bindView.baseBind.author.setText("by: " + current.getUser().getName());
             bindView.baseBind.time.setText(mTime.format(allIllust.get(position).getTime()));
 
+            bindView.baseBind.pSize.setVisibility(View.VISIBLE);
             bindView.baseBind.pSize.setText("小说");
 
             if (mOnItemClickListener != null) {

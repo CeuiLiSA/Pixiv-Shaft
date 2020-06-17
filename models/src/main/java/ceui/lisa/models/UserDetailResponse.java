@@ -121,7 +121,7 @@ public class UserDetailResponse implements Serializable, UserContainer {
 
     @Override
     public int getUserId() {
-        return user.getId();
+        return user == null ? 0 : user.getId();
     }
 
     public static class ProfileBean implements Serializable {

@@ -1,6 +1,7 @@
 package ceui.lisa.adapters;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.widget.CompoundButton;
 
 import java.util.List;
@@ -22,7 +23,12 @@ public class SAdapter extends BaseAdapter<TagsBean, RecySelectTagBinding> {
 
     @Override
     public void bindData(TagsBean target, ViewHolder<RecySelectTagBinding> bindView, int position) {
-        bindView.baseBind.starSize.setText(allIllust.get(position).getName());
+        if (!TextUtils.isEmpty(allIllust.get(position).getTranslated_name())) {
+            bindView.baseBind.starSize.setText(allIllust.get(position).getName() + "/" +
+                    allIllust.get(position).getTranslated_name());
+        } else {
+            bindView.baseBind.starSize.setText(allIllust.get(position).getName());
+        }
         bindView.baseBind.illustCount.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -38,8 +44,6 @@ public class SAdapter extends BaseAdapter<TagsBean, RecySelectTagBinding> {
         } else {
             bindView.baseBind.illustCount.setChecked(false);
         }
-        if (mOnItemClickListener != null) {
-            bindView.itemView.setOnClickListener(v -> bindView.baseBind.illustCount.performClick());
-        }
+        bindView.itemView.setOnClickListener(v -> bindView.baseBind.illustCount.performClick());
     }
 }

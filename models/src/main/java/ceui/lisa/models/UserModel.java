@@ -104,6 +104,7 @@ public class UserModel implements Serializable, UserContainer {
                     ", refresh_token='" + refresh_token + '\'' +
                     ", user=" + user +
                     ", device_token='" + device_token + '\'' +
+                    ", local_user='" + local_user + '\'' +
                     '}';
         }
     }

@@ -9,6 +9,7 @@ import ceui.lisa.interfaces.ListShow;
 import ceui.lisa.models.IllustsBean;
 
 public class ListTrendingtag implements ListShow<ListTrendingtag.TrendTagsBean>, Serializable {
+
     private List<TrendTagsBean> trend_tags;
     private List<TrendTagsBean> tags;
 
