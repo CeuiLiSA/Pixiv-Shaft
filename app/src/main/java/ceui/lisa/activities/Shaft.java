@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 
+import com.blankj.utilcode.util.DeviceUtils;
+import com.blankj.utilcode.util.RomUtils;
 import com.google.gson.Gson;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;

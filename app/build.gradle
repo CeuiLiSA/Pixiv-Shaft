@@ -12,8 +12,8 @@ android {
         applicationId "ceui.lisa.pixiv"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 93
-        versionName "1.9.3"
+        versionCode 94
+        versionName "1.9.4"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -41,9 +41,11 @@ android {
         enabled = true
     }
 
+
     packagingOptions {
-        pickFirst 'META-INF/*'
+        exclude 'META-INF/MANIFEST.MF'
     }
+
 
     lintOptions {
         checkReleaseBuilds false

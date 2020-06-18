@@ -21,6 +21,7 @@ import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.transformer.GalleryTransformer;
+import ceui.lisa.utils.Dev;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
@@ -72,31 +73,35 @@ public class FragmentCenter extends BaseFragment<FragmentCenterBinding> {
 
     @Override
     void initData() {
-        Retro.getAppApi().getLoginBg(Shaft.sUserModel.getResponse().getAccess_token())
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new NullCtrl<ListIllust>() {
-                    @Override
-                    public void success(ListIllust listIllust) {
-                        baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
-                            @NonNull
-                            @Override
-                            public Fragment getItem(int position) {
-                                int index = position % listIllust.getList().size();
-                                return FragmentImage.newInstance(listIllust.getIllusts()
-                                        .get(index));
-                            }
+        if (Dev.isDev) {
 
-                            @Override
-                            public int getCount() {
-                                return Integer.MAX_VALUE;
-                            }
-                        });
-                        baseBind.viewPager.setPageTransformer(true, new GalleryTransformer());
-                        baseBind.viewPager.setOffscreenPageLimit(3);
-                        baseBind.viewPager.setCurrentItem(listIllust.getList().size());
-                    }
-                });
+        } else {
+            Retro.getAppApi().getLoginBg(Shaft.sUserModel.getResponse().getAccess_token())
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new NullCtrl<ListIllust>() {
+                        @Override
+                        public void success(ListIllust listIllust) {
+                            baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
+                                @NonNull
+                                @Override
+                                public Fragment getItem(int position) {
+                                    int index = position % listIllust.getList().size();
+                                    return FragmentImage.newInstance(listIllust.getIllusts()
+                                            .get(index));
+                                }
+
+                                @Override
+                                public int getCount() {
+                                    return Integer.MAX_VALUE;
+                                }
+                            });
+                            baseBind.viewPager.setPageTransformer(true, new GalleryTransformer());
+                            baseBind.viewPager.setOffscreenPageLimit(3);
+                            baseBind.viewPager.setCurrentItem(listIllust.getList().size());
+                        }
+                    });
+        }
     }
 
     @Override

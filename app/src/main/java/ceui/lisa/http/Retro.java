@@ -1,5 +1,7 @@
 package ceui.lisa.http;
 
+import com.blankj.utilcode.util.DeviceUtils;
+import com.blankj.utilcode.util.GsonUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.safframework.http.interceptor.LoggingInterceptor;
@@ -37,7 +39,9 @@ public class Retro {
 
     private static Request.Builder addHeader(Request.Builder before) {
         PixivHeaders pixivHeaders = new PixivHeaders();
-        before.addHeader("User-Agent", "PixivAndroidApp/5.0.175 (Android 6.0.1; D6653)")
+        String osVersion = DeviceUtils.getSDKVersionName();
+        String phoneName = DeviceUtils.getModel();
+        before.addHeader("User-Agent", "PixivAndroidApp/5.0.175 (Android " + osVersion + "; " + phoneName + ")")
                 .addHeader("Accept-Language", "zh_CN")
                 .addHeader("X-Client-Time", pixivHeaders.getXClientTime())
                 .addHeader("X-Client-Hash", pixivHeaders.getXClientHash());

@@ -27,6 +27,9 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 
+import com.blankj.utilcode.util.AppUtils;
+import com.blankj.utilcode.util.DeviceUtils;
+import com.blankj.utilcode.util.RomUtils;
 import com.bumptech.glide.Glide;
 import com.google.android.material.navigation.NavigationView;
 
@@ -111,6 +114,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
     @Override
     protected void initData() {
+        Common.showLog(className + DeviceUtils.getSDKVersionName());
+        Common.showLog(className + DeviceUtils.getModel());
+        Common.showLog(className + DeviceUtils.getManufacturer());
         if (sUserModel != null && sUserModel.getResponse().getUser().isIs_login()) {
             initFragment();
         } else {
