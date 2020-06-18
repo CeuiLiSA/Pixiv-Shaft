@@ -66,18 +66,30 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
         });
         baseBind.viewPager.setPageTransformer(true, new DrawerTransformer());
         allPages = new Fragment[]{
-                FragmentLikeIllust.newInstance(sUserModel.getResponse().getUser().getId(),
-                        FragmentLikeIllust.TYPE_PUBLUC),
-                FragmentLikeIllust.newInstance(sUserModel.getResponse().getUser().getId(),
-                        FragmentLikeIllust.TYPE_PRIVATE),
-                FragmentFollowUser.newInstance(sUserModel.getResponse().getUser().getId(),
-                        FragmentLikeIllust.TYPE_PUBLUC, false),
-                FragmentFollowUser.newInstance(sUserModel.getResponse().getUser().getId(),
-                        FragmentLikeIllust.TYPE_PRIVATE, false),
-                FragmentLikeNovel.newInstance(sUserModel.getResponse().getUser().getId(),
-                        FragmentLikeIllust.TYPE_PUBLUC, false),
-                FragmentLikeNovel.newInstance(sUserModel.getResponse().getUser().getId(),
-                        FragmentLikeIllust.TYPE_PRIVATE, false)
+                FragmentLikeIllust.newInstance(
+                        sUserModel.getResponse().getUser().getId(),
+                        FragmentLikeIllust.TYPE_PUBLUC
+                ),
+                FragmentLikeIllust.newInstance(
+                        sUserModel.getResponse().getUser().getId(),
+                        FragmentLikeIllust.TYPE_PRIVATE
+                ),
+                FragmentFollowUser.newInstance(
+                        sUserModel.getResponse().getUser().getId(),
+                        FragmentLikeIllust.TYPE_PUBLUC, false
+                ),
+                FragmentFollowUser.newInstance(
+                        sUserModel.getResponse().getUser().getId(),
+                        FragmentLikeIllust.TYPE_PRIVATE, false
+                ),
+                FragmentLikeNovel.newInstance(
+                        sUserModel.getResponse().getUser().getId(),
+                        FragmentLikeIllust.TYPE_PUBLUC, false
+                ),
+                FragmentLikeNovel.newInstance(
+                        sUserModel.getResponse().getUser().getId(),
+                        FragmentLikeIllust.TYPE_PRIVATE, false
+                )
         };
         baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
             @Override

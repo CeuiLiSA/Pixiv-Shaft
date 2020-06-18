@@ -30,7 +30,6 @@ public class FragmentDownload extends BaseFragment<ViewpagerWithTablayoutBinding
     };
 
     private Fragment[] allPages = new Fragment[]{new FragmentDownloading(), new FragmentDownloadFinish()};
-    //private Fragment[] allPages = new Fragment[]{new FragmentTestUser(), new FragmentTestIllust()};
 
     @Override
     public void initLayout() {

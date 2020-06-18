@@ -147,9 +147,9 @@ public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
             @Override
             public void onClick(View v) {
                 userModel.getResponse().setLocal_user(Params.USER_KEY);
-
                 //生成加密后的密码
                 String secretPassword = Base64Util.encode(userModel.getResponse().getUser().getPassword());
+                //添加一个标识，是已加密的密码
                 String passwordWithSign = Params.SECRET_PWD_KEY + secretPassword;
                 userModel.getResponse().getUser().setPassword(passwordWithSign);
                 String userJson = Shaft.sGson.toJson(userModel);
