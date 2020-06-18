@@ -77,6 +77,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
             public boolean onMenuItemClick(MenuItem item) {
                 if (item.getItemId() == R.id.action_add) {
                     Common.showToast("开发中");
+                    setColor("#FF0000");
                 }
                 return false;
             }
@@ -186,6 +187,21 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
     @Override
     void initData() {
         getNovel(mNovelBean);
+    }
+
+    private void setColor(String colorString) {
+        if (TextUtils.isEmpty(colorString)) {
+            Common.showToast("颜色值为空");
+            return;
+        }
+
+        if (!colorString.startsWith("#")) {
+            Common.showToast("不规范的颜色值");
+            return;
+        }
+
+
+        baseBind.relaRoot.setBackgroundColor(Integer.parseInt("FF0000"));
     }
 
     private void getNovel(NovelBean novelBean) {
