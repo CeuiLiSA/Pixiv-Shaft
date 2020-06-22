@@ -50,6 +50,9 @@ public class Settings {
     //一级详情FragmentSingleIllust 图片显示原图
     private boolean firstImageSize = false;
 
+    //屏蔽，不显示已收藏的作品，默认不屏蔽
+    private boolean deleteStarIllust = false;
+
     //二级详情FragmentImageDetail 图片显示原图
     private boolean secondImageSize = true;
 
@@ -114,6 +117,14 @@ public class Settings {
     private String searchFilter = "";
 
     public Settings() {
+    }
+
+    public boolean isDeleteStarIllust() {
+        return deleteStarIllust;
+    }
+
+    public void setDeleteStarIllust(boolean pDeleteStarIllust) {
+        deleteStarIllust = pDeleteStarIllust;
     }
 
     public boolean isDoubleStaggerData() {

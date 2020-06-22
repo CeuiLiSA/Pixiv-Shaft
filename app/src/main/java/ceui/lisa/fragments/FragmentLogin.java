@@ -90,9 +90,7 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
                         //如果是新版本加密过的,解密一下
                         if (!TextUtils.isEmpty(pwd) && pwd.startsWith(Params.SECRET_PWD_KEY)) {
                             String secret = pwd.substring(Params.SECRET_PWD_KEY.length());
-                            Common.showLog(className + "before: " + secret);
                             String realPwd = Base64Util.decode(secret);
-                            Common.showLog(className + "after: " + realPwd);
                             exportUser.getResponse().getUser().setPassword(realPwd);
                         }
                         Local.saveUser(exportUser);

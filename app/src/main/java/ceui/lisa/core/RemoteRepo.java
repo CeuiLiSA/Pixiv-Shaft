@@ -1,9 +1,16 @@
 package ceui.lisa.core;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.helper.TagFilter;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.interfaces.ListShow;
+import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.utils.Common;
+import ceui.lisa.utils.PixivOperate;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Function;
@@ -25,12 +32,7 @@ public abstract class RemoteRepo<Response extends ListShow<?>> extends BaseRepo 
                     .map(new Function<Response, Response>() {
                         @Override
                         public Response apply(Response response) {
-                            for (Object o : response.getList()) {
-                                if (o instanceof IllustsBean) {
-                                    TagFilter.judge(((IllustsBean) o));
-                                }
-                            }
-                            return response;
+                            return map(response);
                         }
                     })
                     .subscribe(nullCtrl);
@@ -45,15 +47,19 @@ public abstract class RemoteRepo<Response extends ListShow<?>> extends BaseRepo 
                     .map(new Function<Response, Response>() {
                         @Override
                         public Response apply(Response response) {
-                            for (Object o : response.getList()) {
-                                if (o instanceof IllustsBean) {
-                                    TagFilter.judge(((IllustsBean) o));
-                                }
-                            }
-                            return response;
+                            return map(response);
                         }
                     })
                     .subscribe(nullCtrl);
         }
+    }
+
+    public Response map(Response response) {
+        for (Object o : response.getList()) {
+            if (o instanceof IllustsBean) {
+                TagFilter.judge(((IllustsBean) o));
+            }
+        }
+        return response;
     }
 }

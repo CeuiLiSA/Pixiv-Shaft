@@ -363,6 +363,48 @@
                         </View>
 
                         <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:id="@+id/delete_star_illust_rela"
+                            android:layout_height="match_parent"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true">
+
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_centerVertical="true"
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="@string/delete_star_illust"
+                                android:textColor="@color/rank_text_color"
+                                android:textSize="15sp">
+
+
+                            </TextView>
+
+
+                            <Switch
+                                android:id="@+id/delete_star_illust"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:layout_centerVertical="true"
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:checked="true" />
+
+
+                        </RelativeLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:background="@color/settings_divider_bg">
+
+
+                        </View>
+
+                        <RelativeLayout
                             android:id="@+id/save_history_rela"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"

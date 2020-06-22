@@ -230,6 +230,26 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
             }
         });
 
+        baseBind.deleteStarIllust.setChecked(Shaft.sSettings.isDeleteStarIllust());
+        baseBind.deleteStarIllust.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    Shaft.sSettings.setDeleteStarIllust(true);
+                } else {
+                    Shaft.sSettings.setDeleteStarIllust(false);
+                }
+                Common.showToast("设置成功", baseBind.deleteStarIllust);
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.deleteStarIllustRela.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                baseBind.deleteStarIllust.performClick();
+            }
+        });
+
         baseBind.illustPath.setText(Shaft.sSettings.getIllustPath());
         baseBind.illustPath.setOnClickListener(new View.OnClickListener() {
             @Override

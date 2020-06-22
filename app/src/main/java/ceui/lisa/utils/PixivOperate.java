@@ -20,6 +20,7 @@ import ceui.lisa.fragments.FragmentLogin;
 import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.Retro;
+import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.IllustSearchResponse;
 import ceui.lisa.models.NovelBean;
@@ -278,5 +279,24 @@ public class PixivOperate {
         searchEntity.setId(searchEntity.getKeyword().hashCode() + searchEntity.getSearchType());
         Common.showLog("insertSearchHistory " + searchType + " " + searchEntity.getId());
         AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().insert(searchEntity);
+    }
+
+    public static List<IllustsBean> getListWithoutBooked(ListIllust response) {
+        List<IllustsBean> result = new ArrayList<>();
+        if (response == null) {
+            return result;
+        }
+
+        if (response.getList() == null || response.getList().size() == 0) {
+            return result;
+        }
+
+        for (IllustsBean illustsBean : response.getList()) {
+            if (!illustsBean.isIs_bookmarked()) {
+                result.add(illustsBean);
+            }
+        }
+
+        return result;
     }
 }

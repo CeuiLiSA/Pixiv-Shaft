@@ -125,6 +125,7 @@
     <string name="open_direct_connection">开启直连（自行代理或在墙外，可以关闭）</string>
     <string name="see_pixiv_ez">详见 Notsfsssf/Pix-EzViewer</string>
     <string name="show_original_image">图片详情展示原图</string>
+    <string name="delete_star_illust">搜索结果过滤已收藏</string>
     <string name="save_view_history">保存浏览历史</string>
     <string name="double_stagger_data">动态页面双列瀑布流</string>
     <string name="show_like_button">列表页展示收藏按钮</string>
