@@ -8,7 +8,7 @@ import ceui.lisa.ui.IPresent;
 import ceui.lisa.ui.IView;
 import io.reactivex.Observer;
 
-public abstract class ListPresenter<T extends ListShow> implements IPresent<T> {
+public abstract class ListPresenter<T extends ListShow<?>> implements IPresent<T> {
 
     private IView<T> view;
     private IModel<T> model;

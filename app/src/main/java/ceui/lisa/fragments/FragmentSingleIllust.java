@@ -168,16 +168,6 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
                         public void onPrepare() {
 
                         }
-
-                        @Override
-                        public void onExecuteSuccess(Void aVoid) {
-
-                        }
-
-                        @Override
-                        public void onExecuteFail(Exception e) {
-
-                        }
                     }.execute();
                     return true;
                 } else if (menuItem.getItemId() == R.id.action_dislike) {

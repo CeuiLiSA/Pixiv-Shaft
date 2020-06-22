@@ -95,16 +95,6 @@ public class FragmentEvent extends NetListFragment<FragmentBaseListBinding,
                                     public void onPrepare() {
 
                                     }
-
-                                    @Override
-                                    public void onExecuteSuccess(Void aVoid) {
-
-                                    }
-
-                                    @Override
-                                    public void onExecuteFail(Exception e) {
-
-                                    }
                                 }.execute();
                                 mNormalPopup.dismiss();
                             }

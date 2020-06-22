@@ -281,6 +281,7 @@ public class PixivOperate {
         AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().insert(searchEntity);
     }
 
+    //筛选作品，只留下未收藏的作品
     public static List<IllustsBean> getListWithoutBooked(ListIllust response) {
         List<IllustsBean> result = new ArrayList<>();
         if (response == null) {

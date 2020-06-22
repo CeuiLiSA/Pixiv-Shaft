@@ -7,7 +7,6 @@ import androidx.databinding.ViewDataBinding;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.activities.Shaft;
@@ -16,17 +15,12 @@ import ceui.lisa.adapters.IAdapter;
 import ceui.lisa.core.BaseRepo;
 import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentBaseListBinding;
-import ceui.lisa.helper.TagFilter;
-import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.viewmodel.SearchModel;
 import io.reactivex.Observable;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.Function;
-import io.reactivex.schedulers.Schedulers;
 
 public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBinding, ListIllust,
         IllustsBean> {
@@ -46,10 +40,7 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
     }
 
     public static FragmentSearchIllust newInstance() {
-        Bundle args = new Bundle();
-        FragmentSearchIllust fragment = new FragmentSearchIllust();
-        fragment.setArguments(args);
-        return fragment;
+        return new FragmentSearchIllust();
     }
 
     @Override
@@ -82,6 +73,7 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
                 super.map(response);
 
                 if (Shaft.sSettings.isDeleteStarIllust()) {
+                    //筛选作品，只留下未收藏的作品
                     List<IllustsBean> tempList = PixivOperate.getListWithoutBooked(response);
                     response.setIllusts(tempList);
                 }

@@ -9,7 +9,6 @@ import androidx.fragment.app.FragmentPagerAdapter;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.FragmentAnimeBinding;
-import ceui.lisa.transformer.Abc;
 
 public class FragmentAnime extends BaseFragment<FragmentAnimeBinding> {
 
@@ -51,6 +50,5 @@ public class FragmentAnime extends BaseFragment<FragmentAnimeBinding> {
                 return COLORS.length;
             }
         });
-        baseBind.viewPager.setPageTransformer(false, new Abc());
     }
 }

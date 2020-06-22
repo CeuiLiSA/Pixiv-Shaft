@@ -7,11 +7,12 @@ import android.text.TextUtils;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.databinding.ActivityOutWakeBinding;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 
-public class OutWakeActivity extends BaseActivity {
+public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
 
     @Override
     protected int initLayout() {

@@ -10,7 +10,7 @@ import ceui.lisa.models.IllustsBean;
 /**
  * 分享
  */
-public abstract class ShareIllust implements IExecutor<Void> {
+public abstract class ShareIllust implements IExecutor {
 
     private static final String URL_Head = "https://www.pixiv.net/member_illust.php?illust_id=";
     private static final String URL_BOTTOM = "&mode=medium";

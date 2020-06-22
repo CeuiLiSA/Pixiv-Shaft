@@ -1,12 +1,9 @@
 package ceui.lisa.interfaces;
 
-public interface IExecutor<T> {
+public interface IExecutor {
 
     void execute();
 
     void onPrepare();
 
-    void onExecuteSuccess(T t);
-
-    void onExecuteFail(Exception e);
 }
