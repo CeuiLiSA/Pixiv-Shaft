@@ -4,19 +4,18 @@ import android.text.TextUtils;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 public class Emoji {
 
-    private static final String EMOJI_1  = "(normal)";
-    private static final String EMOJI_2  = "(surprise)";
-    private static final String EMOJI_3  = "(serious)";
-    private static final String EMOJI_4  = "(heaven)";
-    private static final String EMOJI_5  = "(happy)";
-    private static final String EMOJI_6  = "(excited)";
-    private static final String EMOJI_7  = "(sing)";
-    private static final String EMOJI_8  = "(cry)";
-    private static final String EMOJI_9  = "(normal2)";
+    private static final String EMOJI_1 = "(normal)";
+    private static final String EMOJI_2 = "(surprise)";
+    private static final String EMOJI_3 = "(serious)";
+    private static final String EMOJI_4 = "(heaven)";
+    private static final String EMOJI_5 = "(happy)";
+    private static final String EMOJI_6 = "(excited)";
+    private static final String EMOJI_7 = "(sing)";
+    private static final String EMOJI_8 = "(cry)";
+    private static final String EMOJI_9 = "(normal2)";
     private static final String EMOJI_10 = "(shame2)";
     private static final String EMOJI_11 = "(love2)";
     private static final String EMOJI_12 = "(interesting2)";
@@ -48,6 +47,12 @@ public class Emoji {
     private static final String EMOJI_38 = "(star)";
 
 
+    /**
+     * 判断一个字符串中是否包含形如 (sleep4) (heart) (star) 这样的表情
+     *
+     * @param origin 评论
+     * @return boolean
+     */
     public static boolean hasEmoji(String origin) {
         if (TextUtils.isEmpty(origin)) {
             return false;
@@ -61,14 +66,21 @@ public class Emoji {
                 );
     }
 
+    /**
+     * 将字符串中的表情全部替换为<img 巴拉巴拉>
+     * @param origin
+     * @return
+     */
     public static String transform(String origin) {
         String before = origin;
         while (hasEmoji(before)) {
             int startIndex = before.indexOf("(");
             int endIndex = before.indexOf(")");
             if (startIndex >= 0 && endIndex >= startIndex) {
+                //截取这个表情
                 String emoji = before.substring(startIndex, endIndex + 1);
 
+                //将表情替换为对应的<img>
                 if (!TextUtils.isEmpty(emoji)) {
                     before = replace(before, emoji);
                 }
@@ -91,15 +103,15 @@ public class Emoji {
 
     //        map.put(EMOJI_1 , HEAD + "https://s.pximg.net/common/images/emoji/101.png" + OFF);
     static {
-        map.put(EMOJI_1 , HEAD + "101.png" + OFF);
-        map.put(EMOJI_2 , HEAD + "102.png" + OFF);
-        map.put(EMOJI_3 , HEAD + "103.png" + OFF);
-        map.put(EMOJI_4 , HEAD + "104.png" + OFF);
-        map.put(EMOJI_5 , HEAD + "105.png" + OFF);
-        map.put(EMOJI_6 , HEAD + "106.png" + OFF);
-        map.put(EMOJI_7 , HEAD + "107.png" + OFF);
-        map.put(EMOJI_8 , HEAD + "108.png" + OFF);
-        map.put(EMOJI_9 , HEAD + "201.png" + OFF);
+        map.put(EMOJI_1, HEAD + "101.png" + OFF);
+        map.put(EMOJI_2, HEAD + "102.png" + OFF);
+        map.put(EMOJI_3, HEAD + "103.png" + OFF);
+        map.put(EMOJI_4, HEAD + "104.png" + OFF);
+        map.put(EMOJI_5, HEAD + "105.png" + OFF);
+        map.put(EMOJI_6, HEAD + "106.png" + OFF);
+        map.put(EMOJI_7, HEAD + "107.png" + OFF);
+        map.put(EMOJI_8, HEAD + "108.png" + OFF);
+        map.put(EMOJI_9, HEAD + "201.png" + OFF);
         map.put(EMOJI_10, HEAD + "202.png" + OFF);
         map.put(EMOJI_11, HEAD + "203.png" + OFF);
         map.put(EMOJI_12, HEAD + "204.png" + OFF);
