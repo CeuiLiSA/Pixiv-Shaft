@@ -11,29 +11,26 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- 不需要被框架处理的布局，可自由布置 -->
-        <RelativeLayout
-            android:id="@+id/cus_title_bar"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:background="@color/colorPrimary">
 
-            <TextView
-                android:id="@+id/title"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="left|center_vertical"
-                android:paddingLeft="20dp"
-                android:text="自定义标题栏"
-                android:textColor="@android:color/white"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-        </RelativeLayout>
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/colorPrimary"
+            android:elevation="@dimen/six_dp"
+            android:theme="@style/AppTheme.AppBarOverlay"
+            app:popupTheme="@style/AppTheme.PopupOverlay"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
+            app:title=" "
+            app:titleTextColor="@android:color/white">
+
+        </androidx.appcompat.widget.Toolbar>
 
         <com.effective.android.panel.view.PanelSwitchLayout
             android:id="@+id/panel_switch_layout"
             android:layout_width="match_parent"
-            app:animationSpeed="standard"
             android:layout_height="match_parent"
             android:orientation="vertical">
 

@@ -1,6 +1,7 @@
 package ceui.lisa.activities;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.Window;
 import android.view.WindowManager;
@@ -59,6 +60,7 @@ import ceui.lisa.fragments.FragmentWebView;
 import ceui.lisa.fragments.FragmentWhoFollowThisUser;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.NovelBean;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseResult;
@@ -68,11 +70,15 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
     public static final String EXTRA_FRAGMENT = "dataType";
     public static final String EXTRA_KEYWORD = "keyword";
     protected Fragment childFragment;
+    private String dataType;
+
+    @Override
+    protected void initBundle(Bundle bundle) {
+        dataType = bundle.getString(EXTRA_FRAGMENT);
+    }
 
     protected Fragment createNewFragment() {
         Intent intent = getIntent();
-        String dataType = intent.getStringExtra(EXTRA_FRAGMENT);
-
         if (dataType != null) {
             switch (dataType) {
                 case "登录注册":
@@ -239,6 +245,12 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
 
     @Override
     public boolean hideStatusBar() {
-        return getIntent().getBooleanExtra("hideStatusBar", true);
+        if ("相关评论".equals(dataType) || "关于软件".equals(dataType)) {
+            Common.showLog(className + "不隐藏状态栏");
+            return false;
+        } else {
+            Common.showLog(className + "隐藏状态栏");
+            return getIntent().getBooleanExtra("hideStatusBar", true);
+        }
     }
 }

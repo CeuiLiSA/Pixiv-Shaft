@@ -8,7 +8,11 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import androidx.appcompat.app.AlertDialog;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.effective.android.panel.PanelSwitchHelper;
 
 import java.util.List;
 
@@ -17,18 +21,22 @@ import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UserActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.CommentAdapter;
+import ceui.lisa.adapters.EmojiAdapter;
 import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentCommentBinding;
 import ceui.lisa.databinding.RecyCommentListBinding;
 import ceui.lisa.dialogs.SoftKeyboardStateHelper;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
+import ceui.lisa.interfaces.OnItemClickListener;
+import ceui.lisa.model.EmojiItem;
 import ceui.lisa.model.ListComment;
 import ceui.lisa.models.CommentHolder;
 import ceui.lisa.models.CommentsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Emoji;
 import ceui.lisa.utils.Params;
+import ceui.lisa.view.EditTextWithSelection;
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
@@ -43,6 +51,8 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
     private int illustID;
     private String title;
     private int parentCommentID;
+    private PanelSwitchHelper mHelper;
+    private int selection = 0;
 
     public static FragmentComment newInstance(int id, String title) {
         Bundle args = new Bundle();
@@ -62,6 +72,18 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
     @Override
     public void initLayout() {
         mLayoutID = R.layout.fragment_comment;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (mHelper == null) {
+            mHelper = new PanelSwitchHelper.Builder(this)
+                    .contentCanScrollOutside(false)    //可选模式，默认true，当面板实现时内容区域是否往上滑动
+                    .logTrack(true)
+                    //可选，默认false，是否开启log信息输出
+                    .build(false);              //可选，默认false，是否默认打开输入法
+        }
     }
 
     @Override
@@ -219,6 +241,7 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
                 @Override
                 public void onSubscribe(Disposable d) {
                     Common.hideKeyboard(mActivity);
+                    mHelper.resetState();
                     baseBind.inputBox.setHint("请输入评论内容");
                     baseBind.inputBox.setText("");
                     baseBind.progress.setVisibility(View.VISIBLE);
@@ -231,7 +254,13 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
                         noData.setVisibility(View.INVISIBLE);
                     }
 
-                    allItems.add(0, commentHolder.getComment());
+                    if (Emoji.hasEmoji(commentHolder.getComment().getComment())) {
+                        commentHolder.getComment().setComment(
+                                Emoji.transform(commentHolder.getComment().getComment()));
+                        allItems.add(0, commentHolder.getComment());
+                    } else {
+                        allItems.add(0, commentHolder.getComment());
+                    }
                     mAdapter.notifyItemInserted(0);
                     baseBind.recyclerView.scrollToPosition(0);
                 }
@@ -266,17 +295,40 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
             }
         });
 
-        //让rootview scroll一下，避免软键盘遮挡底部的输入框
-        SoftKeyboardStateHelper softKeyboardStateHelper = new SoftKeyboardStateHelper(parentView);
-        softKeyboardStateHelper.addSoftKeyboardStateListener(new SoftKeyboardStateHelper.SoftKeyboardStateListener() {
+        RecyclerView recyclerView = view.findViewById(R.id.recy_list);
+        GridLayoutManager layoutManager = new GridLayoutManager(getContext(), 6);
+        recyclerView.setLayoutManager(layoutManager);
+        EmojiAdapter adapter = new EmojiAdapter(Emoji.getEmojis(), getContext());
+        adapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
-            public void onSoftKeyboardOpened(int keyboardHeightInPx) {
-                baseBind.fuckingRoot.scrollTo(0, keyboardHeightInPx);
-            }
+            public void onItemClick(View v, int position, int viewType) {
+                final EmojiItem item = adapter.getItemAt(position);
 
+                String name = item.getName();
+                String show = baseBind.inputBox.getText().toString();
+                if (selection < show.length()) {
+                    String left = show.substring(0, selection);
+                    String right = show.substring(selection);
+
+                    baseBind.inputBox.setText(left + name + right);
+                    baseBind.inputBox.setSelection(selection + name.length());
+                } else {
+                    String result = show + name;
+
+                    baseBind.inputBox.setText(result);
+                    baseBind.inputBox.setSelection(result.length());
+                }
+                Common.showLog(className + selection);
+
+            }
+        });
+        recyclerView.setAdapter(adapter);
+        baseBind.inputBox.setOnSelectionChange(new EditTextWithSelection.OnSelectionChange() {
             @Override
-            public void onSoftKeyboardClosed() {
-                baseBind.fuckingRoot.scrollTo(0, 0);
+            public void onChange(int start, int end) {
+                if (start != 0) {
+                    selection = start;
+                }
             }
         });
     }

@@ -32,6 +32,7 @@ import com.blankj.utilcode.util.DeviceUtils;
 import com.blankj.utilcode.util.RomUtils;
 import com.bumptech.glide.Glide;
 import com.google.android.material.navigation.NavigationView;
+import com.tbruyelle.rxpermissions2.RxPermissions;
 
 import java.io.File;
 
@@ -49,6 +50,7 @@ import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseImage;
 import ceui.lisa.utils.ReverseWebviewCallback;
+import io.reactivex.disposables.Disposable;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
@@ -114,11 +116,20 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
     @Override
     protected void initData() {
-        Common.showLog(className + DeviceUtils.getSDKVersionName());
-        Common.showLog(className + DeviceUtils.getModel());
-        Common.showLog(className + DeviceUtils.getManufacturer());
         if (sUserModel != null && sUserModel.getResponse().getUser().isIs_login()) {
-            initFragment();
+            final RxPermissions rxPermissions = new RxPermissions(mActivity);
+            Disposable disposable = rxPermissions
+                    .requestEachCombined(
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE
+                    )
+                    .subscribe(permission -> {
+                        if (permission.granted) {
+                            initFragment();
+                        } else {
+                            Common.showToast(mActivity.getString(R.string.access_denied));
+                            finish();
+                        }
+                    });
         } else {
             Intent intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "登录注册");
