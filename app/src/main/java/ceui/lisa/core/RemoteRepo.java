@@ -29,12 +29,7 @@ public abstract class RemoteRepo<Response extends ListShow<?>> extends BaseRepo 
         if (mApi != null) {
             mApi.subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .map(new Function<Response, Response>() {
-                        @Override
-                        public Response apply(Response response) {
-                            return map(response);
-                        }
-                    })
+                    .map(mapper())
                     .subscribe(nullCtrl);
         }
     }
@@ -44,22 +39,12 @@ public abstract class RemoteRepo<Response extends ListShow<?>> extends BaseRepo 
         if (mApi != null) {
             mApi.subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .map(new Function<Response, Response>() {
-                        @Override
-                        public Response apply(Response response) {
-                            return map(response);
-                        }
-                    })
+                    .map(mapper())
                     .subscribe(nullCtrl);
         }
     }
 
-    public Response map(Response response) {
-        for (Object o : response.getList()) {
-            if (o instanceof IllustsBean) {
-                TagFilter.judge(((IllustsBean) o));
-            }
-        }
-        return response;
+    public Function<? super Response, Response> mapper() {
+        return new Mapper<>();
     }
 }

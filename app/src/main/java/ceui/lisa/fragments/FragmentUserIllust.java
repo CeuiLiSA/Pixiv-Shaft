@@ -4,6 +4,7 @@ import android.os.Bundle;
 
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapter;
+import ceui.lisa.core.FilterMapper;
 import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
@@ -12,6 +13,7 @@ import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Params;
 import io.reactivex.Observable;
+import io.reactivex.functions.Function;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
@@ -55,6 +57,11 @@ public class FragmentUserIllust extends NetListFragment<FragmentBaseListBinding,
             public Observable<ListIllust> initNextApi() {
                 return Retro.getAppApi().getNextIllust(
                         sUserModel.getResponse().getAccess_token(), mModel.getNextUrl());
+            }
+
+            @Override
+            public Function<ListIllust, ListIllust> mapper() {
+                return new FilterMapper();
             }
         };
     }

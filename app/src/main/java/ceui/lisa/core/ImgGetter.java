@@ -16,7 +16,7 @@ import ceui.lisa.utils.Common;
 public class ImgGetter extends HtmlAssetsImageGetter {
 
     private Context mContext;
-    private static final int BOUND = 48;
+    public static final int BOUND = 54;
 
     public ImgGetter(Context context) {
         super(context);

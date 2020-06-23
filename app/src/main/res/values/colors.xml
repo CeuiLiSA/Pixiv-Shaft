@@ -55,5 +55,6 @@
 
     <color name="not_bookmarked">#a4afb3</color>
     <color name="has_bookmarked">#FA3A3A</color>
+    <color name="panel_bg">#EAEAEA</color>
 
 </resources>

@@ -16,6 +16,7 @@ import ceui.lisa.databinding.ActivityFragmentBinding;
 import ceui.lisa.fragments.FragmentAboutApp;
 import ceui.lisa.fragments.FragmentAnime;
 import ceui.lisa.fragments.FragmentColor;
+import ceui.lisa.fragments.FragmentComing;
 import ceui.lisa.fragments.FragmentListSimpleUser;
 import ceui.lisa.fragments.FragmentLock;
 import ceui.lisa.fragments.FragmentMultiDownld;
@@ -119,7 +120,11 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                     return FragmentSB.newInstance(id);
                 }
                 case "关于软件":
-                    return new FragmentAboutApp();
+                    if (Dev.isDev) {
+                        return FragmentComing.newInstance();
+                    } else {
+                        return new FragmentAboutApp();
+                    }
                 case "批量下载":
                     return new FragmentMultiDownld();
                 case "画廊":

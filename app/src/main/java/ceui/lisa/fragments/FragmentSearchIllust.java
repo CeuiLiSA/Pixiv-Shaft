@@ -13,6 +13,7 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapter;
 import ceui.lisa.core.BaseRepo;
+import ceui.lisa.core.FilterMapper;
 import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.http.Retro;
@@ -21,6 +22,7 @@ import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.viewmodel.SearchModel;
 import io.reactivex.Observable;
+import io.reactivex.functions.Function;
 
 public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBinding, ListIllust,
         IllustsBean> {
@@ -69,15 +71,8 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
             }
 
             @Override
-            public ListIllust map(ListIllust response) {
-                super.map(response);
-
-                if (Shaft.sSettings.isDeleteStarIllust()) {
-                    //筛选作品，只留下未收藏的作品
-                    List<IllustsBean> tempList = PixivOperate.getListWithoutBooked(response);
-                    response.setIllusts(tempList);
-                }
-                return response;
+            public Function<ListIllust, ListIllust> mapper() {
+                return new FilterMapper();
             }
         };
     }

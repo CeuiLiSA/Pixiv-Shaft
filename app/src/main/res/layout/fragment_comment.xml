@@ -95,9 +95,21 @@
                     android:id="@+id/clear"
                     android:src="@drawable/ic_cancel_black_24dp"
                     android:layout_centerVertical="true"
-                    android:layout_alignEnd="@+id/input_box"
+                    android:layout_toStartOf="@+id/post"
                     android:layout_marginEnd="@dimen/four_dp"
                     android:layout_height="30dp">
+
+                </ImageView>
+
+                <ImageView
+                    android:id="@+id/show_emoji"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_centerVertical="true"
+                    android:layout_toStartOf="@+id/clear"
+                    android:layout_marginEnd="@dimen/four_dp"
+                    android:padding="@dimen/four_dp"
+                    android:src="@drawable/ic_emoji">
 
                 </ImageView>
 

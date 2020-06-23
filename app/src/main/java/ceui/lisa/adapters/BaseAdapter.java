@@ -99,4 +99,11 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
                 )
         );
     }
+
+    public Item getItemAt(int index) {
+        if (index < allIllust.size()) {
+            return allIllust.get(index);
+        }
+        return null;
+    }
 }
