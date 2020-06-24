@@ -9,14 +9,17 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.GridLayoutManager;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.ViewPagerActivity;
+import ceui.lisa.activities.VActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.MultiDownldAdapter;
 import ceui.lisa.core.BaseRepo;
 import ceui.lisa.core.LocalRepo;
+import ceui.lisa.core.PageData;
 import ceui.lisa.databinding.FragmentMultiDownloadBinding;
 import ceui.lisa.databinding.RecyMultiDownloadBinding;
 import ceui.lisa.download.IllustDownload;
@@ -25,9 +28,11 @@ import ceui.lisa.interfaces.Callback;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
+import ceui.lisa.core.Container;
 import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Dev;
+import ceui.lisa.utils.Params;
 import ceui.lisa.view.DownloadItemDecoration;
 import gdut.bsx.share2.FileUtil;
 import gdut.bsx.share2.Share2;
@@ -119,10 +124,20 @@ public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownload
         adapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                DataChannel.get().setIllustList(allItems);
-                Intent intent = new Intent(mContext, ViewPagerActivity.class);
-                intent.putExtra("position", position);
-                startActivity(intent);
+                final String uuid = UUID.randomUUID().toString();
+                final List<IllustsBean> tempList = new ArrayList<>(allItems);
+                final PageData pageData = new PageData(uuid, tempList);
+                Container.get().addPage(pageData);
+
+                Intent intent = new Intent(mContext, VActivity.class);
+                intent.putExtra(Params.POSITION, position);
+                intent.putExtra(Params.PAGE_UUID, uuid);
+                mContext.startActivity(intent);
+
+//                DataChannel.get().setIllustList(allItems);
+//                Intent intent = new Intent(mContext, ViewPagerActivity.class);
+//                intent.putExtra("position", position);
+//                startActivity(intent);
             }
         });
         adapter.setCallback(new Callback() {

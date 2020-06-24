@@ -6,13 +6,17 @@ import android.view.View;
 
 import com.bumptech.glide.Glide;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.ViewPagerActivity;
+import ceui.lisa.activities.VActivity;
+import ceui.lisa.core.PageData;
 import ceui.lisa.databinding.FragmentImageBinding;
 import ceui.lisa.models.IllustsBean;
-import ceui.lisa.utils.DataChannel;
+import ceui.lisa.core.Container;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 
@@ -49,10 +53,21 @@ public class FragmentImage extends BaseFragment<FragmentImageBinding> {
         baseBind.illustImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View pView) {
-                DataChannel.get().setIllustList(Collections.singletonList(mIllustsBean));
-                Intent intent = new Intent(mContext, ViewPagerActivity.class);
-                intent.putExtra("position", 0);
-                startActivity(intent);
+                final String uuid = UUID.randomUUID().toString();
+                final List<IllustsBean> tempList = new ArrayList<>(Collections.singletonList(mIllustsBean));
+                final PageData pageData = new PageData(uuid, tempList);
+                Container.get().addPage(pageData);
+
+                Intent intent = new Intent(mContext, VActivity.class);
+                intent.putExtra(Params.POSITION, 0);
+                intent.putExtra(Params.PAGE_UUID, uuid);
+                mContext.startActivity(intent);
+
+
+//                DataChannel.get().setIllustList(Collections.singletonList(mIllustsBean));
+//                Intent intent = new Intent(mContext, ViewPagerActivity.class);
+//                intent.putExtra("position", 0);
+//                startActivity(intent);
             }
         });
     }

@@ -27,9 +27,6 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 
-import com.blankj.utilcode.util.AppUtils;
-import com.blankj.utilcode.util.DeviceUtils;
-import com.blankj.utilcode.util.RomUtils;
 import com.bumptech.glide.Glide;
 import com.google.android.material.navigation.NavigationView;
 import com.tbruyelle.rxpermissions2.RxPermissions;
@@ -319,5 +316,6 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             initDrawerHeader();
             Dev.refreshUser = false;
         }
+//        Container.get().clear();
     }
 }

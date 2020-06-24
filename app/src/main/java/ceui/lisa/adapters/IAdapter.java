@@ -1,6 +1,5 @@
 package ceui.lisa.adapters;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
@@ -11,7 +10,6 @@ import android.widget.PopupWindow;
 
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
@@ -21,28 +19,24 @@ import com.qmuiteam.qmui.widget.popup.QMUIPopups;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
-import ceui.lisa.activities.ViewPagerActivity;
+import ceui.lisa.activities.VActivity;
+import ceui.lisa.core.PageData;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.dialogs.MuteDialog;
 import ceui.lisa.fragments.FragmentLikeIllust;
-import ceui.lisa.http.NullCtrl;
-import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.MultiDownload;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.DataChannel;
+import ceui.lisa.core.Container;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
-import io.reactivex.Scheduler;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
 import jp.wasabeef.glide.transformations.BlurTransformation;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
@@ -101,7 +95,7 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
                         bindView.baseBind.likeButton.setImageTintList(
                                 ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.not_bookmarked)));
                     } else {
-                        getRelated(target, position);
+//                        getRelated(target, position);
                         bindView.baseBind.likeButton.setImageTintList(
                                 ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.has_bookmarked)));
                     }
@@ -112,7 +106,7 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
                 @Override
                 public boolean onLongClick(View v) {
                     if (!target.isIs_bookmarked()) {
-                        getRelated(target, position);
+//                        getRelated(target, position);
                         Intent intent = new Intent(mContext, TemplateActivity.class);
                         intent.putExtra(Params.ILLUST_ID, target.getId());
                         intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏");
@@ -200,12 +194,15 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
         setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                DataChannel.get().setIllustList(allIllust);
-                Intent intent = new Intent(mContext, ViewPagerActivity.class);
-                intent.putExtra("position", position);
+                final String uuid = UUID.randomUUID().toString();
+                final List<IllustsBean> tempList = new ArrayList<>(allIllust);
+                final PageData pageData = new PageData(uuid, tempList);
+                Container.get().addPage(pageData);
+
+                Intent intent = new Intent(mContext, VActivity.class);
+                intent.putExtra(Params.POSITION, position);
+                intent.putExtra(Params.PAGE_UUID, uuid);
                 mContext.startActivity(intent);
-//                ((Activity)mContext).overridePendingTransition(R.anim.zoom_enter,
-//                        R.anim.zoom_exit);
             }
         });
     }

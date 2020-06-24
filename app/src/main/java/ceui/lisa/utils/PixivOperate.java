@@ -7,11 +7,15 @@ import android.view.View;
 import android.widget.Button;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.activities.ViewPagerActivity;
+import ceui.lisa.activities.VActivity;
+import ceui.lisa.core.Container;
+import ceui.lisa.core.PageData;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.database.SearchEntity;
@@ -157,12 +161,25 @@ public class PixivOperate {
                     public void onNext(IllustSearchResponse illustSearchResponse) {
                         if (illustSearchResponse != null) {
                             if (illustSearchResponse.getIllust() != null) {
-                                List<IllustsBean> tempList = new ArrayList<>();
-                                tempList.add(illustSearchResponse.getIllust());
-                                DataChannel.get().setIllustList(tempList);
-                                Intent intent = new Intent(context, ViewPagerActivity.class);
-                                intent.putExtra("position", 0);
+                                final String uuid = UUID.randomUUID().toString();
+                                final List<IllustsBean> tempList = new ArrayList<>(
+                                        Collections.singletonList(illustSearchResponse.getIllust())
+                                );
+                                final PageData pageData = new PageData(uuid, tempList);
+                                Container.get().addPage(pageData);
+
+                                Intent intent = new Intent(context, VActivity.class);
+                                intent.putExtra(Params.POSITION, 0);
+                                intent.putExtra(Params.PAGE_UUID, uuid);
                                 context.startActivity(intent);
+
+
+//                                List<IllustsBean> tempList = new ArrayList<>();
+//                                tempList.add(illustSearchResponse.getIllust());
+//                                DataChannel.get().setIllustList(tempList);
+//                                Intent intent = new Intent(context, ViewPagerActivity.class);
+//                                intent.putExtra("position", 0);
+//                                context.startActivity(intent);
                             } else {
                                 Common.showToast("illustSearchResponse.getIllust() 为空");
                             }
@@ -183,12 +200,25 @@ public class PixivOperate {
                     public void onNext(IllustSearchResponse illustSearchResponse) {
                         if (illustSearchResponse != null) {
                             if (illustSearchResponse.getIllust() != null) {
-                                List<IllustsBean> tempList = new ArrayList<>();
-                                tempList.add(illustSearchResponse.getIllust());
-                                DataChannel.get().setIllustList(tempList);
-                                Intent intent = new Intent(context, ViewPagerActivity.class);
-                                intent.putExtra("position", 0);
+                                final String uuid = UUID.randomUUID().toString();
+                                final List<IllustsBean> tempList = Collections.singletonList(
+                                        illustSearchResponse.getIllust()
+                                );
+                                final PageData pageData = new PageData(uuid, tempList);
+                                Container.get().addPage(pageData);
+
+                                Intent intent = new Intent(context, VActivity.class);
+                                intent.putExtra(Params.POSITION, 0);
+                                intent.putExtra(Params.PAGE_UUID, uuid);
                                 context.startActivity(intent);
+
+
+//                                List<IllustsBean> tempList = new ArrayList<>();
+//                                tempList.add(illustSearchResponse.getIllust());
+//                                DataChannel.get().setIllustList(tempList);
+//                                Intent intent = new Intent(context, ViewPagerActivity.class);
+//                                intent.putExtra("position", 0);
+//                                context.startActivity(intent);
                                 if (callback != null) {
                                     callback.doSomething(null);
                                 }

@@ -17,14 +17,19 @@ import com.scwang.smartrefresh.layout.api.RefreshFooter;
 import com.scwang.smartrefresh.layout.api.RefreshHeader;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UserActivity;
-import ceui.lisa.activities.ViewPagerActivity;
+import ceui.lisa.activities.VActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.EventAdapter;
 import ceui.lisa.adapters.IAdapter;
+import ceui.lisa.core.PageData;
 import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.download.IllustDownload;
@@ -32,7 +37,7 @@ import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
-import ceui.lisa.utils.DataChannel;
+import ceui.lisa.core.Container;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.ShareIllust;
@@ -52,10 +57,21 @@ public class FragmentEvent extends NetListFragment<FragmentBaseListBinding,
                 @Override
                 public void onItemClick(View v, int position, int viewType) {
                     if (viewType == 0) {
-                        DataChannel.get().setIllustList(allItems);
-                        Intent intent = new Intent(mContext, ViewPagerActivity.class);
-                        intent.putExtra("position", position);
-                        startActivity(intent);
+                        final String uuid = UUID.randomUUID().toString();
+                        final List<IllustsBean> tempList = new ArrayList<>(allItems);
+                        final PageData pageData = new PageData(uuid, tempList);
+                        Container.get().addPage(pageData);
+
+                        Intent intent = new Intent(mContext, VActivity.class);
+                        intent.putExtra(Params.POSITION, position);
+                        intent.putExtra(Params.PAGE_UUID, uuid);
+                        mContext.startActivity(intent);
+
+
+//                        DataChannel.get().setIllustList(allItems);
+//                        Intent intent = new Intent(mContext, ViewPagerActivity.class);
+//                        intent.putExtra("position", position);
+//                        startActivity(intent);
                     } else if (viewType == 1) {
                         Intent intent = new Intent(mContext, UserActivity.class);
                         intent.putExtra(Params.USER_ID, allItems.get(position).getUser().getId());

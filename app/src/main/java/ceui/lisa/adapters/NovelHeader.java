@@ -6,18 +6,14 @@ import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 
-import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import java.util.List;
 
 import ceui.lisa.activities.RankActivity;
 import ceui.lisa.activities.TemplateActivity;
-import ceui.lisa.activities.ViewPagerActivity;
 import ceui.lisa.databinding.RecyRecmdHeaderBinding;
-import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.NovelBean;
-import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.LinearItemHorizontalDecoration;

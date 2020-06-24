@@ -45,7 +45,6 @@
                     android:scheme="https" />
             </intent-filter>
         </activity>
-        <activity android:name=".activities.ViewPagerActivity" />
         <activity
             android:name=".activities.TemplateActivity"
             android:windowSoftInputMode="adjustPan" />
@@ -104,6 +103,7 @@
         </activity>
         <activity android:name=".activities.UserActivity" />
         <activity android:name=".activities.SearchActivity" />
+        <activity android:name=".activities.VActivity" />
     </application>
 
 </manifest>
