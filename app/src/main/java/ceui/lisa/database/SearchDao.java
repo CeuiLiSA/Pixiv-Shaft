@@ -36,4 +36,16 @@ public interface SearchDao {
 
     @Delete
     void unMuteTag(TagMuteEntity userEntity);
+
+
+    /**
+     * 添加一个列表记录
+     * @param uuidEntity
+     */
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insertListWithUUID(UUIDEntity uuidEntity);
+
+
+    @Query("SELECT * FROM uuid_list_table WHERE uuid = :paramUUID LIMIT 1")
+    UUIDEntity getListByUUID(String paramUUID);
 }

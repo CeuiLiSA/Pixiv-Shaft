@@ -26,6 +26,8 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.VActivity;
 import ceui.lisa.core.PageData;
+import ceui.lisa.core.TimeRecord;
+import ceui.lisa.database.UUIDEntity;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.dialogs.MuteDialog;
 import ceui.lisa.fragments.FragmentLikeIllust;
@@ -194,6 +196,8 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
         setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
+                TimeRecord.start();
+
                 final String uuid = UUID.randomUUID().toString();
                 final List<IllustsBean> tempList = new ArrayList<>(allIllust);
                 final PageData pageData = new PageData(uuid, tempList);

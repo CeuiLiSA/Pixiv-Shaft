@@ -1,21 +1,25 @@
 package ceui.lisa.core;
 
+import android.content.Context;
 import android.text.TextUtils;
 
 import java.util.HashMap;
 
+import ceui.lisa.database.AppDatabase;
+import ceui.lisa.database.UUIDEntity;
+import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 
 public class Container {
 
-    private HashMap<String, PageData> pages = new HashMap<>();
+    private HashMap<String, IDWithList<IllustsBean>> pages = new HashMap<>();
 
     public void addPage(PageData pageData) {
         if (pageData == null) {
             return;
         }
 
-        if (TextUtils.isEmpty(pageData.getUuid())) {
+        if (TextUtils.isEmpty(pageData.getUUID())) {
             return;
         }
 
@@ -23,11 +27,24 @@ public class Container {
             pages = new HashMap<>();
         }
 
-        pages.put(pageData.getUuid(), pageData);
-        Common.showLog("Container addPage " + pageData.getUuid());
+        pages.put(pageData.getUUID(), pageData);
+        Common.showLog("Container addPage " + pageData.getUUID());
     }
 
-    public PageData getPage(String uuid) {
+    public void addPage(Context context, UUIDEntity uuidEntity) {
+        if (uuidEntity == null || context == null) {
+            return;
+        }
+
+        if (TextUtils.isEmpty(uuidEntity.getUuid())) {
+            return;
+        }
+
+        AppDatabase.getAppDatabase(context).searchDao().insertListWithUUID(uuidEntity);
+        Common.showLog("Container addPage " + uuidEntity.getUuid());
+    }
+
+    public IDWithList<IllustsBean> getPage(String uuid) {
         Common.showLog("Container getPage " + uuid);
         if (TextUtils.isEmpty(uuid)) {
             return null;
@@ -38,6 +55,15 @@ public class Container {
         }
 
         return pages.get(uuid);
+    }
+
+    public IDWithList<IllustsBean> getPage(Context context, String uuid) {
+        Common.showLog("Container getPage " + uuid);
+        if (TextUtils.isEmpty(uuid) || context == null) {
+            return null;
+        }
+
+        return AppDatabase.getAppDatabase(context).searchDao().getListByUUID(uuid);
     }
 
     public void clear() {

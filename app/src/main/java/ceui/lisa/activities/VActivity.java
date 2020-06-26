@@ -8,11 +8,13 @@ import androidx.fragment.app.FragmentStatePagerAdapter;
 
 
 import ceui.lisa.R;
-import ceui.lisa.core.PageData;
-import ceui.lisa.databinding.ActivityViewPagerBinding;
-import ceui.lisa.fragments.FragmentIllust;
 import ceui.lisa.core.Container;
+import ceui.lisa.core.IDWithList;
+import ceui.lisa.core.TimeRecord;
+import ceui.lisa.database.AppDatabase;
+import ceui.lisa.databinding.ActivityViewPagerBinding;
 import ceui.lisa.fragments.FragmentSingleIllust2;
+import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Params;
 
 public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
@@ -33,15 +35,15 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
 
     @Override
     protected void initView() {
-        PageData pageData = Container.get().getPage(pageUUID);
-        if (pageData != null) {
-            final int pageSize = pageData.getIllustList() == null ? 0 : pageData.getIllustList().size();
+        IDWithList<IllustsBean> idWithList = Container.get().getPage(pageUUID);
+        if (idWithList != null) {
+            final int pageSize = idWithList.getList() == null ? 0 : idWithList.getList().size();
             baseBind.viewPager.setAdapter(new FragmentStatePagerAdapter(getSupportFragmentManager(), 0) {
                 @NonNull
                 @Override
                 public Fragment getItem(int position) {
 //                    return FragmentIllust.newInstance(pageData.getIllustList().get(position));
-                    return FragmentSingleIllust2.newInstance(pageData.getIllustList().get(position));
+                    return FragmentSingleIllust2.newInstance(idWithList.getList().get(position));
                 }
 
                 @Override
@@ -53,6 +55,9 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                 baseBind.viewPager.setCurrentItem(index);
             }
         }
+
+        TimeRecord.end();
+        TimeRecord.result();
     }
 
     @Override
