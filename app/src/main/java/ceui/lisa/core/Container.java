@@ -3,7 +3,9 @@ package ceui.lisa.core;
 import android.content.Context;
 import android.text.TextUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UUIDEntity;
@@ -14,7 +16,11 @@ public class Container {
 
     private HashMap<String, IDWithList<IllustsBean>> pages = new HashMap<>();
 
-    public void addPage(PageData pageData) {
+    /**
+     * 用 HashMap 存储，app杀掉之后就没有了
+     * @param pageData 一个插画列表
+     */
+    public void addPageToMap(IDWithList<IllustsBean> pageData) {
         if (pageData == null) {
             return;
         }
@@ -31,7 +37,12 @@ public class Container {
         Common.showLog("Container addPage " + pageData.getUUID());
     }
 
-    public void addPage(Context context, UUIDEntity uuidEntity) {
+    /**
+     * 用 Room数据库 存储，数据一直在不会丢失
+     * @param context context
+     * @param uuidEntity 一个插画列表
+     */
+    public void addPageToSQL(Context context, UUIDEntity uuidEntity) {
         if (uuidEntity == null || context == null) {
             return;
         }
@@ -64,6 +75,18 @@ public class Container {
         }
 
         return AppDatabase.getAppDatabase(context).searchDao().getListByUUID(uuid);
+    }
+
+    public List<PageData> getAll() {
+        List<PageData> result = new ArrayList<>();
+        if (pages == null || pages.size() == 0) {
+            return result;
+        }
+
+        for (IDWithList<IllustsBean> value : pages.values()) {
+            result.add((PageData) value);
+        }
+        return result;
     }
 
     public void clear() {

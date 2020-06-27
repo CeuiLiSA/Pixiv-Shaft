@@ -9,7 +9,6 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.GridLayoutManager;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -125,9 +124,8 @@ public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownload
             @Override
             public void onItemClick(View v, int position, int viewType) {
                 final String uuid = UUID.randomUUID().toString();
-                final List<IllustsBean> tempList = new ArrayList<>(allItems);
-                final PageData pageData = new PageData(uuid, tempList);
-                Container.get().addPage(pageData);
+                final PageData pageData = new PageData(uuid, allItems);
+                Container.get().addPageToMap(pageData);
 
                 Intent intent = new Intent(mContext, VActivity.class);
                 intent.putExtra(Params.POSITION, position);

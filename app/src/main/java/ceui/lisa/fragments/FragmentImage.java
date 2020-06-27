@@ -6,9 +6,7 @@ import android.view.View;
 
 import com.bumptech.glide.Glide;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.UUID;
 
 import ceui.lisa.R;
@@ -54,9 +52,8 @@ public class FragmentImage extends BaseFragment<FragmentImageBinding> {
             @Override
             public void onClick(View pView) {
                 final String uuid = UUID.randomUUID().toString();
-                final List<IllustsBean> tempList = new ArrayList<>(Collections.singletonList(mIllustsBean));
-                final PageData pageData = new PageData(uuid, tempList);
-                Container.get().addPage(pageData);
+                final PageData pageData = new PageData(uuid, Collections.singletonList(mIllustsBean));
+                Container.get().addPageToMap(pageData);
 
                 Intent intent = new Intent(mContext, VActivity.class);
                 intent.putExtra(Params.POSITION, 0);

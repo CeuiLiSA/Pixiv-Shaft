@@ -162,11 +162,9 @@ public class PixivOperate {
                         if (illustSearchResponse != null) {
                             if (illustSearchResponse.getIllust() != null) {
                                 final String uuid = UUID.randomUUID().toString();
-                                final List<IllustsBean> tempList = new ArrayList<>(
-                                        Collections.singletonList(illustSearchResponse.getIllust())
-                                );
-                                final PageData pageData = new PageData(uuid, tempList);
-                                Container.get().addPage(pageData);
+                                final PageData pageData = new PageData(uuid,
+                                        Collections.singletonList(illustSearchResponse.getIllust()));
+                                Container.get().addPageToMap(pageData);
 
                                 Intent intent = new Intent(context, VActivity.class);
                                 intent.putExtra(Params.POSITION, 0);
@@ -201,11 +199,9 @@ public class PixivOperate {
                         if (illustSearchResponse != null) {
                             if (illustSearchResponse.getIllust() != null) {
                                 final String uuid = UUID.randomUUID().toString();
-                                final List<IllustsBean> tempList = Collections.singletonList(
-                                        illustSearchResponse.getIllust()
-                                );
-                                final PageData pageData = new PageData(uuid, tempList);
-                                Container.get().addPage(pageData);
+                                final PageData pageData = new PageData(uuid,
+                                        Collections.singletonList(illustSearchResponse.getIllust()));
+                                Container.get().addPageToMap(pageData);
 
                                 Intent intent = new Intent(context, VActivity.class);
                                 intent.putExtra(Params.POSITION, 0);

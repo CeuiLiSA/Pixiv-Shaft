@@ -12,7 +12,7 @@ public class PageData implements IDWithList<IllustsBean>{
 
     public PageData(String uuid, List<IllustsBean> illustList) {
         this.uuid = uuid;
-        this.illustList = illustList;
+        this.illustList = new ArrayList<>(illustList);
     }
 
     @Override

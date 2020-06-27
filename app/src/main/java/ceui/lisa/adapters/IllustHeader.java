@@ -8,7 +8,6 @@ import android.view.animation.Animation;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -36,9 +35,8 @@ public class IllustHeader extends ViewHolder<RecyRecmdHeaderBinding> {
         RAdapter adapter = new RAdapter(illustsBeans, context);
         adapter.setOnItemClickListener((v, position, viewType) -> {
             final String uuid = UUID.randomUUID().toString();
-            final List<IllustsBean> tempList = new ArrayList<>(illustsBeans);
-            final PageData pageData = new PageData(uuid, tempList);
-            Container.get().addPage(pageData);
+            final PageData pageData = new PageData(uuid, illustsBeans);
+            Container.get().addPageToMap(pageData);
 
             Intent intent = new Intent(context, VActivity.class);
             intent.putExtra(Params.POSITION, position);

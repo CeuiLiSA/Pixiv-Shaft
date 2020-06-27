@@ -17,8 +17,6 @@ import com.scwang.smartrefresh.layout.api.RefreshFooter;
 import com.scwang.smartrefresh.layout.api.RefreshHeader;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 import ceui.lisa.R;
@@ -58,9 +56,8 @@ public class FragmentEvent extends NetListFragment<FragmentBaseListBinding,
                 public void onItemClick(View v, int position, int viewType) {
                     if (viewType == 0) {
                         final String uuid = UUID.randomUUID().toString();
-                        final List<IllustsBean> tempList = new ArrayList<>(allItems);
-                        final PageData pageData = new PageData(uuid, tempList);
-                        Container.get().addPage(pageData);
+                        final PageData pageData = new PageData(uuid, allItems);
+                        Container.get().addPageToMap(pageData);
 
                         Intent intent = new Intent(mContext, VActivity.class);
                         intent.putExtra(Params.POSITION, position);

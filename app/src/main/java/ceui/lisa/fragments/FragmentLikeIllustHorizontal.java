@@ -15,12 +15,10 @@ import java.util.List;
 import java.util.UUID;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.VActivity;
 import ceui.lisa.adapters.LAdapter;
 import ceui.lisa.core.PageData;
-import ceui.lisa.database.UUIDEntity;
 import ceui.lisa.databinding.FragmentLikeIllustHorizontalBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
@@ -93,10 +91,8 @@ public class FragmentLikeIllustHorizontal extends BaseFragment<FragmentLikeIllus
             @Override
             public void onItemClick(View v, int position, int viewType) {
                 final String uuid = UUID.randomUUID().toString();
-                UUIDEntity entity = new UUIDEntity();
-                entity.setUuid(uuid);
-                entity.setListJson(Shaft.sGson.toJson(allItems));
-                Container.get().addPage(mContext, entity);
+                final PageData pageData = new PageData(uuid, allItems);
+                Container.get().addPageToMap(pageData);
 
                 Intent intent = new Intent(mContext, VActivity.class);
                 intent.putExtra(Params.POSITION, position);

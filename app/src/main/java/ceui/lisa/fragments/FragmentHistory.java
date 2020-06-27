@@ -8,7 +8,6 @@ import android.view.View;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -45,9 +44,8 @@ public class FragmentHistory extends LocalListFragment<FragmentBaseListBinding,
                 Common.showLog(className + position + " " + allItems.size());
                 if (viewType == 0) {
                     final String uuid = UUID.randomUUID().toString();
-                    final List<IllustsBean> tempList = new ArrayList<>(((HistoryModel)mModel).getAll());
-                    final PageData pageData = new PageData(uuid, tempList);
-                    Container.get().addPage(pageData);
+                    final PageData pageData = new PageData(uuid, ((HistoryModel)mModel).getAll());
+                    Container.get().addPageToMap(pageData);
 
                     Intent intent = new Intent(mContext, VActivity.class);
                     intent.putExtra(Params.POSITION, position);
