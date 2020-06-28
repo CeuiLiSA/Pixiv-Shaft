@@ -1,6 +1,7 @@
 package ceui.lisa.fragments;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -48,6 +49,15 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
             initBundle(bundle);
         }
 
+        Intent intent = mActivity.getIntent();
+        if (intent != null) {
+            Bundle activityBundle = intent.getExtras();
+            if (activityBundle != null) {
+                initActivityBundle(bundle);
+            }
+        }
+
+
         if (eventBusEnable()) {
             EventBus.getDefault().register(this);
         }
@@ -59,6 +69,10 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
         } else if (ori == Configuration.ORIENTATION_PORTRAIT) {
             isVertical = true;
         }
+    }
+
+    public void initActivityBundle(Bundle bundle) {
+
     }
 
     @Override

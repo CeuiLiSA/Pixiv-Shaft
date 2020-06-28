@@ -55,6 +55,8 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
             if (index < pageSize) {
                 baseBind.viewPager.setCurrentItem(index);
             }
+        } else {
+            finish();
         }
 
         TimeRecord.end();

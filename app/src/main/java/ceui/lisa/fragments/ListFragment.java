@@ -68,10 +68,16 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
             mRecyclerView.setAdapter(mAdapter);
         }
 
+        onAdapterPrepared();
+
         //进页面主动刷新
         if (autoRefresh() && !mModel.isLoaded()) {
             mRefreshLayout.autoRefresh();
         }
+    }
+
+    public void onAdapterPrepared() {
+
     }
 
     public Class<? extends BaseModel> modelClass() {

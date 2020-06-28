@@ -39,7 +39,6 @@ import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import jp.wasabeef.glide.transformations.BlurTransformation;
 
-import static ceui.lisa.activities.Shaft.sUserModel;
 import static com.bumptech.glide.request.RequestOptions.bitmapTransform;
 
 public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding> implements MultiDownload {
@@ -95,18 +94,16 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
                         bindView.baseBind.likeButton.setImageTintList(
                                 ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.not_bookmarked)));
                     } else {
-//                        getRelated(target, position);
                         bindView.baseBind.likeButton.setImageTintList(
                                 ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.has_bookmarked)));
                     }
-                    PixivOperate.postLike(target, sUserModel, FragmentLikeIllust.TYPE_PUBLUC);
+                    PixivOperate.postLike(target, FragmentLikeIllust.TYPE_PUBLUC);
                 }
             });
             bindView.baseBind.likeButton.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
                     if (!target.isIs_bookmarked()) {
-//                        getRelated(target, position);
                         Intent intent = new Intent(mContext, TemplateActivity.class);
                         intent.putExtra(Params.ILLUST_ID, target.getId());
                         intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏");
@@ -174,10 +171,6 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
                 return true;
             }
         });
-    }
-
-    public void getRelated(IllustsBean illust, int position) {
-
     }
 
     @Override

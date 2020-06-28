@@ -57,30 +57,6 @@ public class IAdapterWithHeadView extends IAdapter {
         }
     }
 
-//    @Override
-//    public void getRelated(IllustsBean illust, int position) {
-//        Retro.getAppApi().relatedIllust(sUserModel.getResponse().getAccess_token(), illust.getId())
-//                .subscribeOn(Schedulers.newThread())
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribe(new NullCtrl<ListIllust>() {
-//                    @Override
-//                    public void success(ListIllust listIllust) {
-//                        if (listIllust.getIllusts() != null) {
-//                            final int realP = position + 1;
-//                            if (listIllust.getIllusts().size() >= 6) {
-//                                List<IllustsBean> related = new ArrayList<>();
-//                                for (int i = 0; i < 6; i++) {
-//                                    related.add(listIllust.getIllusts().get(i));
-//                                }
-//                                allIllust.addAll(realP, related);
-//                                notifyItemRangeInserted(realP, related.size());
-//                                notifyItemRangeChanged(realP, allIllust.size() - realP);
-//                            }
-//                        }
-//                    }
-//                });
-//    }
-
     @Override
     public void onViewAttachedToWindow(@NonNull RecyclerView.ViewHolder holder) {
         ViewGroup.LayoutParams lp = holder.itemView.getLayoutParams();

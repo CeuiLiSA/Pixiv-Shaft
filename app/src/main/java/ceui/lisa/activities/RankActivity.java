@@ -18,16 +18,18 @@ import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 import java.util.Calendar;
 
 import ceui.lisa.R;
+import ceui.lisa.databinding.ActivityMultiViewPagerBinding;
+import ceui.lisa.databinding.ActivityViewPagerBinding;
 import ceui.lisa.fragments.FragmentRankIllust;
 import ceui.lisa.fragments.FragmentRankNovel;
 import ceui.lisa.fragments.NetListFragment;
 import ceui.lisa.utils.Common;
 
-public class RankActivity extends BaseActivity implements DatePickerDialog.OnDateSetListener {
+public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> implements
+        DatePickerDialog.OnDateSetListener {
 
     private static final String[] CHINESE_TITLES_MANGA = new String[]{"日榜", "每周", "每月", "新人", "R"};
     private static final String[] CHINESE_TITLES_NOVEL = new String[]{"日榜", "每周", "男性向", "女性向", "新人", "R"};
-    private ViewPager mViewPager;
     private NetListFragment[] allPages = new NetListFragment[]{null, null, null, null, null, null, null, null};
     private String dataType = "";
     private String queryDate = "";
@@ -39,14 +41,11 @@ public class RankActivity extends BaseActivity implements DatePickerDialog.OnDat
 
     @Override
     protected void initView() {
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        toolbar.setNavigationOnClickListener(v -> finish());
-        TabLayout tabLayout = findViewById(R.id.tab_layout);
+        setSupportActionBar(baseBind.toolbar);
+        baseBind.toolbar.setNavigationOnClickListener(v -> finish());
         dataType = getIntent().getStringExtra("dataType");
-        mViewPager = findViewById(R.id.view_pager);
         queryDate = getIntent().getStringExtra("date");
-        mViewPager.setPageTransformer(true, new DrawerTransformer());
+        baseBind.viewPager.setPageTransformer(true, new DrawerTransformer());
 
         final String[] CHINESE_TITLES = new String[]{
                 mContext.getString(R.string.daily_rank),
@@ -60,7 +59,7 @@ public class RankActivity extends BaseActivity implements DatePickerDialog.OnDat
         };
 
 
-        mViewPager.setAdapter(new FragmentStatePagerAdapter(getSupportFragmentManager()) {
+        baseBind.viewPager.setAdapter(new FragmentStatePagerAdapter(getSupportFragmentManager(), 0) {
             @Override
             public Fragment getItem(int i) {
                 if (allPages[i] == null) {
@@ -102,10 +101,10 @@ public class RankActivity extends BaseActivity implements DatePickerDialog.OnDat
 
 
         });
-        tabLayout.setupWithViewPager(mViewPager);
+        baseBind.tabLayout.setupWithViewPager(baseBind.viewPager);
         //如果指定了跳转到某一个排行，就显示该页排行
         if (getIntent().getIntExtra("index", 0) >= 0) {
-            mViewPager.setCurrentItem(getIntent().getIntExtra("index", 0));
+            baseBind.viewPager.setCurrentItem(getIntent().getIntExtra("index", 0));
         }
     }
 
@@ -160,7 +159,7 @@ public class RankActivity extends BaseActivity implements DatePickerDialog.OnDat
         Intent intent = new Intent(mContext, RankActivity.class);
         intent.putExtra("date", date);
         intent.putExtra("dataType", dataType);
-        intent.putExtra("index", mViewPager.getCurrentItem());
+        intent.putExtra("index", baseBind.viewPager.getCurrentItem());
         startActivity(intent);
         finish();
     }

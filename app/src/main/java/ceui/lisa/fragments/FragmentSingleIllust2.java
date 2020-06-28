@@ -50,11 +50,9 @@ import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.ShareIllust;
 import ceui.lisa.view.LinearItemDecorationNoLRTB;
 import ceui.lisa.view.ScrollChange;
-import ceui.lisa.viewmodel.Dust;
 import jp.wasabeef.glide.transformations.BlurTransformation;
 import me.next.tagview.TagCloudView;
 
-import static ceui.lisa.activities.Shaft.sUserModel;
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 import static com.bumptech.glide.request.RequestOptions.bitmapTransform;
 
@@ -236,7 +234,7 @@ public class FragmentSingleIllust2 extends BaseFragment<FragmentSingleIllustBind
                 } else {
                     baseBind.postLike.setImageResource(R.drawable.ic_favorite_accent_24dp);
                 }
-                PixivOperate.postLike(illust, sUserModel, FragmentLikeIllust.TYPE_PUBLUC);
+                PixivOperate.postLike(illust, FragmentLikeIllust.TYPE_PUBLUC);
             }
         });
         baseBind.postLike.setOnLongClickListener(new View.OnLongClickListener() {
@@ -245,6 +243,7 @@ public class FragmentSingleIllust2 extends BaseFragment<FragmentSingleIllustBind
                 if (!illust.isIs_bookmarked()) {
                     Intent intent = new Intent(mContext, TemplateActivity.class);
                     intent.putExtra(Params.ILLUST_ID, illust.getId());
+                    intent.putExtra(Params.LAST_CLASS, getClass().getSimpleName());
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏");
                     startActivity(intent);
                 }
@@ -438,9 +437,11 @@ public class FragmentSingleIllust2 extends BaseFragment<FragmentSingleIllustBind
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(Channel event) {
         if (event.getReceiver().contains("FragmentSingleIllust starIllust")) {
-            illust.setIs_bookmarked(true);
-            ((FloatingActionButton) parentView.findViewById(R.id.post_like))
-                    .setImageResource(R.drawable.ic_favorite_accent_24dp);
+            if (illust.getId() == (int) event.getObject()) {
+                illust.setIs_bookmarked(true);
+                ((FloatingActionButton) parentView.findViewById(R.id.post_like))
+                        .setImageResource(R.drawable.ic_favorite_accent_24dp);
+            }
         }
 
         if (event.getReceiver().equals("FragmentSingleIllust download finish")) {

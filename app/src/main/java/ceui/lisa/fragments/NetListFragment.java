@@ -1,9 +1,12 @@
 package ceui.lisa.fragments;
 
+import android.content.BroadcastReceiver;
+import android.content.IntentFilter;
 import android.text.TextUtils;
 import android.view.View;
 
 import androidx.databinding.ViewDataBinding;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
@@ -11,10 +14,22 @@ import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.adapters.BaseAdapter;
+import ceui.lisa.adapters.EventAdapter;
+import ceui.lisa.adapters.IAdapter;
+import ceui.lisa.adapters.NAdapter;
+import ceui.lisa.adapters.UAdapter;
 import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.interfaces.ListShow;
+import ceui.lisa.models.IllustsBean;
+import ceui.lisa.models.NovelBean;
+import ceui.lisa.models.UserPreviewsBean;
+import ceui.lisa.notification.StarIllustReceiver;
+import ceui.lisa.notification.StarUserReceiver;
+import ceui.lisa.notification.StarNovelReceiver;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Params;
 
 /**
  * 联网获取xx列表，
@@ -28,6 +43,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
 
     protected RemoteRepo<Response> mRemoteRepo;
     protected Response mResponse;
+    protected BroadcastReceiver mReceiver = null;
 
     @Override
     public void fresh() {
@@ -125,5 +141,45 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
 
     public void onResponse(Response response) {
 
+    }
+
+    /**
+     * 设置某一个作品为已收藏
+     *
+     * @param illustID 作品ID
+     */
+    public void setLiked(int illustID, boolean isLike) {
+        if (mAdapter instanceof IAdapter) {
+            ((IAdapter) mAdapter).setLiked(illustID, isLike);
+        }
+    }
+
+    @Override
+    public void onAdapterPrepared() {
+        super.onAdapterPrepared();
+
+        //注册本地广播
+        IntentFilter intentFilter = new IntentFilter();
+        if (mAdapter instanceof IAdapter || mAdapter instanceof EventAdapter) {
+            mReceiver = new StarIllustReceiver((BaseAdapter<IllustsBean, ?>) mAdapter);
+            intentFilter.addAction(Params.LIKED_ILLUST);
+        } else if (mAdapter instanceof UAdapter) {
+            mReceiver = new StarUserReceiver((BaseAdapter<UserPreviewsBean, ?>) mAdapter);
+            intentFilter.addAction(Params.LIKED_USER);
+        } else if (mAdapter instanceof NAdapter) {
+            mReceiver = new StarNovelReceiver((BaseAdapter<NovelBean, ?>) mAdapter);
+            intentFilter.addAction(Params.LIKED_NOVEL);
+        }
+        if (mReceiver != null) {
+            LocalBroadcastManager.getInstance(mContext).registerReceiver(mReceiver, intentFilter);
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (mReceiver != null) {
+            LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mReceiver);
+        }
     }
 }

@@ -6,7 +6,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 
-public class IllustsBean implements Serializable {
+public class IllustsBean implements Serializable, Starable {
     /**
      * id : 73949833
      * title : 命に繋がる魂の絆
@@ -317,6 +317,26 @@ public class IllustsBean implements Serializable {
         }
 
         return result;
+    }
+
+    @Override
+    public int getItemID() {
+        return getId();
+    }
+
+    @Override
+    public void setItemID(int id) {
+        setId(id);
+    }
+
+    @Override
+    public boolean isItemStared() {
+        return isIs_bookmarked();
+    }
+
+    @Override
+    public void setItemStared(boolean isLike) {
+        setIs_bookmarked(isLike);
     }
 
     public static class MetaPagesBean implements Serializable {

@@ -7,12 +7,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.viewpager.widget.ViewPager
 import ceui.lisa.R
 import ceui.lisa.databinding.ActivityViewPagerBinding
-import ceui.lisa.fragments.FragmentSingleIllust
-import ceui.lisa.models.IllustsBean
-import ceui.lisa.transformer.GalleryTransformer
-import ceui.lisa.utils.Common
 import ceui.lisa.utils.DataChannel
-import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.PixivOperate.insertIllustViewHistory
 import ceui.lisa.viewmodel.Dust
 import com.ToxicBakery.viewpager.transforms.DrawerTransformer
@@ -52,7 +47,8 @@ class ViewPagerActivity : BaseActivity<ActivityViewPagerBinding>() {
 
         baseBind.viewPager.adapter = object : FragmentPagerAdapter(supportFragmentManager, 0) {
             override fun getItem(i: Int): Fragment {
-                return FragmentSingleIllust.newInstance(i)
+//                return FragmentSingleIllust.newInstance(i)
+                return Fragment()
             }
 
             override fun getCount(): Int {

@@ -80,10 +80,10 @@ public class FragmentEvent extends NetListFragment<FragmentBaseListBinding,
                             IllustDownload.downloadAllIllust(mActivity, allItems.get(position));
                         }
                     } else if (viewType == 3) {
-                        PixivOperate.postLike(allItems.get(position), sUserModel, FragmentLikeIllust.TYPE_PUBLUC);
+                        PixivOperate.postLike(allItems.get(position), FragmentLikeIllust.TYPE_PUBLUC);
                     } else if (viewType == 4) {
                         View popView = LayoutInflater.from(mContext).inflate(R.layout.pop_window, null);
-                        QMUIPopup mNormalPopup = QMUIPopups.popup(mContext, QMUIDisplayHelper.dp2px(getContext(), 250))
+                        QMUIPopup mNormalPopup = QMUIPopups.popup(mContext, QMUIDisplayHelper.dp2px(mContext, 250))
                                 .preferredDirection(QMUIPopup.DIRECTION_BOTTOM)
                                 .view(popView)
                                 .dimAmount(0.5f)

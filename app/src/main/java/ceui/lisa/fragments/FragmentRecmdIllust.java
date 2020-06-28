@@ -186,15 +186,4 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
                     }
                 });
     }
-
-    @Override
-    public boolean eventBusEnable() {
-        return true;
-    }
-
-    @Override
-    public void handleEvent(Channel channel) {
-        Common.showLog(className + "正在刷新");
-        nowRefresh();
-    }
 }

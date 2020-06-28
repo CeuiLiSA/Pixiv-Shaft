@@ -39,9 +39,9 @@ public class FragmentComing extends BaseFragment<FragmentComingBinding> {
     public void initView(View view) {
         super.initView(view);
         RecyclerView recyclerView = view.findViewById(R.id.recy_list);
-        GridLayoutManager layoutManager = new GridLayoutManager(getContext(), 6);
+        GridLayoutManager layoutManager = new GridLayoutManager(mContext, 6);
         recyclerView.setLayoutManager(layoutManager);
-        EmojiAdapter adapter = new EmojiAdapter(Emoji.getEmojis(), getContext());
+        EmojiAdapter adapter = new EmojiAdapter(Emoji.getEmojis(), mContext);
         adapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {

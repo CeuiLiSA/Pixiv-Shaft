@@ -130,4 +130,28 @@ public class UAdapter extends BaseAdapter<UserPreviewsBean, RecyUserPreviewBindi
             }
         });
     }
+
+    @Override
+    public void setLiked(int id, boolean isLike) {
+        if (id == 0) {
+            return;
+        }
+
+        if (allIllust == null || allIllust.size() == 0) {
+            return;
+        }
+
+        for (int i = 0; i < allIllust.size(); i++) {
+            if (allIllust.get(i).getUser().getId() == id) {
+                //设置这个用户为已关注状态
+                allIllust.get(i).getUser().setIs_followed(isLike);
+                if (headerSize() != 0) {//如果有header
+                    notifyItemChanged(i + headerSize());
+                } else { //没有header
+                    notifyItemChanged(i);
+                }
+                break;
+            }
+        }
+    }
 }

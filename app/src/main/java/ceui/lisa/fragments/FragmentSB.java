@@ -1,10 +1,12 @@
 package ceui.lisa.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 
 import androidx.appcompat.widget.Toolbar;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -36,6 +38,7 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
         ListBookmarkTag, TagsBean> {
 
     private int illustID;
+    private String lastClass = "";
 
     public static FragmentSB newInstance(int illustID) {
         Bundle args = new Bundle();
@@ -48,6 +51,11 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
     @Override
     public void initBundle(Bundle bundle) {
         illustID = bundle.getInt(Params.ILLUST_ID);
+    }
+
+    @Override
+    public void initActivityBundle(Bundle bundle) {
+        lastClass = bundle.getString(Params.LAST_CLASS);
     }
 
     @Override
@@ -115,10 +123,18 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
     }
 
     private void setFollowed() {
+        //通知详情页面刷新，设置这个作品为已收藏
         Channel channel = new Channel();
         channel.setReceiver("FragmentSingleIllust starIllust");
         channel.setObject(illustID);
         EventBus.getDefault().post(channel);
+
+
+        //通知列表页面刷新，设置这个作品为已收藏
+        Intent intent = new Intent(Params.LIKED_ILLUST);
+        intent.putExtra(Params.ILLUST_ID, illustID);
+        intent.putExtra(Params.IS_LIKED, true);
+        LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);
         mActivity.finish();
     }
 

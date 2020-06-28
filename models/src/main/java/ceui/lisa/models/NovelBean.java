@@ -3,7 +3,7 @@ package ceui.lisa.models;
 import java.io.Serializable;
 import java.util.List;
 
-public class NovelBean implements Serializable {
+public class NovelBean implements Serializable, Starable {
 
 
     /**
@@ -228,5 +228,25 @@ public class NovelBean implements Serializable {
 
     public void setLocalSaved(boolean localSaved) {
         isLocalSaved = localSaved;
+    }
+
+    @Override
+    public int getItemID() {
+        return getId();
+    }
+
+    @Override
+    public void setItemID(int id) {
+        setId(id);
+    }
+
+    @Override
+    public boolean isItemStared() {
+        return isIs_bookmarked();
+    }
+
+    @Override
+    public void setItemStared(boolean isLiked) {
+        setIs_bookmarked(isLiked);
     }
 }

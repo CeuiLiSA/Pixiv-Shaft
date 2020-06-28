@@ -316,6 +316,5 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             initDrawerHeader();
             Dev.refreshUser = false;
         }
-//        Container.get().clear();
     }
 }
