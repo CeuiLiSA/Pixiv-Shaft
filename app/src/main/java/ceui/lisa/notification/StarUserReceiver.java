@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import ceui.lisa.adapters.BaseAdapter;
-import ceui.lisa.adapters.UAdapter;
 import ceui.lisa.models.UserPreviewsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;

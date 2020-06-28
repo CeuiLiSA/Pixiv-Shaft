@@ -164,10 +164,10 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
             mReceiver = new StarIllustReceiver((BaseAdapter<IllustsBean, ?>) mAdapter);
             intentFilter.addAction(Params.LIKED_ILLUST);
         } else if (mAdapter instanceof UAdapter) {
-            mReceiver = new StarUserReceiver((BaseAdapter<UserPreviewsBean, ?>) mAdapter);
+            mReceiver = new StarUserReceiver((UAdapter) mAdapter);
             intentFilter.addAction(Params.LIKED_USER);
         } else if (mAdapter instanceof NAdapter) {
-            mReceiver = new StarNovelReceiver((BaseAdapter<NovelBean, ?>) mAdapter);
+            mReceiver = new StarNovelReceiver((NAdapter) mAdapter);
             intentFilter.addAction(Params.LIKED_NOVEL);
         }
         if (mReceiver != null) {
