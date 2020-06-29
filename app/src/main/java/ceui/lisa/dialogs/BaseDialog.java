@@ -3,9 +3,13 @@ package ceui.lisa.dialogs;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 
 import androidx.annotation.NonNull;
@@ -15,6 +19,7 @@ import androidx.databinding.DataBindingUtil;
 import androidx.databinding.ViewDataBinding;
 import androidx.fragment.app.DialogFragment;
 
+import ceui.lisa.R;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.utils.Local;
 
@@ -58,6 +63,18 @@ public abstract class BaseDialog<Layout extends ViewDataBinding> extends DialogF
         }
         builder.setView(parentView);
         return builder.create();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Dialog dialog = getDialog();
+        if(dialog != null){
+            Window window = dialog.getWindow();
+            if (window != null) {
+                window.setWindowAnimations(R.style.dialog_animation_scale);
+            }
+        }
     }
 
     abstract void initLayout();
