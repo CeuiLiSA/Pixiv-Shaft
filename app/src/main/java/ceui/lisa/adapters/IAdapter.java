@@ -78,46 +78,8 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
         }
         bindView.baseBind.illustImage.setLayoutParams(params);
 
-        if (showLikeButton) {
-            bindView.baseBind.likeButton.setVisibility(View.VISIBLE);
-            if (target.isIs_bookmarked()) {
-                bindView.baseBind.likeButton.setImageTintList(
-                        ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.has_bookmarked)));
-            } else {
-                bindView.baseBind.likeButton.setImageTintList(
-                        ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.not_bookmarked)));
-            }
-            bindView.baseBind.likeButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (target.isIs_bookmarked()) {
-                        bindView.baseBind.likeButton.setImageTintList(
-                                ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.not_bookmarked)));
-                    } else {
-                        bindView.baseBind.likeButton.setImageTintList(
-                                ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.has_bookmarked)));
-                    }
-                    PixivOperate.postLike(target, FragmentLikeIllust.TYPE_PUBLUC);
-                }
-            });
-            bindView.baseBind.likeButton.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    if (!target.isIs_bookmarked()) {
-                        Intent intent = new Intent(mContext, TemplateActivity.class);
-                        intent.putExtra(Params.ILLUST_ID, target.getId());
-                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏");
-                        mContext.startActivity(intent);
-                    }
-                    return true;
-                }
-            });
-
-        } else {
-            bindView.baseBind.likeButton.setVisibility(View.GONE);
-        }
-
         if (target.isShield()) {
+            bindView.baseBind.likeButton.setVisibility(View.GONE);
             bindView.baseBind.hide.setVisibility(View.VISIBLE);
             Glide.with(mContext)
                     .load(GlideUtil.getMediumImg(target))
@@ -125,6 +87,45 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
                     .transition(DrawableTransitionOptions.withCrossFade())
                     .into(bindView.baseBind.illustImage);
         } else {
+            if (showLikeButton) {
+                bindView.baseBind.likeButton.setVisibility(View.VISIBLE);
+                if (target.isIs_bookmarked()) {
+                    bindView.baseBind.likeButton.setImageTintList(
+                            ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.has_bookmarked)));
+                } else {
+                    bindView.baseBind.likeButton.setImageTintList(
+                            ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.not_bookmarked)));
+                }
+                bindView.baseBind.likeButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (target.isIs_bookmarked()) {
+                            bindView.baseBind.likeButton.setImageTintList(
+                                    ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.not_bookmarked)));
+                        } else {
+                            bindView.baseBind.likeButton.setImageTintList(
+                                    ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.has_bookmarked)));
+                        }
+                        PixivOperate.postLike(target, FragmentLikeIllust.TYPE_PUBLUC);
+                    }
+                });
+                bindView.baseBind.likeButton.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        if (!target.isIs_bookmarked()) {
+                            Intent intent = new Intent(mContext, TemplateActivity.class);
+                            intent.putExtra(Params.ILLUST_ID, target.getId());
+                            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏");
+                            mContext.startActivity(intent);
+                        }
+                        return true;
+                    }
+                });
+
+            } else {
+                bindView.baseBind.likeButton.setVisibility(View.GONE);
+            }
+
             bindView.baseBind.hide.setVisibility(View.INVISIBLE);
             Glide.with(mContext)
                     .load(GlideUtil.getMediumImg(target))

@@ -5,18 +5,18 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentStatePagerAdapter;
+import androidx.viewpager.widget.ViewPager;
 
 
 import ceui.lisa.R;
 import ceui.lisa.core.Container;
 import ceui.lisa.core.IDWithList;
 import ceui.lisa.core.TimeRecord;
-import ceui.lisa.database.AppDatabase;
 import ceui.lisa.databinding.ActivityViewPagerBinding;
-import ceui.lisa.fragments.FragmentIllust;
-import ceui.lisa.fragments.FragmentSingleIllust2;
+import ceui.lisa.fragments.FragmentSingleIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Params;
+import ceui.lisa.utils.PixivOperate;
 
 public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
 
@@ -44,12 +44,30 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                 @Override
                 public Fragment getItem(int position) {
 //                    return FragmentIllust.newInstance(idWithList.getList().get(position));
-                    return FragmentSingleIllust2.newInstance(idWithList.getList().get(position));
+                    return FragmentSingleIllust.newInstance(idWithList.getList().get(position));
                 }
 
                 @Override
                 public int getCount() {
                     return pageSize;
+                }
+            });
+            baseBind.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+                @Override
+                public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+                }
+
+                @Override
+                public void onPageSelected(int position) {
+                    if (Shaft.sSettings.isSaveViewHistory()) {
+                        PixivOperate.insertIllustViewHistory(idWithList.getList().get(position));
+                    }
+                }
+
+                @Override
+                public void onPageScrollStateChanged(int state) {
+
                 }
             });
             if (index < pageSize) {

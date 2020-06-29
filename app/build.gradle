@@ -12,8 +12,8 @@ android {
         applicationId "ceui.lisa.pixiv"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 98
-        versionName "1.9.8"
+        versionCode 99
+        versionName "1.9.9"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -60,7 +60,7 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.2.0-beta01'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'com.google.android.material:material:1.1.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.0-beta4'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.0-beta7'
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
@@ -103,7 +103,7 @@ dependencies {
 
     implementation 'com.wdullaer:materialdatetimepicker:3.5.0'
     implementation 'com.nononsenseapps:filepicker:4.1.0'
-    implementation 'com.qmuiteam:qmui:2.0.0-alpha07'
+    implementation 'com.qmuiteam:qmui:2.0.0-alpha10'
     implementation 'com.mxn.soul:flowingdrawer-core:2.1.0'
     implementation 'com.ToxicBakery.viewpager.transforms:view-pager-transforms:2.0.24'
     implementation 'com.hyman:flowlayout-lib:1.1.2'

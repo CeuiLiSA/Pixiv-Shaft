@@ -10,11 +10,14 @@ import com.zhy.view.flowlayout.FlowLayout;
 import com.zhy.view.flowlayout.TagAdapter;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.DialogMuteTagBinding;
+import ceui.lisa.helper.TagFilter;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.utils.Common;
@@ -41,7 +44,7 @@ public class MuteDialog extends BaseDialog<DialogMuteTagBinding> {
 
     @Override
     void initView(View v) {
-        baseBind.tagLayout.setAdapter(new TagAdapter<TagsBean>(mIllust.getTags()) {
+        TagAdapter<TagsBean> adapter = new TagAdapter<TagsBean>(mIllust.getTags()) {
             @Override
             public View getView(FlowLayout parent, int position, TagsBean o) {
                 View view = LayoutInflater.from(mContext).inflate(R.layout.recy_single_tag_text, null);
@@ -65,7 +68,8 @@ public class MuteDialog extends BaseDialog<DialogMuteTagBinding> {
                 ((TextView) view).setTextColor(getResources().getColor(R.color.tag_text_unselect));
                 selected.remove(mIllust.getTags().get(position));
             }
-        });
+        };
+        baseBind.tagLayout.setAdapter(adapter);
         baseBind.cancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -93,6 +97,27 @@ public class MuteDialog extends BaseDialog<DialogMuteTagBinding> {
                 dismiss();
             }
         });
+
+        //默认选中已屏蔽的标签
+        List<TagsBean> muted = TagFilter.getMutedTags();
+        List<TagsBean> illustTags = mIllust.getTags();
+        Set<Integer> selected = new HashSet<>();
+        for (int i = 0; i < illustTags.size(); i++) {
+            final TagsBean tagsBean = illustTags.get(i);
+            boolean isMuted = false;
+            for (TagsBean bean : muted) {
+                if (tagsBean.getName().equals(bean.getName())) {
+                    isMuted = true;
+                    break;
+                }
+            }
+            if (isMuted) {
+                selected.add(i);
+            }
+        }
+        if (selected.size() != 0) {
+            adapter.setSelectedList(selected);
+        }
     }
 
     @Override
