@@ -66,7 +66,7 @@ public class PixivOperate {
                     @Override
                     public void onNext(NullResponse nullResponse) {
                         Intent intent = new Intent(Params.LIKED_USER);
-                        intent.putExtra(Params.USER_ID, userID);
+                        intent.putExtra(Params.ID, userID);
                         intent.putExtra(Params.IS_LIKED, true);
                         LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
 
@@ -88,7 +88,7 @@ public class PixivOperate {
                     @Override
                     public void onNext(NullResponse nullResponse) {
                         Intent intent = new Intent(Params.LIKED_USER);
-                        intent.putExtra(Params.USER_ID, userID);
+                        intent.putExtra(Params.ID, userID);
                         intent.putExtra(Params.IS_LIKED, false);
                         LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
 
@@ -111,7 +111,7 @@ public class PixivOperate {
                         @Override
                         public void onNext(NullResponse nullResponse) {
                             Intent intent = new Intent(Params.LIKED_ILLUST);
-                            intent.putExtra(Params.ILLUST_ID, illustsBean.getId());
+                            intent.putExtra(Params.ID, illustsBean.getId());
                             intent.putExtra(Params.IS_LIKED, false);
                             LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
 
@@ -127,7 +127,7 @@ public class PixivOperate {
                         @Override
                         public void onNext(NullResponse nullResponse) {
                             Intent intent = new Intent(Params.LIKED_ILLUST);
-                            intent.putExtra(Params.ILLUST_ID, illustsBean.getId());
+                            intent.putExtra(Params.ID, illustsBean.getId());
                             intent.putExtra(Params.IS_LIKED, true);
                             LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
 
@@ -151,7 +151,7 @@ public class PixivOperate {
                         @Override
                         public void onNext(NullResponse nullResponse) {
                             Intent intent = new Intent(Params.LIKED_NOVEL);
-                            intent.putExtra(Params.NOVEL_ID, novelBean.getId());
+                            intent.putExtra(Params.ID, novelBean.getId());
                             intent.putExtra(Params.IS_LIKED, false);
                             LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
 
@@ -170,7 +170,7 @@ public class PixivOperate {
                         @Override
                         public void onNext(NullResponse nullResponse) {
                             Intent intent = new Intent(Params.LIKED_NOVEL);
-                            intent.putExtra(Params.NOVEL_ID, novelBean.getId());
+                            intent.putExtra(Params.ID, novelBean.getId());
                             intent.putExtra(Params.IS_LIKED, true);
                             LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
 

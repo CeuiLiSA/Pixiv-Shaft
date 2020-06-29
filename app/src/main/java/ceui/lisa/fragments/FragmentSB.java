@@ -132,7 +132,7 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
 
         //通知列表页面刷新，设置这个作品为已收藏
         Intent intent = new Intent(Params.LIKED_ILLUST);
-        intent.putExtra(Params.ILLUST_ID, illustID);
+        intent.putExtra(Params.ID, illustID);
         intent.putExtra(Params.IS_LIKED, true);
         LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);
         mActivity.finish();

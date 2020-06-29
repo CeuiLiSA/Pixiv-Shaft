@@ -2,6 +2,7 @@ package ceui.lisa.utils;
 
 public class Params {
 
+    public static final String ID            = "simple id";
     public static final String USER_ID       = "user id";
     public static final String ILLUST_ID     = "illust id";
     public static final String NOVEL_ID      = "novel id";
@@ -39,9 +40,9 @@ public class Params {
     public static final String IS_LIKED      = "is liked";
     public static final String LAST_CLASS    = "last class";
 
-    public static String LIKED_ILLUST        = "ceui.lisa.fragments.NetListFragment LIKED_ILLUST";
-    public static String LIKED_USER          = "ceui.lisa.fragments.NetListFragment LIKED_USER";
-    public static String LIKED_NOVEL         = "ceui.lisa.fragments.NetListFragment LIKED_NOVEL";
+    public static final String LIKED_ILLUST        = "ceui.lisa.fragments.NetListFragment LIKED_ILLUST";
+    public static final String LIKED_USER          = "ceui.lisa.fragments.NetListFragment LIKED_USER";
+    public static final String LIKED_NOVEL         = "ceui.lisa.fragments.NetListFragment LIKED_NOVEL";
 
     public static final String IMAGE_UNKNOWN = "https://s.pximg.net/common/images/limit_unknown_360.png";
     public static final String HEAD_UNKNOWN  = "https://s.pximg.net/common/images/no_profile.png";

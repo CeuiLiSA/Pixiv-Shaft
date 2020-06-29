@@ -5,25 +5,23 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import ceui.lisa.adapters.BaseAdapter;
-import ceui.lisa.models.NovelBean;
-import ceui.lisa.utils.Common;
+import ceui.lisa.models.Starable;
 import ceui.lisa.utils.Params;
 
-public class StarNovelReceiver extends BaseReceiver<NovelBean> {
+public class CommonReceiver extends BaseReceiver<Starable> {
 
-    public StarNovelReceiver(BaseAdapter<NovelBean, ?> adapter) {
+    public CommonReceiver(BaseAdapter<Starable, ?> adapter) {
         super(adapter);
     }
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Common.showLog("StartNovelReceiver 接收到了消息");
         if (intent != null && mAdapter != null) {
             Bundle bundle = intent.getExtras();
             if (bundle != null) {
-                int userID = bundle.getInt(Params.NOVEL_ID);
+                int id = bundle.getInt(Params.ID);
                 boolean isLiked = bundle.getBoolean(Params.IS_LIKED);
-                mAdapter.setLiked(userID, isLiked);
+                mAdapter.setLiked(id, isLiked);
             }
         }
     }

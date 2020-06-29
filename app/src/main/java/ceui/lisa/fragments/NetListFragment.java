@@ -18,16 +18,13 @@ import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.EventAdapter;
 import ceui.lisa.adapters.IAdapter;
 import ceui.lisa.adapters.NAdapter;
+import ceui.lisa.adapters.SimpleUserAdapter;
 import ceui.lisa.adapters.UAdapter;
 import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.interfaces.ListShow;
-import ceui.lisa.models.IllustsBean;
-import ceui.lisa.models.NovelBean;
-import ceui.lisa.models.UserPreviewsBean;
-import ceui.lisa.notification.StarIllustReceiver;
-import ceui.lisa.notification.StarUserReceiver;
-import ceui.lisa.notification.StarNovelReceiver;
+import ceui.lisa.models.Starable;
+import ceui.lisa.notification.CommonReceiver;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 
@@ -143,34 +140,25 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
 
     }
 
-    /**
-     * 设置某一个作品为已收藏
-     *
-     * @param illustID 作品ID
-     */
-    public void setLiked(int illustID, boolean isLike) {
-        if (mAdapter instanceof IAdapter) {
-            ((IAdapter) mAdapter).setLiked(illustID, isLike);
-        }
-    }
-
     @Override
     public void onAdapterPrepared() {
         super.onAdapterPrepared();
 
         //注册本地广播
-        IntentFilter intentFilter = new IntentFilter();
         if (mAdapter instanceof IAdapter || mAdapter instanceof EventAdapter) {
-            mReceiver = new StarIllustReceiver((BaseAdapter<IllustsBean, ?>) mAdapter);
+            IntentFilter intentFilter = new IntentFilter();
+            mReceiver = new CommonReceiver((BaseAdapter<Starable, ?>) mAdapter);
             intentFilter.addAction(Params.LIKED_ILLUST);
-        } else if (mAdapter instanceof UAdapter) {
-            mReceiver = new StarUserReceiver((UAdapter) mAdapter);
+            LocalBroadcastManager.getInstance(mContext).registerReceiver(mReceiver, intentFilter);
+        } else if (mAdapter instanceof UAdapter || mAdapter instanceof SimpleUserAdapter) {
+            IntentFilter intentFilter = new IntentFilter();
+            mReceiver = new CommonReceiver((BaseAdapter<Starable, ?>) mAdapter);
             intentFilter.addAction(Params.LIKED_USER);
+            LocalBroadcastManager.getInstance(mContext).registerReceiver(mReceiver, intentFilter);
         } else if (mAdapter instanceof NAdapter) {
-            mReceiver = new StarNovelReceiver((NAdapter) mAdapter);
+            IntentFilter intentFilter = new IntentFilter();
+            mReceiver = new CommonReceiver((BaseAdapter<Starable, ?>) mAdapter);
             intentFilter.addAction(Params.LIKED_NOVEL);
-        }
-        if (mReceiver != null) {
             LocalBroadcastManager.getInstance(mContext).registerReceiver(mReceiver, intentFilter);
         }
     }
