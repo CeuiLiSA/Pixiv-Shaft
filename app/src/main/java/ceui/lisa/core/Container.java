@@ -18,6 +18,7 @@ public class Container {
 
     /**
      * 用 HashMap 存储，app杀掉之后就没有了
+     *
      * @param pageData 一个插画列表
      */
     public void addPageToMap(IDWithList<IllustsBean> pageData) {
@@ -39,7 +40,8 @@ public class Container {
 
     /**
      * 用 Room数据库 存储，数据一直在不会丢失
-     * @param context context
+     *
+     * @param context    context
      * @param uuidEntity 一个插画列表
      */
     public void addPageToSQL(Context context, UUIDEntity uuidEntity) {
@@ -100,13 +102,14 @@ public class Container {
         }
     }
 
-    private Container(){}
+    private Container() {
+    }
 
-    private static class SingleTonHolder{
+    private static class SingleTonHolder {
         private static Container INSTANCE = new Container();
     }
 
-    public static Container get(){
+    public static Container get() {
         return SingleTonHolder.INSTANCE;
     }
 }

@@ -104,11 +104,13 @@ public class FragmentMutedTags extends LocalListFragment<FragmentBaseListBinding
                 break;
             }
         }
+
         if (!isExist) {
             if (allItems.size() == 0) {
                 mRecyclerView.setVisibility(View.VISIBLE);
                 noData.setVisibility(View.INVISIBLE);
             }
+
             TagsBean tagsBean = new TagsBean();
             tagsBean.setName(tagName);
             tagsBean.setTranslated_name(tagName);
