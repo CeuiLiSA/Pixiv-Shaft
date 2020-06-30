@@ -47,14 +47,12 @@ public class FragmentLikeNovel extends NetListFragment<FragmentBaseListBinding,
         return new RemoteRepo<ListNovel>() {
             @Override
             public Observable<ListNovel> initApi() {
-                return Retro.getAppApi().getUserLikeNovel(sUserModel
-                        .getResponse().getAccess_token(), userID, starType);
+                return Retro.getAppApi().getUserLikeNovel(token(), userID, starType);
             }
 
             @Override
             public Observable<ListNovel> initNextApi() {
-                return Retro.getAppApi().getNextNovel(
-                        sUserModel.getResponse().getAccess_token(), mModel.getNextUrl());
+                return Retro.getAppApi().getNextNovel(token(), mModel.getNextUrl());
             }
         };
     }

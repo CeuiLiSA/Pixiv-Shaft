@@ -60,15 +60,13 @@ public class FragmentLikeIllust extends NetListFragment<FragmentBaseListBinding,
             @Override
             public Observable<ListIllust> initApi() {
                 return TextUtils.isEmpty(tag) ?
-                        Retro.getAppApi().getUserLikeIllust(sUserModel
-                                .getResponse().getAccess_token(), userID, starType) :
-                        Retro.getAppApi().getUserLikeIllust(sUserModel
-                                .getResponse().getAccess_token(), userID, starType, tag);
+                        Retro.getAppApi().getUserLikeIllust(token(), userID, starType) :
+                        Retro.getAppApi().getUserLikeIllust(token(), userID, starType, tag);
             }
 
             @Override
             public Observable<ListIllust> initNextApi() {
-                return Retro.getAppApi().getNextIllust(sUserModel.getResponse().getAccess_token(),
+                return Retro.getAppApi().getNextIllust(token(),
                         mModel.getNextUrl());
             }
         };
