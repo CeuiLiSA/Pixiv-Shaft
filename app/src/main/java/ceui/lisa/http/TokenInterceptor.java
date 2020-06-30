@@ -52,7 +52,7 @@ public class TokenInterceptor implements Interceptor {
     }
 
     /**
-     * 同步请求方式，获取最新的Token
+     * 同步请求方式，获取最新的Token，解决多并发请求多次刷新token的问题
      *
      * @return
      */

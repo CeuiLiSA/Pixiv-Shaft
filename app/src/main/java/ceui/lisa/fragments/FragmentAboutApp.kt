@@ -3,14 +3,20 @@ package ceui.lisa.fragments
 import android.content.Intent
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
+import ceui.lisa.base.SwipeFragment
 import ceui.lisa.databinding.FragmentAboutBinding
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
+import com.scwang.smartrefresh.layout.SmartRefreshLayout
 
-class FragmentAboutApp : BaseFragment<FragmentAboutBinding>() {
+class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
 
     override fun initLayout() {
         mLayoutID = R.layout.fragment_about
+    }
+
+    override fun getSmartRefreshLayout(): SmartRefreshLayout {
+        return baseBind.refreshLayout
     }
 
     override fun initData() {

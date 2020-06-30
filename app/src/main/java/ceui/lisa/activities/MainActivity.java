@@ -173,42 +173,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 intent.putExtra(Params.USER_ID, sUserModel.getResponse().getUser().getId());
                 break;
             case R.id.nav_reverse:
-                // TODO: 20-3-16 国际化 向用户索要权限
-                if (Shaft.sSettings.isReverseDialogNeverShowAgain()) {
-                    selectPhoto();
-                } else {
-                    CheckBox checkBox = new CheckBox(this);
-                    checkBox.setText(R.string.never_show_again);
-                    checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                            Shaft.sSettings.setReverseDialogNeverShowAgain(isChecked);
-                            Local.setSettings(Shaft.sSettings);
-                        }
-                    });
-                    new AlertDialog.Builder(MainActivity.this)
-                            .setTitle("关于以图搜源")
-                            .setMessage("以图搜源的实质是将你选择的图片上传至 https://saucenao.com/ 进行搜索\n" +
-                                    "https://saucenao.com/ 可以算一个专门查找P站图的网站，更多信息不在这里介绍\n" +
-                                    "注意：该功能需要 READ_EXTERNAL_STORAGE 以读取图片，如果 SDK >= 23 且没有授权" +
-                                    "则功能无法实现")
-                            .setView(checkBox)
-                            .setPositiveButton(android.R.string.yes, (dialog, which) -> {
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                                    String[] permissions = new String[]{Manifest.permission.READ_EXTERNAL_STORAGE};
-                                    int i = ContextCompat.checkSelfPermission(this, permissions[0]);
-                                    if (i != PackageManager.PERMISSION_GRANTED) {
-                                        ActivityCompat.requestPermissions(this, permissions, 1);
-                                    } else {
-                                        selectPhoto();
-                                    }
-                                } else {
-                                    selectPhoto();
-                                }
-                            })
-                            .setNegativeButton(android.R.string.cancel, null)
-                            .show();
-                }
+                selectPhoto();
                 break;
             case R.id.nav_send:
                 intent = new Intent(mContext, TemplateActivity.class);

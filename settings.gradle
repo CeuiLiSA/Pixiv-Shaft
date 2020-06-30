@@ -1,1 +1,2 @@
+include ':base'
 include ':app', ':models'

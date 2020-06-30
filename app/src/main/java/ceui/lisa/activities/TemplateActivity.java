@@ -127,11 +127,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                     return FragmentSB.newInstance(id);
                 }
                 case "关于软件":
-                    if (Dev.isDev) {
-                        return FragmentCurrent.newInstance();
-                    } else {
-                        return new FragmentAboutApp();
-                    }
+                    return new FragmentAboutApp();
                 case "批量下载":
                     return new FragmentMultiDownld();
                 case "画廊":

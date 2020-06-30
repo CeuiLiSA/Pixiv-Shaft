@@ -36,12 +36,11 @@ public class AddTagDialog extends BaseDialog<DialogAddTagBinding> {
 
     @Override
     void initView(View v) {
-        sure = v.findViewById(R.id.sure);
-        sure.setOnClickListener(new View.OnClickListener() {
+        baseBind.sure.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (TextUtils.isEmpty(baseBind.tagName.getText().toString())) {
-                    Common.showToast("请输入标签名", sure, 3);
+                    Common.showToast("请输入标签名", baseBind.sure, 3);
                     return;
                 }
 
@@ -62,8 +61,7 @@ public class AddTagDialog extends BaseDialog<DialogAddTagBinding> {
             baseBind.dialogTitle.setText("添加屏蔽标签");
             baseBind.tagName.setHint("请输入标签名");
         }
-        cancel = v.findViewById(R.id.cancel);
-        cancel.setOnClickListener(view -> dismiss());
+        baseBind.cancel.setOnClickListener(view -> dismiss());
     }
 
     @Override

@@ -18,6 +18,8 @@ import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringChain;
 import com.nononsenseapps.filepicker.FilePickerActivity;
 import com.nononsenseapps.filepicker.Utils;
+import com.scwang.smartrefresh.layout.SmartRefreshLayout;
+import com.scwang.smartrefresh.layout.api.RefreshHeader;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
 
@@ -30,6 +32,9 @@ import java.util.Locale;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
+import ceui.lisa.base.BaseFragment;
+import ceui.lisa.base.Swipe;
+import ceui.lisa.base.SwipeFragment;
 import ceui.lisa.databinding.FragmentSettingsBinding;
 import ceui.lisa.helper.ThemeHelper;
 import ceui.lisa.utils.Channel;
@@ -43,7 +48,7 @@ import static ceui.lisa.fragments.FragmentFilter.THEME_NAME;
 import static ceui.lisa.utils.Settings.ALL_LANGUAGE;
 
 
-public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
+public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
 
     private static final int illustPath_CODE = 10086;
     private static final int gifResultPath_CODE = 10087;
@@ -61,7 +66,7 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
     }
 
     @Override
-    void initData() {
+    protected void initData() {
         baseBind.toolbar.setNavigationOnClickListener(view -> mActivity.finish());
         animate(baseBind.parentLinear);
 
@@ -470,5 +475,10 @@ public class FragmentSettings extends BaseFragment<FragmentSettingsBinding> {
         }
 
         super.onDestroyView();
+    }
+
+    @Override
+    public SmartRefreshLayout getSmartRefreshLayout() {
+        return baseBind.refreshLayout;
     }
 }
