@@ -3,9 +3,14 @@ package ceui.lisa.fragments;
 import android.content.DialogInterface;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
+
+import com.qmuiteam.qmui.skin.QMUISkinManager;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 
 import java.util.List;
 
@@ -71,21 +76,28 @@ public class FragmentMutedTags extends LocalListFragment<FragmentBaseListBinding
                     if (allItems.size() == 0) {
                         Common.showToast("当前没有可删除的屏蔽标签");
                     } else {
-                        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                        builder.setTitle("PixShaft 提示");
-                        builder.setMessage("这将会删除所有的本地屏蔽标签");
-                        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                AppDatabase.getAppDatabase(mContext).searchDao().deleteAllMutedTags();
-                                Common.showToast("删除成功");
-                                mAdapter.clear();
-                                noData.setVisibility(View.VISIBLE);
-                            }
-                        });
-                        builder.setNegativeButton("取消", null);
-                        AlertDialog alertDialog = builder.create();
-                        alertDialog.show();
+                        new QMUIDialog.MessageDialogBuilder(mActivity)
+                                .setTitle("Shaft 提示")
+                                .setMessage("这将会删除所有的屏蔽标签")
+                                .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                                .addAction("取消", new QMUIDialogAction.ActionListener() {
+                                    @Override
+                                    public void onClick(QMUIDialog dialog, int index) {
+                                        dialog.dismiss();
+                                    }
+                                })
+                                .addAction(0, "删除", QMUIDialogAction.ACTION_PROP_NEGATIVE, new QMUIDialogAction.ActionListener() {
+                                    @Override
+                                    public void onClick(QMUIDialog dialog, int index) {
+                                        AppDatabase.getAppDatabase(mContext).searchDao().deleteAllMutedTags();
+                                        Common.showToast("删除成功");
+                                        mAdapter.clear();
+                                        noData.setVisibility(View.VISIBLE);
+                                        dialog.dismiss();
+                                    }
+                                })
+                                .create()
+                                .show();
                     }
                 } else if (item.getItemId() == R.id.action_add) {
                     AddTagDialog dialog = AddTagDialog.newInstance(1);

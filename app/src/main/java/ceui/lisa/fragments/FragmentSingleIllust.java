@@ -135,13 +135,19 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
 
     @Override
     public void initView(View view) {
-        if (illust == null || illust.getId() == 0) {
+        if (illust == null) {
             return;
         }
 
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
         if (illust.isShield()) {
             baseBind.toolbar.setTitle("已屏蔽的作品");
+            baseBind.refreshLayout.setVisibility(View.INVISIBLE);
+            return;
+        }
+
+        if (illust.getId() == 0) {
+            baseBind.toolbar.setTitle("无权限查看的作品");
             baseBind.refreshLayout.setVisibility(View.INVISIBLE);
             return;
         }

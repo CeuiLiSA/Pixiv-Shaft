@@ -21,6 +21,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.mxn.soul.flowingdrawer_core.ElasticDrawer;
 
 import ceui.lisa.R;
+import ceui.lisa.base.BaseActivity;
 import ceui.lisa.databinding.FragmentNewSearchBinding;
 import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentFilter;
@@ -29,8 +30,6 @@ import ceui.lisa.fragments.FragmentSearchNovel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 import ceui.lisa.viewmodel.SearchModel;
-
-import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 

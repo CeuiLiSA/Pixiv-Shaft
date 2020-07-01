@@ -1,21 +1,13 @@
 package ceui.lisa.activities;
 
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Build;
-import android.os.Bundle;
-import android.provider.DocumentsContract;
 import android.util.Log;
 import android.view.DisplayCutout;
 import android.view.View;
-import android.view.ViewTreeObserver;
-import android.view.WindowInsets;
 import android.view.WindowManager;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import androidx.annotation.Nullable;
-import androidx.core.view.ViewCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
@@ -28,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.base.BaseActivity;
 import ceui.lisa.databinding.ActivityImageDetailBinding;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.fragments.FragmentImageDetail;
