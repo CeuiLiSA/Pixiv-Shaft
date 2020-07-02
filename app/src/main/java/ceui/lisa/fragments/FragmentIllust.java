@@ -142,6 +142,22 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 }
             });
         }
+
+        baseBind.download.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                float current = baseBind.coreLinear.getTranslationY();
+                baseBind.coreLinear.setTranslationY(current - 20.0f);
+            }
+        });
+
+        baseBind.showComment.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                float current = baseBind.coreLinear.getTranslationY();
+                baseBind.coreLinear.setTranslationY(current + 20.0f);
+            }
+        });
     }
 
     @Override
