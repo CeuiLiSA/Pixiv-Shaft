@@ -48,7 +48,7 @@ public class Settings {
     private boolean relatedIllustNoLimit = true;
 
     //一级详情FragmentSingleIllust 图片显示原图
-    private boolean firstImageSize = false;
+    private boolean firstNewImageSize = true;
 
     //屏蔽，不显示已收藏的作品，默认不屏蔽
     private boolean deleteStarIllust = false;
@@ -68,10 +68,6 @@ public class Settings {
     private boolean saveViewHistory = true;
 
     private boolean doubleStaggerData = false;
-
-    private boolean staggerAnime = true;
-
-    private boolean gridAnime = true;
 
     private String illustPath = "";
 
@@ -135,14 +131,6 @@ public class Settings {
         this.doubleStaggerData = doubleStaggerData;
     }
 
-    public boolean isGridAnime() {
-        return gridAnime;
-    }
-
-    public void setGridAnime(boolean gridAnime) {
-        this.gridAnime = gridAnime;
-    }
-
     public boolean isSaveViewHistory() {
         return saveViewHistory;
     }
@@ -175,13 +163,6 @@ public class Settings {
         this.autoFuckChina = autoFuckChina;
     }
 
-    public boolean isStaggerAnime() {
-        return staggerAnime;
-    }
-
-    public void setStaggerAnime(boolean staggerAnime) {
-        this.staggerAnime = staggerAnime;
-    }
 
     public boolean isMainListAnimate() {
         return mainListAnimate;
@@ -208,11 +189,11 @@ public class Settings {
     }
 
     public boolean isFirstImageSize() {
-        return firstImageSize;
+        return firstNewImageSize;
     }
 
     public void setFirstImageSize(boolean firstImageSize) {
-        this.firstImageSize = firstImageSize;
+        this.firstNewImageSize = firstImageSize;
     }
 
     public boolean isSecondImageSize() {

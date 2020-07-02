@@ -64,6 +64,7 @@ public class GlideUtil {
     }
 
     public static GlideUrl getLargeImage(IllustsBean illustsBean, int i) {
+        Common.showLog("GlideUrl getLargeImage");
         if (illustsBean.getPage_count() == 1) {
             return getLargeImage(illustsBean);
         } else {
@@ -73,10 +74,37 @@ public class GlideUtil {
 
 
     public static GlideUrl getOriginal(IllustsBean illustsBean, int i) {
+        Common.showLog("GlideUrl getOriginal");
         if (illustsBean.getPage_count() == 1) {
             return new GlideUrl(illustsBean.getMeta_single_page().getOriginal_image_url(), sHeaders);
         } else {
             return new GlideUrl(illustsBean.getMeta_pages().get(i).getImage_urls().getOriginal(), sHeaders);
         }
     }
+
+    public static GlideUrl getOriginalWithPixviCat(IllustsBean illustsBean, int i) {
+        String result;
+        if (illustsBean.getPage_count() == 1) {
+            result = head + illustsBean.getId() + ".png";
+        } else {
+            result = head + illustsBean.getId() + "-" + (i + 1) +  ".png";
+        }
+        Common.showLog("GlideUrl getOriginalWithPixviCat " + result);
+        return new GlideUrl(result);
+    }
+
+    public static GlideUrl getOriginalWithInvertProxy(IllustsBean illustsBean, int i) {
+        String result;
+        if (illustsBean.getPage_count() == 1) {
+            result = illustsBean.getMeta_single_page().getOriginal_image_url()
+                    .replace("pximg.net", "pixiv.cat");
+        } else {
+            result = illustsBean.getMeta_pages().get(i).getImage_urls().getOriginal()
+                    .replace("pximg.net", "pixiv.cat");
+        }
+        Common.showLog("GlideUrl getOriginalWithInvertProxy " + result);
+        return new GlideUrl(result);
+    }
+
+    private static final String head = "https://pixiv.cat/";
 }
