@@ -64,26 +64,14 @@ dependencies {
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
-
-
-
-
     implementation 'com.squareup.okhttp3:logging-interceptor:4.4.0'
-
-
-
-
     implementation 'com.rengwuxian.materialedittext:library:2.1.4'
     implementation 'jp.wasabeef:glide-transformations:4.1.0'
     implementation 'jp.co.cyberagent.android:gpuimage:2.0.3'
     implementation 'de.hdodenhof:circleimageview:3.0.1'
     implementation 'com.github.ybq:Android-SpinKit:1.4.0'
-
-    implementation 'androidx.room:room-runtime:2.1.0'
-    implementation 'androidx.navigation:navigation-fragment:2.2.2'
-    implementation 'androidx.navigation:navigation-ui:2.2.2'
-    annotationProcessor 'androidx.room:room-compiler:2.1.0'
-
+    implementation 'androidx.room:room-runtime:2.2.5'
+    annotationProcessor 'androidx.room:room-compiler:2.2.5'
     implementation 'org.greenrobot:eventbus:3.2.0'
     implementation 'com.just.agentweb:agentweb:4.0.3-beta@aar'
     implementation 'com.facebook.rebound:rebound:0.3.8'
@@ -92,7 +80,6 @@ dependencies {
     implementation 'com.github.kingideayou:tagcloudview:1.0.2'
     implementation 'com.github.chrisbanes:PhotoView:2.3.0'
     implementation 'org.sufficientlysecure:html-textview:3.6'
-
     implementation 'com.wdullaer:materialdatetimepicker:3.5.0'
     implementation 'com.nononsenseapps:filepicker:4.1.0'
     implementation 'com.qmuiteam:qmui:2.0.0-alpha10'
@@ -104,38 +91,26 @@ dependencies {
     kapt 'android.arch.persistence.room:compiler:1.1.1'
     implementation 'jp.wasabeef:recyclerview-animators:3.0.0'
     implementation 'gdut.bsx:share2:0.9.3'
-
-    implementation 'com.waynejo:androidndkgif:0.3.3'
-
-
-
     implementation 'nl.joery.animatedbottombar:library:1.0.8'
     implementation "com.github.skydoves:transformationlayout:1.0.4"
-
-    testImplementation 'junit:junit:4.13'
-    androidTestImplementation 'androidx.test:runner:1.2.0'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
-
-    implementation 'com.blankj:utilcodex:1.26.0'
+    implementation 'com.blankj:utilcodex:1.29.0'
     implementation group: 'net.lingala.zip4j', name: 'zip4j', version: '2.2.8'
-
     implementation 'com.safframework.log:saf-logginginterceptor:1.4.6'
     implementation 'com.github.devlight.shadowlayout:library:1.0.2'
-
-
-    implementation 'com.google.firebase:firebase-analytics:17.4.2'
-    implementation 'com.google.firebase:firebase-crashlytics:17.0.0'
+    implementation 'com.google.firebase:firebase-analytics:17.4.3'
+    implementation 'com.google.firebase:firebase-crashlytics:17.1.0'
 
 
     implementation 'com.effective.android:panelSwitchHelper-androidx:1.3.1'
 
     implementation project(path: ':models')
     implementation project(path: ':base')
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.0'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 
-//    implementation "androidx.security:security-crypto:1.0.0-rc01"
+
+    testImplementation 'junit:junit:4.13'
+    androidTestImplementation 'androidx.test:runner:1.2.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 
     configurations {
         all*.exclude group: 'com.android.support', module: 'support-v13'

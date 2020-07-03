@@ -148,6 +148,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
             public void onClick(View v) {
                 float current = baseBind.coreLinear.getTranslationY();
                 baseBind.coreLinear.setTranslationY(current - 20.0f);
+                Common.showLog(className + current);
             }
         });
 
