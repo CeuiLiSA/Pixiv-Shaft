@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:zhy="http://schemas.android.com/tools">
+
+    <data>
+
+    </data>
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/app_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:elevation="0dp">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:background="#7e57c2"
+                android:id="@+id/content_head"
+                app:layout_scrollFlags="scroll"
+                android:layout_height="400dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:text="123456"
+                    android:textSize="50sp"
+                    android:textColor="@color/white"
+                    android:layout_alignParentBottom="true"
+                    android:layout_height="wrap_content">
+
+
+                </TextView>
+
+            </RelativeLayout>
+
+
+
+        </com.google.android.material.appbar.AppBarLayout>
+
+
+
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:id="@+id/content_scroll_view"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            android:layout_height="match_parent">
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:orientation="vertical"
+                android:layout_height="match_parent">
+
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="match_parent"
+                    android:id="@+id/bottom_bar"
+                    android:background="@drawable/shape_tablayout_bg"
+                    android:layout_height="wrap_content">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <View
+                            android:layout_width="100dp"
+                            android:layout_centerHorizontal="true"
+                            android:layout_marginTop="12dp"
+                            android:layout_marginBottom="10dp"
+                            android:background="@drawable/illust_slider_bg"
+                            android:layout_height="3dp">
+
+                        </View>
+
+                    </RelativeLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:maxLines="2"
+                        android:textStyle="bold"
+                        android:ellipsize="end"
+                        android:id="@+id/title"
+                        android:textColor="#121212"
+                        android:layout_marginStart="@dimen/tweenty_four_dp"
+                        android:layout_marginEnd="48dp"
+                        android:textSize="20sp"
+                        android:text="ブリタンニア(ルト系ブリトン人)の アルトリア・ペンドラゴン"
+                        android:layout_height="wrap_content">
+
+                    </TextView>
+
+                    <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
+                        android:layout_width="match_parent"
+                        app:qmui_radius="20dp"
+                        app:qmui_borderWidth="0dp"
+                        app:qmui_backgroundColor="#4749a0"
+                        android:layout_marginBottom="@dimen/eight_dp"
+                        android:orientation="vertical"
+                        android:layout_marginTop="@dimen/twelve_dp"
+                        android:layout_marginStart="@dimen/tweenty_four_dp"
+                        android:layout_marginEnd="@dimen/tweenty_four_dp"
+                        android:layout_height="wrap_content">
+
+                        <de.hdodenhof.circleimageview.CircleImageView
+                            android:layout_width="50dp"
+                            app:civ_border_width="1dp"
+                            android:id="@+id/user_head"
+                            android:scaleType="centerCrop"
+                            app:civ_border_color="#b3b4f4"
+                            android:layout_marginStart="@dimen/twelve_dp"
+                            android:layout_marginTop="@dimen/sixteen_dp"
+                            android:layout_marginBottom="@dimen/sixteen_dp"
+                            android:layout_marginEnd="@dimen/eight_dp"
+                            android:layout_height="50dp">
+
+                        </de.hdodenhof.circleimageview.CircleImageView>
+
+
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:maxLines="1"
+                            android:ellipsize="end"
+                            android:textSize="16sp"
+                            android:text="仮面みたいになっ"
+                            android:layout_alignTop="@+id/user_head"
+                            android:layout_toEndOf="@+id/user_head"
+                            android:id="@+id/user_name"
+                            android:layout_marginTop="@dimen/four_dp"
+                            android:textColor="@color/white"
+                            android:textStyle="bold"
+                            android:layout_height="wrap_content">
+
+                        </TextView>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:maxLines="1"
+                            android:ellipsize="end"
+                            android:layout_marginBottom="@dimen/four_dp"
+                            android:id="@+id/post_time"
+                            android:textSize="12sp"
+                            android:text="2018年4月29日6点13分投递"
+                            android:layout_alignBottom="@+id/user_head"
+                            android:layout_toEndOf="@+id/user_head"
+                            android:textColor="#bdbed6"
+                            android:layout_height="wrap_content">
+
+                        </TextView>
+
+                        <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
+                            android:layout_width="wrap_content"
+                            android:text="+ 关注"
+                            app:qmui_borderWidth="0dp"
+                            android:layout_marginEnd="@dimen/twelve_dp"
+                            android:layout_centerVertical="true"
+                            android:layout_alignParentEnd="true"
+                            android:textColor="@color/white"
+                            android:paddingTop="@dimen/four_dp"
+                            android:paddingBottom="@dimen/four_dp"
+                            android:paddingStart="@dimen/eight_dp"
+                            android:paddingEnd="@dimen/eight_dp"
+                            app:qmui_radius="@dimen/six_dp"
+                            app:qmui_backgroundColor="#686bdd"
+                            android:layout_height="wrap_content">
+
+                        </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton>
+
+                    </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout>
+
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_width="match_parent"
+                        android:background="@color/white"
+                        android:id="@+id/bottom_content"
+                        android:tag="12345888"
+                        android:layout_height="wrap_content">
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="#f3f4f5"
+                            android:layout_marginStart="@dimen/tweenty_four_dp"
+                            android:layout_marginEnd="@dimen/tweenty_four_dp"
+                            android:layout_height="1dp">
+
+                        </View>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <RelativeLayout
+                                android:layout_width="0dp"
+                                android:layout_weight="1"
+                                android:clickable="true"
+                                android:foreground="?attr/selectableItemBackground"
+                                android:paddingBottom="@dimen/eight_dp"
+                                android:paddingTop="@dimen/eight_dp"
+                                android:layout_height="wrap_content">
+
+                                <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
+                                    android:layout_width="wrap_content"
+                                    app:qmui_backgroundColor="#e8e8f2"
+                                    app:qmui_radius="@dimen/six_dp"
+                                    app:qmui_borderWidth="0dp"
+                                    android:id="@+id/left_rela"
+                                    android:layout_marginStart="@dimen/tweenty_four_dp"
+                                    android:layout_height="wrap_content">
+
+                                    <ImageView
+                                        android:layout_width="45dp"
+                                        android:padding="@dimen/twelve_dp"
+                                        android:src="@drawable/ic_remove_red_eye_black_24dp"
+                                        android:layout_height="45dp"
+                                        app:tint="#666af6">
+
+
+                                    </ImageView>
+
+                                </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout>
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:text="表示回数"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold"
+                                    android:layout_marginTop="@dimen/four_dp"
+                                    android:layout_toEndOf="@+id/left_rela"
+                                    android:layout_marginStart="@dimen/eight_dp"
+                                    android:textColor="#666af6"
+                                    android:layout_height="wrap_content">
+
+                                </TextView>
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:text="12980"
+                                    android:layout_marginBottom="@dimen/four_dp"
+                                    android:textStyle="bold"
+                                    android:layout_alignBottom="@+id/left_rela"
+                                    android:id="@+id/total_view"
+                                    android:textSize="14sp"
+                                    android:layout_toEndOf="@+id/left_rela"
+                                    android:layout_marginStart="@dimen/eight_dp"
+                                    android:textColor="#666af6"
+                                    android:layout_height="wrap_content">
+
+                                </TextView>
+
+                            </RelativeLayout>
+
+                            <RelativeLayout
+                                android:layout_width="0dp"
+                                android:id="@+id/illust_like"
+                                android:paddingTop="@dimen/eight_dp"
+                                android:paddingBottom="@dimen/eight_dp"
+                                android:clickable="true"
+                                android:foreground="?attr/selectableItemBackground"
+                                android:layout_weight="1"
+                                android:layout_height="wrap_content">
+
+                                <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
+                                    android:layout_width="wrap_content"
+                                    app:qmui_backgroundColor="#e8e8f2"
+                                    app:qmui_borderWidth="0dp"
+                                    app:qmui_radius="@dimen/six_dp"
+                                    android:id="@+id/right_rela"
+                                    android:layout_marginStart="@dimen/tweenty_four_dp"
+                                    android:layout_height="wrap_content">
+
+                                    <ImageView
+                                        android:layout_width="45dp"
+                                        app:tint="#666af6"
+                                        android:padding="@dimen/twelve_dp"
+                                        android:src="@drawable/ic_favorite_black_24dp"
+                                        android:layout_height="45dp">
+
+
+                                    </ImageView>
+
+                                </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout>
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:text="收藏次数"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold"
+                                    android:layout_marginTop="@dimen/four_dp"
+                                    android:layout_toEndOf="@+id/right_rela"
+                                    android:layout_marginStart="@dimen/eight_dp"
+                                    android:textColor="#666af6"
+                                    android:layout_height="wrap_content">
+
+                                </TextView>
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:text="5633"
+                                    android:layout_marginBottom="@dimen/four_dp"
+                                    android:textStyle="bold"
+                                    android:id="@+id/total_like"
+                                    android:layout_alignBottom="@+id/right_rela"
+                                    android:textSize="14sp"
+                                    android:layout_toEndOf="@+id/right_rela"
+                                    android:layout_marginStart="@dimen/eight_dp"
+                                    android:textColor="#666af6"
+                                    android:layout_height="wrap_content">
+
+                                </TextView>
+
+                            </RelativeLayout>
+
+                        </LinearLayout>
+
+                        <com.zhy.view.flowlayout.TagFlowLayout
+                            android:id="@+id/illust_tag"
+                            zhy:max_select="-1"
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="20dp"
+                            android:layout_marginStart="20dp">
+
+                        </com.zhy.view.flowlayout.TagFlowLayout>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:background="#ba68c8"
+                    android:id="@+id/under_screen"
+                    android:layout_height="150dp">
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:background="#ab47bc"
+                    android:layout_height="150dp">
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:background="#9c27b0"
+                    android:layout_height="150dp">
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:background="#8e24aa"
+                    android:layout_height="150dp">
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:background="#7b1fa2"
+                    android:layout_height="150dp">
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:background="#6a1b9a"
+                    android:layout_height="150dp">
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:background="#4a148c"
+                    android:layout_height="150dp">
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:background="#ce93d8"
+                    android:layout_height="150dp">
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:background="#ba68c8"
+                    android:layout_height="150dp">
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:background="#ab47bc"
+                    android:layout_height="150dp">
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:background="#9c27b0"
+                    android:layout_height="150dp">
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:background="#8e24aa"
+                    android:layout_height="150dp">
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:background="#7b1fa2"
+                    android:layout_height="150dp">
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:background="#6a1b9a"
+                    android:layout_height="150dp">
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:background="#4a148c"
+                    android:layout_height="150dp">
+
+                </RelativeLayout>
+            </LinearLayout>
+
+        </androidx.core.widget.NestedScrollView>
+
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+</layout>

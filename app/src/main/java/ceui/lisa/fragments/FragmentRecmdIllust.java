@@ -154,7 +154,7 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
     public void showDataBase() {
         Observable.create((ObservableOnSubscribe<List<IllustRecmdEntity>>) emitter -> {
             List<IllustRecmdEntity> temp = AppDatabase.getAppDatabase(mContext).recmdDao().getAll();
-            Thread.sleep(500);
+            Thread.sleep(100);
             emitter.onNext(temp);
             emitter.onComplete();
         }).subscribeOn(Schedulers.io())

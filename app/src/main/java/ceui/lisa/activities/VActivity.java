@@ -16,6 +16,7 @@ import ceui.lisa.core.TimeRecord;
 import ceui.lisa.databinding.ActivityViewPagerBinding;
 import ceui.lisa.fragments.FragmentIllust;
 import ceui.lisa.fragments.FragmentSingleIllust;
+import ceui.lisa.fragments.FragmentSlide;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
@@ -45,7 +46,8 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                 @NonNull
                 @Override
                 public Fragment getItem(int position) {
-                    return FragmentIllust.newInstance(idWithList.getList().get(position));
+                    return FragmentSlide.newInstance(idWithList.getList().get(position));
+//                    return FragmentIllust.newInstance(idWithList.getList().get(position));
 //                    return FragmentSingleIllust.newInstance(idWithList.getList().get(position));
                 }
 
