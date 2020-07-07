@@ -18,14 +18,14 @@
             android:layout_height="match_parent"
             android:layout_above="@+id/bottom_linear">
 
-            <ImageView
+            <androidx.recyclerview.widget.RecyclerView
                 android:layout_width="match_parent"
-                android:id="@+id/head_rela"
-                android:scaleType="centerCrop"
                 android:background="#7e57c2"
+                android:id="@+id/recyclerView"
                 android:layout_height="match_parent">
 
-            </ImageView>
+            </androidx.recyclerview.widget.RecyclerView>
+
 
             <androidx.core.widget.NestedScrollView
                 android:id="@+id/content_scroll_view"
@@ -310,6 +310,22 @@
                         zhy:max_select="-1">
 
                     </com.zhy.view.flowlayout.TagFlowLayout>
+
+                    <org.sufficientlysecure.htmltextview.HtmlTextView
+                        android:layout_width="match_parent"
+                        android:textSize="13sp"
+                        android:gravity="start"
+                        android:textStyle="bold"
+                        android:layout_marginStart="@dimen/tweenty_four_dp"
+                        android:layout_marginEnd="@dimen/tweenty_four_dp"
+                        android:layout_marginTop="@dimen/six_dp"
+                        android:layout_marginBottom="@dimen/four_dp"
+                        android:maxHeight="100dp"
+                        android:id="@+id/description"
+                        android:textColor="#9b9bb1"
+                        android:layout_height="wrap_content">
+
+                    </org.sufficientlysecure.htmltextview.HtmlTextView>
 
                     <LinearLayout
                         android:layout_width="match_parent"

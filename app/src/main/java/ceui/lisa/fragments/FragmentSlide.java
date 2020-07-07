@@ -1,27 +1,20 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.blankj.utilcode.util.BarUtils;
-import com.blankj.utilcode.util.ScreenUtils;
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.DataSource;
-import com.bumptech.glide.load.engine.GlideException;
-import com.bumptech.glide.request.RequestListener;
-import com.bumptech.glide.request.target.Target;
-import com.github.ybq.android.spinkit.style.Wave;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.zhy.view.flowlayout.FlowLayout;
@@ -30,16 +23,17 @@ import com.zhy.view.flowlayout.TagAdapter;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
+import ceui.lisa.adapters.IllustAdapter;
 import ceui.lisa.base.SwipeFragment;
 import ceui.lisa.databinding.FragmentSlideBinding;
 import ceui.lisa.dialogs.MuteDialog;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.TagsBean;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ShareIllust;
+import ceui.lisa.view.LinearItemDecorationNoLRTB;
 
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
@@ -117,8 +111,7 @@ public class FragmentSlide extends SwipeFragment<FragmentSlideBinding> {
                 final int bottomCardHeight = baseBind.bottomBar.getHeight();
                 final int deltaY = baseBind.coreLinear.getHeight() - baseBind.bottomBar.getHeight();
                 sheetBehavior.setPeekHeight(bottomCardHeight, true);
-                baseBind.headRela.setPadding(0, 0, 0, bottomCardHeight - DensityUtil.dp2px(16.0f));
-
+                baseBind.recyclerView.setPadding(0, 0, 0, bottomCardHeight - DensityUtil.dp2px(16.0f));
                 sheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
                     @Override
                     public void onStateChanged(@NonNull View bottomSheet, int newState) {
@@ -127,10 +120,15 @@ public class FragmentSlide extends SwipeFragment<FragmentSlideBinding> {
 
                     @Override
                     public void onSlide(@NonNull View bottomSheet, float slideOffset) {
-                        baseBind.headRela.setTranslationY(-deltaY * slideOffset * 0.7f);
-                        Common.showLog(className + deltaY * slideOffset);
+                        baseBind.recyclerView.setTranslationY(-deltaY * slideOffset * 0.7f);
                     }
                 });
+
+                baseBind.recyclerView.setLayoutManager(new LinearLayoutManager(mContext));
+                baseBind.recyclerView.setAdapter(new IllustAdapter(mContext, illust,
+                        baseBind.recyclerView.getHeight() - bottomCardHeight + DensityUtil.dp2px(16.0f)));
+
+                baseBind.bottomBar.getViewTreeObserver().removeOnGlobalLayoutListener(this);
             }
         });
 
@@ -163,10 +161,20 @@ public class FragmentSlide extends SwipeFragment<FragmentSlideBinding> {
                 startActivity(intent);
             }
         });
+        if (!TextUtils.isEmpty(illust.getCaption())) {
+            baseBind.description.setVisibility(View.VISIBLE);
+            baseBind.description.setHtml(illust.getCaption());
+        } else {
+            baseBind.description.setVisibility(View.GONE);
+        }
+        baseBind.userName.setText(illust.getUser().getName());
+        baseBind.postTime.setText(illust.getCreate_date().substring(0, 16) + "投递");
+        baseBind.totalView.setText(String.valueOf(illust.getTotal_view()));
+        baseBind.totalLike.setText(String.valueOf(illust.getTotal_bookmarks()));
         Glide.with(mContext)
-                .load(GlideUtil.getOriginal(illust, 0))
+                .load(GlideUtil.getHead(illust.getUser()))
                 .transition(withCrossFade())
-                .into(baseBind.headRela);
+                .into(baseBind.userHead);
     }
 
     @Override
