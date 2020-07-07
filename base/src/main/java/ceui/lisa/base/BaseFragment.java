@@ -2,6 +2,7 @@ package ceui.lisa.base;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,6 +26,7 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
 
     protected FragmentActivity mActivity;
     protected Context mContext;
+    private boolean isVertical;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -44,6 +46,14 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
             if (activityBundle != null) {
                 initActivityBundle(activityBundle);
             }
+        }
+
+        //获取屏幕方向
+        int ori = getResources().getConfiguration().orientation;
+        if (ori == Configuration.ORIENTATION_LANDSCAPE) {
+            isVertical = false;
+        } else if (ori == Configuration.ORIENTATION_PORTRAIT) {
+            isVertical = true;
         }
     }
 
@@ -69,6 +79,11 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        if (isVertical) {
+            vertical();
+        } else {
+            horizon();
+        }
         initView();
         initData();
     }
@@ -88,6 +103,14 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
     }
 
     protected void initData() {
+
+    }
+
+    public void horizon() {
+
+    }
+
+    public void vertical() {
 
     }
 }
