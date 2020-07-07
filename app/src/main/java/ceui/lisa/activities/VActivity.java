@@ -18,6 +18,7 @@ import ceui.lisa.fragments.FragmentIllust;
 import ceui.lisa.fragments.FragmentSingleIllust;
 import ceui.lisa.fragments.FragmentSlide;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 
@@ -54,24 +55,31 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                     return pageSize;
                 }
             });
-            baseBind.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-                @Override
-                public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
+            if (pageSize == 1) {
+                if (Shaft.sSettings.isSaveViewHistory()) {
+                    PixivOperate.insertIllustViewHistory(idWithList.getList().get(0));
                 }
+            } else {
+                baseBind.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+                    @Override
+                    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
 
-                @Override
-                public void onPageSelected(int position) {
-                    if (Shaft.sSettings.isSaveViewHistory()) {
-                        PixivOperate.insertIllustViewHistory(idWithList.getList().get(position));
                     }
-                }
 
-                @Override
-                public void onPageScrollStateChanged(int state) {
+                    @Override
+                    public void onPageSelected(int position) {
+                        Common.showLog("VActivity onPageSelected " + position);
+                        if (Shaft.sSettings.isSaveViewHistory()) {
+                            PixivOperate.insertIllustViewHistory(idWithList.getList().get(position));
+                        }
+                    }
 
-                }
-            });
+                    @Override
+                    public void onPageScrollStateChanged(int state) {
+
+                    }
+                });
+            }
             if (index < pageSize) {
                 baseBind.viewPager.setCurrentItem(index);
             }

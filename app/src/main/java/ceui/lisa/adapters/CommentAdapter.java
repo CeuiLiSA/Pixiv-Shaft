@@ -18,6 +18,8 @@ import ceui.lisa.R;
 import ceui.lisa.core.ImgGetter;
 import ceui.lisa.databinding.RecyCommentListBinding;
 import ceui.lisa.models.CommentsBean;
+import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Emoji;
 import ceui.lisa.utils.GlideUtil;
 
 /**
@@ -61,10 +63,20 @@ public class CommentAdapter extends BaseAdapter<CommentsBean, RecyCommentListBin
                 }
             };
 
-            SpannableString spannableString = new SpannableString(Html.fromHtml(String.format("@%s：%s",
-                    allIllust.get(position).getParent_comment().getUser().getName(),
-                    allIllust.get(position).getParent_comment().getComment()),
-                    new ImgGetter(bindView.baseBind.replyContent), null));
+            SpannableString spannableString;
+            //如果getParent_comment是一个包含表情的comment，就用fromHtml
+            if (allIllust.get(position).getParent_comment().getComment().contains("_2sgsdWB")) {
+                Common.showLog("Emoji.hasEmoji true " + position + allIllust.get(position).getParent_comment().getComment());
+                spannableString = new SpannableString(Html.fromHtml(String.format("@%s：%s",
+                        allIllust.get(position).getParent_comment().getUser().getName(),
+                        allIllust.get(position).getParent_comment().getComment()),
+                        new ImgGetter(bindView.baseBind.replyContent), null));
+            } else {
+                Common.showLog("Emoji.hasEmoji false " + position + allIllust.get(position).getParent_comment().getComment());
+                spannableString = new SpannableString(String.format("@%s：%s",
+                        allIllust.get(position).getParent_comment().getUser().getName(),
+                        allIllust.get(position).getParent_comment().getComment()));
+            }
             spannableString.setSpan(clickableSpan,
                     0, allIllust.get(position).getParent_comment().getUser().getName().length() + 1,
                     Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
