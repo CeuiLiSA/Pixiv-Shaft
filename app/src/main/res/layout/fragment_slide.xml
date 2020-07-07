@@ -150,6 +150,7 @@
                                 android:layout_centerVertical="true"
                                 android:layout_marginEnd="@dimen/twelve_dp"
                                 android:paddingStart="@dimen/eight_dp"
+                                android:id="@+id/follow"
                                 android:paddingTop="@dimen/four_dp"
                                 android:paddingEnd="@dimen/eight_dp"
                                 android:paddingBottom="@dimen/four_dp"

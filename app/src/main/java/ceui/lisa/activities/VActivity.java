@@ -47,8 +47,6 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                 @Override
                 public Fragment getItem(int position) {
                     return FragmentSlide.newInstance(idWithList.getList().get(position));
-//                    return FragmentIllust.newInstance(idWithList.getList().get(position));
-//                    return FragmentSingleIllust.newInstance(idWithList.getList().get(position));
                 }
 
                 @Override
