@@ -69,6 +69,9 @@ public class Settings {
 
     private boolean doubleStaggerData = false;
 
+    //作品详情使用新页面
+    private boolean useFragmentIllust = true;
+
     private String illustPath = "";
 
     private String gifResultPath = "";
@@ -170,6 +173,14 @@ public class Settings {
 
     public void setMainListAnimate(boolean mainListAnimate) {
         this.mainListAnimate = mainListAnimate;
+    }
+
+    public boolean isUseFragmentIllust() {
+        return useFragmentIllust;
+    }
+
+    public void setUseFragmentIllust(boolean useFragmentIllust) {
+        this.useFragmentIllust = useFragmentIllust;
     }
 
     public boolean isViewHistoryAnimate() {

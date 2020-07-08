@@ -1,6 +1,8 @@
 package ceui.lisa.fragments;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.text.SpannableString;
@@ -11,8 +13,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityOptionsCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -32,6 +37,7 @@ import ceui.lisa.activities.SearchActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UserActivity;
+import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IllustDetailAdapter;
 import ceui.lisa.databinding.FragmentSingleIllustBinding;
 import ceui.lisa.dialogs.MuteDialog;
@@ -40,6 +46,10 @@ import ceui.lisa.download.GifCreate;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.models.Starable;
+import ceui.lisa.notification.BaseReceiver;
+import ceui.lisa.notification.CommonReceiver;
+import ceui.lisa.notification.StarReceiver;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
@@ -131,6 +141,44 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
         if (illust != null) {
             loadImage();
         }
+    }
+
+    private StarReceiver mReceiver;
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        IntentFilter intentFilter = new IntentFilter();
+        mReceiver = new StarReceiver(new BaseReceiver.CallBack() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Bundle bundle = intent.getExtras();
+                if (bundle != null) {
+                    int id = bundle.getInt(Params.ID);
+                    if (illust.getId() == id) {
+                        boolean isLiked = bundle.getBoolean(Params.IS_LIKED);
+                        if (isLiked) {
+                            illust.setIs_bookmarked(true);
+                            baseBind.postLike.setImageResource(R.drawable.ic_favorite_red_24dp);
+                        } else {
+                            illust.setIs_bookmarked(false);
+                            baseBind.postLike.setImageResource(R.drawable.ic_favorite_grey_24dp);
+                        }
+                    }
+                }
+            }
+        });
+        intentFilter.addAction(Params.LIKED_ILLUST);
+        LocalBroadcastManager.getInstance(mContext).registerReceiver(mReceiver, intentFilter);
+    }
+
+    @Override
+    public void onDestroy() {
+        if (mReceiver != null) {
+            LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mReceiver);
+            Common.showLog(className + "注销了 StarReceiver");
+        }
+        super.onDestroy();
     }
 
     @Override
@@ -444,27 +492,5 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
                 }
             }
         }
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(Channel event) {
-        if (event.getReceiver().contains("FragmentSingleIllust starIllust")) {
-            if (illust.getId() == (int) event.getObject()) {
-                illust.setIs_bookmarked(true);
-                ((FloatingActionButton) parentView.findViewById(R.id.post_like))
-                        .setImageResource(R.drawable.ic_favorite_accent_24dp);
-            }
-        }
-
-        if (event.getReceiver().equals("FragmentSingleIllust download finish")) {
-            if ((int) event.getObject() == illust.getId()) {
-                baseBind.download.setImageResource(R.drawable.ic_has_download);
-            }
-        }
-    }
-
-    @Override
-    public boolean eventBusEnable() {
-        return true;
     }
 }

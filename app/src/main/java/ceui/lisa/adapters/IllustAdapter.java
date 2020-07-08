@@ -68,10 +68,7 @@ public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDet
     @Override
     public ViewHolder<RecyIllustDetailBinding> onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         return new ViewHolder<>(DataBindingUtil.inflate(
-                LayoutInflater.from(mContext),
-                R.layout.recy_illust_detail,
-                parent,
-                false
+                LayoutInflater.from(mContext), R.layout.recy_illust_detail, parent, false
         ));
     }
 

@@ -13,6 +13,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.blankj.utilcode.util.LanguageUtils;
+import com.bumptech.glide.Glide;
 import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringChain;
@@ -172,6 +173,26 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             @Override
             public void onClick(View v) {
                 baseBind.showLikeButton.performClick();
+            }
+        });
+
+        baseBind.illustDetailUserNew.setChecked(Shaft.sSettings.isUseFragmentIllust());
+        baseBind.illustDetailUserNew.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    Shaft.sSettings.setUseFragmentIllust(true);
+                } else {
+                    Shaft.sSettings.setUseFragmentIllust(false);
+                }
+                Common.showToast("设置成功", baseBind.illustDetailUserNew);
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.illustDetailUserNewRela.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                baseBind.illustDetailUserNew.performClick();
             }
         });
 

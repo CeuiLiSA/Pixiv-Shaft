@@ -123,14 +123,7 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
     }
 
     private void setFollowed() {
-        //通知详情页面刷新，设置这个作品为已收藏
-        Channel channel = new Channel();
-        channel.setReceiver("FragmentSingleIllust starIllust");
-        channel.setObject(illustID);
-        EventBus.getDefault().post(channel);
-
-
-        //通知列表页面刷新，设置这个作品为已收藏
+        //通知其他页面刷新，设置这个作品为已收藏
         Intent intent = new Intent(Params.LIKED_ILLUST);
         intent.putExtra(Params.ID, illustID);
         intent.putExtra(Params.IS_LIKED, true);

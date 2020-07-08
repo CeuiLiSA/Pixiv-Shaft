@@ -374,7 +374,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="@dimen/sixteen_dp"
-                android:src="@drawable/ic_favorite_black_24dp"
                 app:backgroundTint="@color/white"
                 app:layout_anchor="@id/bottom_bar"
                 app:layout_anchorGravity="end">

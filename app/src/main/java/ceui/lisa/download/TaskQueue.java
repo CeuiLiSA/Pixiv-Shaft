@@ -65,12 +65,6 @@ public class TaskQueue {
                     addChannel.setObject(downloadEntity);
                     EventBus.getDefault().post(addChannel);
 
-                    //通知FragmentSingleIllust 已下载完成
-                    Channel channel22 = new Channel();
-                    channel22.setReceiver("FragmentSingleIllust download finish");
-                    channel22.setObject(tempTask.getIllustsBean().getId());
-                    EventBus.getDefault().post(channel22);
-
                     new ImageSaver() {
                         @Override
                         File whichFile() {
