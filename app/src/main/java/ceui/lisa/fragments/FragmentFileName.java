@@ -97,9 +97,9 @@ public class FragmentFileName extends SwipeFragment<FragmentFileNameBinding> {
     protected void initData() {
         allItems.add(new CustomFileNameCell("作品ID", "不选的话可能两个文件名重复，导致下载失败，必选项", 1, true));
         allItems.add(new CustomFileNameCell("作品标题", "作品标题，可选项", 2, false));
-        allItems.add(new CustomFileNameCell("画师ID", "画师ID，可选项", 3, false));
-        allItems.add(new CustomFileNameCell("画师昵称", "画师昵称，可选项", 4, false));
-        allItems.add(new CustomFileNameCell("作品P数", "显示当前图片是作品的第几P，如果只有1P则隐藏，必选项", 5, true));
+        allItems.add(new CustomFileNameCell("作品P数", "显示当前图片是作品的第几P，如果只有1P则隐藏，必选项", 3, true));
+        allItems.add(new CustomFileNameCell("画师ID", "画师ID，可选项", 4, false));
+        allItems.add(new CustomFileNameCell("画师昵称", "画师昵称，可选项", 5, false));
         allItems.add(new CustomFileNameCell("作品尺寸", "显示当前图片的尺寸信息，可选项", 6, false));
         mAdapter = new FileNameAdapter(allItems, mContext);
         baseBind.recyclerView.setLayoutManager(new LinearLayoutManager(mContext));
@@ -107,7 +107,6 @@ public class FragmentFileName extends SwipeFragment<FragmentFileNameBinding> {
         baseBind.recyclerView.addItemDecoration(new LinearItemDecoration(DensityUtil.dp2px(12.0f)));
         baseBind.recyclerView.setAdapter(mAdapter);
         new ItemTouchHelper(new ItemTouchHelper.Callback() {
-            private RecyclerView.ViewHolder vh;
             @Override
             public int getMovementFlags(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
                 int dragFlags = ItemTouchHelper.UP | ItemTouchHelper.DOWN;
@@ -129,12 +128,9 @@ public class FragmentFileName extends SwipeFragment<FragmentFileNameBinding> {
             @Override
             public void onMoved(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, int fromPos, @NonNull RecyclerView.ViewHolder target, int toPos, int x, int y) {
                 super.onMoved(recyclerView, viewHolder, fromPos, target, toPos, x, y);
-                // 移动完成后刷新列表
                 mAdapter.notifyItemMoved(viewHolder.getAdapterPosition(), target
                         .getAdapterPosition());
             }
-
-            //省略代码
         }).attachToRecyclerView(baseBind.recyclerView);
     }
 

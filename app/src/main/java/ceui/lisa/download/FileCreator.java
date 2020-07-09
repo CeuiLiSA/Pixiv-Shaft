@@ -117,8 +117,8 @@ public class FileCreator {
 
     public static final int ILLUST_ID = 1;
     public static final int ILLUST_TITLE = 2;
-    public static final int USER_ID = 3;
-    public static final int USER_NAME = 4;
-    public static final int P_SIZE = 5;
+    public static final int P_SIZE = 3;
+    public static final int USER_ID = 4;
+    public static final int USER_NAME = 5;
     public static final int ILLUST_SIZE = 6;
 }
