@@ -39,6 +39,7 @@ import ceui.lisa.activities.ImageDetailActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.RecyIllustDetailBinding;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.transformer.UniformScaleTransformation;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 
@@ -82,14 +83,30 @@ public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDet
             holder.baseBind.progress.setVisibility(View.VISIBLE);
         }
         if (position == 0) {
-            ViewGroup.LayoutParams params = holder.baseBind.illust.getLayoutParams();
-            params.width = imageSize;
-            params.height = maxHeight;
-            holder.baseBind.illust.setLayoutParams(params);
-            holder.baseBind.illust.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            loadIllust(holder, position, false);
+            if (allIllust.getPage_count() == 1) {
+
+                float screenRatio = (float) imageSize / maxHeight;
+                float illustRatio = (float) allIllust.getWidth() / allIllust.getHeight();
+                Common.showLog("ratio illustRatio " + Math.abs(illustRatio - screenRatio) + allIllust.getTitle());
+
+
+                if (Math.abs(illustRatio - screenRatio) < 0.1f) {
+                    holder.baseBind.illust.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                } else {
+                    holder.baseBind.illust.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                }
+
+                ViewGroup.LayoutParams params = holder.baseBind.illust.getLayoutParams();
+                params.width = imageSize;
+                params.height = maxHeight;
+                holder.baseBind.illust.setLayoutParams(params);
+                loadIllust(holder, position, false);
+            } else {
+                holder.baseBind.illust.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                loadIllust(holder, position, true);
+            }
         } else {
-            holder.baseBind.illust.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            holder.baseBind.illust.setScaleType(ImageView.ScaleType.CENTER_CROP);
             loadIllust(holder, position, true);
         }
 
@@ -131,21 +148,14 @@ public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDet
 
                     @Override
                     public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
-                        if (changeSize) {
-                            ViewGroup.LayoutParams params = holder.baseBind.illust.getLayoutParams();
-                            params.width = imageSize;
-                            params.height = imageSize * resource.getHeight() / resource.getWidth();
-                            holder.baseBind.illust.setLayoutParams(params);
-                        }
                         holder.baseBind.reload.setVisibility(View.INVISIBLE);
                         holder.baseBind.progress.setVisibility(View.INVISIBLE);
                         Common.showLog("IllustAdapter onResourceReady " + position );
                         hasLoad.put(position, true);
-                        holder.baseBind.illust.setImageBitmap(resource);
                         return false;
                     }
                 })
-                .into(holder.baseBind.illust);
+                .into(new UniformScaleTransformation(holder.baseBind.illust, changeSize));
     }
 
     @Override

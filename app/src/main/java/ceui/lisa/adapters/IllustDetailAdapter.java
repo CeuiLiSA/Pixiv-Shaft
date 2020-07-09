@@ -106,9 +106,7 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
             Glide.with(mContext)
                     .asDrawable()
-                    .load(Shaft.sSettings.isFirstImageSize() ?
-                            GlideUtil.getOriginalWithInvertProxy(allIllust, position) :
-                            GlideUtil.getLargeImage(allIllust, position))
+                    .load(GlideUtil.getLargeImage(allIllust, position))
                     .transition(DrawableTransitionOptions.withCrossFade())
                     .into(new SimpleTarget<Drawable>() {
                         @Override
@@ -194,9 +192,7 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         } else {
             Glide.with(mContext)
                     .asBitmap()
-                    .load(Shaft.sSettings.isFirstImageSize() ?
-                            GlideUtil.getOriginalWithInvertProxy(allIllust, position) :
-                            GlideUtil.getLargeImage(allIllust, position))
+                    .load(GlideUtil.getLargeImage(allIllust, position))
                     .transition(withCrossFade())
                     .into(new SimpleTarget<Bitmap>() {
                         @Override

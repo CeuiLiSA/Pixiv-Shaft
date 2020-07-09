@@ -18,6 +18,7 @@ import ceui.lisa.fragments.FragmentSingleIllust;
 import ceui.lisa.fragments.FragmentIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 
@@ -88,6 +89,10 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
             }
         } else {
             finish();
+        }
+
+        if (Dev.isDev) {
+            baseBind.viewPager.setOffscreenPageLimit(1);
         }
 
         TimeRecord.end();

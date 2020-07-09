@@ -18,20 +18,30 @@
             android:layout_height="match_parent"
             android:layout_above="@+id/bottom_linear">
 
-            <androidx.recyclerview.widget.RecyclerView
+            <com.scwang.smartrefresh.layout.SmartRefreshLayout
                 android:layout_width="match_parent"
-                android:background="#7e57c2"
-                android:id="@+id/recyclerView"
+                android:id="@+id/refreshLayout"
+                android:background="#000"
                 android:layout_height="match_parent">
 
-            </androidx.recyclerview.widget.RecyclerView>
+                <androidx.recyclerview.widget.RecyclerView
+                    android:layout_width="match_parent"
+                    android:background="#000"
+                    android:id="@+id/recyclerView"
+                    android:layout_height="match_parent">
+
+                </androidx.recyclerview.widget.RecyclerView>
+
+            </com.scwang.smartrefresh.layout.SmartRefreshLayout>
+
+
 
 
             <androidx.core.widget.NestedScrollView
                 android:id="@+id/content_scroll_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:behavior_peekHeight="200dp"
+                app:behavior_peekHeight="180dp"
                 app:layout_behavior="@string/bottom_sheet_behavior">
 
 
@@ -405,7 +415,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
+                <ImageButton
                     android:id="@+id/comment"
                     android:layout_width="0dp"
                     android:layout_height="45dp"
@@ -413,29 +423,26 @@
                     android:layout_marginEnd="@dimen/six_dp"
                     android:layout_marginBottom="@dimen/twelve_dp"
                     android:layout_weight="1"
-                    android:text="评论"
-                    android:textColor="#9f9fb4"
-                    app:qmui_backgroundColor="@color/white"
-                    app:qmui_borderColor="#eaebf9"
-                    app:qmui_radius="@dimen/eight_dp">
+                    android:tint="#9f9fb4"
+                    android:background="@drawable/button_stroke_new"
+                    android:src="@drawable/ic_chat_black_24dp">
 
-                </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton>
+                </ImageButton>
 
-                <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
+                <ImageButton
                     android:id="@+id/related"
                     android:layout_width="0dp"
                     android:layout_height="45dp"
                     android:layout_marginStart="@dimen/six_dp"
                     android:layout_marginEnd="@dimen/six_dp"
                     android:layout_marginBottom="@dimen/twelve_dp"
+                    android:tint="#9f9fb4"
                     android:layout_weight="1"
-                    android:text="相似"
-                    android:textColor="#9f9fb4"
-                    app:qmui_backgroundColor="@color/white"
-                    app:qmui_borderColor="#eaebf9"
-                    app:qmui_radius="@dimen/eight_dp">
+                    android:src="@drawable/ic_equalizer_black_24dp"
+                    android:background="@drawable/button_stroke_new"
+                    android:textColor="#9f9fb4">
 
-                </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton>
+                </ImageButton>
 
                 <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
                     android:id="@+id/download"

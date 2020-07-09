@@ -154,7 +154,7 @@ public class FragmentIllust extends SwipeFragment<FragmentSlideBinding> {
                 final int bottomCardHeight = baseBind.bottomBar.getHeight();
                 final int deltaY = baseBind.coreLinear.getHeight() - baseBind.bottomBar.getHeight();
                 sheetBehavior.setPeekHeight(bottomCardHeight, true);
-                baseBind.recyclerView.setPadding(0, 0, 0, bottomCardHeight - DensityUtil.dp2px(16.0f));
+                baseBind.refreshLayout.setPadding(0, 0, 0, bottomCardHeight - DensityUtil.dp2px(16.0f));
                 sheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
                     @Override
                     public void onStateChanged(@NonNull View bottomSheet, int newState) {
@@ -163,7 +163,7 @@ public class FragmentIllust extends SwipeFragment<FragmentSlideBinding> {
 
                     @Override
                     public void onSlide(@NonNull View bottomSheet, float slideOffset) {
-                        baseBind.recyclerView.setTranslationY(-deltaY * slideOffset * 0.7f);
+                        baseBind.refreshLayout.setTranslationY(-deltaY * slideOffset * 0.7f);
                     }
                 });
 
@@ -332,6 +332,6 @@ public class FragmentIllust extends SwipeFragment<FragmentSlideBinding> {
 
     @Override
     public SmartRefreshLayout getSmartRefreshLayout() {
-        return null;
+        return baseBind.refreshLayout;
     }
 }
