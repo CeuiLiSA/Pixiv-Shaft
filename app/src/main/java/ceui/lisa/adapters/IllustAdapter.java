@@ -77,30 +77,39 @@ public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDet
     public void onBindViewHolder(@NonNull ViewHolder<RecyIllustDetailBinding> holder, int position) {
         Wave wave = new Wave();
         holder.baseBind.progress.setIndeterminateDrawable(wave);
-        if (hasLoad.get(position)) {
-            holder.baseBind.progress.setVisibility(View.INVISIBLE);
-        } else {
-            holder.baseBind.progress.setVisibility(View.VISIBLE);
-        }
         if (position == 0) {
             if (allIllust.getPage_count() == 1) {
 
+                //获取屏幕imageview的宽高比率
                 float screenRatio = (float) imageSize / maxHeight;
+                //获取作品的宽高比率
                 float illustRatio = (float) allIllust.getWidth() / allIllust.getHeight();
-                Common.showLog("ratio illustRatio " + Math.abs(illustRatio - screenRatio) + allIllust.getTitle());
 
-
-                if (Math.abs(illustRatio - screenRatio) < 0.1f) {
+                if (Math.abs(illustRatio - screenRatio) < 0.1f) {//如果宽高相近，直接CENTER_CROP 填充
                     holder.baseBind.illust.setScaleType(ImageView.ScaleType.CENTER_CROP);
+
+                    ViewGroup.LayoutParams params = holder.baseBind.illust.getLayoutParams();
+                    params.width = imageSize;
+                    params.height = maxHeight;
+                    holder.baseBind.illust.setLayoutParams(params);
+                    loadIllust(holder, position, false);
                 } else {
-                    holder.baseBind.illust.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                    //如果宽高差的比较大，FIT_CENTER 填充
+                    if (illustRatio < screenRatio) {
+                        holder.baseBind.illust.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                        loadIllust(holder, position, true);
+                    } else {
+                        holder.baseBind.illust.setScaleType(ImageView.ScaleType.FIT_CENTER);
+
+                        ViewGroup.LayoutParams params = holder.baseBind.illust.getLayoutParams();
+                        params.width = imageSize;
+                        params.height = maxHeight;
+                        holder.baseBind.illust.setLayoutParams(params);
+                        loadIllust(holder, position, false);
+                    }
                 }
 
-                ViewGroup.LayoutParams params = holder.baseBind.illust.getLayoutParams();
-                params.width = imageSize;
-                params.height = maxHeight;
-                holder.baseBind.illust.setLayoutParams(params);
-                loadIllust(holder, position, false);
+
             } else {
                 holder.baseBind.illust.setScaleType(ImageView.ScaleType.CENTER_CROP);
                 loadIllust(holder, position, true);
@@ -129,7 +138,14 @@ public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDet
         });
     }
 
+    /**
+     *
+     * @param holder
+     * @param position
+     * @param changeSize 是否自动计算宽高
+     */
     private void loadIllust(ViewHolder<RecyIllustDetailBinding> holder, int position, boolean changeSize){
+        holder.baseBind.progress.setVisibility(View.VISIBLE);
         Glide.with(mContext)
                 .asBitmap()
                 .load(Shaft.sSettings.isFirstImageSize() ?

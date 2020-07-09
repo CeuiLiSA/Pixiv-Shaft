@@ -381,6 +381,15 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             }
         });
 
+        baseBind.fileNameRela.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "修改命名方式");
+                startActivity(intent);
+            }
+        });
+
         baseBind.themeMode.setText(Shaft.sSettings.getThemeType());
         baseBind.themeModeRela.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -415,12 +424,6 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
         });
         baseBind.refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));
         baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
-
-//        baseBind.fullscreenLayout.setChecked(Shaft.sSettings.isFullscreenLayout());
-//        baseBind.fullscreenLayout.setOnCheckedChangeListener((buttonView, isChecked) -> {
-//            Shaft.sSettings.setFullscreenLayout(isChecked);
-//            Local.setSettings(Shaft.sSettings);
-//        });
     }
 
     private void animate(LinearLayout linearLayout) {

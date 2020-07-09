@@ -86,6 +86,8 @@ public class Settings {
 
     private String appLanguage = "";
 
+    private String fileLastType = "png";
+
     public String getAppLanguage() {
         if(!TextUtils.isEmpty(appLanguage)){
             return appLanguage;
@@ -297,5 +299,13 @@ public class Settings {
 
     public void setShowLikeButton(boolean pShowLikeButton) {
         showLikeButton = pShowLikeButton;
+    }
+
+    public String getFileLastType() {
+        return fileLastType;
+    }
+
+    public void setFileLastType(String fileLastType) {
+        this.fileLastType = fileLastType;
     }
 }

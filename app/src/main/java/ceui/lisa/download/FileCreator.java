@@ -114,4 +114,11 @@ public class FileCreator {
         }
         return new File(parent, deleteSpecialWords(name));
     }
+
+    public static final int ILLUST_ID = 1;
+    public static final int ILLUST_TITLE = 2;
+    public static final int USER_ID = 3;
+    public static final int USER_NAME = 4;
+    public static final int P_SIZE = 5;
+    public static final int ILLUST_SIZE = 6;
 }

@@ -117,14 +117,10 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
             if (allItems != null) {
                 if (allItems.size() >= 20) {
                     for (int i = 0; i < 20; i++) {
-                        Common.showLog(className + "uuu 写入第" + i + "条数据" +
-                                allItems.get(i).getTitle());
                         insertViewHistory(allItems.get(i));
                     }
                 } else {
                     for (int i = 0; i < allItems.size(); i++) {
-                        Common.showLog(className + "bbb 写入第" + i + "条数据" +
-                                allItems.get(i).getTitle());
                         insertViewHistory(allItems.get(i));
                     }
                 }

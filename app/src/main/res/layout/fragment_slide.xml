@@ -26,7 +26,6 @@
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:layout_width="match_parent"
-                    android:background="#000"
                     android:id="@+id/recyclerView"
                     android:layout_height="match_parent">
 
@@ -421,9 +420,9 @@
                     android:layout_height="45dp"
                     android:layout_marginStart="@dimen/tweenty_four_dp"
                     android:layout_marginEnd="@dimen/six_dp"
-                    android:layout_marginBottom="@dimen/twelve_dp"
+                    android:layout_marginBottom="@dimen/eight_dp"
                     android:layout_weight="1"
-                    android:tint="#9f9fb4"
+                    android:tint="#666af6"
                     android:background="@drawable/button_stroke_new"
                     android:src="@drawable/ic_chat_black_24dp">
 
@@ -435,8 +434,8 @@
                     android:layout_height="45dp"
                     android:layout_marginStart="@dimen/six_dp"
                     android:layout_marginEnd="@dimen/six_dp"
-                    android:layout_marginBottom="@dimen/twelve_dp"
-                    android:tint="#9f9fb4"
+                    android:layout_marginBottom="@dimen/eight_dp"
+                    android:tint="#666af6"
                     android:layout_weight="1"
                     android:src="@drawable/ic_equalizer_black_24dp"
                     android:background="@drawable/button_stroke_new"
@@ -450,7 +449,7 @@
                     android:layout_height="45dp"
                     android:layout_marginStart="@dimen/six_dp"
                     android:layout_marginEnd="@dimen/tweenty_four_dp"
-                    android:layout_marginBottom="@dimen/twelve_dp"
+                    android:layout_marginBottom="@dimen/eight_dp"
                     android:layout_weight="2"
                     android:text="下载"
                     android:textColor="@color/white"
@@ -464,13 +463,6 @@
             </LinearLayout>
 
         </LinearLayout>
-
-<!--        <View-->
-<!--            android:id="@+id/dark_blank"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="48dp"-->
-<!--            android:layout_gravity="bottom"-->
-<!--            android:background="@drawable/bottom_gradient" />-->
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"

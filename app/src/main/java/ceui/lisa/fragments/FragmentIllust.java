@@ -16,6 +16,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
@@ -271,6 +272,20 @@ public class FragmentIllust extends SwipeFragment<FragmentSlideBinding> {
                 }
             }
         });
+
+        Common.showLog(Shaft.sGson.toJson(illust));
+//
+//        baseBind.recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+//            @Override
+//            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+//                if (baseBind.recyclerView.getLayoutManager() instanceof LinearLayoutManager) {
+//                    LinearLayoutManager temp = (LinearLayoutManager) baseBind.recyclerView.getLayoutManager();
+//                    baseBind.toolbar.setTitle(
+//                            (temp.findFirstVisibleItemPosition() + 1) + "/" + illust.getPage_count());
+//                }
+//            }
+//        });
+
         Glide.with(mContext)
                 .load(GlideUtil.getMediumImg(illust.getUser().getProfile_image_urls().getMedium()))
                 .into(baseBind.userHead);

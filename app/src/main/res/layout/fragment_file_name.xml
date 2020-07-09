@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+    </data>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fitsSystemWindows="true"
+            android:background="@color/colorPrimary"
+            android:elevation="@dimen/six_dp"
+            app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
+            app:title="设置命名方式"
+            app:titleTextColor="@android:color/white">
+
+        </androidx.appcompat.widget.Toolbar>
+
+        <com.scwang.smartrefresh.layout.SmartRefreshLayout
+            android:layout_width="match_parent"
+            android:id="@+id/refreshLayout"
+            android:layout_above="@+id/submit_linear"
+            android:layout_below="@+id/toolbar"
+            android:layout_height="match_parent">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:textSize="15sp"
+                    android:id="@+id/now_name"
+                    android:layout_marginStart="@dimen/sixteen_dp"
+                    android:layout_marginTop="@dimen/sixteen_dp"
+                    android:layout_marginBottom="@dimen/twelve_dp"
+                    android:text="当前文件名："
+                    android:layout_height="wrap_content">
+
+                </TextView>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:id="@+id/file_name"
+                    android:textColor="@color/colorPrimary"
+                    android:layout_below="@+id/now_name"
+                    android:text="12345678_title.png"
+                    android:layout_marginBottom="40dp"
+                    android:textSize="20sp"
+                    android:layout_marginStart="@dimen/sixteen_dp"
+                    android:layout_marginEnd="@dimen/sixteen_dp"
+                    android:layout_height="wrap_content">
+
+
+                </TextView>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:layout_height="match_parent"
+                    android:id="@+id/recyclerView"
+                    android:layout_below="@+id/file_name"
+                    android:layout_above="@+id/last_name_rela"
+                    android:layout_width="match_parent">
+
+                </androidx.recyclerview.widget.RecyclerView>
+
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_alignParentBottom="true"
+                    android:id="@+id/last_name_rela"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:text="文件后缀名"
+                        android:textSize="20sp"
+                        android:layout_marginStart="@dimen/sixteen_dp"
+                        android:id="@+id/last_name_s"
+                        android:layout_marginTop="@dimen/sixteen_dp"
+                        android:layout_marginBottom="@dimen/sixteen_dp"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_height="wrap_content">
+
+                    </TextView>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_marginStart="30dp"
+                        android:id="@+id/last_name"
+                        android:layout_toEndOf="@+id/last_name_s"
+                        android:textSize="25sp"
+                        android:textColor="@color/colorPrimary"
+                        android:gravity="end"
+                        android:text="PNG"
+                        android:layout_marginEnd="@dimen/sixteen_dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_height="wrap_content">
+
+                    </TextView>
+
+                </RelativeLayout>
+            </RelativeLayout>
+
+
+        </com.scwang.smartrefresh.layout.SmartRefreshLayout>
+
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_alignParentBottom="true"
+            android:id="@+id/submit_linear"
+            android:layout_height="wrap_content">
+
+            <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
+                android:id="@+id/remove_all"
+                android:layout_width="0dp"
+                android:layout_marginTop="@dimen/eight_dp"
+                android:layout_height="45dp"
+                android:layout_marginStart="@dimen/tweenty_four_dp"
+                android:layout_marginEnd="@dimen/six_dp"
+                android:layout_marginBottom="@dimen/eight_dp"
+                android:layout_weight="1"
+                android:text="清空"
+                android:textColor="#9f9fb4"
+                app:qmui_backgroundColor="@color/white"
+                app:qmui_borderColor="#eaebf9"
+                app:qmui_radius="@dimen/eight_dp">
+
+            </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton>
+
+            <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
+                android:id="@+id/show_now"
+                android:layout_width="0dp"
+                android:layout_height="45dp"
+                android:layout_marginStart="@dimen/six_dp"
+                android:layout_marginTop="@dimen/eight_dp"
+                android:layout_marginEnd="@dimen/six_dp"
+                android:layout_marginBottom="@dimen/eight_dp"
+                android:layout_weight="1"
+                android:text="预览"
+                android:textColor="#9f9fb4"
+                app:qmui_backgroundColor="@color/white"
+                app:qmui_borderColor="#eaebf9"
+                app:qmui_radius="@dimen/eight_dp">
+
+            </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton>
+
+            <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
+                android:id="@+id/save_now"
+                android:layout_width="0dp"
+                android:layout_height="45dp"
+                android:layout_marginStart="@dimen/six_dp"
+                android:layout_marginEnd="@dimen/tweenty_four_dp"
+                android:layout_marginBottom="@dimen/eight_dp"
+                android:layout_marginTop="@dimen/eight_dp"
+                android:layout_weight="2"
+                android:text="保存命名格式"
+                android:textColor="@color/white"
+                app:qmui_backgroundColor="#666af6"
+                app:qmui_borderColor="#eaebf9"
+                app:qmui_borderWidth="0dp"
+                app:qmui_radius="@dimen/eight_dp">
+
+            </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton>
+
+        </LinearLayout>
+
+    </RelativeLayout>
+</layout>

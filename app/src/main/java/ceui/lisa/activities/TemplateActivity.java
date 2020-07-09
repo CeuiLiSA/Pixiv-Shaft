@@ -15,6 +15,7 @@ import ceui.lisa.base.BaseActivity;
 import ceui.lisa.databinding.ActivityFragmentBinding;
 import ceui.lisa.fragments.FragmentAboutApp;
 import ceui.lisa.fragments.FragmentAnime;
+import ceui.lisa.fragments.FragmentFileName;
 import ceui.lisa.fragments.FragmentListSimpleUser;
 import ceui.lisa.fragments.FragmentMultiDownld;
 import ceui.lisa.fragments.FragmentNewNovel;
@@ -182,6 +183,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                     return new FragmentLive();
                 case "标签屏蔽记录":
                     return new FragmentMutedTags();
+                case "修改命名方式":
+                    return FragmentFileName.newInstance();
                 default:
                     return new Fragment();
             }

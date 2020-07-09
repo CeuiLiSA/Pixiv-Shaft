@@ -6,7 +6,6 @@ import androidx.viewpager.widget.ViewPager;
 
 public class GalleryTransformer implements ViewPager.PageTransformer {
 
-
     @Override
     public void transformPage(View page, float position) {
         float scale= 1 - (Math.abs(position) * 0.25f);

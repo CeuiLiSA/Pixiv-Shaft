@@ -42,8 +42,6 @@ public class UniformScaleTransformation extends ImageViewTarget<Bitmap> {
             params.height = imageViewHeight;
             target.setLayoutParams(params);
         }
-
-
     }
 
     @Override
