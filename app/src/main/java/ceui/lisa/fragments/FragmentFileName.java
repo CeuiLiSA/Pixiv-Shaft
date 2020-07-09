@@ -1,6 +1,7 @@
 package ceui.lisa.fragments;
 
 import android.content.DialogInterface;
+import android.text.TextUtils;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -9,6 +10,7 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.gson.reflect.TypeToken;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
@@ -55,6 +57,14 @@ public class FragmentFileName extends SwipeFragment<FragmentFileNameBinding> {
                 showResult();
             }
         });
+        baseBind.saveNow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String json = Shaft.sGson.toJson(allItems);
+                Shaft.sSettings.setFileNameJson(json);
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
         baseBind.removeAll.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -95,12 +105,20 @@ public class FragmentFileName extends SwipeFragment<FragmentFileNameBinding> {
 
     @Override
     protected void initData() {
-        allItems.add(new CustomFileNameCell("作品ID", "不选的话可能两个文件名重复，导致下载失败，必选项", 1, true));
-        allItems.add(new CustomFileNameCell("作品标题", "作品标题，可选项", 2, false));
-        allItems.add(new CustomFileNameCell("作品P数", "显示当前图片是作品的第几P，如果只有1P则隐藏，必选项", 3, true));
-        allItems.add(new CustomFileNameCell("画师ID", "画师ID，可选项", 4, false));
-        allItems.add(new CustomFileNameCell("画师昵称", "画师昵称，可选项", 5, false));
-        allItems.add(new CustomFileNameCell("作品尺寸", "显示当前图片的尺寸信息，可选项", 6, false));
+        allItems.clear();
+        if (TextUtils.isEmpty(Shaft.sSettings.getFileNameJson())) {
+            allItems.add(new CustomFileNameCell("作品ID", "不选的话可能两个文件名重复，导致下载失败，必选项", 1, true));
+            allItems.add(new CustomFileNameCell("作品标题", "作品标题，可选项", 2, false));
+            allItems.add(new CustomFileNameCell("作品P数", "显示当前图片是作品的第几P，如果只有1P则隐藏，必选项", 3, true));
+            allItems.add(new CustomFileNameCell("画师ID", "画师ID，可选项", 4, false));
+            allItems.add(new CustomFileNameCell("画师昵称", "画师昵称，可选项", 5, false));
+            allItems.add(new CustomFileNameCell("作品尺寸", "显示当前图片的尺寸信息，可选项", 6, false));
+        } else {
+            allItems.addAll(Shaft.sGson.fromJson(Shaft.sSettings.getFileNameJson(),
+                    new TypeToken<List<CustomFileNameCell>>() {
+                    }.getType()));
+        }
+
         mAdapter = new FileNameAdapter(allItems, mContext);
         baseBind.recyclerView.setLayoutManager(new LinearLayoutManager(mContext));
         baseBind.recyclerView.setNestedScrollingEnabled(true);

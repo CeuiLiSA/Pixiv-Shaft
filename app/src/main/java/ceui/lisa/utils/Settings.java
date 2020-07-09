@@ -88,6 +88,8 @@ public class Settings {
 
     private String fileLastType = "png";
 
+    private String fileNameJson = "";
+
     public String getAppLanguage() {
         if(!TextUtils.isEmpty(appLanguage)){
             return appLanguage;
@@ -307,5 +309,13 @@ public class Settings {
 
     public void setFileLastType(String fileLastType) {
         this.fileLastType = fileLastType;
+    }
+
+    public String getFileNameJson() {
+        return fileNameJson;
+    }
+
+    public void setFileNameJson(String fileNameJson) {
+        this.fileNameJson = fileNameJson;
     }
 }
