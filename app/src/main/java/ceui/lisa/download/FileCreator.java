@@ -118,90 +118,27 @@ public class FileCreator {
     public static final int ILLUST_SIZE = 6;
 
     public static String customFileName(IllustsBean illustsBean, int index) {
-        List<CustomFileNameCell> result = new ArrayList<>();
+        List<CustomFileNameCell> result;
         if (TextUtils.isEmpty(Shaft.sSettings.getFileNameJson())) {
-            result.add(new CustomFileNameCell("作品标题", "作品标题，可选项", 1, true));
-            result.add(new CustomFileNameCell("作品ID", "不选的话可能两个文件名重复，导致下载失败，必选项", 2, true));
-            result.add(new CustomFileNameCell("作品P数", "显示当前图片是作品的第几P，如果只有1P则隐藏，必选项", 3, true));
-            result.add(new CustomFileNameCell("画师ID", "画师ID，可选项", 4, false));
-            result.add(new CustomFileNameCell("画师昵称", "画师昵称，可选项", 5, false));
-            result.add(new CustomFileNameCell("作品尺寸", "显示当前图片的尺寸信息，可选项", 6, false));
+            result = defaultFileCells();
         } else {
-            result.addAll(Shaft.sGson.fromJson(Shaft.sSettings.getFileNameJson(),
+            result = new ArrayList<>(Shaft.sGson.fromJson(Shaft.sSettings.getFileNameJson(),
                     new TypeToken<List<CustomFileNameCell>>() {
                     }.getType()));
         }
-
-        String fileName = "";
-
-        for (int i = 0; i < result.size(); i++) {
-            CustomFileNameCell cell = result.get(i);
-            if (cell.isChecked()) {
-                switch (cell.getCode()) {
-                    case ILLUST_ID:
-                        if (!TextUtils.isEmpty(fileName)) {
-                            fileName = fileName + "_" + illustsBean.getId();
-                        } else {
-                            fileName = String.valueOf(illustsBean.getId());
-                        }
-                        break;
-                    case ILLUST_TITLE:
-                        if (!TextUtils.isEmpty(fileName)) {
-                            fileName = fileName + "_" + illustsBean.getTitle();
-                        } else {
-                            fileName = illustsBean.getTitle();
-                        }
-                        break;
-                    case P_SIZE:
-                        if (illustsBean.getPage_count() != 1) {
-                            if (!TextUtils.isEmpty(fileName)) {
-                                fileName = fileName + "_p" + (index + 1);
-                            } else {
-                                fileName = "p" + (index + 1);
-                            }
-                        }
-                        break;
-                    case USER_ID:
-                        if (!TextUtils.isEmpty(fileName)) {
-                            fileName = fileName + "_" + illustsBean.getUser().getId();
-                        } else {
-                            fileName = String.valueOf(illustsBean.getUser().getId());
-                        }
-                        break;
-                    case USER_NAME:
-                        if (!TextUtils.isEmpty(fileName)) {
-                            fileName = fileName + "_" + illustsBean.getUser().getName();
-                        } else {
-                            fileName = illustsBean.getUser().getName();
-                        }
-                        break;
-                    case ILLUST_SIZE:
-                        if (!TextUtils.isEmpty(fileName)) {
-                            fileName = fileName + "_" + illustsBean.getWidth() + "px*" + illustsBean.getHeight() + "px";
-                        } else {
-                            fileName = illustsBean.getWidth() + "px*" + illustsBean.getHeight() + "px";
-                        }
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-
-        return deleteSpecialWords(fileName + "." + Shaft.sSettings.getFileLastType());
+        return deleteSpecialWords(illustToFileName(illustsBean, result, index) +
+                "." + Shaft.sSettings.getFileLastType());
     }
 
     public static String customFileNameForPreview(IllustsBean illustsBean,
                                                   List<CustomFileNameCell> cells, int index) {
-        List<CustomFileNameCell> result;
-        if (cells != null && cells.size() != 0) {
-            result = new ArrayList<>(cells);
-        } else {
-            result = new ArrayList<>();
-        }
+        return deleteSpecialWords(illustToFileName(illustsBean, cells, index) +
+                "." + Shaft.sSettings.getFileLastType());
+    }
 
+    private static String illustToFileName(IllustsBean illustsBean,
+                                           List<CustomFileNameCell> result, int index) {
         String fileName = "";
-
         for (int i = 0; i < result.size(); i++) {
             CustomFileNameCell cell = result.get(i);
             if (cell.isChecked()) {
@@ -255,7 +192,17 @@ public class FileCreator {
                 }
             }
         }
+        return fileName;
+    }
 
-        return deleteSpecialWords(fileName + "." + Shaft.sSettings.getFileLastType());
+    public static List<CustomFileNameCell> defaultFileCells() {
+        List<CustomFileNameCell> cells = new ArrayList<>();
+        cells.add(new CustomFileNameCell("作品标题", "作品标题，可选项", 1, true));
+        cells.add(new CustomFileNameCell("作品ID", "不选的话可能两个文件名重复，导致下载失败，必选项", 2, true));
+        cells.add(new CustomFileNameCell("作品P数", "显示当前图片是作品的第几P，如果只有1P则隐藏，必选项", 3, true));
+        cells.add(new CustomFileNameCell("画师ID", "画师ID，可选项", 4, false));
+        cells.add(new CustomFileNameCell("画师昵称", "画师昵称，可选项", 5, false));
+        cells.add(new CustomFileNameCell("作品尺寸", "显示当前图片的尺寸信息，可选项", 6, false));
+        return cells;
     }
 }
