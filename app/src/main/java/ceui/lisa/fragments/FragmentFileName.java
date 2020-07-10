@@ -24,6 +24,7 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.FileNameAdapter;
 import ceui.lisa.base.SwipeFragment;
 import ceui.lisa.databinding.FragmentFileNameBinding;
+import ceui.lisa.download.FileCreator;
 import ceui.lisa.model.CustomFileNameCell;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
@@ -54,15 +55,13 @@ public class FragmentFileName extends SwipeFragment<FragmentFileNameBinding> {
         baseBind.showNow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showResult();
+                showPreview();
             }
         });
         baseBind.saveNow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String json = Shaft.sGson.toJson(allItems);
-                Shaft.sSettings.setFileNameJson(json);
-                Local.setSettings(Shaft.sSettings);
+                saveSettings();
             }
         });
         baseBind.removeAll.setOnClickListener(new View.OnClickListener() {
@@ -107,8 +106,8 @@ public class FragmentFileName extends SwipeFragment<FragmentFileNameBinding> {
     protected void initData() {
         allItems.clear();
         if (TextUtils.isEmpty(Shaft.sSettings.getFileNameJson())) {
-            allItems.add(new CustomFileNameCell("作品ID", "不选的话可能两个文件名重复，导致下载失败，必选项", 1, true));
-            allItems.add(new CustomFileNameCell("作品标题", "作品标题，可选项", 2, false));
+            allItems.add(new CustomFileNameCell("作品标题", "作品标题，可选项", 1, true));
+            allItems.add(new CustomFileNameCell("作品ID", "不选的话可能两个文件名重复，导致下载失败，必选项", 2, true));
             allItems.add(new CustomFileNameCell("作品P数", "显示当前图片是作品的第几P，如果只有1P则隐藏，必选项", 3, true));
             allItems.add(new CustomFileNameCell("画师ID", "画师ID，可选项", 4, false));
             allItems.add(new CustomFileNameCell("画师昵称", "画师昵称，可选项", 5, false));
@@ -150,72 +149,44 @@ public class FragmentFileName extends SwipeFragment<FragmentFileNameBinding> {
                         .getAdapterPosition());
             }
         }).attachToRecyclerView(baseBind.recyclerView);
+
+        showPreview();
     }
 
 
-    private void showResult() {
-        for (int i = 0; i < allItems.size(); i++) {
-            Common.showLog(allItems.get(i).getTitle());
+    private void showPreview() {
+        for (CustomFileNameCell allItem : allItems) {
+            if (allItem.getCode() == FileCreator.ILLUST_ID && !allItem.isChecked()) {
+                Common.showToast("作品ID为必选项，请选择作品ID");
+                return;
+            }
+
+            if (allItem.getCode() == FileCreator.P_SIZE && !allItem.isChecked()) {
+                Common.showToast("作品P数为必选项，请选择作品P数");
+                return;
+            }
         }
-//        if (!baseBind.illustId.isChecked()) {
-//            Common.showToast("作品ID为必选项，请选择作品ID");
-//            return;
-//        }
-//
-//        if (!baseBind.pSize.isChecked()) {
-//            Common.showToast("作品P数为必选项，请选择作品P数");
-//            return;
-//        }
-//
-//
-//        String illustID = String.valueOf(illust.getId());
-//
-//        String illustTitle = "";
-//        if (baseBind.illustTitle.isChecked()) {
-//            illustTitle = illust.getTitle();
-//        }
-//
-//
-//        String userId = "";
-//        if (baseBind.userId.isChecked()) {
-//            userId = String.valueOf(illust.getUser().getId());
-//        }
-//
-//
-//        String userName = "";
-//        if (baseBind.userName.isChecked()) {
-//            userName = illust.getUser().getName();
-//        }
-//
-//        String pSize = "p2";
-//
-//        String illustSize = "";
-//        if (baseBind.illustSize.isChecked()) {
-//            illustSize = illust.getWidth() + "px*" + illust.getHeight() + "px";
-//        }
-//
-//
-//        String result = "";
-//        if (!TextUtils.isEmpty(illustID)) {
-//            result = result + illustID;
-//        }
-//        if (!TextUtils.isEmpty(illustTitle)) {
-//            result = result + "_" + illustTitle;
-//        }
-//        if (!TextUtils.isEmpty(userId)) {
-//            result = result + "_" + userId;
-//        }
-//        if (!TextUtils.isEmpty(userName)) {
-//            result = result + "_" + userName;
-//        }
-//        if (!TextUtils.isEmpty(pSize)) {
-//            result = result + "_" + pSize;
-//        }
-//        if (!TextUtils.isEmpty(illustSize)) {
-//            result = result + "_" + illustSize;
-//        }
-//        result = result + "." + Shaft.sSettings.getFileLastType();
-//        baseBind.fileName.setText(result);
+        String name = FileCreator.customFileNameForPreview(illust, allItems, 1);
+        baseBind.fileName.setText(name);
+    }
+
+    private void saveSettings() {
+        for (CustomFileNameCell allItem : allItems) {
+            if (allItem.getCode() == FileCreator.ILLUST_ID && !allItem.isChecked()) {
+                Common.showToast("作品ID为必选项，请选择作品ID");
+                return;
+            }
+
+            if (allItem.getCode() == FileCreator.P_SIZE && !allItem.isChecked()) {
+                Common.showToast("作品P数为必选项，请选择作品P数");
+                return;
+            }
+        }
+
+        String json = Shaft.sGson.toJson(allItems);
+        Shaft.sSettings.setFileNameJson(json);
+        Local.setSettings(Shaft.sSettings);
+        Common.showToast("保存成功！");
     }
 
     @Override

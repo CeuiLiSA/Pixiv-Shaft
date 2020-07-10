@@ -504,7 +504,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_centerVertical="true"
                                 android:layout_margin="@dimen/sixteen_dp"
-                                android:text="@string/theme_mode"
+                                android:text="@string/custom_file_name"
                                 android:textColor="@color/rank_text_color"
                                 android:textSize="15sp">
 
@@ -518,7 +518,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_alignParentEnd="true"
                                 android:layout_margin="@dimen/sixteen_dp"
-                                android:text="文件命名方式"
+                                android:text="点击前往设置"
                                 android:textColor="@color/hint_text"
                                 android:textSize="14sp">
 

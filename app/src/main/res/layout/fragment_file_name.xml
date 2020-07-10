@@ -16,10 +16,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fitsSystemWindows="true"
-            android:background="@color/colorPrimary"
+            android:background="#666af6"
             android:elevation="@dimen/six_dp"
             app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
-            app:title="设置命名方式"
+            app:title="设置命名方式（长按拖拽）"
             app:titleTextColor="@android:color/white">
 
         </androidx.appcompat.widget.Toolbar>
@@ -42,7 +42,7 @@
                     android:layout_marginStart="@dimen/sixteen_dp"
                     android:layout_marginTop="@dimen/sixteen_dp"
                     android:layout_marginBottom="@dimen/twelve_dp"
-                    android:text="当前文件名："
+                    android:text="当前下载文件名示例："
                     android:layout_height="wrap_content">
 
                 </TextView>
@@ -50,10 +50,10 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:id="@+id/file_name"
-                    android:textColor="@color/colorPrimary"
+                    android:textColor="#666af6"
                     android:layout_below="@+id/now_name"
                     android:text="12345678_title.png"
-                    android:layout_marginBottom="40dp"
+                    android:layout_marginBottom="@dimen/sixteen_dp"
                     android:textSize="20sp"
                     android:layout_marginStart="@dimen/sixteen_dp"
                     android:layout_marginEnd="@dimen/sixteen_dp"
@@ -97,7 +97,7 @@
                         android:id="@+id/last_name"
                         android:layout_toEndOf="@+id/last_name_s"
                         android:textSize="25sp"
-                        android:textColor="@color/colorPrimary"
+                        android:textColor="#666af6"
                         android:gravity="end"
                         android:text="PNG"
                         android:layout_marginEnd="@dimen/sixteen_dp"

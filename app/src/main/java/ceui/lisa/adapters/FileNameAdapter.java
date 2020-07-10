@@ -1,6 +1,7 @@
 package ceui.lisa.adapters;
 
 import android.content.Context;
+import android.view.View;
 import android.widget.CompoundButton;
 
 import androidx.annotation.Nullable;
@@ -38,6 +39,12 @@ public class FileNameAdapter extends BaseAdapter<CustomFileNameCell, RecyFileNam
         bindView.baseBind.title.setChecked(target.isChecked());
         bindView.baseBind.title.setText(target.getTitle());
         bindView.baseBind.description.setText(target.getDesc());
+        bindView.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                bindView.baseBind.title.performClick();
+            }
+        });
     }
 
     public void unCheckAll() {
