@@ -104,6 +104,7 @@
         <activity android:name=".activities.UserActivity" />
         <activity android:name=".activities.SearchActivity" />
         <activity android:name=".activities.VActivity" />
+
     </application>
 
 </manifest>
