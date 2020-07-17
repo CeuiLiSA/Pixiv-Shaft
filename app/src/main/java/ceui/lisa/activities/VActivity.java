@@ -48,7 +48,11 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                 @Override
                 public Fragment getItem(int position) {
                     if (Shaft.sSettings.isUseFragmentIllust()) {
-                        return FragmentIllust.newInstance(idWithList.getList().get(position));
+                        if (idWithList.getList().get(position).isGif()) {
+                            return FragmentSingleIllust.newInstance(idWithList.getList().get(position));
+                        } else {
+                            return FragmentIllust.newInstance(idWithList.getList().get(position));
+                        }
                     } else {
                         return FragmentSingleIllust.newInstance(idWithList.getList().get(position));
                     }

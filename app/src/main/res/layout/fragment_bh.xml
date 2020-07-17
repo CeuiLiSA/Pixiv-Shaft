@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+
+    </data>
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:orientation="vertical"
+            android:background="#304ffe"
+            android:id="@+id/imagesTitleBlockLayout"
+            app:layout_behavior="ceui.lisa.ui.behavior.NestedHeaderScrollBehavior"
+            android:layout_height="wrap_content">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="240dp"
+                android:orientation="vertical">
+
+                <androidx.appcompat.widget.Toolbar
+                    android:layout_width="match_parent"
+                    android:id="@+id/toolbar"
+                    android:background="@color/white"
+                    android:layout_height="wrap_content">
+
+                </androidx.appcompat.widget.Toolbar>
+
+            </RelativeLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:background="@color/qmui_config_color_red"
+                android:layout_height="50dp">
+
+            </View>
+
+        </LinearLayout>
+
+
+
+        <ceui.lisa.ui.behavior.Scroll
+            android:id="@+id/imagesRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_behavior="ceui.lisa.ui.behavior.NestedContentScrollBehavior">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:orientation="vertical"
+                android:layout_height="match_parent">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:background="#9fa8da"
+                    android:layout_height="150dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:text="9fa8da"
+                        android:textSize="50sp"
+                        android:layout_centerInParent="true"
+                        android:textColor="@color/white"
+                        android:layout_height="wrap_content">
+
+                    </TextView>
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:background="#7986cb"
+                    android:layout_height="150dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:text="7986cb"
+                        android:textSize="50sp"
+                        android:layout_centerInParent="true"
+                        android:textColor="@color/white"
+                        android:layout_height="wrap_content">
+
+                    </TextView>
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:background="#5c6bc0"
+                    android:layout_height="150dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:text="5c6bc0"
+                        android:textSize="50sp"
+                        android:layout_centerInParent="true"
+                        android:textColor="@color/white"
+                        android:layout_height="wrap_content">
+
+                    </TextView>
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:background="#3f51b5"
+                    android:layout_height="150dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:text="3f51b5"
+                        android:textSize="50sp"
+                        android:layout_centerInParent="true"
+                        android:textColor="@color/white"
+                        android:layout_height="wrap_content">
+
+                    </TextView>
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:background="#3949ab"
+                    android:layout_height="150dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:text="303f9f"
+                        android:textSize="50sp"
+                        android:layout_centerInParent="true"
+                        android:textColor="@color/white"
+                        android:layout_height="wrap_content">
+
+                    </TextView>
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:background="#303f9f"
+                    android:layout_height="150dp">
+
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:text="303f9f"
+                        android:textSize="50sp"
+                        android:layout_centerInParent="true"
+                        android:textColor="@color/white"
+                        android:layout_height="wrap_content">
+
+                    </TextView>
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:background="#283593"
+                    android:layout_height="150dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:text="283593"
+                        android:textSize="50sp"
+                        android:layout_centerInParent="true"
+                        android:textColor="@color/white"
+                        android:layout_height="wrap_content">
+
+                    </TextView>
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:background="#1a237e"
+                    android:layout_height="150dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:text="1a237e"
+                        android:textSize="50sp"
+                        android:layout_centerInParent="true"
+                        android:textColor="@color/white"
+                        android:layout_height="wrap_content">
+
+                    </TextView>
+
+                </RelativeLayout>
+            </LinearLayout>
+
+
+
+        </ceui.lisa.ui.behavior.Scroll>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+</layout>

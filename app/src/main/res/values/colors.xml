@@ -9,6 +9,7 @@
     <color name="colorPrimaryDark">#0097A7</color>
     <color name="colorAccent">#CDDC39</color>
     <color name="light_primary_color">#B2EBF2</color>
+    <color name="illust_size_bg">#eeeffd</color>
 
     <color name="hint_text">#00BCD4</color>
 
@@ -56,5 +57,10 @@
     <color name="not_bookmarked">#a4afb3</color>
     <color name="has_bookmarked">#FA3A3A</color>
     <color name="panel_bg">#EAEAEA</color>
+
+
+
+    <color name="new_color_primary">#686bdd</color>
+
 
 </resources>

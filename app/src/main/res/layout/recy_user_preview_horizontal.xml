@@ -7,12 +7,12 @@
     </data>
 
     <androidx.cardview.widget.CardView
-        android:layout_width="90dp"
-        android:layout_height="130dp"
+        android:layout_width="85dp"
+        android:layout_height="120dp"
         android:clickable="true"
         android:foreground="?attr/selectableItemBackground"
-        app:cardCornerRadius="2dp"
-        app:cardBackgroundColor="@color/white_to_gray"
+        app:cardCornerRadius="@dimen/twelve_dp"
+        app:cardBackgroundColor="#eff0fe"
         app:cardElevation="2dp">
 
         <LinearLayout
@@ -22,23 +22,25 @@
 
 
             <de.hdodenhof.circleimageview.CircleImageView
-                android:layout_width="70dp"
+                android:layout_width="56dp"
                 android:id="@+id/user_head"
                 android:scaleType="centerCrop"
-                android:layout_marginTop="@dimen/eight_dp"
+                android:layout_marginTop="@dimen/twelve_dp"
                 android:layout_marginBottom="@dimen/eight_dp"
+                app:civ_border_color="#b3b4f4"
+                app:civ_border_width="1dp"
                 android:layout_gravity="center_horizontal"
-                android:layout_height="70dp" />
+                android:layout_height="56dp" />
 
             <TextView
                 android:layout_width="wrap_content"
-                android:textColor="#333333"
-                android:maxLines="2"
+                android:textColor="#7377ff"
+                android:maxLines="1"
                 android:textStyle="bold"
                 android:id="@+id/user_name"
                 android:ellipsize="end"
                 android:gravity="bottom"
-                android:textSize="12sp"
+                android:textSize="13sp"
                 android:layout_marginBottom="@dimen/eight_dp"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginStart="@dimen/eight_dp"

@@ -3,23 +3,35 @@ package ceui.lisa.fragments;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.text.Spannable;
+import android.text.SpannableString;
 import android.text.TextUtils;
+import android.text.style.ImageSpan;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
+import com.blankj.utilcode.util.ScreenUtils;
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.qmuiteam.qmui.span.QMUIAlignMiddleImageSpan;
+import com.qmuiteam.qmui.util.QMUIDisplayHelper;
+import com.qmuiteam.qmui.util.QMUIDrawableHelper;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.zhy.view.flowlayout.FlowLayout;
 import com.zhy.view.flowlayout.TagAdapter;
@@ -32,7 +44,7 @@ import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UserActivity;
 import ceui.lisa.adapters.IllustAdapter;
 import ceui.lisa.base.SwipeFragment;
-import ceui.lisa.databinding.FragmentSlideBinding;
+import ceui.lisa.databinding.FragmentIllustBinding;
 import ceui.lisa.dialogs.MuteDialog;
 import ceui.lisa.download.GifCreate;
 import ceui.lisa.download.IllustDownload;
@@ -48,7 +60,7 @@ import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.ShareIllust;
 
 
-public class FragmentIllust extends SwipeFragment<FragmentSlideBinding> {
+public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
 
     private IllustsBean illust;
 
@@ -67,7 +79,7 @@ public class FragmentIllust extends SwipeFragment<FragmentSlideBinding> {
 
     @Override
     public void initLayout() {
-        mLayoutID = R.layout.fragment_slide;
+        mLayoutID = R.layout.fragment_illust;
     }
 
     @Override
@@ -270,6 +282,18 @@ public class FragmentIllust extends SwipeFragment<FragmentSlideBinding> {
                 } else {
                     IllustDownload.downloadAllIllust(mActivity, illust);
                 }
+            }
+        });
+        baseBind.illustId.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Common.copy(mContext, String.valueOf(illust.getId()));
+            }
+        });
+        baseBind.userId.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Common.copy(mContext, String.valueOf(illust.getUser().getId()));
             }
         });
 

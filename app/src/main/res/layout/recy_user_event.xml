@@ -8,18 +8,11 @@
 
     </data>
 
-    <androidx.cardview.widget.CardView
-        android:clickable="true"
-        app:cardCornerRadius="@dimen/four_dp"
-        app:cardElevation="@dimen/four_dp"
-        android:foreground="?attr/selectableItemBackground"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-
 
     <LinearLayout
         android:layout_width="match_parent"
+        android:clickable="true"
+        android:foreground="?attr/selectableItemBackground"
         android:layout_height="wrap_content"
         app:cardBackgroundColor="@color/white_to_gray"
         android:orientation="vertical">
@@ -29,36 +22,53 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <TextView
-                android:id="@+id/user_name"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
-                android:text="i am title"
-                android:layout_marginStart="@dimen/eight_dp"
-                android:layout_marginEnd="@dimen/eight_dp"
-                android:textColor="@color/rank_text_color"
-                android:layout_marginBottom="@dimen/eight_dp"
-                android:layout_toEndOf="@+id/user_head"
-                android:ellipsize="end"
-                android:maxLines="2"
-                android:textSize="14sp"
-                android:textStyle="bold">
-
-            </TextView>
-
 
             <de.hdodenhof.circleimageview.CircleImageView
                 android:id="@+id/user_head"
                 android:layout_width="48dp"
                 android:layout_centerVertical="true"
                 android:layout_height="48dp"
-                android:layout_alignBottom="@+id/bottom_rela"
-                android:layout_marginStart="@dimen/eight_dp"
-                android:layout_marginTop="@dimen/four_dp"
-                android:layout_marginBottom="@dimen/four_dp"
+                android:layout_marginStart="@dimen/sixteen_dp"
+                android:layout_marginTop="@dimen/eight_dp"
+                android:layout_marginBottom="@dimen/eight_dp"
                 app:civ_border_color="#DDDDDD"
                 app:civ_border_width="1dp" />
+
+            <TextView
+                android:id="@+id/user_name"
+                android:layout_width="wrap_content"
+                android:layout_alignTop="@+id/user_head"
+                android:layout_marginTop="@dimen/four_dp"
+                android:layout_height="wrap_content"
+                android:text="i am title"
+                android:layout_marginStart="@dimen/eight_dp"
+                android:layout_marginEnd="@dimen/eight_dp"
+                android:textColor="#333333"
+                android:layout_marginBottom="@dimen/eight_dp"
+                android:layout_toEndOf="@+id/user_head"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textSize="14sp"
+                android:textStyle="bold">
+
+            </TextView>
+
+            <TextView
+                android:id="@+id/post_time"
+                android:layout_width="wrap_content"
+                android:layout_alignBottom="@+id/user_head"
+                android:layout_height="wrap_content"
+                android:text="2020年07月17日14:15:29"
+                android:layout_marginStart="@dimen/eight_dp"
+                android:layout_marginEnd="@dimen/eight_dp"
+                android:textColor="#999999"
+                android:layout_marginBottom="@dimen/four_dp"
+                android:layout_toEndOf="@+id/user_head"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textSize="12sp">
+
+            </TextView>
 
 
             <ImageView
@@ -71,66 +81,52 @@
                 android:clickable="true"
                 android:padding="14dp"
                 android:src="@drawable/ic_more_vert_black_24dp"
-                android:tint="#a1a1a1" />
+                app:tint="#a1a1a1" />
 
         </RelativeLayout>
 
 
-        <ImageView
-            android:id="@+id/illust_image"
-            android:layout_width="match_parent"
-            android:layout_height="100dp"
-            android:scaleType="centerCrop" />
+        <org.sufficientlysecure.htmltextview.HtmlTextView
+            android:id="@+id/description"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="i am title"
+            android:layout_marginStart="@dimen/sixteen_dp"
+            android:layout_marginTop="@dimen/eight_dp"
+            android:layout_marginEnd="@dimen/eight_dp"
+            android:textColor="#333333"
+            android:layout_marginBottom="@dimen/twelve_dp"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textSize="15sp">
 
+        </org.sufficientlysecure.htmltextview.HtmlTextView>
 
-        <RelativeLayout
+        <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
             android:layout_width="match_parent"
+            android:layout_marginStart="@dimen/sixteen_dp"
+            android:layout_marginEnd="@dimen/sixteen_dp"
+            android:layout_marginBottom="@dimen/eight_dp"
+            app:qmui_radius="@dimen/twelve_dp"
+            app:qmui_borderWidth="0dp"
             android:layout_height="wrap_content">
 
-            <TextView
+            <com.makeramen.roundedimageview.RoundedImageView
+                android:id="@+id/illust_image"
                 android:layout_width="match_parent"
-                android:layout_toStartOf="@+id/star"
-                android:textSize="13sp"
-                android:id="@+id/illust_date"
-                android:text="I am the author"
-                android:drawableStart="@drawable/ic_send_black_24dp"
-                android:gravity="center_vertical"
-                android:textColor="@color/rank_text_color"
-                android:drawablePadding="@dimen/eight_dp"
-                android:drawableTint="@color/colorPrimary"
-                android:layout_marginStart="@dimen/twelve_dp"
-                android:layout_centerVertical="true"
-                android:layout_height="wrap_content" />
+                android:layout_height="100dp"
+                app:riv_border_width="0dp"
+                app:riv_corner_radius="@dimen/twelve_dp"
+                android:scaleType="centerCrop" />
 
-            <Button
-                style="@android:style/Widget.Material.Button.Borderless.Small"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:scaleType="centerCrop"
-                android:text="收藏"
-                android:layout_toStartOf="@+id/download"
-                android:id="@+id/star"
-                android:textColor="@color/colorPrimary"
-                android:tint="@color/colorPrimary" />
+        </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout>
 
+        <View
+            android:layout_width="match_parent"
+            android:background="#f0f0f0"
+            android:layout_height="1dp">
 
-            <Button
-                style="@android:style/Widget.Material.Button.Borderless.Small"
-                android:layout_width="65dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/twelve_dp"
-                android:layout_alignParentEnd="true"
-                android:scaleType="centerCrop"
-                android:text="下载"
-                android:id="@+id/download"
-                android:textColor="@color/colorPrimary"
-                android:tint="@color/colorPrimary" />
-
-
-        </RelativeLayout>
-
+        </View>
     </LinearLayout>
-
-    </androidx.cardview.widget.CardView>
 
 </layout>

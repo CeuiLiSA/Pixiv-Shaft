@@ -21,6 +21,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 
+import com.blankj.utilcode.util.BarUtils;
 import com.bumptech.glide.Glide;
 import com.google.android.material.navigation.NavigationView;
 import com.tbruyelle.rxpermissions2.RxPermissions;
@@ -34,6 +35,7 @@ import ceui.lisa.download.TaskQueue;
 import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentCenter;
 import ceui.lisa.fragments.FragmentLeft;
+import ceui.lisa.fragments.FragmentNewRight;
 import ceui.lisa.fragments.FragmentRight;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
@@ -90,7 +92,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         baseFragments = new BaseFragment[]{
                 new FragmentLeft(),
                 new FragmentCenter(),
-                new FragmentRight()
+                Dev.isDev ? FragmentNewRight.newInstance() : new FragmentRight()
         };
         baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override
@@ -104,6 +106,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             }
         });
         baseBind.navigationView.setupWithViewPager(baseBind.viewPager);
+        baseBind.viewPager.setCurrentItem(2);
     }
 
     @Override

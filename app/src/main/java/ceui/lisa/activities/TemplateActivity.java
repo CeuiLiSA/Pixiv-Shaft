@@ -15,6 +15,7 @@ import ceui.lisa.base.BaseActivity;
 import ceui.lisa.databinding.ActivityFragmentBinding;
 import ceui.lisa.fragments.FragmentAboutApp;
 import ceui.lisa.fragments.FragmentAnime;
+import ceui.lisa.fragments.FragmentBh;
 import ceui.lisa.fragments.FragmentFileName;
 import ceui.lisa.fragments.FragmentListSimpleUser;
 import ceui.lisa.fragments.FragmentMultiDownld;
@@ -56,6 +57,7 @@ import ceui.lisa.fragments.FragmentWhoFollowThisUser;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseResult;
 
@@ -138,7 +140,11 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                 case "一言":
                     return FragmentAnime.newInstance();
                 case "最新作品":
-                    return new FragmentNew();
+                    if (Dev.isDev) {
+                        return FragmentBh.newInstance();
+                    } else {
+                        return new FragmentNew();
+                    }
                 case "粉丝":
                     return FragmentWhoFollowThisUser.newInstance(intent.getIntExtra(Params.USER_ID, 0));
                 case "开发者预览":
