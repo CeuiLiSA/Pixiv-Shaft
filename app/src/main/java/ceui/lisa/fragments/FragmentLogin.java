@@ -325,7 +325,7 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
                         baseBind.progress.setVisibility(View.INVISIBLE);
                         if (isAdded()) {
                             Intent intent = new Intent(mContext, MainActivity.class);
-                            requireActivity().startActivity(intent);
+                            mActivity.startActivity(intent);
                             mActivity.finish();
                         }
                     }

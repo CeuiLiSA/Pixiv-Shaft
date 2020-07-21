@@ -6,10 +6,6 @@
 
     </data>
 
-
-
-
-
     <LinearLayout
         android:layout_width="match_parent"
         android:orientation="vertical"
@@ -88,6 +84,7 @@
                         android:layout_height="wrap_content"
                         android:layout_alignParentEnd="true"
                         android:layout_marginTop="@dimen/twelve_dp"
+                        android:id="@+id/see_more"
                         android:layout_marginEnd="@dimen/twelve_dp"
                         android:gravity="center_vertical"
                         android:text="查看更多"
@@ -100,14 +97,13 @@
 
                 </RelativeLayout>
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/recyclerView"
+                <FrameLayout
+                    android:id="@+id/user_recmd_fragment"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="144dp"
                     android:background="@color/white">
 
-                </androidx.recyclerview.widget.RecyclerView>
-
+                </FrameLayout>
 
                 <View
                     android:layout_width="match_parent"
@@ -129,22 +125,45 @@
                 android:id="@+id/content_item"
                 android:layout_height="match_parent">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="14dp"
-                    android:layout_marginTop="@dimen/twelve_dp"
-                    android:layout_marginBottom="@dimen/twelve_dp"
-                    android:drawablePadding="@dimen/four_dp"
-                    android:drawableTint="#75d2f0"
-                    android:gravity="center_vertical"
-                    android:text="动态"
-                    android:textColor="#333333"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    app:drawableStartCompat="@drawable/ic_toys_black_24dp">
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
 
-                </TextView>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:layout_marginTop="@dimen/twelve_dp"
+                        android:layout_marginBottom="@dimen/twelve_dp"
+                        android:drawablePadding="@dimen/four_dp"
+                        android:drawableTint="#75d2f0"
+                        android:gravity="center_vertical"
+                        android:text="动态"
+                        android:textColor="#333333"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        app:drawableStartCompat="@drawable/ic_toys_black_24dp">
+
+                    </TextView>
+
+                    <Switch
+                        android:layout_width="wrap_content"
+                        android:text="私人关注  "
+                        android:id="@+id/show_private"
+                        android:textSize="12sp"
+                        android:textColor="@color/new_color_primary"
+                        android:thumbTint="@color/new_color_primary"
+                        android:trackTint="@color/new_color_primary"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="@dimen/sixteen_dp"
+                        android:layout_height="wrap_content">
+
+                    </Switch>
+
+                </RelativeLayout>
+
+
 
                 <View
                     android:layout_width="match_parent"
@@ -154,17 +173,38 @@
 
                 </View>
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/recy_list"
+                <com.scwang.smartrefresh.layout.SmartRefreshLayout
                     android:layout_width="match_parent"
-                    android:background="@color/white"
-                    android:layout_height="match_parent"
-                    >
+                    android:id="@+id/refreshLayout"
+                    android:layout_height="match_parent">
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recyclerView"
+                        android:layout_width="match_parent"
+                        android:background="@color/white"
+                        android:layout_height="match_parent"
+                        >
 
 
-                </androidx.recyclerview.widget.RecyclerView>
+                    </androidx.recyclerview.widget.RecyclerView>
+
+                </com.scwang.smartrefresh.layout.SmartRefreshLayout>
+
+
 
             </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundLinearLayout>
+
+            <ImageView
+                android:id="@+id/no_data"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:scaleType="centerCrop"
+                android:src="@mipmap/no_data_line"
+                android:tint="@color/colorPrimary"
+                android:visibility="invisible"
+                app:layout_anchor="@+id/content_item"
+                app:layout_anchorGravity="center" />
 
         </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

@@ -63,12 +63,6 @@ public class FragmentEvent extends NetListFragment<FragmentBaseListBinding,
                         intent.putExtra(Params.POSITION, position);
                         intent.putExtra(Params.PAGE_UUID, uuid);
                         mContext.startActivity(intent);
-
-
-//                        DataChannel.get().setIllustList(allItems);
-//                        Intent intent = new Intent(mContext, ViewPagerActivity.class);
-//                        intent.putExtra("position", position);
-//                        startActivity(intent);
                     } else if (viewType == 1) {
                         Intent intent = new Intent(mContext, UserActivity.class);
                         intent.putExtra(Params.USER_ID, allItems.get(position).getUser().getId());
@@ -159,7 +153,7 @@ public class FragmentEvent extends NetListFragment<FragmentBaseListBinding,
         return new RemoteRepo<ListIllust>() {
             @Override
             public Observable<ListIllust> initApi() {
-                return Retro.getAppApi().getFollowUserIllust(sUserModel.getResponse().getAccess_token());
+                return Retro.getAppApi().getFollowUserIllust(sUserModel.getResponse().getAccess_token(), "all");
             }
 
             @Override

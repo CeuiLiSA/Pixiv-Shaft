@@ -158,8 +158,9 @@ public interface AppApi {
                                              @Query("user_id") int user_id);
 
 
-    @GET("v2/illust/follow?restrict=all")
-    Observable<ListIllust> getFollowUserIllust(@Header("Authorization") String token);
+    @GET("v2/illust/follow")
+    Observable<ListIllust> getFollowUserIllust(@Header("Authorization") String token,
+                                               @Query("restrict") String restrict);
 
 
     @GET("v1/spotlight/articles?filter=for_android")

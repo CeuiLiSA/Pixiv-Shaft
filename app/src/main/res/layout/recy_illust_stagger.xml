@@ -11,10 +11,9 @@
         android:layout_height="wrap_content"
         android:clickable="true"
         android:foreground="?attr/selectableItemBackground"
-        app:cardCornerRadius="@dimen/four_dp"
+        app:cardCornerRadius="@dimen/eight_dp"
         android:stateListAnimator="@animator/touch_raise"
-        android:elevation="@dimen/four_dp"
-        app:cardElevation="@dimen/four_dp">
+        app:cardElevation="0dp">
 
         <RelativeLayout
             android:layout_width="match_parent"

@@ -330,7 +330,6 @@
                         android:layout_marginEnd="@dimen/tweenty_four_dp"
                         android:layout_marginTop="@dimen/six_dp"
                         android:layout_marginBottom="@dimen/four_dp"
-                        android:maxHeight="100dp"
                         android:id="@+id/description"
                         android:textColor="#9b9bb1"
                         android:layout_height="wrap_content">

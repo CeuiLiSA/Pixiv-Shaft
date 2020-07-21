@@ -81,7 +81,7 @@ public class FragmentRecmdUserHorizontal extends NetListFragment<FragmentUserHor
     @Override
     public void initRecyclerView() {
         baseBind.recyclerView.addItemDecoration(new LinearItemHorizontalDecoration(
-                DensityUtil.dp2px(8.0f)));
+                DensityUtil.dp2px(12.0f)));
         LinearLayoutManager manager = new LinearLayoutManager(mContext,
                 LinearLayoutManager.HORIZONTAL, false);
         baseBind.recyclerView.setLayoutManager(manager);
