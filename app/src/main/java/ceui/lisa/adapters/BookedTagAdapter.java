@@ -31,7 +31,12 @@ public class BookedTagAdapter extends BaseAdapter<TagsBean, RecyBookTagBinding> 
         if (TextUtils.isEmpty(allIllust.get(position).getName())) {
             bindView.baseBind.starSize.setText("#全部");
         } else {
-            bindView.baseBind.starSize.setText("#" + allIllust.get(position).getName());
+            if (!TextUtils.isEmpty(allIllust.get(position).getTranslated_name())) {
+                bindView.baseBind.starSize.setText("#" + (allIllust.get(position).getName() +
+                        "/" + allIllust.get(position).getTranslated_name()));
+            } else {
+                bindView.baseBind.starSize.setText("#" + allIllust.get(position).getName());
+            }
         }
 
         if (allIllust.get(position).getCount() == -1) {

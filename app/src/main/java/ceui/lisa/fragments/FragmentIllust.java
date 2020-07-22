@@ -143,7 +143,11 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
             public View getView(FlowLayout parent, int position, TagsBean s) {
                 TextView tv = (TextView) LayoutInflater.from(mContext).inflate(R.layout.recy_single_line_text_new,
                         parent, false);
-                tv.setText(s.getName());
+                String tag = s.getName();
+                if (!TextUtils.isEmpty(s.getTranslated_name())) {
+                    tag = tag + "/" + s.getTranslated_name();
+                }
+                tv.setText(tag);
                 return tv;
             }
         });
@@ -296,20 +300,6 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 Common.copy(mContext, String.valueOf(illust.getUser().getId()));
             }
         });
-
-        Common.showLog(Shaft.sGson.toJson(illust));
-//
-//        baseBind.recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-//            @Override
-//            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-//                if (baseBind.recyclerView.getLayoutManager() instanceof LinearLayoutManager) {
-//                    LinearLayoutManager temp = (LinearLayoutManager) baseBind.recyclerView.getLayoutManager();
-//                    baseBind.toolbar.setTitle(
-//                            (temp.findFirstVisibleItemPosition() + 1) + "/" + illust.getPage_count());
-//                }
-//            }
-//        });
-
         Glide.with(mContext)
                 .load(GlideUtil.getMediumImg(illust.getUser().getProfile_image_urls().getMedium()))
                 .into(baseBind.userHead);

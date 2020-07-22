@@ -17,6 +17,7 @@ import com.bumptech.glide.Glide;
 import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringChain;
+import com.liulishuo.okdownload.core.dispatcher.DownloadDispatcher;
 import com.nononsenseapps.filepicker.FilePickerActivity;
 import com.nononsenseapps.filepicker.Utils;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
@@ -55,7 +56,6 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
     private static final int gifResultPath_CODE = 10087;
     private static final int gifZipPath_CODE = 10088;
     private static final int gifUnzipPath_CODE = 10089;
-    private boolean shouldRefreshFragmentRight = false;
 
     @Override
     public void initLayout() {
@@ -135,24 +135,25 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             }
         });
 
-        shouldRefreshFragmentRight = Shaft.sSettings.isDoubleStaggerData();
-        baseBind.staggerData.setChecked(Shaft.sSettings.isDoubleStaggerData());
-        baseBind.staggerData.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        baseBind.singleDownloadTask.setChecked(Shaft.sSettings.isSingleDownloadTask());
+        baseBind.singleDownloadTask.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
-                    Shaft.sSettings.setDoubleStaggerData(true);
+                    Shaft.sSettings.setSingleDownloadTask(true);
+                    DownloadDispatcher.setMaxParallelRunningCount(1);
                 } else {
-                    Shaft.sSettings.setDoubleStaggerData(false);
+                    Shaft.sSettings.setSingleDownloadTask(false);
+                    DownloadDispatcher.setMaxParallelRunningCount(5);
                 }
-                Common.showToast("设置成功", baseBind.staggerData);
+                Common.showToast("设置成功", baseBind.singleDownloadTask);
                 Local.setSettings(Shaft.sSettings);
             }
         });
-        baseBind.staggerDataRela.setOnClickListener(new View.OnClickListener() {
+        baseBind.singleDownloadTaskRela.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                baseBind.staggerData.performClick();
+                baseBind.singleDownloadTask.performClick();
             }
         });
 
@@ -488,17 +489,6 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             }
             return;
         }
-    }
-
-    @Override
-    public void onDestroyView() {
-        if (shouldRefreshFragmentRight != Shaft.sSettings.isDoubleStaggerData()) {
-            Channel channel = new Channel();
-            channel.setReceiver("FragmentRight");
-            EventBus.getDefault().post(channel);
-        }
-
-        super.onDestroyView();
     }
 
     @Override

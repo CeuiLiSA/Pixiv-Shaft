@@ -15,6 +15,8 @@ import android.widget.TextView;
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.qmuiteam.qmui.skin.QMUISkinManager;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.zhy.view.flowlayout.FlowLayout;
 import com.zhy.view.flowlayout.TagAdapter;
 import com.zhy.view.flowlayout.TagFlowLayout;
@@ -37,6 +39,7 @@ import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListTrendingtag;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import io.reactivex.Observable;
@@ -155,19 +158,22 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
         baseBind.more.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                builder.setItems(SEARCH_TYPE, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        if (searchType != which) {
-                            baseBind.inputBox.setText("");
-                            baseBind.inputBox.setHint(SEARCH_TYPE[which]);
-                            searchType = which;
-                        }
-                    }
-                });
-                AlertDialog alertDialog = builder.create();
-                alertDialog.show();
+                new QMUIDialog.CheckableDialogBuilder(mContext)
+                        .setCheckedIndex(searchType)
+                        .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                        .addItems(SEARCH_TYPE, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                if (searchType != which) {
+                                    baseBind.inputBox.setText("");
+                                    baseBind.inputBox.setHint(SEARCH_TYPE[which]);
+                                    searchType = which;
+                                }
+                                dialog.dismiss();
+                            }
+                        })
+                        .create()
+                        .show();
             }
         });
         baseBind.inputBox.setHint(SEARCH_TYPE[searchType]);
@@ -248,7 +254,11 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                                 public View getView(FlowLayout parent, int position, ListTrendingtag.TrendTagsBean trendTagsBean) {
                                     TextView tv = (TextView) LayoutInflater.from(mContext).inflate(R.layout.recy_single_line_text,
                                             parent, false);
-                                    tv.setText(trendTagsBean.getTag());
+                                    if (!TextUtils.isEmpty(trendTagsBean.getTranslated_name())) {
+                                        tv.setText(trendTagsBean.getTag() + "/" + trendTagsBean.getTranslated_name());
+                                    } else {
+                                        tv.setText(trendTagsBean.getTag());
+                                    }
                                     return tv;
                                 }
                             });

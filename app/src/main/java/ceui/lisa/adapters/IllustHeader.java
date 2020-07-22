@@ -42,12 +42,6 @@ public class IllustHeader extends ViewHolder<RecyRecmdHeaderBinding> {
             intent.putExtra(Params.POSITION, position);
             intent.putExtra(Params.PAGE_UUID, uuid);
             context.startActivity(intent);
-
-
-//            DataChannel.get().setIllustList(illustsBeans);
-//            Intent intent = new Intent(context, ViewPagerActivity.class);
-//            intent.putExtra("position", position);
-//            context.startActivity(intent);
         });
         baseBind.ranking.setAdapter(adapter);
     }

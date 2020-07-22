@@ -33,16 +33,12 @@
 
             </com.scwang.smartrefresh.layout.SmartRefreshLayout>
 
-
-
-
             <androidx.core.widget.NestedScrollView
                 android:id="@+id/content_scroll_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:behavior_peekHeight="180dp"
                 app:layout_behavior="@string/bottom_sheet_behavior">
-
 
                 <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundLinearLayout
                     android:id="@+id/core_linear"
@@ -326,6 +322,8 @@
                         android:textSize="13sp"
                         android:gravity="start"
                         android:textStyle="bold"
+                        android:maxLines="12"
+                        android:ellipsize="end"
                         android:layout_marginStart="@dimen/tweenty_four_dp"
                         android:layout_marginEnd="@dimen/tweenty_four_dp"
                         android:layout_marginTop="@dimen/six_dp"

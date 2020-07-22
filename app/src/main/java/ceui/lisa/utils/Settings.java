@@ -67,7 +67,8 @@ public class Settings {
 
     private boolean saveViewHistory = true;
 
-    private boolean doubleStaggerData = false;
+    //只允许一个任务处于下载中，用来保证下载顺序
+    private boolean singleDownloadTask = false;
 
     //作品详情使用新页面
     private boolean useFragmentIllust = true;
@@ -128,14 +129,6 @@ public class Settings {
 
     public void setDeleteStarIllust(boolean pDeleteStarIllust) {
         deleteStarIllust = pDeleteStarIllust;
-    }
-
-    public boolean isDoubleStaggerData() {
-        return doubleStaggerData;
-    }
-
-    public void setDoubleStaggerData(boolean doubleStaggerData) {
-        this.doubleStaggerData = doubleStaggerData;
     }
 
     public boolean isSaveViewHistory() {
@@ -317,5 +310,13 @@ public class Settings {
 
     public void setFileNameJson(String fileNameJson) {
         this.fileNameJson = fileNameJson;
+    }
+
+    public boolean isSingleDownloadTask() {
+        return singleDownloadTask;
+    }
+
+    public void setSingleDownloadTask(boolean singleDownloadTask) {
+        this.singleDownloadTask = singleDownloadTask;
     }
 }

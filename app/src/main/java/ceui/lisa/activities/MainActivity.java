@@ -35,7 +35,6 @@ import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentCenter;
 import ceui.lisa.fragments.FragmentLeft;
 import ceui.lisa.fragments.FragmentR;
-import ceui.lisa.fragments.FragmentRight;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
@@ -91,7 +90,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         baseFragments = new BaseFragment[]{
                 new FragmentLeft(),
                 new FragmentCenter(),
-                Dev.isDev ? new FragmentR() : new FragmentRight()
+                new FragmentR()
         };
         baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override

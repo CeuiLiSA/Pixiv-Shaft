@@ -58,6 +58,11 @@ public class IllustDownload {
         illustTask.setDownloadTask(task);
         TaskQueue.get().addTask(illustTask);
         task.enqueue(new DListener());
+        if (Shaft.sSettings.isSingleDownloadTask()) {
+            DownloadDispatcher.setMaxParallelRunningCount(1);
+        } else {
+            DownloadDispatcher.setMaxParallelRunningCount(5);
+        }
         Common.showToast(Shaft.getContext().getString(R.string.one_item_added));
     }
 
@@ -90,6 +95,11 @@ public class IllustDownload {
             illustTask.setDownloadTask(task);
             TaskQueue.get().addTask(illustTask);
             task.enqueue(new DListener());
+            if (Shaft.sSettings.isSingleDownloadTask()) {
+                DownloadDispatcher.setMaxParallelRunningCount(1);
+            } else {
+                DownloadDispatcher.setMaxParallelRunningCount(5);
+            }
             Common.showToast(Shaft.getContext().getString(R.string.one_item_added));
         }
     }
@@ -130,6 +140,11 @@ public class IllustDownload {
 
         DownloadTask[] taskArray = new DownloadTask[tempList.size()];
         DownloadTask.enqueue(tempList.toArray(taskArray), new DListener());
+        if (Shaft.sSettings.isSingleDownloadTask()) {
+            DownloadDispatcher.setMaxParallelRunningCount(1);
+        } else {
+            DownloadDispatcher.setMaxParallelRunningCount(5);
+        }
         Common.showToast(tempList.size() + Shaft.getContext().getString(R.string.has_been_added));
     }
 
@@ -203,6 +218,11 @@ public class IllustDownload {
 
         DownloadTask[] taskArray = new DownloadTask[tempList.size()];
         DownloadTask.enqueue(tempList.toArray(taskArray), new DListener());
+        if (Shaft.sSettings.isSingleDownloadTask()) {
+            DownloadDispatcher.setMaxParallelRunningCount(1);
+        } else {
+            DownloadDispatcher.setMaxParallelRunningCount(5);
+        }
         Common.showToast(tempList.size() + Shaft.getContext().getString(R.string.has_been_added));
     }
 

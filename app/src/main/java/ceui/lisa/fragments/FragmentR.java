@@ -40,6 +40,7 @@ import ceui.lisa.adapters.EventAdapter;
 import ceui.lisa.adapters.UserHAdapter;
 import ceui.lisa.core.BaseRepo;
 import ceui.lisa.core.Container;
+import ceui.lisa.core.FilterMapper;
 import ceui.lisa.core.PageData;
 import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.database.AppDatabase;
@@ -57,6 +58,7 @@ import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.ShareIllust;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
 import io.reactivex.Observable;
+import io.reactivex.functions.Function;
 import jp.wasabeef.recyclerview.animators.FadeInLeftAnimator;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
@@ -236,6 +238,11 @@ public class FragmentR extends NetListFragment<FragmentNewRightBinding, ListIllu
             @Override
             public RefreshHeader getHeader(Context context) {
                 return new DeliveryHeader(context);
+            }
+
+            @Override
+            public Function<ListIllust, ListIllust> mapper() {
+                return new FilterMapper();
             }
         };
     }
