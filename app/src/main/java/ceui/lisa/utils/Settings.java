@@ -48,7 +48,7 @@ public class Settings {
     private boolean relatedIllustNoLimit = true;
 
     //一级详情FragmentSingleIllust 图片显示原图
-    private boolean firstNewImageSize = true;
+    private boolean useOriginalImage = false;
 
     //屏蔽，不显示已收藏的作品，默认不屏蔽
     private boolean deleteStarIllust = false;
@@ -197,11 +197,11 @@ public class Settings {
     }
 
     public boolean isFirstImageSize() {
-        return firstNewImageSize;
+        return useOriginalImage;
     }
 
     public void setFirstImageSize(boolean firstImageSize) {
-        this.firstNewImageSize = firstImageSize;
+        this.useOriginalImage = firstImageSize;
     }
 
     public boolean isSecondImageSize() {

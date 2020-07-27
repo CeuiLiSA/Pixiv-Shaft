@@ -337,7 +337,6 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_marginTop="@dimen/eight_dp"
-                        android:layout_marginBottom="@dimen/eight_dp"
                         android:layout_marginStart="@dimen/tweenty_four_dp"
                         android:layout_marginEnd="@dimen/tweenty_four_dp"
                         android:orientation="horizontal"
@@ -369,6 +368,29 @@
                         </TextView>
                     </LinearLayout>
 
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_marginTop="@dimen/four_dp"
+                        android:layout_marginBottom="@dimen/eight_dp"
+                        android:layout_marginStart="@dimen/tweenty_four_dp"
+                        android:layout_marginEnd="@dimen/tweenty_four_dp"
+                        android:orientation="horizontal"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:textSize="13sp"
+                            android:gravity="start"
+                            android:textStyle="bold"
+                            android:layout_marginEnd="@dimen/twelve_dp"
+                            android:id="@+id/illust_size"
+                            android:textColor="#9b9bb1"
+                            android:layout_height="wrap_content">
+
+                        </TextView>
+
+                    </LinearLayout>
 
                 </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundLinearLayout>
 

@@ -92,10 +92,9 @@
             android:layout_height="wrap_content"
             android:text="i am title"
             android:layout_marginStart="@dimen/sixteen_dp"
-            android:layout_marginTop="@dimen/eight_dp"
             android:layout_marginEnd="@dimen/eight_dp"
             android:textColor="#333333"
-            android:layout_marginBottom="@dimen/twelve_dp"
+            android:layout_marginBottom="@dimen/eight_dp"
             android:ellipsize="end"
             android:maxLines="2"
             android:textSize="15sp">
@@ -118,6 +117,52 @@
                 app:riv_border_width="0dp"
                 app:riv_corner_radius="@dimen/twelve_dp"
                 android:scaleType="centerCrop" />
+
+            <View
+                android:layout_width="match_parent"
+                android:background="@drawable/bottom_gradient"
+                android:layout_alignBottom="@+id/illust_image"
+                android:layout_height="36dp">
+
+            </View>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:id="@+id/star"
+                android:layout_alignBottom="@+id/illust_image"
+                android:textColor="@color/white"
+                android:text="收藏"
+                android:layout_toStartOf="@+id/download"
+                android:paddingTop="@dimen/six_dp"
+                android:drawableTint="@color/white"
+                android:gravity="center_vertical"
+                android:paddingStart="@dimen/twelve_dp"
+                app:drawableLeftCompat="@drawable/ic_baseline_star_24"        android:drawablePadding="@dimen/four_dp"
+                android:paddingEnd="@dimen/twelve_dp"
+                android:paddingBottom="@dimen/eight_dp"
+                android:layout_height="wrap_content">
+
+            </TextView>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:id="@+id/download"
+                android:layout_alignBottom="@+id/illust_image"
+                android:textColor="@color/white"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="@dimen/twelve_dp"
+                android:text="下载"
+                android:drawableTint="@color/white"
+                android:gravity="center_vertical"
+                android:drawablePadding="@dimen/four_dp"
+                android:paddingTop="@dimen/six_dp"
+                android:paddingStart="@dimen/twelve_dp"
+                android:paddingBottom="@dimen/eight_dp"
+                android:paddingEnd="@dimen/twelve_dp"
+                android:layout_height="wrap_content"
+                app:drawableLeftCompat="@drawable/ic_baseline_get_app_24">
+
+            </TextView>
 
         </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout>
 

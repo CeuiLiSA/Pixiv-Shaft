@@ -161,6 +161,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 return true;
             }
         });
+        baseBind.illustSize.setText("作品尺寸：" + illust.getWidth() + "px * " + illust.getHeight() + "px");
         baseBind.illustId.setText("作品ID：" + illust.getId());
         baseBind.userId.setText("画师ID：" + illust.getUser().getId());
         final BottomSheetBehavior<?> sheetBehavior = BottomSheetBehavior.from(baseBind.contentScrollView);
