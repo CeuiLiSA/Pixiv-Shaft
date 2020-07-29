@@ -13,6 +13,6 @@
     <dimen name="two_dp">2dp</dimen>
     <dimen name="four_dp">4dp</dimen>
     <dimen name="twelve_dip">12dp</dimen>
-    <dimen name="article_horizontal_height">186dp</dimen>
+    <dimen name="article_horizontal_height">160dp</dimen>
     <dimen name="forty_eight_dp">96dp</dimen>
 </resources>

@@ -6,55 +6,47 @@
 
     </data>
 
-    <androidx.cardview.widget.CardView
-        android:id="@+id/card_pixiv"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:clickable="true"
-        app:cardCornerRadius="@dimen/four_dp"
-        android:foreground="?attr/selectableItemBackground">
+    <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
+        android:layout_width="220dp"
+        app:qmui_radius="@dimen/twelve_dp"
+        app:qmui_borderWidth="0dp"
+        android:layout_height="160dp">
 
+        <com.makeramen.roundedimageview.RoundedImageView
+            android:id="@+id/illust_image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:riv_border_width="0dp"
+            app:riv_corner_radius="@dimen/twelve_dp"
+            android:scaleType="centerCrop" />
 
-        <RelativeLayout
-            android:id="@+id/user_follow_linear"
-            android:layout_width="220dp"
-            android:layout_height="@dimen/article_horizontal_height"
-            android:background="@color/white_to_deep_dark"
-            android:orientation="vertical">
+        <View
+            android:layout_width="match_parent"
+            android:background="@drawable/bottom_gradient"
+            android:layout_alignBottom="@+id/illust_image"
+            android:layout_height="36dp">
 
-            <ImageView
-                android:layout_width="match_parent"
-                android:id="@+id/image_1"
-                android:background="@color/colorPrimary"
-                android:layout_height="@dimen/four_dp">
+        </View>
 
-            </ImageView>
+        <TextView
+            android:layout_width="wrap_content"
+            android:id="@+id/title"
+            android:layout_alignBottom="@+id/illust_image"
+            android:textColor="@color/white"
+            android:text="收藏"
+            android:textSize="13sp"
+            android:layout_toStartOf="@+id/download"
+            android:paddingTop="@dimen/six_dp"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:gravity="center_vertical"
+            android:paddingStart="@dimen/twelve_dp"
+            android:paddingEnd="@dimen/twelve_dp"
+            android:paddingBottom="@dimen/eight_dp"
+            android:layout_height="wrap_content">
 
-            <ImageView
-                android:id="@+id/illust_image"
-                android:layout_width="match_parent"
-                android:layout_below="@+id/image_1"
-                android:layout_height="130dp"
-                android:layout_gravity="center_horizontal"
-                android:layout_weight="1"
-                android:scaleType="centerCrop" />
+        </TextView>
 
+    </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout>
 
-            <TextView
-                android:layout_width="match_parent"
-                android:maxLines="2"
-                android:ellipsize="end"
-                android:textSize="13sp"
-                android:layout_marginStart="@dimen/eight_dp"
-                android:layout_marginTop="@dimen/six_dp"
-                android:layout_marginBottom="@dimen/six_dp"
-                android:layout_marginEnd="@dimen/eight_dp"
-                android:textColor="@color/rank_text_color"
-                android:layout_below="@+id/illust_image"
-                android:id="@+id/title"
-                android:layout_height="match_parent" />
-
-        </RelativeLayout>
-
-    </androidx.cardview.widget.CardView>
 </layout>

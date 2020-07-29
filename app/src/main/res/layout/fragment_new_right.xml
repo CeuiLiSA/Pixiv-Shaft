@@ -85,10 +85,11 @@
                         android:layout_alignParentEnd="true"
                         android:layout_marginTop="@dimen/twelve_dp"
                         android:id="@+id/see_more"
+                        android:drawableTint="@color/new_color_primary"
+                        android:textColor="@color/new_color_primary"
                         android:layout_marginEnd="@dimen/twelve_dp"
                         android:gravity="center_vertical"
                         android:text="查看更多"
-                        android:textColor="#999999"
                         android:textSize="13sp"
                         app:drawableEndCompat="@drawable/ic_chevron_right_black_20dp"
                         app:drawableTint="#999999">

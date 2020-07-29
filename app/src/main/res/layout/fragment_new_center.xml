@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+    </data>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <ImageView
+            android:id="@+id/head"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_gravity=""
+            android:background="@color/new_color_primary"
+            android:elevation="@dimen/four_dp">
+
+        </ImageView>
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/new_color_primary"
+            android:elevation="@dimen/four_dp"
+            app:navigationIcon="@drawable/ic_baseline_dns_24"
+            app:titleTextColor="@color/white">
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="发现"
+                android:textColor="@color/white"
+                android:textSize="18sp">
+
+            </TextView>
+
+        </androidx.appcompat.widget.Toolbar>
+
+
+
+            <com.scwang.smartrefresh.layout.SmartRefreshLayout
+                android:id="@+id/refreshLayout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <androidx.core.widget.NestedScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:orientation="vertical"
+                        android:layout_height="match_parent">
+
+                        <FrameLayout
+                            android:id="@+id/fragment_pivision"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                        </FrameLayout>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/twelve_dp"
+                            android:text="其他分类"
+                            android:textColor="@color/black"
+                            android:textSize="18sp"
+                            android:textStyle="bold">
+
+                        </TextView>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="140dp"
+                            android:orientation="horizontal">
+
+
+                            <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_marginStart="@dimen/twelve_dp"
+                                android:layout_marginTop="@dimen/twelve_dp"
+                                android:layout_marginEnd="@dimen/six_dp"
+                                android:layout_marginBottom="@dimen/twelve_dp"
+                                android:layout_weight="1"
+                                app:qmui_radius="@dimen/twelve_dp">
+
+
+                                <com.makeramen.roundedimageview.RoundedImageView
+                                    android:id="@+id/manga"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:scaleType="centerCrop"
+                                    android:src="@mipmap/main_novel"
+                                    app:riv_corner_radius="@dimen/twelve_dp">
+
+
+                                </com.makeramen.roundedimageview.RoundedImageView>
+
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_margin="10dp"
+                                    android:shadowColor="#FF000000"
+                                    android:shadowDx="2"
+                                    android:shadowDy="2"
+                                    android:shadowRadius="2"
+                                    android:text="@string/type_manga"
+                                    android:textColor="@color/always_white"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold">
+
+
+                                </TextView>
+
+                            </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout>
+
+
+                            <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_marginStart="@dimen/six_dp"
+                                android:layout_marginTop="@dimen/twelve_dp"
+                                android:layout_marginEnd="@dimen/twelve_dp"
+                                android:layout_marginBottom="@dimen/twelve_dp"
+                                android:layout_weight="1"
+                                app:qmui_radius="@dimen/twelve_dp">
+
+
+                                <com.makeramen.roundedimageview.RoundedImageView
+                                    android:id="@+id/novel"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:scaleType="centerCrop"
+                                    android:src="@mipmap/main_manga"
+                                    app:riv_corner_radius="@dimen/twelve_dp">
+
+
+                                </com.makeramen.roundedimageview.RoundedImageView>
+
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_alignParentEnd="true"
+                                    android:layout_alignParentBottom="true"
+                                    android:layout_margin="10dp"
+                                    android:shadowColor="#FF000000"
+                                    android:shadowDx="2"
+                                    android:shadowDy="2"
+                                    android:shadowRadius="2"
+                                    android:text="@string/type_novel"
+                                    android:textColor="@color/always_white"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold">
+
+                                </TextView>
+
+
+                            </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout>
+
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="128dp"
+                            android:orientation="horizontal">
+
+
+                            <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_marginStart="@dimen/twelve_dp"
+                                android:layout_marginEnd="@dimen/six_dp"
+                                android:layout_marginBottom="@dimen/twelve_dp"
+                                android:layout_weight="1"
+                                app:qmui_radius="@dimen/twelve_dp">
+
+
+                                <com.makeramen.roundedimageview.RoundedImageView
+                                    android:id="@+id/walk_through"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:scaleType="centerCrop"
+                                    android:src="@mipmap/main_novel"
+                                    app:riv_corner_radius="@dimen/twelve_dp">
+
+
+                                </com.makeramen.roundedimageview.RoundedImageView>
+
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_margin="10dp"
+                                    android:shadowColor="#FF000000"
+                                    android:shadowDx="2"
+                                    android:shadowDy="2"
+                                    android:shadowRadius="2"
+                                    android:text="@string/type_walk_through"
+                                    android:textColor="@color/always_white"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold">
+
+
+                                </TextView>
+
+                            </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout>
+
+
+                            <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_marginStart="@dimen/six_dp"
+                                android:layout_marginEnd="@dimen/twelve_dp"
+                                android:layout_marginBottom="@dimen/twelve_dp"
+                                android:layout_weight="1"
+                                app:qmui_radius="@dimen/twelve_dp">
+
+
+                                <com.makeramen.roundedimageview.RoundedImageView
+                                    android:id="@+id/live"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:scaleType="centerCrop"
+                                    android:src="@mipmap/main_manga"
+                                    app:riv_corner_radius="@dimen/twelve_dp">
+
+
+                                </com.makeramen.roundedimageview.RoundedImageView>
+
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_alignParentEnd="true"
+                                    android:layout_alignParentBottom="true"
+                                    android:layout_margin="10dp"
+                                    android:shadowColor="#FF000000"
+                                    android:shadowDx="2"
+                                    android:shadowDy="2"
+                                    android:shadowRadius="2"
+                                    android:text="@string/type_live"
+                                    android:textColor="@color/always_white"
+                                    android:textSize="16sp"
+                                    android:textStyle="bold">
+
+                                </TextView>
+
+
+                            </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout>
+
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+
+
+
+                </androidx.core.widget.NestedScrollView>
+
+            </com.scwang.smartrefresh.layout.SmartRefreshLayout>
+
+
+
+    </LinearLayout>
+
+
+</layout>

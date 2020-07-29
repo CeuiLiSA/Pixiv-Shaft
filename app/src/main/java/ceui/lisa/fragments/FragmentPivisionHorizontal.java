@@ -69,16 +69,15 @@ public class FragmentPivisionHorizontal extends NetListFragment<FragmentPivision
 
     @Override
     public void initRecyclerView() {
-        baseBind.recyclerView.addItemDecoration(new LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
+        baseBind.recyclerView.addItemDecoration(new LinearItemHorizontalDecoration(DensityUtil.dp2px(12.0f)));
         LinearLayoutManager manager = new LinearLayoutManager(mContext, LinearLayoutManager.HORIZONTAL, false);
         baseBind.recyclerView.setLayoutManager(manager);
         baseBind.recyclerView.setHasFixedSize(true);
         ViewGroup.LayoutParams layoutParams = baseBind.recyclerView.getLayoutParams();
         layoutParams.width = MATCH_PARENT;
-        layoutParams.height = mContext.getResources()
-                .getDimensionPixelSize(R.dimen.article_horizontal_height) +
-                mContext.getResources()
-                        .getDimensionPixelSize(R.dimen.sixteen_dp);
+        layoutParams.height =
+                mContext.getResources().getDimensionPixelSize(R.dimen.article_horizontal_height) +
+                mContext.getResources().getDimensionPixelSize(R.dimen.tweenty_four_dp);
         baseBind.recyclerView.setLayoutParams(layoutParams);
     }
 

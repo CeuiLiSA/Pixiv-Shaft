@@ -2,7 +2,6 @@ package ceui.lisa.fragments;
 
 import android.content.Context;
 import android.content.Intent;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -25,8 +24,6 @@ import com.scwang.smartrefresh.layout.api.RefreshFooter;
 import com.scwang.smartrefresh.layout.api.RefreshHeader;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 import ceui.lisa.R;
@@ -37,29 +34,22 @@ import ceui.lisa.activities.UserActivity;
 import ceui.lisa.activities.VActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.EventAdapter;
-import ceui.lisa.adapters.UserHAdapter;
 import ceui.lisa.core.BaseRepo;
 import ceui.lisa.core.Container;
 import ceui.lisa.core.FilterMapper;
 import ceui.lisa.core.PageData;
 import ceui.lisa.core.RemoteRepo;
-import ceui.lisa.database.AppDatabase;
-import ceui.lisa.database.IllustRecmdEntity;
 import ceui.lisa.databinding.FragmentNewRightBinding;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
-import ceui.lisa.models.UserPreviewsBean;
-import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.ShareIllust;
-import ceui.lisa.view.LinearItemHorizontalDecoration;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
-import jp.wasabeef.recyclerview.animators.FadeInLeftAnimator;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
@@ -230,9 +220,7 @@ public class FragmentR extends NetListFragment<FragmentNewRightBinding, ListIllu
 
             @Override
             public RefreshFooter getFooter(Context context) {
-                ClassicsFooter classicsFooter = new ClassicsFooter(context);
-                classicsFooter.setPrimaryColorId(R.color.white);
-                return classicsFooter;
+                return new ClassicsFooter(context).setPrimaryColorId(R.color.white);
             }
 
             @Override

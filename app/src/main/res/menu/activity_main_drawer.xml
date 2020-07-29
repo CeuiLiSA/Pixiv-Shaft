@@ -43,10 +43,6 @@
                 android:id="@+id/nav_reverse"
                 android:icon="@drawable/ic_collections_black_24dp"
                 android:title="@string/search_image_origin" />
-            <item
-                android:id="@+id/nav_send"
-                android:icon="@drawable/ic_toys_black_24dp"
-                android:title="@string/walkthrough" />
 
             <item
                 android:id="@+id/nav_new_work"

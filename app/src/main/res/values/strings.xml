@@ -70,7 +70,9 @@
     <string name="one_item_added">1个项目已加入下载队列</string>
     <string name="type_illust">插画</string>
     <string name="type_manga">漫画</string>
+    <string name="type_walk_through">画廊</string>
     <string name="type_novel">小说</string>
+    <string name="type_live">直播</string>
     <string name="public_like_illust">公开收藏</string>
     <string name="private_like_illust">私人收藏</string>
     <string name="public_like_user">公开关注</string>
