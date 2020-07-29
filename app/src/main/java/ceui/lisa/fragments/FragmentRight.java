@@ -23,7 +23,10 @@ import com.scwang.smartrefresh.header.DeliveryHeader;
 import com.scwang.smartrefresh.layout.api.RefreshFooter;
 import com.scwang.smartrefresh.layout.api.RefreshHeader;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
+import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import ceui.lisa.R;
@@ -34,26 +37,36 @@ import ceui.lisa.activities.UserActivity;
 import ceui.lisa.activities.VActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.EventAdapter;
+import ceui.lisa.adapters.IAdapterWithHeadView;
 import ceui.lisa.core.BaseRepo;
 import ceui.lisa.core.Container;
 import ceui.lisa.core.FilterMapper;
 import ceui.lisa.core.PageData;
 import ceui.lisa.core.RemoteRepo;
+import ceui.lisa.database.AppDatabase;
+import ceui.lisa.database.IllustRecmdEntity;
 import ceui.lisa.databinding.FragmentNewRightBinding;
 import ceui.lisa.download.IllustDownload;
+import ceui.lisa.helper.TagFilter;
+import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.ShareIllust;
 import io.reactivex.Observable;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-public class FragmentR extends NetListFragment<FragmentNewRightBinding, ListIllust, IllustsBean> {
+public class FragmentRight extends NetListFragment<FragmentNewRightBinding, ListIllust, IllustsBean> {
 
     @Override
     public void initLayout() {
@@ -96,7 +109,7 @@ public class FragmentR extends NetListFragment<FragmentNewRightBinding, ListIllu
                             .offsetX(QMUIDisplayHelper.dp2px(mContext, 80))
                             .offsetYIfBottom(QMUIDisplayHelper.dp2px(mContext, 5))
                             .shadow(true)
-                            .arrow(true)
+                            .arrow(false)
                             .animStyle(QMUIPopup.ANIM_GROW_FROM_RIGHT)
                             .onDismiss(new PopupWindow.OnDismissListener() {
                                 @Override
@@ -209,6 +222,9 @@ public class FragmentR extends NetListFragment<FragmentNewRightBinding, ListIllu
         return new RemoteRepo<ListIllust>() {
             @Override
             public Observable<ListIllust> initApi() {
+                if (Dev.isDev) {
+                    return null;
+                }
                 return Retro.getAppApi().getFollowUserIllust(sUserModel.getResponse().getAccess_token(), restrict);
             }
 
@@ -266,4 +282,39 @@ public class FragmentR extends NetListFragment<FragmentNewRightBinding, ListIllu
     private String restrict = FragmentLikeIllust.TYPE_PUBLUC;
 
     private boolean isLoad = false;
+
+    @Override
+    public void showDataBase() {
+        Observable.create((ObservableOnSubscribe<List<IllustRecmdEntity>>) emitter -> {
+            List<IllustRecmdEntity> temp = AppDatabase.getAppDatabase(mContext).recmdDao().getAll();
+            Thread.sleep(100);
+            emitter.onNext(temp);
+            emitter.onComplete();
+        }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .map(entities -> {
+                    Common.showLog(className + entities.size());
+                    List<IllustsBean> temp = new ArrayList<>();
+                    for (int i = 0; i < entities.size(); i++) {
+                        IllustsBean illustsBean = Shaft.sGson.fromJson(
+                                entities.get(i).getIllustJson(), IllustsBean.class);
+                        TagFilter.judge(illustsBean);
+                        temp.add(illustsBean);
+                    }
+                    return temp;
+                })
+                .subscribe(new NullCtrl<List<IllustsBean>>() {
+                    @Override
+                    public void success(List<IllustsBean> illustsBeans) {
+                        allItems.addAll(illustsBeans);
+                        mAdapter.notifyItemRangeInserted(mAdapter.headerSize(), allItems.size());
+                    }
+
+                    @Override
+                    public void must(boolean isSuccess) {
+                        baseBind.refreshLayout.finishRefresh(isSuccess);
+                        baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
+                    }
+                });
+    }
 }

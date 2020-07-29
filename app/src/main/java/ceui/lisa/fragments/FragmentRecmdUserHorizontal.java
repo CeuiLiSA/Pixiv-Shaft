@@ -5,24 +5,38 @@ import android.view.View;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
+
+import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.UserActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.UserHAdapter;
 import ceui.lisa.core.BaseRepo;
 import ceui.lisa.core.RemoteRepo;
+import ceui.lisa.database.AppDatabase;
+import ceui.lisa.database.IllustRecmdEntity;
 import ceui.lisa.databinding.FragmentUserHorizontalBinding;
 import ceui.lisa.databinding.RecyUserPreviewHorizontalBinding;
+import ceui.lisa.helper.TagFilter;
+import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListUser;
+import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.UserPreviewsBean;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
 import io.reactivex.Observable;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 import jp.wasabeef.recyclerview.animators.BaseItemAnimator;
 import jp.wasabeef.recyclerview.animators.FadeInLeftAnimator;
 
@@ -52,6 +66,9 @@ public class FragmentRecmdUserHorizontal extends NetListFragment<FragmentUserHor
         return new RemoteRepo<ListUser>() {
             @Override
             public Observable<ListUser> initApi() {
+                if (Dev.isDev) {
+                    return null;
+                }
                 return Retro.getAppApi().getRecmdUser(token());
             }
 
@@ -86,5 +103,44 @@ public class FragmentRecmdUserHorizontal extends NetListFragment<FragmentUserHor
                 LinearLayoutManager.HORIZONTAL, false);
         baseBind.recyclerView.setLayoutManager(manager);
         baseBind.recyclerView.setHasFixedSize(true);
+    }
+
+    @Override
+    public void showDataBase() {
+        Observable.create((ObservableOnSubscribe<List<IllustRecmdEntity>>) emitter -> {
+            List<IllustRecmdEntity> temp = AppDatabase.getAppDatabase(mContext).recmdDao().getAll();
+            Thread.sleep(100);
+            emitter.onNext(temp);
+            emitter.onComplete();
+        }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .map(entities -> {
+                    Common.showLog(className + entities.size());
+                    List<IllustsBean> temp = new ArrayList<>();
+                    for (int i = 0; i < entities.size(); i++) {
+                        IllustsBean illustsBean = Shaft.sGson.fromJson(
+                                entities.get(i).getIllustJson(), IllustsBean.class);
+                        TagFilter.judge(illustsBean);
+                        temp.add(illustsBean);
+                    }
+                    return temp;
+                })
+                .subscribe(new NullCtrl<List<IllustsBean>>() {
+                    @Override
+                    public void success(List<IllustsBean> illustsBeans) {
+                        for (IllustsBean illustsBean : illustsBeans) {
+                            UserPreviewsBean userPreviewsBean = new UserPreviewsBean();
+                            userPreviewsBean.setUser(illustsBean.getUser());
+                            allItems.add(userPreviewsBean);
+                        }
+                        mAdapter.notifyItemRangeInserted(mAdapter.headerSize(), allItems.size());
+                    }
+
+                    @Override
+                    public void must(boolean isSuccess) {
+                        baseBind.refreshLayout.finishRefresh(isSuccess);
+                        baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
+                    }
+                });
     }
 }

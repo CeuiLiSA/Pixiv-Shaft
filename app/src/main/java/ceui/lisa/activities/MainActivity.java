@@ -31,11 +31,9 @@ import ceui.lisa.R;
 import ceui.lisa.base.BaseActivity;
 import ceui.lisa.databinding.ActivityCoverBinding;
 import ceui.lisa.download.TaskQueue;
-import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentC;
-import ceui.lisa.fragments.FragmentCenter;
 import ceui.lisa.fragments.FragmentLeft;
-import ceui.lisa.fragments.FragmentR;
+import ceui.lisa.fragments.FragmentRight;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
@@ -91,7 +89,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         baseFragments = new Fragment[]{
                 new FragmentLeft(),
                 new FragmentC(),
-                new FragmentR()
+                new FragmentRight()
         };
         baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override
@@ -105,10 +103,6 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             }
         });
         baseBind.navigationView.setupWithViewPager(baseBind.viewPager);
-
-        Intent intent = new Intent(mContext, TemplateActivity.class);
-        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "热门直播");
-        startActivity(intent);
     }
 
     @Override

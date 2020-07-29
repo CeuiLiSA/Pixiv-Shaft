@@ -20,6 +20,9 @@ import com.facebook.rebound.SpringChain;
 import com.liulishuo.okdownload.core.dispatcher.DownloadDispatcher;
 import com.nononsenseapps.filepicker.FilePickerActivity;
 import com.nononsenseapps.filepicker.Utils;
+import com.qmuiteam.qmui.skin.QMUISkinManager;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.api.RefreshHeader;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
@@ -74,16 +77,26 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
         baseBind.loginOut.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new AlertDialog.Builder(mContext)
-                        .setTitle(getString(R.string.login_out) + "?")
-                        .setPositiveButton(R.string.login_out, new DialogInterface.OnClickListener() {
+                new QMUIDialog.CheckBoxMessageDialogBuilder(getActivity())
+                        .setTitle("退出后是否删除账号信息?")
+                        .setMessage("删除账号信息")
+                        .setChecked(true)
+                        .setSkinManager(QMUISkinManager.defaultInstance(getContext()))
+                        .addAction("取消", new QMUIDialogAction.ActionListener() {
                             @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                Common.logOut(mContext);
-                                mActivity.finish();
+                            public void onClick(QMUIDialog dialog, int index) {
+                                dialog.dismiss();
                             }
                         })
-                        .setNegativeButton(android.R.string.cancel, null)
+                        .addAction(R.string.login_out, new QMUIDialogAction.ActionListener() {
+                            @Override
+                            public void onClick(QMUIDialog dialog, int index) {
+                                Common.logOut(mContext);
+                                mActivity.finish();
+                                dialog.dismiss();
+                            }
+                        })
+                        .create()
                         .show();
             }
         });

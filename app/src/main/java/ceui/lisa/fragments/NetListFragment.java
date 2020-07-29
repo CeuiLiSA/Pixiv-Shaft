@@ -87,9 +87,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                 }
             });
         } else {
-            if (className.equals("FragmentRecmdIllust ")) {
-                showDataBase();
-            }
+            showDataBase();
         }
     }
 
