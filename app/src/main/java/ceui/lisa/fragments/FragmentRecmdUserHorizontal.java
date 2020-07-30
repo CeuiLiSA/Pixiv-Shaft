@@ -139,7 +139,8 @@ public class FragmentRecmdUserHorizontal extends NetListFragment<FragmentUserHor
                     @Override
                     public void must(boolean isSuccess) {
                         baseBind.refreshLayout.finishRefresh(isSuccess);
-                        baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
+                        baseBind.refreshLayout.setEnableRefresh(false);
+                        baseBind.refreshLayout.setEnableLoadMore(false);
                     }
                 });
     }

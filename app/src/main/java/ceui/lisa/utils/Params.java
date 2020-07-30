@@ -43,6 +43,8 @@ public class Params {
     public static final String LIKED_ILLUST        = "ceui.lisa.fragments.NetListFragment LIKED_ILLUST";
     public static final String LIKED_USER          = "ceui.lisa.fragments.NetListFragment LIKED_USER";
     public static final String LIKED_NOVEL         = "ceui.lisa.fragments.NetListFragment LIKED_NOVEL";
+    public static final String DOWNLOAD_FINISH         = "ceui.lisa.fragments.NetListFragment DOWNLOAD_FINISH";
+    public static final String DOWNLOAD_ING         = "ceui.lisa.fragments.NetListFragment DOWNLOAD_ING";
 
     public static final String IMAGE_UNKNOWN = "https://s.pximg.net/common/images/limit_unknown_360.png";
     public static final String HEAD_UNKNOWN  = "https://s.pximg.net/common/images/no_profile.png";

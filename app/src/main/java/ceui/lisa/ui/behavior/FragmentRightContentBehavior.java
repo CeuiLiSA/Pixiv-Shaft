@@ -74,6 +74,11 @@ public class FragmentRightContentBehavior extends CoordinatorLayout.Behavior<Vie
     }
 
     @Override
+    public boolean layoutDependsOn(@NonNull CoordinatorLayout parent, @NonNull View child, @NonNull View dependency) {
+        return child.getId() == R.id.imagesTitleBlockLayout;
+    }
+
+    @Override
     public boolean onLayoutChild(@NonNull CoordinatorLayout parent, @NonNull View child, int layoutDirection) {
 
         // 首先让父布局按照标准方式解析
@@ -124,5 +129,10 @@ public class FragmentRightContentBehavior extends CoordinatorLayout.Behavior<Vie
                 child.setTranslationY(0.0f);
             }
         }
+    }
+
+    @Override
+    public boolean onDependentViewChanged(@NonNull CoordinatorLayout parent, @NonNull View child, @NonNull View dependency) {
+        return super.onDependentViewChanged(parent, child, dependency);
     }
 }

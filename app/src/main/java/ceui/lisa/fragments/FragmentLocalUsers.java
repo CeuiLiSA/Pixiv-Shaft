@@ -55,15 +55,6 @@ public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
                 mActivity.finish();
             }
         });
-        baseBind.loginOut.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "登录注册");
-                startActivity(intent);
-            }
-        });
-
         baseBind.addUser.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

@@ -4,8 +4,10 @@ import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
+import java.io.Serializable;
+
 @Entity(tableName = "illust_download_table")
-public final class DownloadEntity {
+public final class DownloadEntity implements Serializable {
 
     @PrimaryKey()
     @NonNull

@@ -1,7 +1,10 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.view.View;
+
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -18,8 +21,12 @@ import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyViewHistoryBinding;
+import ceui.lisa.interfaces.Callback;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.models.Starable;
+import ceui.lisa.notification.CommonReceiver;
+import ceui.lisa.notification.DownloadReceiver;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
@@ -29,6 +36,7 @@ public class FragmentDownloadFinish extends LocalListFragment<FragmentBaseListBi
 
     private List<IllustsBean> all = new ArrayList<>();
     private List<String> filePaths = new ArrayList<>();
+    private DownloadReceiver<?> mReceiver;
 
     @Override
     public BaseAdapter<DownloadEntity, RecyViewHistoryBinding> adapter() {
@@ -99,20 +107,28 @@ public class FragmentDownloadFinish extends LocalListFragment<FragmentBaseListBi
     }
 
     @Override
-    public boolean eventBusEnable() {
-        return true;
+    public void onAdapterPrepared() {
+        super.onAdapterPrepared();
+        IntentFilter intentFilter = new IntentFilter();
+        mReceiver = new DownloadReceiver<>((Callback<DownloadEntity>) entity -> {
+            mRecyclerView.setVisibility(View.VISIBLE);
+            noData.setVisibility(View.INVISIBLE);
+            allItems.add(0, entity);
+            all.add(Shaft.sGson.fromJson(entity.getIllustGson(), IllustsBean.class));
+            filePaths.add(0, entity.getFilePath());
+            mAdapter.notifyItemInserted(0);
+            mRecyclerView.scrollToPosition(0);
+            mAdapter.notifyItemRangeChanged(0, allItems.size());
+        }, DownloadReceiver.NOTIFY_FRAGMENT_DOWNLOAD_FINISH);
+        intentFilter.addAction(Params.DOWNLOAD_FINISH);
+        LocalBroadcastManager.getInstance(mContext).registerReceiver(mReceiver, intentFilter);
     }
 
     @Override
-    public void handleEvent(Channel channel) {
-        mRecyclerView.setVisibility(View.VISIBLE);
-        noData.setVisibility(View.INVISIBLE);
-        DownloadEntity entity = (DownloadEntity) channel.getObject();
-        allItems.add(0, entity);
-        all.add(Shaft.sGson.fromJson(entity.getIllustGson(), IllustsBean.class));
-        filePaths.add(0, entity.getFilePath());
-        mAdapter.notifyItemInserted(0);
-        mRecyclerView.scrollToPosition(0);
-        mAdapter.notifyItemRangeChanged(0, allItems.size());
+    public void onDestroy() {
+        super.onDestroy();
+        if (mReceiver != null) {
+            LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mReceiver);
+        }
     }
 }
