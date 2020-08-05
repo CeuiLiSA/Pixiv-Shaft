@@ -6,16 +6,75 @@
 
     </data>
 
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:id="@+id/novel_detail"
-        android:textSize="17sp"
-        android:layout_margin="@dimen/sixteen_dp"
-        android:textColor="@color/white_to_gray"
-        android:lineSpacingExtra="@dimen/six_dp"
+        android:orientation="vertical"
         android:layout_height="wrap_content">
 
+        <View
+            android:layout_width="match_parent"
+            android:id="@+id/head"
+            android:layout_height="80dp">
 
-    </TextView>
+        </View>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:textSize="25sp"
+            android:minHeight="120dp"
+            android:gravity="center"
+            android:id="@+id/chapter"
+            android:layout_height="wrap_content">
+
+        </TextView>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:textSize="19sp"
+            android:gravity="center"
+            android:id="@+id/part_index"
+            android:layout_height="wrap_content">
+
+        </TextView>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:id="@+id/novel_detail"
+            android:textSize="17sp"
+            android:layout_margin="@dimen/sixteen_dp"
+            android:textColor="@color/white_to_gray"
+            android:lineSpacingExtra="@dimen/six_dp"
+            android:layout_height="wrap_content">
+
+
+        </TextView>
+
+
+        <TextView
+            android:layout_width="match_parent"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:textSize="19sp"
+            android:gravity="center"
+            android:text=" -- END -- "
+            android:id="@+id/end_text"
+            android:layout_height="wrap_content">
+
+        </TextView>
+
+        <View
+            android:layout_width="match_parent"
+            android:id="@+id/bottom"
+            android:layout_height="80dp">
+
+        </View>
+
+    </LinearLayout>
+
+
 
 </layout>

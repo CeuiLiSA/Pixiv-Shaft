@@ -12,7 +12,7 @@ android {
         applicationId "ceui.lisa.pixiv"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 220
+        versionCode 108
         versionName "2.2.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -103,6 +103,17 @@ dependencies {
 
     implementation 'com.effective.android:panelSwitchHelper-androidx:1.3.1'
     implementation 'com.makeramen:roundedimageview:2.3.0'
+//
+//
+//    implementation 'com.ljx.rxhttp:rxhttp:2.3.3'
+//    implementation 'com.squareup.okhttp3:okhttp:4.7.2' //rxhttp v2.2.2版本起，需要手动依赖okhttp
+//    kapt 'com.ljx.rxhttp:rxhttp-compiler:2.3.3'
+//
+//    implementation 'com.ljx.rxlife:rxlife-coroutine:2.0.0'
+//
+//    implementation 'io.reactivex.rxjava3:rxjava:3.0.4'
+//    implementation 'io.reactivex.rxjava3:rxandroid:3.0.0'
+//    implementation 'com.ljx.rxlife3:rxlife-rxjava:3.0.0'
 
     implementation project(path: ':models')
     implementation project(path: ':base')

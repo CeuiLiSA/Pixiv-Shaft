@@ -38,25 +38,6 @@ public class Container {
         Common.showLog("Container addPage " + pageData.getUUID());
     }
 
-    /**
-     * 用 Room数据库 存储，数据一直在不会丢失
-     *
-     * @param context    context
-     * @param uuidEntity 一个插画列表
-     */
-    public void addPageToSQL(Context context, UUIDEntity uuidEntity) {
-        if (uuidEntity == null || context == null) {
-            return;
-        }
-
-        if (TextUtils.isEmpty(uuidEntity.getUuid())) {
-            return;
-        }
-
-        AppDatabase.getAppDatabase(context).searchDao().insertListWithUUID(uuidEntity);
-        Common.showLog("Container addPage " + uuidEntity.getUuid());
-    }
-
     public IDWithList<IllustsBean> getPage(String uuid) {
         Common.showLog("Container getPage " + uuid);
         if (TextUtils.isEmpty(uuid)) {
@@ -68,15 +49,6 @@ public class Container {
         }
 
         return pages.get(uuid);
-    }
-
-    public IDWithList<IllustsBean> getPage(Context context, String uuid) {
-        Common.showLog("Container getPage " + uuid);
-        if (TextUtils.isEmpty(uuid) || context == null) {
-            return null;
-        }
-
-        return AppDatabase.getAppDatabase(context).searchDao().getListByUUID(uuid);
     }
 
     public List<PageData> getAll() {
