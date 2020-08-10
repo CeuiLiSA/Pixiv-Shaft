@@ -17,8 +17,10 @@ import ceui.lisa.fragments.FragmentAboutApp;
 import ceui.lisa.fragments.FragmentAnime;
 import ceui.lisa.fragments.FragmentBh;
 import ceui.lisa.fragments.FragmentFileName;
+import ceui.lisa.fragments.FragmentHttpTest;
 import ceui.lisa.fragments.FragmentListSimpleUser;
 import ceui.lisa.fragments.FragmentMultiDownld;
+import ceui.lisa.fragments.FragmentNew;
 import ceui.lisa.fragments.FragmentNewNovel;
 import ceui.lisa.fragments.FragmentNovelSeries;
 import ceui.lisa.fragments.FragmentRecmdIllust;
@@ -39,7 +41,6 @@ import ceui.lisa.fragments.FragmentLikeNovel;
 import ceui.lisa.fragments.FragmentLive;
 import ceui.lisa.fragments.FragmentLocalUsers;
 import ceui.lisa.fragments.FragmentMutedTags;
-import ceui.lisa.fragments.FragmentNew;
 import ceui.lisa.fragments.FragmentNiceFriend;
 import ceui.lisa.fragments.FragmentNovelHolder;
 import ceui.lisa.fragments.FragmentPv;
@@ -141,7 +142,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                     return FragmentAnime.newInstance();
                 case "最新作品":
                     if (Dev.isDev) {
-                        return FragmentBh.newInstance();
+                        return new FragmentHttpTest();
+//                        return FragmentBh.newInstance();
                     } else {
                         return new FragmentNew();
                     }

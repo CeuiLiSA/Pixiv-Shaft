@@ -1,9 +1,11 @@
 package ceui.lisa.fragments;
 
 import android.content.DialogInterface;
+import android.text.InputType;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
@@ -21,7 +23,6 @@ import ceui.lisa.core.LocalRepo;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyBookTagBinding;
-import ceui.lisa.dialogs.AddTagDialog;
 import ceui.lisa.helper.TagFilter;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.TagsBean;
@@ -100,8 +101,30 @@ public class FragmentMutedTags extends LocalListFragment<FragmentBaseListBinding
                                 .show();
                     }
                 } else if (item.getItemId() == R.id.action_add) {
-                    AddTagDialog dialog = AddTagDialog.newInstance(1);
-                    dialog.show(getChildFragmentManager(), "AddTagDialog");
+                    final QMUIDialog.EditTextDialogBuilder builder = new QMUIDialog.EditTextDialogBuilder(mActivity);
+                    builder.setTitle("添加屏蔽标签")
+                            .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                            .setPlaceholder("请输入标签名")
+                            .setInputType(InputType.TYPE_CLASS_TEXT)
+                            .addAction("取消", new QMUIDialogAction.ActionListener() {
+                                @Override
+                                public void onClick(QMUIDialog dialog, int index) {
+                                    dialog.dismiss();
+                                }
+                            })
+                            .addAction("添加", new QMUIDialogAction.ActionListener() {
+                                @Override
+                                public void onClick(QMUIDialog dialog, int index) {
+                                    CharSequence text = builder.getEditText().getText();
+                                    if (text != null && text.length() > 0) {
+                                        addMutedTag(text.toString());
+                                        dialog.dismiss();
+                                    } else {
+                                        Toast.makeText(getActivity(), "请填入标签", Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            })
+                            .show();
                 }
                 return true;
             }
