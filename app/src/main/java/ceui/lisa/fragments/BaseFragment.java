@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,6 +32,7 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
     protected String className = getClass().getSimpleName() + " ";
     protected Layout baseBind;
     protected View parentView;
+    protected Handler mainHandler;
     protected boolean isVertical = true;
 
     public BaseFragment() {
@@ -40,6 +42,8 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mainHandler = new Handler();
 
         mContext = requireContext();
         mActivity = requireActivity();
@@ -80,6 +84,7 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
         if (eventBusEnable()) {
             EventBus.getDefault().unregister(this);
         }
+        mainHandler = null;
         super.onDestroy();
     }
 
@@ -150,7 +155,6 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
 
     public void handleEvent(Channel channel) {
     }
-
 
     public void horizon() {
 

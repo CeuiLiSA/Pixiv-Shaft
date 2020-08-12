@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.TextUtils;
@@ -36,6 +37,9 @@ import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.zhy.view.flowlayout.FlowLayout;
 import com.zhy.view.flowlayout.TagAdapter;
 import com.zhy.view.flowlayout.TagFlowLayout;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.SearchActivity;
@@ -164,11 +168,19 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
         baseBind.illustSize.setText("作品尺寸：" + illust.getWidth() + "px * " + illust.getHeight() + "px");
         baseBind.illustId.setText("作品ID：" + illust.getId());
         baseBind.userId.setText("画师ID：" + illust.getUser().getId());
-        final BottomSheetBehavior<?> sheetBehavior = BottomSheetBehavior.from(baseBind.contentScrollView);
+        final BottomSheetBehavior<?> sheetBehavior = BottomSheetBehavior.from(baseBind.coreLinear);
 
-        baseBind.bottomBar.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+        baseBind.coreLinear.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
+                final int realHeight = baseBind.coreLinear.getHeight();
+                final int maxHeight = getResources().getDisplayMetrics().heightPixels * 3 / 4;
+                if (realHeight > maxHeight) {
+                    ViewGroup.LayoutParams params = baseBind.coreLinear.getLayoutParams();
+                    params.height = maxHeight;
+                    baseBind.coreLinear.setLayoutParams(params);
+                }
+
                 final int bottomCardHeight = baseBind.bottomBar.getHeight();
                 final int deltaY = baseBind.coreLinear.getHeight() - baseBind.bottomBar.getHeight();
                 sheetBehavior.setPeekHeight(bottomCardHeight, true);
@@ -189,7 +201,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 baseBind.recyclerView.setAdapter(new IllustAdapter(mContext, illust,
                         baseBind.recyclerView.getHeight() - bottomCardHeight + DensityUtil.dp2px(16.0f)));
 
-                baseBind.bottomBar.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                baseBind.coreLinear.getViewTreeObserver().removeOnGlobalLayoutListener(this);
             }
         });
 
