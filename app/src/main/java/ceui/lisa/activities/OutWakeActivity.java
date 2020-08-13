@@ -12,8 +12,10 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.base.BaseActivity;
 import ceui.lisa.databinding.ActivityOutWakeBinding;
+import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import io.reactivex.disposables.Disposable;
@@ -115,6 +117,13 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                             if (host.contains("illusts")) {
                                 String path = uri.getPath();
                                 PixivOperate.getIllustByID(Shaft.sUserModel, Integer.valueOf(path.substring(1)),
+                                        mContext, t -> finish());
+                                return;
+                            }
+
+                            if (host.contains("novels")) {
+                                String path = uri.getPath();
+                                PixivOperate.getNovelByID(Shaft.sUserModel, Integer.valueOf(path.substring(1)),
                                         mContext, t -> finish());
                                 return;
                             }

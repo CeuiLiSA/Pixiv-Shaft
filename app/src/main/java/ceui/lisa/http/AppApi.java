@@ -19,6 +19,7 @@ import ceui.lisa.models.CommentHolder;
 import ceui.lisa.models.MutedHistory;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.NovelDetail;
+import ceui.lisa.models.NovelSearchResponse;
 import ceui.lisa.models.NullResponse;
 import ceui.lisa.models.UserDetailResponse;
 import ceui.lisa.models.UserState;
@@ -383,4 +384,8 @@ public interface AppApi {
     @GET("v2/novel/series")
     Observable<NovelSeries> getNovelSeries(@Header("Authorization") String token,
                                                          @Query("series_id") int series_id);
+
+    @GET("v2/novel/detail")
+    Observable<NovelSearchResponse> getNovelByID(@Header("Authorization") String token,
+                                                 @Query("novel_id") int novel_id);
 }

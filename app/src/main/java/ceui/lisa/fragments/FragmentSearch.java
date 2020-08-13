@@ -54,7 +54,8 @@ import static ceui.lisa.utils.PixivOperate.insertSearchHistory;
 
 public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
 
-    public static final String[] SEARCH_TYPE = new String[]{"标签搜作品", "ID搜作品", "关键字搜画师", "ID搜画师"};
+    public static final String[] SEARCH_TYPE = new String[]{"标签搜作品", "ID搜插画", "关键字搜画师",
+            "ID搜画师", "ID搜小说"};
 
     private ObservableEmitter<String> fuck = null;
     private int searchType = 0;
@@ -211,6 +212,13 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
             } else {
                 Common.showToast("ID必须为全数字");
             }
+        } else if (searchType == 4) {
+            if (isNumeric(keyWord)) {
+                insertSearchHistory(keyWord, searchType);
+                PixivOperate.getNovelByID(sUserModel, Integer.valueOf(keyWord), mContext, null);
+            } else {
+                Common.showToast("ID必须为全数字");
+            }
         }
     }
 
@@ -342,6 +350,10 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                     Intent intent = new Intent(mContext, UserActivity.class);
                     intent.putExtra(Params.USER_ID, Integer.valueOf(history.get(position).getKeyword()));
                     startActivity(intent);
+                } else if (history.get(position).getSearchType() == 4) {
+                    history.get(position).setSearchTime(System.currentTimeMillis());
+                    AppDatabase.getAppDatabase(mContext).searchDao().insert(history.get(position));
+                    PixivOperate.getNovelByID(sUserModel, Integer.parseInt(history.get(position).getKeyword()), mContext, null);
                 }
                 return false;
             }
