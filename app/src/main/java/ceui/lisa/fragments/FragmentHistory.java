@@ -51,12 +51,6 @@ public class FragmentHistory extends LocalListFragment<FragmentBaseListBinding,
                     intent.putExtra(Params.POSITION, position);
                     intent.putExtra(Params.PAGE_UUID, uuid);
                     mContext.startActivity(intent);
-
-
-//                    DataChannel.get().setIllustList(((HistoryModel)mModel).getAll());
-//                    Intent intent = new Intent(mContext, ViewPagerActivity.class);
-//                    intent.putExtra("position", position);
-//                    mContext.startActivity(intent);
                 } else if (viewType == 1) {
                     Intent intent = new Intent(mContext, UserActivity.class);
                     intent.putExtra(Params.USER_ID, (int) v.getTag());
@@ -144,7 +138,7 @@ public class FragmentHistory extends LocalListFragment<FragmentBaseListBinding,
     }
 
     @Override
-    public Class<? extends BaseModel> modelClass() {
+    public Class<? extends BaseModel<?>> modelClass() {
         return HistoryModel.class;
     }
 
