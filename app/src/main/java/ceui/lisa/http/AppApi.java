@@ -24,6 +24,7 @@ import ceui.lisa.models.NullResponse;
 import ceui.lisa.models.UserDetailResponse;
 import ceui.lisa.models.UserState;
 import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observer;
 import okhttp3.MultipartBody;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
@@ -49,8 +50,8 @@ public interface AppApi {
      */
     @GET("v1/illust/ranking?filter=for_android")
     Observable<ListIllust> getRank(@Header("Authorization") String token,
-                                   @Query("mode") String mode,
-                                   @Query("date") String date);
+                                 @Query("mode") String mode,
+                                 @Query("date") String date);
 
     @GET("v1/novel/ranking?filter=for_android")
     Observable<ListNovel> getRankNovel(@Header("Authorization") String token,

@@ -351,47 +351,48 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
         baseBind.searchFilterRela.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                builder.setTitle("被收藏数");
-                builder.setItems(ALL_SIZE, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Shaft.sSettings.setSearchFilter(ALL_SIZE_VALUE[which]);
-                        Common.showToast("设置成功", baseBind.searchFilter);
-                        Local.setSettings(Shaft.sSettings);
-                        baseBind.searchFilter.setText(ALL_SIZE[which]);
-                    }
-                });
-                AlertDialog alertDialog = builder.create();
-                alertDialog.show();
+                new QMUIDialog.CheckableDialogBuilder(mContext)
+                        .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                        .addItems(ALL_SIZE, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Shaft.sSettings.setSearchFilter(ALL_SIZE_VALUE[which]);
+                                Common.showToast("设置成功", baseBind.searchFilter);
+                                Local.setSettings(Shaft.sSettings);
+                                baseBind.searchFilter.setText(ALL_SIZE[which]);
+                                dialog.dismiss();
+                            }
+                        })
+                        .create()
+                        .show();
             }
         });
         baseBind.appLanguage.setText(Shaft.sSettings.getAppLanguage());
         baseBind.appLanguageRela.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                builder.setTitle(getString(R.string.language));
-                builder.setItems(ALL_LANGUAGE, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Shaft.sSettings.setAppLanguage(ALL_LANGUAGE[which]);
-                        baseBind.appLanguage.setText(ALL_LANGUAGE[which]);
-                        Common.showToast("设置成功", baseBind.appLanguage);
-                        Local.setSettings(Shaft.sSettings);
-                        if (which == 0) {
-                            LanguageUtils.applyLanguage(Locale.SIMPLIFIED_CHINESE, "");
-                        } else if (which == 1) {
-                            LanguageUtils.applyLanguage(Locale.JAPAN, "");
-                        } else if (which == 2) {
-                            LanguageUtils.applyLanguage(Locale.US, "");
-                        } else if (which == 3) {
-                            LanguageUtils.applyLanguage(Locale.TRADITIONAL_CHINESE, "");
-                        }
-                    }
-                });
-                AlertDialog alertDialog = builder.create();
-                alertDialog.show();
+                new QMUIDialog.CheckableDialogBuilder(getActivity())
+                        .setSkinManager(QMUISkinManager.defaultInstance(getContext()))
+                        .addItems(ALL_LANGUAGE, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                Shaft.sSettings.setAppLanguage(ALL_LANGUAGE[which]);
+                                baseBind.appLanguage.setText(ALL_LANGUAGE[which]);
+                                Common.showToast("设置成功", baseBind.appLanguage);
+                                Local.setSettings(Shaft.sSettings);
+                                if (which == 0) {
+                                    LanguageUtils.applyLanguage(Locale.SIMPLIFIED_CHINESE, "");
+                                } else if (which == 1) {
+                                    LanguageUtils.applyLanguage(Locale.JAPAN, "");
+                                } else if (which == 2) {
+                                    LanguageUtils.applyLanguage(Locale.US, "");
+                                } else if (which == 3) {
+                                    LanguageUtils.applyLanguage(Locale.TRADITIONAL_CHINESE, "");
+                                }
+                                dialog.dismiss();
+                            }
+                        })
+                        .show();
             }
         });
 
@@ -408,24 +409,24 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
         baseBind.themeModeRela.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                builder.setTitle(getString(R.string.theme_mode));
                 final int index = ThemeHelper.getThemeType();
-                builder.setSingleChoiceItems(THEME_NAME, index, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        if (which == index) {
-                            Common.showLog("什么也不做");
-                        } else {
-                            Shaft.sSettings.setThemeType(((AppCompatActivity) mActivity), THEME_NAME[which]);
-                            baseBind.themeMode.setText(THEME_NAME[which]);
-                            Local.setSettings(Shaft.sSettings);
-                        }
-                        dialog.dismiss();
-                    }
-                });
-                AlertDialog alertDialog = builder.create();
-                alertDialog.show();
+                new QMUIDialog.CheckableDialogBuilder(mActivity)
+                        .setCheckedIndex(index)
+                        .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                        .addItems(THEME_NAME, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                if (which == index) {
+                                    Common.showLog("什么也不做");
+                                } else {
+                                    Shaft.sSettings.setThemeType(((AppCompatActivity) mActivity), THEME_NAME[which]);
+                                    baseBind.themeMode.setText(THEME_NAME[which]);
+                                    Local.setSettings(Shaft.sSettings);
+                                }
+                                dialog.dismiss();
+                            }
+                        })
+                        .show();
             }
         });
 

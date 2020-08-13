@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.zhy.view.flowlayout.FlowLayout;
 import com.zhy.view.flowlayout.TagAdapter;
 import com.zhy.view.flowlayout.TagFlowLayout;
@@ -304,20 +305,26 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
             baseBind.clearHistory.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                    builder.setTitle("Shaft 提示");
-                    builder.setMessage("这将会删除所有的本地搜索历史");
-                    builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().deleteAll();
-                            Common.showToast("搜索历史删除成功");
-                            onResume();
-                        }
-                    });
-                    builder.setNegativeButton("取消", null);
-                    AlertDialog alertDialog = builder.create();
-                    alertDialog.show();
+                    new QMUIDialog.MessageDialogBuilder(getActivity())
+                            .setTitle("提示")
+                            .setMessage("这将会删除所有的本地搜索历史")
+                            .setSkinManager(QMUISkinManager.defaultInstance(getContext()))
+                            .addAction("取消", new QMUIDialogAction.ActionListener() {
+                                @Override
+                                public void onClick(QMUIDialog dialog, int index) {
+                                    dialog.dismiss();
+                                }
+                            })
+                            .addAction(0, "删除", QMUIDialogAction.ACTION_PROP_NEGATIVE, new QMUIDialogAction.ActionListener() {
+                                @Override
+                                public void onClick(QMUIDialog dialog, int index) {
+                                    AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().deleteAll();
+                                    Common.showToast("搜索历史删除成功");
+                                    dialog.dismiss();
+                                    onResume();
+                                }
+                            })
+                            .show();
                 }
             });
         } else {

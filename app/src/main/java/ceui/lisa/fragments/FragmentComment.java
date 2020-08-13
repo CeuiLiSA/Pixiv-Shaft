@@ -1,5 +1,6 @@
 package ceui.lisa.fragments;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Rect;
 import android.os.Bundle;
@@ -13,6 +14,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.effective.android.panel.PanelSwitchHelper;
+import com.qmuiteam.qmui.skin.QMUISkinManager;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 
 import java.util.List;
 
@@ -25,7 +28,6 @@ import ceui.lisa.adapters.EmojiAdapter;
 import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentCommentBinding;
 import ceui.lisa.databinding.RecyCommentListBinding;
-import ceui.lisa.dialogs.SoftKeyboardStateHelper;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
@@ -106,48 +108,55 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
     public BaseAdapter<CommentsBean, RecyCommentListBinding> adapter() {
         return new CommentAdapter(allItems, mContext).setOnItemClickListener((v, position, viewType) -> {
             if (viewType == 0) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                builder.setItems(OPTIONS, (dialog, which) -> {
-                    if (which == 0) {
-                        baseBind.inputBox.setHint("回复" +
-                                allItems.get(position).getUser().getName());
-                        parentCommentID = allItems.get(position).getId();
-                    } else if (which == 1) {
-                        Common.copy(mContext, allItems.get(position).getComment());
-                    } else if (which == 2) {
-                        Intent userIntent = new Intent(mContext, UserActivity.class);
-                        userIntent.putExtra(Params.USER_ID, allItems.get(position)
-                                .getUser().getId());
-                        startActivity(userIntent);
-                    }
-                });
-                AlertDialog alertDialog = builder.create();
-                alertDialog.show();
+                new QMUIDialog.MenuDialogBuilder(mActivity)
+                        .setSkinManager(QMUISkinManager.defaultInstance(mActivity))
+                        .addItems(OPTIONS, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                if (which == 0) {
+                                    baseBind.inputBox.setHint("回复" +
+                                            allItems.get(position).getUser().getName());
+                                    parentCommentID = allItems.get(position).getId();
+                                } else if (which == 1) {
+                                    Common.copy(mContext, allItems.get(position).getComment());
+                                } else if (which == 2) {
+                                    Intent userIntent = new Intent(mContext, UserActivity.class);
+                                    userIntent.putExtra(Params.USER_ID, allItems.get(position)
+                                            .getUser().getId());
+                                    startActivity(userIntent);
+                                }
+                                dialog.dismiss();
+                            }
+                        })
+                        .show();
             } else if (viewType == 1) {
                 Intent userIntent = new Intent(mContext, UserActivity.class);
                 userIntent.putExtra(Params.USER_ID, allItems.get(position).getUser().getId());
                 startActivity(userIntent);
             } else if (viewType == 2) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                builder.setItems(OPTIONS, (dialog, which) -> {
-                    if (which == 0) {
-                        baseBind.inputBox.setHint(
-                                "回复" + allItems.get(position).getParent_comment().getUser().getName()
-                        );
-                        parentCommentID =
-                                allItems.get(position).getParent_comment().getId();
-                    } else if (which == 1) {
-                        Common.copy(mContext, allItems.get(position).getParent_comment().getComment());
-                    } else if (which == 2) {
-                        Intent userIntent = new Intent(mContext, UserActivity.class);
-                        userIntent.putExtra(Params.USER_ID, allItems.get(position)
-                                .getParent_comment().getUser().getId());
-                        startActivity(userIntent);
-                    }
-                });
-                AlertDialog alertDialog = builder.create();
-                alertDialog.show();
-
+                new QMUIDialog.MenuDialogBuilder(mActivity)
+                        .setSkinManager(QMUISkinManager.defaultInstance(mActivity))
+                        .addItems(OPTIONS, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                if (which == 0) {
+                                    baseBind.inputBox.setHint(
+                                            "回复" + allItems.get(position).getParent_comment().getUser().getName()
+                                    );
+                                    parentCommentID =
+                                            allItems.get(position).getParent_comment().getId();
+                                } else if (which == 1) {
+                                    Common.copy(mContext, allItems.get(position).getParent_comment().getComment());
+                                } else if (which == 2) {
+                                    Intent userIntent = new Intent(mContext, UserActivity.class);
+                                    userIntent.putExtra(Params.USER_ID, allItems.get(position)
+                                            .getParent_comment().getUser().getId());
+                                    startActivity(userIntent);
+                                }
+                                dialog.dismiss();
+                            }
+                        })
+                        .show();
             } else if (viewType == 3) {
                 Intent userIntent = new Intent(mContext, UserActivity.class);
                 userIntent.putExtra(Params.USER_ID, allItems.get(position).getParent_comment().getUser().getId());

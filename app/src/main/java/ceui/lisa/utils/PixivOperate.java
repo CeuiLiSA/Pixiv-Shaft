@@ -37,6 +37,10 @@ import ceui.lisa.models.TagsBean;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.models.IllustsBean;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.annotations.NonNull;
+import io.reactivex.rxjava3.core.Observer;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -261,10 +265,10 @@ public class PixivOperate {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ErrorCtrl<NovelSearchResponse>() {
                     @Override
-                    public void onNext(NovelSearchResponse illustSearchResponse) {
-                        if (illustSearchResponse != null && illustSearchResponse.getNovel() != null) {
+                    public void onNext(NovelSearchResponse novelSearchResponse) {
+                        if (novelSearchResponse != null && novelSearchResponse.getNovel() != null) {
                             Intent intent = new Intent(context, TemplateActivity.class);
-                            intent.putExtra(Params.CONTENT, illustSearchResponse.getNovel());
+                            intent.putExtra(Params.CONTENT, novelSearchResponse.getNovel());
                             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情");
                             intent.putExtra("hideStatusBar", true);
                             context.startActivity(intent);

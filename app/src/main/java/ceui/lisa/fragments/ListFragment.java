@@ -255,4 +255,8 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
         }
         return mModel.getContent().getValue();
     }
+
+    public int getCount() {
+        return allItems == null ? 0 : allItems.size();
+    }
 }
