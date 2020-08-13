@@ -58,16 +58,18 @@ public class Emoji {
      * @return boolean
      */
     public static boolean hasEmoji(String origin) {
+        Common.showLog("hasEmoji hasEmoji");
         if (TextUtils.isEmpty(origin)) {
             return false;
         }
-        return origin.contains("(") &&
-                origin.contains(")") &&
-                Character.isLowerCase(
-                        origin.charAt(
-                                origin.indexOf("(") + 1 // （右边的必须是小写字母。
-                        )
-                );
+        boolean hasEmoji = false;
+        for (String name : NAMES) {
+            if (origin.contains(name)) {
+                hasEmoji = true;
+                break;
+            }
+        }
+        return hasEmoji;
     }
 
     /**
@@ -78,16 +80,15 @@ public class Emoji {
     public static String transform(String origin) {
         String before = origin;
         while (hasEmoji(before)) {
-            int startIndex = before.indexOf("(");
-            int endIndex = before.indexOf(")");
-            if (startIndex >= 0 && endIndex >= startIndex) {
-                //截取这个表情
-                String emoji = before.substring(startIndex, endIndex + 1);
-
-                //将表情替换为对应的<img>
-                if (!TextUtils.isEmpty(emoji)) {
-                    before = replace(before, emoji);
+            String temp = "";
+            for (String name : NAMES) {
+                if (origin.contains(name)) {
+                    temp = name;
+                    break;
                 }
+            }
+            if (!TextUtils.isEmpty(temp)) {
+                before = replace(before, temp);
             }
         }
         return before;

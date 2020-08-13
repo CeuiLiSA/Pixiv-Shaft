@@ -2,10 +2,8 @@ package ceui.lisa.fragments;
 
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Rect;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.MotionEvent;
+import android.text.TextUtils;
 import android.view.View;
 
 import androidx.appcompat.app.AlertDialog;
