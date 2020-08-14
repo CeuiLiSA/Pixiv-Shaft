@@ -16,7 +16,7 @@ public class Emoji {
     private static final String EMOJI_3  = "(serious)";
     private static final String EMOJI_4  = "(heaven)";
     private static final String EMOJI_5  = "(happy)";
-    private static final String EMOJI_6  = "(excited)";
+    private static final String EMOJI_6  = "(excited)"; //为你写诗，为你静止
     private static final String EMOJI_7  = "(sing)";
     private static final String EMOJI_8  = "(cry)";
     private static final String EMOJI_9  = "(normal2)";
