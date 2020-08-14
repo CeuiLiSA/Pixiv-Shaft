@@ -82,7 +82,7 @@ public class Emoji {
         while (hasEmoji(before)) {
             String temp = "";
             for (String name : NAMES) {
-                if (origin.contains(name)) {
+                if (before.contains(name)) {
                     temp = name;
                     break;
                 }
