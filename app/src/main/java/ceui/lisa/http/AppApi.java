@@ -1,7 +1,6 @@
 package ceui.lisa.http;
 
 import java.util.List;
-import java.util.Map;
 
 import ceui.lisa.model.ListArticle;
 import ceui.lisa.model.ListLive;
@@ -18,14 +17,15 @@ import ceui.lisa.model.ListUser;
 import ceui.lisa.model.ListTrendingtag;
 import ceui.lisa.models.CommentHolder;
 import ceui.lisa.models.MutedHistory;
+import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.NovelDetail;
+import ceui.lisa.models.NovelSearchResponse;
 import ceui.lisa.models.NullResponse;
 import ceui.lisa.models.UserDetailResponse;
 import ceui.lisa.models.UserState;
 import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observer;
 import okhttp3.MultipartBody;
-import okhttp3.RequestBody;
-import retrofit2.http.Body;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
@@ -33,7 +33,6 @@ import retrofit2.http.Header;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.Part;
-import retrofit2.http.PartMap;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 import retrofit2.http.Url;
@@ -51,8 +50,8 @@ public interface AppApi {
      */
     @GET("v1/illust/ranking?filter=for_android")
     Observable<ListIllust> getRank(@Header("Authorization") String token,
-                                   @Query("mode") String mode,
-                                   @Query("date") String date);
+                                 @Query("mode") String mode,
+                                 @Query("date") String date);
 
     @GET("v1/novel/ranking?filter=for_android")
     Observable<ListNovel> getRankNovel(@Header("Authorization") String token,
@@ -386,4 +385,8 @@ public interface AppApi {
     @GET("v2/novel/series")
     Observable<NovelSeries> getNovelSeries(@Header("Authorization") String token,
                                                          @Query("series_id") int series_id);
+
+    @GET("v2/novel/detail")
+    Observable<NovelSearchResponse> getNovelByID(@Header("Authorization") String token,
+                                                 @Query("novel_id") int novel_id);
 }

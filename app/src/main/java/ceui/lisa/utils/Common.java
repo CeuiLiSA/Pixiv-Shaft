@@ -24,6 +24,9 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 
+import com.qmuiteam.qmui.skin.QMUISkinManager;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 
 import java.io.IOException;
@@ -223,31 +226,30 @@ public class Common {
     }
 
     public static void createDialog(Context context){
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle("欢迎使用！");
-        builder.setMessage(context.getString(R.string.dont_catch_me));
-        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Local.setBoolean(Params.SHOW_DIALOG, true);
-            }
-        });
-        builder.setNegativeButton("确定且不再提示", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                Local.setBoolean(Params.SHOW_DIALOG, false);
-            }
-        });
-        AlertDialog alertDialog = builder.create();
-        Window window = alertDialog.getWindow();
+        QMUIDialog qmuiDialog = new QMUIDialog.MessageDialogBuilder(context)
+                .setTitle("欢迎使用！")
+                .setMessage(context.getString(R.string.dont_catch_me))
+                .setSkinManager(QMUISkinManager.defaultInstance(context))
+                .addAction("确定且不再提示", new QMUIDialogAction.ActionListener() {
+                    @Override
+                    public void onClick(QMUIDialog dialog, int index) {
+                        Local.setBoolean(Params.SHOW_DIALOG, false);
+                        dialog.dismiss();
+                    }
+                })
+                .addAction("确定", new QMUIDialogAction.ActionListener() {
+                    @Override
+                    public void onClick(QMUIDialog dialog, int index) {
+                        Local.setBoolean(Params.SHOW_DIALOG, true);
+                        dialog.dismiss();
+                    }
+                })
+                .create();
+        Window window = qmuiDialog.getWindow();
         if (window != null) {
             window.setWindowAnimations(R.style.dialog_animation_scale);
         }
-        alertDialog.show();
-        alertDialog.getButton(AlertDialog.BUTTON_POSITIVE)
-                .setTextColor(context.getResources().getColor(R.color.colorPrimary));
-        alertDialog.getButton(AlertDialog.BUTTON_NEGATIVE)
-                .setTextColor(context.getResources().getColor(R.color.colorPrimary));
+        qmuiDialog.show();
     }
 
     public static String getResponseBody(Response response) {

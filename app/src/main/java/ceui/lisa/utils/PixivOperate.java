@@ -15,6 +15,7 @@ import java.util.UUID;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.VActivity;
 import ceui.lisa.core.Container;
 import ceui.lisa.core.PageData;
@@ -30,11 +31,16 @@ import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.IllustSearchResponse;
 import ceui.lisa.models.NovelBean;
+import ceui.lisa.models.NovelSearchResponse;
 import ceui.lisa.models.NullResponse;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.models.IllustsBean;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.annotations.NonNull;
+import io.reactivex.rxjava3.core.Observer;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -247,6 +253,31 @@ public class PixivOperate {
                             }
                         } else {
                             Common.showToast("illustSearchResponse 为空");
+                        }
+                    }
+                });
+    }
+
+    public static void getNovelByID(UserModel userModel, int novel, Context context,
+                                     ceui.lisa.interfaces.Callback<Void> callback) {
+        Retro.getAppApi().getNovelByID(userModel.getResponse().getAccess_token(), novel)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new ErrorCtrl<NovelSearchResponse>() {
+                    @Override
+                    public void onNext(NovelSearchResponse novelSearchResponse) {
+                        if (novelSearchResponse != null && novelSearchResponse.getNovel() != null) {
+                            Intent intent = new Intent(context, TemplateActivity.class);
+                            intent.putExtra(Params.CONTENT, novelSearchResponse.getNovel());
+                            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情");
+                            intent.putExtra("hideStatusBar", true);
+                            context.startActivity(intent);
+
+                            if (callback != null) {
+                                callback.doSomething(null);
+                            }
+                        } else {
+                            Common.showToast("NovelSearchResponse 为空");
                         }
                     }
                 });

@@ -44,7 +44,7 @@ public class HeaderBehavior extends CoordinatorLayout.Behavior<View> {
 
     @Override
     public boolean layoutDependsOn(@NonNull CoordinatorLayout parent, @NonNull View child, @NonNull View dependency) {
-        return dependency.getId() == R.id.content_scroll_view;
+        return dependency.getId() == R.id.core_linear;
     }
 
     @Override

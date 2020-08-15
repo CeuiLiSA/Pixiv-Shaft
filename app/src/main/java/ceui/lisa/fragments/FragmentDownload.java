@@ -12,6 +12,9 @@ import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import com.ToxicBakery.viewpager.transforms.DrawerTransformer;
+import com.qmuiteam.qmui.skin.QMUISkinManager;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
@@ -44,22 +47,31 @@ public class FragmentDownload extends BaseFragment<ViewpagerWithTablayoutBinding
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 if (item.getItemId() == R.id.action_delete) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                    builder.setTitle("PixShaft 提示");
-                    builder.setMessage("这将会删除所有的下载记录，但是已下载的文件不会被删除");
-                    builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            AppDatabase.getAppDatabase(mContext).downloadDao().deleteAllDownload();
-                            if (allPages[1] instanceof FragmentDownloadFinish) {
-                                ((FragmentDownloadFinish) allPages[1]).clearAndRefresh();
-                            }
-                            Common.showToast("下载记录清除成功");
-                        }
-                    });
-                    builder.setNegativeButton("取消", null);
-                    AlertDialog alertDialog = builder.create();
-                    alertDialog.show();
+                    if (allPages[1] instanceof FragmentDownloadFinish &&
+                            ((FragmentDownloadFinish) allPages[1]).getCount() > 0) {
+                        new QMUIDialog.MessageDialogBuilder(mActivity)
+                                .setTitle("提示")
+                                .setMessage("这将会删除所有的下载记录，但是已下载的文件不会被删除")
+                                .setSkinManager(QMUISkinManager.defaultInstance(mActivity))
+                                .addAction("取消", new QMUIDialogAction.ActionListener() {
+                                    @Override
+                                    public void onClick(QMUIDialog dialog, int index) {
+                                        dialog.dismiss();
+                                    }
+                                })
+                                .addAction(0, "删除", QMUIDialogAction.ACTION_PROP_NEGATIVE, new QMUIDialogAction.ActionListener() {
+                                    @Override
+                                    public void onClick(QMUIDialog dialog, int index) {
+                                        AppDatabase.getAppDatabase(mContext).downloadDao().deleteAllDownload();
+                                        ((FragmentDownloadFinish) allPages[1]).clearAndRefresh();
+                                        Common.showToast("下载记录清除成功");
+                                        dialog.dismiss();
+                                    }
+                                })
+                                .show();
+                    } else {
+                        Common.showToast("没有可删除的记录");
+                    }
                     return true;
                 }
                 return false;

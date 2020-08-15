@@ -8,6 +8,10 @@ import android.view.View;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 
+import com.qmuiteam.qmui.skin.QMUISkinManager;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -51,12 +55,6 @@ public class FragmentHistory extends LocalListFragment<FragmentBaseListBinding,
                     intent.putExtra(Params.POSITION, position);
                     intent.putExtra(Params.PAGE_UUID, uuid);
                     mContext.startActivity(intent);
-
-
-//                    DataChannel.get().setIllustList(((HistoryModel)mModel).getAll());
-//                    Intent intent = new Intent(mContext, ViewPagerActivity.class);
-//                    intent.putExtra("position", position);
-//                    mContext.startActivity(intent);
                 } else if (viewType == 1) {
                     Intent intent = new Intent(mContext, UserActivity.class);
                     intent.putExtra(Params.USER_ID, (int) v.getTag());
@@ -122,20 +120,26 @@ public class FragmentHistory extends LocalListFragment<FragmentBaseListBinding,
                     if (allItems.size() == 0) {
                         Common.showToast("没有浏览历史");
                     } else {
-                        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                        builder.setTitle("PixShaft 提示");
-                        builder.setMessage("这将会删除所有的本地浏览历史");
-                        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                AppDatabase.getAppDatabase(mContext).downloadDao().deleteAllHistory();
-                                Common.showToast("删除成功");
-                                mRefreshLayout.autoRefresh();
-                            }
-                        });
-                        builder.setNegativeButton("取消", null);
-                        AlertDialog alertDialog = builder.create();
-                        alertDialog.show();
+                        new QMUIDialog.MessageDialogBuilder(mActivity)
+                                .setTitle("提示")
+                                .setMessage("这将会删除所有的本地浏览历史")
+                                .setSkinManager(QMUISkinManager.defaultInstance(mActivity))
+                                .addAction("取消", new QMUIDialogAction.ActionListener() {
+                                    @Override
+                                    public void onClick(QMUIDialog dialog, int index) {
+                                        dialog.dismiss();
+                                    }
+                                })
+                                .addAction(0, "删除", QMUIDialogAction.ACTION_PROP_NEGATIVE, new QMUIDialogAction.ActionListener() {
+                                    @Override
+                                    public void onClick(QMUIDialog dialog, int index) {
+                                        AppDatabase.getAppDatabase(mContext).downloadDao().deleteAllHistory();
+                                        Common.showToast("删除成功");
+                                        mRefreshLayout.autoRefresh();
+                                        dialog.dismiss();
+                                    }
+                                })
+                                .show();
                     }
                 }
                 return true;
@@ -144,7 +148,7 @@ public class FragmentHistory extends LocalListFragment<FragmentBaseListBinding,
     }
 
     @Override
-    public Class<? extends BaseModel> modelClass() {
+    public Class<? extends BaseModel<?>> modelClass() {
         return HistoryModel.class;
     }
 

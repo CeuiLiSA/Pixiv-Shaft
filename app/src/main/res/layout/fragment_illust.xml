@@ -19,389 +19,394 @@
             android:layout_above="@+id/bottom_linear">
 
             <com.scwang.smartrefresh.layout.SmartRefreshLayout
-                android:layout_width="match_parent"
                 android:id="@+id/refreshLayout"
-                android:background="#000"
-                android:layout_height="match_parent">
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#000">
 
                 <androidx.recyclerview.widget.RecyclerView
-                    android:layout_width="match_parent"
                     android:id="@+id/recyclerView"
+                    android:layout_width="match_parent"
                     android:layout_height="match_parent">
 
                 </androidx.recyclerview.widget.RecyclerView>
 
             </com.scwang.smartrefresh.layout.SmartRefreshLayout>
 
-            <androidx.core.widget.NestedScrollView
-                android:id="@+id/content_scroll_view"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:behavior_peekHeight="180dp"
-                app:layout_behavior="@string/bottom_sheet_behavior">
 
-                <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundLinearLayout
-                    android:id="@+id/core_linear"
+            <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundLinearLayout
+                android:id="@+id/core_linear"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:elevation="@dimen/six_dp"
+                app:behavior_peekHeight="180dp"
+                app:layout_behavior="@string/bottom_sheet_behavior"
+                app:qmui_backgroundColor="@color/white"
+                app:qmui_borderWidth="0dp"
+                app:qmui_radiusTopLeft="20dp"
+                app:qmui_radiusTopRight="20dp">
+
+                <LinearLayout
+                    android:id="@+id/bottom_bar"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="bottom"
-                    android:elevation="@dimen/eight_dp"
                     android:orientation="vertical"
-                    app:qmui_backgroundColor="@color/white"
-                    app:qmui_borderWidth="0dp"
-                    app:qmui_radiusTopLeft="20dp"
-                    app:qmui_radiusTopRight="20dp">
+                    android:tag="12345888">
 
-                    <LinearLayout
-                        android:id="@+id/bottom_bar"
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <View
+                            android:layout_width="100dp"
+                            android:layout_height="3dp"
+                            android:layout_centerHorizontal="true"
+                            android:layout_marginTop="12dp"
+                            android:layout_marginBottom="@dimen/eight_dp"
+                            android:background="@drawable/illust_slider_bg">
+
+                        </View>
+
+                    </RelativeLayout>
+
+                    <TextView
+                        android:id="@+id/title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/tweenty_four_dp"
+                        android:layout_marginEnd="48dp"
+                        android:ellipsize="end"
+                        android:maxLines="2"
+                        android:text="ブリタンニア(ルト系ブリトン人)の アルトリア・ペンドラゴン"
+                        android:textColor="#121212"
+                        android:textSize="20sp"
+                        android:textStyle="bold">
+
+                    </TextView>
+
+                    <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/tweenty_four_dp"
+                        android:layout_marginTop="@dimen/four_dp"
+                        android:layout_marginEnd="@dimen/tweenty_four_dp"
+                        android:layout_marginBottom="@dimen/eight_dp"
                         android:orientation="vertical"
-                        android:tag="12345888">
+                        app:qmui_backgroundColor="#4749a0"
+                        app:qmui_borderWidth="0dp"
+                        app:qmui_radius="20dp">
 
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
+                        <de.hdodenhof.circleimageview.CircleImageView
+                            android:id="@+id/user_head"
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"
+                            android:layout_marginStart="@dimen/twelve_dp"
+                            android:layout_marginTop="@dimen/sixteen_dp"
+                            android:layout_marginEnd="@dimen/eight_dp"
+                            android:layout_marginBottom="@dimen/sixteen_dp"
+                            android:scaleType="centerCrop"
+                            app:civ_border_color="#b3b4f4"
+                            app:civ_border_width="1dp">
 
-                            <View
-                                android:layout_width="100dp"
-                                android:layout_height="3dp"
-                                android:layout_centerHorizontal="true"
-                                android:layout_marginTop="12dp"
-                                android:layout_marginBottom="10dp"
-                                android:background="@drawable/illust_slider_bg">
+                        </de.hdodenhof.circleimageview.CircleImageView>
 
-                            </View>
-
-                        </RelativeLayout>
 
                         <TextView
-                            android:id="@+id/title"
+                            android:id="@+id/user_name"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/tweenty_four_dp"
-                            android:layout_marginEnd="48dp"
+                            android:layout_alignTop="@+id/user_head"
+                            android:layout_marginTop="@dimen/four_dp"
+                            android:layout_toEndOf="@+id/user_head"
                             android:ellipsize="end"
-                            android:maxLines="2"
-                            android:text="ブリタンニア(ルト系ブリトン人)の アルトリア・ペンドラゴン"
-                            android:textColor="#121212"
-                            android:textSize="20sp"
+                            android:maxLines="1"
+                            android:text="仮面みたいになっ"
+                            android:textColor="@color/white"
+                            android:textSize="16sp"
                             android:textStyle="bold">
 
                         </TextView>
 
-                        <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
+                        <TextView
+                            android:id="@+id/post_time"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignBottom="@+id/user_head"
+                            android:layout_marginBottom="@dimen/four_dp"
+                            android:layout_toEndOf="@+id/user_head"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:text="2018年4月29日6点13分投递"
+                            android:textColor="#bdbed6"
+                            android:textSize="12sp">
+
+                        </TextView>
+
+                        <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
+                            android:id="@+id/follow"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:layout_marginEnd="@dimen/twelve_dp"
+                            android:paddingStart="@dimen/eight_dp"
+                            android:paddingTop="@dimen/four_dp"
+                            android:paddingEnd="@dimen/eight_dp"
+                            android:paddingBottom="@dimen/four_dp"
+                            android:text="+ 关注"
+                            android:textColor="@color/white"
+                            app:qmui_backgroundColor="#686bdd"
+                            app:qmui_borderWidth="0dp"
+                            app:qmui_radius="@dimen/six_dp">
+
+                        </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton>
+
+                    </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout>
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginStart="@dimen/tweenty_four_dp"
+                    android:layout_marginEnd="@dimen/tweenty_four_dp"
+                    android:background="#f3f4f5">
+
+                </View>
+
+                <androidx.core.widget.NestedScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <RelativeLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:clickable="true"
+                                android:foreground="?attr/selectableItemBackground"
+                                android:paddingTop="@dimen/eight_dp"
+                                android:paddingBottom="@dimen/eight_dp">
+
+                                <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
+                                    android:id="@+id/left_rela"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="@dimen/tweenty_four_dp"
+                                    app:qmui_backgroundColor="#e8e8f2"
+                                    app:qmui_borderWidth="0dp"
+                                    app:qmui_radius="@dimen/six_dp">
+
+                                    <ImageView
+                                        android:layout_width="45dp"
+                                        android:layout_height="45dp"
+                                        android:padding="@dimen/twelve_dp"
+                                        android:src="@drawable/ic_remove_red_eye_black_24dp"
+                                        app:tint="#666af6">
+
+
+                                    </ImageView>
+
+                                </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout>
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="@dimen/eight_dp"
+                                    android:layout_marginTop="@dimen/four_dp"
+                                    android:layout_toEndOf="@+id/left_rela"
+                                    android:text="表示回数"
+                                    android:textColor="#666af6"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold">
+
+                                </TextView>
+
+                                <TextView
+                                    android:id="@+id/total_view"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_alignBottom="@+id/left_rela"
+                                    android:layout_marginStart="@dimen/eight_dp"
+                                    android:layout_marginBottom="@dimen/four_dp"
+                                    android:layout_toEndOf="@+id/left_rela"
+                                    android:text="12980"
+                                    android:textColor="#666af6"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold">
+
+                                </TextView>
+
+                            </RelativeLayout>
+
+                            <RelativeLayout
+                                android:id="@+id/illust_like"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:clickable="true"
+                                android:foreground="?attr/selectableItemBackground"
+                                android:paddingTop="@dimen/eight_dp"
+                                android:paddingBottom="@dimen/eight_dp">
+
+                                <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
+                                    android:id="@+id/right_rela"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="@dimen/twelve_dp"
+                                    app:qmui_backgroundColor="#e8e8f2"
+                                    app:qmui_borderWidth="0dp"
+                                    app:qmui_radius="@dimen/six_dp">
+
+                                    <ImageView
+                                        android:layout_width="45dp"
+                                        android:layout_height="45dp"
+                                        android:padding="@dimen/twelve_dp"
+                                        android:src="@drawable/ic_favorite_black_24dp"
+                                        app:tint="#666af6">
+
+
+                                    </ImageView>
+
+                                </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout>
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="@dimen/eight_dp"
+                                    android:layout_marginTop="@dimen/four_dp"
+                                    android:layout_toEndOf="@+id/right_rela"
+                                    android:text="收藏次数"
+                                    android:textColor="#666af6"
+                                    android:textSize="12sp"
+                                    android:textStyle="bold">
+
+                                </TextView>
+
+                                <TextView
+                                    android:id="@+id/total_like"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_alignBottom="@+id/right_rela"
+                                    android:layout_marginStart="@dimen/eight_dp"
+                                    android:layout_marginBottom="@dimen/four_dp"
+                                    android:layout_toEndOf="@+id/right_rela"
+                                    android:text="5633"
+                                    android:textColor="#666af6"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold">
+
+                                </TextView>
+
+                            </RelativeLayout>
+
+                        </LinearLayout>
+
+                        <com.zhy.view.flowlayout.TagFlowLayout
+                            android:id="@+id/illust_tag"
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="20dp"
+                            android:layout_marginEnd="20dp"
+                            zhy:max_select="-1">
+
+                        </com.zhy.view.flowlayout.TagFlowLayout>
+
+                        <org.sufficientlysecure.htmltextview.HtmlTextView
+                            android:id="@+id/description"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="@dimen/tweenty_four_dp"
-                            android:layout_marginTop="@dimen/twelve_dp"
+                            android:layout_marginTop="@dimen/six_dp"
+                            android:layout_marginEnd="@dimen/tweenty_four_dp"
+                            android:layout_marginBottom="@dimen/four_dp"
+                            android:gravity="start"
+                            android:textColor="#9b9bb1"
+                            android:textSize="13sp"
+                            android:textStyle="bold">
+
+                        </org.sufficientlysecure.htmltextview.HtmlTextView>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/tweenty_four_dp"
+                            android:layout_marginTop="@dimen/eight_dp"
+                            android:layout_marginEnd="@dimen/tweenty_four_dp"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/illust_id"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="@dimen/twelve_dp"
+                                android:layout_weight="1"
+                                android:gravity="start"
+                                android:textColor="#9b9bb1"
+                                android:textSize="13sp"
+                                android:textStyle="bold">
+
+                            </TextView>
+
+                            <TextView
+                                android:id="@+id/user_id"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="@dimen/twelve_dp"
+                                android:layout_weight="1"
+                                android:textColor="#9b9bb1"
+                                android:textSize="13sp"
+                                android:textStyle="bold">
+
+                            </TextView>
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/tweenty_four_dp"
+                            android:layout_marginTop="@dimen/four_dp"
                             android:layout_marginEnd="@dimen/tweenty_four_dp"
                             android:layout_marginBottom="@dimen/eight_dp"
-                            android:orientation="vertical"
-                            app:qmui_backgroundColor="#4749a0"
-                            app:qmui_borderWidth="0dp"
-                            app:qmui_radius="20dp">
-
-                            <de.hdodenhof.circleimageview.CircleImageView
-                                android:id="@+id/user_head"
-                                android:layout_width="50dp"
-                                android:layout_height="50dp"
-                                android:layout_marginStart="@dimen/twelve_dp"
-                                android:layout_marginTop="@dimen/sixteen_dp"
-                                android:layout_marginEnd="@dimen/eight_dp"
-                                android:layout_marginBottom="@dimen/sixteen_dp"
-                                android:scaleType="centerCrop"
-                                app:civ_border_color="#b3b4f4"
-                                app:civ_border_width="1dp">
-
-                            </de.hdodenhof.circleimageview.CircleImageView>
-
+                            android:orientation="horizontal">
 
                             <TextView
-                                android:id="@+id/user_name"
-                                android:layout_width="wrap_content"
+                                android:id="@+id/illust_size"
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:layout_alignTop="@+id/user_head"
-                                android:layout_marginTop="@dimen/four_dp"
-                                android:layout_toEndOf="@+id/user_head"
-                                android:ellipsize="end"
-                                android:maxLines="1"
-                                android:text="仮面みたいになっ"
-                                android:textColor="@color/white"
-                                android:textSize="16sp"
-                                android:textStyle="bold">
-
-                            </TextView>
-
-                            <TextView
-                                android:id="@+id/post_time"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_alignBottom="@+id/user_head"
-                                android:layout_marginBottom="@dimen/four_dp"
-                                android:layout_toEndOf="@+id/user_head"
-                                android:ellipsize="end"
-                                android:maxLines="1"
-                                android:text="2018年4月29日6点13分投递"
-                                android:textColor="#bdbed6"
-                                android:textSize="12sp">
-
-                            </TextView>
-
-                            <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_alignParentEnd="true"
-                                android:layout_centerVertical="true"
                                 android:layout_marginEnd="@dimen/twelve_dp"
-                                android:paddingStart="@dimen/eight_dp"
-                                android:id="@+id/follow"
-                                android:paddingTop="@dimen/four_dp"
-                                android:paddingEnd="@dimen/eight_dp"
-                                android:paddingBottom="@dimen/four_dp"
-                                android:text="+ 关注"
-                                android:textColor="@color/white"
-                                app:qmui_backgroundColor="#686bdd"
-                                app:qmui_borderWidth="0dp"
-                                app:qmui_radius="@dimen/six_dp">
-
-                            </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton>
-
-                        </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout>
-
-                    </LinearLayout>
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:layout_marginStart="@dimen/tweenty_four_dp"
-                        android:layout_marginEnd="@dimen/tweenty_four_dp"
-                        android:background="#f3f4f5">
-
-                    </View>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-
-                        <RelativeLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:clickable="true"
-                            android:foreground="?attr/selectableItemBackground"
-                            android:paddingTop="@dimen/eight_dp"
-                            android:paddingBottom="@dimen/eight_dp">
-
-                            <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
-                                android:id="@+id/left_rela"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="@dimen/tweenty_four_dp"
-                                app:qmui_backgroundColor="#e8e8f2"
-                                app:qmui_borderWidth="0dp"
-                                app:qmui_radius="@dimen/six_dp">
-
-                                <ImageView
-                                    android:layout_width="45dp"
-                                    android:layout_height="45dp"
-                                    android:padding="@dimen/twelve_dp"
-                                    android:src="@drawable/ic_remove_red_eye_black_24dp"
-                                    app:tint="#666af6">
-
-
-                                </ImageView>
-
-                            </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout>
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="@dimen/eight_dp"
-                                android:layout_marginTop="@dimen/four_dp"
-                                android:layout_toEndOf="@+id/left_rela"
-                                android:text="表示回数"
-                                android:textColor="#666af6"
-                                android:textSize="12sp"
+                                android:layout_weight="1"
+                                android:gravity="start"
+                                android:textColor="#9b9bb1"
+                                android:textSize="13sp"
                                 android:textStyle="bold">
 
                             </TextView>
 
-                            <TextView
-                                android:id="@+id/total_view"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_alignBottom="@+id/left_rela"
-                                android:layout_marginStart="@dimen/eight_dp"
-                                android:layout_marginBottom="@dimen/four_dp"
-                                android:layout_toEndOf="@+id/left_rela"
-                                android:text="12980"
-                                android:textColor="#666af6"
-                                android:textSize="14sp"
-                                android:textStyle="bold">
-
-                            </TextView>
-
-                        </RelativeLayout>
-
-                        <RelativeLayout
-                            android:id="@+id/illust_like"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:clickable="true"
-                            android:foreground="?attr/selectableItemBackground"
-                            android:paddingTop="@dimen/eight_dp"
-                            android:paddingBottom="@dimen/eight_dp">
-
-                            <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
-                                android:id="@+id/right_rela"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="@dimen/twelve_dp"
-                                app:qmui_backgroundColor="#e8e8f2"
-                                app:qmui_borderWidth="0dp"
-                                app:qmui_radius="@dimen/six_dp">
-
-                                <ImageView
-                                    android:layout_width="45dp"
-                                    android:layout_height="45dp"
-                                    android:padding="@dimen/twelve_dp"
-                                    android:src="@drawable/ic_favorite_black_24dp"
-                                    app:tint="#666af6">
-
-
-                                </ImageView>
-
-                            </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout>
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="@dimen/eight_dp"
-                                android:layout_marginTop="@dimen/four_dp"
-                                android:layout_toEndOf="@+id/right_rela"
-                                android:text="收藏次数"
-                                android:textColor="#666af6"
-                                android:textSize="12sp"
-                                android:textStyle="bold">
-
-                            </TextView>
-
-                            <TextView
-                                android:id="@+id/total_like"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_alignBottom="@+id/right_rela"
-                                android:layout_marginStart="@dimen/eight_dp"
-                                android:layout_marginBottom="@dimen/four_dp"
-                                android:layout_toEndOf="@+id/right_rela"
-                                android:text="5633"
-                                android:textColor="#666af6"
-                                android:textSize="14sp"
-                                android:textStyle="bold">
-
-                            </TextView>
-
-                        </RelativeLayout>
+                        </LinearLayout>
 
                     </LinearLayout>
 
-                    <com.zhy.view.flowlayout.TagFlowLayout
-                        android:id="@+id/illust_tag"
-                        android:layout_width="fill_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="20dp"
-                        android:layout_marginEnd="20dp"
-                        zhy:max_select="-1">
 
-                    </com.zhy.view.flowlayout.TagFlowLayout>
+                </androidx.core.widget.NestedScrollView>
 
-                    <org.sufficientlysecure.htmltextview.HtmlTextView
-                        android:layout_width="match_parent"
-                        android:textSize="13sp"
-                        android:gravity="start"
-                        android:textStyle="bold"
-                        android:maxLines="12"
-                        android:ellipsize="end"
-                        android:layout_marginStart="@dimen/tweenty_four_dp"
-                        android:layout_marginEnd="@dimen/tweenty_four_dp"
-                        android:layout_marginTop="@dimen/six_dp"
-                        android:layout_marginBottom="@dimen/four_dp"
-                        android:id="@+id/description"
-                        android:textColor="#9b9bb1"
-                        android:layout_height="wrap_content">
-
-                    </org.sufficientlysecure.htmltextview.HtmlTextView>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_marginTop="@dimen/eight_dp"
-                        android:layout_marginStart="@dimen/tweenty_four_dp"
-                        android:layout_marginEnd="@dimen/tweenty_four_dp"
-                        android:orientation="horizontal"
-                        android:layout_height="wrap_content">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_weight="1"
-                            android:textSize="13sp"
-                            android:gravity="start"
-                            android:textStyle="bold"
-                            android:layout_marginEnd="@dimen/twelve_dp"
-                            android:id="@+id/illust_id"
-                            android:textColor="#9b9bb1"
-                            android:layout_height="wrap_content">
-
-                        </TextView>
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:textSize="13sp"
-                            android:textColor="#9b9bb1"
-                            android:id="@+id/user_id"
-                            android:layout_marginStart="@dimen/twelve_dp"
-                            android:textStyle="bold"
-                            android:layout_weight="1"
-                            android:layout_height="wrap_content">
-
-                        </TextView>
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_marginTop="@dimen/four_dp"
-                        android:layout_marginBottom="@dimen/eight_dp"
-                        android:layout_marginStart="@dimen/tweenty_four_dp"
-                        android:layout_marginEnd="@dimen/tweenty_four_dp"
-                        android:orientation="horizontal"
-                        android:layout_height="wrap_content">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_weight="1"
-                            android:textSize="13sp"
-                            android:gravity="start"
-                            android:textStyle="bold"
-                            android:layout_marginEnd="@dimen/twelve_dp"
-                            android:id="@+id/illust_size"
-                            android:textColor="#9b9bb1"
-                            android:layout_height="wrap_content">
-
-                        </TextView>
-
-                    </LinearLayout>
-
-                </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundLinearLayout>
-
-
-            </androidx.core.widget.NestedScrollView>
+            </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundLinearLayout>
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/post_like"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="@dimen/sixteen_dp"
+                app:elevation="@dimen/twelve_dp"
                 app:backgroundTint="@color/white"
                 app:layout_anchor="@id/bottom_bar"
                 app:layout_anchorGravity="end">
@@ -441,9 +446,9 @@
                     android:layout_marginEnd="@dimen/six_dp"
                     android:layout_marginBottom="@dimen/eight_dp"
                     android:layout_weight="1"
-                    android:tint="#666af6"
                     android:background="@drawable/button_stroke_new"
-                    android:src="@drawable/ic_chat_black_24dp">
+                    android:src="@drawable/ic_chat_black_24dp"
+                    android:tint="#666af6">
 
                 </ImageButton>
 
@@ -454,11 +459,11 @@
                     android:layout_marginStart="@dimen/six_dp"
                     android:layout_marginEnd="@dimen/six_dp"
                     android:layout_marginBottom="@dimen/eight_dp"
-                    android:tint="#666af6"
                     android:layout_weight="1"
-                    android:src="@drawable/ic_equalizer_black_24dp"
                     android:background="@drawable/button_stroke_new"
-                    android:textColor="#9f9fb4">
+                    android:src="@drawable/ic_equalizer_black_24dp"
+                    android:textColor="#9f9fb4"
+                    android:tint="#666af6">
 
                 </ImageButton>
 

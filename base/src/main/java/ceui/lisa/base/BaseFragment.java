@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,10 +28,13 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
     protected FragmentActivity mActivity;
     protected Context mContext;
     private boolean isVertical;
+    protected Handler mainHandler;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mainHandler = new Handler();
 
         mActivity = requireActivity();
         mContext = requireContext();
@@ -112,5 +116,11 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
 
     public void vertical() {
 
+    }
+
+    @Override
+    public void onDestroy() {
+        mainHandler = null;
+        super.onDestroy();
     }
 }
