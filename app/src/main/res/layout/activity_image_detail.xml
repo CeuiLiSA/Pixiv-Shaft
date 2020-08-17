@@ -20,15 +20,10 @@
 
         </androidx.viewpager.widget.ViewPager>
 
-        <com.gigamole.library.ShadowLayout
-            app:sl_shadow_radius="@dimen/two_dp"
-            app:sl_shadow_distance="@dimen/two_dp"
-            android:layout_alignParentBottom="true"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
 
             <RelativeLayout
                 android:id="@+id/bottom_rela"
+                android:layout_alignParentBottom="true"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
@@ -75,6 +70,5 @@
 
             </RelativeLayout>
 
-        </com.gigamole.library.ShadowLayout>
     </RelativeLayout>
 </layout>

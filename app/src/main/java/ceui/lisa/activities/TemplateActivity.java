@@ -16,6 +16,7 @@ import ceui.lisa.databinding.ActivityFragmentBinding;
 import ceui.lisa.fragments.FragmentAboutApp;
 import ceui.lisa.fragments.FragmentAnime;
 import ceui.lisa.fragments.FragmentBh;
+import ceui.lisa.fragments.FragmentDonate;
 import ceui.lisa.fragments.FragmentFileName;
 import ceui.lisa.fragments.FragmentHttpTest;
 import ceui.lisa.fragments.FragmentListSimpleUser;
@@ -193,6 +194,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                     return new FragmentMutedTags();
                 case "修改命名方式":
                     return FragmentFileName.newInstance();
+                case "捐赠":
+                    return FragmentDonate.newInstance();
                 default:
                     return new Fragment();
             }

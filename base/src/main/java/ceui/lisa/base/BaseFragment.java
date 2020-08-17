@@ -123,4 +123,10 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
         mainHandler = null;
         super.onDestroy();
     }
+
+    public void finish() {
+        if (mActivity != null) {
+            mActivity.finish();
+        }
+    }
 }

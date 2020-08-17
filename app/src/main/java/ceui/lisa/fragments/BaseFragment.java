@@ -163,4 +163,10 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
     public void vertical() {
 
     }
+
+    public void finish() {
+        if (mActivity != null) {
+            mActivity.finish();
+        }
+    }
 }

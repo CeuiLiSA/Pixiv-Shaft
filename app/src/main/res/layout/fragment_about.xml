@@ -306,6 +306,63 @@
                             android:layout_marginStart="@dimen/sixteen_dp"
                             android:layout_height="1dp" />
 
+                        <RelativeLayout
+                            android:id="@+id/donate_me"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+
+                            <TextView
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="捐助作者"
+                                android:textSize="15sp"
+                                android:textColor="@color/rank_text_color"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+
+                            </TextView>
+
+
+                        </RelativeLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="@color/light_bg"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_height="1dp" />
+
+                        <RelativeLayout
+                            android:id="@+id/donate_list"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+
+
+                            <TextView
+                                android:layout_margin="@dimen/sixteen_dp"
+                                android:text="捐赠者列表"
+                                android:textSize="15sp"
+                                android:textColor="@color/rank_text_color"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+
+                            </TextView>
+
+
+                        </RelativeLayout>
+
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="@color/light_bg"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_height="1dp" />
+
 
                         <RelativeLayout
                             android:id="@+id/project_website"
