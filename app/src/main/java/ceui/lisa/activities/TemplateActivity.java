@@ -116,8 +116,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                 case "账号管理":
                     return new FragmentLocalUsers();
                 case "按标签筛选": {
-                    String keyword = intent.getStringExtra(EXTRA_KEYWORD);
-                    return FragmentBookedTag.newInstance(keyword);
+                    String starType = intent.getStringExtra(EXTRA_KEYWORD);
+                    return FragmentBookedTag.newInstance(starType);
                 }
                 case "按标签收藏": {
                     int id = intent.getIntExtra(Params.ILLUST_ID, 0);

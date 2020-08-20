@@ -1,11 +1,20 @@
 package ceui.lisa.fragments;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.text.TextUtils;
+
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.nio.file.Path;
+
+import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapter;
 import ceui.lisa.core.RemoteRepo;
@@ -14,6 +23,9 @@ import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.notification.BaseReceiver;
+import ceui.lisa.notification.FilterReceiver;
+import ceui.lisa.notification.StarReceiver;
 import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Params;
 import io.reactivex.Observable;
@@ -31,6 +43,7 @@ public class FragmentLikeIllust extends NetListFragment<FragmentBaseListBinding,
     private int userID;
     private String starType, tag = "";
     private boolean showToolbar = false;
+    private BroadcastReceiver filterReceiver;
 
     public static FragmentLikeIllust newInstance(int userID, String starType) {
         return newInstance(userID, starType, false);
@@ -78,6 +91,36 @@ public class FragmentLikeIllust extends NetListFragment<FragmentBaseListBinding,
     }
 
     @Override
+    public void onAdapterPrepared() {
+        super.onAdapterPrepared();
+        IntentFilter intentFilter = new IntentFilter();
+        filterReceiver = new FilterReceiver(new BaseReceiver.CallBack() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Bundle bundle = intent.getExtras();
+                if (bundle != null) {
+                    String type = bundle.getString(Params.STAR_TYPE);
+                    if (starType.equals(type)) {
+                        tag = bundle.getString(Params.CONTENT);
+                        baseBind.refreshLayout.autoRefresh();
+                    }
+                }
+            }
+        });
+        intentFilter.addAction(Params.FILTER_ILLUST);
+        LocalBroadcastManager.getInstance(mContext).registerReceiver(filterReceiver, intentFilter);
+    }
+
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (filterReceiver != null) {
+            LocalBroadcastManager.getInstance(mContext).unregisterReceiver(filterReceiver);
+        }
+    }
+
+    @Override
     public void initRecyclerView() {
         staggerRecyclerView();
     }
@@ -90,18 +133,5 @@ public class FragmentLikeIllust extends NetListFragment<FragmentBaseListBinding,
     @Override
     public String getToolbarTitle() {
         return showToolbar ? "插画/漫画收藏" : super.getToolbarTitle();
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(Channel event) {
-        if (event.getReceiver().contains(starType)) {
-            tag = (String) event.getObject();
-            baseBind.refreshLayout.autoRefresh();
-        }
-    }
-
-    @Override
-    public boolean eventBusEnable() {
-        return true;
     }
 }

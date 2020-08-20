@@ -148,35 +148,36 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        IntentFilter intentFilter = new IntentFilter();
-        mReceiver = new StarReceiver(new BaseReceiver.CallBack() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                Bundle bundle = intent.getExtras();
-                if (bundle != null) {
-                    int id = bundle.getInt(Params.ID);
-                    if (illust.getId() == id) {
-                        boolean isLiked = bundle.getBoolean(Params.IS_LIKED);
-                        if (isLiked) {
-                            illust.setIs_bookmarked(true);
-                            baseBind.postLike.setImageResource(R.drawable.ic_favorite_red_24dp);
-                        } else {
-                            illust.setIs_bookmarked(false);
-                            baseBind.postLike.setImageResource(R.drawable.ic_favorite_grey_24dp);
+        {
+            IntentFilter intentFilter = new IntentFilter();
+            mReceiver = new StarReceiver(new BaseReceiver.CallBack() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    Bundle bundle = intent.getExtras();
+                    if (bundle != null) {
+                        int id = bundle.getInt(Params.ID);
+                        if (illust.getId() == id) {
+                            boolean isLiked = bundle.getBoolean(Params.IS_LIKED);
+                            if (isLiked) {
+                                illust.setIs_bookmarked(true);
+                                baseBind.postLike.setImageResource(R.drawable.ic_favorite_red_24dp);
+                            } else {
+                                illust.setIs_bookmarked(false);
+                                baseBind.postLike.setImageResource(R.drawable.ic_favorite_grey_24dp);
+                            }
                         }
                     }
                 }
-            }
-        });
-        intentFilter.addAction(Params.LIKED_ILLUST);
-        LocalBroadcastManager.getInstance(mContext).registerReceiver(mReceiver, intentFilter);
+            });
+            intentFilter.addAction(Params.LIKED_ILLUST);
+            LocalBroadcastManager.getInstance(mContext).registerReceiver(mReceiver, intentFilter);
+        }
     }
 
     @Override
     public void onDestroy() {
         if (mReceiver != null) {
             LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mReceiver);
-            Common.showLog(className + "注销了 StarReceiver");
         }
         super.onDestroy();
     }

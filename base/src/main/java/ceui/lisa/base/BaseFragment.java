@@ -28,13 +28,11 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
     protected FragmentActivity mActivity;
     protected Context mContext;
     private boolean isVertical;
-    protected Handler mainHandler;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mainHandler = new Handler();
 
         mActivity = requireActivity();
         mContext = requireContext();
@@ -116,12 +114,6 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
 
     public void vertical() {
 
-    }
-
-    @Override
-    public void onDestroy() {
-        mainHandler = null;
-        super.onDestroy();
     }
 
     public void finish() {
