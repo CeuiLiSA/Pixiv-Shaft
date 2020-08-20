@@ -167,7 +167,6 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 if (searchType != which) {
-                                    baseBind.inputBox.setText("");
                                     baseBind.inputBox.setHint(SEARCH_TYPE[which]);
                                     searchType = which;
                                 }

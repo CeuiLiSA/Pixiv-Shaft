@@ -1,24 +1,17 @@
 package ceui.lisa.activities;
 
-import android.Manifest;
 import android.content.Intent;
 import android.net.Uri;
 import android.text.TextUtils;
-
-import com.tbruyelle.rxpermissions2.RxPermissions;
 
 import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.base.BaseActivity;
 import ceui.lisa.databinding.ActivityOutWakeBinding;
-import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.Callback;
-import ceui.lisa.utils.Common;
-import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
-import io.reactivex.disposables.Disposable;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
@@ -49,7 +42,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                 String scheme = uri.getScheme();
                 if (!TextUtils.isEmpty(scheme)) {
 
-                    if (uri.getPath() != null){
+                    if (uri.getPath() != null) {
                         if (uri.getPath().contains("artworks")) {
                             List<String> pathArray = uri.getPathSegments();
                             String illustID = pathArray.get(pathArray.size() - 1);
@@ -69,7 +62,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                             String userID = pathArray.get(pathArray.size() - 1);
                             if (!TextUtils.isEmpty(userID)) {
                                 Intent userIntent = new Intent(mContext, UserActivity.class);
-                                userIntent.putExtra(Params.USER_ID, userID);
+                                userIntent.putExtra(Params.USER_ID, Integer.valueOf(userID));
                                 startActivity(userIntent);
                                 return;
                             }
