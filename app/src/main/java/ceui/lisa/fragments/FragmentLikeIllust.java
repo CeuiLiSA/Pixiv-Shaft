@@ -9,12 +9,6 @@ import android.text.TextUtils;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
-
-import java.nio.file.Path;
-
-import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapter;
 import ceui.lisa.core.RemoteRepo;
@@ -25,12 +19,8 @@ import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.notification.BaseReceiver;
 import ceui.lisa.notification.FilterReceiver;
-import ceui.lisa.notification.StarReceiver;
-import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Params;
 import io.reactivex.Observable;
-
-import static ceui.lisa.activities.Shaft.sUserModel;
 
 /**
  * 某人收藏的插畫

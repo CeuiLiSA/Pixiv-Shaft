@@ -2,7 +2,6 @@ package ceui.lisa.download;
 
 import com.google.gson.Gson;
 
-import org.greenrobot.eventbus.EventBus;
 
 import java.io.File;
 import java.util.ArrayList;

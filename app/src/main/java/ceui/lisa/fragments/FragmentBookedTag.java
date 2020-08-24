@@ -7,8 +7,6 @@ import android.view.View;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import org.greenrobot.eventbus.EventBus;
-
 import java.util.List;
 
 import ceui.lisa.activities.Shaft;
@@ -21,7 +19,6 @@ import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListTag;
 import ceui.lisa.models.TagsBean;
-import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.LinearItemDecoration;

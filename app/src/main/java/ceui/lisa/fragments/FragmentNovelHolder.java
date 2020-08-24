@@ -27,6 +27,7 @@ import ceui.lisa.activities.SearchActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.adapters.VAdapter;
+import ceui.lisa.base.BaseFragment;
 import ceui.lisa.cache.Cache;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.DownloadEntity;
@@ -69,7 +70,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
     }
 
     @Override
-    public void initView(View view) {
+    public void initView() {
         BarUtils.setNavBarColor(mActivity, getResources().getColor(R.color.hito_bg));
         baseBind.toolbar.inflateMenu(R.menu.change_color);
         baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
@@ -185,7 +186,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
     }
 
     @Override
-    void initData() {
+    protected void initData() {
         getNovel(mNovelBean);
     }
 

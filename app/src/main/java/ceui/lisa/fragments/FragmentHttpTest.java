@@ -5,8 +5,8 @@ import android.view.View;
 import androidx.lifecycle.ViewModelProvider;
 
 import ceui.lisa.R;
+import ceui.lisa.base.BaseFragment;
 import ceui.lisa.databinding.FragmentNewBinding;
-import ceui.lisa.utils.Common;
 import ceui.lisa.viewmodel.Hito;
 import ceui.lisa.viewmodel.HitoModel;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
@@ -26,12 +26,12 @@ public class FragmentHttpTest extends BaseFragment<FragmentNewBinding> {
     }
 
     @Override
-    public void initView(View view) {
+    public void initView() {
         mHitoModel = new ViewModelProvider(this).get(HitoModel.class);
     }
 
     @Override
-    void initData() {
+    protected void initData() {
         mHitoModel.getContent().observe(this, new androidx.lifecycle.Observer<Hito>() {
             @Override
             public void onChanged(Hito hito) {

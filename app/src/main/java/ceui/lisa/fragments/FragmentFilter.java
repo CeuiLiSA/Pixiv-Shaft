@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.base.BaseFragment;
 import ceui.lisa.databinding.FragmentFilterBinding;
 import ceui.lisa.utils.Local;
 import ceui.lisa.viewmodel.SearchModel;
@@ -56,7 +57,7 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
     }
 
     @Override
-    public void initView(View view) {
+    public void initView() {
         baseBind.submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

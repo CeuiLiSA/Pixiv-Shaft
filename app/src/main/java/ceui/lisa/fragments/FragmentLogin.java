@@ -23,6 +23,7 @@ import ceui.lisa.R;
 import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
+import ceui.lisa.base.BaseFragment;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
 import ceui.lisa.databinding.ActivityLoginBinding;
@@ -67,7 +68,7 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
     }
 
     @Override
-    public void initView(View view) {
+    public void initView() {
         baseBind.toolbar.setPadding(0, Shaft.statusHeight, 0, 0);
         baseBind.toolbar.inflateMenu(R.menu.login_menu);
         baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
@@ -208,7 +209,7 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
     }
 
     @Override
-    void initData() {
+    protected void initData() {
         if (Local.getBoolean(Params.SHOW_DIALOG, true)) {
             Common.createDialog(mContext);
         }

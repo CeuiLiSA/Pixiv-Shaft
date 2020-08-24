@@ -6,6 +6,7 @@ import android.view.View;
 import com.bumptech.glide.Glide;
 
 import ceui.lisa.R;
+import ceui.lisa.base.BaseFragment;
 import ceui.lisa.databinding.FragmentImageDetailBinding;
 import ceui.lisa.utils.Params;
 
@@ -34,7 +35,7 @@ public class FragmentLocalImageDetail extends BaseFragment<FragmentImageDetailBi
     }
 
     @Override
-    public void initView(View view) {
+    public void initView() {
         Glide.with(mContext)
                 .load(filePath)
                 .transition(withCrossFade())

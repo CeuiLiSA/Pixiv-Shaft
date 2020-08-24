@@ -54,7 +54,7 @@ public abstract class LocalListFragment<Layout extends ViewDataBinding, Item>
     }
 
     @Override
-    void initData() {
-        mLocalRepo = (LocalRepo<List<Item>>) mBaseRepo;
+    protected void initData() {
+        mLocalRepo = (LocalRepo<List<Item>>) mModel.getBaseRepo();
     }
 }

@@ -56,12 +56,12 @@ public class FragmentNovelSeries extends NetListFragment<FragmentNovelSeriesBind
         return new RemoteRepo<NovelSeries>() {
             @Override
             public Observable<NovelSeries> initApi() {
-                return Retro.getAppApi().getNovelSeries(mModel.getToken(), novelBean.getSeries().getId());
+                return Retro.getAppApi().getNovelSeries(token(), novelBean.getSeries().getId());
             }
 
             @Override
             public Observable<NovelSeries> initNextApi() {
-                return Retro.getAppApi().getNextSeriesNovel(mModel.getToken(), mModel.getNextUrl());
+                return Retro.getAppApi().getNextSeriesNovel(token(), mModel.getNextUrl());
             }
         };
     }

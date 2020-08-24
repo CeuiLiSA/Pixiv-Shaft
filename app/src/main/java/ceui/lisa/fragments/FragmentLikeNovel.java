@@ -13,8 +13,6 @@ import ceui.lisa.models.NovelBean;
 import ceui.lisa.utils.Params;
 import io.reactivex.Observable;
 
-import static ceui.lisa.activities.Shaft.sUserModel;
-
 /**
  * 某人收藏的小说
  */

@@ -3,7 +3,6 @@ package ceui.lisa.fragments;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.View;
 
 import androidx.appcompat.app.AlertDialog;
@@ -212,8 +211,8 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
     }
 
     @Override
-    public void initView(View view) {
-        super.initView(view);
+    public void initView() {
+        super.initView();
         baseBind.post.setOnClickListener(v -> {
             if (!sUserModel.getResponse().getUser().isIs_mail_authorized()) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
@@ -302,7 +301,7 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
             }
         });
 
-        RecyclerView recyclerView = view.findViewById(R.id.recy_list);
+        RecyclerView recyclerView = rootView.findViewById(R.id.recy_list);
         GridLayoutManager layoutManager = new GridLayoutManager(getContext(), 6);
         recyclerView.setLayoutManager(layoutManager);
         EmojiAdapter adapter = new EmojiAdapter(Emoji.getEmojis(), getContext());

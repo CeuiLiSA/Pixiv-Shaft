@@ -9,11 +9,9 @@ import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.blankj.utilcode.util.LanguageUtils;
-import com.bumptech.glide.Glide;
 import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringChain;
@@ -24,11 +22,8 @@ import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
-import com.scwang.smartrefresh.layout.api.RefreshHeader;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
-
-import org.greenrobot.eventbus.EventBus;
 
 import java.io.File;
 import java.util.List;
@@ -37,12 +32,9 @@ import java.util.Locale;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
-import ceui.lisa.base.BaseFragment;
-import ceui.lisa.base.Swipe;
 import ceui.lisa.base.SwipeFragment;
 import ceui.lisa.databinding.FragmentSettingsBinding;
 import ceui.lisa.helper.ThemeHelper;
-import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;

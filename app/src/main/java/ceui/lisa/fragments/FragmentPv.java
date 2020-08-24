@@ -10,6 +10,7 @@ import androidx.fragment.app.FragmentPagerAdapter;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.base.BaseFragment;
 import ceui.lisa.databinding.ViewpagerWithTablayoutBinding;
 
 public class FragmentPv extends BaseFragment<ViewpagerWithTablayoutBinding> {
@@ -24,8 +25,8 @@ public class FragmentPv extends BaseFragment<ViewpagerWithTablayoutBinding> {
     }
 
     @Override
-    public void initView(View view) {
-        ImageView head = view.findViewById(R.id.head);
+    public void initView() {
+        ImageView head = rootView.findViewById(R.id.head);
         ViewGroup.LayoutParams headParams = head.getLayoutParams();
         headParams.height = Shaft.statusHeight;
         head.setLayoutParams(headParams);

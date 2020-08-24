@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.View;
 
 import ceui.lisa.R;
+import ceui.lisa.base.BaseFragment;
 import ceui.lisa.databinding.FragmentColorBinding;
 import ceui.lisa.utils.Params;
 
@@ -31,9 +32,8 @@ public class FragmentColor extends BaseFragment<FragmentColorBinding> {
     }
 
     @Override
-    public void initView(View view) {
+    public void initView() {
         baseBind.image.setBackgroundColor(Color.parseColor(color));
         baseBind.colorText.setText(color);
     }
-
 }

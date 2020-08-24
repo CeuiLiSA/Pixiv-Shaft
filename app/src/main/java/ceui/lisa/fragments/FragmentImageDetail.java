@@ -20,6 +20,7 @@ import com.github.chrisbanes.photoview.OnPhotoTapListener;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.base.BaseFragment;
 import ceui.lisa.databinding.FragmentImageDetailBinding;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
@@ -64,7 +65,7 @@ public class FragmentImageDetail extends BaseFragment<FragmentImageDetailBinding
     }
 
     @Override
-    void initData() {
+    protected void initData() {
         baseBind.illustImage.setTransitionName("big_image_" + index);
         BarUtils.setNavBarVisibility(mActivity, false);
         if (!TextUtils.isEmpty(url)) {
@@ -138,7 +139,7 @@ public class FragmentImageDetail extends BaseFragment<FragmentImageDetailBinding
     }
 
     @Override
-    public void initView(View view) {
+    public void initView() {
         baseBind.illustImage.setOnPhotoTapListener(new OnPhotoTapListener() {
             @Override
             public void onPhotoTap(ImageView view, float x, float y) {

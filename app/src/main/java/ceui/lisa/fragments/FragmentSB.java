@@ -14,8 +14,6 @@ import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 
-import org.greenrobot.eventbus.EventBus;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -200,8 +198,8 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
     }
 
     @Override
-    public void initView(View view) {
-        super.initView(view);
+    public void initView() {
+        super.initView();
         baseBind.submitArea.setOnClickListener(v -> submitStar());
     }
 

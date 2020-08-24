@@ -84,7 +84,6 @@ dependencies {
     implementation 'com.github.ybq:Android-SpinKit:1.4.0'
     implementation 'androidx.room:room-runtime:2.2.5'
     annotationProcessor 'androidx.room:room-compiler:2.2.5'
-    implementation 'org.greenrobot:eventbus:3.2.0'
     implementation 'com.just.agentweb:agentweb:4.0.3-beta@aar'
     implementation 'com.facebook.rebound:rebound:0.3.8'
     implementation 'com.liulishuo.okdownload:okdownload:1.0.5'

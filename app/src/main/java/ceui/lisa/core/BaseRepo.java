@@ -9,28 +9,34 @@ import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 
 import ceui.lisa.activities.Shaft;
 
-public class BaseRepo {
+public class BaseRepo implements DataView{
 
-    public boolean hasNext(){
+    @Override
+    public boolean hasNext() {
         return true;
     }
 
-    public boolean enableRefresh(){
+    @Override
+    public boolean enableRefresh() {
         return true;
     }
 
-    public RefreshHeader getHeader(Context context){
+    @Override
+    public RefreshHeader getHeader(Context context) {
         return new MaterialHeader(context);
     }
 
-    public RefreshFooter getFooter(Context context){
+    @Override
+    public RefreshFooter getFooter(Context context) {
         return new ClassicsFooter(context);
     }
 
+    @Override
     public boolean showNoDataHint() {
         return true;
     }
 
+    @Override
     public String token() {
         if (Shaft.sUserModel != null) {
             return Shaft.sUserModel.getResponse().getAccess_token();

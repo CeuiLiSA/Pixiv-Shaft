@@ -82,8 +82,8 @@ public class FragmentPivisionHorizontal extends NetListFragment<FragmentPivision
     }
 
     @Override
-    public void initView(View view) {
-        super.initView(view);
+    public void initView() {
+        super.initView();
         baseBind.seeMore.setOnClickListener(v -> {
             Intent intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "特辑");

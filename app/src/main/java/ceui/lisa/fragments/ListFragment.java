@@ -1,11 +1,9 @@
 package ceui.lisa.fragments;
 
-import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.databinding.ViewDataBinding;
 import androidx.lifecycle.ViewModelProvider;
@@ -24,6 +22,7 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
+import ceui.lisa.base.BaseFragment;
 import ceui.lisa.core.BaseRepo;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
@@ -40,11 +39,10 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
     protected RecyclerView mRecyclerView;
     protected RefreshLayout mRefreshLayout;
     protected ImageView noData;
-    protected BaseAdapter mAdapter;
+    protected BaseAdapter<?, ? extends ViewDataBinding> mAdapter;
     protected List<Item> allItems = null;
     protected BaseModel<Item> mModel;
     protected Toolbar mToolbar;
-    protected BaseRepo mBaseRepo;
 
     @Override
     public void initLayout() {
@@ -55,29 +53,15 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
 
     public abstract BaseRepo repository();
 
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        //获取viewmodel
-        mModel = (BaseModel<Item>) new ViewModelProvider(this).get(modelClass());
-        allItems = mModel.getContent().getValue();
-
-        //为recyclerView设置Adapter
-        mAdapter = adapter();
-        if (mAdapter != null) {
-            mRecyclerView.setAdapter(mAdapter);
-        }
-
-        onAdapterPrepared();
-
-        //进页面主动刷新
-        if (autoRefresh() && !mModel.isLoaded()) {
-            mRefreshLayout.autoRefresh();
-        }
-    }
-
     public void onAdapterPrepared() {
 
+    }
+
+    @Override
+    public void initModel() {
+        mModel = (BaseModel<Item>) new ViewModelProvider(this).get(modelClass());
+        allItems = mModel.getContent().getValue();
+        mModel.setBaseRepo(repository());
     }
 
     public Class<? extends BaseModel> modelClass() {
@@ -85,14 +69,14 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
     }
 
     @Override
-    public void initView(View view) {
+    public void initView() {
 
-        mToolbar = view.findViewById(R.id.toolbar);
+        mToolbar = rootView.findViewById(R.id.toolbar);
         if (mToolbar != null) {
             initToolbar(mToolbar);
         }
 
-        mRecyclerView = view.findViewById(R.id.recyclerView);
+        mRecyclerView = rootView.findViewById(R.id.recyclerView);
         initRecyclerView();
 
 
@@ -104,17 +88,16 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
         }
 
 
-        mRefreshLayout = view.findViewById(R.id.refreshLayout);
-        noData = view.findViewById(R.id.no_data);
+        mRefreshLayout = rootView.findViewById(R.id.refreshLayout);
+        noData = rootView.findViewById(R.id.no_data);
         noData.setOnClickListener(v -> {
             noData.setVisibility(View.INVISIBLE);
             mRefreshLayout.autoRefresh();
         });
-        mBaseRepo = repository();
-        mRefreshLayout.setRefreshHeader(mBaseRepo.enableRefresh() ?
-                mBaseRepo.getHeader(mContext) : new FalsifyHeader(mContext));
-        mRefreshLayout.setRefreshFooter(mBaseRepo.hasNext() ?
-                mBaseRepo.getFooter(mContext) : new FalsifyFooter(mContext));
+        mRefreshLayout.setRefreshHeader(mModel.enableRefresh() ?
+                mModel.getHeader(mContext) : new FalsifyHeader(mContext));
+        mRefreshLayout.setRefreshFooter(mModel.hasNext() ?
+                mModel.getFooter(mContext) : new FalsifyFooter(mContext));
 
         mRefreshLayout.setOnRefreshListener(new OnRefreshListener() {
             @Override
@@ -126,7 +109,7 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
         mRefreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
             @Override
             public void onLoadMore(@NonNull RefreshLayout refreshLayout) {
-                if (mBaseRepo.hasNext()) {
+                if (mModel.hasNext()) {
                     loadMore();
                 } else {
                     mRefreshLayout.finishLoadMore();
@@ -134,6 +117,18 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
                 }
             }
         });
+
+        mAdapter = adapter();
+        if (mAdapter != null) {
+            mRecyclerView.setAdapter(mAdapter);
+        }
+
+        onAdapterPrepared();
+
+        //进页面主动刷新
+        if (autoRefresh() && !mModel.isLoaded()) {
+            mRefreshLayout.autoRefresh();
+        }
     }
 
     public abstract void fresh();

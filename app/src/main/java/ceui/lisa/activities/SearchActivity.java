@@ -22,8 +22,8 @@ import com.mxn.soul.flowingdrawer_core.ElasticDrawer;
 
 import ceui.lisa.R;
 import ceui.lisa.base.BaseActivity;
+import ceui.lisa.base.BaseFragment;
 import ceui.lisa.databinding.FragmentNewSearchBinding;
-import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentFilter;
 import ceui.lisa.fragments.FragmentSearchIllust;
 import ceui.lisa.fragments.FragmentSearchNovel;
@@ -34,7 +34,7 @@ import ceui.lisa.viewmodel.SearchModel;
 public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 
     private static final String[] TITLES = new String[]{"插画/漫画", "小说"};
-    private BaseFragment[] allPages = new BaseFragment[]{null, null};
+    private BaseFragment<?>[] allPages = new BaseFragment[]{null, null};
     private String keyWord = "";
     private SearchModel searchModel;
     private int index = 0;

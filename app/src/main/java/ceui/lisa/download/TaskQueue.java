@@ -6,7 +6,6 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.liulishuo.okdownload.DownloadTask;
 
-import org.greenrobot.eventbus.EventBus;
 
 import java.io.File;
 import java.util.ArrayList;

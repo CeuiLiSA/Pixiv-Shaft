@@ -1,7 +1,5 @@
 package ceui.lisa.fragments;
 
-import android.os.Bundle;
-
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 
 import ceui.lisa.R;

@@ -107,12 +107,6 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
     @Override
     protected void initData() {
-        if (Dev.isDev) {
-            Intent intent = new Intent(mContext, ScaleActivity.class);
-            startActivity(intent);
-            finish();
-            return;
-        }
         if (sUserModel != null && sUserModel.getResponse().getUser().isIs_login()) {
             final RxPermissions rxPermissions = new RxPermissions(mActivity);
             Disposable disposable = rxPermissions

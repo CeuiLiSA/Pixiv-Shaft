@@ -12,7 +12,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.qmuiteam.qmui.skin.QMUISkinManager;
@@ -31,6 +30,7 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UserActivity;
 import ceui.lisa.adapters.SearchHintAdapter;
+import ceui.lisa.base.BaseFragment;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.SearchEntity;
 import ceui.lisa.databinding.FragmentSearchBinding;
@@ -40,7 +40,6 @@ import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListTrendingtag;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import io.reactivex.Observable;
@@ -67,7 +66,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
     }
 
     @Override
-    void initData() {
+    protected void initData() {
         ViewGroup.LayoutParams headParams = baseBind.head.getLayoutParams();
         headParams.height = Shaft.statusHeight;
         baseBind.head.setLayoutParams(headParams);

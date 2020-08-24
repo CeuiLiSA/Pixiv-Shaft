@@ -16,6 +16,7 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.adapters.NHAdapter;
+import ceui.lisa.base.BaseFragment;
 import ceui.lisa.databinding.FragmentLikeIllustHorizontalBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
@@ -63,7 +64,7 @@ public class FragmentLikeNovelHorizontal extends BaseFragment<FragmentLikeIllust
     }
 
     @Override
-    public void initView(View view) {
+    public void initView() {
         baseBind.progress.setVisibility(View.INVISIBLE);
         baseBind.rootParentView.setVisibility(View.GONE);
         baseBind.recyclerView.addItemDecoration(new
@@ -120,7 +121,7 @@ public class FragmentLikeNovelHorizontal extends BaseFragment<FragmentLikeIllust
     }
 
     @Override
-    void initData() {
+    protected void initData() {
         Observable<ListNovel> mApi;
         if (type == 0) {
             mApi = Retro.getAppApi().getUserLikeNovel(sUserModel.getResponse().getAccess_token(),

@@ -1,13 +1,10 @@
 package ceui.lisa.fragments;
 
-import android.content.DialogInterface;
 import android.text.InputType;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 
 import com.qmuiteam.qmui.skin.QMUISkinManager;

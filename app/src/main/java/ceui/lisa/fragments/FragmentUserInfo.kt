@@ -2,6 +2,7 @@ package ceui.lisa.fragments
 
 import android.view.View
 import ceui.lisa.R
+import ceui.lisa.base.BaseFragment
 import ceui.lisa.databinding.FragmentAboutUserBinding
 import ceui.lisa.interfaces.Display
 import ceui.lisa.models.UserDetailResponse
@@ -43,7 +44,7 @@ class FragmentUserInfo : BaseFragment<FragmentAboutUserBinding>(), Display<UserD
         baseBind.chair.text = Common.checkEmpty(response.workspace.chair)
     }
 
-    override fun initView(view: View?) {
+    override fun initView() {
         baseBind.refreshLayout.setRefreshHeader(FalsifyHeader(mContext))
         baseBind.refreshLayout.setRefreshFooter(FalsifyFooter(mContext))
     }

@@ -11,7 +11,6 @@ import ceui.lisa.http.Retro
 import ceui.lisa.model.ListLive
 import ceui.lisa.models.Live
 import ceui.lisa.utils.DensityUtil
-import ceui.lisa.view.TagItemDecoration
 import ceui.lisa.view.TagItemDecoration2
 import io.reactivex.Observable
 
