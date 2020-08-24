@@ -229,9 +229,9 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
                 GifCreate.createGif(illust);
             } else {
                 if (illust.getPage_count() == 1) {
-                    IllustDownload.downloadIllust(mActivity, illust);
+                    IllustDownload.downloadIllust(illust);
                 } else {
-                    IllustDownload.downloadAllIllust(mActivity, illust);
+                    IllustDownload.downloadAllIllust(illust);
                 }
             }
         });

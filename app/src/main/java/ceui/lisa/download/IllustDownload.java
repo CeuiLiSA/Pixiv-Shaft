@@ -27,7 +27,7 @@ public class IllustDownload {
     public static final String MAP_KEY = "Referer";
     public static final String IMAGE_REFERER = "https://app-api.pixiv.net/";
 
-    public static void downloadIllust(FragmentActivity activity, IllustsBean illustsBean) {
+    public static void downloadIllust(IllustsBean illustsBean) {
         if (illustsBean == null) {
             Common.showToast(Shaft.getContext().getString(R.string.cannot_download));
             return;
@@ -67,7 +67,7 @@ public class IllustDownload {
     }
 
 
-    public static void downloadIllust(FragmentActivity activity, IllustsBean illustsBean, int index) {
+    public static void downloadIllust(IllustsBean illustsBean, int index) {
         if (illustsBean == null) {
             Common.showToast(Shaft.getContext().getString(R.string.cannot_download));
             return;
@@ -80,7 +80,7 @@ public class IllustDownload {
         }
 
         if (illustsBean.getPage_count() == 1) {
-            downloadIllust(activity, illustsBean);
+            downloadIllust(illustsBean);
         } else {
             DownloadTask.Builder builder = new DownloadTask.Builder(
                     illustsBean.getMeta_pages().get(index).getImage_urls().getOriginal(),
@@ -105,14 +105,14 @@ public class IllustDownload {
     }
 
 
-    public static void downloadAllIllust(FragmentActivity activity, IllustsBean illustsBean) {
+    public static void downloadAllIllust(IllustsBean illustsBean) {
         if (illustsBean == null) {
             Common.showToast(Shaft.getContext().getString(R.string.cannot_download));
             return;
         }
 
-        if (illustsBean.getPage_count() <= 1) {
-            downloadIllust(activity, illustsBean);
+        if (illustsBean.getPage_count() == 1) {
+            downloadIllust(illustsBean);
             return;
         }
 
@@ -149,14 +149,14 @@ public class IllustDownload {
     }
 
 
-    public static void downloadAllIllust(FragmentActivity activity, List<IllustsBean> beans) {
+    public static void downloadAllIllust(List<IllustsBean> beans) {
         if (beans == null || beans.size() <= 0) {
             Common.showToast(Shaft.getContext().getString(R.string.cannot_download));
             return;
         }
 
         if (beans.size() == 1) {
-            downloadAllIllust(activity, beans.get(0));
+            downloadAllIllust(beans.get(0));
             return;
         }
 
@@ -226,7 +226,7 @@ public class IllustDownload {
         Common.showToast(tempList.size() + Shaft.getContext().getString(R.string.has_been_added));
     }
 
-    public static void downloadGif(FragmentActivity activity, GifResponse response, IllustsBean allIllust, GifListener gifListener) {
+    public static void downloadGif(GifResponse response, IllustsBean allIllust, GifListener gifListener) {
         File file = FileCreator.createGifZipFile(allIllust);
         DownloadTask.Builder builder = new DownloadTask.Builder(
                 response.getUgoira_metadata().getZip_urls().getMedium(),

@@ -87,8 +87,6 @@ public class Settings {
 
     private String appLanguage = "";
 
-    private String fileLastType = "png";
-
     private String fileNameJson = "";
 
     public String getAppLanguage() {
@@ -294,14 +292,6 @@ public class Settings {
 
     public void setShowLikeButton(boolean pShowLikeButton) {
         showLikeButton = pShowLikeButton;
-    }
-
-    public String getFileLastType() {
-        return fileLastType;
-    }
-
-    public void setFileLastType(String fileLastType) {
-        this.fileLastType = fileLastType;
     }
 
     public String getFileNameJson() {

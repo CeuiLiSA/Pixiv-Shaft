@@ -180,7 +180,7 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                                     GifListener gifListener = new GifListener(allIllust, gifResponse.getDelay());
                                     gifListener.bindProgress(currentOne.mProgressBar);
                                     gifListener.bindListener(onGifPrepared);
-                                    IllustDownload.downloadGif(mContext, gifResponse, allIllust, gifListener);
+                                    IllustDownload.downloadGif(gifResponse, allIllust, gifListener);
                                 }
                             }
                         });

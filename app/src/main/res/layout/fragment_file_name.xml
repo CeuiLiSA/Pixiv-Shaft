@@ -71,43 +71,6 @@
 
                 </androidx.recyclerview.widget.RecyclerView>
 
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_alignParentBottom="true"
-                    android:id="@+id/last_name_rela"
-                    android:layout_height="wrap_content">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:text="文件后缀名"
-                        android:textSize="20sp"
-                        android:layout_marginStart="@dimen/sixteen_dp"
-                        android:id="@+id/last_name_s"
-                        android:layout_marginTop="@dimen/sixteen_dp"
-                        android:layout_marginBottom="@dimen/sixteen_dp"
-                        android:layout_gravity="center_horizontal"
-                        android:layout_height="wrap_content">
-
-                    </TextView>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_marginStart="30dp"
-                        android:id="@+id/last_name"
-                        android:layout_toEndOf="@+id/last_name_s"
-                        android:textSize="25sp"
-                        android:textColor="#666af6"
-                        android:gravity="end"
-                        android:text="PNG"
-                        android:layout_marginEnd="@dimen/sixteen_dp"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:layout_height="wrap_content">
-
-                    </TextView>
-
-                </RelativeLayout>
             </RelativeLayout>
 
 

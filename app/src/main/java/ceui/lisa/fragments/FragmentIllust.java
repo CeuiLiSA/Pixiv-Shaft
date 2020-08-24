@@ -1,6 +1,7 @@
 package ceui.lisa.fragments;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
@@ -20,6 +21,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.qmuiteam.qmui.skin.QMUISkinManager;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.zhy.view.flowlayout.FlowLayout;
 import com.zhy.view.flowlayout.TagAdapter;
@@ -42,6 +45,7 @@ import ceui.lisa.notification.BaseReceiver;
 import ceui.lisa.notification.StarReceiver;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
@@ -63,6 +67,9 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
     @Override
     public void initBundle(Bundle bundle) {
         illust = (IllustsBean) bundle.getSerializable(Params.CONTENT);
+        if (Dev.isDev) {
+            Common.showLog(Shaft.sGson.toJson(illust));
+        }
     }
 
     @Override
@@ -279,10 +286,30 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 GifCreate.createGif(illust);
             } else {
                 if (illust.getPage_count() == 1) {
-                    IllustDownload.downloadIllust(mActivity, illust);
+                    IllustDownload.downloadIllust(illust);
                 } else {
-                    IllustDownload.downloadAllIllust(mActivity, illust);
+                    IllustDownload.downloadAllIllust(illust);
                 }
+            }
+        });
+        baseBind.download.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                if (illust.getPage_count() == 1) {
+                    new QMUIDialog.CheckableDialogBuilder(mContext)
+                            .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                            .addItems(items, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Common.showToast("暂不支持" + items[which]);
+                                    dialog.dismiss();
+                                }
+                            })
+                            .create()
+                            .show();
+
+                }
+                return true;
             }
         });
         baseBind.illustId.setOnClickListener(new View.OnClickListener() {
@@ -302,7 +329,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 .into(baseBind.userHead);
     }
 
-
+    private static final String[] items = new String[]{"小图(square_medium)", "中图(medium)", "大图(large)", "原图(original)"};
     private StarReceiver mReceiver;
 
     @Override

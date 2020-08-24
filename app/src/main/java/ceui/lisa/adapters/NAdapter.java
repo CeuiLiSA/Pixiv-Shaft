@@ -16,7 +16,6 @@ import ceui.lisa.databinding.RecyNovelBinding;
 import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.NovelBean;
-import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;

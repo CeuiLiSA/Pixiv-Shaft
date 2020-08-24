@@ -92,9 +92,9 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
                     startActivity(intent);
                 } else if (viewType == 2) {
                     if (allItems.get(position).getPage_count() == 1) {
-                        IllustDownload.downloadIllust(mActivity, allItems.get(position));
+                        IllustDownload.downloadIllust(allItems.get(position));
                     } else {
-                        IllustDownload.downloadAllIllust(mActivity, allItems.get(position));
+                        IllustDownload.downloadAllIllust(allItems.get(position));
                     }
                 } else if (viewType == 3) {
                     PixivOperate.postLike(allItems.get(position), FragmentLikeIllust.TYPE_PUBLUC);

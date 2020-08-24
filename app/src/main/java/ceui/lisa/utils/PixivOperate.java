@@ -208,18 +208,7 @@ public class PixivOperate {
                                 intent.putExtra(Params.PAGE_UUID, uuid);
                                 context.startActivity(intent);
 
-
-//                                List<IllustsBean> tempList = new ArrayList<>();
-//                                tempList.add(illustSearchResponse.getIllust());
-//                                DataChannel.get().setIllustList(tempList);
-//                                Intent intent = new Intent(context, ViewPagerActivity.class);
-//                                intent.putExtra("position", 0);
-//                                context.startActivity(intent);
-                            } else {
-                                Common.showToast("illustSearchResponse.getIllust() 为空");
                             }
-                        } else {
-                            Common.showToast("illustSearchResponse 为空");
                         }
                     }
                 });

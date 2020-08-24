@@ -89,6 +89,7 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
 
 
         mRefreshLayout = rootView.findViewById(R.id.refreshLayout);
+        mRefreshLayout.setPrimaryColorsId(R.color.white);
         noData = rootView.findViewById(R.id.no_data);
         noData.setOnClickListener(v -> {
             noData.setVisibility(View.INVISIBLE);

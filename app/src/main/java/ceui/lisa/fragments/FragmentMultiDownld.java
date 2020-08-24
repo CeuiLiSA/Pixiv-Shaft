@@ -112,7 +112,7 @@ public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownload
         baseBind.startDownload.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                IllustDownload.downloadAllIllust(mActivity, allItems);
+                IllustDownload.downloadAllIllust(allItems);
             }
         });
     }
@@ -131,11 +131,6 @@ public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownload
                 intent.putExtra(Params.POSITION, position);
                 intent.putExtra(Params.PAGE_UUID, uuid);
                 mContext.startActivity(intent);
-
-//                DataChannel.get().setIllustList(allItems);
-//                Intent intent = new Intent(mContext, ViewPagerActivity.class);
-//                intent.putExtra("position", position);
-//                startActivity(intent);
             }
         });
         adapter.setCallback(new Callback() {

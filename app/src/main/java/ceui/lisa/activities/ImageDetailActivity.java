@@ -36,7 +36,6 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
     private IllustsBean mIllustsBean;
     private List<String> localIllust = new ArrayList<>();
     private TextView currentPage, downloadSingle, currentSize;
-    private RelativeLayout mRvBottomRela;
     private int index;
 
     @Override
@@ -50,32 +49,6 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
 
     @Override
     protected void initView() {
-//        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-//                | View.SYSTEM_UI_FLAG_FULLSCREEN
-//                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-//            WindowManager.LayoutParams lp = getWindow().getAttributes();
-//            lp.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
-//            getWindow().setAttributes(lp);
-//            mRvBottomRela = findViewById(R.id.bottom_rela);
-//            mRvBottomRela.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
-//
-//                boolean changed;
-//
-//                @Override
-//                public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
-//                    DisplayCutout displayCutout = v.getRootWindowInsets().getDisplayCutout();
-//                    if (displayCutout != null) {
-//                        if (!changed) {
-//                            changed = true;
-//                            Log.d("mRvBottomRela", "before " + v.getPaddingLeft() + " " + v.getPaddingTop() + " " + v.getPaddingRight() + " " + v.getPaddingBottom());
-//                            v.setPadding(v.getPaddingLeft() + displayCutout.getSafeInsetLeft(), v.getPaddingTop(), v.getPaddingRight() + displayCutout.getSafeInsetRight(), v.getPaddingBottom() + displayCutout.getSafeInsetBottom());
-//                            Log.d("mRvBottomRela", "after " + v.getPaddingLeft() + " " + v.getPaddingTop() + " " + v.getPaddingRight() + " " + v.getPaddingBottom());
-//                        }
-//                    }
-//                }
-//            });
-//        }
         String dataType = getIntent().getStringExtra("dataType");
         baseBind.viewPager.setPageTransformer(true, new CubeOutTransformer());
         if ("二级详情".equals(dataType)) {
@@ -102,7 +75,7 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
             downloadSingle.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    IllustDownload.downloadIllust(mActivity, mIllustsBean, baseBind.viewPager.getCurrentItem());
+                    IllustDownload.downloadIllust(mIllustsBean, baseBind.viewPager.getCurrentItem());
                 }
             });
             baseBind.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {

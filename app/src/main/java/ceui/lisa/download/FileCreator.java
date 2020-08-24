@@ -126,14 +126,37 @@ public class FileCreator {
                     new TypeToken<List<CustomFileNameCell>>() {
                     }.getType()));
         }
+        String fileUrl;
+        if (illustsBean.getPage_count() == 1) {
+            fileUrl = illustsBean.getMeta_single_page().getOriginal_image_url();
+        } else {
+            fileUrl = illustsBean.getMeta_pages().get(index).getImage_urls().getOriginal();
+        }
         return deleteSpecialWords(illustToFileName(illustsBean, result, index) +
-                "." + Shaft.sSettings.getFileLastType());
+                "." + getMimeTypeFromUrl(fileUrl));
+    }
+
+    public static String getMimeTypeFromUrl(String url) {
+        String result;
+        if (url.contains(".")) {
+            result = url.substring(url.lastIndexOf(".") + 1);
+        } else {
+            result = "png";
+        }
+        Common.showLog("getMimeType fileUrl: " + url + ", fileType: " + result);
+        return result;
     }
 
     public static String customFileNameForPreview(IllustsBean illustsBean,
                                                   List<CustomFileNameCell> cells, int index) {
+        String fileUrl;
+        if (illustsBean.getPage_count() == 1) {
+            fileUrl = illustsBean.getMeta_single_page().getOriginal_image_url();
+        } else {
+            fileUrl = illustsBean.getMeta_pages().get(index).getImage_urls().getOriginal();
+        }
         return deleteSpecialWords(illustToFileName(illustsBean, cells, index) +
-                "." + Shaft.sSettings.getFileLastType());
+                "." + getMimeTypeFromUrl(fileUrl));
     }
 
     private static String illustToFileName(IllustsBean illustsBean,

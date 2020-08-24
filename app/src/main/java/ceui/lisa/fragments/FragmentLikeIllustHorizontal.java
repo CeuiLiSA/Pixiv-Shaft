@@ -99,11 +99,6 @@ public class FragmentLikeIllustHorizontal extends BaseFragment<FragmentLikeIllus
                 intent.putExtra(Params.POSITION, position);
                 intent.putExtra(Params.PAGE_UUID, uuid);
                 mContext.startActivity(intent);
-
-//                DataChannel.get().setIllustList(allItems);
-//                Intent intent = new Intent(mContext, ViewPagerActivity.class);
-//                intent.putExtra("position", position);
-//                startActivity(intent);
             }
         });
         baseBind.recyclerView.setAdapter(mAdapter);
