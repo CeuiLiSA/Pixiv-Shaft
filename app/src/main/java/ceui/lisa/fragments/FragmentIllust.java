@@ -159,21 +159,22 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
         baseBind.illustSize.setText("作品尺寸：" + illust.getWidth() + "px * " + illust.getHeight() + "px");
         baseBind.illustId.setText("作品ID：" + illust.getId());
         baseBind.userId.setText("画师ID：" + illust.getUser().getId());
+
         final BottomSheetBehavior<?> sheetBehavior = BottomSheetBehavior.from(baseBind.coreLinear);
 
         baseBind.coreLinear.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
-                final int realHeight = baseBind.coreLinear.getHeight();
+                final int realHeight = baseBind.bottomBar.getHeight() +
+                        baseBind.viewDivider.getHeight() +
+                        baseBind.secondLinear.getHeight();
                 final int maxHeight = getResources().getDisplayMetrics().heightPixels * 3 / 4;
-                if (realHeight > maxHeight) {
-                    ViewGroup.LayoutParams params = baseBind.coreLinear.getLayoutParams();
-                    params.height = maxHeight;
-                    baseBind.coreLinear.setLayoutParams(params);
-                }
+                ViewGroup.LayoutParams params = baseBind.coreLinear.getLayoutParams();
+                params.height = Math.min(realHeight, maxHeight);
+                baseBind.coreLinear.setLayoutParams(params);
 
                 final int bottomCardHeight = baseBind.bottomBar.getHeight();
-                final int deltaY = baseBind.coreLinear.getHeight() - baseBind.bottomBar.getHeight();
+                final int deltaY = realHeight - baseBind.bottomBar.getHeight();
                 sheetBehavior.setPeekHeight(bottomCardHeight, true);
                 baseBind.refreshLayout.setPadding(0, 0, 0, bottomCardHeight - DensityUtil.dp2px(16.0f));
                 sheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {

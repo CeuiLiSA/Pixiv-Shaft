@@ -169,6 +169,7 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
+                    android:id="@+id/view_divider"
                     android:layout_marginStart="@dimen/tweenty_four_dp"
                     android:layout_marginEnd="@dimen/tweenty_four_dp"
                     android:background="#f3f4f5">
@@ -181,6 +182,7 @@
 
                     <LinearLayout
                         android:layout_width="match_parent"
+                        android:id="@+id/second_linear"
                         android:layout_height="wrap_content"
                         android:orientation="vertical">
 

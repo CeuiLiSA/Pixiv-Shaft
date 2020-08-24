@@ -26,7 +26,7 @@ public class FileCreator {
         }
 
         return new File(Shaft.sSettings.getGifZipPath(), deleteSpecialWords(
-                illustsBean.getTitle() + "_" + illustsBean.getId() + ".zip")
+                illustsBean.getTitle() + DASH + illustsBean.getId() + ".zip")
         );
     }
 
@@ -36,7 +36,7 @@ public class FileCreator {
         }
 
         return new File(Shaft.sSettings.getGifResultPath(), deleteSpecialWords(
-                illustsBean.getTitle() + "_" + illustsBean.getId() + ".gif")
+                illustsBean.getTitle() + DASH + illustsBean.getId() + ".gif")
         );
     }
 
@@ -47,7 +47,7 @@ public class FileCreator {
         }
 
         return new File(Shaft.sSettings.getGifUnzipPath() + deleteSpecialWords(
-                illustsBean.getTitle() + "_" + illustsBean.getId())
+                illustsBean.getTitle() + DASH + illustsBean.getId())
         );
     }
 
@@ -85,9 +85,9 @@ public class FileCreator {
 
     private static String deleteSpecialWords(String before) {
         if (!TextUtils.isEmpty(before)) {
-            String temp1 = before.replace("-", "_");
-            String temp2 = temp1.replace("/", "_");
-            String temp3 = temp2.replace(",", "_");
+            String temp1 = before.replace("-", DASH);
+            String temp2 = temp1.replace("/", DASH);
+            String temp3 = temp2.replace(",", DASH);
             return temp3;
         } else {
             return "untitle_" + System.currentTimeMillis() + ".png";
