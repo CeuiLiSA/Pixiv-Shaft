@@ -61,7 +61,9 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
     public void initModel() {
         mModel = (BaseModel<Item>) new ViewModelProvider(this).get(modelClass());
         allItems = mModel.getContent().getValue();
-        mModel.setBaseRepo(repository());
+        if (mModel.getBaseRepo() == null) {
+            mModel.setBaseRepo(repository());
+        }
     }
 
     public Class<? extends BaseModel> modelClass() {
@@ -189,12 +191,7 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
             toolbar.setVisibility(View.GONE);
         }
         toolbar.setTitle(getToolbarTitle());
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mActivity.finish();
-            }
-        });
+        toolbar.setNavigationOnClickListener(v -> finish());
     }
 
     public void beforeFirstLoad(List<Item> items) {
@@ -243,13 +240,6 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
     public void nowRefresh() {
         mRecyclerView.smoothScrollToPosition(0);
         mRefreshLayout.autoRefresh();
-    }
-
-    public List<Item> getContent() {
-        if (mModel == null) {
-            return new ArrayList<>();
-        }
-        return mModel.getContent().getValue();
     }
 
     public int getCount() {

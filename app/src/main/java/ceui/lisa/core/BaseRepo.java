@@ -8,8 +8,13 @@ import com.scwang.smartrefresh.layout.api.RefreshHeader;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.utils.Common;
 
 public class BaseRepo implements DataView{
+
+    public BaseRepo() {
+        Common.showLog("BaseRepo " + getClass().getSimpleName() + " newInstance");
+    }
 
     @Override
     public boolean hasNext() {

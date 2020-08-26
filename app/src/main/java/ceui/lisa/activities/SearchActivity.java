@@ -33,8 +33,8 @@ import ceui.lisa.viewmodel.SearchModel;
 
 public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 
-    private static final String[] TITLES = new String[]{"插画/漫画", "小说"};
-    private BaseFragment<?>[] allPages = new BaseFragment[]{null, null};
+    private static final String[] TITLES = new String[]{"插画/漫画", "热度(有限)", "小说"};
+    private BaseFragment<?>[] allPages = new BaseFragment[]{null, null, null};
     private String keyWord = "";
     private SearchModel searchModel;
     private int index = 0;
@@ -67,7 +67,9 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
             public Fragment getItem(int position) {
                 if (allPages[position] == null) {
                     if (position == 0) {
-                        allPages[position] = FragmentSearchIllust.newInstance();
+                        allPages[position] = FragmentSearchIllust.newInstance(false);
+                    } else if(position == 1)  {
+                        allPages[position] = FragmentSearchIllust.newInstance(true);
                     } else  {
                         allPages[position] = FragmentSearchNovel.newInstance();
                     }
