@@ -1,6 +1,5 @@
 package ceui.lisa.adapters;
 
-import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
@@ -31,7 +30,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.IllustTask;
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.download.GifListener;

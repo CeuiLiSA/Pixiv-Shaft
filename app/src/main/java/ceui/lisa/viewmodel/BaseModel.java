@@ -11,7 +11,6 @@ import com.scwang.smartrefresh.layout.api.RefreshHeader;
 import java.util.ArrayList;
 import java.util.List;
 
-import ceui.lisa.activities.Shaft;
 import ceui.lisa.core.BaseRepo;
 import ceui.lisa.core.DataView;
 

@@ -54,9 +54,6 @@ import static ceui.lisa.utils.PixivOperate.insertSearchHistory;
 
 public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
 
-    public static final String[] SEARCH_TYPE = new String[]{"标签搜作品", "ID搜插画", "关键字搜画师",
-            "ID搜画师", "ID搜小说"};
-
     private ObservableEmitter<String> fuck = null;
     private int searchType = 0;
 
@@ -67,6 +64,14 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
 
     @Override
     protected void initData() {
+        final String[] SEARCH_TYPE = new String[]{
+                getString(R.string.string_149),
+                getString(R.string.string_150),
+                getString(R.string.string_151),
+                getString(R.string.string_152),
+                getString(R.string.string_153)
+        };
+
         ViewGroup.LayoutParams headParams = baseBind.head.getLayoutParams();
         headParams.height = Shaft.statusHeight;
         baseBind.head.setLayoutParams(headParams);
@@ -110,11 +115,10 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
             @Override
             public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
                 if (!TextUtils.isEmpty(baseBind.inputBox.getText().toString())) {
-                    Common.showLog(className + "点击了一次输入框的搜索");
                     dispatchClick(baseBind.inputBox.getText().toString(), searchType);
                     return true;
                 } else {
-                    Common.showToast("请输入搜索内容");
+                    Common.showToast(getString(R.string.string_148));
                 }
                 return false;
             }
@@ -193,7 +197,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                 insertSearchHistory(keyWord, searchType);
                 PixivOperate.getIllustByID(sUserModel, Integer.valueOf(keyWord), mContext);
             } else {
-                Common.showToast("ID必须为全数字");
+                Common.showToast(getString(R.string.string_154));
             }
         } else if (searchType == 2) {
             insertSearchHistory(keyWord, searchType);
@@ -209,14 +213,14 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                 intent.putExtra(Params.USER_ID, Integer.valueOf(keyWord));
                 startActivity(intent);
             } else {
-                Common.showToast("ID必须为全数字");
+                Common.showToast(getString(R.string.string_154));
             }
         } else if (searchType == 4) {
             if (isNumeric(keyWord)) {
                 insertSearchHistory(keyWord, searchType);
                 PixivOperate.getNovelByID(sUserModel, Integer.valueOf(keyWord), mContext, null);
             } else {
-                Common.showToast("ID必须为全数字");
+                Common.showToast(getString(R.string.string_154));
             }
         }
     }
@@ -304,20 +308,20 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                 @Override
                 public void onClick(View v) {
                     new QMUIDialog.MessageDialogBuilder(getActivity())
-                            .setTitle("提示")
-                            .setMessage("这将会删除所有的本地搜索历史")
+                            .setTitle(getString(R.string.string_143))
+                            .setMessage(getString(R.string.string_144))
                             .setSkinManager(QMUISkinManager.defaultInstance(getContext()))
-                            .addAction("取消", new QMUIDialogAction.ActionListener() {
+                            .addAction(getString(R.string.string_142), new QMUIDialogAction.ActionListener() {
                                 @Override
                                 public void onClick(QMUIDialog dialog, int index) {
                                     dialog.dismiss();
                                 }
                             })
-                            .addAction(0, "删除", QMUIDialogAction.ACTION_PROP_NEGATIVE, new QMUIDialogAction.ActionListener() {
+                            .addAction(0, getString(R.string.string_141), QMUIDialogAction.ACTION_PROP_NEGATIVE, new QMUIDialogAction.ActionListener() {
                                 @Override
                                 public void onClick(QMUIDialog dialog, int index) {
                                     AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().deleteAll();
-                                    Common.showToast("搜索历史删除成功");
+                                    Common.showToast(getString(R.string.string_140));
                                     dialog.dismiss();
                                     onResume();
                                 }

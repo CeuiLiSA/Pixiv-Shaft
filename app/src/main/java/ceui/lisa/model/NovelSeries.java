@@ -3,10 +3,7 @@ package ceui.lisa.model;
 import java.util.List;
 
 import ceui.lisa.interfaces.ListShow;
-import ceui.lisa.models.ImageUrlsBean;
 import ceui.lisa.models.NovelBean;
-import ceui.lisa.models.SeriesBean;
-import ceui.lisa.models.TagsBean;
 import ceui.lisa.models.UserBean;
 
 public class NovelSeries implements ListShow<NovelBean> {

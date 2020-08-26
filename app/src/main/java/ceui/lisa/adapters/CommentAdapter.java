@@ -19,7 +19,6 @@ import ceui.lisa.core.ImgGetter;
 import ceui.lisa.databinding.RecyCommentListBinding;
 import ceui.lisa.models.CommentsBean;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.Emoji;
 import ceui.lisa.utils.GlideUtil;
 
 /**

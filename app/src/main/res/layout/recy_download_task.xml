@@ -40,7 +40,7 @@
                 android:layout_marginTop="@dimen/eight_dp"
                 android:layout_marginBottom="@dimen/sixteen_dp"
                 android:textSize="12sp"
-                android:text="0.00KB / 未知大小"
+                android:text="@string/string_115"
                 android:layout_below="@+id/progress"
                 android:id="@+id/current_size"
                 android:layout_height="wrap_content" />

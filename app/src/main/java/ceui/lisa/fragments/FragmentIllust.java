@@ -156,9 +156,9 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 return true;
             }
         });
-        baseBind.illustSize.setText("作品尺寸：" + illust.getWidth() + "px * " + illust.getHeight() + "px");
-        baseBind.illustId.setText("作品ID：" + illust.getId());
-        baseBind.userId.setText("画师ID：" + illust.getUser().getId());
+        baseBind.illustSize.setText(getString(R.string.string_193) + illust.getWidth() + "px * " + illust.getHeight() + "px");
+        baseBind.illustId.setText(getString(R.string.string_194) + illust.getId());
+        baseBind.userId.setText(getString(R.string.string_195) + illust.getUser().getId());
 
         final BottomSheetBehavior<?> sheetBehavior = BottomSheetBehavior.from(baseBind.coreLinear);
 
@@ -249,19 +249,19 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
             }
         });
         if (illust.getUser().isIs_followed()) {
-            baseBind.follow.setText("取消关注");
+            baseBind.follow.setText(R.string.string_177);
         } else {
-            baseBind.follow.setText("+ 关注");
+            baseBind.follow.setText(R.string.string_178);
         }
         baseBind.follow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (illust.getUser().isIs_followed()) {
-                    baseBind.follow.setText("+ 关注");
+                    baseBind.follow.setText(R.string.string_178);
                     PixivOperate.postUnFollowUser(illust.getUser().getId());
                     illust.getUser().setIs_followed(false);
                 } else {
-                    baseBind.follow.setText("取消关注");
+                    baseBind.follow.setText(R.string.string_177);
                     PixivOperate.postFollowUser(illust.getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC);
                     illust.getUser().setIs_followed(true);
                 }
@@ -272,7 +272,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
             if (illust.getUser().isIs_followed()) {
 
             } else {
-                baseBind.follow.setText("取消关注");
+                baseBind.follow.setText(R.string.string_177);
                 illust.getUser().setIs_followed(true);
                 PixivOperate.postFollowUser(illust.getUser().getId(), FragmentLikeIllust.TYPE_PRIVATE);
             }
@@ -302,7 +302,6 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                             .addItems(items, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    Common.showToast("暂不支持" + items[which]);
                                     dialog.dismiss();
                                 }
                             })
@@ -372,7 +371,6 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
     public void onDestroy() {
         if (mReceiver != null) {
             LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mReceiver);
-            Common.showLog(className + "注销了 StarReceiver");
         }
         super.onDestroy();
     }

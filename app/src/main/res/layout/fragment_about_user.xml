@@ -66,7 +66,7 @@
                         android:textSize="15sp"
                         android:textColor="@color/about_user_left"
                         android:layout_margin="@dimen/sixteen_dp"
-                        android:text="个人介绍"
+                        android:text="@string/string_33"
                         android:layout_height="wrap_content" />
 
 
@@ -101,7 +101,7 @@
                         android:textSize="15sp"
                         android:textColor="@color/about_user_left"        android:id="@+id/main_page_s"
                         android:layout_margin="@dimen/sixteen_dp"
-                        android:text="个人主页"
+                        android:text="@string/string_34"
                         android:layout_height="wrap_content" />
 
 
@@ -136,7 +136,7 @@
                         android:id="@+id/twitter_s"
                         android:textSize="15sp"
                         android:textColor="@color/about_user_left"          android:layout_margin="@dimen/sixteen_dp"
-                        android:text="Twitter"
+                        android:text="@string/string_35"
                         android:layout_height="wrap_content" />
 
 
@@ -173,7 +173,7 @@
                         android:textSize="15sp"
                         android:textColor="@color/about_user_left"
                         android:layout_margin="@dimen/sixteen_dp"
-                        android:text="Pawoo"
+                        android:text="@string/string_36"
                         android:layout_height="wrap_content" />
 
 
@@ -220,7 +220,7 @@
                         android:textColor="@color/about_user_left"
                         android:id="@+id/computer_s"
                         android:layout_margin="@dimen/sixteen_dp"
-                        android:text="电脑："
+                        android:text="@string/string_37"
                         android:layout_height="wrap_content" />
 
 
@@ -258,7 +258,7 @@
                         android:textColor="@color/about_user_left"
                         android:id="@+id/monitor_s"
                         android:layout_margin="@dimen/sixteen_dp"
-                        android:text="显示器："
+                        android:text="@string/string_38"
                         android:layout_height="wrap_content" />
 
 
@@ -302,7 +302,7 @@
                         android:textColor="@color/about_user_left"
                         android:id="@+id/app_s"
                         android:layout_margin="@dimen/sixteen_dp"
-                        android:text="软体："
+                        android:text="@string/string_39"
                         android:layout_height="wrap_content" />
 
 
@@ -338,7 +338,7 @@
                         android:textColor="@color/about_user_left"
                         android:id="@+id/scanner_s"
                         android:layout_margin="@dimen/sixteen_dp"
-                        android:text="扫描仪："
+                        android:text="@string/string_40"
                         android:layout_height="wrap_content" />
 
 
@@ -374,7 +374,7 @@
                         android:textColor="@color/about_user_left"
                         android:id="@+id/draw_board_s"
                         android:layout_margin="@dimen/sixteen_dp"
-                        android:text="绘图板："
+                        android:text="@string/string_41"
                         android:layout_height="wrap_content" />
 
 
@@ -417,7 +417,7 @@
                         android:textColor="@color/about_user_left"
                         android:id="@+id/mouse_s"
                         android:layout_margin="@dimen/sixteen_dp"
-                        android:text="鼠标："
+                        android:text="@string/string_42"
                         android:layout_height="wrap_content" />
 
 
@@ -453,7 +453,7 @@
                         android:textColor="@color/about_user_left"
                         android:id="@+id/printer_s"
                         android:layout_margin="@dimen/sixteen_dp"
-                        android:text="打印机："
+                        android:text="@string/string_43"
                         android:layout_height="wrap_content" />
 
 
@@ -489,7 +489,7 @@
                         android:textColor="@color/about_user_left"
                         android:id="@+id/table_objects_s"
                         android:layout_margin="@dimen/sixteen_dp"
-                        android:text="桌上物品："
+                        android:text="@string/string_44"
                         android:layout_height="wrap_content" />
 
 
@@ -524,7 +524,7 @@
                         android:textColor="@color/about_user_left"
                         android:id="@+id/like_music_s"
                         android:layout_margin="@dimen/sixteen_dp"
-                        android:text="绘画BGM："
+                        android:text="@string/string_45"
                         android:layout_height="wrap_content" />
 
 
@@ -567,7 +567,7 @@
                         android:textColor="@color/about_user_left"
                         android:id="@+id/table_s"
                         android:layout_margin="@dimen/sixteen_dp"
-                        android:text="桌子："
+                        android:text="@string/string_46"
                         android:layout_height="wrap_content" />
 
 
@@ -603,7 +603,7 @@
                         android:textColor="@color/about_user_left"
                         android:id="@+id/chair_s"
                         android:layout_margin="@dimen/sixteen_dp"
-                        android:text="椅子："
+                        android:text="@string/string_47"
                         android:layout_height="wrap_content" />
 
 

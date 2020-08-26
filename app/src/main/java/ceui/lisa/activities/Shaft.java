@@ -5,8 +5,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 
-import com.blankj.utilcode.util.DeviceUtils;
-import com.blankj.utilcode.util.RomUtils;
 import com.google.gson.Gson;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
@@ -65,15 +63,9 @@ public class Shaft extends Application {
 
         sPreferences = getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
 
-        final long before = System.nanoTime();
-
         sUserModel = Local.getUser();
 
         Dev.isDev = Local.getBoolean(Params.USE_DEBUG, false);
-
-        final long after = System.nanoTime();
-
-        Common.showLog("一共耗时 " + (after - before));
 
         sSettings = Local.getSettings();
 

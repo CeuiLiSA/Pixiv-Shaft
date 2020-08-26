@@ -52,7 +52,7 @@
                 android:layout_marginStart="@dimen/tweenty_four_dp"
                 android:layout_marginTop="@dimen/sixteen_dp"
                 android:layout_marginEnd="@dimen/tweenty_four_dp"
-                android:hint="pixiv ID (限小写英文和数字)"
+                android:hint="@string/string_51"
                 app:met_floatingLabel="highlight"
                 app:met_primaryColor="@color/colorPrimary"
                 app:met_singleLineEllipsis="true" />
@@ -65,7 +65,7 @@
                 android:layout_marginStart="@dimen/tweenty_four_dp"
                 android:layout_marginTop="@dimen/sixteen_dp"
                 android:layout_marginEnd="@dimen/tweenty_four_dp"
-                android:hint="新密码"
+                android:hint="@string/string_52"
                 app:met_floatingLabel="highlight"
                 app:met_primaryColor="@color/colorPrimary"
                 app:met_singleLineEllipsis="true" />
@@ -84,7 +84,7 @@
         <Button
             android:layout_width="match_parent"
             android:layout_alignParentBottom="true"
-            android:text="更新账号信息"
+            android:text="@string/string_53"
             android:layout_margin="@dimen/sixteen_dp"
             android:id="@+id/submit"
             android:layout_height="wrap_content">

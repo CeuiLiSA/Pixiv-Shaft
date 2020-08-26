@@ -34,7 +34,6 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:textSize="14sp"
-                android:text="作品名字"
                 android:layout_marginStart="@dimen/eight_dp"
                 android:textColor="@android:color/white"
                 android:textStyle="bold"
@@ -73,7 +72,6 @@
                     android:shadowDy="1.5"
                     android:layout_toEndOf="@+id/user_head"
                     android:shadowRadius="1.5"
-                    android:text="作者名字"
                     android:layout_centerVertical="true"
                     android:layout_marginEnd="@dimen/eight_dp"
                     android:textColor="@android:color/white"

@@ -52,7 +52,7 @@
                     android:paddingTop="@dimen/six_dp"
                     android:paddingEnd="@dimen/sixteen_dp"
                     android:paddingBottom="@dimen/six_dp"
-                    android:text="下载图片"
+                    android:text="@string/string_7"
                     android:textColor="@android:color/white" />
 
 

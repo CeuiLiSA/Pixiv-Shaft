@@ -1,8 +1,5 @@
 package ceui.lisa.ui;
 
-import java.util.List;
-
-import ceui.lisa.interfaces.ListShow;
 import io.reactivex.Observable;
 
 public interface IModel<T> {

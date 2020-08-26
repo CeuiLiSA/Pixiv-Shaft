@@ -16,7 +16,7 @@
             android:textSize="16sp"
             android:layout_margin="@dimen/sixteen_dp"
             android:textColor="@color/dark_text"
-            android:text="屏蔽标签"
+            android:text="@string/string_16"
             android:layout_height="wrap_content" />
 
         <com.zhy.view.flowlayout.TagFlowLayout
@@ -38,7 +38,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/colorPrimary"
-                android:text="屏蔽记录" />
+                android:text="@string/string_17" />
 
             <Button
                 android:id="@+id/cancel"
@@ -47,7 +47,7 @@
                 android:layout_height="wrap_content"
                 android:textColor="@color/colorPrimary"
                 android:layout_toStartOf="@+id/sure"
-                android:text="取消" />
+                android:text="@string/string_18" />
 
             <Button
                 android:id="@+id/sure"
@@ -56,7 +56,7 @@
                 android:layout_height="wrap_content"
                 android:textColor="@color/colorPrimary"
                 android:layout_alignParentEnd="true"
-                android:text="添加屏蔽" />
+                android:text="@string/string_19" />
 
         </RelativeLayout>
     </LinearLayout>

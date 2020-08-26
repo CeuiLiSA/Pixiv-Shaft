@@ -1,7 +1,5 @@
 package ceui.lisa.fragments;
 
-import android.view.View;
-
 import androidx.lifecycle.ViewModelProvider;
 
 import ceui.lisa.R;

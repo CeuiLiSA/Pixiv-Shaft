@@ -59,7 +59,7 @@
             android:textStyle="bold"
             android:textSize="19sp"
             android:gravity="center"
-            android:text=" --- END --- "
+            android:text="@string/string_107"
             android:id="@+id/end_text"
             android:layout_height="wrap_content">
 

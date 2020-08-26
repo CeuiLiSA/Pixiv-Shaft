@@ -9,6 +9,7 @@ import android.text.TextUtils;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapter;
 import ceui.lisa.core.RemoteRepo;
@@ -122,6 +123,6 @@ public class FragmentLikeIllust extends NetListFragment<FragmentBaseListBinding,
 
     @Override
     public String getToolbarTitle() {
-        return showToolbar ? "插画/漫画收藏" : super.getToolbarTitle();
+        return showToolbar ? getString(R.string.string_164) : super.getToolbarTitle();
     }
 }

@@ -29,7 +29,7 @@
 
             <CheckBox
                 android:layout_width="wrap_content"
-                android:text="作品ID"
+                android:text="@string/string_116"
                 android:textSize="15sp"
                 android:buttonTint="#666af6"
                 android:layout_toEndOf="@+id/change_position"
@@ -49,7 +49,7 @@
                 android:textSize="13sp"
                 android:gravity="end"
                 android:id="@+id/description"
-                android:text="不选的话可能两个文件名重复，导致下载失败，必选项"
+                android:text="@string/string_117"
                 android:layout_marginEnd="@dimen/sixteen_dp"
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"

@@ -9,9 +9,7 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.TagMuteEntity;
 import ceui.lisa.models.IllustsBean;
-import ceui.lisa.models.MutedHistory;
 import ceui.lisa.models.TagsBean;
-import ceui.lisa.utils.Common;
 
 public class TagFilter {
 

@@ -1,9 +1,5 @@
 package ceui.lisa.adapters;
 
-import android.view.View;
-
-import androidx.annotation.NonNull;
-
 import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringConfig;

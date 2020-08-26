@@ -1,7 +1,6 @@
 package ceui.lisa.fragments;
 
 import android.os.Bundle;
-import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;

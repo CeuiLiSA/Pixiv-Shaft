@@ -2,7 +2,6 @@ package ceui.lisa.fragments;
 
 import android.graphics.Color;
 import android.os.Bundle;
-import android.view.View;
 
 import ceui.lisa.R;
 import ceui.lisa.base.BaseFragment;

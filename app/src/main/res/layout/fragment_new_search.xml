@@ -39,7 +39,6 @@
                     android:singleLine="true"
                     android:maxLines="1"
                     android:ellipsize="end"
-                    android:text="东方"
                     android:textSize="15sp"
                     android:textColor="@color/rank_text_color"
                     android:background="@drawable/stroke"

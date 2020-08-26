@@ -84,7 +84,6 @@
                 android:paddingTop="2dp"
                 android:paddingEnd="@dimen/four_dp"
                 android:paddingBottom="2dp"
-                android:text="4P"
                 android:textColor="@android:color/white"
                 android:textSize="12sp" />
 

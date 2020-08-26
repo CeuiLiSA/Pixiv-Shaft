@@ -70,11 +70,11 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             @Override
             public void onClick(View v) {
                 new QMUIDialog.CheckBoxMessageDialogBuilder(getActivity())
-                        .setTitle("退出后是否删除账号信息?")
-                        .setMessage("删除账号信息")
+                        .setTitle(getString(R.string.string_185))
+                        .setMessage(getString(R.string.string_186))
                         .setChecked(true)
                         .setSkinManager(QMUISkinManager.defaultInstance(getContext()))
-                        .addAction("取消", new QMUIDialogAction.ActionListener() {
+                        .addAction(getString(R.string.string_187), new QMUIDialogAction.ActionListener() {
                             @Override
                             public void onClick(QMUIDialog dialog, int index) {
                                 dialog.dismiss();

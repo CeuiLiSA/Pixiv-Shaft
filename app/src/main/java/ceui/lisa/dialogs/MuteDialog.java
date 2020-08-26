@@ -84,7 +84,7 @@ public class MuteDialog extends BaseDialog<DialogMuteTagBinding> {
                     Common.showToast(mContext.getResources().getString(R.string.operate_success));
                     dismiss();
                 } else {
-                    Common.showToast("请选择要屏蔽的标签");
+                    Common.showToast(getString(R.string.string_165));
                 }
             }
         });

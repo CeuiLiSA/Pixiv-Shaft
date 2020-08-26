@@ -60,7 +60,7 @@
 
                     <TextView
                         android:layout_width="wrap_content"
-                        android:text="Shaft"
+                        android:text="@string/string_23"
                         android:textColor="@color/colorPrimary"
                         android:textSize="19sp"
                         android:textStyle="bold"
@@ -81,7 +81,7 @@
                             android:gravity="end"
                             android:id="@+id/name_s"
                             android:textColor="@color/rank_text_color"
-                            android:text="版本名称："
+                            android:text="@string/string_24"
                             android:layout_height="wrap_content">
 
                         </TextView>
@@ -114,7 +114,7 @@
                             android:layout_weight="1"
                             android:id="@+id/code_s"
                             android:gravity="end"
-                            android:text="版本型号："
+                            android:text="@string/string_25"
                             android:layout_height="wrap_content">
 
                         </TextView>
@@ -153,7 +153,7 @@
 
                             <TextView
                                 android:layout_width="wrap_content"
-                                android:text="软件"
+                                android:text="@string/string_26"
                                 android:textSize="13sp"
                                 android:textColor="@color/colorPrimary"
                                 android:layout_marginTop="@dimen/eight_dp"
@@ -267,7 +267,7 @@
 
                             <TextView
                                 android:layout_width="wrap_content"
-                                android:text="项目"
+                                android:text="@string/string_27"
                                 android:textSize="13sp"
                                 android:textColor="@color/colorPrimary"
                                 android:layout_marginTop="@dimen/eight_dp"
@@ -287,7 +287,7 @@
 
                             <TextView
                                 android:layout_margin="@dimen/sixteen_dp"
-                                android:text="申明"
+                                android:text="@string/string_28"
                                 android:textSize="15sp"
                                 android:textColor="@color/rank_text_color"
                                 android:layout_width="wrap_content"
@@ -316,7 +316,7 @@
 
                             <TextView
                                 android:layout_margin="@dimen/sixteen_dp"
-                                android:text="捐助作者"
+                                android:text="@string/string_29"
                                 android:textSize="15sp"
                                 android:textColor="@color/rank_text_color"
                                 android:layout_width="wrap_content"
@@ -344,7 +344,7 @@
 
                             <TextView
                                 android:layout_margin="@dimen/sixteen_dp"
-                                android:text="捐赠者列表"
+                                android:text="@string/string_30"
                                 android:textSize="15sp"
                                 android:textColor="@color/rank_text_color"
                                 android:layout_width="wrap_content"
@@ -385,7 +385,7 @@
 
                             <TextView
                                 android:id="@+id/github_text"
-                                android:text="Github"
+                                android:text="@string/string_31"
                                 android:textSize="14sp"
                                 android:layout_marginTop="@dimen/eight_dp"
                                 android:layout_toEndOf="@+id/github_image"
@@ -398,7 +398,7 @@
                             </TextView>
 
                             <TextView
-                                android:text="https://github.com/CeuiLiSA/Pixiv-Shaft"
+                                android:text="@string/string_32"
                                 android:textSize="12sp"
                                 android:layout_marginTop="2dp"
                                 android:layout_below="@+id/github_text"

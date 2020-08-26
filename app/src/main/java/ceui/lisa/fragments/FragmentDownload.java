@@ -1,7 +1,6 @@
 package ceui.lisa.fragments;
 
 import android.view.MenuItem;
-import android.view.View;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;

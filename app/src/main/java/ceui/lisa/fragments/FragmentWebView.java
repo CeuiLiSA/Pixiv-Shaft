@@ -101,14 +101,12 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                         String destiny = request.getUrl().toString();
                         Common.showLog(className + destiny);
                         if (destiny.contains(WORKS_HEAD)) {
-                            Common.showLog("点击了ILLUST， 拦截调回APP");
                             PixivOperate.getIllustByID(sUserModel,
                                     Integer.valueOf(destiny.substring(WORKS_HEAD.length())), mContext);
                             return true;
                         }
 
                         if (destiny.contains(USER_HEAD)) {
-                            Common.showLog("点击了USER， 拦截调回APP");
                             Intent intent = new Intent(mContext, UserActivity.class);
                             intent.putExtra(Params.USER_ID, Integer.valueOf(destiny.substring(USER_HEAD.length())));
                             startActivity(intent);

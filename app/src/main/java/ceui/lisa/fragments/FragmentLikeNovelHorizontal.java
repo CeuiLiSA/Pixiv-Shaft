@@ -70,7 +70,7 @@ public class FragmentLikeNovelHorizontal extends BaseFragment<FragmentLikeIllust
         baseBind.recyclerView.addItemDecoration(new
                 LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
         if (type == 1) {
-            baseBind.title.setText("小说作品");
+            baseBind.title.setText(R.string.string_168);
             baseBind.howMany.setText(String.format(getString(R.string.how_many_illust_works), novelSize));
             baseBind.howMany.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -82,8 +82,8 @@ public class FragmentLikeNovelHorizontal extends BaseFragment<FragmentLikeIllust
                 }
             });
         } else if (type == 0) {
-            baseBind.title.setText("小说收藏");
-            baseBind.howMany.setText("查看全部");
+            baseBind.title.setText(R.string.string_166);
+            baseBind.howMany.setText(R.string.string_167);
             baseBind.howMany.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {

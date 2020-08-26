@@ -6,7 +6,6 @@ import java.io.File;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.Dev;
 
 public abstract class ImageSaver {
 

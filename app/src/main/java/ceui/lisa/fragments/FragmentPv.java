@@ -1,6 +1,5 @@
 package ceui.lisa.fragments;
 
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
@@ -31,7 +30,7 @@ public class FragmentPv extends BaseFragment<ViewpagerWithTablayoutBinding> {
         headParams.height = Shaft.statusHeight;
         head.setLayoutParams(headParams);
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
-        baseBind.toolbar.setTitle("特辑");
+        baseBind.toolbar.setTitle(R.string.string_191);
         baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager(), 0) {
             @NonNull
             @Override

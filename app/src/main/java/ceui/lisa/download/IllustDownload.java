@@ -1,13 +1,7 @@
 package ceui.lisa.download;
 
-import android.Manifest;
-import android.app.Activity;
-
-import androidx.fragment.app.FragmentActivity;
-
 import com.liulishuo.okdownload.DownloadTask;
 import com.liulishuo.okdownload.core.dispatcher.DownloadDispatcher;
-import com.tbruyelle.rxpermissions2.RxPermissions;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -16,11 +10,9 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.IllustTask;
-import ceui.lisa.interfaces.Callback;
 import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
-import io.reactivex.disposables.Disposable;
 
 public class IllustDownload {
 

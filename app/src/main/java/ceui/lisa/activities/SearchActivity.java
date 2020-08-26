@@ -33,7 +33,6 @@ import ceui.lisa.viewmodel.SearchModel;
 
 public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 
-    private static final String[] TITLES = new String[]{"插画/漫画", "热度(有限)", "小说"};
     private BaseFragment<?>[] allPages = new BaseFragment[]{null, null, null};
     private String keyWord = "";
     private SearchModel searchModel;
@@ -60,6 +59,11 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 
     @Override
     protected void initView() {
+        final String[] TITLES = new String[]{
+                getString(R.string.string_136),
+                getString(R.string.string_137),
+                getString(R.string.string_138)
+        };
         baseBind.searchBox.setText(keyWord);
         baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager(), 0) {
             @NonNull
@@ -138,7 +142,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (TextUtils.isEmpty(baseBind.searchBox.getText().toString())) {
-                    Common.showToast("请输入搜索内容");
+                    Common.showToast(getString(R.string.string_139));
                     return false;
                 }
                 searchModel.getNowGo().setValue("search_now");

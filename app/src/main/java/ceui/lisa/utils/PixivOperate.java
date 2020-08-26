@@ -37,10 +37,6 @@ import ceui.lisa.models.TagsBean;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.models.IllustsBean;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.annotations.NonNull;
-import io.reactivex.rxjava3.core.Observer;
-import io.reactivex.rxjava3.disposables.Disposable;
-import io.reactivex.rxjava3.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -286,7 +282,6 @@ public class PixivOperate {
         tagMuteEntity.setTagJson(Shaft.sGson.toJson(tagsBean));
         tagMuteEntity.setSearchTime(System.currentTimeMillis());
         AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().insertMuteTag(tagMuteEntity);
-        Common.showLog("屏蔽了一个标签 " + tagsBean.getName());
     }
 
     public static void muteTags(List<TagsBean> tagsBeans) {
@@ -306,7 +301,7 @@ public class PixivOperate {
         tagMuteEntity.setTagJson(Shaft.sGson.toJson(tagsBean));
         tagMuteEntity.setSearchTime(System.currentTimeMillis());
         AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().unMuteTag(tagMuteEntity);
-        Common.showToast("操作成功");
+        Common.showToast(Shaft.getContext().getString(R.string.string_135));
     }
 
     public static void insertIllustViewHistory(IllustsBean illust) {

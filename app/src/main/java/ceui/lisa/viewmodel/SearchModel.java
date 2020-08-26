@@ -3,8 +3,6 @@ package ceui.lisa.viewmodel;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import ceui.lisa.interfaces.Callback;
-
 public class SearchModel extends ViewModel {
 
     //关键字

@@ -46,7 +46,7 @@
                         android:layout_centerHorizontal="true"
                         android:gravity="center"
                         android:padding="@dimen/sixteen_dp"
-                        android:text="Shaft"
+                        android:text="@string/string_8"
                         android:textColor="@color/colorPrimary"
                         android:textSize="17sp"
                         android:textStyle="bold" />
@@ -71,7 +71,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="@dimen/tweenty_four_dp"
                                 android:layout_marginEnd="@dimen/tweenty_four_dp"
-                                android:hint="用户名/邮箱账号"
+                                android:hint="@string/string_9"
                                 app:met_floatingLabel="highlight"
                                 app:met_primaryColor="@color/colorPrimary"
                                 app:met_singleLineEllipsis="true" />
@@ -84,7 +84,7 @@
                                 android:layout_below="@+id/user_name"
                                 android:layout_marginStart="@dimen/tweenty_four_dp"
                                 android:layout_marginEnd="@dimen/tweenty_four_dp"
-                                android:hint="密码"
+                                android:hint="@string/string_10"
                                 android:inputType="textPassword"
                                 app:met_floatingLabel="highlight"
                                 app:met_primaryColor="@color/colorPrimary"
@@ -175,7 +175,7 @@
                         android:layout_centerHorizontal="true"
                         android:gravity="center"
                         android:padding="@dimen/sixteen_dp"
-                        android:text="Shaft"
+                        android:text="@string/string_11"
                         android:textColor="@color/colorPrimary"
                         android:textSize="17sp"
                         android:textStyle="bold" />
@@ -197,7 +197,7 @@
                             android:layout_marginStart="@dimen/tweenty_four_dp"
                             android:layout_marginTop="@dimen/sixteen_dp"
                             android:layout_marginEnd="@dimen/tweenty_four_dp"
-                            android:hint="用户名（可随时变更）"
+                            android:hint="@string/string_12"
                             app:met_floatingLabel="highlight"
                             app:met_primaryColor="@color/colorPrimary"
                             app:met_singleLineEllipsis="true" />

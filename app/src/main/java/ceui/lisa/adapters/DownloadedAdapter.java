@@ -63,7 +63,7 @@ public class DownloadedAdapter extends BaseAdapter<DownloadEntity, RecyViewHisto
             bindView.baseBind.author.setText("by: " + current.getUser().getName());
             bindView.baseBind.time.setText(mTime.format(allIllust.get(position).getDownloadTime()));
 
-            bindView.baseBind.pSize.setText("小说");
+            bindView.baseBind.pSize.setText(R.string.string_171);
 
             if (mOnItemClickListener != null) {
                 bindView.itemView.setOnClickListener(v -> {

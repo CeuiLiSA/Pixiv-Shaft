@@ -3,7 +3,6 @@ package ceui.lisa.core;
 import java.util.List;
 
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.interfaces.ListShow;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.PixivOperate;

@@ -15,7 +15,6 @@ import ceui.lisa.base.BaseActivity;
 import ceui.lisa.databinding.ActivityFragmentBinding;
 import ceui.lisa.fragments.FragmentAboutApp;
 import ceui.lisa.fragments.FragmentAnime;
-import ceui.lisa.fragments.FragmentBh;
 import ceui.lisa.fragments.FragmentDonate;
 import ceui.lisa.fragments.FragmentFileName;
 import ceui.lisa.fragments.FragmentHttpTest;

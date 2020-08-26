@@ -2,6 +2,7 @@ package ceui.lisa.fragments;
 
 import android.os.Bundle;
 
+import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.NAdapter;
 import ceui.lisa.core.RemoteRepo;
@@ -67,6 +68,6 @@ public class FragmentLikeNovel extends NetListFragment<FragmentBaseListBinding,
 
     @Override
     public String getToolbarTitle() {
-        return showToolbar ? "小说收藏" : super.getToolbarTitle();
+        return showToolbar ? getString(R.string.string_192) : super.getToolbarTitle();
     }
 }

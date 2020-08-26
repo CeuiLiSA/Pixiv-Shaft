@@ -67,7 +67,7 @@
 
             <TextView
                 android:layout_width="wrap_content"
-                android:text="私人收藏"
+                android:text="@string/string_89"
                 android:textSize="15sp"
                 android:id="@+id/private_star_s"
                 android:layout_centerVertical="true"
@@ -98,7 +98,7 @@
                 android:textStyle="bold"
                 android:layout_centerVertical="true"
                 android:layout_marginEnd="@dimen/sixteen_dp"
-                android:text="添加收藏" />
+                android:text="@string/string_90" />
 
         </RelativeLayout>
 

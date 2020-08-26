@@ -45,7 +45,6 @@
                     android:paddingEnd="@dimen/four_dp"
                     android:layout_marginEnd="@dimen/six_dp"
                     android:paddingBottom="2dp"
-                    android:text="4P"
                     android:textColor="@color/always_white"
                     android:textSize="12sp" />
 
@@ -59,7 +58,6 @@
                     android:paddingTop="2dp"
                     android:paddingEnd="@dimen/four_dp"
                     android:paddingBottom="2dp"
-                    android:text="GIF"
                     android:textColor="@color/always_white"
                     android:textSize="12sp" />
 
@@ -77,7 +75,7 @@
                 android:shadowDy="1.5"
                 android:visibility="invisible"
                 android:shadowRadius="1.5"
-                android:text="取消屏蔽"
+                android:text="@string/string_119"
                 android:textColor="@android:color/white"/>
 
             <ImageButton

@@ -6,14 +6,14 @@
         android:id="@+id/action_dislike"
         android:orderInCategory="100"
         android:icon="@drawable/ic_not_interested_black_24dp"
-        android:title="屏蔽设置"
+        android:title="@string/string_1"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/action_preview"
         android:orderInCategory="100"
         android:icon="@drawable/ic_not_interested_black_24dp"
-        android:title="开发者预览"
+        android:title="@string/string_2"
         app:showAsAction="never" />
 
 
@@ -21,6 +21,6 @@
         android:id="@+id/action_share"
         android:orderInCategory="100"
         android:icon="@drawable/ic_share_black_24dp"
-        android:title="分享"
+        android:title="@string/string_3"
         app:showAsAction="always" />
 </menu>

@@ -65,10 +65,7 @@ public class GifListener extends DownloadListener1 {
     @Override
     public void progress(@NonNull DownloadTask task, long currentOffset, long totalLength) {
         if(mProgressBar != null && mProgressBar.getVisibility() == View.VISIBLE){
-            Common.showLog("看得见mProgressBar 更新 " + currentOffset + " / " + totalLength);
             mProgressBar.setProgress((int) currentOffset);
-        }else {
-            Common.showLog("看不见mProgressBar 不更新 ");
         }
     }
 
