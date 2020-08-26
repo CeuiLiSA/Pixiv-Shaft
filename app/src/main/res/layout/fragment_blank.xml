@@ -9,7 +9,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:id="@+id/nothing"
-        android:text="暂无内容"
+        android:text="@string/string_48"
         android:textSize="18sp"
         android:layout_centerInParent="true"
         android:layout_height="wrap_content">

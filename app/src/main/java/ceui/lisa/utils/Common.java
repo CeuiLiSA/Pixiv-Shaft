@@ -6,7 +6,6 @@ import android.content.ClipboardManager;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.ContextWrapper;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -21,8 +20,6 @@ import android.view.Window;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import androidx.appcompat.app.AlertDialog;
 
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
@@ -227,17 +224,17 @@ public class Common {
 
     public static void createDialog(Context context){
         QMUIDialog qmuiDialog = new QMUIDialog.MessageDialogBuilder(context)
-                .setTitle("欢迎使用！")
+                .setTitle(context.getString(R.string.string_188))
                 .setMessage(context.getString(R.string.dont_catch_me))
                 .setSkinManager(QMUISkinManager.defaultInstance(context))
-                .addAction("确定且不再提示", new QMUIDialogAction.ActionListener() {
+                .addAction(context.getString(R.string.string_189), new QMUIDialogAction.ActionListener() {
                     @Override
                     public void onClick(QMUIDialog dialog, int index) {
                         Local.setBoolean(Params.SHOW_DIALOG, false);
                         dialog.dismiss();
                     }
                 })
-                .addAction("确定", new QMUIDialogAction.ActionListener() {
+                .addAction(context.getString(R.string.string_190), new QMUIDialogAction.ActionListener() {
                     @Override
                     public void onClick(QMUIDialog dialog, int index) {
                         Local.setBoolean(Params.SHOW_DIALOG, true);

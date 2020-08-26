@@ -1,27 +1,21 @@
 package ceui.lisa.fragments;
 
 import android.content.IntentFilter;
-import android.view.View;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.util.List;
 
-import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.DownloadingAdapter;
 import ceui.lisa.core.BaseRepo;
 import ceui.lisa.core.LocalRepo;
-import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.database.IllustTask;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyDownloadTaskBinding;
 import ceui.lisa.download.TaskQueue;
 import ceui.lisa.interfaces.Callback;
-import ceui.lisa.models.IllustsBean;
 import ceui.lisa.notification.DownloadReceiver;
-import ceui.lisa.utils.Channel;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 
 public class FragmentDownloading extends LocalListFragment<FragmentBaseListBinding,
@@ -60,9 +54,12 @@ public class FragmentDownloading extends LocalListFragment<FragmentBaseListBindi
         IntentFilter intentFilter = new IntentFilter();
         mReceiver = new DownloadReceiver<>((Callback<Integer>) entity -> {
             int position = entity;
-            allItems.remove(position);
-            mAdapter.notifyItemRemoved(position);
-            mAdapter.notifyItemRangeChanged(position, allItems.size() - position);
+            if (position < allItems.size()) {
+                allItems.remove(position);
+                mAdapter.notifyItemRemoved(position);
+                mAdapter.notifyItemRangeChanged(position, allItems.size() - position);
+            }
+
 
             if (TaskQueue.get().getTasks().size() == 0) {
                 autoRefresh();

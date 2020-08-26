@@ -12,7 +12,6 @@ import com.liulishuo.okdownload.core.listener.DownloadListener1
 import com.liulishuo.okdownload.core.listener.assist.Listener1Assist.Listener1Model
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.exception.ZipException
-import org.greenrobot.eventbus.EventBus
 
 class DListener : DownloadListener1() {
     private val _progresses = mutableMapOf<Int, DownloadHolder.Progress>()
@@ -61,11 +60,6 @@ class DListener : DownloadListener1() {
                             zipFile.extractAll(Shaft.sSettings.gifUnzipPath +
                                     task.filename!!.substring(0, task.filename!!.length - 4))
                             Common.showToast("图组ZIP解压完成")
-
-                            //通知FragmentSingleIllust 开始播放gif
-                            val channel: Channel<*> = Channel<Any?>()
-                            channel.receiver = "FragmentSingleIllust"
-                            EventBus.getDefault().post(channel)
                         } catch (e: ZipException) {
                             e.printStackTrace()
                         }

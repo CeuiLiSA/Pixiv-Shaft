@@ -28,7 +28,7 @@
 
             <TextView
                 android:layout_width="wrap_content"
-                android:text="关键字匹配"
+                android:text="@string/string_61"
                 android:textSize="14sp"
                 android:id="@+id/tag_s"
                 android:textColor="@color/colorPrimary"
@@ -68,7 +68,7 @@
 
             <TextView
                 android:layout_width="wrap_content"
-                android:text="收藏数筛选"
+                android:text="@string/string_62"
                 android:textSize="13sp"
                 android:id="@+id/star_s"
                 android:textColor="@color/colorPrimary"
@@ -108,7 +108,7 @@
 
             <TextView
                 android:layout_width="wrap_content"
-                android:text="日期排序"
+                android:text="@string/string_63"
                 android:textSize="13sp"
                 android:textColor="@color/colorPrimary"
                 android:id="@+id/date_s"
@@ -148,7 +148,7 @@
 
             <TextView
                 android:layout_width="wrap_content"
-                android:text="热度排序(仅会员可用)"
+                android:text="@string/string_64"
                 android:textSize="16sp"
                 android:textColor="@color/colorPrimary"
                 android:layout_margin="@dimen/sixteen_dp"
@@ -186,7 +186,7 @@
             android:id="@+id/submit"
             android:layout_gravity="end"
             android:layout_marginTop="@dimen/sixteen_dp"
-            android:text="查找结果" />
+            android:text="@string/string_65" />
 
     </LinearLayout>
 

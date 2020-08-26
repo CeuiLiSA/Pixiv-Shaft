@@ -11,7 +11,6 @@
 
         <TextView
             android:layout_width="wrap_content"
-            android:text="哈哈哈哈"
             android:id="@+id/content"
             android:layout_centerInParent="true"
             android:textSize="30sp"

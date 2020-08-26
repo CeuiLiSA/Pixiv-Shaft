@@ -36,7 +36,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:text="发现"
+                android:text="@string/string_75"
                 android:textColor="@color/white"
                 android:textSize="18sp">
 
@@ -71,7 +71,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="@dimen/twelve_dp"
-                            android:text="其他分类"
+                            android:text="@string/string_76"
                             android:textColor="@color/black"
                             android:textSize="18sp"
                             android:textStyle="bold">

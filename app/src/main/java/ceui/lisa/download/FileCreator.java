@@ -6,10 +6,7 @@ import com.google.gson.reflect.TypeToken;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.model.CustomFileNameCell;
@@ -26,7 +23,7 @@ public class FileCreator {
         }
 
         return new File(Shaft.sSettings.getGifZipPath(), deleteSpecialWords(
-                illustsBean.getTitle() + "_" + illustsBean.getId() + ".zip")
+                illustsBean.getTitle() + DASH + illustsBean.getId() + ".zip")
         );
     }
 
@@ -36,7 +33,7 @@ public class FileCreator {
         }
 
         return new File(Shaft.sSettings.getGifResultPath(), deleteSpecialWords(
-                illustsBean.getTitle() + "_" + illustsBean.getId() + ".gif")
+                illustsBean.getTitle() + DASH + illustsBean.getId() + ".gif")
         );
     }
 
@@ -47,7 +44,7 @@ public class FileCreator {
         }
 
         return new File(Shaft.sSettings.getGifUnzipPath() + deleteSpecialWords(
-                illustsBean.getTitle() + "_" + illustsBean.getId())
+                illustsBean.getTitle() + DASH + illustsBean.getId())
         );
     }
 
@@ -85,9 +82,9 @@ public class FileCreator {
 
     private static String deleteSpecialWords(String before) {
         if (!TextUtils.isEmpty(before)) {
-            String temp1 = before.replace("-", "_");
-            String temp2 = temp1.replace("/", "_");
-            String temp3 = temp2.replace(",", "_");
+            String temp1 = before.replace("-", DASH);
+            String temp2 = temp1.replace("/", DASH);
+            String temp3 = temp2.replace(",", DASH);
             return temp3;
         } else {
             return "untitle_" + System.currentTimeMillis() + ".png";
@@ -126,14 +123,37 @@ public class FileCreator {
                     new TypeToken<List<CustomFileNameCell>>() {
                     }.getType()));
         }
+        String fileUrl;
+        if (illustsBean.getPage_count() == 1) {
+            fileUrl = illustsBean.getMeta_single_page().getOriginal_image_url();
+        } else {
+            fileUrl = illustsBean.getMeta_pages().get(index).getImage_urls().getOriginal();
+        }
         return deleteSpecialWords(illustToFileName(illustsBean, result, index) +
-                "." + Shaft.sSettings.getFileLastType());
+                "." + getMimeTypeFromUrl(fileUrl));
+    }
+
+    public static String getMimeTypeFromUrl(String url) {
+        String result;
+        if (url.contains(".")) {
+            result = url.substring(url.lastIndexOf(".") + 1);
+        } else {
+            result = "png";
+        }
+        Common.showLog("getMimeType fileUrl: " + url + ", fileType: " + result);
+        return result;
     }
 
     public static String customFileNameForPreview(IllustsBean illustsBean,
                                                   List<CustomFileNameCell> cells, int index) {
+        String fileUrl;
+        if (illustsBean.getPage_count() == 1) {
+            fileUrl = illustsBean.getMeta_single_page().getOriginal_image_url();
+        } else {
+            fileUrl = illustsBean.getMeta_pages().get(index).getImage_urls().getOriginal();
+        }
         return deleteSpecialWords(illustToFileName(illustsBean, cells, index) +
-                "." + Shaft.sSettings.getFileLastType());
+                "." + getMimeTypeFromUrl(fileUrl));
     }
 
     private static String illustToFileName(IllustsBean illustsBean,

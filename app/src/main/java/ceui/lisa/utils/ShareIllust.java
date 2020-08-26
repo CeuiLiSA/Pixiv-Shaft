@@ -12,8 +12,7 @@ import ceui.lisa.models.IllustsBean;
  */
 public abstract class ShareIllust implements IExecutor {
 
-    private static final String URL_Head = "https://www.pixiv.net/member_illust.php?illust_id=";
-    private static final String URL_BOTTOM = "&mode=medium";
+    private static final String URL_Head = "https://www.pixiv.net/artworks/";
     private IllustsBean mIllustsBean;
     private Context mContext;
 
@@ -35,7 +34,7 @@ public abstract class ShareIllust implements IExecutor {
                 mContext.getString(R.string.share_illust,
                         mIllustsBean.getTitle(),
                         mIllustsBean.getUser().getName(),
-                        URL_Head + mIllustsBean.getId() + URL_BOTTOM));
+                        URL_Head + mIllustsBean.getId()));
         mContext.startActivity(Intent.createChooser(intent, mContext.getString(R.string.share)));
     }
 }

@@ -18,6 +18,7 @@ import com.just.agentweb.WebViewClient;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.UserActivity;
+import ceui.lisa.base.BaseFragment;
 import ceui.lisa.databinding.FragmentWebviewBinding;
 import ceui.lisa.download.WebDownload;
 import ceui.lisa.utils.ClipBoardUtils;
@@ -83,13 +84,13 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
     }
 
     @Override
-    public void initView(View view) {
+    public void initView() {
         baseBind.toolbar.setTitle(title);
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
     }
 
     @Override
-    void initData() {
+    protected void initData() {
         AgentWeb.PreAgentWeb ready = AgentWeb.with(this)
                 .setAgentWebParent(baseBind.webViewParent, new RelativeLayout.LayoutParams(-1, -1))
                 .useDefaultIndicator()
@@ -100,14 +101,12 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                         String destiny = request.getUrl().toString();
                         Common.showLog(className + destiny);
                         if (destiny.contains(WORKS_HEAD)) {
-                            Common.showLog("点击了ILLUST， 拦截调回APP");
                             PixivOperate.getIllustByID(sUserModel,
                                     Integer.valueOf(destiny.substring(WORKS_HEAD.length())), mContext);
                             return true;
                         }
 
                         if (destiny.contains(USER_HEAD)) {
-                            Common.showLog("点击了USER， 拦截调回APP");
                             Intent intent = new Intent(mContext, UserActivity.class);
                             intent.putExtra(Params.USER_ID, Integer.valueOf(destiny.substring(USER_HEAD.length())));
                             startActivity(intent);
@@ -216,7 +215,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                 }
                 case COPY_LINK_ADDRESS: {
                     ClipBoardUtils.putTextIntoClipboard(mContext, mIntentUrl);
-                    Snackbar.make(parentView, R.string.copy_to_clipboard, Snackbar.LENGTH_SHORT).show();
+                    Snackbar.make(rootView, R.string.copy_to_clipboard, Snackbar.LENGTH_SHORT).show();
                     break;
                 }
                 case COPY_LINK_TEXT: {

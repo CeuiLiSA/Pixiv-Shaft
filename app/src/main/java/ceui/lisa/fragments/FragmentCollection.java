@@ -2,7 +2,6 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.view.MenuItem;
-import android.view.View;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
@@ -16,6 +15,7 @@ import com.google.android.material.tabs.TabLayout;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
+import ceui.lisa.base.BaseFragment;
 import ceui.lisa.databinding.ViewpagerWithTablayoutBinding;
 import ceui.lisa.utils.Common;
 
@@ -40,7 +40,7 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
     }
 
     @Override
-    public void initView(View view) {
+    public void initView() {
         baseBind.toolbar.setTitle(mContext.getString(R.string.bookmark));
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
         baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {

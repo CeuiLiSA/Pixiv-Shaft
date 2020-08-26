@@ -16,12 +16,9 @@ import com.liulishuo.okdownload.core.listener.assist.Listener1Assist;
 import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 
-import org.greenrobot.eventbus.EventBus;
-
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.IllustTask;
 import ceui.lisa.models.IllustsBean;
-import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 
 public class GifListener extends DownloadListener1 {
@@ -68,10 +65,7 @@ public class GifListener extends DownloadListener1 {
     @Override
     public void progress(@NonNull DownloadTask task, long currentOffset, long totalLength) {
         if(mProgressBar != null && mProgressBar.getVisibility() == View.VISIBLE){
-            Common.showLog("看得见mProgressBar 更新 " + currentOffset + " / " + totalLength);
             mProgressBar.setProgress((int) currentOffset);
-        }else {
-            Common.showLog("看不见mProgressBar 不更新 ");
         }
     }
 

@@ -2,7 +2,6 @@ package ceui.lisa.fragments;
 
 import android.content.Intent;
 import android.view.MenuItem;
-import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -13,6 +12,7 @@ import androidx.fragment.app.FragmentPagerAdapter;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
+import ceui.lisa.base.BaseFragment;
 import ceui.lisa.databinding.FragmentNewNovelBinding;
 import ceui.lisa.utils.Params;
 
@@ -24,7 +24,7 @@ public class FragmentNewNovel extends BaseFragment<FragmentNewNovelBinding> {
     }
 
     @Override
-    public void initView(View view) {
+    public void initView() {
         String[] TITLES = new String[]{
                 Shaft.getContext().getString(R.string.recommend_illust),
                 Shaft.getContext().getString(R.string.hot_tag)

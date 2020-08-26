@@ -33,7 +33,7 @@
             android:id="@+id/title"
             android:layout_alignBottom="@+id/illust_image"
             android:textColor="@color/white"
-            android:text="收藏"
+            android:text="@string/string_114"
             android:textSize="13sp"
             android:layout_toStartOf="@+id/download"
             android:paddingTop="@dimen/six_dp"

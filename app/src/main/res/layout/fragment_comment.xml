@@ -86,7 +86,7 @@
                         <ceui.lisa.view.EditTextWithSelection
                             android:layout_width="match_parent"
                             android:id="@+id/input_box"
-                            android:hint="留下你的评论吧"
+                            android:hint="@string/string_49"
                             android:textSize="14sp"
                             android:textColor="@color/rank_text_color"
                             android:layout_marginEnd="@dimen/eight_dp"

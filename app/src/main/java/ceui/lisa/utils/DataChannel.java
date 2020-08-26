@@ -3,13 +3,11 @@ package ceui.lisa.utils;
 import java.util.ArrayList;
 import java.util.List;
 
-import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.IllustsBean;
 
 public class DataChannel {
 
     private volatile static DataChannel instance = null;
-    private List<IllustsBean> illustList = new ArrayList<>();
 
     private List<IllustsBean> downloadList = new ArrayList<>();
 
@@ -26,14 +24,6 @@ public class DataChannel {
         }
 
         return instance;
-    }
-
-    public List<IllustsBean> getIllustList() {
-        return illustList;
-    }
-
-    public void setIllustList(List<IllustsBean> illustList) {
-        this.illustList = illustList;
     }
 
     public List<IllustsBean> getDownloadList() {

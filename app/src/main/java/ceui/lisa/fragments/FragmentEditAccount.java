@@ -4,6 +4,7 @@ import android.text.TextUtils;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.base.BaseFragment;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
 import ceui.lisa.databinding.FragmentEditAccountBinding;
@@ -28,7 +29,7 @@ public class FragmentEditAccount extends BaseFragment<FragmentEditAccountBinding
     }
 
     @Override
-    void initData() {
+    protected void initData() {
         if (sUserModel == null) {
             Common.showToast("你还没有登录");
             mActivity.finish();

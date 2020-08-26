@@ -55,7 +55,7 @@
                     android:textColor="@color/colorPrimary"
                     android:layout_below="@+id/user_head"
                     android:layout_centerHorizontal="true"
-                    android:text="修改">
+                    android:text="@string/string_54">
 
                 </Button>
 
@@ -77,7 +77,7 @@
         <Button
             android:layout_width="match_parent"
             android:layout_alignParentBottom="true"
-            android:text="更新个人资料"
+            android:text="@string/string_55"
             android:layout_margin="@dimen/sixteen_dp"
             android:id="@+id/submit"
             android:layout_height="wrap_content">

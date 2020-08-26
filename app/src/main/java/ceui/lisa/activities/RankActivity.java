@@ -25,8 +25,7 @@ import ceui.lisa.utils.Common;
 public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> implements
         DatePickerDialog.OnDateSetListener {
 
-    private static final String[] CHINESE_TITLES_MANGA = new String[]{"日榜", "每周", "每月", "新人", "R"};
-    private static final String[] CHINESE_TITLES_NOVEL = new String[]{"日榜", "每周", "男性向", "女性向", "新人", "R"};
+
     private NetListFragment[] allPages = new NetListFragment[]{null, null, null, null, null, null, null, null};
     private String dataType = "";
     private String queryDate = "";
@@ -53,6 +52,22 @@ public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> im
                 mContext.getString(R.string.self_done),
                 mContext.getString(R.string.new_fish),
                 mContext.getString(R.string.r_eighteen)
+        };
+
+        final String[] CHINESE_TITLES_MANGA = new String[]{
+                getString(R.string.string_124),
+                getString(R.string.string_125),
+                getString(R.string.string_126),
+                getString(R.string.string_127),
+                getString(R.string.string_128)
+        };
+        final String[] CHINESE_TITLES_NOVEL = new String[]{
+                getString(R.string.string_129),
+                getString(R.string.string_130),
+                getString(R.string.string_131),
+                getString(R.string.string_132),
+                getString(R.string.string_133),
+                getString(R.string.string_134)
         };
 
 

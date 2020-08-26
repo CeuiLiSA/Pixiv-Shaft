@@ -18,6 +18,5 @@
         android:paddingTop="@dimen/six_dp"
         android:paddingEnd="@dimen/twelve_dp"
         android:paddingBottom="@dimen/six_dp"
-        android:text="哈哈哈哈哈哈"
         android:textColor="@color/white" />
 </layout>

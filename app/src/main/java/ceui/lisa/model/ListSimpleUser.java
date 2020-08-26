@@ -3,7 +3,6 @@ package ceui.lisa.model;
 import java.util.List;
 
 import ceui.lisa.interfaces.ListShow;
-import ceui.lisa.models.SpotlightArticlesBean;
 import ceui.lisa.models.UserBean;
 
 public class ListSimpleUser implements ListShow<UserBean> {

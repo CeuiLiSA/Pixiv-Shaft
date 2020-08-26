@@ -1,45 +1,32 @@
 package ceui.lisa.fragments;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.os.Handler;
-import android.text.Spannable;
-import android.text.SpannableString;
 import android.text.TextUtils;
-import android.text.style.ImageSpan;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.blankj.utilcode.util.ScreenUtils;
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
-import com.qmuiteam.qmui.span.QMUIAlignMiddleImageSpan;
-import com.qmuiteam.qmui.util.QMUIDisplayHelper;
-import com.qmuiteam.qmui.util.QMUIDrawableHelper;
+import com.qmuiteam.qmui.skin.QMUISkinManager;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.zhy.view.flowlayout.FlowLayout;
 import com.zhy.view.flowlayout.TagAdapter;
 import com.zhy.view.flowlayout.TagFlowLayout;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.SearchActivity;
@@ -58,6 +45,7 @@ import ceui.lisa.notification.BaseReceiver;
 import ceui.lisa.notification.StarReceiver;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
@@ -79,6 +67,9 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
     @Override
     public void initBundle(Bundle bundle) {
         illust = (IllustsBean) bundle.getSerializable(Params.CONTENT);
+        if (Dev.isDev) {
+            Common.showLog(Shaft.sGson.toJson(illust));
+        }
     }
 
     @Override
@@ -165,24 +156,25 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 return true;
             }
         });
-        baseBind.illustSize.setText("作品尺寸：" + illust.getWidth() + "px * " + illust.getHeight() + "px");
-        baseBind.illustId.setText("作品ID：" + illust.getId());
-        baseBind.userId.setText("画师ID：" + illust.getUser().getId());
+        baseBind.illustSize.setText(getString(R.string.string_193) + illust.getWidth() + "px * " + illust.getHeight() + "px");
+        baseBind.illustId.setText(getString(R.string.string_194) + illust.getId());
+        baseBind.userId.setText(getString(R.string.string_195) + illust.getUser().getId());
+
         final BottomSheetBehavior<?> sheetBehavior = BottomSheetBehavior.from(baseBind.coreLinear);
 
         baseBind.coreLinear.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
-                final int realHeight = baseBind.coreLinear.getHeight();
+                final int realHeight = baseBind.bottomBar.getHeight() +
+                        baseBind.viewDivider.getHeight() +
+                        baseBind.secondLinear.getHeight();
                 final int maxHeight = getResources().getDisplayMetrics().heightPixels * 3 / 4;
-                if (realHeight > maxHeight) {
-                    ViewGroup.LayoutParams params = baseBind.coreLinear.getLayoutParams();
-                    params.height = maxHeight;
-                    baseBind.coreLinear.setLayoutParams(params);
-                }
+                ViewGroup.LayoutParams params = baseBind.coreLinear.getLayoutParams();
+                params.height = Math.min(realHeight, maxHeight);
+                baseBind.coreLinear.setLayoutParams(params);
 
                 final int bottomCardHeight = baseBind.bottomBar.getHeight();
-                final int deltaY = baseBind.coreLinear.getHeight() - baseBind.bottomBar.getHeight();
+                final int deltaY = realHeight - baseBind.bottomBar.getHeight();
                 sheetBehavior.setPeekHeight(bottomCardHeight, true);
                 baseBind.refreshLayout.setPadding(0, 0, 0, bottomCardHeight - DensityUtil.dp2px(16.0f));
                 sheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
@@ -257,19 +249,19 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
             }
         });
         if (illust.getUser().isIs_followed()) {
-            baseBind.follow.setText("取消关注");
+            baseBind.follow.setText(R.string.string_177);
         } else {
-            baseBind.follow.setText("+ 关注");
+            baseBind.follow.setText(R.string.string_178);
         }
         baseBind.follow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (illust.getUser().isIs_followed()) {
-                    baseBind.follow.setText("+ 关注");
+                    baseBind.follow.setText(R.string.string_178);
                     PixivOperate.postUnFollowUser(illust.getUser().getId());
                     illust.getUser().setIs_followed(false);
                 } else {
-                    baseBind.follow.setText("取消关注");
+                    baseBind.follow.setText(R.string.string_177);
                     PixivOperate.postFollowUser(illust.getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC);
                     illust.getUser().setIs_followed(true);
                 }
@@ -280,7 +272,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
             if (illust.getUser().isIs_followed()) {
 
             } else {
-                baseBind.follow.setText("取消关注");
+                baseBind.follow.setText(R.string.string_177);
                 illust.getUser().setIs_followed(true);
                 PixivOperate.postFollowUser(illust.getUser().getId(), FragmentLikeIllust.TYPE_PRIVATE);
             }
@@ -295,10 +287,29 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 GifCreate.createGif(illust);
             } else {
                 if (illust.getPage_count() == 1) {
-                    IllustDownload.downloadIllust(mActivity, illust);
+                    IllustDownload.downloadIllust(illust);
                 } else {
-                    IllustDownload.downloadAllIllust(mActivity, illust);
+                    IllustDownload.downloadAllIllust(illust);
                 }
+            }
+        });
+        baseBind.download.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                if (illust.getPage_count() == 1) {
+                    new QMUIDialog.CheckableDialogBuilder(mContext)
+                            .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                            .addItems(items, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            })
+                            .create()
+                            .show();
+
+                }
+                return true;
             }
         });
         baseBind.illustId.setOnClickListener(new View.OnClickListener() {
@@ -318,7 +329,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 .into(baseBind.userHead);
     }
 
-
+    private static final String[] items = new String[]{"小图(square_medium)", "中图(medium)", "大图(large)", "原图(original)"};
     private StarReceiver mReceiver;
 
     @Override
@@ -360,7 +371,6 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
     public void onDestroy() {
         if (mReceiver != null) {
             LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mReceiver);
-            Common.showLog(className + "注销了 StarReceiver");
         }
         super.onDestroy();
     }

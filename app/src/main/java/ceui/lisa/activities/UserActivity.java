@@ -109,9 +109,9 @@ public class UserActivity extends BaseActivity<ActicityUserBinding> implements D
         baseBind.userAddress.setText(Common.checkEmpty(currentUser.getProfile().getRegion()));
         baseBind.userAddress.setVisibility(View.VISIBLE);
         List<String> tagList = new ArrayList<>();
-        tagList.add("好P友: " + currentUser.getProfile().getTotal_mypixiv_users());
-        tagList.add("关注: " + currentUser.getProfile().getTotal_follow_users());
-        tagList.add("详细信息");
+        tagList.add(getString(R.string.string_147) + currentUser.getProfile().getTotal_mypixiv_users());
+        tagList.add(getString(R.string.string_145) + currentUser.getProfile().getTotal_follow_users());
+        tagList.add(getString(R.string.string_146));
         baseBind.tagType.setAdapter(new TagAdapter<String>(tagList) {
             @Override
             public View getView(FlowLayout parent, int position, String s) {

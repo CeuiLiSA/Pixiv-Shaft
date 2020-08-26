@@ -4,7 +4,6 @@ import android.content.Context;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 
@@ -37,7 +36,9 @@ public class EventAdapter extends BaseAdapter<IllustsBean, RecyUserEventBinding>
         params.width = imageSize;
         bindView.baseBind.illustImage.setLayoutParams(params);
         bindView.baseBind.userName.setText(allIllust.get(position).getUser().getName());
-        bindView.baseBind.star.setText(allIllust.get(position).isIs_bookmarked() ? "取消收藏" : "收藏");
+        bindView.baseBind.star.setText(allIllust.get(position).isIs_bookmarked() ?
+                mContext.getString(R.string.string_179) :
+                mContext.getString(R.string.string_180));
         if (!TextUtils.isEmpty(target.getCaption())) {
             bindView.baseBind.description.setVisibility(View.VISIBLE);
             bindView.baseBind.description.setHtml(target.getCaption());
@@ -59,7 +60,9 @@ public class EventAdapter extends BaseAdapter<IllustsBean, RecyUserEventBinding>
             bindView.baseBind.more.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 4));
             bindView.baseBind.download.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 2));
             bindView.baseBind.star.setOnClickListener(v -> {
-                bindView.baseBind.star.setText(allIllust.get(position).isIs_bookmarked() ? "收藏" : "取消收藏");
+                bindView.baseBind.star.setText(allIllust.get(position).isIs_bookmarked() ?
+                        mContext.getString(R.string.string_180) :
+                        mContext.getString(R.string.string_179));
                 mOnItemClickListener.onItemClick(v, position, 3);
             });
         }

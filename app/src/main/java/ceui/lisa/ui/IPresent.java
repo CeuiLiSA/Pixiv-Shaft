@@ -1,8 +1,5 @@
 package ceui.lisa.ui;
 
-import ceui.lisa.http.NullCtrl;
-import ceui.lisa.interfaces.ListShow;
-import io.reactivex.Observable;
 import io.reactivex.Observer;
 
 public interface IPresent<T> {

@@ -10,7 +10,6 @@ import androidx.core.view.ViewCompat;
 
 import ceui.lisa.R;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.DensityUtil;
 
 public class FragmentRightHeaderBehavior extends CoordinatorLayout.Behavior<View> {
 

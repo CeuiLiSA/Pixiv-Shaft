@@ -2,8 +2,6 @@ package ceui.lisa.http;
 
 import android.text.TextUtils;
 
-import com.google.gson.Gson;
-
 import java.io.IOException;
 
 import ceui.lisa.activities.Shaft;

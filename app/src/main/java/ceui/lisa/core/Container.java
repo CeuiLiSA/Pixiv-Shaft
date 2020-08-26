@@ -1,18 +1,17 @@
 package ceui.lisa.core;
 
-import android.content.Context;
 import android.text.TextUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import ceui.lisa.database.AppDatabase;
-import ceui.lisa.database.UUIDEntity;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 
 public class Container {
+
+
 
     private HashMap<String, IDWithList<IllustsBean>> pages = new HashMap<>();
 

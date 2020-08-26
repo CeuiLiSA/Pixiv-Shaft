@@ -1,17 +1,9 @@
 package ceui.lisa.download;
 
-import com.google.gson.Gson;
 
-import org.greenrobot.eventbus.EventBus;
-
-import java.io.File;
 import java.util.ArrayList;
 
-import ceui.lisa.activities.Shaft;
-import ceui.lisa.database.AppDatabase;
-import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.database.IllustTask;
-import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 
 public class GifQueue {

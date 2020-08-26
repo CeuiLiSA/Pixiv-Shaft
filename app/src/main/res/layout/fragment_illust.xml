@@ -78,7 +78,7 @@
                         android:layout_marginEnd="48dp"
                         android:ellipsize="end"
                         android:maxLines="2"
-                        android:text="ブリタンニア(ルト系ブリトン人)の アルトリア・ペンドラゴン"
+                        android:text="@string/string_66"
                         android:textColor="#121212"
                         android:textSize="20sp"
                         android:textStyle="bold">
@@ -121,7 +121,7 @@
                             android:layout_toEndOf="@+id/user_head"
                             android:ellipsize="end"
                             android:maxLines="1"
-                            android:text="仮面みたいになっ"
+                            android:text="@string/string_67"
                             android:textColor="@color/white"
                             android:textSize="16sp"
                             android:textStyle="bold">
@@ -137,7 +137,7 @@
                             android:layout_toEndOf="@+id/user_head"
                             android:ellipsize="end"
                             android:maxLines="1"
-                            android:text="2018年4月29日6点13分投递"
+                            android:text="@string/string_68"
                             android:textColor="#bdbed6"
                             android:textSize="12sp">
 
@@ -154,7 +154,7 @@
                             android:paddingTop="@dimen/four_dp"
                             android:paddingEnd="@dimen/eight_dp"
                             android:paddingBottom="@dimen/four_dp"
-                            android:text="+ 关注"
+                            android:text="@string/string_69"
                             android:textColor="@color/white"
                             app:qmui_backgroundColor="#686bdd"
                             app:qmui_borderWidth="0dp"
@@ -169,6 +169,7 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
+                    android:id="@+id/view_divider"
                     android:layout_marginStart="@dimen/tweenty_four_dp"
                     android:layout_marginEnd="@dimen/tweenty_four_dp"
                     android:background="#f3f4f5">
@@ -181,6 +182,7 @@
 
                     <LinearLayout
                         android:layout_width="match_parent"
+                        android:id="@+id/second_linear"
                         android:layout_height="wrap_content"
                         android:orientation="vertical">
 
@@ -224,7 +226,7 @@
                                     android:layout_marginStart="@dimen/eight_dp"
                                     android:layout_marginTop="@dimen/four_dp"
                                     android:layout_toEndOf="@+id/left_rela"
-                                    android:text="表示回数"
+                                    android:text="@string/string_70"
                                     android:textColor="#666af6"
                                     android:textSize="12sp"
                                     android:textStyle="bold">
@@ -239,7 +241,6 @@
                                     android:layout_marginStart="@dimen/eight_dp"
                                     android:layout_marginBottom="@dimen/four_dp"
                                     android:layout_toEndOf="@+id/left_rela"
-                                    android:text="12980"
                                     android:textColor="#666af6"
                                     android:textSize="14sp"
                                     android:textStyle="bold">
@@ -285,7 +286,7 @@
                                     android:layout_marginStart="@dimen/eight_dp"
                                     android:layout_marginTop="@dimen/four_dp"
                                     android:layout_toEndOf="@+id/right_rela"
-                                    android:text="收藏次数"
+                                    android:text="@string/string_71"
                                     android:textColor="#666af6"
                                     android:textSize="12sp"
                                     android:textStyle="bold">
@@ -300,7 +301,6 @@
                                     android:layout_marginStart="@dimen/eight_dp"
                                     android:layout_marginBottom="@dimen/four_dp"
                                     android:layout_toEndOf="@+id/right_rela"
-                                    android:text="5633"
                                     android:textColor="#666af6"
                                     android:textSize="14sp"
                                     android:textStyle="bold">
@@ -475,7 +475,7 @@
                     android:layout_marginEnd="@dimen/tweenty_four_dp"
                     android:layout_marginBottom="@dimen/eight_dp"
                     android:layout_weight="2"
-                    android:text="下载"
+                    android:text="@string/string_72"
                     android:textColor="@color/white"
                     app:qmui_backgroundColor="#666af6"
                     app:qmui_borderColor="#eaebf9"

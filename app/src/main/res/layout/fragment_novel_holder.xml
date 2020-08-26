@@ -85,7 +85,7 @@
                         android:gravity="center_vertical"
                         android:id="@+id/save_novel"
                         android:layout_marginEnd="@dimen/six_dp"
-                        android:text="保存"
+                        android:text="@string/string_82"
                         android:layout_centerVertical="true"
                         android:textColor="@color/white_to_gray">
 
@@ -164,7 +164,7 @@
                         android:id="@+id/show_prev"
                         android:drawableStart="@drawable/ic_chevron_left_black_24dp"
                         android:layout_marginStart="@dimen/six_dp"
-                        android:text="上一章节"
+                        android:text="@string/string_83"
                         android:textColor="@color/white_to_gray">
 
                     </Button>
@@ -192,7 +192,7 @@
                         android:gravity="center_vertical"
                         android:id="@+id/show_next"
                         android:layout_marginEnd="@dimen/six_dp"
-                        android:text="下一章节"
+                        android:text="@string/string_84"
                         android:textColor="@color/white_to_gray">
 
                     </Button>

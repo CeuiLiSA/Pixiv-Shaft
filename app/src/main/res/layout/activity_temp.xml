@@ -6,7 +6,6 @@
 
     <TextView
         android:layout_width="wrap_content"
-        android:text="我是temp 哈哈哈"
         android:textSize="65sp"
         android:id="@+id/singleText"
         android:layout_height="wrap_content">

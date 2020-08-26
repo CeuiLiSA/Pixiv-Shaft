@@ -1,11 +1,9 @@
 package ceui.lisa.fragments;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.view.MenuItem;
 import android.view.View;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 
 import com.qmuiteam.qmui.skin.QMUISkinManager;
@@ -22,6 +20,7 @@ import ceui.lisa.activities.VActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.HistoryAdapter;
 import ceui.lisa.core.BaseRepo;
+import ceui.lisa.core.Container;
 import ceui.lisa.core.LocalRepo;
 import ceui.lisa.core.PageData;
 import ceui.lisa.database.AppDatabase;
@@ -31,7 +30,6 @@ import ceui.lisa.databinding.RecyViewHistoryBinding;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
-import ceui.lisa.core.Container;
 import ceui.lisa.utils.Params;
 import ceui.lisa.viewmodel.BaseModel;
 import ceui.lisa.viewmodel.HistoryModel;

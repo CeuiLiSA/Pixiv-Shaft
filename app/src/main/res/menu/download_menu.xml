@@ -4,19 +4,19 @@
     <item
         android:id="@+id/action_1"
         android:orderInCategory="100"
-        android:title="全部选择"
+        android:title="@string/string_20"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/action_2"
         android:orderInCategory="100"
-        android:title="取消全选"
+        android:title="@string/string_21"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/action_3"
         android:orderInCategory="100"
-        android:title="导出下载链接"
+        android:title="@string/string_22"
         app:showAsAction="never" />
 
 </menu>

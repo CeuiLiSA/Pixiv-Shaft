@@ -1,18 +1,14 @@
 package ceui.lisa.fragments;
 
-import android.content.DialogInterface;
 import android.text.TextUtils;
 import android.view.View;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.gson.reflect.TypeToken;
-import com.qmuiteam.qmui.skin.QMUISkinManager;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 
 import java.util.ArrayList;
@@ -70,34 +66,6 @@ public class FragmentFileName extends SwipeFragment<FragmentFileNameBinding> {
                 if (mAdapter != null) {
                     mAdapter.unCheckAll();
                 }
-            }
-        });
-        baseBind.lastName.setText(Shaft.sSettings.getFileLastType());
-        baseBind.lastName.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                final String[] items = new String[]{"png", "jpeg", "jpg"};
-                int checkedIndex = 0;
-                for (int i = 0; i < items.length; i++) {
-                    if (items[i].equals(Shaft.sSettings.getFileLastType())) {
-                        checkedIndex = i;
-                        break;
-                    }
-                }
-                new QMUIDialog.CheckableDialogBuilder(mContext)
-                        .setCheckedIndex(checkedIndex)
-                        .setSkinManager(QMUISkinManager.defaultInstance(mContext))
-                        .addItems(items, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                Shaft.sSettings.setFileLastType(items[which]);
-                                baseBind.lastName.setText(items[which]);
-                                Local.setSettings(Shaft.sSettings);
-                                dialog.dismiss();
-                            }
-                        })
-                        .create()
-                        .show();
             }
         });
     }

@@ -18,6 +18,8 @@ import ceui.lisa.R;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.VActivity;
 import ceui.lisa.adapters.LAdapter;
+import ceui.lisa.base.BaseFragment;
+import ceui.lisa.core.Container;
 import ceui.lisa.core.PageData;
 import ceui.lisa.databinding.FragmentLikeIllustHorizontalBinding;
 import ceui.lisa.http.NullCtrl;
@@ -26,7 +28,6 @@ import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.UserDetailResponse;
-import ceui.lisa.core.Container;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
@@ -68,7 +69,7 @@ public class FragmentLikeIllustHorizontal extends BaseFragment<FragmentLikeIllus
     }
 
     @Override
-    public void initView(View view) {
+    public void initView() {
         Wave wave = new Wave();
         wave.setColor(getResources().getColor(R.color.colorPrimary));
         baseBind.progress.setIndeterminateDrawable(wave);
@@ -98,11 +99,6 @@ public class FragmentLikeIllustHorizontal extends BaseFragment<FragmentLikeIllus
                 intent.putExtra(Params.POSITION, position);
                 intent.putExtra(Params.PAGE_UUID, uuid);
                 mContext.startActivity(intent);
-
-//                DataChannel.get().setIllustList(allItems);
-//                Intent intent = new Intent(mContext, ViewPagerActivity.class);
-//                intent.putExtra("position", position);
-//                startActivity(intent);
             }
         });
         baseBind.recyclerView.setAdapter(mAdapter);
@@ -137,7 +133,7 @@ public class FragmentLikeIllustHorizontal extends BaseFragment<FragmentLikeIllus
     }
 
     @Override
-    void initData() {
+    protected void initData() {
         Observable<ListIllust> api = null;
         if (type == 1) {
             api = Retro.getAppApi().getUserLikeIllust(sUserModel.getResponse().getAccess_token(),

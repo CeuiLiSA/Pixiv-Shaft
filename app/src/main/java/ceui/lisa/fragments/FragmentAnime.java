@@ -1,13 +1,13 @@
 package ceui.lisa.fragments;
 
 import android.os.Bundle;
-import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 
 import ceui.lisa.R;
+import ceui.lisa.base.BaseFragment;
 import ceui.lisa.databinding.FragmentAnimeBinding;
 
 public class FragmentAnime extends BaseFragment<FragmentAnimeBinding> {
@@ -37,7 +37,7 @@ public class FragmentAnime extends BaseFragment<FragmentAnimeBinding> {
     };
 
     @Override
-    public void initView(View view) {
+    public void initView() {
         baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
             @NonNull
             @Override

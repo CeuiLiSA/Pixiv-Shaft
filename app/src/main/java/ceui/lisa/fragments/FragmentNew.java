@@ -1,7 +1,5 @@
 package ceui.lisa.fragments;
 
-import android.view.View;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -9,6 +7,7 @@ import androidx.fragment.app.FragmentPagerAdapter;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.base.BaseFragment;
 import ceui.lisa.databinding.ViewpagerWithTablayoutBinding;
 import ceui.lisa.utils.Dev;
 
@@ -25,7 +24,7 @@ public class FragmentNew extends BaseFragment<ViewpagerWithTablayoutBinding> {
     }
 
     @Override
-    public void initView(View view) {
+    public void initView() {
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
         baseBind.toolbar.setTitle("最新作品");
         baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {

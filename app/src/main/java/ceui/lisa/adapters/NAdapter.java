@@ -16,7 +16,6 @@ import ceui.lisa.databinding.RecyNovelBinding;
 import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.NovelBean;
-import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
@@ -44,7 +43,8 @@ public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
     @Override
     public void bindData(NovelBean target, ViewHolder<RecyNovelBinding> bindView, int position) {
         if (target.getSeries() != null && !TextUtils.isEmpty(target.getSeries().getTitle())) {
-            bindView.baseBind.series.setText(String.format("系列：%s", target.getSeries().getTitle()));
+            bindView.baseBind.series.setText(String.format(mContext.getString(R.string.string_184),
+                    target.getSeries().getTitle()));
             if (showShop) {
 
             } else {
@@ -69,9 +69,9 @@ public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
         Glide.with(mContext).load(GlideUtil.getMediumImg(target.getImage_urls().getMaxImage())).into(bindView.baseBind.cover);
         Glide.with(mContext).load(GlideUtil.getHead(target.getUser())).into(bindView.baseBind.userHead);
         if (target.isIs_bookmarked()) {
-            bindView.baseBind.like.setText("取消收藏");
+            bindView.baseBind.like.setText(R.string.string_169);
         } else {
-            bindView.baseBind.like.setText("收藏");
+            bindView.baseBind.like.setText(R.string.string_170);
         }
         if (mOnItemClickListener != null) {
             bindView.baseBind.like.setOnClickListener(new View.OnClickListener() {

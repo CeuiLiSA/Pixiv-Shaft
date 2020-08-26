@@ -1,7 +1,5 @@
 package ceui.lisa.fragments;
 
-import android.view.View;
-
 import androidx.annotation.NonNull;
 import androidx.databinding.ViewDataBinding;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -16,6 +14,7 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
+import ceui.lisa.base.BaseFragment;
 import ceui.lisa.databinding.FragmentTestBinding;
 import ceui.lisa.interfaces.ListShow;
 import ceui.lisa.ui.IPresent;
@@ -39,7 +38,7 @@ public abstract class FragmentTest<Response extends ListShow<Item>, Item> extend
     }
 
     @Override
-    public void initView(View view) {
+    public void initView() {
         mPresent = present();
         mPresent.attach(this);
         baseBind.recyclerView.setLayoutManager(new LinearLayoutManager(mContext));

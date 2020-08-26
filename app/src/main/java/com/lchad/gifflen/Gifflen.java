@@ -29,7 +29,6 @@ import android.util.Log;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.util.Arrays;
 import java.util.List;
 
 import ceui.lisa.utils.Common;

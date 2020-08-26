@@ -15,7 +15,7 @@ import ceui.lisa.base.BaseActivity;
 import ceui.lisa.databinding.ActivityFragmentBinding;
 import ceui.lisa.fragments.FragmentAboutApp;
 import ceui.lisa.fragments.FragmentAnime;
-import ceui.lisa.fragments.FragmentBh;
+import ceui.lisa.fragments.FragmentDonate;
 import ceui.lisa.fragments.FragmentFileName;
 import ceui.lisa.fragments.FragmentHttpTest;
 import ceui.lisa.fragments.FragmentListSimpleUser;
@@ -115,8 +115,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                 case "账号管理":
                     return new FragmentLocalUsers();
                 case "按标签筛选": {
-                    String keyword = intent.getStringExtra(EXTRA_KEYWORD);
-                    return FragmentBookedTag.newInstance(keyword);
+                    String starType = intent.getStringExtra(EXTRA_KEYWORD);
+                    return FragmentBookedTag.newInstance(starType);
                 }
                 case "按标签收藏": {
                     int id = intent.getIntExtra(Params.ILLUST_ID, 0);
@@ -193,6 +193,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                     return new FragmentMutedTags();
                 case "修改命名方式":
                     return FragmentFileName.newInstance();
+                case "捐赠":
+                    return FragmentDonate.newInstance();
                 default:
                     return new Fragment();
             }

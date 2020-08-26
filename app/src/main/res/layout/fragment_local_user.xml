@@ -55,7 +55,7 @@
 
                 <TextView
                     android:layout_width="match_parent"
-                    android:text="添加账号"
+                    android:text="@string/add_account"
                     android:drawablePadding="@dimen/eight_dp"
                     android:gravity="center_vertical"
                     android:drawableStart="@drawable/ic_person_add_black_24dp"

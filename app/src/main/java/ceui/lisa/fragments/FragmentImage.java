@@ -11,10 +11,11 @@ import java.util.UUID;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.VActivity;
+import ceui.lisa.base.BaseFragment;
+import ceui.lisa.core.Container;
 import ceui.lisa.core.PageData;
 import ceui.lisa.databinding.FragmentImageBinding;
 import ceui.lisa.models.IllustsBean;
-import ceui.lisa.core.Container;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 
@@ -43,7 +44,7 @@ public class FragmentImage extends BaseFragment<FragmentImageBinding> {
     }
 
     @Override
-    public void initView(View view) {
+    public void initView() {
         Glide.with(mContext)
                 .load(GlideUtil.getLargeImage(mIllustsBean))
                 .transition(withCrossFade())
@@ -59,12 +60,6 @@ public class FragmentImage extends BaseFragment<FragmentImageBinding> {
                 intent.putExtra(Params.POSITION, 0);
                 intent.putExtra(Params.PAGE_UUID, uuid);
                 mContext.startActivity(intent);
-
-
-//                DataChannel.get().setIllustList(Collections.singletonList(mIllustsBean));
-//                Intent intent = new Intent(mContext, ViewPagerActivity.class);
-//                intent.putExtra("position", 0);
-//                startActivity(intent);
             }
         });
     }

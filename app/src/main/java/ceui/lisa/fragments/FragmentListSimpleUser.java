@@ -44,13 +44,13 @@ public class FragmentListSimpleUser extends NetListFragment<FragmentBaseListBind
         return new RemoteRepo<ListSimpleUser>() {
             @Override
             public Observable<ListSimpleUser> initApi() {
-                return Retro.getAppApi().getUsersWhoLikeThisIllust(mModel.getToken(),
+                return Retro.getAppApi().getUsersWhoLikeThisIllust(token(),
                         illustsBean.getId());
             }
 
             @Override
             public Observable<ListSimpleUser> initNextApi() {
-                return Retro.getAppApi().getNextSimpleUser(mModel.getToken(),
+                return Retro.getAppApi().getNextSimpleUser(token(),
                         mModel.getNextUrl());
             }
         };

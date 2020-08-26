@@ -25,7 +25,6 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/eight_dp"
             android:layout_toEndOf="@+id/user_head"
-            android:text="Michael"
             android:textColor="#666666"
             android:textSize="13sp" />
 
@@ -35,7 +34,6 @@
             android:layout_height="wrap_content"
             android:layout_alignStart="@+id/user_name"
             android:layout_alignBottom="@+id/user_head"
-            android:text="2018年10月23日"
             android:textColor="#999999"
             android:textSize="11sp" />
 
@@ -60,7 +58,6 @@
             android:layout_marginEnd="@dimen/four_dp"
             android:layout_marginBottom="10dp"
             android:layout_toStartOf="@+id/like"
-            android:text="2366"
             android:textColor="#999999"
             android:textSize="14sp" />
 
@@ -73,7 +70,6 @@
             android:layout_below="@+id/user_head"
             android:layout_alignStart="@+id/user_name"
             android:layout_marginTop="@dimen/eight_dp"
-            android:text="阿发发货撒地方和暗室逢灯哈弗斯"
             android:textColor="@color/comment_content"
             android:textSize="14sp" />
 
@@ -100,7 +96,6 @@
                 android:paddingTop="@dimen/six_dp"
                 android:paddingEnd="@dimen/six_dp"
                 android:paddingBottom="@dimen/six_dp"
-                android:text="阿飞面试我好的所发生的覅闪电发货按时US大风爱书法gas的"
                 android:textColor="#808080"
                 android:textSize="14sp" />
         </RelativeLayout>

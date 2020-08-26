@@ -1,11 +1,11 @@
 package ceui.lisa.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
-
-import org.greenrobot.eventbus.EventBus;
 
 import java.util.List;
 
@@ -19,7 +19,6 @@ import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListTag;
 import ceui.lisa.models.TagsBean;
-import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.LinearItemDecoration;
@@ -28,11 +27,15 @@ import io.reactivex.Observable;
 public class FragmentBookedTag extends NetListFragment<FragmentBaseListBinding,
         ListTag, TagsBean> {
 
-    private String bookType = "";
+    private String starType = "";
 
-    public static FragmentBookedTag newInstance(String bookType) {
+    /**
+     * @param starType public/private 公开收藏或者私人收藏
+     * @return FragmentBookedTag
+     */
+    public static FragmentBookedTag newInstance(String starType) {
         Bundle args = new Bundle();
-        args.putString(Params.DATA_TYPE, bookType);
+        args.putString(Params.STAR_TYPE, starType);
         FragmentBookedTag fragment = new FragmentBookedTag();
         fragment.setArguments(args);
         return fragment;
@@ -40,7 +43,7 @@ public class FragmentBookedTag extends NetListFragment<FragmentBaseListBinding,
 
     @Override
     public void initBundle(Bundle bundle) {
-        bookType = bundle.getString(Params.DATA_TYPE);
+        starType = bundle.getString(Params.STAR_TYPE);
     }
 
     @Override
@@ -49,7 +52,7 @@ public class FragmentBookedTag extends NetListFragment<FragmentBaseListBinding,
             @Override
             public Observable<ListTag> initApi() {
                 return Retro.getAppApi().getBookmarkTags(Shaft.sUserModel.getResponse().getAccess_token(),
-                        Shaft.sUserModel.getResponse().getUser().getId(), bookType);
+                        Shaft.sUserModel.getResponse().getUser().getId(), starType);
             }
 
             @Override
@@ -65,11 +68,10 @@ public class FragmentBookedTag extends NetListFragment<FragmentBaseListBinding,
         return new BookedTagAdapter(allItems, mContext, false).setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                Channel channel = new Channel();
-                channel.setReceiver(bookType);
-                channel.setObject(allItems.get(position).getName());
-                EventBus.getDefault().post(channel);
-
+                Intent intent = new Intent(Params.FILTER_ILLUST);
+                intent.putExtra(Params.CONTENT, allItems.get(position).getName());
+                intent.putExtra(Params.STAR_TYPE, starType);
+                LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);
                 mActivity.finish();
             }
         });

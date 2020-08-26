@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+    </data>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            android:layout_alignParentBottom="true"
+            android:id="@+id/bottom_linear"
+            android:layout_centerHorizontal="true"
+            android:layout_height="wrap_content">
+
+            <Button
+                style="@style/Widget.AppCompat.Button.Borderless.Colored"
+                android:layout_width="wrap_content"
+                android:id="@+id/show_animate"
+                android:layout_height="wrap_content"
+                android:text="缩小">
+
+            </Button>
+
+            <Button
+                style="@style/Widget.AppCompat.Button.Borderless.Colored"
+                android:layout_width="wrap_content"
+                android:id="@+id/close_animate"
+                android:layout_height="wrap_content"
+                android:text="放大">
+
+            </Button>
+
+        </LinearLayout>
+
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:layout_width="match_parent"
+            android:layout_above="@+id/bottom_linear"
+            android:layout_height="match_parent">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:background="@drawable/scale_activity_bg"
+                android:id="@+id/rela_parent"
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:text="标题"
+                    android:textSize="40sp"
+                    android:layout_margin="@dimen/tweenty_four_dp"
+                    android:textColor="@color/white"
+                    android:layout_height="wrap_content">
+
+                </TextView>
+
+            </RelativeLayout>
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:id="@+id/cover"
+                android:src="@drawable/black_gradient_revert"
+                android:layout_height="match_parent">
+
+            </ImageView>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+                android:background="@drawable/scale_activity_bottom_bg"
+                app:behavior_hideable="true"
+                android:orientation="vertical"
+                android:id="@+id/design_bottom_sheet1"
+                app:behavior_peekHeight="0dp"
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:text="新标题"
+                    android:textSize="40sp"
+                    android:layout_margin="@dimen/tweenty_four_dp"
+                    android:textColor="@color/white"
+                    android:layout_height="wrap_content">
+
+                </TextView>
+
+            </LinearLayout>
+
+
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+    </RelativeLayout>
+
+
+</layout>

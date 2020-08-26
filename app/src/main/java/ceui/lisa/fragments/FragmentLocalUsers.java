@@ -1,7 +1,6 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import android.text.TextUtils;
 import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
 import android.view.LayoutInflater;
@@ -18,6 +17,7 @@ import ceui.lisa.R;
 import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
+import ceui.lisa.base.BaseFragment;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
 import ceui.lisa.databinding.FragmentLocalUserBinding;
@@ -48,7 +48,7 @@ public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
     }
 
     @Override
-    public void initView(View view) {
+    public void initView() {
         baseBind.toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -66,7 +66,7 @@ public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
     }
 
     @Override
-    void initData() {
+    protected void initData() {
         Observable.create((ObservableOnSubscribe<List<UserEntity>>) emitter -> {
             List<UserEntity> temp = AppDatabase.getAppDatabase(mContext)
                     .downloadDao().getAllUser();

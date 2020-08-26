@@ -35,7 +35,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:text="动态"
+                android:text="@string/string_77"
                 android:textColor="@color/white"
                 android:textSize="18sp">
 
@@ -69,7 +69,7 @@
                         android:layout_marginTop="@dimen/twelve_dp"
                         android:drawablePadding="@dimen/four_dp"
                         android:gravity="center_vertical"
-                        android:text="推荐用户"
+                        android:text="@string/string_78"
                         android:textColor="#333333"
                         android:textSize="16sp"
                         android:textStyle="bold"
@@ -87,7 +87,7 @@
                         android:textColor="@color/new_color_primary"
                         android:layout_marginEnd="@dimen/twelve_dp"
                         android:gravity="center_vertical"
-                        android:text="查看更多"
+                        android:text="@string/string_79"
                         android:textSize="13sp"
                         app:drawableEndCompat="@drawable/ic_chevron_right_black_20dp"
                         app:drawableTint="#999999">
@@ -137,7 +137,7 @@
                         android:drawablePadding="@dimen/four_dp"
                         android:drawableTint="#75d2f0"
                         android:gravity="center_vertical"
-                        android:text="动态"
+                        android:text="@string/string_80"
                         android:textColor="#333333"
                         android:textSize="16sp"
                         android:textStyle="bold"
@@ -147,7 +147,7 @@
 
                     <Switch
                         android:layout_width="wrap_content"
-                        android:text="私人关注  "
+                        android:text="@string/string_81"
                         android:id="@+id/show_private"
                         android:textSize="12sp"
                         android:textColor="@color/new_color_primary"

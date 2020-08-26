@@ -12,8 +12,8 @@ android {
         applicationId "ceui.lisa.pixiv"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 112
-        versionName "2.2.4"
+        versionCode 113
+        versionName "2.2.5"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         javaCompileOptions {
@@ -84,14 +84,13 @@ dependencies {
     implementation 'com.github.ybq:Android-SpinKit:1.4.0'
     implementation 'androidx.room:room-runtime:2.2.5'
     annotationProcessor 'androidx.room:room-compiler:2.2.5'
-    implementation 'org.greenrobot:eventbus:3.2.0'
     implementation 'com.just.agentweb:agentweb:4.0.3-beta@aar'
     implementation 'com.facebook.rebound:rebound:0.3.8'
     implementation 'com.liulishuo.okdownload:okdownload:1.0.5'
     implementation 'com.github.tbruyelle:rxpermissions:0.10.2'
     implementation 'com.github.kingideayou:tagcloudview:1.0.2'
     implementation 'com.github.chrisbanes:PhotoView:2.3.0'
-    implementation 'org.sufficientlysecure:html-textview:3.6'
+    implementation 'org.sufficientlysecure:html-textview:3.9'
     implementation 'com.wdullaer:materialdatetimepicker:3.5.0'
     implementation 'com.nononsenseapps:filepicker:4.1.0'
     implementation 'com.qmuiteam:qmui:2.0.0-alpha10'
@@ -108,9 +107,8 @@ dependencies {
     implementation 'com.blankj:utilcodex:1.29.0'
     implementation group: 'net.lingala.zip4j', name: 'zip4j', version: '2.2.8'
     implementation 'com.safframework.log:saf-logginginterceptor:1.4.6'
-    implementation 'com.github.devlight.shadowlayout:library:1.0.2'
-    implementation 'com.google.firebase:firebase-analytics:17.4.4'
-    implementation 'com.google.firebase:firebase-crashlytics:17.1.1'
+    implementation 'com.google.firebase:firebase-analytics:17.5.0'
+    implementation 'com.google.firebase:firebase-crashlytics:17.2.1'
 
 
     implementation 'com.effective.android:panelSwitchHelper-androidx:1.3.1'

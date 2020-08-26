@@ -37,7 +37,6 @@ import ceui.lisa.activities.UserActivity;
 import ceui.lisa.activities.VActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.EventAdapter;
-import ceui.lisa.adapters.IAdapterWithHeadView;
 import ceui.lisa.core.BaseRepo;
 import ceui.lisa.core.Container;
 import ceui.lisa.core.FilterMapper;
@@ -93,9 +92,9 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
                     startActivity(intent);
                 } else if (viewType == 2) {
                     if (allItems.get(position).getPage_count() == 1) {
-                        IllustDownload.downloadIllust(mActivity, allItems.get(position));
+                        IllustDownload.downloadIllust(allItems.get(position));
                     } else {
-                        IllustDownload.downloadAllIllust(mActivity, allItems.get(position));
+                        IllustDownload.downloadAllIllust(allItems.get(position));
                     }
                 } else if (viewType == 3) {
                     PixivOperate.postLike(allItems.get(position), FragmentLikeIllust.TYPE_PUBLUC);
@@ -171,8 +170,8 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
     }
 
     @Override
-    public void initView(View view) {
-        super.initView(view);
+    public void initView() {
+        super.initView();
 
         ViewGroup.LayoutParams headParams = baseBind.head.getLayoutParams();
         headParams.height = Shaft.statusHeight;

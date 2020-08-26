@@ -115,7 +115,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_margin="@dimen/sixteen_dp"
-                                android:text="编辑账号信息与邮箱绑定"
+                                android:text="@string/string_91"
                                 android:textColor="@color/rank_text_color"
                                 android:textSize="15sp">
 
@@ -146,7 +146,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_margin="@dimen/sixteen_dp"
-                                android:text="个人资料设置"
+                                android:text="@string/string_92"
                                 android:textColor="@color/rank_text_color"
                                 android:textSize="15sp">
 
@@ -292,7 +292,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_centerVertical="true"
                                 android:layout_margin="@dimen/sixteen_dp"
-                                android:text="图片详情样式"
+                                android:text="@string/string_93"
                                 android:textColor="@color/rank_text_color"
                                 android:textSize="15sp">
 
@@ -518,7 +518,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_alignParentEnd="true"
                                 android:layout_margin="@dimen/sixteen_dp"
-                                android:text="点击前往设置"
+                                android:text="@string/string_94"
                                 android:textColor="@color/hint_text"
                                 android:textSize="14sp">
 
@@ -712,7 +712,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_alignParentEnd="true"
                                 android:layout_margin="@dimen/sixteen_dp"
-                                android:text="主题"
+                                android:text="@string/string_95"
                                 android:textColor="@color/hint_text"
                                 android:textSize="14sp">
 
@@ -760,7 +760,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_alignParentEnd="true"
                                 android:layout_margin="@dimen/sixteen_dp"
-                                android:text="10000"
+                                android:text="@string/string_96"
                                 android:textColor="@color/hint_text"
                                 android:textSize="14sp">
 
@@ -808,7 +808,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_alignParentEnd="true"
                                 android:layout_margin="@dimen/sixteen_dp"
-                                android:text="简体中文"
+                                android:text="@string/string_97"
                                 android:textColor="@color/hint_text"
                                 android:textSize="14sp">
 
@@ -913,7 +913,7 @@
                                 android:layout_marginBottom="@dimen/sixteen_dp"
                                 android:ellipsize="start"
                                 android:singleLine="true"
-                                android:text="/storage/emulated/0/Shaft/SingleImages"
+                                android:text="@string/string_98"
                                 android:textColor="@color/hint_text"
                                 android:textSize="13sp">
 
@@ -962,7 +962,7 @@
                                 android:layout_marginBottom="@dimen/sixteen_dp"
                                 android:ellipsize="start"
                                 android:singleLine="true"
-                                android:text="/storage/emulated/0/Shaft/SingleImages"
+                                android:text="@string/string_99"
                                 android:textColor="@color/hint_text"
                                 android:textSize="13sp" />
 
@@ -985,7 +985,7 @@
                                 android:layout_marginStart="@dimen/sixteen_dp"
                                 android:layout_marginTop="@dimen/eight_dp"
                                 android:layout_marginBottom="@dimen/eight_dp"
-                                android:text="缓存"
+                                android:text="@string/string_100"
                                 android:textColor="@color/hint_text"
                                 android:textSize="13sp" />
                         </RelativeLayout>
@@ -1004,7 +1004,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_centerVertical="true"
                                 android:layout_margin="@dimen/sixteen_dp"
-                                android:text="清除图片缓存"
+                                android:text="@string/string_101"
                                 android:textColor="@color/rank_text_color"
                                 android:textSize="15sp">
 
@@ -1018,7 +1018,6 @@
                                 android:layout_height="wrap_content"
                                 android:layout_alignParentEnd="true"
                                 android:layout_margin="@dimen/sixteen_dp"
-                                android:text="50M"
                                 android:textColor="@color/hint_text"
                                 android:textSize="14sp">
 
@@ -1053,7 +1052,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_centerVertical="true"
                                 android:layout_margin="@dimen/sixteen_dp"
-                                android:text="清除GIF缓存"
+                                android:text="@string/string_102"
                                 android:textColor="@color/rank_text_color"
                                 android:textSize="15sp">
 
@@ -1067,7 +1066,6 @@
                                 android:layout_height="wrap_content"
                                 android:layout_alignParentEnd="true"
                                 android:layout_margin="@dimen/sixteen_dp"
-                                android:text="200M"
                                 android:textColor="@color/hint_text"
                                 android:textSize="14sp">
 

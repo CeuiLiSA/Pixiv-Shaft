@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.base.BaseFragment;
 import ceui.lisa.databinding.FragmentEditFileBinding;
 import ceui.lisa.download.FileSizeUtil;
 import ceui.lisa.http.NullCtrl;
@@ -54,7 +55,7 @@ public class FragmentEditFile extends BaseFragment<FragmentEditFileBinding> {
     }
 
     @Override
-    void initData() {
+    protected void initData() {
         if (sUserModel == null) {
             Common.showToast("你还没有登录");
             mActivity.finish();

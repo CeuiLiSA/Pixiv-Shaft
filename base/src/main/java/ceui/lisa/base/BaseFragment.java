@@ -28,13 +28,10 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
     protected FragmentActivity mActivity;
     protected Context mContext;
     private boolean isVertical;
-    protected Handler mainHandler;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        mainHandler = new Handler();
 
         mActivity = requireActivity();
         mContext = requireContext();
@@ -52,6 +49,8 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
             }
         }
 
+        initModel();
+
         //获取屏幕方向
         int ori = getResources().getConfiguration().orientation;
         if (ori == Configuration.ORIENTATION_LANDSCAPE) {
@@ -66,6 +65,9 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+        if (rootView != null) {
+            return rootView;
+        }
         initLayout();
 
         if (mLayoutID != -1) {
@@ -118,9 +120,13 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
 
     }
 
-    @Override
-    public void onDestroy() {
-        mainHandler = null;
-        super.onDestroy();
+    public void finish() {
+        if (mActivity != null) {
+            mActivity.finish();
+        }
+    }
+
+    public void initModel() {
+
     }
 }

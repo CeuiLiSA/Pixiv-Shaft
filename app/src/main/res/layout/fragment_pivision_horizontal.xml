@@ -44,7 +44,7 @@
                     android:layout_marginBottom="2dp"
                     android:layout_marginEnd="@dimen/sixteen_dp"
                     android:text="@string/see_more"
-                    android:drawableRight="@drawable/ic_chevron_right_black_24dp"
+                    android:drawableEnd="@drawable/ic_chevron_right_black_24dp"
                     android:gravity="center"
                     android:drawableTint="@color/new_color_primary"
                     android:textColor="@color/new_color_primary"

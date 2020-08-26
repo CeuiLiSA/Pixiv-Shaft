@@ -1,11 +1,8 @@
 package ceui.lisa.fragments;
 
-import android.content.DialogInterface;
 import android.view.MenuItem;
-import android.view.View;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
@@ -18,6 +15,7 @@ import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.base.BaseFragment;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.databinding.ViewpagerWithTablayoutBinding;
 import ceui.lisa.utils.Common;
@@ -40,7 +38,7 @@ public class FragmentDownload extends BaseFragment<ViewpagerWithTablayoutBinding
     }
 
     @Override
-    public void initView(View view) {
+    public void initView() {
         baseBind.toolbar.setTitle("下载管理");
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
         baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {

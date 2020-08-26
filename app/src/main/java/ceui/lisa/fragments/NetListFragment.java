@@ -31,9 +31,9 @@ import ceui.lisa.utils.Params;
 /**
  * 联网获取xx列表，
  *
- * @param <Layout>     这个列表的LayoutBinding
- * @param <Response>   这次请求的Response
- * @param <Item>       这个列表的单个Item实体类
+ * @param <Layout>   这个列表的LayoutBinding
+ * @param <Response> 这次请求的Response
+ * @param <Item>     这个列表的单个Item实体类
  */
 public abstract class NetListFragment<Layout extends ViewDataBinding,
         Response extends ListShow<Item>, Item> extends ListFragment<Layout, Item> {
@@ -50,8 +50,8 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                 public void success(Response response) {
                     mResponse = response;
                     onResponse(mResponse);
-                    if (response.getList() != null && response.getList().size() != 0) {
-                        List<Item> firstList = response.getList();
+                    if (mResponse.getList() != null && mResponse.getList().size() != 0) {
+                        List<Item> firstList = mResponse.getList();
                         beforeFirstLoad(firstList);
                         if (mModel != null) {
                             mModel.load(firstList);
@@ -65,8 +65,8 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                         noData.setVisibility(View.VISIBLE);
                         noData.setImageResource(R.mipmap.no_data_line);
                     }
-                    mModel.setNextUrl(response.getNextUrl());
-                    if (!TextUtils.isEmpty(response.getNextUrl())) {
+                    mModel.setNextUrl(mResponse.getNextUrl());
+                    if (!TextUtils.isEmpty(mResponse.getNextUrl())) {
                         mRefreshLayout.setRefreshFooter(new ClassicsFooter(mContext));
                     } else {
                         mRefreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
@@ -98,8 +98,8 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                 @Override
                 public void success(Response response) {
                     mResponse = response;
-                    if (response.getList() != null && response.getList().size() != 0) {
-                        List<Item> nextList = response.getList();
+                    if (mResponse.getList() != null && mResponse.getList().size() != 0) {
+                        List<Item> nextList = mResponse.getList();
                         beforeNextLoad(nextList);
                         if (mModel != null) {
                             mModel.load(nextList);
@@ -107,7 +107,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                         onNextLoaded(nextList);
                         mAdapter.notifyItemRangeInserted(getStartSize(), nextList.size());
                     }
-                    mModel.setNextUrl(response.getNextUrl());
+                    mModel.setNextUrl(mResponse.getNextUrl());
                 }
 
                 @Override
@@ -124,8 +124,8 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
     }
 
     @Override
-    void initData() {
-        mRemoteRepo = (RemoteRepo<Response>) mBaseRepo;
+    protected void initData() {
+        mRemoteRepo = (RemoteRepo<Response>) mModel.getBaseRepo();
     }
 
     /**

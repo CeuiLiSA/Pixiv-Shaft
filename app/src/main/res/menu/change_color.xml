@@ -4,6 +4,6 @@
     <item
         android:id="@+id/action_add"
         android:orderInCategory="100"
-        android:title="修改背景色"
+        android:title="@string/string_15"
         app:showAsAction="never" />
 </menu>

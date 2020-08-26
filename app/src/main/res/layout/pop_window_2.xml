@@ -28,7 +28,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:textColor="@color/black"
-            android:text="屏蔽设定"
+            android:text="@string/string_111"
             android:textSize="15sp"
             android:id="@+id/follow"
             android:layout_toEndOf="@+id/s3"
@@ -66,7 +66,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:textColor="@color/black"
-            android:text="查看评论"
+            android:text="@string/string_112"
             android:textSize="15sp"
             android:layout_toEndOf="@+id/s1"
             android:layout_centerVertical="true"
@@ -103,7 +103,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:textColor="@color/black"
-            android:text="批量下载"
+            android:text="@string/string_113"
             android:textSize="15sp"
             android:layout_toEndOf="@+id/s2"
             android:layout_marginStart="@dimen/sixteen_dp"

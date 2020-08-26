@@ -53,24 +53,9 @@ public class FileOperator implements IOperate {
 
     @Override
     public void clearAll() {
-        if (FileUtils.delete(PathUtils.getInternalAppCachePath())) {
-            ToastUtils.showShort("清除成功！");
-        } else {
-            ToastUtils.showShort("清除失败！");
-        }
     }
 
     @Override
     public void clear(String key) {
-        File file = new File(PathUtils.getInternalAppCachePath(), key);
-        if (!file.exists()) {
-            ToastUtils.showShort("文件不存在！");
-        } else {
-            if (file.delete()) {
-                ToastUtils.showShort("清除成功！");
-            } else {
-                ToastUtils.showShort("清除失败！");
-            }
-        }
     }
 }

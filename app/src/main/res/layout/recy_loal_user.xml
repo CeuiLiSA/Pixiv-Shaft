@@ -44,7 +44,7 @@
         android:layout_height="wrap_content"
         android:layout_alignBottom="@+id/user_head"
         android:layout_toEndOf="@+id/login_time"
-        android:text="复制"
+        android:text="@string/string_120"
         android:textColor="@color/colorPrimary"
         android:textSize="13sp" />
 
@@ -57,7 +57,7 @@
         android:layout_height="wrap_content"
         android:layout_alignBottom="@+id/user_head"
         android:layout_toEndOf="@+id/double_pwd"
-        android:text="显示"
+        android:text="@string/string_121"
         android:textColor="@color/colorPrimary"
         android:textSize="13sp" />
 

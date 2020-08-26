@@ -123,7 +123,6 @@
                 android:layout_marginBottom="5dp"
                 android:shadowRadius="1.5"
                 android:layout_marginTop="14dp"
-                android:text="作者名字"
                 android:layout_marginEnd="@dimen/eight_dp"
                 android:textColor="@android:color/white"
                 android:textStyle="bold"
@@ -140,7 +139,7 @@
                 android:layout_marginEnd="@dimen/four_dp"
                 android:layout_alignBaseline="@+id/author"
                 android:layout_toStartOf="@+id/cover"
-                android:text="收藏">
+                android:text="@string/string_122">
 
 
             </Button>

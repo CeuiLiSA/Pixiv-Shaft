@@ -109,7 +109,7 @@
                         android:paddingBottom="@dimen/six_dp"
                         android:layout_alignParentEnd="true"
                         android:layout_margin="@dimen/twelve_dip"
-                        android:text="+ 关 注" />
+                        android:text="@string/string_13" />
 
                 </RelativeLayout>
 

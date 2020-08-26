@@ -20,12 +20,8 @@ import androidx.core.app.ActivityOptionsCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.bumptech.glide.Glide;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
-
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -37,8 +33,8 @@ import ceui.lisa.activities.SearchActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UserActivity;
-import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IllustDetailAdapter;
+import ceui.lisa.base.BaseFragment;
 import ceui.lisa.databinding.FragmentSingleIllustBinding;
 import ceui.lisa.dialogs.MuteDialog;
 import ceui.lisa.download.FileCreator;
@@ -46,11 +42,8 @@ import ceui.lisa.download.GifCreate;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.IllustsBean;
-import ceui.lisa.models.Starable;
 import ceui.lisa.notification.BaseReceiver;
-import ceui.lisa.notification.CommonReceiver;
 import ceui.lisa.notification.StarReceiver;
-import ceui.lisa.utils.Channel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.GlideUtil;
@@ -137,7 +130,7 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
     }
 
     @Override
-    void initData() {
+    protected void initData() {
         if (illust != null) {
             loadImage();
         }
@@ -148,41 +141,42 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        IntentFilter intentFilter = new IntentFilter();
-        mReceiver = new StarReceiver(new BaseReceiver.CallBack() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                Bundle bundle = intent.getExtras();
-                if (bundle != null) {
-                    int id = bundle.getInt(Params.ID);
-                    if (illust.getId() == id) {
-                        boolean isLiked = bundle.getBoolean(Params.IS_LIKED);
-                        if (isLiked) {
-                            illust.setIs_bookmarked(true);
-                            baseBind.postLike.setImageResource(R.drawable.ic_favorite_red_24dp);
-                        } else {
-                            illust.setIs_bookmarked(false);
-                            baseBind.postLike.setImageResource(R.drawable.ic_favorite_grey_24dp);
+        {
+            IntentFilter intentFilter = new IntentFilter();
+            mReceiver = new StarReceiver(new BaseReceiver.CallBack() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    Bundle bundle = intent.getExtras();
+                    if (bundle != null) {
+                        int id = bundle.getInt(Params.ID);
+                        if (illust.getId() == id) {
+                            boolean isLiked = bundle.getBoolean(Params.IS_LIKED);
+                            if (isLiked) {
+                                illust.setIs_bookmarked(true);
+                                baseBind.postLike.setImageResource(R.drawable.ic_favorite_red_24dp);
+                            } else {
+                                illust.setIs_bookmarked(false);
+                                baseBind.postLike.setImageResource(R.drawable.ic_favorite_grey_24dp);
+                            }
                         }
                     }
                 }
-            }
-        });
-        intentFilter.addAction(Params.LIKED_ILLUST);
-        LocalBroadcastManager.getInstance(mContext).registerReceiver(mReceiver, intentFilter);
+            });
+            intentFilter.addAction(Params.LIKED_ILLUST);
+            LocalBroadcastManager.getInstance(mContext).registerReceiver(mReceiver, intentFilter);
+        }
     }
 
     @Override
     public void onDestroy() {
         if (mReceiver != null) {
             LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mReceiver);
-            Common.showLog(className + "注销了 StarReceiver");
         }
         super.onDestroy();
     }
 
     @Override
-    public void initView(View view) {
+    public void initView() {
         if (illust == null) {
             return;
         }
@@ -235,9 +229,9 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
                 GifCreate.createGif(illust);
             } else {
                 if (illust.getPage_count() == 1) {
-                    IllustDownload.downloadIllust(mActivity, illust);
+                    IllustDownload.downloadIllust(illust);
                 } else {
-                    IllustDownload.downloadAllIllust(mActivity, illust);
+                    IllustDownload.downloadAllIllust(illust);
                 }
             }
         });

@@ -1,11 +1,6 @@
 package ceui.lisa.activities;
 
-import android.os.Build;
-import android.util.Log;
-import android.view.DisplayCutout;
 import android.view.View;
-import android.view.WindowManager;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
@@ -26,7 +21,6 @@ import ceui.lisa.download.IllustDownload;
 import ceui.lisa.fragments.FragmentImageDetail;
 import ceui.lisa.fragments.FragmentLocalImageDetail;
 import ceui.lisa.models.IllustsBean;
-import ceui.lisa.utils.Common;
 
 /**
  * 图片二级详情
@@ -36,7 +30,6 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
     private IllustsBean mIllustsBean;
     private List<String> localIllust = new ArrayList<>();
     private TextView currentPage, downloadSingle, currentSize;
-    private RelativeLayout mRvBottomRela;
     private int index;
 
     @Override
@@ -50,32 +43,6 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
 
     @Override
     protected void initView() {
-        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                | View.SYSTEM_UI_FLAG_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            WindowManager.LayoutParams lp = getWindow().getAttributes();
-            lp.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
-            getWindow().setAttributes(lp);
-            mRvBottomRela = findViewById(R.id.bottom_rela);
-            mRvBottomRela.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
-
-                boolean changed;
-
-                @Override
-                public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
-                    DisplayCutout displayCutout = v.getRootWindowInsets().getDisplayCutout();
-                    if (displayCutout != null) {
-                        if (!changed) {
-                            changed = true;
-                            Log.d("mRvBottomRela", "before " + v.getPaddingLeft() + " " + v.getPaddingTop() + " " + v.getPaddingRight() + " " + v.getPaddingBottom());
-                            v.setPadding(v.getPaddingLeft() + displayCutout.getSafeInsetLeft(), v.getPaddingTop(), v.getPaddingRight() + displayCutout.getSafeInsetRight(), v.getPaddingBottom() + displayCutout.getSafeInsetBottom());
-                            Log.d("mRvBottomRela", "after " + v.getPaddingLeft() + " " + v.getPaddingTop() + " " + v.getPaddingRight() + " " + v.getPaddingBottom());
-                        }
-                    }
-                }
-            });
-        }
         String dataType = getIntent().getStringExtra("dataType");
         baseBind.viewPager.setPageTransformer(true, new CubeOutTransformer());
         if ("二级详情".equals(dataType)) {
@@ -102,7 +69,7 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
             downloadSingle.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    IllustDownload.downloadIllust(mActivity, mIllustsBean, baseBind.viewPager.getCurrentItem());
+                    IllustDownload.downloadIllust(mIllustsBean, baseBind.viewPager.getCurrentItem());
                 }
             });
             baseBind.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
@@ -124,7 +91,6 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
             currentPage.setText("第" + (index + 1) + "P / 共" + mIllustsBean.getPage_count() + "P");
 
         } else if ("下载详情".equals(dataType)) {
-
             currentPage = findViewById(R.id.current_page);
             downloadSingle = findViewById(R.id.download_this_one);
             localIllust = (List<String>) getIntent().getSerializableExtra("illust");
@@ -151,7 +117,7 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
 
                 @Override
                 public void onPageSelected(int i) {
-                    downloadSingle.setText("路径：" + localIllust.get(i));
+                    downloadSingle.setText(String.format("%s%s", getString(R.string.file_path), localIllust.get(i)));
                 }
 
                 @Override
@@ -159,18 +125,7 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
 
                 }
             });
-            downloadSingle.setText("路径：" + localIllust.get(index));
-            downloadSingle.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-//                    Uri uri = Uri.parse("content://com.android.externalstorage.documents/document/primary:");
-//                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-//                    intent.addCategory(Intent.CATEGORY_OPENABLE);
-//                    intent.setType("*/*");
-//                    intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, uri);
-//                    startActivityForResult(intent, 1);
-                }
-            });
+            downloadSingle.setText(String.format("%s%s", getString(R.string.file_path), localIllust.get(index)));
         }
     }
 
@@ -183,10 +138,8 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
     @Override
     public void onBackPressed() {
         if(index == baseBind.viewPager.getCurrentItem()){
-            Common.showLog(className + "没有滑动");
             super.onBackPressed();
         }else {
-            Common.showLog(className + "滑动到其他页面不做动画");
             mActivity.finish();
         }
     }

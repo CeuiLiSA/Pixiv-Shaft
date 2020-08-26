@@ -22,8 +22,8 @@ import com.mxn.soul.flowingdrawer_core.ElasticDrawer;
 
 import ceui.lisa.R;
 import ceui.lisa.base.BaseActivity;
+import ceui.lisa.base.BaseFragment;
 import ceui.lisa.databinding.FragmentNewSearchBinding;
-import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentFilter;
 import ceui.lisa.fragments.FragmentSearchIllust;
 import ceui.lisa.fragments.FragmentSearchNovel;
@@ -33,8 +33,7 @@ import ceui.lisa.viewmodel.SearchModel;
 
 public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 
-    private static final String[] TITLES = new String[]{"插画/漫画", "小说"};
-    private BaseFragment[] allPages = new BaseFragment[]{null, null};
+    private BaseFragment<?>[] allPages = new BaseFragment[]{null, null, null};
     private String keyWord = "";
     private SearchModel searchModel;
     private int index = 0;
@@ -60,6 +59,11 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 
     @Override
     protected void initView() {
+        final String[] TITLES = new String[]{
+                getString(R.string.string_136),
+                getString(R.string.string_137),
+                getString(R.string.string_138)
+        };
         baseBind.searchBox.setText(keyWord);
         baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager(), 0) {
             @NonNull
@@ -67,7 +71,9 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
             public Fragment getItem(int position) {
                 if (allPages[position] == null) {
                     if (position == 0) {
-                        allPages[position] = FragmentSearchIllust.newInstance();
+                        allPages[position] = FragmentSearchIllust.newInstance(false);
+                    } else if(position == 1)  {
+                        allPages[position] = FragmentSearchIllust.newInstance(true);
                     } else  {
                         allPages[position] = FragmentSearchNovel.newInstance();
                     }
@@ -136,7 +142,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (TextUtils.isEmpty(baseBind.searchBox.getText().toString())) {
-                    Common.showToast("请输入搜索内容");
+                    Common.showToast(getString(R.string.string_139));
                     return false;
                 }
                 searchModel.getNowGo().setValue("search_now");

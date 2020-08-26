@@ -42,7 +42,7 @@
                     android:layout_marginStart="@dimen/sixteen_dp"
                     android:layout_marginTop="@dimen/sixteen_dp"
                     android:layout_marginBottom="@dimen/twelve_dp"
-                    android:text="当前下载文件名示例："
+                    android:text="@string/string_56"
                     android:layout_height="wrap_content">
 
                 </TextView>
@@ -52,7 +52,7 @@
                     android:id="@+id/file_name"
                     android:textColor="#666af6"
                     android:layout_below="@+id/now_name"
-                    android:text="12345678_title.png"
+                    android:text="@string/string_57"
                     android:layout_marginBottom="@dimen/sixteen_dp"
                     android:textSize="20sp"
                     android:layout_marginStart="@dimen/sixteen_dp"
@@ -71,43 +71,6 @@
 
                 </androidx.recyclerview.widget.RecyclerView>
 
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_alignParentBottom="true"
-                    android:id="@+id/last_name_rela"
-                    android:layout_height="wrap_content">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:text="文件后缀名"
-                        android:textSize="20sp"
-                        android:layout_marginStart="@dimen/sixteen_dp"
-                        android:id="@+id/last_name_s"
-                        android:layout_marginTop="@dimen/sixteen_dp"
-                        android:layout_marginBottom="@dimen/sixteen_dp"
-                        android:layout_gravity="center_horizontal"
-                        android:layout_height="wrap_content">
-
-                    </TextView>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_marginStart="30dp"
-                        android:id="@+id/last_name"
-                        android:layout_toEndOf="@+id/last_name_s"
-                        android:textSize="25sp"
-                        android:textColor="#666af6"
-                        android:gravity="end"
-                        android:text="PNG"
-                        android:layout_marginEnd="@dimen/sixteen_dp"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:layout_height="wrap_content">
-
-                    </TextView>
-
-                </RelativeLayout>
             </RelativeLayout>
 
 
@@ -130,7 +93,7 @@
                 android:layout_marginEnd="@dimen/six_dp"
                 android:layout_marginBottom="@dimen/eight_dp"
                 android:layout_weight="1"
-                android:text="清空"
+                android:text="@string/string_58"
                 android:textColor="#9f9fb4"
                 app:qmui_backgroundColor="@color/white"
                 app:qmui_borderColor="#eaebf9"
@@ -147,7 +110,7 @@
                 android:layout_marginEnd="@dimen/six_dp"
                 android:layout_marginBottom="@dimen/eight_dp"
                 android:layout_weight="1"
-                android:text="预览"
+                android:text="@string/string_59"
                 android:textColor="#9f9fb4"
                 app:qmui_backgroundColor="@color/white"
                 app:qmui_borderColor="#eaebf9"
@@ -164,7 +127,7 @@
                 android:layout_marginBottom="@dimen/eight_dp"
                 android:layout_marginTop="@dimen/eight_dp"
                 android:layout_weight="2"
-                android:text="保存命名格式"
+                android:text="@string/string_60"
                 android:textColor="@color/white"
                 app:qmui_backgroundColor="#666af6"
                 app:qmui_borderColor="#eaebf9"

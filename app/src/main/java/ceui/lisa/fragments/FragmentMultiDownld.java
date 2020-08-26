@@ -17,6 +17,7 @@ import ceui.lisa.activities.VActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.MultiDownldAdapter;
 import ceui.lisa.core.BaseRepo;
+import ceui.lisa.core.Container;
 import ceui.lisa.core.LocalRepo;
 import ceui.lisa.core.PageData;
 import ceui.lisa.databinding.FragmentMultiDownloadBinding;
@@ -27,7 +28,6 @@ import ceui.lisa.interfaces.Callback;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
-import ceui.lisa.core.Container;
 import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Dev;
@@ -46,8 +46,8 @@ public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownload
     }
 
     @Override
-    public void initView(View view) {
-        super.initView(view);
+    public void initView() {
+        super.initView();
         baseBind.toolbar.inflateMenu(R.menu.download_menu);
         baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
@@ -112,7 +112,7 @@ public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownload
         baseBind.startDownload.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                IllustDownload.downloadAllIllust(mActivity, allItems);
+                IllustDownload.downloadAllIllust(allItems);
             }
         });
     }
@@ -131,11 +131,6 @@ public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownload
                 intent.putExtra(Params.POSITION, position);
                 intent.putExtra(Params.PAGE_UUID, uuid);
                 mContext.startActivity(intent);
-
-//                DataChannel.get().setIllustList(allItems);
-//                Intent intent = new Intent(mContext, ViewPagerActivity.class);
-//                intent.putExtra("position", position);
-//                startActivity(intent);
             }
         });
         adapter.setCallback(new Callback() {

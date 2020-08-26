@@ -27,6 +27,7 @@ import ceui.lisa.activities.SearchActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.adapters.VAdapter;
+import ceui.lisa.base.BaseFragment;
 import ceui.lisa.cache.Cache;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.DownloadEntity;
@@ -69,7 +70,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
     }
 
     @Override
-    public void initView(View view) {
+    public void initView() {
         BarUtils.setNavBarColor(mActivity, getResources().getColor(R.color.hito_bg));
         baseBind.toolbar.inflateMenu(R.menu.change_color);
         baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
@@ -107,14 +108,14 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                 downloadEntity.setFilePath(PathUtils.getInternalAppCachePath());
                 downloadEntity.setIllustGson(Shaft.sGson.toJson(mNovelBean));
                 AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(downloadEntity);
-                Common.showToast("保存成功", baseBind.saveNovel);
+                Common.showToast(getString(R.string.string_181), baseBind.saveNovel);
                 baseBind.transformationLayout.finishTransform();
             }
         });
         if (mNovelBean.isIs_bookmarked()) {
-            baseBind.like.setText("取消收藏");
+            baseBind.like.setText(mContext.getString(R.string.string_179));
         } else {
-            baseBind.like.setText("收藏");
+            baseBind.like.setText(mContext.getString(R.string.string_180));
         }
         baseBind.like.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -146,9 +147,9 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
         baseBind.userName.setText(mNovelBean.getUser().getName());
         baseBind.viewPager.setLayoutManager(new ScrollChange(mContext));
         baseBind.viewPager.setHasFixedSize(false);
-        baseBind.novelTitle.setText("标题：" + mNovelBean.getTitle());
+        baseBind.novelTitle.setText(String.format("%s%s", getString(R.string.string_182), mNovelBean.getTitle()));
         if (mNovelBean.getSeries() != null && !TextUtils.isEmpty(mNovelBean.getSeries().getTitle())) {
-            baseBind.novelSeries.setText("系列：" + mNovelBean.getSeries().getTitle());
+            baseBind.novelSeries.setText(String.format("%s%s", getString(R.string.string_183), mNovelBean.getSeries().getTitle()));
             baseBind.novelSeries.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -185,7 +186,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
     }
 
     @Override
-    void initData() {
+    protected void initData() {
         getNovel(mNovelBean);
     }
 
@@ -237,7 +238,6 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if (isOpen) {
-                    Common.showLog(className + "关闭card");
                     baseBind.transformationLayout.finishTransform();
                     isOpen = false;
                 }

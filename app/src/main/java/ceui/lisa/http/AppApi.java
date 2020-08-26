@@ -17,14 +17,12 @@ import ceui.lisa.model.ListUser;
 import ceui.lisa.model.ListTrendingtag;
 import ceui.lisa.models.CommentHolder;
 import ceui.lisa.models.MutedHistory;
-import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.NovelDetail;
 import ceui.lisa.models.NovelSearchResponse;
 import ceui.lisa.models.NullResponse;
 import ceui.lisa.models.UserDetailResponse;
 import ceui.lisa.models.UserState;
 import io.reactivex.Observable;
-import io.reactivex.rxjava3.core.Observer;
 import okhttp3.MultipartBody;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
@@ -271,6 +269,11 @@ public interface AppApi {
 
     @GET("v1/search/user?filter=for_android")
     Observable<ListUser> searchUser(@Header("Authorization") String token,
+                                    @Query("word") String word);
+
+
+    @GET("v1/search/popular-preview/illust?filter=for_android&include_translated_tag_results=true&merge_plain_keyword_results=true&search_target=exact_match_for_tags")
+    Observable<ListIllust> popularPreview(@Header("Authorization") String token,
                                     @Query("word") String word);
 
 

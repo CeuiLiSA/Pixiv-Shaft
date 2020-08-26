@@ -1,6 +1,5 @@
 package ceui.lisa.http;
 
-import ceui.lisa.models.AccountEditResponse;
 import ceui.lisa.models.UserModel;
 import io.reactivex.Observable;
 import retrofit2.Call;

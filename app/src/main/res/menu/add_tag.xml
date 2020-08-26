@@ -4,6 +4,6 @@
     <item
         android:id="@+id/action_add"
         android:orderInCategory="100"
-        android:title="添加"
+        android:title="@string/string_14"
         app:showAsAction="always" />
 </menu>

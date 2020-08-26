@@ -6,12 +6,11 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.blankj.utilcode.util.PathUtils;
 
-import ceui.lisa.fragments.FragmentFilter;
 import ceui.lisa.helper.ThemeHelper;
 
 public class Settings {
 
-    public static final String[] ALL_LANGUAGE = new String[]{"简体中文", "日本語", "English", "繁體中文"};
+    public static final String[] ALL_LANGUAGE = new String[]{"简体中文", "日本語", "English", "繁體中文", "Russian"};
 
     //只包含1P图片的下载路径
     public static final String FILE_PATH_SINGLE = PathUtils.getExternalPicturesPath() + "/ShaftImages";
@@ -86,8 +85,6 @@ public class Settings {
     private boolean reverseDialogNeverShowAgain = false;
 
     private String appLanguage = "";
-
-    private String fileLastType = "png";
 
     private String fileNameJson = "";
 
@@ -294,14 +291,6 @@ public class Settings {
 
     public void setShowLikeButton(boolean pShowLikeButton) {
         showLikeButton = pShowLikeButton;
-    }
-
-    public String getFileLastType() {
-        return fileLastType;
-    }
-
-    public void setFileLastType(String fileLastType) {
-        this.fileLastType = fileLastType;
     }
 
     public String getFileNameJson() {

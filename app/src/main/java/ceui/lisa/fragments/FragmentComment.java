@@ -3,7 +3,6 @@ package ceui.lisa.fragments;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.View;
 
 import androidx.appcompat.app.AlertDialog;
@@ -47,7 +46,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 public class FragmentComment extends NetListFragment<FragmentCommentBinding,
         ListComment, CommentsBean> {
 
-    private static final String[] OPTIONS = new String[]{"回复评论", "复制评论", "查看用户"};
+    private String[] OPTIONS;
     private int illustID;
     private String title;
     private int parentCommentID;
@@ -112,7 +111,7 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 if (which == 0) {
-                                    baseBind.inputBox.setHint("回复" +
+                                    baseBind.inputBox.setHint(getString(R.string.string_176) +
                                             allItems.get(position).getUser().getName());
                                     parentCommentID = allItems.get(position).getId();
                                 } else if (which == 1) {
@@ -139,7 +138,7 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
                             public void onClick(DialogInterface dialog, int which) {
                                 if (which == 0) {
                                     baseBind.inputBox.setHint(
-                                            "回复" + allItems.get(position).getParent_comment().getUser().getName()
+                                            getString(R.string.string_176) + allItems.get(position).getParent_comment().getUser().getName()
                                     );
                                     parentCommentID =
                                             allItems.get(position).getParent_comment().getId();
@@ -165,7 +164,7 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
 
     @Override
     public String getToolbarTitle() {
-        return title + "的评论";
+        return title + getString(R.string.string_175);
     }
 
     @Override
@@ -212,18 +211,23 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
     }
 
     @Override
-    public void initView(View view) {
-        super.initView(view);
+    public void initView() {
+        super.initView();
+        OPTIONS = new String[]{
+                getString(R.string.string_172),
+                getString(R.string.string_173),
+                getString(R.string.string_174)
+        };
         baseBind.post.setOnClickListener(v -> {
             if (!sUserModel.getResponse().getUser().isIs_mail_authorized()) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                builder.setMessage("发布评论需要先绑定邮箱");
-                builder.setPositiveButton("立即绑定", (dialog, which) -> {
+                builder.setMessage(R.string.string_158);
+                builder.setPositiveButton(R.string.string_159, (dialog, which) -> {
                     Intent intent = new Intent(mContext, TemplateActivity.class);
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "绑定邮箱");
                     startActivity(intent);
                 });
-                builder.setNegativeButton("取消", null);
+                builder.setNegativeButton(R.string.string_160, null);
                 AlertDialog alertDialog = builder.create();
                 alertDialog.show();
                 alertDialog
@@ -240,7 +244,7 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
             }
 
             if (baseBind.inputBox.getText().toString().length() == 0) {
-                Common.showToast("请输入评论内容", baseBind.inputBox, 3);
+                Common.showToast(getString(R.string.string_161), baseBind.inputBox, 3);
                 return;
             }
 
@@ -249,7 +253,7 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
                 public void onSubscribe(Disposable d) {
                     Common.hideKeyboard(mActivity);
                     mHelper.resetState();
-                    baseBind.inputBox.setHint("请输入评论内容");
+                    baseBind.inputBox.setHint(R.string.string_162);
                     baseBind.inputBox.setText("");
                     baseBind.progress.setVisibility(View.VISIBLE);
                 }
@@ -297,12 +301,12 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
                 return;
             }
             if (parentCommentID != 0) {
-                baseBind.inputBox.setHint("留下你的评论吧");
+                baseBind.inputBox.setHint(R.string.string_163);
                 parentCommentID = 0;
             }
         });
 
-        RecyclerView recyclerView = view.findViewById(R.id.recy_list);
+        RecyclerView recyclerView = rootView.findViewById(R.id.recy_list);
         GridLayoutManager layoutManager = new GridLayoutManager(getContext(), 6);
         recyclerView.setLayoutManager(layoutManager);
         EmojiAdapter adapter = new EmojiAdapter(Emoji.getEmojis(), getContext());

@@ -9,7 +9,6 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.databinding.RecyBookTagBinding;
 import ceui.lisa.models.TagsBean;
-import ceui.lisa.utils.PixivOperate;
 
 //自己收藏的Tag
 public class BookedTagAdapter extends BaseAdapter<TagsBean, RecyBookTagBinding> {
@@ -29,7 +28,7 @@ public class BookedTagAdapter extends BaseAdapter<TagsBean, RecyBookTagBinding> 
     @Override
     public void bindData(TagsBean target, ViewHolder<RecyBookTagBinding> bindView, int position) {
         if (TextUtils.isEmpty(allIllust.get(position).getName())) {
-            bindView.baseBind.starSize.setText("#全部");
+            bindView.baseBind.starSize.setText(R.string.string_155);
         } else {
             if (!TextUtils.isEmpty(allIllust.get(position).getTranslated_name())) {
                 bindView.baseBind.starSize.setText("#" + (allIllust.get(position).getName() +
@@ -43,7 +42,7 @@ public class BookedTagAdapter extends BaseAdapter<TagsBean, RecyBookTagBinding> 
             bindView.baseBind.illustCount.setText("");
         } else {
             if (isMuted) {
-                bindView.baseBind.illustCount.setText("取消屏蔽");
+                bindView.baseBind.illustCount.setText(R.string.string_157);
                 bindView.baseBind.illustCount.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -51,7 +50,7 @@ public class BookedTagAdapter extends BaseAdapter<TagsBean, RecyBookTagBinding> 
                     }
                 });
             } else {
-                bindView.baseBind.illustCount.setText(allIllust.get(position).getCount() + "个作品");
+                bindView.baseBind.illustCount.setText(allIllust.get(position).getCount() + mContext.getString(R.string.string_156));
             }
         }
         if (mOnItemClickListener != null) {

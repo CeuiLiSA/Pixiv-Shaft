@@ -5,8 +5,6 @@ import android.view.View;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
-
 import java.util.ArrayList;
 import java.util.List;
 

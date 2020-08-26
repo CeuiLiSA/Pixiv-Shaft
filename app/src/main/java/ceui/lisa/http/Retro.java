@@ -1,7 +1,6 @@
 package ceui.lisa.http;
 
 import com.blankj.utilcode.util.DeviceUtils;
-import com.blankj.utilcode.util.GsonUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.safframework.http.interceptor.LoggingInterceptor;

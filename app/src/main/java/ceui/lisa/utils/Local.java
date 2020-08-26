@@ -1,9 +1,6 @@
 package ceui.lisa.utils;
 
-import android.content.Context;
 import android.content.SharedPreferences;
-
-import com.google.gson.Gson;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.models.UserModel;

@@ -20,7 +20,6 @@ public class ThemeHelper {
     public static void applyTheme(AppCompatActivity activity, @NonNull String themePref) {
         switch (themePref) {
             case LIGHT_MODE: {
-                Common.showLog("切换成白天模式");
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
                 if (activity != null) {
                     activity.getDelegate().setLocalNightMode(AppCompatDelegate.MODE_NIGHT_NO);
@@ -28,7 +27,6 @@ public class ThemeHelper {
                 break;
             }
             case DARK_MODE: {
-                Common.showLog("切换成夜晚模式");
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
                 if (activity != null) {
                     activity.getDelegate().setLocalNightMode(AppCompatDelegate.MODE_NIGHT_YES);
@@ -36,7 +34,6 @@ public class ThemeHelper {
                 break;
             }
             default: {
-                Common.showLog("切换成默认模式");
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                     AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
                     if (activity != null) {

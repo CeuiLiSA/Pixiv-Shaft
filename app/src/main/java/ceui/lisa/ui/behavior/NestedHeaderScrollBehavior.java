@@ -8,7 +8,6 @@ import androidx.annotation.NonNull;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 
 import ceui.lisa.R;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 
 public class NestedHeaderScrollBehavior extends CoordinatorLayout.Behavior<View> {

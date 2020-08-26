@@ -20,15 +20,10 @@
 
         </androidx.viewpager.widget.ViewPager>
 
-        <com.gigamole.library.ShadowLayout
-            app:sl_shadow_radius="@dimen/two_dp"
-            app:sl_shadow_distance="@dimen/two_dp"
-            android:layout_alignParentBottom="true"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
 
             <RelativeLayout
                 android:id="@+id/bottom_rela"
+                android:layout_alignParentBottom="true"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
@@ -57,7 +52,7 @@
                     android:paddingTop="@dimen/six_dp"
                     android:paddingEnd="@dimen/sixteen_dp"
                     android:paddingBottom="@dimen/six_dp"
-                    android:text="下载图片"
+                    android:text="@string/string_7"
                     android:textColor="@android:color/white" />
 
 
@@ -75,6 +70,5 @@
 
             </RelativeLayout>
 
-        </com.gigamole.library.ShadowLayout>
     </RelativeLayout>
 </layout>
