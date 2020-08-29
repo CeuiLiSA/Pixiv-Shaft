@@ -77,6 +77,8 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
             } else {
                 rootView = inflater.inflate(mLayoutID, container, false);
             }
+            initView();
+            initData();
             return rootView;
         } else {
             return super.onCreateView(inflater, container, savedInstanceState);
@@ -90,8 +92,6 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
         } else {
             horizon();
         }
-        initView();
-        initData();
     }
 
     protected abstract void initLayout();
