@@ -464,6 +464,7 @@
 
                     <LinearLayout
                         android:layout_width="match_parent"
+                        android:layout_marginBottom="30dp"
                         android:orientation="vertical"
                         android:background="@color/white"
                         android:layout_height="wrap_content">
@@ -585,7 +586,6 @@
                         <View
                             android:layout_width="match_parent"
                             android:background="#e3e3e3"
-                            android:layout_marginBottom="30dp"
                             android:layout_height="0.6dp">
 
                         </View>

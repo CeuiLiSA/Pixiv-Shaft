@@ -102,9 +102,9 @@
                             android:layout_width="50dp"
                             android:layout_height="50dp"
                             android:layout_marginStart="@dimen/twelve_dp"
-                            android:layout_marginTop="@dimen/sixteen_dp"
+                            android:layout_marginTop="@dimen/twelve_dp"
                             android:layout_marginEnd="@dimen/eight_dp"
-                            android:layout_marginBottom="@dimen/sixteen_dp"
+                            android:layout_marginBottom="@dimen/twelve_dp"
                             android:scaleType="centerCrop"
                             app:civ_border_color="#b3b4f4"
                             app:civ_border_width="1dp">
