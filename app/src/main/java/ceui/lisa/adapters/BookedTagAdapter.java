@@ -13,7 +13,7 @@ import ceui.lisa.models.TagsBean;
 //自己收藏的Tag
 public class BookedTagAdapter extends BaseAdapter<TagsBean, RecyBookTagBinding> {
 
-    private boolean isMuted = false;
+    private boolean isMuted;
 
     public BookedTagAdapter(List<TagsBean> targetList, Context context, boolean muted) {
         super(targetList, context);

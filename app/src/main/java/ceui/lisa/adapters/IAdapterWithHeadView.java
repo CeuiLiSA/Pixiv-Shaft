@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.databinding.RecyRecmdHeaderBinding;
 import ceui.lisa.models.IllustsBean;
 
 public class IAdapterWithHeadView extends IAdapter {
@@ -30,7 +31,7 @@ public class IAdapterWithHeadView extends IAdapter {
     }
 
     @Override
-    public ViewHolder getHeader(ViewGroup parent) {
+    public ViewHolder<RecyRecmdHeaderBinding> getHeader(ViewGroup parent) {
         mIllustHeader = new IllustHeader(
                 DataBindingUtil.inflate(
                         LayoutInflater.from(mContext),

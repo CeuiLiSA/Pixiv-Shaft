@@ -79,11 +79,11 @@ public class FragmentC extends SwipeFragment<FragmentNewCenterBinding> {
                 startActivity(intent);
             }
         });
-        baseBind.live.setOnClickListener(new View.OnClickListener() {
+        baseBind.followNovels.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "热门直播");
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "关注者的小说");
                 startActivity(intent);
             }
         });

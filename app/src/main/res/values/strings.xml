@@ -385,5 +385,12 @@
     <string name="string_193">作品尺寸：</string>
     <string name="string_194">作品ID：</string>
     <string name="string_195">画师ID：</string>
+    <string name="string_196">关注者的小说</string>
+    <string name="string_197">关注者的最新小说</string>
+    <string name="string_198">为此软件评分</string>
+    <string name="string_199">版本</string>
+    <string name="string_200">在微博关注我</string>
+    <string name="string_201">Telegram群组</string>
+    <string name="string_202">反馈</string>
 
 </resources>

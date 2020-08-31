@@ -72,6 +72,9 @@ public interface AppApi {
     @GET("v1/novel/recommended?include_privacy_policy=true&filter=for_android&include_ranking_novels=true")
     Observable<ListNovel> getRecmdNovel(@Header("Authorization") String token);
 
+    @GET("v1/novel/follow?restrict=public")
+    Observable<ListNovel> getBookedUserSubmitNovel(@Header("Authorization") String token);
+
 
     @GET("v1/trending-tags/{type}?filter=for_android&include_translated_tag_results=true")
     Observable<ListTrendingtag> getHotTags(@Header("Authorization") String token,
