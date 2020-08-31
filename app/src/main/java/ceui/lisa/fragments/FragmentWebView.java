@@ -85,7 +85,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
 
     @Override
     public void initView() {
-        baseBind.toolbar.setTitle(title);
+        baseBind.toolbarTitle.setText(title);
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
     }
 

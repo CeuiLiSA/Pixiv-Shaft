@@ -39,7 +39,7 @@ public class FragmentDownload extends BaseFragment<ViewpagerWithTablayoutBinding
 
     @Override
     public void initView() {
-        baseBind.toolbar.setTitle("下载管理");
+        baseBind.toolbarTitle.setText(R.string.string_203);
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
         baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override

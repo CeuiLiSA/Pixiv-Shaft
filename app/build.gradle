@@ -12,8 +12,8 @@ android {
         applicationId "ceui.lisa.pixiv"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 113
-        versionName "2.2.5"
+        versionCode 115
+        versionName "2.2.7"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         javaCompileOptions {
@@ -123,6 +123,7 @@ dependencies {
     implementation 'io.reactivex.rxjava3:rxjava:3.0.4'
     implementation 'io.reactivex.rxjava3:rxandroid:3.0.0'
     implementation 'com.ljx.rxlife3:rxlife-rxjava:3.0.0'
+
 
     implementation project(path: ':models')
     implementation project(path: ':base')

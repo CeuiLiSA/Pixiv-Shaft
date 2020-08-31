@@ -2,6 +2,7 @@ package ceui.lisa.fragments;
 
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
@@ -189,7 +190,11 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
         } else {
             toolbar.setVisibility(View.GONE);
         }
-        toolbar.setTitle(getToolbarTitle());
+        if (toolbar.findViewById(R.id.toolbar_title) instanceof TextView) {
+            ((TextView) toolbar.findViewById(R.id.toolbar_title)).setText(getToolbarTitle());
+        } else {
+            toolbar.setTitle(getToolbarTitle());
+        }
         toolbar.setNavigationOnClickListener(v -> finish());
     }
 

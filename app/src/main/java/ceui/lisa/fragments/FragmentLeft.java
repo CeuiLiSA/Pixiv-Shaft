@@ -41,6 +41,7 @@ public class FragmentLeft extends BaseFragment<FragmentLeftBinding> {
                 ((MainActivity) requireActivity()).getDrawer().openDrawer(Gravity.START);
             }
         });
+        baseBind.toolbarTitle.setText(R.string.string_207);
         baseBind.toolbar.inflateMenu(R.menu.fragment_left);
         baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override

@@ -80,7 +80,7 @@ public class FragmentHotTag extends NetListFragment<FragmentBaseListBinding,
             public void onItemClick(View v, int position, int viewType) {
                 Intent intent = new Intent(mContext, SearchActivity.class);
                 intent.putExtra(Params.KEY_WORD, allItems.get(position).getTag());
-                intent.putExtra(Params.INDEX, Params.TYPE_ILLUST.equals(contentType) ? 0 : 1);
+                intent.putExtra(Params.INDEX, Params.TYPE_ILLUST.equals(contentType) ? 0 : 2);
                 startActivity(intent);
             }
         });

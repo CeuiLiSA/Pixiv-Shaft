@@ -26,7 +26,7 @@ public class FragmentNew extends BaseFragment<ViewpagerWithTablayoutBinding> {
     @Override
     public void initView() {
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
-        baseBind.toolbar.setTitle("最新作品");
+        baseBind.toolbarTitle.setText(R.string.string_204);
         baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
             @NonNull
             @Override

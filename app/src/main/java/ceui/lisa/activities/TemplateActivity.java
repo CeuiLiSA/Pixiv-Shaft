@@ -22,6 +22,7 @@ import ceui.lisa.fragments.FragmentListSimpleUser;
 import ceui.lisa.fragments.FragmentMultiDownld;
 import ceui.lisa.fragments.FragmentNew;
 import ceui.lisa.fragments.FragmentNewNovel;
+import ceui.lisa.fragments.FragmentNewNovels;
 import ceui.lisa.fragments.FragmentNovelSeries;
 import ceui.lisa.fragments.FragmentRecmdIllust;
 import ceui.lisa.fragments.FragmentSB;
@@ -195,6 +196,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                     return FragmentFileName.newInstance();
                 case "捐赠":
                     return FragmentDonate.newInstance();
+                case "关注者的小说":
+                    return new FragmentNewNovels();
                 default:
                     return new Fragment();
             }
@@ -247,12 +250,6 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
 
     @Override
     public boolean hideStatusBar() {
-        if ("相关评论".equals(dataType) || "关于软件".equals(dataType)) {
-            Common.showLog(className + "不隐藏状态栏");
-            return false;
-        } else {
-            Common.showLog(className + "隐藏状态栏");
-            return getIntent().getBooleanExtra("hideStatusBar", true);
-        }
+        return getIntent().getBooleanExtra("hideStatusBar", true);
     }
 }

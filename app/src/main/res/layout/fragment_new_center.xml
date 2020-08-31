@@ -175,7 +175,6 @@
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="128dp"
-                            android:visibility="invisible"
                             android:orientation="horizontal">
 
 
@@ -194,7 +193,7 @@
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
                                     android:scaleType="centerCrop"
-                                    android:src="@mipmap/main_novel"
+                                    android:src="@color/new_color_primary"
                                     app:riv_corner_radius="@dimen/twelve_dp">
 
 
@@ -208,6 +207,7 @@
                                     android:shadowColor="#FF000000"
                                     android:shadowDx="2"
                                     android:shadowDy="2"
+                                    android:layout_alignParentBottom="true"
                                     android:shadowRadius="2"
                                     android:text="@string/type_walk_through"
                                     android:textColor="@color/always_white"
@@ -231,11 +231,11 @@
 
 
                                 <com.makeramen.roundedimageview.RoundedImageView
-                                    android:id="@+id/live"
+                                    android:id="@+id/follow_novels"
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
                                     android:scaleType="centerCrop"
-                                    android:src="@mipmap/main_manga"
+                                    android:src="@color/new_color_primary"
                                     app:riv_corner_radius="@dimen/twelve_dp">
 
 
@@ -252,7 +252,7 @@
                                     android:shadowDx="2"
                                     android:shadowDy="2"
                                     android:shadowRadius="2"
-                                    android:text="@string/type_live"
+                                    android:text="@string/string_196"
                                     android:textColor="@color/always_white"
                                     android:textSize="16sp"
                                     android:textStyle="bold">

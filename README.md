@@ -8,7 +8,7 @@
 ## 1.功能
 
 * 用户登录，新用户注册
-* 大陆用户支持直连（详见https://github.com/Notsfsssf/Pix-EzViewer）
+* 大陆用户支持直连（详见[Pix-EzViewer](https://github.com/Notsfsssf/Pix-EzViewer)）
 * 非会员用户支持按热度排序，按收藏量筛选
 * GIF支持播放、保存
 * 本地保存浏览历史、下载历史

@@ -28,8 +28,8 @@ import ceui.lisa.utils.Params;
 //已下载
 public class DownloadedAdapter extends BaseAdapter<DownloadEntity, RecyViewHistoryBinding> {
 
-    private int imageSize = 0;
-    private int novelImageSize = 0;
+    private int imageSize;
+    private int novelImageSize;
     private SimpleDateFormat mTime = new SimpleDateFormat("MM月dd日 HH: mm");
 
     public DownloadedAdapter(List<DownloadEntity> targetList, Context context) {

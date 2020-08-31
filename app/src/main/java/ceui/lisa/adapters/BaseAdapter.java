@@ -55,7 +55,7 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public ViewHolder<? extends ViewDataBinding> onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         if (viewType == ITEM_NORMAL) {
             return getNormalItem(parent);
         } else {
@@ -86,7 +86,7 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
         return 0;
     }
 
-    public ViewHolder getHeader(ViewGroup parent) {
+    public ViewHolder<? extends ViewDataBinding> getHeader(ViewGroup parent) {
         return null;
     }
 

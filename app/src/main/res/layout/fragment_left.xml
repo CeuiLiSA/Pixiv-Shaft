@@ -13,7 +13,7 @@
 
         <ImageView
             android:layout_width="match_parent"
-            android:background="@color/colorPrimary"
+            android:background="@color/new_color_primary"
             android:id="@+id/head"
             android:layout_height="1dp">
 
@@ -26,17 +26,27 @@
 
             <com.google.android.material.appbar.AppBarLayout
                 android:layout_width="match_parent"
+                android:background="@color/new_color_primary"
                 android:layout_height="wrap_content">
 
 
                 <androidx.appcompat.widget.Toolbar
                     android:id="@+id/toolbar"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="50dp"
                     app:layout_scrollFlags="scroll|enterAlways"
-                    app:navigationIcon="@drawable/ic_menu_white"
-                    app:title="@string/app_name"
+                    app:navigationIcon="@drawable/ic_baseline_dns_24"
                     app:titleTextColor="@android:color/white">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:id="@+id/toolbar_title"
+                        android:textColor="@color/white"
+                        android:textSize="18sp">
+
+                    </TextView>
 
                 </androidx.appcompat.widget.Toolbar>
 
@@ -44,8 +54,8 @@
                 <com.google.android.material.tabs.TabLayout
                     android:layout_width="match_parent"
                     android:id="@+id/tab_layout"
-                    android:background="@color/colorPrimary"
-                    app:tabTextColor="@color/light_primary_color"
+                    android:background="@color/new_color_primary"
+                    app:tabTextColor="@color/light_new_primary_color"
                     app:tabIndicatorFullWidth="false"
                     app:tabIndicatorColor="@android:color/white"
                     app:tabSelectedTextColor="@android:color/white"

@@ -9,7 +9,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:orientation="vertical"
-        android:background="@color/white"
+        android:background="#f5f5f5"
         android:layout_height="match_parent">
 
         <androidx.appcompat.widget.Toolbar
@@ -17,11 +17,21 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fitsSystemWindows="true"
-            android:background="@color/colorPrimary"
+            android:background="@color/new_color_primary"
             android:elevation="@dimen/six_dp"
-            app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
-            app:title="关于"
+            app:navigationIcon="@drawable/ic_baseline_arrow_back_ios_24"
             app:titleTextColor="@android:color/white">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:id="@+id/toolbar_title"
+                android:text="@string/about_app"
+                android:textColor="@color/white"
+                android:textSize="18sp">
+
+            </TextView>
 
         </androidx.appcompat.widget.Toolbar>
 
@@ -43,7 +53,6 @@
 
                     <RelativeLayout
                         android:layout_width="match_parent"
-                        android:background="@color/white"
                         android:layout_height="120dp">
 
 
@@ -61,8 +70,9 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:text="@string/string_23"
-                        android:textColor="@color/colorPrimary"
+                        android:textColor="@color/new_color_primary"
                         android:textSize="19sp"
+                        android:layout_marginBottom="@dimen/sixteen_dp"
                         android:textStyle="bold"
                         android:layout_gravity="center_horizontal"
                         android:layout_height="wrap_content">
@@ -71,297 +81,444 @@
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:gravity="center"
-                        android:layout_marginTop="@dimen/eight_dp"
+                        android:orientation="vertical"
+                        android:background="@color/white"
                         android:layout_height="wrap_content">
 
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_weight="1"
-                            android:gravity="end"
-                            android:id="@+id/name_s"
-                            android:textColor="@color/rank_text_color"
-                            android:text="@string/string_24"
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="#e3e3e3"
+                            android:layout_height="0.6dp">
+
+                        </View>
+
+                        <RelativeLayout
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content">
 
-                        </TextView>
+
+                            <TextView
+                                android:textSize="15sp"
+                                android:textColor="@color/black"
+                                android:layout_marginStart="@dimen/sixteen_dp"
+                                android:layout_marginTop="@dimen/twelve_dp"
+                                android:layout_marginBottom="@dimen/twelve_dp"
+                                android:layout_width="wrap_content"
+                                android:text="@string/string_199"
+                                android:layout_height="wrap_content">
+
+                            </TextView>
 
 
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_weight="1"
-                            android:paddingStart="@dimen/eight_dp"
-                            android:textColor="@color/rank_text_color"
-                            android:id="@+id/name"
-                            android:layout_height="wrap_content">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:textColor="#7e7e7e"
+                                android:layout_centerVertical="true"
+                                android:textSize="15sp"
+                                android:layout_alignParentEnd="true"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
+                                android:id="@+id/app_version"
+                                android:layout_height="wrap_content">
 
-                        </TextView>
+                            </TextView>
 
+                        </RelativeLayout>
 
-                    </LinearLayout>
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="#e3e3e3"
+                            android:layout_height="0.6dp">
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:gravity="center"
-                        android:layout_marginTop="@dimen/eight_dp"
-                        android:layout_marginBottom="@dimen/sixteen_dp"
-                        android:layout_height="wrap_content">
-
-
-                        <TextView
-                            android:textColor="@color/rank_text_color"
-                            android:layout_width="0dp"
-                            android:layout_weight="1"
-                            android:id="@+id/code_s"
-                            android:gravity="end"
-                            android:text="@string/string_25"
-                            android:layout_height="wrap_content">
-
-                        </TextView>
-
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_weight="1"
-                            android:id="@+id/code"
-                            android:paddingStart="@dimen/eight_dp"
-                            android:textColor="@color/rank_text_color"
-                            android:layout_height="wrap_content">
-
-                        </TextView>
-
-
+                        </View>
                     </LinearLayout>
 
 
+
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:text="@string/string_202"
+                        android:layout_marginTop="30dp"
+                        android:textSize="13sp"
+                        android:textColor="@color/new_color_primary"
+                        android:layout_marginBottom="@dimen/eight_dp"
+                        android:layout_marginStart="@dimen/sixteen_dp"
+                        android:layout_height="wrap_content" />
+
                     <LinearLayout
                         android:layout_width="match_parent"
+                        android:background="@color/white"
                         android:orientation="vertical"
                         android:layout_height="wrap_content">
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="@color/light_bg"
-                            android:layout_height="20dp">
+                            android:background="#e3e3e3"
+                            android:layout_height="0.6dp">
 
+                        </View>
+
+                        <RelativeLayout
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:id="@+id/rate_this_app"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+
+                            <TextView
+                                android:textSize="15sp"
+                                android:textColor="@color/black"
+                                android:layout_marginStart="@dimen/sixteen_dp"
+                                android:layout_marginTop="@dimen/twelve_dp"
+                                android:layout_marginBottom="@dimen/twelve_dp"
+                                android:layout_width="wrap_content"
+                                android:text="@string/string_198"
+                                android:layout_height="wrap_content">
+
+                            </TextView>
+
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:textColor="#7e7e7e"
+                                android:layout_centerVertical="true"
+                                android:textSize="15sp"
+                                android:layout_alignParentEnd="true"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
+                                android:layout_height="wrap_content"
+                                app:drawableEndCompat="@drawable/ic_chevron_right_black_24dp"
+                                app:drawableTint="#c4c4c6">
+
+                            </TextView>
+
+                        </RelativeLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="#e3e3e3"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_height="0.6dp">
+
+                        </View>
+
+                        <RelativeLayout
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:id="@+id/go_weibo"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+
+                            <TextView
+                                android:textSize="15sp"
+                                android:textColor="@color/black"
+                                android:layout_marginStart="@dimen/sixteen_dp"
+                                android:layout_marginTop="@dimen/twelve_dp"
+                                android:layout_marginBottom="@dimen/twelve_dp"
+                                android:layout_width="wrap_content"
+                                android:text="@string/string_200"
+                                android:layout_height="wrap_content">
+
+                            </TextView>
+
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:textColor="#7e7e7e"
+                                android:layout_centerVertical="true"
+                                android:textSize="15sp"
+                                android:layout_alignParentEnd="true"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
+                                app:drawableEndCompat="@drawable/ic_chevron_right_black_24dp"
+                                app:drawableTint="#c4c4c6"
+                                android:layout_height="wrap_content">
+
+                            </TextView>
+
+                        </RelativeLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="#e3e3e3"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_height="0.6dp">
 
                         </View>
 
                         <RelativeLayout
                             android:layout_width="match_parent"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true"
                             android:layout_height="wrap_content">
+
+
+                            <TextView
+                                android:textSize="15sp"
+                                android:textColor="@color/black"
+                                android:layout_marginStart="@dimen/sixteen_dp"
+                                android:layout_marginTop="@dimen/twelve_dp"
+                                android:layout_marginBottom="@dimen/twelve_dp"
+                                android:layout_width="wrap_content"
+                                android:text="@string/string_201"
+                                android:layout_height="wrap_content">
+
+                            </TextView>
+
 
                             <TextView
                                 android:layout_width="wrap_content"
-                                android:text="@string/string_26"
-                                android:textSize="13sp"
-                                android:textColor="@color/colorPrimary"
-                                android:layout_marginTop="@dimen/eight_dp"
-                                android:layout_marginBottom="@dimen/eight_dp"
-                                android:layout_marginStart="@dimen/sixteen_dp"
-                                android:layout_height="wrap_content" />
+                                android:textColor="#7e7e7e"
+                                android:layout_centerVertical="true"
+                                android:textSize="15sp"
+                                android:layout_alignParentEnd="true"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
+                                app:drawableEndCompat="@drawable/ic_chevron_right_black_24dp"
+                                app:drawableTint="#c4c4c6"
+                                android:layout_height="wrap_content">
+
+                            </TextView>
+
                         </RelativeLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="#e3e3e3"
+                            android:layout_height="0.6dp">
+
+                        </View>
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:text="@string/string_26"
+                        android:layout_marginTop="30dp"
+                        android:textSize="13sp"
+                        android:textColor="@color/new_color_primary"
+                        android:layout_marginBottom="@dimen/eight_dp"
+                        android:layout_marginStart="@dimen/sixteen_dp"
+                        android:layout_height="wrap_content" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:orientation="vertical"
+                        android:background="@color/white"
+                        android:layout_height="wrap_content">
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="#e3e3e3"
+                            android:layout_height="0.6dp">
+
+                        </View>
+
 
                         <RelativeLayout
                             android:id="@+id/pixiv_problem"
                             android:background="?android:attr/selectableItemBackground"
                             android:clickable="true"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent">
+                            android:layout_height="wrap_content">
 
 
                             <TextView
-                                android:layout_margin="@dimen/sixteen_dp"
+                                android:textSize="15sp"
+                                android:textColor="@color/black"
+                                android:layout_marginStart="@dimen/sixteen_dp"
+                                android:layout_marginTop="@dimen/twelve_dp"
+                                android:layout_marginBottom="@dimen/twelve_dp"
+                                android:layout_width="wrap_content"
                                 android:text="@string/pixiv_problem"
-                                android:textSize="15sp"
-                                android:textColor="@color/rank_text_color"
-                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content">
 
-
                             </TextView>
-
-
-                        </RelativeLayout>
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:background="@color/light_bg"
-                            android:layout_marginStart="@dimen/sixteen_dp"
-                            android:layout_height="1dp" />
-
-
-                        <RelativeLayout
-                            android:id="@+id/pixiv_use_detail"
-                            android:layout_width="match_parent"
-                            android:background="?android:attr/selectableItemBackground"
-                            android:clickable="true"
-                            android:layout_height="match_parent">
 
 
                             <TextView
-                                android:layout_margin="@dimen/sixteen_dp"
-                                android:text="@string/pixiv_use_detail"
-                                android:textSize="15sp"
-                                android:textColor="@color/rank_text_color"
                                 android:layout_width="wrap_content"
+                                android:textColor="#7e7e7e"
+                                android:layout_centerVertical="true"
+                                android:textSize="15sp"
+                                android:layout_alignParentEnd="true"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
+                                app:drawableEndCompat="@drawable/ic_chevron_right_black_24dp"
+                                app:drawableTint="#c4c4c6"
                                 android:layout_height="wrap_content">
-
 
                             </TextView>
 
-
                         </RelativeLayout>
+
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="@color/light_bg"
+                            android:background="#e3e3e3"
                             android:layout_marginStart="@dimen/sixteen_dp"
-                            android:layout_height="1dp">
-
+                            android:layout_height="0.6dp">
 
                         </View>
 
+                        <RelativeLayout
+                            android:id="@+id/pixiv_use_detail"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+
+                            <TextView
+                                android:textSize="15sp"
+                                android:textColor="@color/black"
+                                android:layout_marginStart="@dimen/sixteen_dp"
+                                android:layout_marginTop="@dimen/twelve_dp"
+                                android:layout_marginBottom="@dimen/twelve_dp"
+                                android:layout_width="wrap_content"
+                                android:text="@string/pixiv_use_detail"
+                                android:layout_height="wrap_content">
+
+                            </TextView>
+
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:textColor="#7e7e7e"
+                                android:layout_centerVertical="true"
+                                android:textSize="15sp"
+                                android:layout_alignParentEnd="true"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
+                                app:drawableEndCompat="@drawable/ic_chevron_right_black_24dp"
+                                app:drawableTint="#c4c4c6"
+                                android:layout_height="wrap_content">
+
+                            </TextView>
+
+                        </RelativeLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="#e3e3e3"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_height="0.6dp">
+
+                        </View>
 
                         <RelativeLayout
                             android:id="@+id/pixiv_privacy"
                             android:background="?android:attr/selectableItemBackground"
                             android:clickable="true"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent">
+                            android:layout_height="wrap_content">
 
 
                             <TextView
-                                android:layout_margin="@dimen/sixteen_dp"
-                                android:text="@string/privacy"
                                 android:textSize="15sp"
-                                android:textColor="@color/rank_text_color"
+                                android:textColor="@color/black"
+                                android:layout_marginStart="@dimen/sixteen_dp"
+                                android:layout_marginTop="@dimen/twelve_dp"
+                                android:layout_marginBottom="@dimen/twelve_dp"
                                 android:layout_width="wrap_content"
+                                android:text="@string/privacy"
                                 android:layout_height="wrap_content">
-
 
                             </TextView>
 
 
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:textColor="#7e7e7e"
+                                android:layout_centerVertical="true"
+                                android:textSize="15sp"
+                                android:layout_alignParentEnd="true"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
+                                app:drawableEndCompat="@drawable/ic_chevron_right_black_24dp"
+                                app:drawableTint="#c4c4c6"
+                                android:layout_height="wrap_content">
+
+                            </TextView>
+
                         </RelativeLayout>
 
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="#e3e3e3"
+                            android:layout_height="0.6dp">
+
+                        </View>
+
                     </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:text="@string/string_27"
+                        android:textSize="13sp"
+                        android:textColor="@color/new_color_primary"
+                        android:layout_marginTop="30dp"
+                        android:layout_marginBottom="@dimen/eight_dp"
+                        android:layout_marginStart="@dimen/sixteen_dp"
+                        android:layout_height="wrap_content" />
+
 
 
                     <LinearLayout
                         android:layout_width="match_parent"
+                        android:layout_marginBottom="30dp"
                         android:orientation="vertical"
+                        android:background="@color/white"
                         android:layout_height="wrap_content">
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="@color/light_bg"
-                            android:layout_height="20dp">
-
+                            android:background="#e3e3e3"
+                            android:layout_height="0.6dp">
 
                         </View>
 
                         <RelativeLayout
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:id="@+id/dont_catch_me"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content">
 
+
                             <TextView
-                                android:layout_width="wrap_content"
-                                android:text="@string/string_27"
-                                android:textSize="13sp"
-                                android:textColor="@color/colorPrimary"
-                                android:layout_marginTop="@dimen/eight_dp"
-                                android:layout_marginBottom="@dimen/eight_dp"
+                                android:textSize="15sp"
+                                android:textColor="@color/black"
                                 android:layout_marginStart="@dimen/sixteen_dp"
-                                android:layout_height="wrap_content" />
-                        </RelativeLayout>
-
-
-                        <RelativeLayout
-                            android:id="@+id/dont_catch_me"
-                            android:background="?android:attr/selectableItemBackground"
-                            android:clickable="true"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent">
-
-
-                            <TextView
-                                android:layout_margin="@dimen/sixteen_dp"
+                                android:layout_marginTop="@dimen/twelve_dp"
+                                android:layout_marginBottom="@dimen/twelve_dp"
+                                android:layout_width="wrap_content"
                                 android:text="@string/string_28"
-                                android:textSize="15sp"
-                                android:textColor="@color/rank_text_color"
-                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content">
 
-
                             </TextView>
-
-
-                        </RelativeLayout>
-
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:background="@color/light_bg"
-                            android:layout_marginStart="@dimen/sixteen_dp"
-                            android:layout_height="1dp" />
-
-                        <RelativeLayout
-                            android:id="@+id/donate_me"
-                            android:background="?android:attr/selectableItemBackground"
-                            android:clickable="true"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent">
 
 
                             <TextView
-                                android:layout_margin="@dimen/sixteen_dp"
-                                android:text="@string/string_29"
-                                android:textSize="15sp"
-                                android:textColor="@color/rank_text_color"
                                 android:layout_width="wrap_content"
+                                android:textColor="#7e7e7e"
+                                android:layout_centerVertical="true"
+                                android:textSize="15sp"
+                                android:layout_alignParentEnd="true"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
+                                app:drawableEndCompat="@drawable/ic_chevron_right_black_24dp"
+                                app:drawableTint="#c4c4c6"
                                 android:layout_height="wrap_content">
 
-
                             </TextView>
-
 
                         </RelativeLayout>
 
                         <View
                             android:layout_width="match_parent"
-                            android:background="@color/light_bg"
+                            android:background="#e3e3e3"
                             android:layout_marginStart="@dimen/sixteen_dp"
-                            android:layout_height="1dp" />
+                            android:layout_height="0.6dp">
 
-                        <RelativeLayout
-                            android:id="@+id/donate_list"
-                            android:background="?android:attr/selectableItemBackground"
-                            android:clickable="true"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent">
-
-
-                            <TextView
-                                android:layout_margin="@dimen/sixteen_dp"
-                                android:text="@string/string_30"
-                                android:textSize="15sp"
-                                android:textColor="@color/rank_text_color"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
-
-
-                            </TextView>
-
-
-                        </RelativeLayout>
-
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:background="@color/light_bg"
-                            android:layout_marginStart="@dimen/sixteen_dp"
-                            android:layout_height="1dp" />
+                        </View>
 
 
                         <RelativeLayout
@@ -411,14 +568,27 @@
 
                             </TextView>
 
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:textColor="#7e7e7e"
+                                android:layout_centerVertical="true"
+                                android:textSize="15sp"
+                                android:layout_alignParentEnd="true"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
+                                app:drawableEndCompat="@drawable/ic_chevron_right_black_24dp"
+                                app:drawableTint="#c4c4c6"
+                                android:layout_height="wrap_content">
+
+                            </TextView>
+
                         </RelativeLayout>
 
-                        <!--                    <View-->
-                        <!--                        android:layout_width="match_parent"-->
-                        <!--                        android:background="@color/light_bg"-->
-                        <!--                        android:layout_marginStart="@dimen/sixteen_dp"-->
-                        <!--                        android:layout_height="1dp" />-->
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="#e3e3e3"
+                            android:layout_height="0.6dp">
 
+                        </View>
 
                         <RelativeLayout
                             android:id="@+id/project_license"
@@ -444,22 +614,6 @@
 
                     </LinearLayout>
 
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:orientation="vertical"
-                        android:layout_height="wrap_content">
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:background="@color/light_bg"
-                            android:layout_height="20dp">
-
-
-                        </View>
-
-
-                    </LinearLayout>
                 </LinearLayout>
             </androidx.core.widget.NestedScrollView>
 
