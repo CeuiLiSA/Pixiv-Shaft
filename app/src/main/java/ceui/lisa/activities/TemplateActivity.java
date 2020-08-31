@@ -250,12 +250,6 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
 
     @Override
     public boolean hideStatusBar() {
-        if ("相关评论".equals(dataType)) {
-            Common.showLog(className + "不隐藏状态栏");
-            return false;
-        } else {
-            Common.showLog(className + "隐藏状态栏");
-            return getIntent().getBooleanExtra("hideStatusBar", true);
-        }
+        return getIntent().getBooleanExtra("hideStatusBar", true);
     }
 }

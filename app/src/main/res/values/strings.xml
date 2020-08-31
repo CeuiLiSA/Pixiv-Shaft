@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">PixShaft</string>
+    <string name="app_name">Shaft</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="nav_header_title">Android Studio</string>
@@ -392,5 +392,10 @@
     <string name="string_200">在微博关注我</string>
     <string name="string_201">Telegram群组</string>
     <string name="string_202">反馈</string>
+    <string name="string_203">下载管理</string>
+    <string name="string_204">最新作品</string>
+    <string name="string_205">已屏蔽的作品</string>
+    <string name="string_206">无权限查看的作品</string>
+    <string name="string_207">首页</string>
 
 </resources>

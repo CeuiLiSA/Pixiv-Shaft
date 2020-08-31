@@ -6,19 +6,6 @@
 
     </data>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:orientation="vertical"
-        android:layout_height="match_parent">
-
-        <ImageView
-            android:layout_width="match_parent"
-            android:background="@color/colorPrimary"
-            android:id="@+id/head"
-            android:layout_height="1dp">
-
-        </ImageView>
-
         <androidx.coordinatorlayout.widget.CoordinatorLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
@@ -26,25 +13,38 @@
             <com.google.android.material.appbar.AppBarLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@color/colorPrimary">
+                android:background="@color/new_color_primary">
 
 
                 <androidx.appcompat.widget.Toolbar
                     android:id="@+id/toolbar"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:fitsSystemWindows="true"
                     android:elevation="@dimen/six_dp"
                     app:layout_scrollFlags="scroll|enterAlways"
-                    app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
+                    app:navigationIcon="@drawable/ic_baseline_arrow_back_ios_24"
                     app:title=" "
-                    app:titleTextColor="@android:color/white" />
+                    app:titleTextColor="@android:color/white" >
+
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:id="@+id/toolbar_title"
+                        android:textColor="@color/white"
+                        android:textSize="18sp">
+
+                    </TextView>
+                </androidx.appcompat.widget.Toolbar>
 
                 <com.google.android.material.tabs.TabLayout
                     android:layout_width="match_parent"
                     android:id="@+id/tab_layout"
                     app:tabMode="fixed"
-                    android:background="@color/colorPrimary"
-                    app:tabTextColor="@color/light_primary_color"
+                    android:background="@color/new_color_primary"
+                    app:tabTextColor="@color/light_new_primary_color"
                     app:tabIndicatorFullWidth="false"
                     app:tabIndicatorColor="@android:color/white"
                     app:tabSelectedTextColor="@android:color/white"
@@ -61,5 +61,4 @@
                 app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
         </androidx.coordinatorlayout.widget.CoordinatorLayout>
-    </LinearLayout>
 </layout>

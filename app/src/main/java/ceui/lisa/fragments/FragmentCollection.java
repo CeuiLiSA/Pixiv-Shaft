@@ -41,7 +41,7 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
 
     @Override
     public void initView() {
-        baseBind.toolbar.setTitle(mContext.getString(R.string.bookmark));
+        baseBind.toolbarTitle.setText(R.string.bookmark);
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
         baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override

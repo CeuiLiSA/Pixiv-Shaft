@@ -183,13 +183,13 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
 
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
         if (illust.isShield()) {
-            baseBind.toolbar.setTitle("已屏蔽的作品");
+            baseBind.toolbar.setTitle(R.string.string_205);
             baseBind.refreshLayout.setVisibility(View.INVISIBLE);
             return;
         }
 
         if (illust.getId() == 0) {
-            baseBind.toolbar.setTitle("无权限查看的作品");
+            baseBind.toolbar.setTitle(R.string.string_206);
             baseBind.refreshLayout.setVisibility(View.INVISIBLE);
             return;
         }
@@ -198,7 +198,7 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
         baseBind.refreshLayout.setEnableLoadMore(true);
         baseBind.refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));
         baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
-        baseBind.toolbar.setTitle(illust.getTitle() + "  ");
+        baseBind.toolbar.setTitle(illust.getTitle());
 
         baseBind.toolbar.inflateMenu(R.menu.share);
         baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {

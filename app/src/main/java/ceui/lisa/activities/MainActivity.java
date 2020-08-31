@@ -148,7 +148,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             case R.id.nav_gallery:
                 intent = new Intent(mContext, TemplateActivity.class);
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载管理");
-                intent.putExtra("hideStatusBar", false);
+                intent.putExtra("hideStatusBar", true);
                 break;
             case R.id.nav_slideshow:
                 intent = new Intent(mContext, TemplateActivity.class);
@@ -250,7 +250,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 builder.setNeutralButton(getString(R.string.see_download_task), (dialog, which) -> {
                     Intent intent = new Intent(mContext, TemplateActivity.class);
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载管理");
-                    intent.putExtra("hideStatusBar", false);
+                    intent.putExtra("hideStatusBar", true);
                     startActivity(intent);
                 });
                 AlertDialog alertDialog = builder.create();
