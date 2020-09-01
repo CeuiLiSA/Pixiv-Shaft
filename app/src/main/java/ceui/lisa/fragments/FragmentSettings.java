@@ -57,10 +57,6 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
         mLayoutID = R.layout.fragment_settings;
     }
 
-    public static FragmentSettings newInstance() {
-        return new FragmentSettings();
-    }
-
     @Override
     protected void initData() {
         baseBind.toolbar.setNavigationOnClickListener(view -> mActivity.finish());

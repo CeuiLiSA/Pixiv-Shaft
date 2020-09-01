@@ -334,8 +334,8 @@
     <string name="string_142">取消</string>
     <string name="string_143">提示</string>
     <string name="string_144">这将会删除所有的本地搜索历史</string>
-    <string name="string_147">\"好P友: \"</string>
-    <string name="string_145">\"关注: \"</string>
+    <string name="string_147">好P友:</string>
+    <string name="string_145">关注:</string>
     <string name="string_146">详细信息</string>
     <string name="string_148">请输入搜索内容</string>
     <string name="string_149">标签搜作品</string>
@@ -397,5 +397,25 @@
     <string name="string_205">已屏蔽的作品</string>
     <string name="string_206">无权限查看的作品</string>
     <string name="string_207">首页</string>
+    <string name="string_208">屏蔽记录</string>
+    <string name="string_209">已存在于屏蔽列表</string>
+    <string name="string_210">添加屏蔽标签</string>
+    <string name="string_211">请输入标签名</string>
+    <string name="string_212">取消</string>
+    <string name="string_213">添加</string>
+    <string name="string_214">请填入标签</string>
+    <string name="string_215">当前没有可删除的屏蔽标签</string>
+    <string name="string_216">Shaft 提示</string>
+    <string name="string_217">这将会删除所有的屏蔽标签</string>
+    <string name="string_218">取消</string>
+    <string name="string_219">删除</string>
+    <string name="string_220">删除成功</string>
+    <string name="string_221">计算中</string>
+    <string name="string_222">个插画, 共</string>
+    <string name="string_223">个文件</string>
+    <string name="string_224">没有更多数据啦</string>
+    <string name="string_225">QQ群组</string>
+    <string name="string_226">还没创建群呢，谁创了在评论区发我</string>
+    <string name="string_227">未安装手Q或安装的版本不支持</string>
 
 </resources>

@@ -72,23 +72,23 @@ public class FragmentMutedTags extends LocalListFragment<FragmentBaseListBinding
             public boolean onMenuItemClick(MenuItem item) {
                 if (item.getItemId() == R.id.action_delete) {
                     if (allItems.size() == 0) {
-                        Common.showToast("当前没有可删除的屏蔽标签");
+                        Common.showToast(getString(R.string.string_215));
                     } else {
                         new QMUIDialog.MessageDialogBuilder(mActivity)
-                                .setTitle("Shaft 提示")
-                                .setMessage("这将会删除所有的屏蔽标签")
+                                .setTitle(getString(R.string.string_216))
+                                .setMessage(getString(R.string.string_217))
                                 .setSkinManager(QMUISkinManager.defaultInstance(mContext))
-                                .addAction("取消", new QMUIDialogAction.ActionListener() {
+                                .addAction(getString(R.string.string_218), new QMUIDialogAction.ActionListener() {
                                     @Override
                                     public void onClick(QMUIDialog dialog, int index) {
                                         dialog.dismiss();
                                     }
                                 })
-                                .addAction(0, "删除", QMUIDialogAction.ACTION_PROP_NEGATIVE, new QMUIDialogAction.ActionListener() {
+                                .addAction(0, getString(R.string.string_219), QMUIDialogAction.ACTION_PROP_NEGATIVE, new QMUIDialogAction.ActionListener() {
                                     @Override
                                     public void onClick(QMUIDialog dialog, int index) {
                                         AppDatabase.getAppDatabase(mContext).searchDao().deleteAllMutedTags();
-                                        Common.showToast("删除成功");
+                                        Common.showToast(getString(R.string.string_220));
                                         mAdapter.clear();
                                         noData.setVisibility(View.VISIBLE);
                                         dialog.dismiss();
@@ -99,17 +99,17 @@ public class FragmentMutedTags extends LocalListFragment<FragmentBaseListBinding
                     }
                 } else if (item.getItemId() == R.id.action_add) {
                     final QMUIDialog.EditTextDialogBuilder builder = new QMUIDialog.EditTextDialogBuilder(mActivity);
-                    builder.setTitle("添加屏蔽标签")
+                    builder.setTitle(getString(R.string.string_210))
                             .setSkinManager(QMUISkinManager.defaultInstance(mContext))
-                            .setPlaceholder("请输入标签名")
+                            .setPlaceholder(getString(R.string.string_211))
                             .setInputType(InputType.TYPE_CLASS_TEXT)
-                            .addAction("取消", new QMUIDialogAction.ActionListener() {
+                            .addAction(getString(R.string.string_212), new QMUIDialogAction.ActionListener() {
                                 @Override
                                 public void onClick(QMUIDialog dialog, int index) {
                                     dialog.dismiss();
                                 }
                             })
-                            .addAction("添加", new QMUIDialogAction.ActionListener() {
+                            .addAction(getString(R.string.string_213), new QMUIDialogAction.ActionListener() {
                                 @Override
                                 public void onClick(QMUIDialog dialog, int index) {
                                     CharSequence text = builder.getEditText().getText();
@@ -117,7 +117,7 @@ public class FragmentMutedTags extends LocalListFragment<FragmentBaseListBinding
                                         addMutedTag(text.toString());
                                         dialog.dismiss();
                                     } else {
-                                        Toast.makeText(getActivity(), "请填入标签", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(getActivity(), R.string.string_214, Toast.LENGTH_SHORT).show();
                                     }
                                 }
                             })
@@ -152,12 +152,12 @@ public class FragmentMutedTags extends LocalListFragment<FragmentBaseListBinding
             mRecyclerView.scrollToPosition(0);
             mAdapter.notifyItemRangeChanged(0, allItems.size());
         } else {
-            Common.showToast(tagName + "已存在于屏蔽列表");
+            Common.showToast(tagName + getString(R.string.string_209));
         }
     }
 
     @Override
     public String getToolbarTitle() {
-        return "屏蔽记录";
+        return getString(R.string.string_208);
     }
 }

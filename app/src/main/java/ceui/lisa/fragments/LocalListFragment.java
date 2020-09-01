@@ -47,7 +47,7 @@ public abstract class LocalListFragment<Layout extends ViewDataBinding, Item>
             mAdapter.notifyItemRangeInserted(getStartSize(), mLocalRepo.next().size());
         } else {
             if (mLocalRepo.showNoDataHint()) {
-                Common.showToast("没有更多数据啦");
+                Common.showToast(getString(R.string.string_224));
             }
         }
         mRefreshLayout.finishLoadMore(true);

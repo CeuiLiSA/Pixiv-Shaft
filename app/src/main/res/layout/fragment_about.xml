@@ -249,6 +249,7 @@
                         </View>
 
                         <RelativeLayout
+                            android:id="@+id/go_telegram"
                             android:layout_width="match_parent"
                             android:background="?android:attr/selectableItemBackground"
                             android:clickable="true"
@@ -263,6 +264,50 @@
                                 android:layout_marginBottom="@dimen/twelve_dp"
                                 android:layout_width="wrap_content"
                                 android:text="@string/string_201"
+                                android:layout_height="wrap_content">
+
+                            </TextView>
+
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:textColor="#7e7e7e"
+                                android:layout_centerVertical="true"
+                                android:textSize="15sp"
+                                android:layout_alignParentEnd="true"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
+                                app:drawableEndCompat="@drawable/ic_chevron_right_black_24dp"
+                                app:drawableTint="#c4c4c6"
+                                android:layout_height="wrap_content">
+
+                            </TextView>
+
+                        </RelativeLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="#e3e3e3"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_height="0.6dp">
+
+                        </View>
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:id="@+id/go_qq"
+                            android:background="?android:attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:layout_height="wrap_content">
+
+
+                            <TextView
+                                android:textSize="15sp"
+                                android:textColor="@color/black"
+                                android:layout_marginStart="@dimen/sixteen_dp"
+                                android:layout_marginTop="@dimen/twelve_dp"
+                                android:layout_marginBottom="@dimen/twelve_dp"
+                                android:layout_width="wrap_content"
+                                android:text="@string/string_225"
                                 android:layout_height="wrap_content">
 
                             </TextView>

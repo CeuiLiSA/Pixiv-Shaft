@@ -25,6 +25,9 @@ import com.bumptech.glide.Glide;
 import com.google.android.material.navigation.NavigationView;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.File;
 
 import ceui.lisa.R;
@@ -42,6 +45,7 @@ import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseImage;
 import ceui.lisa.utils.ReverseWebviewCallback;
 import io.reactivex.disposables.Disposable;
+import nl.joery.animatedbottombar.AnimatedBottomBar;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
@@ -148,7 +152,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             case R.id.nav_gallery:
                 intent = new Intent(mContext, TemplateActivity.class);
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载管理");
-                intent.putExtra("hideStatusBar", true);
+                intent.putExtra("hideStatusBar", false);
                 break;
             case R.id.nav_slideshow:
                 intent = new Intent(mContext, TemplateActivity.class);

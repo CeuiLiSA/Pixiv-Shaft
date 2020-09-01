@@ -16,12 +16,21 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/colorPrimary"
+            android:background="@color/new_color_primary"
             android:elevation="@dimen/six_dp"
             android:fitsSystemWindows="true"
-            app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
-            app:title="设置"
-            app:titleTextColor="@android:color/white">
+            app:navigationIcon="@drawable/ic_baseline_arrow_back_ios_24">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="@string/app_settings"
+                android:id="@+id/toolbar_title"
+                android:textColor="@color/white"
+                android:textSize="18sp">
+
+            </TextView>
 
         </androidx.appcompat.widget.Toolbar>
 

@@ -136,7 +136,7 @@ public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownload
         adapter.setCallback(new Callback() {
             @Override
             public void doSomething(Object t) {
-                mToolbar.setTitle(getToolbarTitle());
+                baseBind.toolbarTitle.setText(getToolbarTitle());
             }
         });
         return adapter;
@@ -167,9 +167,11 @@ public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownload
 
     @Override
     public String getToolbarTitle() {
-        if (mModel == null || mModel.getContent() == null ||
-                mModel.getContent().getValue() == null || allItems.size() == 0) {
-            return "计算中";
+        if (mModel == null
+                || mModel.getContent() == null
+                || mModel.getContent().getValue() == null
+                || mModel.getContent().getValue().size() == 0) {
+            return getString(R.string.string_221);
         } else {
             int selectCount = 0;
             int fileCount = 0;
@@ -179,7 +181,7 @@ public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownload
                     selectCount++;
                 }
             }
-            return selectCount + "个插画, 共" + fileCount + "个文件";
+            return selectCount + getString(R.string.string_222) + fileCount + getString(R.string.string_223);
         }
     }
 

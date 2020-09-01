@@ -90,6 +90,9 @@ public class CommentAdapter extends BaseAdapter<CommentsBean, RecyCommentListBin
             bindView.itemView.setOnClickListener(v ->
                     mOnItemClickListener.onItemClick(v, position, 0));
 
+            bindView.baseBind.content.setOnClickListener(v ->
+                    mOnItemClickListener.onItemClick(v, position, 0));
+
             bindView.baseBind.userHead.setOnClickListener(v ->
                     mOnItemClickListener.onItemClick(v, position, 1));
 

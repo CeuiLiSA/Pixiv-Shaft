@@ -292,7 +292,6 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .map(entities -> {
-                    Common.showLog(className + entities.size());
                     List<IllustsBean> temp = new ArrayList<>();
                     for (int i = 0; i < entities.size(); i++) {
                         IllustsBean illustsBean = Shaft.sGson.fromJson(

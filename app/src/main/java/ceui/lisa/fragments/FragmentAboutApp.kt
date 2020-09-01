@@ -73,6 +73,20 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
             }
             startActivity(intent)
         }
+        baseBind.goTelegram.setOnClickListener {
+            Common.showToast(getString(R.string.string_226))
+        }
+        baseBind.goQq.setOnClickListener {
+            val intent = Intent()
+            intent.data = Uri.parse(
+                    "mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + "_RMaPSgL-eB-JZPMFdXGJTSqIqtgCn5G");
+            try {
+                startActivity(intent)
+            } catch (e: Exception) {
+                Common.showToast(getString(R.string.string_227))
+            }
+
+        }
         baseBind.appVersion.text = Common.getAppVersionName(mContext) + " (" + Common.getAppVersionCode(mContext) + ") "
         baseBind.rateThisApp.setOnClickListener {
 //            val manager = ReviewManagerFactory.create(mContext)

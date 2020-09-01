@@ -3,6 +3,7 @@ package ceui.lisa.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.KeyEvent;
+import android.view.Window;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -95,8 +96,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                     return FragmentWebView.newInstance(title, url);
                 }
                 case "设置":
-                return FragmentSettings.newInstance();
-
+                    return new FragmentSettings();
                 case "推荐用户":
                     return new FragmentRecmdUser();
                 case "特辑":
@@ -142,12 +142,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                 case "一言":
                     return FragmentAnime.newInstance();
                 case "最新作品":
-                    if (Dev.isDev) {
-                        return new FragmentHttpTest();
-//                        return FragmentBh.newInstance();
-                    } else {
-                        return new FragmentNew();
-                    }
+                    return new FragmentNew();
                 case "粉丝":
                     return FragmentWhoFollowThisUser.newInstance(intent.getIntExtra(Params.USER_ID, 0));
                 case "开发者预览":
@@ -166,9 +161,10 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                     return FragmentLikeIllust.newInstance(intent.getIntExtra(Params.USER_ID, 0),
                             FragmentLikeIllust.TYPE_PUBLUC, true);
                 case "下载管理":
+                    getWindow().setStatusBarColor(getResources().getColor(R.color.new_color_primary));
                     return new FragmentDownload();
                 case "收藏夹":
-                    getWindow().setStatusBarColor(getResources().getColor(R.color.colorPrimary));
+                    getWindow().setStatusBarColor(getResources().getColor(R.color.new_color_primary));
                     return new FragmentCollection();
                 case "推荐漫画":
                     return FragmentRecmdIllust.newInstance("漫画");

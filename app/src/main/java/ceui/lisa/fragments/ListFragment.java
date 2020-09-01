@@ -187,15 +187,15 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
     public void initToolbar(Toolbar toolbar) {
         if (showToolbar()) {
             toolbar.setVisibility(View.VISIBLE);
+            if (toolbar.findViewById(R.id.toolbar_title) instanceof TextView) {
+                ((TextView) toolbar.findViewById(R.id.toolbar_title)).setText(getToolbarTitle());
+            } else {
+                toolbar.setTitle(getToolbarTitle());
+            }
+            toolbar.setNavigationOnClickListener(v -> finish());
         } else {
             toolbar.setVisibility(View.GONE);
         }
-        if (toolbar.findViewById(R.id.toolbar_title) instanceof TextView) {
-            ((TextView) toolbar.findViewById(R.id.toolbar_title)).setText(getToolbarTitle());
-        } else {
-            toolbar.setTitle(getToolbarTitle());
-        }
-        toolbar.setNavigationOnClickListener(v -> finish());
     }
 
     public void beforeFirstLoad(List<Item> items) {
