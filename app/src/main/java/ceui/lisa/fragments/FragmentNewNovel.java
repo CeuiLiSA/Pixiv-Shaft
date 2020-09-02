@@ -29,11 +29,6 @@ public class FragmentNewNovel extends BaseFragment<FragmentNewNovelBinding> {
                 Shaft.getContext().getString(R.string.recommend_illust),
                 Shaft.getContext().getString(R.string.hot_tag)
         };
-
-        ViewGroup.LayoutParams headParams = baseBind.head.getLayoutParams();
-        headParams.height = Shaft.statusHeight;
-        baseBind.head.setLayoutParams(headParams);
-
         baseBind.toolbar.setNavigationOnClickListener(v -> {
             mActivity.finish();
         });

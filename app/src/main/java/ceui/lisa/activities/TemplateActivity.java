@@ -139,8 +139,6 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                     return new FragmentSearch();
                 case "详细信息":
                     return new FragmentUserInfo();
-                case "一言":
-                    return FragmentAnime.newInstance();
                 case "最新作品":
                     getWindow().setStatusBarColor(getResources().getColor(R.color.new_color_primary));
                     return new FragmentNew();
@@ -170,6 +168,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                 case "推荐漫画":
                     return FragmentRecmdIllust.newInstance("漫画");
                 case "推荐小说":
+                    getWindow().setStatusBarColor(getResources().getColor(R.color.new_color_primary));
                     return new FragmentNewNovel();
                 case "小说收藏":
                     return FragmentLikeNovel.newInstance(intent.getIntExtra(Params.USER_ID, 0),

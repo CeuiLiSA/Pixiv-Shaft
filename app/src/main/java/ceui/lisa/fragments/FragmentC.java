@@ -67,6 +67,7 @@ public class FragmentC extends SwipeFragment<FragmentNewCenterBinding> {
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, TemplateActivity.class);
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "推荐小说");
+                intent.putExtra("hideStatusBar", false);
                 startActivity(intent);
             }
         });

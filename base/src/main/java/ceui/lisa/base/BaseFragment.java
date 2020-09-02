@@ -66,6 +66,9 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         if (rootView != null) {
+            if (baseBind == null) {
+                baseBind = DataBindingUtil.bind(rootView);
+            }
             return rootView;
         }
         initLayout();
