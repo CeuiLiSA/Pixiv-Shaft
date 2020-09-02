@@ -33,7 +33,6 @@
             android:layout_marginBottom="160dp"
             android:layout_alignParentBottom="true"
             android:layout_marginStart="@dimen/sixteen_dp"
-            android:visibility="invisible"
             android:layout_marginEnd="@dimen/sixteen_dp"
             android:id="@+id/awesome_card"
             android:layout_height="wrap_content">
@@ -86,6 +85,19 @@
                         android:id="@+id/save_novel"
                         android:layout_marginEnd="@dimen/six_dp"
                         android:text="@string/string_82"
+                        android:layout_centerVertical="true"
+                        android:textColor="@color/white_to_gray">
+
+                    </Button>
+
+                    <Button
+                        style="@style/Widget.AppCompat.Button.Borderless"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:id="@+id/export_txt"
+                        android:layout_toStartOf="@+id/save_novel"
+                        android:text="@string/string_228"
                         android:layout_centerVertical="true"
                         android:textColor="@color/white_to_gray">
 

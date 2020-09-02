@@ -142,6 +142,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                 case "一言":
                     return FragmentAnime.newInstance();
                 case "最新作品":
+                    getWindow().setStatusBarColor(getResources().getColor(R.color.new_color_primary));
                     return new FragmentNew();
                 case "粉丝":
                     return FragmentWhoFollowThisUser.newInstance(intent.getIntExtra(Params.USER_ID, 0));

@@ -19,6 +19,7 @@ import com.zhy.view.flowlayout.FlowLayout;
 import com.zhy.view.flowlayout.TagAdapter;
 import com.zhy.view.flowlayout.TagFlowLayout;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -32,8 +33,10 @@ import ceui.lisa.cache.Cache;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.databinding.FragmentNovelHolderBinding;
+import ceui.lisa.helper.TextWriter;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
+import ceui.lisa.interfaces.Callback;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.NovelDetail;
 import ceui.lisa.models.TagsBean;
@@ -42,6 +45,9 @@ import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.view.ScrollChange;
+import gdut.bsx.share2.FileUtil;
+import gdut.bsx.share2.Share2;
+import gdut.bsx.share2.ShareContentType;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
@@ -276,5 +282,22 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
         } else {
             baseBind.showNext.setVisibility(View.INVISIBLE);
         }
+        baseBind.exportTxt.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                TextWriter.writeToTxt(System.currentTimeMillis() + "_novel_tasks.txt",
+                        novelDetail.getNovel_text(), new Callback<File>() {
+                            @Override
+                            public void doSomething(File t) {
+                                new Share2.Builder(mActivity)
+                                        .setContentType(ShareContentType.FILE)
+                                        .setShareFileUri(FileUtil.getFileUri(mContext, ShareContentType.FILE, t))
+                                        .setTitle("Share File")
+                                        .build()
+                                        .shareBySystem();
+                            }
+                        });
+            }
+        });
     }
 }

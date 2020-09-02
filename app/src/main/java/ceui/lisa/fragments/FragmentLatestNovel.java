@@ -19,13 +19,12 @@ public class FragmentLatestNovel extends NetListFragment<FragmentBaseListBinding
         return new RemoteRepo<ListNovel>() {
             @Override
             public Observable<ListNovel> initApi() {
-                return Retro.getAppApi().getNewNovels(Shaft.sUserModel.getResponse().getAccess_token());
+                return Retro.getAppApi().getNewNovels(token());
             }
 
             @Override
             public Observable<ListNovel> initNextApi() {
-                return Retro.getAppApi().getNextNovel(Shaft.sUserModel.getResponse().getAccess_token(),
-                        mModel.getNextUrl());
+                return Retro.getAppApi().getNextNovel(token(), mModel.getNextUrl());
             }
         };
     }

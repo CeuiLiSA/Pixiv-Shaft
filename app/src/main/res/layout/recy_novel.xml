@@ -18,18 +18,19 @@
             android:layout_height="wrap_content">
 
 
-            <ImageView
+            <com.makeramen.roundedimageview.RoundedImageView
                 android:layout_width="90dp"
                 android:id="@+id/cover"
                 android:scaleType="centerCrop"
-                android:background="@color/light_bg"
+                app:riv_border_width="0dp"
+                app:riv_corner_radius="@dimen/eight_dp"
                 android:layout_marginTop="@dimen/eight_dp"
                 android:layout_marginEnd="@dimen/eight_dp"
                 android:layout_alignParentEnd="true"
                 android:layout_marginBottom="@dimen/eight_dp"
                 android:layout_height="120dp">
 
-            </ImageView>
+            </com.makeramen.roundedimageview.RoundedImageView>
 
 
             <RelativeLayout

@@ -16,7 +16,8 @@ public class FragmentNew extends BaseFragment<ViewpagerWithTablayoutBinding> {
     private static final String[] CHINESE_TITLES = new String[]{
             Shaft.getContext().getString(R.string.type_illust),
             Shaft.getContext().getString(R.string.type_manga),
-            Shaft.getContext().getString(R.string.type_novel)};
+            Shaft.getContext().getString(R.string.type_novel)
+    };
 
     @Override
     public void initLayout() {
