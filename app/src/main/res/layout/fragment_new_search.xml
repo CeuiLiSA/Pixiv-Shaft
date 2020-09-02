@@ -6,7 +6,7 @@
 
     </data>
 
-    <RelativeLayout
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:id="@+id/top_parent"
         android:layout_height="match_parent">
@@ -15,19 +15,19 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/app_bar"
-            android:background="@color/colorPrimary">
+            android:background="@color/new_color_primary">
 
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 app:layout_scrollFlags="scroll|enterAlways"
                 android:layout_height="wrap_content"
-                android:background="@color/colorPrimary"
+                android:background="@color/new_color_primary"
                 android:elevation="0dp"
                 android:fitsSystemWindows="true"
                 android:theme="@style/AppTheme.AppBarOverlay"
                 app:popupTheme="@style/AppTheme.PopupOverlay"
-                app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
+                app:navigationIcon="@drawable/ic_baseline_arrow_back_ios_24"
                 app:title=" "
                 app:titleTextColor="@android:color/white">
 
@@ -57,7 +57,7 @@
                 android:layout_width="match_parent"
                 android:id="@+id/tab_layout"
                 app:tabMode="fixed"
-                app:tabTextColor="@color/light_primary_color"
+                app:tabTextColor="@color/light_new_primary_color"
                 app:tabIndicatorFullWidth="false"
                 app:tabIndicatorColor="@android:color/white"
                 app:tabSelectedTextColor="@android:color/white"
@@ -68,29 +68,10 @@
         </com.google.android.material.appbar.AppBarLayout>
 
 
-        <ImageView
-            android:layout_width="wrap_content"
-            android:id="@+id/no_data"
-            android:src="@mipmap/no_data_line"
-            android:tint="@color/colorPrimary"
-            android:scaleType="centerCrop"
-            android:visibility="invisible"
-            android:layout_centerInParent="true"
-            android:layout_height="wrap_content" />
-
-        <ProgressBar
-            android:layout_width="wrap_content"
-            android:id="@+id/progress"
-            android:layout_centerInParent="true"
-            android:visibility="gone"
-            android:layout_height="wrap_content">
-
-        </ProgressBar>
-
-
         <com.mxn.soul.flowingdrawer_core.FlowingDrawer
             android:id="@+id/drawerlayout"
             android:layout_width="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
             android:layout_height="match_parent"
             android:clipChildren="false"
             android:layout_below="@+id/app_bar"
@@ -101,7 +82,7 @@
 
             <androidx.viewpager.widget.ViewPager
                 android:layout_width="match_parent"
-                app:layout_behavior="@string/appbar_scrolling_view_behavior"    android:id="@+id/view_pager"
+                android:id="@+id/view_pager"
                 android:layout_height="match_parent">
 
             </androidx.viewpager.widget.ViewPager>
@@ -123,5 +104,5 @@
 
 
 
-    </RelativeLayout>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>

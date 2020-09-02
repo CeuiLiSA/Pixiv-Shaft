@@ -37,6 +37,7 @@ public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> im
 
     @Override
     protected void initView() {
+        getWindow().setStatusBarColor(getResources().getColor(R.color.new_color_primary));
         setSupportActionBar(baseBind.toolbar);
         baseBind.toolbar.setNavigationOnClickListener(v -> finish());
         dataType = getIntent().getStringExtra("dataType");

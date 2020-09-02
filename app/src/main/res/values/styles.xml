@@ -88,4 +88,65 @@
         <item name="android:windowExitAnimation">@anim/dialog_exit_anim</item>
     </style>
 
+
+    <style name="setting_text_left">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:layout_marginStart">@dimen/sixteen_dp</item>
+        <item name="android:layout_marginTop">@dimen/twelve_dp</item>
+        <item name="android:layout_marginBottom">@dimen/twelve_dp</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+
+    <style name="setting_text_head">
+        <item name="android:textColor">@color/new_color_primary</item>
+        <item name="android:layout_marginStart">@dimen/sixteen_dp</item>
+        <item name="android:layout_marginTop">30dp</item>
+        <item name="android:layout_marginBottom">@dimen/eight_dp</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+
+    <style name="setting_right_arrow">
+        <item name="android:layout_marginEnd">@dimen/sixteen_dp</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_centerVertical">true</item>
+        <item name="android:layout_alignParentEnd">true</item>
+        <item name="android:drawableEnd">@drawable/ic_arrow_right</item>
+    </style>
+
+    <style name="setting_right_switch">
+        <item name="android:layout_marginEnd">@dimen/sixteen_dp</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_centerVertical">true</item>
+        <item name="android:layout_alignParentEnd">true</item>
+        <item name="android:checked">true</item>
+        <item name="android:thumbTint">@color/new_color_primary</item>
+        <item name="android:trackTint">@color/new_color_primary</item>
+    </style>
+
+    <style name="full_divider">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">0.6dp</item>
+        <item name="android:background">#e3e3e3</item>
+    </style>
+
+    <style name="half_divider">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_marginStart">@dimen/sixteen_dp</item>
+        <item name="android:layout_height">0.6dp</item>
+        <item name="android:background">#e3e3e3</item>
+    </style>
+
+    <style name="ripple_rela">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:clickable">true</item>
+        <item name="android:background">?android:attr/selectableItemBackground</item>
+    </style>
+
 </resources>

@@ -44,7 +44,7 @@
                     android:layout_width="match_parent"
                     android:id="@+id/tab_layout"
                     android:background="@color/colorPrimary"
-                    app:tabTextColor="@color/light_primary_color"
+                    app:tabTextColor="@color/light_new_primary_color"
                     app:tabIndicatorFullWidth="false"
                     app:tabIndicatorColor="@android:color/white"
                     app:tabSelectedTextColor="@android:color/white"

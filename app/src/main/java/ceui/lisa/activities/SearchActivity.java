@@ -59,6 +59,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 
     @Override
     protected void initView() {
+        getWindow().setStatusBarColor(getResources().getColor(R.color.new_color_primary));
         final String[] TITLES = new String[]{
                 getString(R.string.string_136),
                 getString(R.string.string_137),
