@@ -20,6 +20,7 @@ import ceui.lisa.fragments.FragmentDonate;
 import ceui.lisa.fragments.FragmentFileName;
 import ceui.lisa.fragments.FragmentHttpTest;
 import ceui.lisa.fragments.FragmentListSimpleUser;
+import ceui.lisa.fragments.FragmentMangaSeries;
 import ceui.lisa.fragments.FragmentMultiDownld;
 import ceui.lisa.fragments.FragmentNew;
 import ceui.lisa.fragments.FragmentNewNovel;
@@ -194,6 +195,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                     return FragmentDonate.newInstance();
                 case "关注者的小说":
                     return new FragmentNewNovels();
+                case "漫画系列":
+                    return FragmentMangaSeries.newInstance(intent.getIntExtra(Params.ID, 0));
                 default:
                     return new Fragment();
             }

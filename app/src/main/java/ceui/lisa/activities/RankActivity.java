@@ -25,7 +25,6 @@ import ceui.lisa.utils.Common;
 public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> implements
         DatePickerDialog.OnDateSetListener {
 
-
     private NetListFragment[] allPages = new NetListFragment[]{null, null, null, null, null, null, null, null};
     private String dataType = "";
     private String queryDate = "";

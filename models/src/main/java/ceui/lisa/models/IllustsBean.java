@@ -48,7 +48,7 @@ public class IllustsBean implements Serializable, Starable {
     private int height;
     private int sanity_level;
     private int x_restrict;
-    private Object series;
+    private SeriesBean series;
     private MetaSinglePageBean meta_single_page;
     private int total_view;
     private int total_bookmarks;
@@ -168,11 +168,11 @@ public class IllustsBean implements Serializable, Starable {
         this.x_restrict = x_restrict;
     }
 
-    public Object getSeries() {
+    public SeriesBean getSeries() {
         return series;
     }
 
-    public void setSeries(Object series) {
+    public void setSeries(SeriesBean series) {
         this.series = series;
     }
 

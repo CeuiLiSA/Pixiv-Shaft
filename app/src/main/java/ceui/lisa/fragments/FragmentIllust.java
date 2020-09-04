@@ -4,8 +4,15 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.text.Html;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.TextPaint;
 import android.text.TextUtils;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -35,6 +42,7 @@ import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UserActivity;
 import ceui.lisa.adapters.IllustAdapter;
 import ceui.lisa.base.SwipeFragment;
+import ceui.lisa.core.ImgGetter;
 import ceui.lisa.databinding.FragmentIllustBinding;
 import ceui.lisa.dialogs.MuteDialog;
 import ceui.lisa.download.GifCreate;
@@ -79,7 +87,32 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
 
     @Override
     protected void initView() {
-        baseBind.title.setText(illust.getTitle());
+        if (illust.getSeries() != null && !TextUtils.isEmpty(illust.getSeries().getTitle())) {
+            ClickableSpan clickableSpan = new ClickableSpan() {
+                @Override
+                public void onClick(View widget) {
+                    Intent intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "漫画系列");
+                    intent.putExtra(Params.ID, illust.getSeries().getId());
+                    startActivity(intent);
+                }
+
+                @Override
+                public void updateDrawState(TextPaint ds) {
+                    ds.setColor(getResources().getColor(R.color.new_color_primary));
+                }
+            };
+            SpannableString spannableString;
+            spannableString = new SpannableString(String.format("@%s %s",
+                    illust.getTitle(), getString(R.string.string_229)));
+            spannableString.setSpan(clickableSpan,
+                    illust.getTitle().length() + 2, illust.getTitle().length() + 4,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            baseBind.title.setMovementMethod(LinkMovementMethod.getInstance());
+            baseBind.title.setText(spannableString);
+        } else {
+            baseBind.title.setText(illust.getTitle());
+        }
         baseBind.toolbar.inflateMenu(R.menu.share);
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
         baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {

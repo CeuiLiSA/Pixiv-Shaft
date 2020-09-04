@@ -23,8 +23,11 @@ import ceui.lisa.view.LinearItemHorizontalDecoration;
 
 public class IllustHeader extends ViewHolder<RecyRecmdHeaderBinding> {
 
-    public IllustHeader(RecyRecmdHeaderBinding bindView) {
+    private String type = "";
+
+    public IllustHeader(RecyRecmdHeaderBinding bindView, String type) {
         super(bindView);
+        this.type = type;
     }
 
     public void show(Context context, List<IllustsBean> illustsBeans) {
@@ -50,7 +53,7 @@ public class IllustHeader extends ViewHolder<RecyRecmdHeaderBinding> {
         baseBind.topRela.setVisibility(View.GONE);
         baseBind.seeMore.setOnClickListener(v -> {
             Intent intent = new Intent(context, RankActivity.class);
-            intent.putExtra("dataType", "插画");
+            intent.putExtra("dataType", type);
             context.startActivity(intent);
         });
         baseBind.ranking.addItemDecoration(new LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));

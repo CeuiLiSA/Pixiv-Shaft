@@ -18,11 +18,11 @@ import ceui.lisa.models.IllustsBean;
 public class IAdapterWithHeadView extends IAdapter {
 
     private IllustHeader mIllustHeader = null;
-    private RecyclerView mRecyclerView = null;
+    private String type = "";
 
-    public IAdapterWithHeadView(List<IllustsBean> targetList, Context context, RecyclerView recyclerView) {
+    public IAdapterWithHeadView(List<IllustsBean> targetList, Context context, String type) {
         super(targetList, context);
-        mRecyclerView = recyclerView;
+        this.type = type;
     }
 
     @Override
@@ -38,7 +38,7 @@ public class IAdapterWithHeadView extends IAdapter {
                         R.layout.recy_recmd_header,
                         null,
                         false
-                )
+                ), type
         );
         mIllustHeader.initView(mContext);
         return mIllustHeader;

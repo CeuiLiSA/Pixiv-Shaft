@@ -79,15 +79,14 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
 
             @Override
             public Observable<ListIllust> initNextApi() {
-                return Retro.getAppApi().getNextIllust(
-                        Shaft.sUserModel.getResponse().getAccess_token(), mModel.getNextUrl());
+                return Retro.getAppApi().getNextIllust(token(), mModel.getNextUrl());
             }
         };
     }
 
     @Override
     public BaseAdapter<IllustsBean, RecyIllustStaggerBinding> adapter() {
-        return new IAdapterWithHeadView(allItems, mContext, baseBind.recyclerView);
+        return new IAdapterWithHeadView(allItems, mContext, dataType);
     }
 
     @Override

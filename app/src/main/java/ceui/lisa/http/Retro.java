@@ -1,5 +1,7 @@
 package ceui.lisa.http;
 
+import android.util.Log;
+
 import com.blankj.utilcode.util.DeviceUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -14,6 +16,7 @@ import ceui.lisa.activities.Shaft;
 import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
 import okhttp3.Request;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -140,16 +143,20 @@ public class Retro {
     }
 
     public static OkHttpClient.Builder getLogClient() {
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(
+                message -> Log.i("RetroLog", message));
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
         return new OkHttpClient
                 .Builder()
                 .addInterceptor(
-                        new LoggingInterceptor.Builder()
-                                .loggable(true)
-                                .request()
-                                .requestTag("Request")
-                                .response()
-                                .responseTag("Response")
-                                .build()
+//                        new LoggingInterceptor.Builder()
+//                                .loggable(true)
+//                                .request()
+//                                .requestTag("Request")
+//                                .response()
+//                                .responseTag("Response")
+//                                .build()
+                        loggingInterceptor
                 )
                 .protocols(Collections.singletonList(Protocol.HTTP_1_1));
     }

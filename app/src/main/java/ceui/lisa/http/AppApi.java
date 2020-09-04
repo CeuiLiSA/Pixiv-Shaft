@@ -2,6 +2,7 @@ package ceui.lisa.http;
 
 import java.util.List;
 
+import ceui.lisa.model.IllustSeries;
 import ceui.lisa.model.ListArticle;
 import ceui.lisa.model.ListLive;
 import ceui.lisa.model.ListSimpleUser;
@@ -395,4 +396,9 @@ public interface AppApi {
     @GET("v2/novel/detail")
     Observable<NovelSearchResponse> getNovelByID(@Header("Authorization") String token,
                                                  @Query("novel_id") int novel_id);
+
+    @GET("v1/illust/series?filter=for_android")
+    Observable<IllustSeries> getIllustSeries(@Header("Authorization") String token,
+                                                       @Query("illust_series_id") int illust_series_id);
+
 }
