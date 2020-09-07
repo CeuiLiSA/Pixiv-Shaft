@@ -24,8 +24,8 @@
 
             <ImageView
                 android:layout_width="match_parent"
-                android:background="@color/colorPrimary"
-                android:layout_height="@dimen/eight_dp">
+                android:background="@color/new_color_primary"
+                android:layout_height="@dimen/six_dp">
 
             </ImageView>
 

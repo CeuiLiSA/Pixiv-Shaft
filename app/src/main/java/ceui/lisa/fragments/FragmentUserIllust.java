@@ -25,10 +25,6 @@ public class FragmentUserIllust extends NetListFragment<FragmentBaseListBinding,
     private int userID;
     private boolean showToolbar = false;
 
-    public static FragmentUserIllust newInstance(int userID) {
-        return newInstance(userID, false);
-    }
-
     public static FragmentUserIllust newInstance(int userID, boolean paramShowToolbar) {
         Bundle args = new Bundle();
         args.putInt(Params.USER_ID, userID);
@@ -49,14 +45,12 @@ public class FragmentUserIllust extends NetListFragment<FragmentBaseListBinding,
         return new RemoteRepo<ListIllust>() {
             @Override
             public Observable<ListIllust> initApi() {
-                return Retro.getAppApi().getUserSubmitIllust(
-                        sUserModel.getResponse().getAccess_token(), userID, "illust");
+                return Retro.getAppApi().getUserSubmitIllust(token(), userID, "illust");
             }
 
             @Override
             public Observable<ListIllust> initNextApi() {
-                return Retro.getAppApi().getNextIllust(
-                        sUserModel.getResponse().getAccess_token(), mModel.getNextUrl());
+                return Retro.getAppApi().getNextIllust(token(), mModel.getNextUrl());
             }
 
             @Override

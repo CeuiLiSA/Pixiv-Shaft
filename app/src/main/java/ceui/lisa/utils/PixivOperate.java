@@ -137,6 +137,7 @@ public class PixivOperate {
                         }
                     });
         }
+        PixivOperate.insertIllustViewHistory(illustsBean);
     }
 
     public static void postLikeNovel(NovelBean novelBean, UserModel userModel, String starType, View view) {

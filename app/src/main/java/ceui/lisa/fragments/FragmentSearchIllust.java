@@ -17,6 +17,7 @@ import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.viewmodel.SearchModel;
@@ -68,6 +69,7 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
                     return Retro.getAppApi().popularPreview(token(),
                             searchModel.getKeyword().getValue());
                 } else {
+                    Common.showLog(className + searchModel.getSortType().getValue());
                     PixivOperate.insertSearchHistory(searchModel.getKeyword().getValue(), 0);
                     return Retro.getAppApi().searchIllust(
                             token(),

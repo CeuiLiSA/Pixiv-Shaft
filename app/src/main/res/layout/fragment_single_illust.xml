@@ -213,7 +213,7 @@
                                 android:layout_height="match_parent"
                                 android:layout_marginTop="4dp"
                                 android:layout_marginEnd="@dimen/eight_dp"
-                                app:tcvBackground="@drawable/btn_follow"
+                                app:tcvBackground="@drawable/btn_follow_legency"
                                 app:tcvBorder="@dimen/eight_dp"
                                 app:tcvItemBorderVertical="6dp">
 

@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
 import com.blankj.utilcode.util.BarUtils;
+import com.jaredrummler.android.colorpicker.ColorPickerDialogListener;
 
 import ceui.lisa.R;
 import ceui.lisa.base.BaseActivity;
@@ -62,10 +63,11 @@ import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
+import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseResult;
 
-public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
+public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> implements ColorPickerDialogListener {
 
     public static final String EXTRA_FRAGMENT = "dataType";
     public static final String EXTRA_KEYWORD = "keyword";
@@ -101,6 +103,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
                 case "推荐用户":
                     return new FragmentRecmdUser();
                 case "特辑":
+                    getWindow().setStatusBarColor(getResources().getColor(R.color.new_color_primary));
                     return new FragmentPv();
                 case "搜索用户": {
                     String keyword = intent.getStringExtra(EXTRA_KEYWORD);
@@ -250,5 +253,19 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> {
     @Override
     public boolean hideStatusBar() {
         return getIntent().getBooleanExtra("hideStatusBar", true);
+    }
+
+    @Override
+    public void onColorSelected(int dialogId, int color) {
+        if (childFragment instanceof FragmentNovelHolder) {
+            ((FragmentNovelHolder) childFragment).setColor(color);
+            Shaft.sSettings.setNovelHolderColor(color);
+            Local.setSettings(Shaft.sSettings);
+        }
+    }
+
+    @Override
+    public void onDialogDismissed(int dialogId) {
+
     }
 }

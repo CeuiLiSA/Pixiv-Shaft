@@ -21,6 +21,7 @@ import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListArticle;
 import ceui.lisa.models.SpotlightArticlesBean;
 import ceui.lisa.utils.DensityUtil;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
 import io.reactivex.Observable;
@@ -57,7 +58,10 @@ public class FragmentPivisionHorizontal extends NetListFragment<FragmentPivision
         return new RemoteRepo<ListArticle>() {
             @Override
             public Observable<ListArticle> initApi() {
-                return Retro.getAppApi().getArticles(sUserModel.getResponse().getAccess_token(), "all");
+                if (Dev.isDev) {
+                    return null;
+                }
+                return Retro.getAppApi().getArticles(token(), "all");
             }
 
             @Override
@@ -86,6 +90,7 @@ public class FragmentPivisionHorizontal extends NetListFragment<FragmentPivision
         super.initView();
         baseBind.seeMore.setOnClickListener(v -> {
             Intent intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra("hideStatusBar", false);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "特辑");
             startActivity(intent);
         });

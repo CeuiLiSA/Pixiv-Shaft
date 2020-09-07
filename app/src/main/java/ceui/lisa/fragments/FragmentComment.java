@@ -90,13 +90,12 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
         return new RemoteRepo<ListComment>() {
             @Override
             public Observable<ListComment> initApi() {
-                return Retro.getAppApi().getComment(sUserModel.getResponse().getAccess_token(), illustID);
+                return Retro.getAppApi().getComment(token(), illustID);
             }
 
             @Override
             public Observable<ListComment> initNextApi() {
-                return Retro.getAppApi().getNextComment(
-                        sUserModel.getResponse().getAccess_token(), mModel.getNextUrl());
+                return Retro.getAppApi().getNextComment(token(), mModel.getNextUrl());
             }
         };
     }

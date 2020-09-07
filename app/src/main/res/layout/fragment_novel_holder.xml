@@ -10,7 +10,7 @@
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:id="@+id/rela_root"
-        android:background="#000339"
+        android:background="@color/novel_holder"
         android:layout_height="match_parent">
 
 

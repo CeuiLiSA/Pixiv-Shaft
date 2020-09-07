@@ -14,6 +14,7 @@ import androidx.appcompat.widget.Toolbar;
 import com.blankj.utilcode.util.BarUtils;
 import com.blankj.utilcode.util.PathUtils;
 import com.bumptech.glide.Glide;
+import com.jaredrummler.android.colorpicker.ColorPickerDialog;
 import com.skydoves.transformationlayout.OnTransformFinishListener;
 import com.zhy.view.flowlayout.FlowLayout;
 import com.zhy.view.flowlayout.TagAdapter;
@@ -83,12 +84,22 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 if (item.getItemId() == R.id.action_add) {
-                    Common.showToast("开发中");
-                    //setColor("#FF0000");
+                    if (Shaft.sSettings.getNovelHolderColor() != 0) {
+                        ColorPickerDialog.newBuilder()
+                                .setColor(Shaft.sSettings.getNovelHolderColor())
+                                .show(mActivity);
+                    } else {
+                        ColorPickerDialog.newBuilder()
+                                .setColor(getResources().getColor(R.color.novel_holder))
+                                .show(mActivity);
+                    }
                 }
                 return false;
             }
         });
+        if (Shaft.sSettings.getNovelHolderColor() != 0) {
+            setColor(Shaft.sSettings.getNovelHolderColor());
+        }
         baseBind.fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -196,19 +207,9 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
         getNovel(mNovelBean);
     }
 
-    private void setColor(String colorString) {
-        if (TextUtils.isEmpty(colorString)) {
-            Common.showToast("颜色值为空");
-            return;
-        }
-
-        if (!colorString.startsWith("#")) {
-            Common.showToast("不规范的颜色值");
-            return;
-        }
-
-
-        baseBind.relaRoot.setBackgroundColor(Integer.parseInt("FF0000"));
+    public void setColor(int color) {
+        Common.showLog(className + color);
+        baseBind.relaRoot.setBackgroundColor(color);
     }
 
     private void getNovel(NovelBean novelBean) {

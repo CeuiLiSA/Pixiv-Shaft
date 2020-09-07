@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@color/colorPrimary"
+        />
+    <corners android:topLeftRadius="@dimen/four_dp"
+        android:topRightRadius="@dimen/four_dp"
+        android:bottomRightRadius="@dimen/four_dp"
+        android:bottomLeftRadius="@dimen/four_dp" />
+    <!--圆角矩形白色背景-->
+</shape>

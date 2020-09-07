@@ -56,13 +56,12 @@ public class FragmentRelatedIllust extends NetListFragment<FragmentBaseListBindi
         return new RemoteRepo<ListIllust>() {
             @Override
             public Observable<ListIllust> initApi() {
-                return Retro.getAppApi().relatedIllust(sUserModel.getResponse().getAccess_token(), illustID);
+                return Retro.getAppApi().relatedIllust(token(), illustID);
             }
 
             @Override
             public Observable<ListIllust> initNextApi() {
-                return Retro.getAppApi().getNextIllust(sUserModel.getResponse().getAccess_token(),
-                        mModel.getNextUrl());
+                return Retro.getAppApi().getNextIllust(token(), mModel.getNextUrl());
             }
 
             @Override

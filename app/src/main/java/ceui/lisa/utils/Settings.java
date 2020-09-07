@@ -82,6 +82,8 @@ public class Settings {
 
     private String webDownloadPath = "";
 
+    private int novelHolderColor = 0;
+
     private boolean reverseDialogNeverShowAgain = false;
 
     private String appLanguage = "";
@@ -307,5 +309,13 @@ public class Settings {
 
     public void setSingleDownloadTask(boolean singleDownloadTask) {
         this.singleDownloadTask = singleDownloadTask;
+    }
+
+    public int getNovelHolderColor() {
+        return novelHolderColor;
+    }
+
+    public void setNovelHolderColor(int novelHolderColor) {
+        this.novelHolderColor = novelHolderColor;
     }
 }

@@ -25,10 +25,6 @@ public class FragmentPv extends BaseFragment<ViewpagerWithTablayoutBinding> {
 
     @Override
     public void initView() {
-        ImageView head = rootView.findViewById(R.id.head);
-        ViewGroup.LayoutParams headParams = head.getLayoutParams();
-        headParams.height = Shaft.statusHeight;
-        head.setLayoutParams(headParams);
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
         baseBind.toolbarTitle.setText(R.string.string_191);
         baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager(), 0) {

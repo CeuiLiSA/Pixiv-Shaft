@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,13 +22,17 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
 
     protected View rootView;
     protected Layout baseBind;
-    protected String className = getClass().getSimpleName();
+    protected String className = getClass().getSimpleName() + " ";
 
     protected int mLayoutID = -1;
 
     protected FragmentActivity mActivity;
     protected Context mContext;
     private boolean isVertical;
+
+    public BaseFragment() {
+        Log.d(className, " newInstance");
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {

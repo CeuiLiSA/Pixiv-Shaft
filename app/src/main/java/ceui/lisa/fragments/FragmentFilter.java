@@ -1,6 +1,7 @@
 package ceui.lisa.fragments;
 
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -13,6 +14,7 @@ import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.base.BaseFragment;
 import ceui.lisa.databinding.FragmentFilterBinding;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.viewmodel.SearchModel;
 
@@ -45,10 +47,6 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         searchModel = new ViewModelProvider(requireActivity()).get(SearchModel.class);
         super.onActivityCreated(savedInstanceState);
-    }
-
-    public static FragmentFilter newInstance() {
-        return new FragmentFilter();
     }
 
     @Override
@@ -111,7 +109,7 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 searchModel.getStarSize().setValue(DATE_SORT_VALUE[position]);
-                searchModel.getLastSortType().setValue(DATE_SORT_VALUE[position]);
+                searchModel.getSortType().setValue(DATE_SORT_VALUE[position]);
             }
 
             @Override
@@ -133,7 +131,9 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
                     searchModel.getSortType().setValue("popular_desc");
                 } else {
                     String lastSortType = searchModel.getLastSortType().getValue();
-                    searchModel.getSortType().setValue(lastSortType);
+                    if (!TextUtils.isEmpty(lastSortType)) {
+                        searchModel.getSortType().setValue(lastSortType);
+                    }
                 }
             }
         });

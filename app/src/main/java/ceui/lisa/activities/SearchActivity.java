@@ -153,7 +153,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
         });
 
         baseBind.drawerlayout.setTouchMode(ElasticDrawer.TOUCH_MODE_BEZEL);
-        FragmentFilter fragmentFilter = FragmentFilter.newInstance();
+        FragmentFilter fragmentFilter = new FragmentFilter();
         FragmentManager fragmentManager = getSupportFragmentManager();
         if (!fragmentFilter.isAdded()) {
             fragmentManager.beginTransaction()

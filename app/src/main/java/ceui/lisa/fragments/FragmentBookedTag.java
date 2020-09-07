@@ -51,14 +51,13 @@ public class FragmentBookedTag extends NetListFragment<FragmentBaseListBinding,
         return new RemoteRepo<ListTag>() {
             @Override
             public Observable<ListTag> initApi() {
-                return Retro.getAppApi().getBookmarkTags(Shaft.sUserModel.getResponse().getAccess_token(),
+                return Retro.getAppApi().getBookmarkTags(token(),
                         Shaft.sUserModel.getResponse().getUser().getId(), starType);
             }
 
             @Override
             public Observable<ListTag> initNextApi() {
-                return Retro.getAppApi().getNextTags(
-                        Shaft.sUserModel.getResponse().getAccess_token(), mModel.getNextUrl());
+                return Retro.getAppApi().getNextTags(token(), mModel.getNextUrl());
             }
         };
     }
