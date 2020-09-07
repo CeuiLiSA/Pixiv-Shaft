@@ -14,7 +14,7 @@ public interface IPresent<T> {
 
     void attach(IView<T> v);
 
-    void dettach();
+    void detach();
 
     String getNextUrl();
 

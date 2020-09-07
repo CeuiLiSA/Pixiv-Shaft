@@ -38,7 +38,7 @@ public abstract class ListPresenter<T extends ListShow<?>> implements IPresent<T
 
 
     @Override
-    public void dettach() {
+    public void detach() {
         view = null;
     }
 

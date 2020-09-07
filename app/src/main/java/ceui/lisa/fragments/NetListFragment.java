@@ -48,6 +48,9 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
             mRemoteRepo.getFirstData(new NullCtrl<Response>() {
                 @Override
                 public void success(Response response) {
+                    if (!isAdded()) {
+                        return;
+                    }
                     mResponse = response;
                     onResponse(mResponse);
                     if (mResponse.getList() != null && mResponse.getList().size() != 0) {
@@ -97,6 +100,9 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
             mRemoteRepo.getNextData(new NullCtrl<Response>() {
                 @Override
                 public void success(Response response) {
+                    if (!isAdded()) {
+                        return;
+                    }
                     mResponse = response;
                     if (mResponse.getList() != null && mResponse.getList().size() != 0) {
                         List<Item> nextList = mResponse.getList();

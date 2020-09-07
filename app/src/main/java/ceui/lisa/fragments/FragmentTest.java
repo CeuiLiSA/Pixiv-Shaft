@@ -20,8 +20,8 @@ import ceui.lisa.interfaces.ListShow;
 import ceui.lisa.ui.IPresent;
 import ceui.lisa.ui.IView;
 
-public abstract class FragmentTest<Response extends ListShow<Item>, Item> extends BaseFragment<FragmentTestBinding> implements
-        IView<Response> {
+public abstract class FragmentTest<Response extends ListShow<Item>, Item>
+        extends BaseFragment<FragmentTestBinding> implements IView<Response> {
 
     protected List<Item> allItems = new ArrayList<>();
 
@@ -64,7 +64,7 @@ public abstract class FragmentTest<Response extends ListShow<Item>, Item> extend
 
     @Override
     public void onDestroyView() {
-        mPresent.dettach();
+        mPresent.detach();
         super.onDestroyView();
     }
 

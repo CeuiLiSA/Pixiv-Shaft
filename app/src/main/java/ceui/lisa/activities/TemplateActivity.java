@@ -29,6 +29,7 @@ import ceui.lisa.fragments.FragmentNewNovels;
 import ceui.lisa.fragments.FragmentNovelSeries;
 import ceui.lisa.fragments.FragmentRecmdIllust;
 import ceui.lisa.fragments.FragmentSB;
+import ceui.lisa.fragments.FragmentUltra;
 import ceui.lisa.fragments.FragmentUserInfo;
 import ceui.lisa.fragments.FragmentBookedTag;
 import ceui.lisa.fragments.FragmentComment;
@@ -145,7 +146,11 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return new FragmentUserInfo();
                 case "最新作品":
                     getWindow().setStatusBarColor(getResources().getColor(R.color.new_color_primary));
-                    return new FragmentNew();
+                    if (Dev.isDev) {
+                        return new FragmentUltra();
+                    } else {
+                        return new FragmentNew();
+                    }
                 case "粉丝":
                     return FragmentWhoFollowThisUser.newInstance(intent.getIntExtra(Params.USER_ID, 0));
                 case "开发者预览":

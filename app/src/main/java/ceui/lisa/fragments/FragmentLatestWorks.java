@@ -37,13 +37,12 @@ public class FragmentLatestWorks extends NetListFragment<FragmentBaseListBinding
         return new RemoteRepo<ListIllust>() {
             @Override
             public Observable<ListIllust> initApi() {
-                return Retro.getAppApi().getNewWorks(Shaft.sUserModel.getResponse().getAccess_token(), workType);
+                return Retro.getAppApi().getNewWorks(token(), workType);
             }
 
             @Override
             public Observable<ListIllust> initNextApi() {
-                return Retro.getAppApi().getNextIllust(
-                        Shaft.sUserModel.getResponse().getAccess_token(), mModel.getNextUrl());
+                return Retro.getAppApi().getNextIllust(token(), mModel.getNextUrl());
             }
         };
     }
