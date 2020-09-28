@@ -69,7 +69,7 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
     }
 
     public void clear() {
-        int size = allIllust.size();
+        final int size = allIllust.size();
         allIllust.clear();
         notifyItemRangeRemoved(0, size);
     }

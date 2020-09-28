@@ -29,6 +29,7 @@ import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
+import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
@@ -52,6 +53,10 @@ public class Common {
             }
         }
         return true;
+    }
+
+    public static boolean isEmpty(List<?> list) {
+        return list == null || list.size() == 0;
     }
 
     public static void hideKeyboard(Activity activity) {

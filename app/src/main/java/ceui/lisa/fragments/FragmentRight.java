@@ -221,9 +221,6 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
         return new RemoteRepo<ListIllust>() {
             @Override
             public Observable<ListIllust> initApi() {
-                if (Dev.isDev) {
-                    return null;
-                }
                 return Retro.getAppApi().getFollowUserIllust(sUserModel.getResponse().getAccess_token(), restrict);
             }
 
@@ -246,6 +243,11 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
             @Override
             public Function<ListIllust, ListIllust> mapper() {
                 return new FilterMapper();
+            }
+
+            @Override
+            public boolean localData() {
+                return Dev.isDev;
             }
         };
     }
@@ -296,8 +298,9 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
                     for (int i = 0; i < entities.size(); i++) {
                         IllustsBean illustsBean = Shaft.sGson.fromJson(
                                 entities.get(i).getIllustJson(), IllustsBean.class);
-                        TagFilter.judge(illustsBean);
-                        temp.add(illustsBean);
+                        if (!TagFilter.judge(illustsBean)) {
+                            temp.add(illustsBean);
+                        }
                     }
                     return temp;
                 })

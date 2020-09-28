@@ -11,6 +11,7 @@ import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.repo.UserIllustRepo;
 import ceui.lisa.utils.Params;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
@@ -42,22 +43,7 @@ public class FragmentUserIllust extends NetListFragment<FragmentBaseListBinding,
 
     @Override
     public RemoteRepo<ListIllust> repository() {
-        return new RemoteRepo<ListIllust>() {
-            @Override
-            public Observable<ListIllust> initApi() {
-                return Retro.getAppApi().getUserSubmitIllust(token(), userID, "illust");
-            }
-
-            @Override
-            public Observable<ListIllust> initNextApi() {
-                return Retro.getAppApi().getNextIllust(token(), mModel.getNextUrl());
-            }
-
-            @Override
-            public Function<ListIllust, ListIllust> mapper() {
-                return new FilterMapper();
-            }
-        };
+        return new UserIllustRepo(userID);
     }
 
     @Override

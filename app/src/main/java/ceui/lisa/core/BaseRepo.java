@@ -48,4 +48,9 @@ public class BaseRepo implements DataView{
         }
         return "";
     }
+
+    @Override
+    public boolean localData() {
+        return false;
+    }
 }

@@ -44,7 +44,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
 
     @Override
     public void fresh() {
-        if (mRemoteRepo.initApi() != null) {
+        if (!mModel.localData()) {
             mRemoteRepo.getFirstData(new NullCtrl<Response>() {
                 @Override
                 public void success(Response response) {
@@ -53,22 +53,19 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                     }
                     mResponse = response;
                     onResponse(mResponse);
-                    if (mResponse.getList() != null && mResponse.getList().size() != 0) {
-                        List<Item> firstList = mResponse.getList();
-                        beforeFirstLoad(firstList);
-                        if (mModel != null) {
-                            mModel.load(firstList);
-                        }
-                        onFirstLoaded(firstList);
+                    if (!Common.isEmpty(mResponse.getList())) {
+                        beforeFirstLoad(mResponse.getList());
+                        mModel.load(mResponse.getList());
+                        onFirstLoaded(mResponse.getList());
                         mRecyclerView.setVisibility(View.VISIBLE);
                         noData.setVisibility(View.INVISIBLE);
-                        mAdapter.notifyItemRangeInserted(getStartSize(), firstList.size());
+                        mAdapter.notifyItemRangeInserted(getStartSize(), mResponse.getList().size());
                     } else {
                         mRecyclerView.setVisibility(View.INVISIBLE);
                         noData.setVisibility(View.VISIBLE);
                         noData.setImageResource(R.mipmap.no_data_line);
                     }
-                    mModel.setNextUrl(mResponse.getNextUrl());
+                    mRemoteRepo.setNextUrl(mResponse.getNextUrl());
                     if (!TextUtils.isEmpty(mResponse.getNextUrl())) {
                         mRefreshLayout.setRefreshFooter(new ClassicsFooter(mContext));
                     } else {
@@ -96,7 +93,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
 
     @Override
     public void loadMore() {
-        if (!TextUtils.isEmpty(mModel.getNextUrl())) {
+        if (!TextUtils.isEmpty(mRemoteRepo.getNextUrl())) {
             mRemoteRepo.getNextData(new NullCtrl<Response>() {
                 @Override
                 public void success(Response response) {
@@ -104,16 +101,18 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                         return;
                     }
                     mResponse = response;
-                    if (mResponse.getList() != null && mResponse.getList().size() != 0) {
-                        List<Item> nextList = mResponse.getList();
-                        beforeNextLoad(nextList);
-                        if (mModel != null) {
-                            mModel.load(nextList);
-                        }
-                        onNextLoaded(nextList);
-                        mAdapter.notifyItemRangeInserted(getStartSize(), nextList.size());
+                    if (!Common.isEmpty(mResponse.getList())) {
+                        beforeNextLoad(mResponse.getList());
+                        mModel.load(mResponse.getList());
+                        onNextLoaded(mResponse.getList());
+                        mAdapter.notifyItemRangeInserted(getStartSize(), mResponse.getList().size());
                     }
-                    mModel.setNextUrl(mResponse.getNextUrl());
+                    mRemoteRepo.setNextUrl(mResponse.getNextUrl());
+                    if (!TextUtils.isEmpty(mResponse.getNextUrl())) {
+                        mRefreshLayout.setRefreshFooter(new ClassicsFooter(mContext));
+                    } else {
+                        mRefreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
+                    }
                 }
 
                 @Override

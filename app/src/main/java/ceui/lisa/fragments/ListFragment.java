@@ -24,6 +24,9 @@ import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.base.BaseFragment;
 import ceui.lisa.core.BaseRepo;
+import ceui.lisa.core.Mapper;
+import ceui.lisa.core.RemoteRepo;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
 import ceui.lisa.view.SpacesItemDecoration;
@@ -60,7 +63,7 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
     @Override
     public void initModel() {
         mModel = (BaseModel<Item>) new ViewModelProvider(this).get(modelClass());
-        allItems = mModel.getContent().getValue();
+        allItems = mModel.getContent();
         if (mModel.getBaseRepo() == null) {
             mModel.setBaseRepo(repository());
         }
@@ -163,7 +166,6 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
 
     public void verticalRecyclerView() {
         mRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
-        mRecyclerView.setHasFixedSize(true);
         mRecyclerView.addItemDecoration(new LinearItemDecoration(DensityUtil.dp2px(12.0f)));
     }
 
@@ -187,8 +189,9 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
     public void initToolbar(Toolbar toolbar) {
         if (showToolbar()) {
             toolbar.setVisibility(View.VISIBLE);
-            if (toolbar.findViewById(R.id.toolbar_title) instanceof TextView) {
-                ((TextView) toolbar.findViewById(R.id.toolbar_title)).setText(getToolbarTitle());
+            TextView title = toolbar.findViewById(R.id.toolbar_title);
+            if (title != null) {
+                title.setText(getToolbarTitle());
             } else {
                 toolbar.setTitle(getToolbarTitle());
             }

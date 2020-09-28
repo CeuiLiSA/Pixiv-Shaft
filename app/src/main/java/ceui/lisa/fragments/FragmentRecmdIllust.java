@@ -22,6 +22,7 @@ import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.repo.RecmdIllustRepo;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Dev;
@@ -53,35 +54,7 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
 
     @Override
     public RemoteRepo<ListIllust> repository() {
-        return new RemoteRepo<ListIllust>() {
-            @Override
-            public Observable<ListIllust> initApi() {
-                if (Dev.isDev) {
-                    List<IllustRecmdEntity> temp = AppDatabase.getAppDatabase(mContext).recmdDao().getAll();
-                    if (temp != null && temp.size() != 0) {
-                        //如果本地的浏览数据不为空，就return null, 展示本地的
-                        return null;
-                    } else {
-                        if ("漫画".equals(dataType)) {
-                            return Retro.getAppApi().getRecmdManga(token());
-                        } else {
-                            return Retro.getAppApi().getRecmdIllust(token());
-                        }
-                    }
-                } else {
-                    if ("漫画".equals(dataType)) {
-                        return Retro.getAppApi().getRecmdManga(token());
-                    } else {
-                        return Retro.getAppApi().getRecmdIllust(token());
-                    }
-                }
-            }
-
-            @Override
-            public Observable<ListIllust> initNextApi() {
-                return Retro.getAppApi().getNextIllust(token(), mModel.getNextUrl());
-            }
-        };
+        return new RecmdIllustRepo(dataType);
     }
 
     @Override
@@ -159,8 +132,9 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
                     for (int i = 0; i < entities.size(); i++) {
                         IllustsBean illustsBean = Shaft.sGson.fromJson(
                                 entities.get(i).getIllustJson(), IllustsBean.class);
-                        TagFilter.judge(illustsBean);
-                        temp.add(illustsBean);
+                        if (!TagFilter.judge(illustsBean)) {
+                            temp.add(illustsBean);
+                        }
                     }
                     return temp;
                 })

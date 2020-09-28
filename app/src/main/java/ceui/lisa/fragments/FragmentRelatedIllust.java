@@ -4,6 +4,7 @@ import android.os.Bundle;
 
 import androidx.databinding.ViewDataBinding;
 
+import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapter;
@@ -12,6 +13,7 @@ import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.repo.RelatedIllustRepo;
 import ceui.lisa.utils.Params;
 import io.reactivex.Observable;
 
@@ -53,28 +55,11 @@ public class FragmentRelatedIllust extends NetListFragment<FragmentBaseListBindi
 
     @Override
     public RemoteRepo<ListIllust> repository() {
-        return new RemoteRepo<ListIllust>() {
-            @Override
-            public Observable<ListIllust> initApi() {
-                return Retro.getAppApi().relatedIllust(token(), illustID);
-            }
-
-            @Override
-            public Observable<ListIllust> initNextApi() {
-                return Retro.getAppApi().getNextIllust(token(), mModel.getNextUrl());
-            }
-
-            @Override
-            public boolean hasNext() {
-                return Shaft.sSettings.isRelatedIllustNoLimit();
-            }
-        };
+        return new RelatedIllustRepo(illustID);
     }
-
-
 
     @Override
     public String getToolbarTitle() {
-        return mTitle + "的相关作品";
+        return mTitle + getString(R.string.string_231);
     }
 }

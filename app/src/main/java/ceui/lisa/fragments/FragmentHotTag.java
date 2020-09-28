@@ -12,13 +12,12 @@ import ceui.lisa.adapters.TagAdapter;
 import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyTagGridBinding;
-import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListTrendingtag;
+import ceui.lisa.repo.HotTagRepo;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.TagItemDecoration;
-import io.reactivex.Observable;
 
 
 public class FragmentHotTag extends NetListFragment<FragmentBaseListBinding,
@@ -60,17 +59,7 @@ public class FragmentHotTag extends NetListFragment<FragmentBaseListBinding,
 
     @Override
     public RemoteRepo<ListTrendingtag> repository() {
-        return new RemoteRepo<ListTrendingtag>() {
-            @Override
-            public Observable<ListTrendingtag> initApi() {
-                return Retro.getAppApi().getHotTags(token(), contentType);
-            }
-
-            @Override
-            public Observable<ListTrendingtag> initNextApi() {
-                return null;
-            }
-        };
+        return new HotTagRepo(contentType);
     }
 
     @Override

@@ -20,6 +20,7 @@ import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.notification.BaseReceiver;
 import ceui.lisa.notification.FilterReceiver;
+import ceui.lisa.repo.LikeIllustRepo;
 import ceui.lisa.utils.Params;
 import io.reactivex.Observable;
 
@@ -60,20 +61,7 @@ public class FragmentLikeIllust extends NetListFragment<FragmentBaseListBinding,
 
     @Override
     public RemoteRepo<ListIllust> repository() {
-        return new RemoteRepo<ListIllust>() {
-            @Override
-            public Observable<ListIllust> initApi() {
-                return TextUtils.isEmpty(tag) ?
-                        Retro.getAppApi().getUserLikeIllust(token(), userID, starType) :
-                        Retro.getAppApi().getUserLikeIllust(token(), userID, starType, tag);
-            }
-
-            @Override
-            public Observable<ListIllust> initNextApi() {
-                return Retro.getAppApi().getNextIllust(token(),
-                        mModel.getNextUrl());
-            }
-        };
+        return new LikeIllustRepo(userID, starType, tag);
     }
 
     @Override

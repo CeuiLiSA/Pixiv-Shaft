@@ -2,6 +2,7 @@ package ceui.lisa.fragments;
 
 import android.os.Bundle;
 
+import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.UAdapter;
 import ceui.lisa.core.RemoteRepo;
@@ -10,6 +11,7 @@ import ceui.lisa.databinding.RecyUserPreviewBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListUser;
 import ceui.lisa.models.UserPreviewsBean;
+import ceui.lisa.repo.FollowUserRepo;
 import ceui.lisa.utils.Params;
 import io.reactivex.Observable;
 
@@ -39,17 +41,7 @@ public class FragmentFollowUser extends NetListFragment<FragmentBaseListBinding,
 
     @Override
     public RemoteRepo<ListUser> repository() {
-        return new RemoteRepo<ListUser>() {
-            @Override
-            public Observable<ListUser> initApi() {
-                return Retro.getAppApi().getFollowUser(token(), userID, starType);
-            }
-
-            @Override
-            public Observable<ListUser> initNextApi() {
-                return Retro.getAppApi().getNextUser(token(), mModel.getNextUrl());
-            }
-        };
+        return new FollowUserRepo(userID, starType);
     }
 
     @Override
@@ -64,6 +56,6 @@ public class FragmentFollowUser extends NetListFragment<FragmentBaseListBinding,
 
     @Override
     public String getToolbarTitle() {
-        return "关注";
+        return getString(R.string.string_232);
     }
 }

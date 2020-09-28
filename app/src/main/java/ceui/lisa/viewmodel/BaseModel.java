@@ -13,32 +13,24 @@ import java.util.List;
 
 import ceui.lisa.core.BaseRepo;
 import ceui.lisa.core.DataView;
+import ceui.lisa.utils.Common;
 
 
 public class BaseModel<T> extends ViewModel implements DataView {
 
-    private MutableLiveData<List<T>> content;
+    private List<T> content = new ArrayList<>();
     private String nextUrl = "";
     private boolean isLoaded = false;
     private BaseRepo mBaseRepo;
 
-    public BaseModel() {
-    }
-
-    public MutableLiveData<List<T>> getContent() {
-        if (content == null) {
-            content = new MutableLiveData<>();
-            content.setValue(new ArrayList<>());
-        }
+    public List<T> getContent() {
         return content;
     }
 
     public void load(List<T> list) {
-        List<T> current = content.getValue();
-        if (current != null) {
-            current.addAll(list);
+        if (!Common.isEmpty(list)) {
+            content.addAll(list);
         }
-        content.setValue(current);
         isLoaded = true;
     }
 
@@ -82,6 +74,11 @@ public class BaseModel<T> extends ViewModel implements DataView {
     @Override
     public String token() {
         return mBaseRepo.token();
+    }
+
+    @Override
+    public boolean localData() {
+        return mBaseRepo.localData();
     }
 
     public BaseRepo getBaseRepo() {

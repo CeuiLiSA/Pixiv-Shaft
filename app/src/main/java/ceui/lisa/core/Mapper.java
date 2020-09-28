@@ -1,5 +1,8 @@
 package ceui.lisa.core;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import ceui.lisa.helper.TagFilter;
 import ceui.lisa.interfaces.ListShow;
 import ceui.lisa.models.IllustsBean;
@@ -11,13 +14,26 @@ import io.reactivex.functions.Function;
  */
 public class Mapper<T extends ListShow<?>> implements Function<T, T> {
 
+    private List<IllustsBean> dash = new ArrayList<>();
+
     @Override
     public T apply(T t) {
         for (Object o : t.getList()) {
             if (o instanceof IllustsBean) {
-                TagFilter.judge(((IllustsBean) o));
+                boolean isBanned = TagFilter.judge(((IllustsBean) o));
+                if (isBanned) {
+                    dash.add((IllustsBean) o);
+                }
             }
         }
+
+        if (t.getList() != null && dash.size() != 0) {
+            t.getList().removeAll(dash);
+        }
         return t;
+    }
+
+    public List<IllustsBean> getDash() {
+        return dash;
     }
 }

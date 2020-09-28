@@ -31,7 +31,7 @@ public class FragmentLatestNovel extends NetListFragment<FragmentBaseListBinding
 
     @Override
     public BaseAdapter<NovelBean, RecyNovelBinding> adapter() {
-        return new NAdapter(mModel.getContent().getValue(), mContext);
+        return new NAdapter(mModel.getContent(), mContext);
     }
 
     @Override

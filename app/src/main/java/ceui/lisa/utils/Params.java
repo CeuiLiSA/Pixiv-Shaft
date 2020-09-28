@@ -32,6 +32,7 @@ public class Params {
     public static final String HISTORY_URL   = "history url";
     public static final String TYPE_ILLUST   = "illust";
     public static final String TYPE_NOVEL    = "novel";
+    public static final String TYPE_MANGA    = "manga";
     public static final String NOVEL_KEY     = "pixiv_shaft_novel_";
     public static final String USER_KEY      = "pixiv_shaft_local_user";
     public static final String SECRET_PWD_KEY= "pixiv_secret_password:";

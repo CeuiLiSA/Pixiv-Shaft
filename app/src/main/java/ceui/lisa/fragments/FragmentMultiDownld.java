@@ -168,9 +168,7 @@ public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownload
     @Override
     public String getToolbarTitle() {
         if (mModel == null
-                || mModel.getContent() == null
-                || mModel.getContent().getValue() == null
-                || mModel.getContent().getValue().size() == 0) {
+                || Common.isEmpty(mModel.getContent())) {
             return getString(R.string.string_221);
         } else {
             int selectCount = 0;

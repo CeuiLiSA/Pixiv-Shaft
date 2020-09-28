@@ -3,6 +3,7 @@ package ceui.lisa.fragments;
 
 import android.os.Bundle;
 
+import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapter;
 import ceui.lisa.core.RemoteRepo;
@@ -11,6 +12,7 @@ import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.repo.UserMangaRepo;
 import ceui.lisa.utils.Params;
 import io.reactivex.Observable;
 
@@ -24,10 +26,6 @@ public class FragmentUserManga extends NetListFragment<FragmentBaseListBinding,
 
     private int userID;
     private boolean showToolbar = false;
-
-    public static FragmentUserManga newInstance(int userID) {
-        return newInstance(userID, false);
-    }
 
     public static FragmentUserManga newInstance(int userID, boolean paramShowToolbar) {
         Bundle args = new Bundle();
@@ -46,17 +44,7 @@ public class FragmentUserManga extends NetListFragment<FragmentBaseListBinding,
 
     @Override
     public RemoteRepo<ListIllust> repository() {
-        return new RemoteRepo<ListIllust>() {
-            @Override
-            public Observable<ListIllust> initApi() {
-                return Retro.getAppApi().getUserSubmitIllust(sUserModel.getResponse().getAccess_token(), userID, "manga");
-            }
-
-            @Override
-            public Observable<ListIllust> initNextApi() {
-                return Retro.getAppApi().getNextIllust(sUserModel.getResponse().getAccess_token(), mModel.getNextUrl());
-            }
-        };
+        return new UserMangaRepo(userID);
     }
 
     @Override
@@ -72,7 +60,7 @@ public class FragmentUserManga extends NetListFragment<FragmentBaseListBinding,
     @Override
     public String getToolbarTitle() {
         if (showToolbar) {
-            return "漫画作品";
+            return getString(R.string.string_233);
         } else {
             return super.getToolbarTitle();
         }

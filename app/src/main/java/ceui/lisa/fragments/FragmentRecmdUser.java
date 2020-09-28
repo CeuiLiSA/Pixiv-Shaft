@@ -9,6 +9,7 @@ import ceui.lisa.databinding.RecyUserPreviewBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListUser;
 import ceui.lisa.models.UserPreviewsBean;
+import ceui.lisa.repo.RecmdUserRepo;
 import io.reactivex.Observable;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
@@ -21,23 +22,12 @@ public class FragmentRecmdUser extends NetListFragment<FragmentBaseListBinding,
 
     @Override
     public RemoteRepo<ListUser> repository() {
-        return new RemoteRepo<ListUser>() {
-            @Override
-            public Observable<ListUser> initApi() {
-                return Retro.getAppApi().getRecmdUser(sUserModel.getResponse().getAccess_token());
-            }
-
-            @Override
-            public Observable<ListUser> initNextApi() {
-                return Retro.getAppApi().getNextUser(
-                        sUserModel.getResponse().getAccess_token(), mModel.getNextUrl());
-            }
-        };
+        return new RecmdUserRepo();
     }
 
     @Override
     public BaseAdapter<UserPreviewsBean, RecyUserPreviewBinding> adapter() {
-        return new UAdapter(mModel.getContent().getValue(), mContext);
+        return new UAdapter(allItems, mContext);
     }
 
     @Override
