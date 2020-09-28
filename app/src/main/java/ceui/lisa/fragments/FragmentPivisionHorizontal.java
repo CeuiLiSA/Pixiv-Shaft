@@ -13,23 +13,19 @@ import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.PivisionHAdapter;
 import ceui.lisa.core.BaseRepo;
-import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentPivisionHorizontalBinding;
 import ceui.lisa.databinding.RecyArticalHorizonBinding;
-import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListArticle;
 import ceui.lisa.models.SpotlightArticlesBean;
+import ceui.lisa.repo.PivisionRepo;
 import ceui.lisa.utils.DensityUtil;
-import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
-import io.reactivex.Observable;
 import jp.wasabeef.recyclerview.animators.BaseItemAnimator;
 import jp.wasabeef.recyclerview.animators.FadeInLeftAnimator;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
-import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class FragmentPivisionHorizontal extends NetListFragment<FragmentPivisionHorizontalBinding,
         ListArticle, SpotlightArticlesBean> {
@@ -55,20 +51,7 @@ public class FragmentPivisionHorizontal extends NetListFragment<FragmentPivision
 
     @Override
     public BaseRepo repository() {
-        return new RemoteRepo<ListArticle>() {
-            @Override
-            public Observable<ListArticle> initApi() {
-                if (Dev.isDev) {
-                    return null;
-                }
-                return Retro.getAppApi().getArticles(token(), "all");
-            }
-
-            @Override
-            public Observable<ListArticle> initNextApi() {
-                return null;
-            }
-        };
+        return new PivisionRepo("all", true);
     }
 
     @Override

@@ -14,21 +14,19 @@ import ceui.lisa.activities.UserActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.UserHAdapter;
 import ceui.lisa.core.BaseRepo;
-import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustRecmdEntity;
 import ceui.lisa.databinding.FragmentUserHorizontalBinding;
 import ceui.lisa.databinding.RecyUserPreviewHorizontalBinding;
 import ceui.lisa.helper.TagFilter;
 import ceui.lisa.http.NullCtrl;
-import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListUser;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.UserPreviewsBean;
+import ceui.lisa.repo.RecmdUserRepo;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
-import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
 import io.reactivex.Observable;
@@ -61,25 +59,7 @@ public class FragmentRecmdUserHorizontal extends NetListFragment<FragmentUserHor
 
     @Override
     public BaseRepo repository() {
-        return new RemoteRepo<ListUser>() {
-            @Override
-            public Observable<ListUser> initApi() {
-                if (Dev.isDev) {
-                    return null;
-                }
-                return Retro.getAppApi().getRecmdUser(token());
-            }
-
-            @Override
-            public Observable<ListUser> initNextApi() {
-                return null;
-            }
-
-            @Override
-            public boolean localData() {
-                return Dev.isDev;
-            }
-        };
+        return new RecmdUserRepo(true);
     }
 
     @Override

@@ -32,11 +32,11 @@ import ceui.lisa.model.EmojiItem;
 import ceui.lisa.model.ListComment;
 import ceui.lisa.models.CommentHolder;
 import ceui.lisa.models.CommentsBean;
+import ceui.lisa.repo.CommentRepo;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Emoji;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.EditTextWithSelection;
-import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
@@ -87,17 +87,7 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
 
     @Override
     public RemoteRepo<ListComment> repository() {
-        return new RemoteRepo<ListComment>() {
-            @Override
-            public Observable<ListComment> initApi() {
-                return Retro.getAppApi().getComment(token(), illustID);
-            }
-
-            @Override
-            public Observable<ListComment> initNextApi() {
-                return Retro.getAppApi().getNextComment(token(), mModel.getNextUrl());
-            }
-        };
+        return new CommentRepo(illustID);
     }
 
     @Override

@@ -8,12 +8,10 @@ import ceui.lisa.adapters.UAdapter;
 import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyUserPreviewBinding;
-import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListUser;
 import ceui.lisa.models.UserPreviewsBean;
 import ceui.lisa.repo.FollowUserRepo;
 import ceui.lisa.utils.Params;
-import io.reactivex.Observable;
 
 public class FragmentFollowUser extends NetListFragment<FragmentBaseListBinding,
         ListUser, UserPreviewsBean> {

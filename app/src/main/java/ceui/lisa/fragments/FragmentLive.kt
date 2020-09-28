@@ -14,8 +14,7 @@ import ceui.lisa.utils.DensityUtil
 import ceui.lisa.view.TagItemDecoration2
 import io.reactivex.Observable
 
-class FragmentLive : NetListFragment<FragmentBaseListBinding, ListLive,
-        Live>() {
+class FragmentLive : NetListFragment<FragmentBaseListBinding, ListLive, Live>() {
 
     override fun repository(): RemoteRepo<ListLive> {
         return object : RemoteRepo<ListLive>() {

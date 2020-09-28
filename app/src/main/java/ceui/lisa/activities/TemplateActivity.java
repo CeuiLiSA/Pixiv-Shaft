@@ -3,7 +3,6 @@ package ceui.lisa.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.KeyEvent;
-import android.view.Window;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -16,10 +15,8 @@ import ceui.lisa.R;
 import ceui.lisa.base.BaseActivity;
 import ceui.lisa.databinding.ActivityFragmentBinding;
 import ceui.lisa.fragments.FragmentAboutApp;
-import ceui.lisa.fragments.FragmentAnime;
 import ceui.lisa.fragments.FragmentDonate;
 import ceui.lisa.fragments.FragmentFileName;
-import ceui.lisa.fragments.FragmentHttpTest;
 import ceui.lisa.fragments.FragmentListSimpleUser;
 import ceui.lisa.fragments.FragmentMangaSeries;
 import ceui.lisa.fragments.FragmentMultiDownld;
@@ -29,7 +26,6 @@ import ceui.lisa.fragments.FragmentNewNovels;
 import ceui.lisa.fragments.FragmentNovelSeries;
 import ceui.lisa.fragments.FragmentRecmdIllust;
 import ceui.lisa.fragments.FragmentSB;
-import ceui.lisa.fragments.FragmentUltra;
 import ceui.lisa.fragments.FragmentUserInfo;
 import ceui.lisa.fragments.FragmentBookedTag;
 import ceui.lisa.fragments.FragmentComment;
@@ -62,7 +58,6 @@ import ceui.lisa.fragments.FragmentWebView;
 import ceui.lisa.fragments.FragmentWhoFollowThisUser;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.NovelBean;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
@@ -146,15 +141,9 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return new FragmentUserInfo();
                 case "最新作品":
                     getWindow().setStatusBarColor(getResources().getColor(R.color.new_color_primary));
-                    if (Dev.isDev) {
-                        return new FragmentUltra();
-                    } else {
-                        return new FragmentNew();
-                    }
+                    return new FragmentNew();
                 case "粉丝":
                     return FragmentWhoFollowThisUser.newInstance(intent.getIntExtra(Params.USER_ID, 0));
-                case "开发者预览":
-                    return FragmentAnime.newInstance();
                 case "喜欢这个作品的用户":
                     return FragmentListSimpleUser.newInstance((IllustsBean) intent.getSerializableExtra(Params.CONTENT));
                 case "小说系列作品":

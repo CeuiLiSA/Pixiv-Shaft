@@ -5,7 +5,7 @@ import ceui.lisa.http.Retro
 import ceui.lisa.model.ListIllust
 import io.reactivex.Observable
 
-class LatestWorkRepo(
+class LatestIllustRepo(
         private val workType: String
 ) : RemoteRepo<ListIllust>() {
 

@@ -11,17 +11,15 @@ import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.NAdapter;
 import ceui.lisa.core.BaseRepo;
-import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentNovelSeriesBinding;
-import ceui.lisa.http.Retro;
 import ceui.lisa.model.NovelSeries;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.UserBean;
+import ceui.lisa.repo.NovelSeriesRepo;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
-import io.reactivex.Observable;
 
 public class FragmentNovelSeries extends NetListFragment<FragmentNovelSeriesBinding,
         NovelSeries, NovelBean>{
@@ -53,17 +51,7 @@ public class FragmentNovelSeries extends NetListFragment<FragmentNovelSeriesBind
 
     @Override
     public BaseRepo repository() {
-        return new RemoteRepo<NovelSeries>() {
-            @Override
-            public Observable<NovelSeries> initApi() {
-                return Retro.getAppApi().getNovelSeries(token(), novelBean.getSeries().getId());
-            }
-
-            @Override
-            public Observable<NovelSeries> initNextApi() {
-                return Retro.getAppApi().getNextSeriesNovel(token(), mModel.getNextUrl());
-            }
-        };
+        return new NovelSeriesRepo(novelBean.getSeries().getId());
     }
 
     @Override

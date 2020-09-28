@@ -14,7 +14,6 @@ import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.base.BaseFragment;
 import ceui.lisa.databinding.FragmentFilterBinding;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.viewmodel.SearchModel;
 

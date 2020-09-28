@@ -24,9 +24,6 @@ import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.base.BaseFragment;
 import ceui.lisa.core.BaseRepo;
-import ceui.lisa.core.Mapper;
-import ceui.lisa.core.RemoteRepo;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
 import ceui.lisa.view.SpacesItemDecoration;
@@ -100,10 +97,10 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
             noData.setVisibility(View.INVISIBLE);
             mRefreshLayout.autoRefresh();
         });
-        mRefreshLayout.setRefreshHeader(mModel.enableRefresh() ?
-                mModel.getHeader(mContext) : new FalsifyHeader(mContext));
-        mRefreshLayout.setRefreshFooter(mModel.hasNext() ?
-                mModel.getFooter(mContext) : new FalsifyFooter(mContext));
+        mRefreshLayout.setRefreshHeader(mModel.getBaseRepo().enableRefresh() ?
+                mModel.getBaseRepo().getHeader(mContext) : new FalsifyHeader(mContext));
+        mRefreshLayout.setRefreshFooter(mModel.getBaseRepo().hasNext() ?
+                mModel.getBaseRepo().getFooter(mContext) : new FalsifyFooter(mContext));
 
         mRefreshLayout.setOnRefreshListener(new OnRefreshListener() {
             @Override
@@ -115,7 +112,7 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
         mRefreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
             @Override
             public void onLoadMore(@NonNull RefreshLayout refreshLayout) {
-                if (mModel.hasNext()) {
+                if (mModel.getBaseRepo().hasNext()) {
                     loadMore();
                 } else {
                     mRefreshLayout.finishLoadMore();

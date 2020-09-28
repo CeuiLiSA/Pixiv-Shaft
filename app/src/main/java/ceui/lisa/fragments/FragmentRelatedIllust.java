@@ -5,19 +5,14 @@ import android.os.Bundle;
 import androidx.databinding.ViewDataBinding;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapter;
 import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentBaseListBinding;
-import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.repo.RelatedIllustRepo;
 import ceui.lisa.utils.Params;
-import io.reactivex.Observable;
-
-import static ceui.lisa.activities.Shaft.sUserModel;
 
 /**
  * 相关插画

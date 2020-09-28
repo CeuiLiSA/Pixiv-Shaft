@@ -61,7 +61,7 @@ public class FragmentSearchNovel extends NetListFragment<FragmentBaseListBinding
 
             @Override
             public Observable<ListNovel> initNextApi() {
-                return Retro.getAppApi().getNextNovel(token(), mModel.getNextUrl());
+                return Retro.getAppApi().getNextNovel(token(), nextUrl);
             }
         };
     }

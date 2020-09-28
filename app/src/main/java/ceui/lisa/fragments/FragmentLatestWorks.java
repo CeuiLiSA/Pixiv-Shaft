@@ -9,7 +9,7 @@ import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
-import ceui.lisa.repo.LatestWorkRepo;
+import ceui.lisa.repo.LatestIllustRepo;
 import ceui.lisa.utils.Params;
 
 public class FragmentLatestWorks extends NetListFragment<FragmentBaseListBinding, ListIllust,
@@ -32,7 +32,7 @@ public class FragmentLatestWorks extends NetListFragment<FragmentBaseListBinding
 
     @Override
     public RemoteRepo<ListIllust> repository() {
-        return new LatestWorkRepo(workType);
+        return new LatestIllustRepo(workType);
     }
 
     @Override

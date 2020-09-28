@@ -7,14 +7,12 @@ import androidx.databinding.ViewDataBinding;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.SimpleUserAdapter;
 import ceui.lisa.core.BaseRepo;
-import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentBaseListBinding;
-import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListSimpleUser;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.UserBean;
+import ceui.lisa.repo.SimpleUserRepo;
 import ceui.lisa.utils.Params;
-import io.reactivex.Observable;
 
 public class FragmentListSimpleUser extends NetListFragment<FragmentBaseListBinding,
         ListSimpleUser, UserBean> {
@@ -41,19 +39,7 @@ public class FragmentListSimpleUser extends NetListFragment<FragmentBaseListBind
 
     @Override
     public BaseRepo repository() {
-        return new RemoteRepo<ListSimpleUser>() {
-            @Override
-            public Observable<ListSimpleUser> initApi() {
-                return Retro.getAppApi().getUsersWhoLikeThisIllust(token(),
-                        illustsBean.getId());
-            }
-
-            @Override
-            public Observable<ListSimpleUser> initNextApi() {
-                return Retro.getAppApi().getNextSimpleUser(token(),
-                        mModel.getNextUrl());
-            }
-        };
+        return new SimpleUserRepo(illustsBean.getId());
     }
 
     @Override

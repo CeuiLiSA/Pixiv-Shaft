@@ -5,13 +5,12 @@ import android.content.IntentFilter;
 import android.text.TextUtils;
 import android.view.View;
 
+import androidx.annotation.CallSuper;
 import androidx.databinding.ViewDataBinding;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
-
-import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
@@ -44,7 +43,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
 
     @Override
     public void fresh() {
-        if (!mModel.localData()) {
+        if (!mRemoteRepo.localData()) {
             mRemoteRepo.getFirstData(new NullCtrl<Response>() {
                 @Override
                 public void success(Response response) {
@@ -143,10 +142,9 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
 
     }
 
+    @CallSuper
     @Override
     public void onAdapterPrepared() {
-        super.onAdapterPrepared();
-
         //注册本地广播
         if (mAdapter instanceof IAdapter || mAdapter instanceof EventAdapter) {
             IntentFilter intentFilter = new IntentFilter();

@@ -19,7 +19,7 @@ import ceui.lisa.base.SwipeFragment;
 import ceui.lisa.databinding.FragmentNewCenterBinding;
 import ceui.lisa.utils.Common;
 
-public class FragmentC extends SwipeFragment<FragmentNewCenterBinding> {
+public class FragmentCenter extends SwipeFragment<FragmentNewCenterBinding> {
 
     @Override
     public void initLayout() {

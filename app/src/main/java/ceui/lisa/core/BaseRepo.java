@@ -43,10 +43,25 @@ public class BaseRepo implements DataView{
 
     @Override
     public String token() {
-        if (Shaft.sUserModel != null) {
-            return Shaft.sUserModel.getResponse().getAccess_token();
+        try {
+            if (Shaft.sUserModel != null) {
+                return Shaft.sUserModel.getResponse().getAccess_token();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return "";
+    }
+
+    public int currentUserID() {
+        try {
+            if (Shaft.sUserModel != null) {
+                return Shaft.sUserModel.getResponse().getUser().getId();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
     @Override

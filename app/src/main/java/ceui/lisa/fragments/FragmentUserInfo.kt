@@ -1,6 +1,5 @@
 package ceui.lisa.fragments
 
-import android.view.View
 import ceui.lisa.R
 import ceui.lisa.base.BaseFragment
 import ceui.lisa.databinding.FragmentAboutUserBinding

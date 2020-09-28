@@ -8,11 +8,10 @@ import ceui.lisa.adapters.NAdapter;
 import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyNovelBinding;
-import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListNovel;
 import ceui.lisa.models.NovelBean;
+import ceui.lisa.repo.LikeNovelRepo;
 import ceui.lisa.utils.Params;
-import io.reactivex.Observable;
 
 /**
  * 某人收藏的小说
@@ -43,17 +42,7 @@ public class FragmentLikeNovel extends NetListFragment<FragmentBaseListBinding,
 
     @Override
     public RemoteRepo<ListNovel> repository() {
-        return new RemoteRepo<ListNovel>() {
-            @Override
-            public Observable<ListNovel> initApi() {
-                return Retro.getAppApi().getUserLikeNovel(token(), userID, starType);
-            }
-
-            @Override
-            public Observable<ListNovel> initNextApi() {
-                return Retro.getAppApi().getNextNovel(token(), mModel.getNextUrl());
-            }
-        };
+        return new LikeNovelRepo(userID, starType);
     }
 
     @Override

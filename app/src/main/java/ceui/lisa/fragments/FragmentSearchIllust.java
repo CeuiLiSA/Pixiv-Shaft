@@ -83,7 +83,7 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
 
             @Override
             public Observable<ListIllust> initNextApi() {
-                return Retro.getAppApi().getNextIllust(token(), mModel.getNextUrl());
+                return Retro.getAppApi().getNextIllust(token(), nextUrl);
             }
 
             @Override

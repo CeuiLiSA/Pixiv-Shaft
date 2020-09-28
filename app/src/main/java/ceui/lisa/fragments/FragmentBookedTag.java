@@ -9,20 +9,18 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import java.util.List;
 
-import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.BookedTagAdapter;
 import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyBookTagBinding;
-import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListTag;
 import ceui.lisa.models.TagsBean;
+import ceui.lisa.repo.BookedTagRepo;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.LinearItemDecoration;
-import io.reactivex.Observable;
 
 public class FragmentBookedTag extends NetListFragment<FragmentBaseListBinding,
         ListTag, TagsBean> {
@@ -48,18 +46,7 @@ public class FragmentBookedTag extends NetListFragment<FragmentBaseListBinding,
 
     @Override
     public RemoteRepo<ListTag> repository() {
-        return new RemoteRepo<ListTag>() {
-            @Override
-            public Observable<ListTag> initApi() {
-                return Retro.getAppApi().getBookmarkTags(token(),
-                        Shaft.sUserModel.getResponse().getUser().getId(), starType);
-            }
-
-            @Override
-            public Observable<ListTag> initNextApi() {
-                return Retro.getAppApi().getNextTags(token(), mModel.getNextUrl());
-            }
-        };
+        return new BookedTagRepo(starType);
     }
 
     @Override
