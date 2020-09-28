@@ -255,7 +255,7 @@
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_marginBottom="30dp"
+                        android:layout_marginBottom="60dp"
                         android:orientation="vertical"
                         android:background="@color/white"
                         android:layout_height="wrap_content">
@@ -327,25 +327,6 @@
                         </RelativeLayout>
 
                         <View style="@style/full_divider" />
-
-                        <RelativeLayout
-                            style="@style/ripple_rela"
-                            android:id="@+id/project_license"
-                            android:visibility="gone">
-
-                            <TextView
-                                android:layout_margin="@dimen/sixteen_dp"
-                                android:text="@string/project_license"
-                                android:textSize="15sp"
-                                android:textColor="@color/rank_text_color"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content">
-
-                            </TextView>
-
-
-                        </RelativeLayout>
-
 
                     </LinearLayout>
 

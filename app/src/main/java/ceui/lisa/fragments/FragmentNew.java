@@ -26,32 +26,21 @@ public class FragmentNew extends BaseFragment<ViewpagerWithTablayoutBinding> {
 
     @Override
     public void initView() {
+        mActivity.getWindow().setStatusBarColor(getResources().getColor(R.color.new_color_primary));
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
         baseBind.toolbarTitle.setText(R.string.string_204);
         baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
             @NonNull
             @Override
             public Fragment getItem(int position) {
-                if (Dev.isDev) {
-                    if (position == 0) {
-                        return new FragmentLatestNovel();
-                    } else if (position == 1) {
-                        return new Fragment();
-                    } else if (position == 2) {
-                        return new Fragment();
-                    } else {
-                        return new Fragment();
-                    }
+                if (position == 0) {
+                    return FragmentLatestWorks.newInstance("illust");
+                } else if (position == 1) {
+                    return FragmentLatestWorks.newInstance("manga");
+                } else if (position == 2) {
+                    return new FragmentLatestNovel();
                 } else {
-                    if (position == 0) {
-                        return FragmentLatestWorks.newInstance("illust");
-                    } else if (position == 1) {
-                        return FragmentLatestWorks.newInstance("manga");
-                    } else if (position == 2) {
-                        return new FragmentLatestNovel();
-                    } else {
-                        return new Fragment();
-                    }
+                    return new Fragment();
                 }
             }
 

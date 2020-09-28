@@ -53,11 +53,6 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
             intent.putExtra(Params.TITLE, "项目主页")
             startActivity(intent)
         }
-        baseBind.projectLicense.setOnClickListener {
-            val intent = Intent(mContext, TemplateActivity::class.java)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "License")
-            startActivity(intent)
-        }
         baseBind.dontCatchMe.setOnClickListener {
             Common.createDialog(context)
         }

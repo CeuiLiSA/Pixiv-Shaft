@@ -22,6 +22,7 @@ public class FragmentPv extends BaseFragment<ViewpagerWithTablayoutBinding> {
 
     @Override
     public void initView() {
+        mActivity.getWindow().setStatusBarColor(getResources().getColor(R.color.new_color_primary));
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
         baseBind.toolbarTitle.setText(R.string.string_191);
         baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager(), 0) {

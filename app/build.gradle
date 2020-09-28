@@ -15,18 +15,6 @@ android {
         versionCode 118
         versionName "2.2.9"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-
-        javaCompileOptions {
-            annotationProcessorOptions {
-                arguments = [
-                        //必须，告知RxHttp你依赖的okhttp版本，目前已适配 v3.12.0 - v4.7.2版本  (v4.3.0除外)
-                        rxhttp_okhttp: '4.4.0',
-                        //使用asXxx方法时必须，告知RxHttp你依赖的rxjava版本，可传入rxjava2、rxjava3
-                        rxhttp_rxjava: 'rxjava3',
-                        rxhttp_package: 'rxhttp'   //非必须，指定RxHttp相关类的生成路径，即包名
-                ]
-            }
-        }
     }
 
     buildTypes {
@@ -113,16 +101,6 @@ dependencies {
 
     implementation 'com.effective.android:panelSwitchHelper-androidx:1.3.1'
     implementation 'com.makeramen:roundedimageview:2.3.0'
-//
-//
-    implementation 'com.ljx.rxhttp:rxhttp:2.3.3'
-    kapt 'com.ljx.rxhttp:rxhttp-compiler:2.3.3'
-
-    implementation 'com.ljx.rxlife:rxlife-coroutine:2.0.0'
-
-    implementation 'io.reactivex.rxjava3:rxjava:3.0.4'
-    implementation 'io.reactivex.rxjava3:rxandroid:3.0.0'
-    implementation 'com.ljx.rxlife3:rxlife-rxjava:3.0.0'
 
 
     implementation project(path: ':models')

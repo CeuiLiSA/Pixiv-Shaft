@@ -37,31 +37,34 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        try {
+            mActivity = requireActivity();
+            mContext = requireContext();
 
-        mActivity = requireActivity();
-        mContext = requireContext();
-
-        Bundle bundle = getArguments();
-        if (bundle != null) {
-            initBundle(bundle);
-        }
-
-        Intent intent = mActivity.getIntent();
-        if (intent != null) {
-            Bundle activityBundle = intent.getExtras();
-            if (activityBundle != null) {
-                initActivityBundle(activityBundle);
+            Bundle bundle = getArguments();
+            if (bundle != null) {
+                initBundle(bundle);
             }
-        }
 
-        initModel();
+            Intent intent = mActivity.getIntent();
+            if (intent != null) {
+                Bundle activityBundle = intent.getExtras();
+                if (activityBundle != null) {
+                    initActivityBundle(activityBundle);
+                }
+            }
 
-        //获取屏幕方向
-        int ori = getResources().getConfiguration().orientation;
-        if (ori == Configuration.ORIENTATION_LANDSCAPE) {
-            isVertical = false;
-        } else if (ori == Configuration.ORIENTATION_PORTRAIT) {
-            isVertical = true;
+            initModel();
+
+            //获取屏幕方向
+            int ori = getResources().getConfiguration().orientation;
+            if (ori == Configuration.ORIENTATION_LANDSCAPE) {
+                isVertical = false;
+            } else if (ori == Configuration.ORIENTATION_PORTRAIT) {
+                isVertical = true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -70,35 +73,42 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        if (rootView != null) {
-            if (baseBind == null) {
-                baseBind = DataBindingUtil.bind(rootView);
+        try {
+            if (rootView != null) {
+                if (baseBind == null) {
+                    baseBind = DataBindingUtil.bind(rootView);
+                }
+                return rootView;
             }
-            return rootView;
-        }
-        initLayout();
+            initLayout();
 
-        if (mLayoutID != -1) {
-            baseBind = DataBindingUtil.inflate(inflater, mLayoutID, container, false);
-            if (baseBind != null) {
-                rootView = baseBind.getRoot();
-            } else {
-                rootView = inflater.inflate(mLayoutID, container, false);
+            if (mLayoutID != -1) {
+                baseBind = DataBindingUtil.inflate(inflater, mLayoutID, container, false);
+                if (baseBind != null) {
+                    rootView = baseBind.getRoot();
+                } else {
+                    rootView = inflater.inflate(mLayoutID, container, false);
+                }
+                initView();
+                initData();
+                return rootView;
             }
-            initView();
-            initData();
-            return rootView;
-        } else {
-            return super.onCreateView(inflater, container, savedInstanceState);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        return super.onCreateView(inflater, container, savedInstanceState);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        if (isVertical) {
-            vertical();
-        } else {
-            horizon();
+        try {
+            if (isVertical) {
+                vertical();
+            } else {
+                horizon();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

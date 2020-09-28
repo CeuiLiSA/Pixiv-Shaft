@@ -99,7 +99,6 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "推荐用户":
                     return new FragmentRecmdUser();
                 case "特辑":
-                    getWindow().setStatusBarColor(getResources().getColor(R.color.new_color_primary));
                     return new FragmentPv();
                 case "搜索用户": {
                     String keyword = intent.getStringExtra(EXTRA_KEYWORD);
@@ -140,7 +139,6 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "详细信息":
                     return new FragmentUserInfo();
                 case "最新作品":
-                    getWindow().setStatusBarColor(getResources().getColor(R.color.new_color_primary));
                     return new FragmentNew();
                 case "粉丝":
                     return FragmentWhoFollowThisUser.newInstance(intent.getIntExtra(Params.USER_ID, 0));
@@ -158,15 +156,12 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return FragmentLikeIllust.newInstance(intent.getIntExtra(Params.USER_ID, 0),
                             FragmentLikeIllust.TYPE_PUBLUC, true);
                 case "下载管理":
-                    getWindow().setStatusBarColor(getResources().getColor(R.color.new_color_primary));
                     return new FragmentDownload();
                 case "收藏夹":
-                    getWindow().setStatusBarColor(getResources().getColor(R.color.new_color_primary));
                     return new FragmentCollection();
                 case "推荐漫画":
                     return FragmentRecmdIllust.newInstance("漫画");
                 case "推荐小说":
-                    getWindow().setStatusBarColor(getResources().getColor(R.color.new_color_primary));
                     return new FragmentNewNovel();
                 case "小说收藏":
                     return FragmentLikeNovel.newInstance(intent.getIntExtra(Params.USER_ID, 0),

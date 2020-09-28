@@ -28,29 +28,33 @@ public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCo
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mLayoutID = initLayout();
+        try {
+            mLayoutID = initLayout();
 
-        mContext = this;
-        mActivity = this;
+            mContext = this;
+            mActivity = this;
 
-        Intent intent = getIntent();
-        if (intent != null) {
-            Bundle bundle = intent.getExtras();
-            if (bundle != null) {
-                initBundle(bundle);
+            Intent intent = getIntent();
+            if (intent != null) {
+                Bundle bundle = intent.getExtras();
+                if (bundle != null) {
+                    initBundle(bundle);
+                }
             }
-        }
 
-        if (hideStatusBar()) {
-            getWindow().setStatusBarColor(Color.TRANSPARENT);
-            getWindow().getDecorView().setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
-                            View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
-        }
-        baseBind = DataBindingUtil.setContentView(mActivity, mLayoutID);
+            if (hideStatusBar()) {
+                getWindow().setStatusBarColor(Color.TRANSPARENT);
+                getWindow().getDecorView().setSystemUiVisibility(
+                        View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+                                View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+            }
+            baseBind = DataBindingUtil.setContentView(mActivity, mLayoutID);
 
-        initView();
-        initData();
+            initView();
+            initData();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     protected void initBundle(Bundle bundle) {

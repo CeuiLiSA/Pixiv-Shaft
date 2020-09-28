@@ -41,6 +41,7 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
 
     @Override
     public void initView() {
+        mActivity.getWindow().setStatusBarColor(getResources().getColor(R.color.new_color_primary));
         baseBind.toolbarTitle.setText(R.string.bookmark);
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
         baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {

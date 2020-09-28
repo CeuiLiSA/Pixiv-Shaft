@@ -24,6 +24,7 @@ public class FragmentNewNovel extends BaseFragment<FragmentNewNovelBinding> {
 
     @Override
     public void initView() {
+        mActivity.getWindow().setStatusBarColor(getResources().getColor(R.color.new_color_primary));
         String[] TITLES = new String[]{
                 Shaft.getContext().getString(R.string.recommend_illust),
                 Shaft.getContext().getString(R.string.hot_tag)
