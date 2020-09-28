@@ -1,6 +1,5 @@
 package ceui.lisa.repo
 
-import ceui.lisa.activities.Shaft
 import ceui.lisa.core.RemoteRepo
 import ceui.lisa.http.Retro
 import ceui.lisa.model.ListUser

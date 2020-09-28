@@ -5,7 +5,9 @@ import ceui.lisa.http.Retro
 import ceui.lisa.model.ListIllust
 import io.reactivex.Observable
 
-class LatestWorkRepo(private val workType: String) : RemoteRepo<ListIllust>() {
+class LatestWorkRepo(
+        private val workType: String
+) : RemoteRepo<ListIllust>() {
 
     override fun initApi(): Observable<ListIllust> {
         return Retro.getAppApi().getNewWorks(token(), workType)

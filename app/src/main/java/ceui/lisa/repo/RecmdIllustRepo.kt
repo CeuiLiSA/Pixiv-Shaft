@@ -1,13 +1,14 @@
 package ceui.lisa.repo
 
 import ceui.lisa.core.RemoteRepo
-import ceui.lisa.database.AppDatabase
 import ceui.lisa.http.Retro
 import ceui.lisa.model.ListIllust
 import ceui.lisa.utils.Dev
 import io.reactivex.Observable
 
-class RecmdIllustRepo(private val dataType: String): RemoteRepo<ListIllust>() {
+class RecmdIllustRepo(
+        private val dataType: String
+) : RemoteRepo<ListIllust>() {
 
     override fun initApi(): Observable<ListIllust> {
         return if ("漫画" == dataType) {
