@@ -15,6 +15,8 @@ import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListNovel;
 import ceui.lisa.models.NovelBean;
+import ceui.lisa.repo.SearchNovelRepo;
+import ceui.lisa.utils.Common;
 import ceui.lisa.viewmodel.SearchModel;
 import io.reactivex.Observable;
 
@@ -49,23 +51,12 @@ public class FragmentSearchNovel extends NetListFragment<FragmentBaseListBinding
 
     @Override
     public BaseRepo repository() {
-        return new RemoteRepo<ListNovel>() {
-            @Override
-            public Observable<ListNovel> initApi() {
-                return Retro.getAppApi().searchNovel(
-                        token(),
-                        searchModel.getKeyword().getValue(),
-                        searchModel.getSortType().getValue(),
-                        searchModel.getSearchType().getValue());
-            }
-
-            @Override
-            public Observable<ListNovel> initNextApi() {
-                return Retro.getAppApi().getNextNovel(token(), nextUrl);
-            }
-        };
+        return new SearchNovelRepo(
+                searchModel.getKeyword().getValue(),
+                searchModel.getSortType().getValue(),
+                searchModel.getSearchType().getValue()
+        );
     }
-
 
     @Override
     public boolean showToolbar() {

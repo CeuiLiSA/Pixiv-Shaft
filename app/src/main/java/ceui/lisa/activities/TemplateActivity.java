@@ -167,8 +167,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return FragmentLikeNovel.newInstance(intent.getIntExtra(Params.USER_ID, 0),
                             FragmentLikeIllust.TYPE_PUBLUC, true);
                 case "小说作品":
-                    return FragmentUserNovel.newInstance(intent.getIntExtra(Params.USER_ID, 0),
-                            true);
+                    return FragmentUserNovel.newInstance(intent.getIntExtra(Params.USER_ID, 0));
                 case "小说详情":
                     return FragmentNovelHolder.newInstance((NovelBean) intent.getSerializableExtra(Params.CONTENT));
                 case "图片详情":

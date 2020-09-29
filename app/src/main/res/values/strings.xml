@@ -426,5 +426,8 @@
     <string name="string_235">好P友</string>
     <string name="string_236">搜索用户 </string>
     <string name="string_237">小说作品</string>
+    <string name="string_238">按标签收藏</string>
+    <string name="string_239">推荐</string>
+    <string name="string_240">漫画</string>
 
 </resources>

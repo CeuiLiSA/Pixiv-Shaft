@@ -52,6 +52,7 @@ import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.repo.RightRepo;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
@@ -208,6 +209,7 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
                 } else {
                     restrict = FragmentLikeIllust.TYPE_PUBLUC;
                 }
+                ((RightRepo) mRemoteRepo).setRestrict(restrict);
                 clearAndRefresh();
             }
         });
@@ -215,37 +217,7 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
 
     @Override
     public BaseRepo repository() {
-        return new RemoteRepo<ListIllust>() {
-            @Override
-            public Observable<ListIllust> initApi() {
-                return Retro.getAppApi().getFollowUserIllust(token(), restrict);
-            }
-
-            @Override
-            public Observable<ListIllust> initNextApi() {
-                return Retro.getAppApi().getNextIllust(token(), nextUrl);
-            }
-
-            @Override
-            public RefreshFooter getFooter(Context context) {
-                return new ClassicsFooter(context).setPrimaryColorId(R.color.white);
-            }
-
-            @Override
-            public RefreshHeader getHeader(Context context) {
-                return new DeliveryHeader(context);
-            }
-
-            @Override
-            public Function<ListIllust, ListIllust> mapper() {
-                return new FilterMapper();
-            }
-
-            @Override
-            public boolean localData() {
-                return Dev.isDev;
-            }
-        };
+        return new RightRepo(restrict);
     }
 
     @Override

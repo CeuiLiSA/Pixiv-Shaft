@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import java.util.List;
 
 public class PackageUtils {
+
     private PackageUtils(){}
 
     // 新浪微博是否安装

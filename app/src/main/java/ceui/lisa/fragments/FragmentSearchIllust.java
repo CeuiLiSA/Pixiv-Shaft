@@ -1,7 +1,9 @@
 package ceui.lisa.fragments;
 
 import android.os.Bundle;
+import android.view.View;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.databinding.ViewDataBinding;
 import androidx.lifecycle.Observer;
@@ -17,6 +19,7 @@ import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.repo.SearchIllustRepo;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
@@ -39,15 +42,21 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
     }
 
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+    public void initModel() {
         searchModel = new ViewModelProvider(requireActivity()).get(SearchModel.class);
+        super.initModel();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         searchModel.getNowGo().observe(getViewLifecycleOwner(), new Observer<String>() {
             @Override
             public void onChanged(String s) {
+                ((SearchIllustRepo) mRemoteRepo).update(searchModel, isPopular);
                 mRefreshLayout.autoRefresh();
             }
         });
-        super.onActivityCreated(savedInstanceState);
     }
 
     @Override
@@ -62,35 +71,12 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
 
     @Override
     public BaseRepo repository() {
-        return new RemoteRepo<ListIllust>() {
-            @Override
-            public Observable<ListIllust> initApi() {
-                if (isPopular) {
-                    return Retro.getAppApi().popularPreview(token(),
-                            searchModel.getKeyword().getValue());
-                } else {
-                    Common.showLog(className + searchModel.getSortType().getValue());
-                    PixivOperate.insertSearchHistory(searchModel.getKeyword().getValue(), 0);
-                    return Retro.getAppApi().searchIllust(
-                            token(),
-                            searchModel.getKeyword().getValue() +
-                                    (Shaft.sSettings.getSearchFilter().contains("无限制") ?
-                                            "" : " " + (Shaft.sSettings.getSearchFilter())),
-                            searchModel.getSortType().getValue(),
-                            searchModel.getSearchType().getValue());
-                }
-            }
-
-            @Override
-            public Observable<ListIllust> initNextApi() {
-                return Retro.getAppApi().getNextIllust(token(), nextUrl);
-            }
-
-            @Override
-            public Function<ListIllust, ListIllust> mapper() {
-                return new FilterMapper();
-            }
-        };
+        return new SearchIllustRepo(
+                searchModel.getKeyword().getValue(),
+                searchModel.getSortType().getValue(),
+                searchModel.getSearchType().getValue(),
+                isPopular
+        );
     }
 
     @Override

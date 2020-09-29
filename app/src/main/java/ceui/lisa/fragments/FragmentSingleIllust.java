@@ -215,10 +215,6 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
                 } else if (menuItem.getItemId() == R.id.action_dislike) {
                     MuteDialog muteDialog = MuteDialog.newInstance(illust);
                     muteDialog.show(getChildFragmentManager(), "MuteDialog");
-                } else if (menuItem.getItemId() == R.id.action_preview) {
-                    Intent intent = new Intent(mContext, TemplateActivity.class);
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "开发者预览");
-                    startActivity(intent);
                 }
                 return false;
             }

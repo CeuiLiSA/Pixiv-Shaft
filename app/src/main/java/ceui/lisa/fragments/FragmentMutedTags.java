@@ -145,7 +145,6 @@ public class FragmentMutedTags extends LocalListFragment<FragmentBaseListBinding
 
             TagsBean tagsBean = new TagsBean();
             tagsBean.setName(tagName);
-            tagsBean.setTranslated_name(tagName);
             PixivOperate.muteTag(tagsBean);
             allItems.add(0, tagsBean);
             mAdapter.notifyItemInserted(0);

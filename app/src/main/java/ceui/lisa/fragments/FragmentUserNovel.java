@@ -20,12 +20,10 @@ public class FragmentUserNovel extends NetListFragment<FragmentBaseListBinding,
         ListNovel, NovelBean> {
 
     private int userID;
-    private boolean showToolbar = false;
 
-    public static FragmentUserNovel newInstance(int userID, boolean paramShowToolbar) {
+    public static FragmentUserNovel newInstance(int userID) {
         Bundle args = new Bundle();
         args.putInt(Params.USER_ID, userID);
-        args.putBoolean(Params.FLAG, paramShowToolbar);
         FragmentUserNovel fragment = new FragmentUserNovel();
         fragment.setArguments(args);
         return fragment;
@@ -34,7 +32,6 @@ public class FragmentUserNovel extends NetListFragment<FragmentBaseListBinding,
     @Override
     public void initBundle(Bundle bundle) {
         userID = bundle.getInt(Params.USER_ID);
-        showToolbar = bundle.getBoolean(Params.FLAG);
     }
 
     @Override
@@ -48,12 +45,7 @@ public class FragmentUserNovel extends NetListFragment<FragmentBaseListBinding,
     }
 
     @Override
-    public boolean showToolbar() {
-        return showToolbar;
-    }
-
-    @Override
     public String getToolbarTitle() {
-        return showToolbar ? getString(R.string.string_237) : super.getToolbarTitle();
+        return getString(R.string.string_237);
     }
 }

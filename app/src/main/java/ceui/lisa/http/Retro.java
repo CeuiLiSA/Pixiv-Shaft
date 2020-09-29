@@ -79,28 +79,6 @@ public class Retro {
                 .build();
     }
 
-    public static RankTokenApi getRankApi() {
-        Gson gson = new GsonBuilder().setLenient().create();
-        Retrofit retrofit = new Retrofit.Builder()
-                .client(getLogClient().build())
-                .addConverterFactory(GsonConverterFactory.create(gson))
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .baseUrl(RankTokenApi.BASE_URL)
-                .build();
-        return retrofit.create(RankTokenApi.class);
-    }
-
-    public static HitoApi getHitoApi() {
-        Gson gson = new GsonBuilder().setLenient().create();
-        Retrofit retrofit = new Retrofit.Builder()
-                .client(getLogClient().build())
-                .addConverterFactory(GsonConverterFactory.create(gson))
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .baseUrl(HitoApi.BASE_URL)
-                .build();
-        return retrofit.create(HitoApi.class);
-    }
-
     public static <T> T create(String baseUrl, final Class<T> service) {
         Gson gson = new GsonBuilder().setLenient().create();
         Retrofit retrofit = new Retrofit.Builder()

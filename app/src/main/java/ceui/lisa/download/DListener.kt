@@ -3,7 +3,6 @@ package ceui.lisa.download
 import android.text.TextUtils
 import ceui.lisa.activities.Shaft
 import ceui.lisa.database.IllustTask
-import ceui.lisa.utils.Channel
 import ceui.lisa.utils.Common
 import com.liulishuo.okdownload.DownloadTask
 import com.liulishuo.okdownload.core.cause.EndCause

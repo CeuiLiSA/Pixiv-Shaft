@@ -9,6 +9,7 @@ import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import java.util.ArrayList;
 import java.util.List;
 
+import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapterWithHeadView;
@@ -26,6 +27,8 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.SpacesItemWithHeadDecoration;
+import ceui.lisa.viewmodel.BaseModel;
+import ceui.lisa.viewmodel.RecmdModel;
 import io.reactivex.Observable;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -35,7 +38,6 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
         ListIllust, IllustsBean> {
 
     private String dataType;
-    private List<IllustsBean> ranking = new ArrayList<>();
 
     public static FragmentRecmdIllust newInstance(String dataType) {
         Bundle args = new Bundle();
@@ -48,6 +50,11 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
     @Override
     public void initBundle(Bundle bundle) {
         dataType = bundle.getString(Params.DATA_TYPE);
+    }
+
+    @Override
+    public Class<? extends BaseModel<IllustsBean>> modelClass() {
+        return RecmdModel.class;
     }
 
     @Override
@@ -71,12 +78,12 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
 
     @Override
     public String getToolbarTitle() {
-        return "推荐" + dataType;
+        return getString(R.string.string_239) + dataType;
     }
 
     @Override
     public boolean showToolbar() {
-        return "漫画".equals(dataType);
+        return getString(R.string.string_240).equals(dataType);
     }
 
     @Override
@@ -103,8 +110,8 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
 
                     }
                 });
-        ranking.addAll(mResponse.getRanking_illusts());
-        ((IAdapterWithHeadView) mAdapter).setHeadData(ranking);
+        ((RecmdModel) mModel).getRankList().addAll(mResponse.getRanking_illusts());
+        ((IAdapterWithHeadView) mAdapter).setHeadData(((RecmdModel) mModel).getRankList());
     }
 
     private void insertViewHistory(IllustsBean illustsBean) {
@@ -140,8 +147,8 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
                     @Override
                     public void success(List<IllustsBean> illustsBeans) {
                         allItems.addAll(illustsBeans);
-                        ranking.addAll(illustsBeans);
-                        ((IAdapterWithHeadView) mAdapter).setHeadData(ranking);
+                        ((RecmdModel) mModel).getRankList().addAll(illustsBeans);
+                        ((IAdapterWithHeadView) mAdapter).setHeadData(((RecmdModel) mModel).getRankList());
                         mAdapter.notifyItemRangeInserted(mAdapter.headerSize(), allItems.size());
                     }
 

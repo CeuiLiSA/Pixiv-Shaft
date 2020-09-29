@@ -9,13 +9,6 @@
         android:title="@string/string_1"
         app:showAsAction="never" />
 
-    <item
-        android:id="@+id/action_preview"
-        android:orderInCategory="100"
-        android:icon="@drawable/ic_not_interested_black_24dp"
-        android:title="@string/string_2"
-        app:showAsAction="never" />
-
 
     <item
         android:id="@+id/action_share"

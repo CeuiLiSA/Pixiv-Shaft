@@ -29,6 +29,7 @@ import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListBookmarkTag;
 import ceui.lisa.models.NullResponse;
 import ceui.lisa.models.TagsBean;
+import ceui.lisa.repo.SelectTagRepo;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 import io.reactivex.Observable;
@@ -71,17 +72,7 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
 
     @Override
     public BaseRepo repository() {
-        return new RemoteRepo<ListBookmarkTag>() {
-            @Override
-            public Observable<ListBookmarkTag> initApi() {
-                return Retro.getAppApi().getIllustBookmarkTags(Shaft.sUserModel.getResponse().getAccess_token(), illustID);
-            }
-
-            @Override
-            public Observable<ListBookmarkTag> initNextApi() {
-                return null;
-            }
-        };
+        return new SelectTagRepo(illustID);
     }
 
     private void submitStar() {
@@ -204,6 +195,6 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
 
     @Override
     public String getToolbarTitle() {
-        return "按标签收藏";
+        return getString(R.string.string_238);
     }
 }
