@@ -325,16 +325,16 @@
                             android:id="@+id/description"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:textColorLink="@color/new_color_primary"
                             android:layout_marginStart="@dimen/tweenty_four_dp"
                             android:layout_marginTop="@dimen/six_dp"
                             android:layout_marginEnd="@dimen/tweenty_four_dp"
                             android:layout_marginBottom="@dimen/four_dp"
+                            android:textIsSelectable="true"
                             android:gravity="start"
                             android:textColor="#9b9bb1"
                             android:textSize="13sp"
-                            android:textStyle="bold">
-
-                        </org.sufficientlysecure.htmltextview.HtmlTextView>
+                            android:textStyle="bold" />
 
                         <LinearLayout
                             android:layout_width="match_parent"

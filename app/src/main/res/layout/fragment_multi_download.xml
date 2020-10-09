@@ -59,8 +59,8 @@
             android:layout_width="wrap_content"
             android:id="@+id/no_data"
             android:visibility="invisible"
-            android:src="@mipmap/no_data_line"
-            android:tint="@color/colorPrimary"
+            android:src="@mipmap/empty_img"
+            android:tint="@color/new_color_primary"
             android:layout_centerInParent="true"
             android:scaleType="centerCrop"
             android:layout_height="wrap_content" />

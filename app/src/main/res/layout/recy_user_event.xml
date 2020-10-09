@@ -89,14 +89,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/sixteen_dp"
+            android:textColorLink="@color/new_color_primary"
             android:layout_marginEnd="@dimen/eight_dp"
             android:textColor="#333333"
             android:layout_marginBottom="@dimen/eight_dp"
             android:ellipsize="end"
             android:maxLines="2"
-            android:textSize="15sp">
-
-        </org.sufficientlysecure.htmltextview.HtmlTextView>
+            android:textSize="15sp" />
 
         <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
             android:layout_width="match_parent"

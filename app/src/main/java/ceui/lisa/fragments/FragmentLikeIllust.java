@@ -78,6 +78,7 @@ public class FragmentLikeIllust extends NetListFragment<FragmentBaseListBinding,
                     String type = bundle.getString(Params.STAR_TYPE);
                     if (starType.equals(type)) {
                         tag = bundle.getString(Params.CONTENT);
+                        ((LikeIllustRepo) mRemoteRepo).setTag(tag);
                         baseBind.refreshLayout.autoRefresh();
                     }
                 }

@@ -7,7 +7,7 @@ import io.reactivex.Observable
 
 class FollowUserRepo(
         private val userID: Int,
-        private val starType: String
+        private val starType: String?
 ): RemoteRepo<ListUser>() {
 
     override fun initApi(): Observable<ListUser> {

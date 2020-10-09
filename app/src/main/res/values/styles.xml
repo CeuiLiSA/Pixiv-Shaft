@@ -125,8 +125,7 @@
         <item name="android:layout_centerVertical">true</item>
         <item name="android:layout_alignParentEnd">true</item>
         <item name="android:checked">true</item>
-        <item name="android:thumbTint">@color/new_color_primary</item>
-        <item name="android:trackTint">@color/new_color_primary</item>
+        <item name="android:theme">@style/SCBSwitch</item>
     </style>
 
     <style name="full_divider">
@@ -149,4 +148,9 @@
         <item name="android:background">?android:attr/selectableItemBackground</item>
     </style>
 
+    <style name="SCBSwitch" parent="Theme.AppCompat.Light">
+        <item name="colorControlActivated">@color/new_color_primary</item>
+        <item name="colorSwitchThumbNormal">#f1f1f1</item>
+        <item name="android:colorForeground">#42221f1f</item>
+    </style>
 </resources>

@@ -18,8 +18,7 @@ import ceui.lisa.interfaces.Callback;
 import ceui.lisa.notification.DownloadReceiver;
 import ceui.lisa.utils.Params;
 
-public class FragmentDownloading extends LocalListFragment<FragmentBaseListBinding,
-        IllustTask> {
+public class FragmentDownloading extends LocalListFragment<FragmentBaseListBinding, IllustTask> {
 
     private DownloadReceiver<?> mReceiver;
 
@@ -62,7 +61,7 @@ public class FragmentDownloading extends LocalListFragment<FragmentBaseListBindi
 
 
             if (TaskQueue.get().getTasks().size() == 0) {
-                autoRefresh();
+                mRefreshLayout.autoRefresh();
             }
         }, DownloadReceiver.NOTIFY_FRAGMENT_DOWNLOADING);
         intentFilter.addAction(Params.DOWNLOAD_ING);

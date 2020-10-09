@@ -7,7 +7,7 @@ import io.reactivex.Observable
 
 class LikeNovelRepo(
         private val userID: Int,
-        private val starType: String
+        private val starType: String?
 ) : RemoteRepo<ListNovel>() {
 
     override fun initApi(): Observable<ListNovel> {

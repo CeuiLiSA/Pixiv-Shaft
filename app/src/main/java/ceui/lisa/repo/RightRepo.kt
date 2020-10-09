@@ -14,7 +14,7 @@ import com.scwang.smartrefresh.layout.footer.ClassicsFooter
 import io.reactivex.Observable
 import io.reactivex.functions.Function
 
-class RightRepo(var restrict: String) : RemoteRepo<ListIllust>() {
+class RightRepo(var restrict: String?) : RemoteRepo<ListIllust>() {
 
     override fun initApi(): Observable<ListIllust> {
         return Retro.getAppApi().getFollowUserIllust(token(), restrict)

@@ -65,6 +65,7 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
 
     private IllustsBean illust;
     private IllustDetailAdapter mDetailAdapter;
+    private StarReceiver mReceiver;
 
     public static FragmentSingleIllust newInstance(IllustsBean illust) {
         Bundle args = new Bundle();
@@ -135,8 +136,6 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
             loadImage();
         }
     }
-
-    private StarReceiver mReceiver;
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {

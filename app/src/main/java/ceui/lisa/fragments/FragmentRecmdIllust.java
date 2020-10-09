@@ -25,6 +25,7 @@ import ceui.lisa.models.IllustsBean;
 import ceui.lisa.repo.RecmdIllustRepo;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.SpacesItemWithHeadDecoration;
 import ceui.lisa.viewmodel.BaseModel;
@@ -38,6 +39,7 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
         ListIllust, IllustsBean> {
 
     private String dataType;
+    private List<IllustRecmdEntity> localData;
 
     public static FragmentRecmdIllust newInstance(String dataType) {
         Bundle args = new Bundle();
@@ -59,7 +61,17 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
 
     @Override
     public RemoteRepo<ListIllust> repository() {
-        return new RecmdIllustRepo(dataType);
+        if (Dev.isDev) {
+            localData = AppDatabase.getAppDatabase(mContext).recmdDao().getAll();
+            return new RecmdIllustRepo(dataType) {
+                @Override
+                public boolean localData() {
+                    return !Common.isEmpty(localData);
+                }
+            };
+        } else {
+            return new RecmdIllustRepo(dataType);
+        }
     }
 
     @Override
@@ -124,10 +136,12 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
 
     @Override
     public void showDataBase() {
+        if (Common.isEmpty(localData)) {
+            return;
+        }
         Observable.create((ObservableOnSubscribe<List<IllustRecmdEntity>>) emitter -> {
-            List<IllustRecmdEntity> temp = AppDatabase.getAppDatabase(mContext).recmdDao().getAll();
             Thread.sleep(100);
-            emitter.onNext(temp);
+            emitter.onNext(localData);
             emitter.onComplete();
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())

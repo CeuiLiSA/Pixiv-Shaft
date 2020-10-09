@@ -132,7 +132,6 @@ public interface AppApi {
     Observable<ListUser> getRecmdUser(@Header("Authorization") String token);
 
 
-    // /v1/user/bookmarks/illust?user_id=24218478&restrict=public HTTP/1.1
     @GET("v1/user/bookmarks/illust")
     Observable<ListIllust> getUserLikeIllust(@Header("Authorization") String token,
                                              @Query("user_id") int user_id,

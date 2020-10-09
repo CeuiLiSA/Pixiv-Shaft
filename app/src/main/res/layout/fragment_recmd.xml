@@ -148,8 +148,8 @@
                     android:layout_height="wrap_content"
                     android:layout_centerInParent="true"
                     android:scaleType="centerCrop"
-                    android:src="@mipmap/no_data_line"
-                    android:tint="@color/colorPrimary"
+                    android:src="@mipmap/empty_img"
+                    android:tint="@color/new_color_primary"
                     android:visibility="invisible"
                     app:layout_anchor="@+id/recyclerView"
                     app:layout_anchorGravity="center" />

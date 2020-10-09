@@ -29,7 +29,7 @@ public abstract class LocalListFragment<Layout extends ViewDataBinding, Item>
         } else {
             mRecyclerView.setVisibility(View.INVISIBLE);
             noData.setVisibility(View.VISIBLE);
-            noData.setImageResource(R.mipmap.no_data_line);
+            noData.setImageResource(R.mipmap.empty_img);
         }
         mRefreshLayout.finishRefresh(true);
     }

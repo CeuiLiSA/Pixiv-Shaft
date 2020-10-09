@@ -225,7 +225,6 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
         mRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
     }
 
-
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);

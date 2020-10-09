@@ -6,8 +6,8 @@ import ceui.lisa.model.ListIllust
 import ceui.lisa.utils.Dev
 import io.reactivex.Observable
 
-class RecmdIllustRepo(
-        private val dataType: String
+open class RecmdIllustRepo(
+        private val dataType: String?
 ) : RemoteRepo<ListIllust>() {
 
     override fun initApi(): Observable<ListIllust> {
@@ -20,9 +20,5 @@ class RecmdIllustRepo(
 
     override fun initNextApi(): Observable<ListIllust> {
         return Retro.getAppApi().getNextIllust(token(), nextUrl)
-    }
-
-    override fun localData(): Boolean {
-        return Dev.isDev
     }
 }

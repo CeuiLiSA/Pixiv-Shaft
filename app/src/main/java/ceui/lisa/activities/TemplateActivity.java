@@ -80,7 +80,6 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
         if (dataType != null) {
             switch (dataType) {
                 case "登录注册":
-                    BarUtils.setNavBarColor(mActivity, getResources().getColor(R.color.colorPrimary));
                     return new FragmentLogin();
                 case "相关作品": {
                     int id = intent.getIntExtra(Params.ILLUST_ID, 0);

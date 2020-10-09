@@ -1,6 +1,7 @@
 package ceui.lisa.fragments
 
 import android.os.Bundle
+import android.text.method.ScrollingMovementMethod
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.base.BaseFragment
@@ -26,6 +27,8 @@ class FragmentMangaSeries : BaseFragment<FragmentMangaSeriesBinding>() {
 
     override fun initView() {
         baseBind.toolbarTitle.text = getString(R.string.string_230)
+        baseBind.toolbarTitle.movementMethod = ScrollingMovementMethod.getInstance()
+        baseBind.toolbarTitle.setHorizontallyScrolling(true)
     }
 
     override fun initData() {
@@ -35,6 +38,7 @@ class FragmentMangaSeries : BaseFragment<FragmentMangaSeriesBinding>() {
                 .subscribe(object :ErrorCtrl<IllustSeries>(){
                     override fun onNext(t: IllustSeries) {
                         baseBind.toolbarTitle.text = t.illust_series_detail.title
+                        baseBind.toolbarTitle.requestFocus()
                     }
                 })
     }

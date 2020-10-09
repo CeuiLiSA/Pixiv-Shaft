@@ -6,8 +6,8 @@ import ceui.lisa.model.ListNovel
 import io.reactivex.Observable
 
 class RankNovelRepo(
-        private val mode: String,
-        private val queryDate: String
+        private val mode: String?,
+        private val queryDate: String?
 ) : RemoteRepo<ListNovel>() {
 
     override fun initApi(): Observable<ListNovel> {

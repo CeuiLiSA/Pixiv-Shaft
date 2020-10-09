@@ -1,5 +1,6 @@
 package ceui.lisa.fragments;
 
+import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -190,6 +191,8 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
             TextView title = toolbar.findViewById(R.id.toolbar_title);
             if (title != null) {
                 title.setText(getToolbarTitle());
+                title.setMovementMethod(ScrollingMovementMethod.getInstance());
+                title.setHorizontallyScrolling(true);
             } else {
                 toolbar.setTitle(getToolbarTitle());
             }

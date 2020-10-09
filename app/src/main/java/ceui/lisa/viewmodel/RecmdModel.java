@@ -12,8 +12,4 @@ public class RecmdModel extends BaseModel<IllustsBean> {
     public List<IllustsBean> getRankList() {
         return rankList;
     }
-
-    public void setRankList(List<IllustsBean> rankList) {
-        this.rankList = rankList;
-    }
 }

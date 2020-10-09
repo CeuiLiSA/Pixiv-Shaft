@@ -72,9 +72,6 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
     @Override
     public void initBundle(Bundle bundle) {
         illust = (IllustsBean) bundle.getSerializable(Params.CONTENT);
-        if (Dev.isDev) {
-            Common.showLog(Shaft.sGson.toJson(illust));
-        }
     }
 
     @Override
@@ -110,6 +107,13 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
         } else {
             baseBind.title.setText(illust.getTitle());
         }
+        baseBind.title.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Common.copy(mContext, illust.getTitle());
+                return true;
+            }
+        });
         baseBind.toolbar.inflateMenu(R.menu.share);
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
         baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
@@ -149,13 +153,11 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
         baseBind.postLike.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                if (!illust.isIs_bookmarked()) {
-                    Intent intent = new Intent(mContext, TemplateActivity.class);
-                    intent.putExtra(Params.ILLUST_ID, illust.getId());
-                    intent.putExtra(Params.LAST_CLASS, getClass().getSimpleName());
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏");
-                    startActivity(intent);
-                }
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(Params.ILLUST_ID, illust.getId());
+                intent.putExtra(Params.LAST_CLASS, getClass().getSimpleName());
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏");
+                startActivity(intent);
                 return true;
             }
         });
@@ -295,14 +297,14 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
         });
 
         baseBind.follow.setOnLongClickListener(v1 -> {
-            if (illust.getUser().isIs_followed()) {
-
-            } else {
+            if (!illust.getUser().isIs_followed()) {
                 baseBind.follow.setText(R.string.string_177);
                 illust.getUser().setIs_followed(true);
                 PixivOperate.postFollowUser(illust.getUser().getId(), FragmentLikeIllust.TYPE_PRIVATE);
+                return true;
+            } else {
+                return false;
             }
-            return true;
         });
         baseBind.userName.setText(illust.getUser().getName());
         baseBind.postTime.setText(illust.getCreate_date().substring(0, 16) + "投递");
@@ -325,7 +327,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 if (illust.getPage_count() == 1) {
                     new QMUIDialog.CheckableDialogBuilder(mContext)
                             .setSkinManager(QMUISkinManager.defaultInstance(mContext))
-                            .addItems(items, new DialogInterface.OnClickListener() {
+                            .addItems(IMG_RESOLUTION, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     dialog.dismiss();
@@ -333,9 +335,9 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                             })
                             .create()
                             .show();
-
+                    return true;
                 }
-                return true;
+                return false;
             }
         });
         baseBind.illustId.setOnClickListener(new View.OnClickListener() {
@@ -355,7 +357,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 .into(baseBind.userHead);
     }
 
-    private static final String[] items = new String[]{"小图(square_medium)", "中图(medium)", "大图(large)", "原图(original)"};
+    private static final String[] IMG_RESOLUTION = new String[]{"原图(original)", "大图(large)", "中图(medium)", "小图(square_medium)"};
     private StarReceiver mReceiver;
 
     @Override
