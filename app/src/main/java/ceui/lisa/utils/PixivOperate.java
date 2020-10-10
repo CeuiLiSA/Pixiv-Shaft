@@ -72,7 +72,7 @@ public class PixivOperate {
                         intent.putExtra(Params.IS_LIKED, true);
                         LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
 
-                        if (followType.equals(FragmentLikeIllust.TYPE_PUBLUC)) {
+                        if (followType.equals(Params.TYPE_PUBLUC)) {
                             Common.showToast(getString(R.string.like_success_public));
                         } else {
                             Common.showToast(getString(R.string.like_success_private));

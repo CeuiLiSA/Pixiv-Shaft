@@ -432,5 +432,11 @@
     <string name="string_241">近期任务中模糊缩略图</string>
     <string name="string_242">设置命名方式（长按拖拽）</string>
     <string name="string_243">这里什么都没有呢</string>
+    <string name="string_244">按标签筛选</string>
+    <string name="string_245">收藏到精华</string>
+    <string name="string_246">插画作品</string>
+    <string name="string_247">漫画作品</string>
+    <string name="string_248">精华列</string>
+    <string name="string_249">精华列表</string>
 
 </resources>

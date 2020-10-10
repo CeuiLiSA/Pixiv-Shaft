@@ -17,6 +17,7 @@ import ceui.lisa.interfaces.FullClickListener;
 import ceui.lisa.models.UserBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
+import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 
 public class SimpleUserAdapter extends BaseAdapter<UserBean, RecySimpleUserBinding> {
@@ -77,7 +78,7 @@ public class SimpleUserAdapter extends BaseAdapter<UserBean, RecySimpleUserBindi
                         postFollow.setText(mContext.getString(R.string.post_follow));
                     } else {
                         PixivOperate.postFollowUser(allIllust.get(position).getId(),
-                                FragmentLikeIllust.TYPE_PUBLUC);
+                                Params.TYPE_PUBLUC);
                         allIllust.get(position).setIs_followed(true);
                         Button postFollow = ((Button) v);
                         postFollow.setText(mContext.getString(R.string.post_unfollow));
@@ -89,7 +90,7 @@ public class SimpleUserAdapter extends BaseAdapter<UserBean, RecySimpleUserBindi
             public void onItemLongClick(View v, int position, int viewType) {
                 if (!allIllust.get(position).isIs_followed()) {
                     PixivOperate.postFollowUser(allIllust.get(position).getId(),
-                            FragmentLikeIllust.TYPE_PRIVATE);
+                            Params.TYPE_PRIVATE);
                     Button postFollow = ((Button) v);
                     postFollow.setText(mContext.getString(R.string.post_unfollow));
                 }

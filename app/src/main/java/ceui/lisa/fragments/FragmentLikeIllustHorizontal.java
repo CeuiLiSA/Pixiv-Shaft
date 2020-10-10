@@ -137,13 +137,13 @@ public class FragmentLikeIllustHorizontal extends BaseFragment<FragmentLikeIllus
         Observable<ListIllust> api = null;
         if (type == 1) {
             api = Retro.getAppApi().getUserLikeIllust(sUserModel.getResponse().getAccess_token(),
-                    mUserDetailResponse.getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC);
+                    mUserDetailResponse.getUser().getId(), Params.TYPE_PUBLUC);
         } else if (type == 2) {
             api = Retro.getAppApi().getUserSubmitIllust(sUserModel.getResponse().getAccess_token(),
-                    mUserDetailResponse.getUser().getId(), "illust");
+                    mUserDetailResponse.getUser().getId(), Params.TYPE_ILLUST);
         } else if (type == 3) {
             api = Retro.getAppApi().getUserSubmitIllust(sUserModel.getResponse().getAccess_token(),
-                    mUserDetailResponse.getUser().getId(), "manga");
+                    mUserDetailResponse.getUser().getId(), Params.TYPE_MANGA);
         }
 
         if (api != null) {

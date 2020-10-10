@@ -18,7 +18,7 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.base.BaseFragment;
 import ceui.lisa.databinding.ViewpagerWithTablayoutBinding;
-import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Params;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
@@ -51,14 +51,14 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
                 if (baseBind.viewPager.getCurrentItem() == 0) {
                     Intent intent = new Intent(mContext, TemplateActivity.class);
                     intent.putExtra(TemplateActivity.EXTRA_KEYWORD,
-                            FragmentLikeIllust.TYPE_PUBLUC);
+                            Params.TYPE_PUBLUC);
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签筛选");
                     startActivity(intent);
                     return true;
                 } else if (baseBind.viewPager.getCurrentItem() == 1) {
                     Intent intent = new Intent(mContext, TemplateActivity.class);
                     intent.putExtra(TemplateActivity.EXTRA_KEYWORD,
-                            FragmentLikeIllust.TYPE_PRIVATE);
+                            Params.TYPE_PRIVATE);
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签筛选");
                     startActivity(intent);
                     return true;
@@ -120,32 +120,32 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
         if (index == 0) {
             temp = FragmentLikeIllust.newInstance(
                     sUserModel.getResponse().getUser().getId(),
-                    FragmentLikeIllust.TYPE_PUBLUC
+                    Params.TYPE_PUBLUC
             );
         } else if (index == 1) {
             temp = FragmentLikeIllust.newInstance(
                     sUserModel.getResponse().getUser().getId(),
-                    FragmentLikeIllust.TYPE_PRIVATE
+                    Params.TYPE_PRIVATE
             );
         } else if (index == 2) {
             temp = FragmentFollowUser.newInstance(
                     sUserModel.getResponse().getUser().getId(),
-                    FragmentLikeIllust.TYPE_PUBLUC, false
+                    Params.TYPE_PUBLUC, false
             );
         } else if (index == 3) {
             temp = FragmentFollowUser.newInstance(
                     sUserModel.getResponse().getUser().getId(),
-                    FragmentLikeIllust.TYPE_PRIVATE, false
+                    Params.TYPE_PRIVATE, false
             );
         } else if (index == 4) {
             temp = FragmentLikeNovel.newInstance(
                     sUserModel.getResponse().getUser().getId(),
-                    FragmentLikeIllust.TYPE_PUBLUC, false
+                    Params.TYPE_PUBLUC, false
             );
         } else if (index == 5) {
             temp = FragmentLikeNovel.newInstance(
                     sUserModel.getResponse().getUser().getId(),
-                    FragmentLikeIllust.TYPE_PRIVATE, false
+                    Params.TYPE_PRIVATE, false
             );
         } else {
             temp = new Fragment();

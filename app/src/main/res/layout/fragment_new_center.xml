@@ -194,7 +194,7 @@
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
                                     android:scaleType="centerCrop"
-                                    android:src="@color/new_color_primary"
+                                    android:src="@mipmap/center_1"
                                     app:riv_corner_radius="@dimen/twelve_dp">
 
 
@@ -236,7 +236,7 @@
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
                                     android:scaleType="centerCrop"
-                                    android:src="@color/new_color_primary"
+                                    android:src="@mipmap/center_2"
                                     app:riv_corner_radius="@dimen/twelve_dp">
 
 

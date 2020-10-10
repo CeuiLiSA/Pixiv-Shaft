@@ -44,6 +44,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
     @Override
     public void fresh() {
         if (!mRemoteRepo.localData()) {
+            emptyRela.setVisibility(View.INVISIBLE);
             mRemoteRepo.getFirstData(new NullCtrl<Response>() {
                 @Override
                 public void success(Response response) {

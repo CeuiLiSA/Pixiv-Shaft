@@ -16,6 +16,7 @@ import ceui.lisa.interfaces.FullClickListener;
 import ceui.lisa.models.UserPreviewsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
+import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 
 public class UAdapter extends BaseAdapter<UserPreviewsBean, RecyUserPreviewBinding> {
@@ -112,7 +113,7 @@ public class UAdapter extends BaseAdapter<UserPreviewsBean, RecyUserPreviewBindi
                         allIllust.get(position).getUser().setIs_followed(false);
                         postFollow.setText(mContext.getString(R.string.post_follow));
                     } else {
-                        PixivOperate.postFollowUser(allIllust.get(position).getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC);
+                        PixivOperate.postFollowUser(allIllust.get(position).getUser().getId(), Params.TYPE_PUBLUC);
                         allIllust.get(position).getUser().setIs_followed(true);
                         Button postFollow = ((Button) v);
                         postFollow.setText(mContext.getString(R.string.post_unfollow));
@@ -123,7 +124,7 @@ public class UAdapter extends BaseAdapter<UserPreviewsBean, RecyUserPreviewBindi
             @Override
             public void onItemLongClick(View v, int position, int viewType) {
                 if (!allIllust.get(position).getUser().isIs_followed()) {
-                    PixivOperate.postFollowUser(allIllust.get(position).getUser().getId(), FragmentLikeIllust.TYPE_PRIVATE);
+                    PixivOperate.postFollowUser(allIllust.get(position).getUser().getId(), Params.TYPE_PRIVATE);
                     Button postFollow = ((Button) v);
                     postFollow.setText(mContext.getString(R.string.post_unfollow));
                 }

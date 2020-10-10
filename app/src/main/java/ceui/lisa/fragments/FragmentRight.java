@@ -95,7 +95,7 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
                         IllustDownload.downloadAllIllust(allItems.get(position));
                     }
                 } else if (viewType == 3) {
-                    PixivOperate.postLike(allItems.get(position), FragmentLikeIllust.TYPE_PUBLUC);
+                    PixivOperate.postLike(allItems.get(position), Params.TYPE_PUBLUC);
                 } else if (viewType == 4) {
                     View popView = LayoutInflater.from(mContext).inflate(R.layout.pop_window, null);
                     QMUIPopup mNormalPopup = QMUIPopups.popup(mContext, QMUIDisplayHelper.dp2px(mContext, 250))
@@ -155,7 +155,7 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
                                 follow.setText("添加关注");
                             } else {
                                 PixivOperate.postFollowUser(allItems.get(position).getUser().getUserId(),
-                                        FragmentLikeIllust.TYPE_PUBLUC);
+                                        Params.TYPE_PUBLUC);
                                 allItems.get(position).getUser().setIs_followed(true);
                                 follow.setText("取消关注");
                             }
@@ -205,9 +205,9 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
-                    restrict = FragmentLikeIllust.TYPE_PRIVATE;
+                    restrict = Params.TYPE_PRIVATE;
                 } else {
-                    restrict = FragmentLikeIllust.TYPE_PUBLUC;
+                    restrict = Params.TYPE_PUBLUC;
                 }
                 ((RightRepo) mRemoteRepo).setRestrict(restrict);
                 clearAndRefresh();
@@ -247,7 +247,7 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
         return false;
     }
 
-    private String restrict = FragmentLikeIllust.TYPE_PUBLUC;
+    private String restrict = Params.TYPE_PUBLUC;
 
     private boolean isLoad = false;
 

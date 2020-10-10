@@ -106,18 +106,16 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
                             bindView.baseBind.likeButton.setImageTintList(
                                     ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.has_bookmarked)));
                         }
-                        PixivOperate.postLike(target, FragmentLikeIllust.TYPE_PUBLUC);
+                        PixivOperate.postLike(target, Params.TYPE_PUBLUC);
                     }
                 });
                 bindView.baseBind.likeButton.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
                     public boolean onLongClick(View v) {
-                        if (!target.isIs_bookmarked()) {
-                            Intent intent = new Intent(mContext, TemplateActivity.class);
-                            intent.putExtra(Params.ILLUST_ID, target.getId());
-                            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏");
-                            mContext.startActivity(intent);
-                        }
+                        Intent intent = new Intent(mContext, TemplateActivity.class);
+                        intent.putExtra(Params.ILLUST_ID, target.getId());
+                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏");
+                        mContext.startActivity(intent);
                         return true;
                     }
                 });

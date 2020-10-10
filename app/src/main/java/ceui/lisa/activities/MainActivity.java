@@ -178,6 +178,10 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 intent = new Intent(mContext, TemplateActivity.class);
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "标签屏蔽记录");
                 break;
+            case R.id.nav_feature:
+                intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "精华列");
+                break;
         }
         if (intent != null) {
             startActivity(intent);

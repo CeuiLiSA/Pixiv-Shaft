@@ -138,7 +138,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
             @Override
             public void onClick(View v) {
                 PixivOperate.postLikeNovel(mNovelBean, Shaft.sUserModel,
-                        FragmentLikeIllust.TYPE_PUBLUC, baseBind.like);
+                        Params.TYPE_PUBLUC, baseBind.like);
             }
         });
         baseBind.like.setOnLongClickListener(new View.OnLongClickListener() {
@@ -148,7 +148,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
 
                 } else {
                     PixivOperate.postLikeNovel(mNovelBean, Shaft.sUserModel,
-                            FragmentLikeIllust.TYPE_PRIVATE, baseBind.like);
+                            Params.TYPE_PRIVATE, baseBind.like);
                 }
                 return true;
             }

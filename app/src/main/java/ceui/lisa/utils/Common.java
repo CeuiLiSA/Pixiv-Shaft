@@ -29,6 +29,7 @@ import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
+import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
@@ -284,5 +285,21 @@ public class Common {
         context.startActivity(intent);
     }
 
+
+    public static <T> String cutToJson(List<T> from) {
+        if (isEmpty(from)) {
+            return "";
+        }
+
+        if (from.size() > 5) {
+            List<T> temp = new ArrayList<>();
+            for (int i = 0; i < 5; i++) {
+                temp.add(from.get(i));
+            }
+            return Shaft.sGson.toJson(temp);
+        } else {
+            return Shaft.sGson.toJson(from);
+        }
+    }
 
 }

@@ -93,7 +93,7 @@ public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
 
                     } else {
                         PixivOperate.postLikeNovel(allIllust.get(position), Shaft.sUserModel,
-                                FragmentLikeIllust.TYPE_PRIVATE, bindView.baseBind.like);
+                                Params.TYPE_PRIVATE, bindView.baseBind.like);
                     }
                     return true;
                 }
@@ -114,7 +114,7 @@ public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
                     mContext.startActivity(intent);
                 } else if (viewType == 1) {
                     PixivOperate.postLikeNovel(allIllust.get(position), Shaft.sUserModel,
-                            FragmentLikeIllust.TYPE_PUBLUC, v);
+                            Params.TYPE_PUBLUC, v);
                 } else if (viewType == 2) {
                     Intent intent = new Intent(mContext, TemplateActivity.class);
                     intent.putExtra(Params.URL, allIllust.get(position).getImage_urls().getMaxImage());

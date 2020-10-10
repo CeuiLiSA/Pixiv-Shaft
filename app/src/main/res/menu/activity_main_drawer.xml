@@ -49,6 +49,11 @@
                 android:icon="@drawable/ic_fiber_new_black_24dp"
                 android:title="@string/latest_work" />
 
+            <item
+                android:id="@+id/nav_feature"
+                android:icon="@mipmap/feature"
+                android:title="@string/string_248" />
+
         </menu>
     </item>
 

@@ -17,6 +17,7 @@ public abstract class LocalListFragment<Layout extends ViewDataBinding, Item>
 
     @Override
     public void fresh() {
+        emptyRela.setVisibility(View.INVISIBLE);
         if (mLocalRepo.first() != null && mLocalRepo.first().size() != 0) {
             List<Item> firstList = mLocalRepo.first();
             if (mModel != null) {

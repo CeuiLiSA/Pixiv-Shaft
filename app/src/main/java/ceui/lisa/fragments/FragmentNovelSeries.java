@@ -106,7 +106,7 @@ public class FragmentNovelSeries extends NetListFragment<FragmentNovelSeriesBind
                     baseBind.postLikeUser.setText("取消关注");
                     userBean.setIs_followed(true);
                     PixivOperate.postFollowUser(userBean.getId(),
-                            FragmentLikeIllust.TYPE_PUBLUC);
+                            Params.TYPE_PUBLUC);
                 }
             }
         });
@@ -117,7 +117,7 @@ public class FragmentNovelSeries extends NetListFragment<FragmentNovelSeriesBind
                     baseBind.postLikeUser.setText("取消关注");
                     userBean.setIs_followed(true);
                     PixivOperate.postFollowUser(userBean.getId(),
-                            FragmentLikeIllust.TYPE_PRIVATE);
+                            Params.TYPE_PRIVATE);
                 }
                 return true;
             }

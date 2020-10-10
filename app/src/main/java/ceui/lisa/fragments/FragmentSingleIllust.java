@@ -283,19 +283,17 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
                 } else {
                     baseBind.postLike.setImageResource(R.drawable.ic_favorite_accent_24dp);
                 }
-                PixivOperate.postLike(illust, FragmentLikeIllust.TYPE_PUBLUC);
+                PixivOperate.postLike(illust, Params.TYPE_PUBLUC);
             }
         });
         baseBind.postLike.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                if (!illust.isIs_bookmarked()) {
-                    Intent intent = new Intent(mContext, TemplateActivity.class);
-                    intent.putExtra(Params.ILLUST_ID, illust.getId());
-                    intent.putExtra(Params.LAST_CLASS, getClass().getSimpleName());
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏");
-                    startActivity(intent);
-                }
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(Params.ILLUST_ID, illust.getId());
+                intent.putExtra(Params.LAST_CLASS, getClass().getSimpleName());
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏");
+                startActivity(intent);
                 return true;
             }
         });
@@ -325,7 +323,7 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
                     illust.getUser().setIs_followed(false);
                 } else {
                     baseBind.follow.setText("取消关注");
-                    PixivOperate.postFollowUser(illust.getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC);
+                    PixivOperate.postFollowUser(illust.getUser().getId(), Params.TYPE_PUBLUC);
                     illust.getUser().setIs_followed(true);
                 }
             }
@@ -337,7 +335,7 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
             } else {
                 baseBind.follow.setText("取消关注");
                 illust.getUser().setIs_followed(true);
-                PixivOperate.postFollowUser(illust.getUser().getId(), FragmentLikeIllust.TYPE_PRIVATE);
+                PixivOperate.postFollowUser(illust.getUser().getId(), Params.TYPE_PRIVATE);
             }
             return true;
         });

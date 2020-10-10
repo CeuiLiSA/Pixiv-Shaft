@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import java.util.List;
 
+import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.BookedTagAdapter;
 import ceui.lisa.core.RemoteRepo;
@@ -65,7 +66,7 @@ public class FragmentBookedTag extends NetListFragment<FragmentBaseListBinding,
 
     @Override
     public String getToolbarTitle() {
-        return "按标签筛选";
+        return getString(R.string.string_244);
     }
 
     @Override

@@ -147,7 +147,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 } else {
                     baseBind.postLike.setImageResource(R.drawable.ic_favorite_red_24dp);
                 }
-                PixivOperate.postLike(illust, FragmentLikeIllust.TYPE_PUBLUC);
+                PixivOperate.postLike(illust, Params.TYPE_PUBLUC);
             }
         });
         baseBind.postLike.setOnLongClickListener(new View.OnLongClickListener() {
@@ -290,7 +290,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                     illust.getUser().setIs_followed(false);
                 } else {
                     baseBind.follow.setText(R.string.string_177);
-                    PixivOperate.postFollowUser(illust.getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC);
+                    PixivOperate.postFollowUser(illust.getUser().getId(), Params.TYPE_PUBLUC);
                     illust.getUser().setIs_followed(true);
                 }
             }
@@ -300,7 +300,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
             if (!illust.getUser().isIs_followed()) {
                 baseBind.follow.setText(R.string.string_177);
                 illust.getUser().setIs_followed(true);
-                PixivOperate.postFollowUser(illust.getUser().getId(), FragmentLikeIllust.TYPE_PRIVATE);
+                PixivOperate.postFollowUser(illust.getUser().getId(), Params.TYPE_PRIVATE);
                 return true;
             } else {
                 return false;

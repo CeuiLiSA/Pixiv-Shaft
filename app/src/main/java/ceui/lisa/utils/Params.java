@@ -52,6 +52,9 @@ public class Params {
     public static final String IMAGE_UNKNOWN = "https://s.pximg.net/common/images/limit_unknown_360.png";
     public static final String HEAD_UNKNOWN  = "https://s.pximg.net/common/images/no_profile.png";
 
+    public static final String TYPE_PUBLUC = "public";
+    public static final String TYPE_PRIVATE = "private";
+
 
     public static final int REQUEST_CODE_CHOOSE = 10086;
     public static final String EXAMPLE_ILLUST = "{\n" +

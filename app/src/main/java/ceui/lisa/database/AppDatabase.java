@@ -6,6 +6,8 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
+import ceui.lisa.feature.FeatureEntity;
+
 @Database(
         entities = {
                 IllustHistoryEntity.class, //浏览历史
@@ -15,9 +17,10 @@ import androidx.room.RoomDatabase;
                 SearchEntity.class, //搜索历史
                 ImageEntity.class, //用不到
                 TagMuteEntity.class, //记录用户屏蔽的标签
-                UUIDEntity.class //记录用户屏蔽的标签
+                UUIDEntity.class, //记录用户屏蔽的标签
+                FeatureEntity.class //记录用户收藏的精华列表
         },
-        version = 14,
+        version = 16,
         exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {

@@ -8,7 +8,6 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
-import com.blankj.utilcode.util.BarUtils;
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener;
 
 import ceui.lisa.R;
@@ -16,6 +15,7 @@ import ceui.lisa.base.BaseActivity;
 import ceui.lisa.databinding.ActivityFragmentBinding;
 import ceui.lisa.fragments.FragmentAboutApp;
 import ceui.lisa.fragments.FragmentDonate;
+import ceui.lisa.fragments.FragmentFeature;
 import ceui.lisa.fragments.FragmentFileName;
 import ceui.lisa.fragments.FragmentListSimpleUser;
 import ceui.lisa.fragments.FragmentMangaSeries;
@@ -58,7 +58,6 @@ import ceui.lisa.fragments.FragmentWebView;
 import ceui.lisa.fragments.FragmentWhoFollowThisUser;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.NovelBean;
-import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseResult;
@@ -114,8 +113,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "账号管理":
                     return new FragmentLocalUsers();
                 case "按标签筛选": {
-                    String starType = intent.getStringExtra(EXTRA_KEYWORD);
-                    return FragmentBookedTag.newInstance(starType);
+                    return FragmentBookedTag.newInstance(intent.getStringExtra(EXTRA_KEYWORD));
                 }
                 case "按标签收藏": {
                     int id = intent.getIntExtra(Params.ILLUST_ID, 0);
@@ -130,7 +128,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "正在关注":
                     return FragmentFollowUser.newInstance(
                             getIntent().getIntExtra(Params.USER_ID, 0),
-                            FragmentLikeIllust.TYPE_PUBLUC, true);
+                            Params.TYPE_PUBLUC, true);
                 case "好P友":
                     return new FragmentNiceFriend();
                 case "搜索":
@@ -153,7 +151,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                             true);
                 case "插画/漫画收藏":
                     return FragmentLikeIllust.newInstance(intent.getIntExtra(Params.USER_ID, 0),
-                            FragmentLikeIllust.TYPE_PUBLUC, true);
+                            Params.TYPE_PUBLUC, true);
                 case "下载管理":
                     return new FragmentDownload();
                 case "收藏夹":
@@ -164,7 +162,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return new FragmentNewNovel();
                 case "小说收藏":
                     return FragmentLikeNovel.newInstance(intent.getIntExtra(Params.USER_ID, 0),
-                            FragmentLikeIllust.TYPE_PUBLUC, true);
+                            Params.TYPE_PUBLUC, true);
                 case "小说作品":
                     return FragmentUserNovel.newInstance(intent.getIntExtra(Params.USER_ID, 0));
                 case "小说详情":
@@ -187,6 +185,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return new FragmentNewNovels();
                 case "漫画系列":
                     return FragmentMangaSeries.newInstance(intent.getIntExtra(Params.ID, 0));
+                case "精华列":
+                    return new FragmentFeature();
                 default:
                     return new Fragment();
             }
