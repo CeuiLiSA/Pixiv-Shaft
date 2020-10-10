@@ -55,15 +55,11 @@
 
         </com.scwang.smartrefresh.layout.SmartRefreshLayout>
 
-        <ImageView
+        <include
             android:layout_width="wrap_content"
-            android:id="@+id/no_data"
-            android:visibility="invisible"
-            android:src="@mipmap/empty_img"
-            android:tint="@color/new_color_primary"
+            android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:scaleType="centerCrop"
-            android:layout_height="wrap_content" />
+            layout="@layout/empty_layout" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:layout_width="wrap_content"

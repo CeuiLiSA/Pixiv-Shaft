@@ -47,7 +47,8 @@ public class FragmentFileName extends SwipeFragment<FragmentFileNameBinding> {
     @Override
     protected void initView() {
         illust = Shaft.sGson.fromJson(Params.EXAMPLE_ILLUST, IllustsBean.class);
-        baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
+        baseBind.toolbar.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
+        baseBind.toolbar.toolbar.setTitle(R.string.string_242);
         baseBind.showNow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

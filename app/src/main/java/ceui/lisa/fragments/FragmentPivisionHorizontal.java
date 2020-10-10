@@ -98,7 +98,6 @@ public class FragmentPivisionHorizontal extends NetListFragment<FragmentPivision
     @Override
     public void showDataBase() {
         baseBind.refreshLayout.finishRefresh(true);
-        noData.setVisibility(View.VISIBLE);
-        noData.setImageResource(R.mipmap.empty_img);
+        emptyRela.setVisibility(View.VISIBLE);
     }
 }

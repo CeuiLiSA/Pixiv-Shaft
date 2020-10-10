@@ -10,19 +10,9 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-
-        <androidx.appcompat.widget.Toolbar
+        <include
             android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:fitsSystemWindows="true"
-            android:background="#666af6"
-            android:elevation="@dimen/six_dp"
-            app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
-            app:title="设置命名方式（长按拖拽）"
-            app:titleTextColor="@android:color/white">
-
-        </androidx.appcompat.widget.Toolbar>
+            layout="@layout/toolbar_layout" />
 
         <com.scwang.smartrefresh.layout.SmartRefreshLayout
             android:layout_width="match_parent"

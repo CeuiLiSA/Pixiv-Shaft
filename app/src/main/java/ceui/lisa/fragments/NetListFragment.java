@@ -57,12 +57,11 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                         mModel.load(mResponse.getList());
                         onFirstLoaded(mResponse.getList());
                         mRecyclerView.setVisibility(View.VISIBLE);
-                        noData.setVisibility(View.INVISIBLE);
+                        emptyRela.setVisibility(View.INVISIBLE);
                         mAdapter.notifyItemRangeInserted(getStartSize(), mResponse.getList().size());
                     } else {
                         mRecyclerView.setVisibility(View.INVISIBLE);
-                        noData.setVisibility(View.VISIBLE);
-                        noData.setImageResource(R.mipmap.empty_img);
+                        emptyRela.setVisibility(View.VISIBLE);
                     }
                     mRemoteRepo.setNextUrl(mResponse.getNextUrl());
                     if (!TextUtils.isEmpty(mResponse.getNextUrl())) {
@@ -81,8 +80,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                 public void onError(Throwable e) {
                     super.onError(e);
                     mRecyclerView.setVisibility(View.INVISIBLE);
-                    noData.setVisibility(View.VISIBLE);
-                    noData.setImageResource(R.mipmap.empty_img);
+                    emptyRela.setVisibility(View.VISIBLE);
                 }
             });
         } else {

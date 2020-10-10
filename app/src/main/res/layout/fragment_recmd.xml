@@ -142,17 +142,13 @@
                 </androidx.recyclerview.widget.RecyclerView>
 
 
-                <ImageView
-                    android:id="@+id/no_data"
+                <include
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_centerInParent="true"
-                    android:scaleType="centerCrop"
-                    android:src="@mipmap/empty_img"
-                    android:tint="@color/new_color_primary"
-                    android:visibility="invisible"
                     app:layout_anchor="@+id/recyclerView"
-                    app:layout_anchorGravity="center" />
+                    app:layout_anchorGravity="center"
+                    android:layout_centerInParent="true"
+                    layout="@layout/empty_layout" />
 
 
             </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -3,6 +3,7 @@ package ceui.lisa.fragments;
 import android.content.Intent;
 import android.view.MenuItem;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
@@ -66,36 +67,12 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
             }
         });
         baseBind.viewPager.setPageTransformer(true, new DrawerTransformer());
-        allPages = new Fragment[]{
-                FragmentLikeIllust.newInstance(
-                        sUserModel.getResponse().getUser().getId(),
-                        FragmentLikeIllust.TYPE_PUBLUC
-                ),
-                FragmentLikeIllust.newInstance(
-                        sUserModel.getResponse().getUser().getId(),
-                        FragmentLikeIllust.TYPE_PRIVATE
-                ),
-                FragmentFollowUser.newInstance(
-                        sUserModel.getResponse().getUser().getId(),
-                        FragmentLikeIllust.TYPE_PUBLUC, false
-                ),
-                FragmentFollowUser.newInstance(
-                        sUserModel.getResponse().getUser().getId(),
-                        FragmentLikeIllust.TYPE_PRIVATE, false
-                ),
-                FragmentLikeNovel.newInstance(
-                        sUserModel.getResponse().getUser().getId(),
-                        FragmentLikeIllust.TYPE_PUBLUC, false
-                ),
-                FragmentLikeNovel.newInstance(
-                        sUserModel.getResponse().getUser().getId(),
-                        FragmentLikeIllust.TYPE_PRIVATE, false
-                )
-        };
-        baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
+        allPages = new Fragment[]{null, null, null, null, null, null};
+        baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager(), 0) {
+            @NonNull
             @Override
             public Fragment getItem(int i) {
-                return allPages[i];
+                return getFragment(i);
             }
 
             @Override
@@ -108,8 +85,6 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
             public CharSequence getPageTitle(int position) {
                 return CHINESE_TITLES[position];
             }
-
-
         });
         baseBind.tabLayout.setTabMode(TabLayout.MODE_SCROLLABLE);
         baseBind.tabLayout.setupWithViewPager(baseBind.viewPager);
@@ -123,11 +98,7 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
             @Override
             public void onPageSelected(int i) {
                 baseBind.toolbar.getMenu().clear();
-                if (i == 0) {
-                    Common.showLog("添加menu");
-                    baseBind.toolbar.inflateMenu(R.menu.illust_filter);
-                } else if (i == 1) {
-                    Common.showLog("添加menu");
+                if (i == 0 || i == 1) {
                     baseBind.toolbar.inflateMenu(R.menu.illust_filter);
                 }
             }
@@ -137,5 +108,51 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
 
             }
         });
+    }
+
+    @NonNull
+    private Fragment getFragment(int index) {
+        if (allPages[index] != null) {
+            return allPages[index];
+        }
+
+        Fragment temp;
+        if (index == 0) {
+            temp = FragmentLikeIllust.newInstance(
+                    sUserModel.getResponse().getUser().getId(),
+                    FragmentLikeIllust.TYPE_PUBLUC
+            );
+        } else if (index == 1) {
+            temp = FragmentLikeIllust.newInstance(
+                    sUserModel.getResponse().getUser().getId(),
+                    FragmentLikeIllust.TYPE_PRIVATE
+            );
+        } else if (index == 2) {
+            temp = FragmentFollowUser.newInstance(
+                    sUserModel.getResponse().getUser().getId(),
+                    FragmentLikeIllust.TYPE_PUBLUC, false
+            );
+        } else if (index == 3) {
+            temp = FragmentFollowUser.newInstance(
+                    sUserModel.getResponse().getUser().getId(),
+                    FragmentLikeIllust.TYPE_PRIVATE, false
+            );
+        } else if (index == 4) {
+            temp = FragmentLikeNovel.newInstance(
+                    sUserModel.getResponse().getUser().getId(),
+                    FragmentLikeIllust.TYPE_PUBLUC, false
+            );
+        } else if (index == 5) {
+            temp = FragmentLikeNovel.newInstance(
+                    sUserModel.getResponse().getUser().getId(),
+                    FragmentLikeIllust.TYPE_PRIVATE, false
+            );
+        } else {
+            temp = new Fragment();
+        }
+
+        allPages[index] = temp;
+
+        return allPages[index];
     }
 }

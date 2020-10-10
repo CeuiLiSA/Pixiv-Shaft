@@ -24,12 +24,11 @@ public abstract class LocalListFragment<Layout extends ViewDataBinding, Item>
             }
             onFirstLoaded(firstList);
             mRecyclerView.setVisibility(View.VISIBLE);
-            noData.setVisibility(View.INVISIBLE);
+            emptyRela.setVisibility(View.INVISIBLE);
             mAdapter.notifyItemRangeInserted(getStartSize(), firstList.size());
         } else {
             mRecyclerView.setVisibility(View.INVISIBLE);
-            noData.setVisibility(View.VISIBLE);
-            noData.setImageResource(R.mipmap.empty_img);
+            emptyRela.setVisibility(View.VISIBLE);
         }
         mRefreshLayout.finishRefresh(true);
     }

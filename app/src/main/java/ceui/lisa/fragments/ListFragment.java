@@ -3,6 +3,7 @@ package ceui.lisa.fragments;
 import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -28,7 +29,6 @@ import ceui.lisa.core.BaseRepo;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
 import ceui.lisa.view.SpacesItemDecoration;
-import ceui.lisa.view.SpacesItemWithHeadDecoration;
 import ceui.lisa.viewmodel.BaseModel;
 import jp.wasabeef.recyclerview.animators.BaseItemAnimator;
 import jp.wasabeef.recyclerview.animators.LandingAnimator;
@@ -41,6 +41,7 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
     protected RecyclerView mRecyclerView;
     protected RefreshLayout mRefreshLayout;
     protected ImageView noData;
+    protected RelativeLayout emptyRela;
     protected BaseAdapter<?, ? extends ViewDataBinding> mAdapter;
     protected List<Item> allItems = null;
     protected BaseModel<Item> mModel;
@@ -95,8 +96,9 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
         mRefreshLayout = rootView.findViewById(R.id.refreshLayout);
         mRefreshLayout.setPrimaryColorsId(R.color.white);
         noData = rootView.findViewById(R.id.no_data);
-        noData.setOnClickListener(v -> {
-            noData.setVisibility(View.INVISIBLE);
+        emptyRela = rootView.findViewById(R.id.no_data_rela);
+        emptyRela.setOnClickListener(v -> {
+            emptyRela.setVisibility(View.INVISIBLE);
             mRefreshLayout.autoRefresh();
         });
         mRefreshLayout.setRefreshHeader(mModel.getBaseRepo().enableRefresh() ?
