@@ -49,7 +49,8 @@ public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
 
     @Override
     public void initView() {
-        baseBind.toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+        baseBind.toolbar.toolbarTitle.setText(R.string.string_251);
+        baseBind.toolbar.toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mActivity.finish();

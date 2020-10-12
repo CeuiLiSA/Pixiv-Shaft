@@ -61,19 +61,23 @@ public class FragmentNovelSeries extends NetListFragment<FragmentNovelSeriesBind
 
     @Override
     public void onResponse(NovelSeries novelSeries) {
-        baseBind.cardPixiv.setVisibility(View.VISIBLE);
-        baseBind.seriesTitle.setText("系列名称：" + novelSeries.getNovel_series_detail().getTitle());
-        //每分钟五百字
-        float minute = novelSeries.getNovel_series_detail().getTotal_character_count() / 500.0f;
-        baseBind.seriesDetail.setText(String.format(getString(R.string.how_many_novels),
-                novelSeries.getNovel_series_detail().getContent_count(),
-                novelSeries.getNovel_series_detail().getTotal_character_count(),
-                (int) Math.floor(minute / 60),
-                ((int)minute) % 60));
-        if (novelSeries.getList() != null && novelSeries.getList().size() != 0) {
-            NovelBean bean = novelSeries.getList().get(0);
-            UserBean userBean = bean.getUser();
-            initUser(userBean);
+        try {
+            baseBind.cardPixiv.setVisibility(View.VISIBLE);
+            baseBind.seriesTitle.setText("系列名称：" + novelSeries.getNovel_series_detail().getTitle());
+            //每分钟五百字
+            float minute = novelSeries.getNovel_series_detail().getTotal_character_count() / 500.0f;
+            baseBind.seriesDetail.setText(String.format(getString(R.string.how_many_novels),
+                    novelSeries.getNovel_series_detail().getContent_count(),
+                    novelSeries.getNovel_series_detail().getTotal_character_count(),
+                    (int) Math.floor(minute / 60),
+                    ((int)minute) % 60));
+            if (novelSeries.getList() != null && novelSeries.getList().size() != 0) {
+                NovelBean bean = novelSeries.getList().get(0);
+                UserBean userBean = bean.getUser();
+                initUser(userBean);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

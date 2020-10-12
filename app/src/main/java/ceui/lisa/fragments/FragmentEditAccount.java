@@ -35,6 +35,8 @@ public class FragmentEditAccount extends BaseFragment<FragmentEditAccountBinding
             mActivity.finish();
             return;
         }
+        baseBind.toolbar.toolbarTitle.setText(R.string.string_250);
+        baseBind.toolbar.toolbar.setNavigationOnClickListener(v -> finish());
         Retro.getAppApi().getAccountState(Shaft.sUserModel.getResponse().getAccess_token())
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -54,7 +56,6 @@ public class FragmentEditAccount extends BaseFragment<FragmentEditAccountBinding
         baseBind.pixivId.setText(Shaft.sUserModel.getResponse().getUser().getAccount());
         baseBind.pixivId.setEnabled(false);
         baseBind.submit.setOnClickListener(v -> submit());
-        baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
     }
 
     private void submit() {

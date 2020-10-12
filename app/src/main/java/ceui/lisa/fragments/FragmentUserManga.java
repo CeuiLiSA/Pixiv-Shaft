@@ -6,6 +6,7 @@ import android.view.MenuItem;
 
 import androidx.appcompat.widget.Toolbar;
 
+import java.util.List;
 import java.util.UUID;
 
 import ceui.lisa.R;
@@ -55,7 +56,7 @@ public class FragmentUserManga extends NetListFragment<FragmentBaseListBinding,
             public boolean onMenuItemClick(MenuItem item) {
                 if (item.getItemId() == R.id.action_bookmark) {
                     FeatureEntity entity = new FeatureEntity();
-                    entity.setUuid(UUID.randomUUID().toString());
+                    entity.setUuid(userID + "漫画作品");
                     entity.setShowToolbar(showToolbar);
                     entity.setDataType("漫画作品");
                     entity.setIllustJson(Common.cutToJson(allItems));

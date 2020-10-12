@@ -26,7 +26,7 @@
                 android:fitsSystemWindows="true"
                 android:background="@color/colorPrimary"
                 android:elevation="@dimen/six_dp"
-                app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
+                app:navigationIcon="@drawable/ic_baseline_arrow_back_ios_24"
                 app:title="个人资料设置"
                 app:titleTextColor="@android:color/white">
 

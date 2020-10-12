@@ -63,7 +63,7 @@ public class FragmentLikeIllust extends NetListFragment<FragmentBaseListBinding,
             public boolean onMenuItemClick(MenuItem item) {
                 if (item.getItemId() == R.id.action_bookmark) {
                     FeatureEntity entity = new FeatureEntity();
-                    entity.setUuid(UUID.randomUUID().toString());
+                    entity.setUuid(userID + "插画/漫画收藏");
                     entity.setShowToolbar(showToolbar);
                     entity.setDataType("插画/漫画收藏");
                     entity.setIllustJson(Common.cutToJson(allItems));
