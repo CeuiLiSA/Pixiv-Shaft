@@ -6,6 +6,7 @@ import ceui.lisa.databinding.RecyFeatureBinding
 import ceui.lisa.feature.FeatureEntity
 import ceui.lisa.utils.GlideUtil
 import com.bumptech.glide.Glide
+import java.text.SimpleDateFormat
 
 class FratureAdapter(
         targetList: MutableList<FeatureEntity>,
@@ -17,7 +18,10 @@ class FratureAdapter(
     }
 
     override fun bindData(target: FeatureEntity, bindView: ViewHolder<RecyFeatureBinding>, position: Int) {
-        bindView.baseBind.starSize.text = target.uuid
+        val sdr = SimpleDateFormat("yyyy年MM月dd日 HH:mm添加")
+        val times: String = sdr.format(target.dateTime)
+        bindView.baseBind.starSize.text = times
+
         if (target.allIllust != null && target.allIllust.size >= 3) {
             Glide.with(mContext).load(GlideUtil.getMediumImg(target
                     .allIllust[0]))

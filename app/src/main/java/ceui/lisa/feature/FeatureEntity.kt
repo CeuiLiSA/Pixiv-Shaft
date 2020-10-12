@@ -16,6 +16,8 @@ class FeatureEntity: Serializable {
     var dateTime: Long = 0L
     var starType: String = ""
     var userID = 0
+    var illustID = 0
+    var illustTitle: String = ""
     var isShowToolbar = false
     var name: String = ""
     var dataType: String = ""
@@ -24,6 +26,7 @@ class FeatureEntity: Serializable {
     var allIllust: List<IllustsBean> = ArrayList()
 
     override fun toString(): String {
-        return "LikeIllustEntity(uuid='$uuid', dateTime=$dateTime, starType='$starType', userID=$userID, isShowToolbar=$isShowToolbar, name='$name', illustJson='$illustJson')"
+        return "FeatureEntity(uuid='$uuid', dateTime=$dateTime, starType='$starType', userID=$userID, illustID=$illustID, illustTitle='$illustTitle', isShowToolbar=$isShowToolbar, name='$name', dataType='$dataType', illustJson='$illustJson', allIllust=$allIllust)"
     }
+
 }

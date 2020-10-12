@@ -24,6 +24,8 @@ class FragmentFeature: LocalListFragment<FragmentBaseListBinding, FeatureEntity>
             val intent = Intent(mContext, TemplateActivity::class.java)
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, allItems[position].dataType)
             intent.putExtra(Params.USER_ID, allItems[position].userID)
+            intent.putExtra(Params.ILLUST_ID, allItems[position].illustID)
+            intent.putExtra(Params.ILLUST_TITLE, allItems[position].illustTitle)
             startActivity(intent)
         }
     }
