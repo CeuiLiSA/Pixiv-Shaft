@@ -89,8 +89,7 @@
                         android:gravity="center_vertical"
                         android:text="@string/string_79"
                         android:textSize="13sp"
-                        app:drawableEndCompat="@drawable/ic_chevron_right_black_20dp"
-                        app:drawableTint="#999999">
+                        android:drawableEnd="@drawable/ic_chevron_right_black_20dp">
 
                     </TextView>
 

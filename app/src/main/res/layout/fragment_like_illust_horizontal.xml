@@ -34,7 +34,7 @@
                     android:layout_width="2dp"
                     android:layout_height="@dimen/sixteen_dp"
                     android:layout_centerVertical="true"
-                    android:background="@color/colorPrimary">
+                    android:background="@color/new_color_primary">
 
                 </View>
 
@@ -61,10 +61,10 @@
                     android:layout_marginTop="@dimen/eight_dp"
                     android:layout_marginEnd="@dimen/sixteen_dp"
                     android:layout_marginBottom="@dimen/eight_dp"
+                    android:drawableTint="@color/new_color_primary"
                     android:drawableEnd="@drawable/ic_chevron_right_black_24dp"
-                    android:drawableTint="@color/colorPrimary"
                     android:gravity="center_vertical"
-                    android:textColor="@color/colorPrimary"
+                    android:textColor="@color/new_color_primary"
                     android:textSize="15sp"
                     android:textStyle="bold">
 
@@ -84,6 +84,7 @@
         <ProgressBar
             android:layout_width="wrap_content"
             android:id="@+id/progress"
+            android:indeterminateTint="@color/new_color_primary"
             android:layout_centerInParent="true"
             android:layout_height="wrap_content">
 
