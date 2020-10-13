@@ -58,9 +58,7 @@
                 android:layout_height="wrap_content">
 
                 <TextView
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:layout_margin="@dimen/sixteen_dp"
+                    android:textSize="14sp"
                     android:textColor="@color/white"
                     android:layout_width="match_parent"
                     android:id="@+id/star_size"
@@ -68,18 +66,34 @@
                     android:maxLines="1"
                     android:ellipsize="end"
                     android:layout_toStartOf="@+id/illust_count"
-                    android:layout_marginStart="@dimen/eight_dp"
+                    android:layout_marginStart="@dimen/twelve_dp"
+                    android:layout_marginEnd="@dimen/eight_dp"
+                    android:layout_marginTop="@dimen/twelve_dp"
+                    android:layout_marginBottom="@dimen/twelve_dp"
                     android:layout_height="wrap_content" />
 
 
                 <TextView
-                    android:layout_marginEnd="@dimen/sixteen_dp"
+                    android:layout_marginEnd="@dimen/four_dp"
                     android:textColor="@color/white"
-                    android:layout_alignParentEnd="true"
+                    android:textSize="12sp"
+                    android:layout_toStartOf="@+id/delete_item"
                     android:layout_width="wrap_content"
                     android:layout_centerVertical="true"
                     android:id="@+id/illust_count"
                     android:layout_height="wrap_content" />
+
+                <ImageView
+                    android:layout_width="36dp"
+                    android:id="@+id/delete_item"
+                    android:layout_marginEnd="@dimen/four_dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:padding="@dimen/eight_dp"
+                    android:src="@drawable/ic_delete_black_24dp"
+                    android:layout_height="36dp">
+
+                </ImageView>
 
             </RelativeLayout>
 

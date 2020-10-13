@@ -440,5 +440,7 @@
     <string name="string_249">精华列表</string>
     <string name="string_250">编辑账号信息</string>
     <string name="string_251">账号管理</string>
+    <string name="string_252">确认删除这条记录吗</string>
+    <string name="string_253">确认删除全部记录吗</string>
 
 </resources>

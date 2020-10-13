@@ -58,7 +58,7 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.appcompat:appcompat:1.3.0-alpha02'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.2'
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
@@ -93,8 +93,8 @@ dependencies {
     implementation 'com.blankj:utilcodex:1.29.0'
     implementation group: 'net.lingala.zip4j', name: 'zip4j', version: '2.2.8'
     implementation 'com.safframework.log:saf-logginginterceptor:1.4.6'
-    implementation 'com.google.firebase:firebase-analytics:17.5.0'
-    implementation 'com.google.firebase:firebase-crashlytics:17.2.1'
+    implementation 'com.google.firebase:firebase-analytics:17.6.0'
+    implementation 'com.google.firebase:firebase-crashlytics:17.2.2'
 
     implementation 'com.jaredrummler:colorpicker:1.1.0'
 

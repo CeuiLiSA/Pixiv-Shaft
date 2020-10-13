@@ -118,4 +118,10 @@ public interface DownloadDao {
 
     @Query("SELECT * FROM feature_table ORDER BY dateTime DESC")
     List<FeatureEntity> getFeatureList();
+
+    @Delete
+    void deleteFeature(FeatureEntity userEntity);
+
+    @Query("DELETE FROM feature_table")
+    void deleteAllFeature();
 }
