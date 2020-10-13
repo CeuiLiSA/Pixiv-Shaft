@@ -60,51 +60,9 @@ public class UserContentBehavior extends CoordinatorLayout.Behavior<View> {
             return;
         }
         if (child.getTranslationY() <= (-headerHeight) * 0.5f) {
-
-//            AlphaAnimation hide = new AlphaAnimation(1.0f, 0.0f);//第一个参数开始的透明度，第二个参数结束的透明度
-//            hide.setDuration(DURATION);//多长时间完成这个动作
-//            hide.setAnimationListener(new AnimateListenerImpl(){
-//                @Override
-//                public void onAnimationEnd(Animation animation) {
-//                    centerHeader.setVisibility(View.INVISIBLE);
-//                }
-//            });
-//            centerHeader.startAnimation(hide);
-//
-//            AlphaAnimation show = new AlphaAnimation(0.0f, 1.0f);//第一个参数开始的透明度，第二个参数结束的透明度
-//            show.setDuration(DURATION);//多长时间完成这个动作
-//            show.setAnimationListener(new AnimateListenerImpl(){
-//                @Override
-//                public void onAnimationEnd(Animation animation) {
-//                    toolbar.setVisibility(View.VISIBLE);
-//                }
-//            });
-//            toolbar.startAnimation(show);
-
-//
             stopAutoScroll();
             startAutoScroll((int)child.getTranslationY(), (int)-headerHeight, DURATION);
         } else {
-//            AlphaAnimation hide = new AlphaAnimation(1.0f, 0.0f);//第一个参数开始的透明度，第二个参数结束的透明度
-//            hide.setDuration(DURATION);//多长时间完成这个动作
-//            hide.setAnimationListener(new AnimateListenerImpl(){
-//                @Override
-//                public void onAnimationEnd(Animation animation) {
-//                    toolbar.setVisibility(View.INVISIBLE);
-//                }
-//            });
-//            toolbar.startAnimation(hide);
-//
-//            AlphaAnimation show = new AlphaAnimation(0.0f, 1.0f);//第一个参数开始的透明度，第二个参数结束的透明度
-//            show.setDuration(DURATION);//多长时间完成这个动作
-//            show.setAnimationListener(new AnimateListenerImpl(){
-//                @Override
-//                public void onAnimationEnd(Animation animation) {
-//                    centerHeader.setVisibility(View.VISIBLE);
-//                }
-//            });
-//            centerHeader.startAnimation(show);
-//
             stopAutoScroll();
             startAutoScroll((int)child.getTranslationY(), 0, DURATION);
         }
@@ -126,7 +84,6 @@ public class UserContentBehavior extends CoordinatorLayout.Behavior<View> {
 
     @Override
     public boolean onLayoutChild(@NonNull CoordinatorLayout parent, @NonNull View child, int layoutDirection) {
-
         // 首先让父布局按照标准方式解析
         parent.onLayoutChild(child, layoutDirection);
         // 获取到 HeaderView 的高度
@@ -175,9 +132,6 @@ public class UserContentBehavior extends CoordinatorLayout.Behavior<View> {
             toolbarView.setAlpha(0.0f);
             centerView.setAlpha(1.0f);
         }
-
-        Common.showLog("onNestedScroll " + child.getTranslationY() + " " + headerHeight + " " + toolbarHeight);
-
 
         super.onNestedScroll(coordinatorLayout, child, target, dxConsumed, dyConsumed, dxUnconsumed, dyUnconsumed, type, consumed);
         stopAutoScroll();
