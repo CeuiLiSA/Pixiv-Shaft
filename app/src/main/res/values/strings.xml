@@ -442,5 +442,7 @@
     <string name="string_251">账号管理</string>
     <string name="string_252">确认删除这条记录吗</string>
     <string name="string_253">确认删除全部记录吗</string>
+    <string name="string_254">没有可以删除的记录</string>
+    <string name="string_255">这将会删除所有的本地浏览历史</string>
 
 </resources>

@@ -60,6 +60,10 @@ class FragmentFeature: LocalListFragment<FragmentBaseListBinding, FeatureEntity>
         baseBind.toolbar.setOnMenuItemClickListener(object :Toolbar.OnMenuItemClickListener {
             override fun onMenuItemClick(item: MenuItem?): Boolean {
                 if (item?.itemId == R.id.action_delete) {
+                    if(Common.isEmpty(allItems)){
+                        Common.showToast(getString(R.string.string_254))
+                        return true
+                    }
                     MessageDialogBuilder(activity)
                             .setTitle(getString(R.string.string_143))
                             .setMessage(getString(R.string.string_253))
@@ -83,11 +87,15 @@ class FragmentFeature: LocalListFragment<FragmentBaseListBinding, FeatureEntity>
     override fun repository(): BaseRepo {
         return object :LocalRepo<List<FeatureEntity>>(){
             override fun first(): List<FeatureEntity> {
-                return AppDatabase.getAppDatabase(mContext).downloadDao().featureList
+                return AppDatabase.getAppDatabase(mContext)
+                        .downloadDao()
+                        .getFeatureList(PAGE_SIZE, 0)
             }
 
             override fun next(): List<FeatureEntity>? {
-                return null
+                return AppDatabase.getAppDatabase(mContext)
+                        .downloadDao()
+                        .getFeatureList(PAGE_SIZE, allItems.size)
             }
         }
     }

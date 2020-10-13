@@ -115,26 +115,28 @@ public class FragmentHistory extends LocalListFragment<FragmentBaseListBinding,
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 if (item.getItemId() == R.id.action_delete) {
-                    if (allItems.size() == 0) {
-                        Common.showToast("没有浏览历史");
+                    if (Common.isEmpty(allItems)) {
+                        Common.showToast(getString(R.string.string_254));
                     } else {
                         new QMUIDialog.MessageDialogBuilder(mActivity)
-                                .setTitle("提示")
-                                .setMessage("这将会删除所有的本地浏览历史")
+                                .setTitle(getString(R.string.string_143))
+                                .setMessage(getString(R.string.string_255))
                                 .setSkinManager(QMUISkinManager.defaultInstance(mActivity))
-                                .addAction("取消", new QMUIDialogAction.ActionListener() {
+                                .addAction(getString(R.string.string_142), new QMUIDialogAction.ActionListener() {
                                     @Override
                                     public void onClick(QMUIDialog dialog, int index) {
                                         dialog.dismiss();
                                     }
                                 })
-                                .addAction(0, "删除", QMUIDialogAction.ACTION_PROP_NEGATIVE, new QMUIDialogAction.ActionListener() {
+                                .addAction(0, getString(R.string.string_141), QMUIDialogAction.ACTION_PROP_NEGATIVE,
+                                        new QMUIDialogAction.ActionListener() {
                                     @Override
                                     public void onClick(QMUIDialog dialog, int index) {
                                         AppDatabase.getAppDatabase(mContext).downloadDao().deleteAllHistory();
-                                        Common.showToast("删除成功");
-                                        mRefreshLayout.autoRefresh();
+                                        Common.showToast(getString(R.string.string_220));
                                         dialog.dismiss();
+                                        mAdapter.clear();
+                                        emptyRela.setVisibility(View.VISIBLE);
                                     }
                                 })
                                 .show();

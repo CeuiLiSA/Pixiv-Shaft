@@ -116,8 +116,8 @@ public interface DownloadDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertFeature(FeatureEntity holder);
 
-    @Query("SELECT * FROM feature_table ORDER BY dateTime DESC")
-    List<FeatureEntity> getFeatureList();
+    @Query("SELECT * FROM feature_table ORDER BY dateTime DESC LIMIT :limit OFFSET :offset")
+    List<FeatureEntity> getFeatureList(int limit, int offset);
 
     @Delete
     void deleteFeature(FeatureEntity userEntity);
