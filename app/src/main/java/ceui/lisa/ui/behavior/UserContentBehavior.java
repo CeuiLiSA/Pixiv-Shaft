@@ -10,13 +10,16 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.view.ViewCompat;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.utils.Common;
 
-public class FragmentRightContentBehavior extends CoordinatorLayout.Behavior<View> {
+public class UserContentBehavior extends CoordinatorLayout.Behavior<View> {
 
     private float headerHeight;
     private View contentView;
+    private View centerView, toolbarView;
     private OverScroller scroller;
+    private int toolbarHeight = Shaft.statusHeight + Shaft.toolbarHeight;
     private Runnable scrollRunnable = new Runnable() {
         @Override
         public void run() {
@@ -56,19 +59,63 @@ public class FragmentRightContentBehavior extends CoordinatorLayout.Behavior<Vie
             // RV 已经归位（完全折叠或完全展开）
             return;
         }
-        if (child.getTranslationY() <= -headerHeight * 0.5f) {
+        if (child.getTranslationY() <= (-headerHeight) * 0.5f) {
+
+//            AlphaAnimation hide = new AlphaAnimation(1.0f, 0.0f);//第一个参数开始的透明度，第二个参数结束的透明度
+//            hide.setDuration(DURATION);//多长时间完成这个动作
+//            hide.setAnimationListener(new AnimateListenerImpl(){
+//                @Override
+//                public void onAnimationEnd(Animation animation) {
+//                    centerHeader.setVisibility(View.INVISIBLE);
+//                }
+//            });
+//            centerHeader.startAnimation(hide);
+//
+//            AlphaAnimation show = new AlphaAnimation(0.0f, 1.0f);//第一个参数开始的透明度，第二个参数结束的透明度
+//            show.setDuration(DURATION);//多长时间完成这个动作
+//            show.setAnimationListener(new AnimateListenerImpl(){
+//                @Override
+//                public void onAnimationEnd(Animation animation) {
+//                    toolbar.setVisibility(View.VISIBLE);
+//                }
+//            });
+//            toolbar.startAnimation(show);
+
+//
             stopAutoScroll();
-            startAutoScroll((int)child.getTranslationY(), (int)-headerHeight, 1000);
+            startAutoScroll((int)child.getTranslationY(), (int)-headerHeight, DURATION);
         } else {
+//            AlphaAnimation hide = new AlphaAnimation(1.0f, 0.0f);//第一个参数开始的透明度，第二个参数结束的透明度
+//            hide.setDuration(DURATION);//多长时间完成这个动作
+//            hide.setAnimationListener(new AnimateListenerImpl(){
+//                @Override
+//                public void onAnimationEnd(Animation animation) {
+//                    toolbar.setVisibility(View.INVISIBLE);
+//                }
+//            });
+//            toolbar.startAnimation(hide);
+//
+//            AlphaAnimation show = new AlphaAnimation(0.0f, 1.0f);//第一个参数开始的透明度，第二个参数结束的透明度
+//            show.setDuration(DURATION);//多长时间完成这个动作
+//            show.setAnimationListener(new AnimateListenerImpl(){
+//                @Override
+//                public void onAnimationEnd(Animation animation) {
+//                    centerHeader.setVisibility(View.VISIBLE);
+//                }
+//            });
+//            centerHeader.startAnimation(show);
+//
             stopAutoScroll();
-            startAutoScroll((int)child.getTranslationY(), 0, 600);
+            startAutoScroll((int)child.getTranslationY(), 0, DURATION);
         }
     }
 
-    public FragmentRightContentBehavior() {
+    public static final int DURATION = 600;
+
+    public UserContentBehavior() {
     }
 
-    public FragmentRightContentBehavior(Context context, AttributeSet attrs) {
+    public UserContentBehavior(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
@@ -83,11 +130,13 @@ public class FragmentRightContentBehavior extends CoordinatorLayout.Behavior<Vie
         // 首先让父布局按照标准方式解析
         parent.onLayoutChild(child, layoutDirection);
         // 获取到 HeaderView 的高度
-        headerHeight = parent.findViewById(R.id.imagesTitleBlockLayout).getMeasuredHeight();
-
+        headerHeight = parent.findViewById(R.id.imagesTitleBlockLayout).getMeasuredHeight() - toolbarHeight;
+        parent.findViewById(R.id.content_item).setPadding(0, 0, 0, toolbarHeight);
+        toolbarView = parent.findViewById(R.id.toolbar).findViewById(R.id.toolbar_title);
+        centerView = parent.findViewById(R.id.center_header);
         contentView = child;
         // 设置 top 从而排在 HeaderView的下面
-        ViewCompat.offsetTopAndBottom(child, (int)headerHeight);
+        ViewCompat.offsetTopAndBottom(child, (int)headerHeight + toolbarHeight);
         return true; // true 表示我们自己完成了解析 不要再自动解析了
     }
 
@@ -117,6 +166,19 @@ public class FragmentRightContentBehavior extends CoordinatorLayout.Behavior<Vie
 
     @Override
     public void onNestedScroll(@NonNull CoordinatorLayout coordinatorLayout, @NonNull View child, @NonNull View target, int dxConsumed, int dyConsumed, int dxUnconsumed, int dyUnconsumed, int type, @NonNull int[] consumed) {
+        if (Math.abs(child.getTranslationY()) == headerHeight) {
+            toolbarView.setAlpha(1.0f);
+            centerView.setAlpha(0.0f);
+        }
+
+        if (Math.abs(child.getTranslationY()) <= 10) {
+            toolbarView.setAlpha(0.0f);
+            centerView.setAlpha(1.0f);
+        }
+
+        Common.showLog("onNestedScroll " + child.getTranslationY() + " " + headerHeight + " " + toolbarHeight);
+
+
         super.onNestedScroll(coordinatorLayout, child, target, dxConsumed, dyConsumed, dxUnconsumed, dyUnconsumed, type, consumed);
         stopAutoScroll();
         if (dyUnconsumed < 0) { // 只处理手指向下滑动的情况
@@ -127,10 +189,5 @@ public class FragmentRightContentBehavior extends CoordinatorLayout.Behavior<Vie
                 child.setTranslationY(0.0f);
             }
         }
-    }
-
-    @Override
-    public boolean onDependentViewChanged(@NonNull CoordinatorLayout parent, @NonNull View child, @NonNull View dependency) {
-        return super.onDependentViewChanged(parent, child, dependency);
     }
 }

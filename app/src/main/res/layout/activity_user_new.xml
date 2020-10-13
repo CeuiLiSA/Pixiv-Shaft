@@ -6,45 +6,49 @@
 
     </data>
 
-    <LinearLayout
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
-        android:orientation="vertical"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="@drawable/primary_gradient_dark"
+        android:orientation="vertical">
+
 
         <RelativeLayout
+            android:id="@+id/imagesTitleBlockLayout"
             android:layout_width="match_parent"
-            android:background="@drawable/primary_gradient_dark"
-            android:layout_height="240dp">
+            android:layout_height="260dp"
+            app:layout_behavior="ceui.lisa.ui.behavior.UserHeaderBehavior">
 
 
             <LinearLayout
-                android:orientation="vertical"
                 android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/center_header"
                 android:layout_centerInParent="true"
-                android:layout_height="wrap_content">
+                android:orientation="vertical">
 
                 <de.hdodenhof.circleimageview.CircleImageView
+                    android:id="@+id/user_head"
                     android:layout_width="80dp"
                     android:layout_height="80dp"
-                    android:scaleType="centerCrop"
-                    android:layout_marginTop="36dp"
-                    android:src="@drawable/avatar_9"
-                    android:id="@+id/user_head"
                     android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="48dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/avatar_9"
                     app:civ_border_color="#12345678"
                     app:civ_border_width="1dp">
 
                 </de.hdodenhof.circleimageview.CircleImageView>
 
                 <TextView
-                    android:layout_width="wrap_content"
                     android:id="@+id/user_name"
-                    android:text="だーすだーす"
-                    android:layout_marginTop="@dimen/twelve_dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="@dimen/twelve_dp"
+                    android:text="だーすだーす"
                     android:textColor="@color/white"
-                    android:textStyle="bold"
-                    android:layout_height="wrap_content">
+                    android:textStyle="bold">
 
 
                 </TextView>
@@ -52,38 +56,38 @@
 
                 <LinearLayout
                     android:layout_width="wrap_content"
-                    android:orientation="horizontal"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/twelve_dp"
-                    android:layout_height="wrap_content">
+                    android:orientation="horizontal">
 
                     <TextView
-                        android:layout_width="wrap_content"
                         android:id="@+id/follow"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
                         android:text="关注：123"
-                        android:textSize="13sp"
                         android:textColor="@color/white"
-                        android:layout_height="wrap_content">
+                        android:textSize="13sp">
 
 
                     </TextView>
 
                     <View
                         android:layout_width="1dp"
-                        android:background="@color/white"
-                        android:layout_marginTop="4.5dp"
+                        android:layout_height="10dp"
                         android:layout_marginStart="@dimen/eight_dp"
+                        android:layout_marginTop="4.5dp"
                         android:layout_marginEnd="@dimen/eight_dp"
-                        android:layout_height="10dp">
+                        android:background="@color/white">
 
                     </View>
 
                     <TextView
-                        android:layout_width="wrap_content"
                         android:id="@+id/p_friend"
-                        android:textSize="13sp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
                         android:text="好P友：123"
                         android:textColor="@color/white"
-                        android:layout_height="wrap_content">
+                        android:textSize="13sp">
 
 
                     </TextView>
@@ -92,57 +96,65 @@
 
             </LinearLayout>
 
-
-
         </RelativeLayout>
 
 
-        <RelativeLayout
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/content_item"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:background="@drawable/stroke_please"
+            android:layout_height="wrap_content"
+            app:layout_behavior="ceui.lisa.ui.behavior.UserContentBehavior">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_marginStart="@dimen/sixteen_dp"
-                android:layout_marginTop="@dimen/eight_dp"
-                android:layout_centerVertical="true"
-                android:layout_marginBottom="@dimen/eight_dp"
-                android:textColor="#333333"
-                android:text="个人信息"
-                android:layout_height="wrap_content">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
-            </TextView>
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginStart="@dimen/sixteen_dp"
+                        android:layout_marginTop="@dimen/sixteen_dp"
+                        android:layout_marginBottom="@dimen/eight_dp"
+                        android:text="个人信息"
+                        android:textColor="#333333">
+
+                    </TextView>
 
 
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_marginStart="@dimen/sixteen_dp"
+                        android:layout_marginTop="@dimen/sixteen_dp"
+                        android:layout_marginEnd="@dimen/sixteen_dp"
+                        android:layout_marginBottom="@dimen/eight_dp"
+                        android:drawableEnd="@drawable/ic_arrow_right_little"
+                        android:gravity="center"
+                        android:text="更多"
+                        android:textColor="#999999"
+                        android:textSize="12sp">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_marginStart="@dimen/sixteen_dp"
-                android:layout_marginTop="@dimen/eight_dp"
-                android:layout_marginEnd="@dimen/sixteen_dp"
-                android:gravity="center"
-                android:layout_marginBottom="@dimen/eight_dp"
-                android:textColor="#999999"
-                android:layout_centerVertical="true"
-                android:textSize="12sp"
-                android:layout_alignParentEnd="true"
-                android:text="更多"
-                android:drawableEnd="@drawable/ic_arrow_right_little"
-                android:layout_height="wrap_content">
+                    </TextView>
 
-            </TextView>
+                </RelativeLayout>
 
-        </RelativeLayout>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_marginStart="@dimen/sixteen_dp"
-            android:layout_marginEnd="@dimen/sixteen_dp"
-            android:ellipsize="end"
-            android:maxLines="3"
-            android:textSize="13sp"
-            android:textColor="#999999"
-            android:text="只今絵の練習中です
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/sixteen_dp"
+                    android:layout_marginEnd="@dimen/sixteen_dp"
+                    android:ellipsize="end"
+                    android:maxLines="3"
+                    android:text="只今絵の練習中です
 
 コメント・ブクマ　本当にありがとうございます。
 いつもコメントは読んでるのですが返信できない事がありますのでご了承ください
@@ -155,55 +167,46 @@
 
 2020/02/25
 ツイッターアカウント作り直しました。基本的に絵と宣伝しかしませんがよろしくおねがいします。"
-            android:layout_height="wrap_content">
+                    android:textColor="#999999"
+                    android:textSize="13sp">
 
-        </TextView>
-
-
-        <androidx.core.widget.NestedScrollView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:orientation="vertical"
-                android:layout_height="wrap_content">
+                </TextView>
 
                 <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
+                    android:layout_height="200dp"
                     android:layout_marginStart="@dimen/sixteen_dp"
                     android:layout_marginTop="@dimen/sixteen_dp"
                     android:layout_marginEnd="@dimen/sixteen_dp"
                     android:layout_marginBottom="@dimen/sixteen_dp"
-                    app:cardBackgroundColor="@color/new_color_primary"
-                    android:layout_height="200dp">
+                    app:cardBackgroundColor="@color/new_color_primary">
 
                 </androidx.cardview.widget.CardView>
 
                 <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
+                    android:layout_height="200dp"
                     android:layout_marginStart="@dimen/sixteen_dp"
                     android:layout_marginEnd="@dimen/sixteen_dp"
                     android:layout_marginBottom="@dimen/sixteen_dp"
-                    app:cardBackgroundColor="@color/new_color_primary"
-                    android:layout_height="200dp">
+                    app:cardBackgroundColor="@color/new_color_primary">
 
                 </androidx.cardview.widget.CardView>
 
                 <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
+                    android:layout_height="200dp"
                     android:layout_marginStart="@dimen/sixteen_dp"
                     android:layout_marginEnd="@dimen/sixteen_dp"
-                    app:cardBackgroundColor="@color/new_color_primary"
-                    android:layout_height="200dp">
+                    app:cardBackgroundColor="@color/new_color_primary">
 
                 </androidx.cardview.widget.CardView>
 
                 <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
+                    android:layout_height="200dp"
                     android:layout_margin="@dimen/sixteen_dp"
-                    app:cardBackgroundColor="@color/new_color_primary"
-                    android:layout_height="200dp">
+                    app:cardBackgroundColor="@color/new_color_primary">
 
                 </androidx.cardview.widget.CardView>
 
@@ -212,6 +215,36 @@
 
         </androidx.core.widget.NestedScrollView>
 
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/trans"
+            android:elevation="@dimen/six_dp"
+            android:fitsSystemWindows="true"
+            android:theme="@style/AppTheme.AppBarOverlay"
+            app:popupTheme="@style/AppTheme.PopupOverlay"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:navigationIcon="@drawable/ic_baseline_arrow_back_ios_24"
+            app:title=" "
+            app:titleTextColor="@android:color/white">
 
-    </LinearLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/sixteen_dp"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:layout_gravity="center"
+                android:id="@+id/toolbar_title"
+                android:text="个人中心"
+                android:textColor="@color/white"
+                android:textSize="18sp">
+
+            </TextView>
+
+        </androidx.appcompat.widget.Toolbar>
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>
