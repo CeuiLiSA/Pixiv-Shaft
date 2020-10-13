@@ -31,6 +31,7 @@ import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.Display;
 import ceui.lisa.models.UserDetailResponse;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
@@ -62,6 +63,13 @@ public class UserActivity extends BaseActivity<ActicityUserBinding> implements D
     @Override
     protected void initData() {
         int userID = getIntent().getIntExtra(Params.USER_ID, 0);
+        if (Dev.isDev) {
+            Intent intent = new Intent(mContext, UActivity.class);
+            intent.putExtra(Params.USER_ID, userID);
+            startActivity(intent);
+            finish();
+            return;
+        }
         mUserViewModel = new ViewModelProvider(this).get(UserViewModel.class);
         mUserViewModel.getUser().observe(this, new Observer<UserDetailResponse>() {
             @Override

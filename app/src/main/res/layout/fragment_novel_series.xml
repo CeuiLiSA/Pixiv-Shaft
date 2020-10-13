@@ -77,7 +77,7 @@
                                     android:layout_toStartOf="@+id/post_like_user"
                                     android:ellipsize="end"
                                     android:maxLines="1"
-                                    android:textColor="@color/colorPrimary"
+                                    android:textColor="@color/new_color_primary"
                                     android:textSize="15sp"
                                     android:textStyle="bold" />
 
@@ -95,9 +95,9 @@
                                     android:paddingEnd="@dimen/sixteen_dp"
                                     android:paddingBottom="@dimen/four_dp"
                                     android:text="@string/string_85"
-                                    android:textColor="@color/colorPrimary"
+                                    android:textColor="@color/new_color_primary"
                                     android:textSize="13sp"
-                                    app:qmui_borderColor="@color/colorPrimary" />
+                                    app:qmui_borderColor="@color/new_color_primary" />
 
                             </RelativeLayout>
 
@@ -107,10 +107,10 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="@dimen/twelve_dp"
+                                android:layout_marginEnd="@dimen/twelve_dp"
                                 android:layout_marginTop="@dimen/eight_dp"
                                 android:layout_marginBottom="@dimen/eight_dp"
                                 android:gravity="center"
-                                android:text="@string/ranking_illust"
                                 android:textColor="@color/dark_text"
                                 android:textSize="15sp"
                                 android:textStyle="bold" />
@@ -121,10 +121,9 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="@dimen/twelve_dp"
+                                android:layout_marginEnd="@dimen/twelve_dp"
                                 android:layout_marginBottom="@dimen/eight_dp"
-                                android:gravity="center"
-                                android:text="@string/ranking_illust"
-                                android:textSize="15sp"/>
+                                android:textSize="13sp"/>
 
                         </LinearLayout>
 

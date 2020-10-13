@@ -2,6 +2,7 @@ package ceui.lisa.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.KeyEvent;
 
 import androidx.annotation.Nullable;
@@ -67,16 +68,11 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
     public static final String EXTRA_FRAGMENT = "dataType";
     public static final String EXTRA_KEYWORD = "keyword";
     protected Fragment childFragment;
-    private String dataType;
-
-    @Override
-    protected void initBundle(Bundle bundle) {
-        dataType = bundle.getString(EXTRA_FRAGMENT);
-    }
 
     protected Fragment createNewFragment() {
         Intent intent = getIntent();
-        if (dataType != null) {
+        String dataType = intent.getStringExtra(EXTRA_FRAGMENT);
+        if (!TextUtils.isEmpty( dataType)) {
             switch (dataType) {
                 case "登录注册":
                     return new FragmentLogin();

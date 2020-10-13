@@ -95,10 +95,6 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
             finish();
         }
 
-        if (Dev.isDev) {
-            baseBind.viewPager.setOffscreenPageLimit(1);
-        }
-
         TimeRecord.end();
         TimeRecord.result();
     }

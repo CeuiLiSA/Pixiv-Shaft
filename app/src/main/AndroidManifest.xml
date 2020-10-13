@@ -104,7 +104,7 @@
         <activity android:name=".activities.UserActivity" />
         <activity android:name=".activities.SearchActivity" />
         <activity android:name=".activities.VActivity" />
-        <activity android:name=".activities.ScaleActivity" />
+        <activity android:name=".activities.UActivity" />
 
     </application>
 

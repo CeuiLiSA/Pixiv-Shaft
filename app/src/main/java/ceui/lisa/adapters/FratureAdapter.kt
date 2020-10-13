@@ -25,39 +25,43 @@ class FratureAdapter(
         bindView.baseBind.starSize.text = times
 
         if (!Common.isEmpty(target.allIllust)) {
-            if (target.allIllust.size >= 3) {
-                Glide.with(mContext).load(GlideUtil.getMediumImg(target
-                        .allIllust[0]))
-                        .placeholder(R.color.light_bg)
-                        .into(bindView.baseBind.userShowOne)
-                Glide.with(mContext).load(GlideUtil.getMediumImg(target
-                        .allIllust[1]))
-                        .placeholder(R.color.light_bg)
-                        .into(bindView.baseBind.userShowTwo)
-                Glide.with(mContext).load(GlideUtil.getMediumImg(target
-                        .allIllust[2]))
-                        .placeholder(R.color.light_bg)
-                        .into(bindView.baseBind.userShowThree)
-            } else if (target.allIllust.size == 2) {
-                Glide.with(mContext).load(GlideUtil.getMediumImg(target
-                        .allIllust[0]))
-                        .placeholder(R.color.light_bg)
-                        .into(bindView.baseBind.userShowOne)
-                Glide.with(mContext).load(GlideUtil.getMediumImg(target
-                        .allIllust[1]))
-                        .placeholder(R.color.light_bg)
-                        .into(bindView.baseBind.userShowTwo)
-                Glide.with(mContext).load(R.color.light_bg)
-                        .into(bindView.baseBind.userShowThree)
-            } else if (target.allIllust.size == 1) {
-                Glide.with(mContext).load(GlideUtil.getMediumImg(target
-                        .allIllust[0]))
-                        .placeholder(R.color.light_bg)
-                        .into(bindView.baseBind.userShowOne)
-                Glide.with(mContext).load(R.color.light_bg)
-                        .into(bindView.baseBind.userShowTwo)
-                Glide.with(mContext).load(R.color.light_bg)
-                        .into(bindView.baseBind.userShowThree)
+            when {
+                target.allIllust.size >= 3 -> {
+                    Glide.with(mContext).load(GlideUtil.getMediumImg(target
+                            .allIllust[0]))
+                            .placeholder(R.color.light_bg)
+                            .into(bindView.baseBind.userShowOne)
+                    Glide.with(mContext).load(GlideUtil.getMediumImg(target
+                            .allIllust[1]))
+                            .placeholder(R.color.light_bg)
+                            .into(bindView.baseBind.userShowTwo)
+                    Glide.with(mContext).load(GlideUtil.getMediumImg(target
+                            .allIllust[2]))
+                            .placeholder(R.color.light_bg)
+                            .into(bindView.baseBind.userShowThree)
+                }
+                target.allIllust.size == 2 -> {
+                    Glide.with(mContext).load(GlideUtil.getMediumImg(target
+                            .allIllust[0]))
+                            .placeholder(R.color.light_bg)
+                            .into(bindView.baseBind.userShowOne)
+                    Glide.with(mContext).load(GlideUtil.getMediumImg(target
+                            .allIllust[1]))
+                            .placeholder(R.color.light_bg)
+                            .into(bindView.baseBind.userShowTwo)
+                    Glide.with(mContext).load(R.color.light_bg)
+                            .into(bindView.baseBind.userShowThree)
+                }
+                target.allIllust.size == 1 -> {
+                    Glide.with(mContext).load(GlideUtil.getMediumImg(target
+                            .allIllust[0]))
+                            .placeholder(R.color.light_bg)
+                            .into(bindView.baseBind.userShowOne)
+                    Glide.with(mContext).load(R.color.light_bg)
+                            .into(bindView.baseBind.userShowTwo)
+                    Glide.with(mContext).load(R.color.light_bg)
+                            .into(bindView.baseBind.userShowThree)
+                }
             }
         } else {
             Glide.with(mContext).load(R.color.light_bg)
