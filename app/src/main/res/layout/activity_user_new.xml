@@ -40,33 +40,63 @@
 
                 </de.hdodenhof.circleimageview.CircleImageView>
 
-                <TextView
-                    android:id="@+id/user_name"
+                <RelativeLayout
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
                     android:layout_marginTop="@dimen/twelve_dp"
-                    android:text="だーすだーす"
-                    android:textColor="@color/white"
-                    android:textStyle="bold">
+                    android:layout_gravity="center_horizontal"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:id="@+id/user_name"
+                        android:textSize="19sp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="だーすだーす"
+                        android:textColor="@color/white"
+                        android:textStyle="bold">
 
 
-                </TextView>
+                    </TextView>
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:id="@+id/vip_image"
+                        android:layout_toEndOf="@+id/user_name"
+                        android:layout_centerVertical="true"
+                        android:layout_marginStart="@dimen/six_dp"
+                        android:src="@mipmap/premium_user"
+                        android:layout_height="24dp">
+
+                    </ImageView>
+                </RelativeLayout>
 
 
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
                     android:layout_marginTop="@dimen/twelve_dp"
                     android:orientation="horizontal">
 
                     <TextView
-                        android:id="@+id/follow"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="关注：123"
+                        android:layout_gravity="center_vertical"
+                        android:text="关注："
                         android:textColor="@color/white"
                         android:textSize="13sp">
+
+
+                    </TextView>
+
+                    <TextView
+                        android:id="@+id/follow"
+                        android:textStyle="bold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="123"
+                        android:textColor="@color/white"
+                        android:textSize="15sp">
 
 
                     </TextView>
@@ -74,20 +104,32 @@
                     <View
                         android:layout_width="1dp"
                         android:layout_height="10dp"
-                        android:layout_marginStart="@dimen/eight_dp"
-                        android:layout_marginTop="4.5dp"
-                        android:layout_marginEnd="@dimen/eight_dp"
+                        android:layout_marginTop="@dimen/six_dp"
+                        android:layout_marginStart="@dimen/sixteen_dp"
+                        android:layout_marginEnd="@dimen/sixteen_dp"
                         android:background="@color/white">
 
                     </View>
 
                     <TextView
-                        android:id="@+id/p_friend"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="好P友：123"
+                        android:text="好P友："
+                        android:layout_gravity="center_vertical"
                         android:textColor="@color/white"
                         android:textSize="13sp">
+
+
+                    </TextView>
+
+                    <TextView
+                        android:id="@+id/p_friend"
+                        android:textStyle="bold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="123"
+                        android:textColor="@color/white"
+                        android:textSize="15sp">
 
 
                     </TextView>
@@ -103,7 +145,7 @@
             android:id="@+id/content_item"
             android:layout_width="match_parent"
             android:background="@drawable/stroke_please"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             app:layout_behavior="ceui.lisa.ui.behavior.UserContentBehavior">
 
             <LinearLayout
@@ -111,104 +153,94 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <RelativeLayout
+                <LinearLayout
                     android:layout_width="match_parent"
+                    android:orientation="vertical"
+                    android:id="@+id/please_ll"
                     android:layout_height="wrap_content">
 
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_marginTop="@dimen/sixteen_dp"
+                            android:layout_marginBottom="@dimen/eight_dp"
+                            android:text="个人介绍"
+                            android:textSize="16sp"
+                            android:textColor="@color/new_color_primary">
+
+                        </TextView>
+
+
+                        <Button
+                            android:id="@+id/show_detail"
+                            style="@android:style/Widget.DeviceDefault.Button.Borderless.Small"
+                            android:layout_width="wrap_content"
+                            android:layout_height="40dp"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:layout_marginStart="@dimen/sixteen_dp"
+                            android:layout_marginTop="@dimen/four_dp"
+                            android:layout_marginEnd="@dimen/sixteen_dp"
+                            android:layout_marginBottom="@dimen/four_dp"
+                            android:drawableEnd="@drawable/ic_arrow_right_little"
+                            android:gravity="center"
+                            android:text="详细信息"
+                            android:textColor="#999999"
+                            android:textSize="13sp">
+
+                        </Button>
+
+                    </RelativeLayout>
+
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
                         android:layout_marginStart="@dimen/sixteen_dp"
-                        android:layout_marginTop="@dimen/sixteen_dp"
-                        android:layout_marginBottom="@dimen/eight_dp"
-                        android:text="个人信息"
-                        android:textColor="#333333">
-
-                    </TextView>
-
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:layout_marginStart="@dimen/sixteen_dp"
-                        android:layout_marginTop="@dimen/sixteen_dp"
                         android:layout_marginEnd="@dimen/sixteen_dp"
                         android:layout_marginBottom="@dimen/eight_dp"
-                        android:drawableEnd="@drawable/ic_arrow_right_little"
+                        android:id="@+id/comment"
+                        android:autoLink="all"
                         android:gravity="center"
-                        android:text="更多"
-                        android:textColor="#999999"
-                        android:textSize="12sp">
+                        android:textColorLink="@color/new_color_primary"
+                        android:textColor="#5c5c5c"
+                        android:textSize="13sp">
 
                     </TextView>
 
-                </RelativeLayout>
+                    <com.zhy.view.flowlayout.TagFlowLayout
+                        android:layout_width="match_parent"
+                        android:id="@+id/tag_layout"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginEnd="@dimen/eight_dp"
+                        android:layout_marginBottom="@dimen/eight_dp"
+                        android:layout_height="wrap_content">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/sixteen_dp"
-                    android:layout_marginEnd="@dimen/sixteen_dp"
-                    android:ellipsize="end"
-                    android:maxLines="3"
-                    android:text="只今絵の練習中です
+                    </com.zhy.view.flowlayout.TagFlowLayout>
 
-コメント・ブクマ　本当にありがとうございます。
-いつもコメントは読んでるのですが返信できない事がありますのでご了承ください
+                </LinearLayout>
 
-イラスト製作等のご依頼等ありましたら相談に乗らせていただきますのでメッセージいただければ。(イラストのリクエストなどはお受けしておりませんのでご了承ください)
-※現在マイピクは募集しておりません
-※無断転載、グッズ作成や壁紙作成の二次使用も禁止とさせていただきます
-※メッセージは転載許可や個人利用のための画像使用などの連絡も基本的に返信しないです（pixivの小説のイメージイラストに使いたい場合はメッセージ確認させていただきます）
-※有償に関わる依頼は個人HPに記載があるメールにてご連絡いただけますですと幸いです
 
-2020/02/25
-ツイッターアカウント作り直しました。基本的に絵と宣伝しかしませんがよろしくおねがいします。"
-                    android:textColor="#999999"
-                    android:textSize="13sp">
-
-                </TextView>
-
-                <androidx.cardview.widget.CardView
+                <com.scwang.smartrefresh.layout.SmartRefreshLayout
                     android:layout_width="match_parent"
-                    android:layout_height="200dp"
-                    android:layout_marginStart="@dimen/sixteen_dp"
-                    android:layout_marginTop="@dimen/sixteen_dp"
-                    android:layout_marginEnd="@dimen/sixteen_dp"
-                    android:layout_marginBottom="@dimen/sixteen_dp"
-                    app:cardBackgroundColor="@color/new_color_primary">
+                    android:id="@+id/smart_refresh_layout"
+                    android:layout_height="wrap_content">
 
-                </androidx.cardview.widget.CardView>
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:layout_width="match_parent"
+                        android:id="@+id/recy_list"
+                        android:layout_height="wrap_content">
 
-                <androidx.cardview.widget.CardView
-                    android:layout_width="match_parent"
-                    android:layout_height="200dp"
-                    android:layout_marginStart="@dimen/sixteen_dp"
-                    android:layout_marginEnd="@dimen/sixteen_dp"
-                    android:layout_marginBottom="@dimen/sixteen_dp"
-                    app:cardBackgroundColor="@color/new_color_primary">
 
-                </androidx.cardview.widget.CardView>
+                    </androidx.recyclerview.widget.RecyclerView>
 
-                <androidx.cardview.widget.CardView
-                    android:layout_width="match_parent"
-                    android:layout_height="200dp"
-                    android:layout_marginStart="@dimen/sixteen_dp"
-                    android:layout_marginEnd="@dimen/sixteen_dp"
-                    app:cardBackgroundColor="@color/new_color_primary">
+                </com.scwang.smartrefresh.layout.SmartRefreshLayout>
 
-                </androidx.cardview.widget.CardView>
-
-                <androidx.cardview.widget.CardView
-                    android:layout_width="match_parent"
-                    android:layout_height="200dp"
-                    android:layout_margin="@dimen/sixteen_dp"
-                    app:cardBackgroundColor="@color/new_color_primary">
-
-                </androidx.cardview.widget.CardView>
 
 
             </LinearLayout>

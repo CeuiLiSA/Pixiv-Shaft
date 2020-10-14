@@ -179,8 +179,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return FragmentDonate.newInstance();
                 case "关注者的小说":
                     return new FragmentNewNovels();
-                case "漫画系列":
-                    return FragmentMangaSeries.newInstance(intent.getIntExtra(Params.ID, 0));
+                case "漫画系列作品":
+                    return FragmentMangaSeries.newInstance(intent.getIntExtra(Params.USER_ID, 0));
                 case "精华列":
                     return new FragmentFeature();
                 default:

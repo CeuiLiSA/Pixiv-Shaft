@@ -15,7 +15,7 @@ import ceui.lisa.utils.Common;
 public class UserHeaderBehavior extends CoordinatorLayout.Behavior<View> {
 
     private float headerHeight;
-    private int toolbarHeight = Shaft.statusHeight + Shaft.toolbarHeight;
+    private int toolbarHeight;
     private View centerView, toolbarView;
 
     public UserHeaderBehavior() {
@@ -27,6 +27,7 @@ public class UserHeaderBehavior extends CoordinatorLayout.Behavior<View> {
 
     @Override
     public boolean onLayoutChild(@NonNull CoordinatorLayout parent, @NonNull View child, int layoutDirection) {
+        toolbarHeight = parent.findViewById(R.id.toolbar).getMeasuredHeight();
         headerHeight = parent.findViewById(R.id.imagesTitleBlockLayout).getMeasuredHeight() - toolbarHeight;
         toolbarView = parent.findViewById(R.id.toolbar).findViewById(R.id.toolbar_title);
         centerView = parent.findViewById(R.id.center_header);

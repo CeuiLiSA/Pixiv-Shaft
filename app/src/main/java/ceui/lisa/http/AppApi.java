@@ -5,6 +5,7 @@ import java.util.List;
 import ceui.lisa.model.IllustSeries;
 import ceui.lisa.model.ListArticle;
 import ceui.lisa.model.ListLive;
+import ceui.lisa.model.ListMangaSeries;
 import ceui.lisa.model.ListSimpleUser;
 import ceui.lisa.model.ListTag;
 import ceui.lisa.model.NovelSeries;
@@ -399,5 +400,13 @@ public interface AppApi {
     @GET("v1/illust/series?filter=for_android")
     Observable<IllustSeries> getIllustSeries(@Header("Authorization") String token,
                                                        @Query("illust_series_id") int illust_series_id);
+
+
+
+    @GET("v1/user/illust-series")
+    Observable<ListMangaSeries> getUserMangaSeries(@Header("Authorization") String token,
+                                                    @Query("user_id") int user_id);
+
+
 
 }

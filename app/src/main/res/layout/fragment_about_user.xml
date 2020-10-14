@@ -87,6 +87,7 @@
                     <org.sufficientlysecure.htmltextview.HtmlTextView
                         android:layout_width="wrap_content"
                         android:id="@+id/description"
+                        android:layout_marginEnd="@dimen/sixteen_dp"
                         android:autoLink="all"
                         android:textColorLink="@color/new_color_primary"
                         android:textSize="15sp"
@@ -125,6 +126,7 @@
                         android:id="@+id/main_page"
                         android:textSize="15sp"
                         android:textColorLink="@color/new_color_primary"
+                        android:layout_marginEnd="@dimen/sixteen_dp"
                         android:layout_toEndOf="@+id/main_page_s"
                         android:layout_marginBottom="@dimen/twelve_dp"
                         android:autoLink="all"
@@ -162,6 +164,7 @@
                         android:textSize="15sp"
                         android:id="@+id/twitter"
                         android:layout_toEndOf="@+id/twitter_s"
+                        android:layout_marginEnd="@dimen/sixteen_dp"
                         android:textColorLink="@color/new_color_primary"
                         android:layout_marginBottom="@dimen/twelve_dp"
                         android:textColor="@color/about_user_right"
@@ -200,6 +203,7 @@
                         android:autoLink="all"
                         android:textColorLink="@color/new_color_primary"
                         android:layout_toEndOf="@+id/pawoo_s"
+                        android:layout_marginEnd="@dimen/sixteen_dp"
                         android:textSize="15sp"
                         android:textColor="@color/about_user_right"
                         android:layout_marginBottom="@dimen/twelve_dp"
@@ -248,6 +252,7 @@
                         android:id="@+id/computer"
                         android:textSize="15sp"
                         android:layout_marginBottom="@dimen/twelve_dp"
+                        android:layout_marginEnd="@dimen/sixteen_dp"
                         android:textColor="@color/about_user_right"
                         android:layout_toEndOf="@+id/computer_s"
                         android:layout_marginTop="@dimen/sixteen_dp"
@@ -288,6 +293,7 @@
                         android:layout_marginBottom="@dimen/twelve_dp"
                         android:layout_toEndOf="@+id/monitor_s"
                         android:layout_marginTop="@dimen/sixteen_dp"
+                        android:layout_marginEnd="@dimen/sixteen_dp"
                         android:layout_height="wrap_content" />
 
                 </RelativeLayout>
@@ -327,6 +333,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:id="@+id/app"
+                        android:layout_marginEnd="@dimen/sixteen_dp"
                         android:layout_toEndOf="@+id/app_s"
                         android:layout_marginBottom="@dimen/twelve_dp"
                         android:textSize="15sp"
@@ -366,6 +373,7 @@
                         android:textSize="15sp"
                         android:textColor="@color/about_user_right"
                         android:layout_marginBottom="@dimen/twelve_dp"
+                        android:layout_marginEnd="@dimen/sixteen_dp"
                         android:layout_toEndOf="@+id/scanner_s"
                         android:layout_marginTop="@dimen/sixteen_dp"
                         android:layout_height="wrap_content" />
@@ -401,6 +409,7 @@
                         android:id="@+id/draw_board"
                         android:textSize="15sp"
                         android:textColor="@color/about_user_right"
+                        android:layout_marginEnd="@dimen/sixteen_dp"
                         android:layout_toEndOf="@+id/draw_board_s"
                         android:layout_marginBottom="@dimen/twelve_dp"
                         android:layout_marginTop="@dimen/sixteen_dp"
@@ -442,6 +451,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:id="@+id/mouse"
+                        android:layout_marginEnd="@dimen/sixteen_dp"
                         android:layout_toEndOf="@+id/mouse_s"
                         android:textSize="15sp"
                         android:textColor="@color/about_user_right"
@@ -483,6 +493,7 @@
                         android:textColor="@color/about_user_right"
                         android:layout_marginTop="@dimen/sixteen_dp"
                         android:layout_marginBottom="@dimen/twelve_dp"
+                        android:layout_marginEnd="@dimen/sixteen_dp"
                         android:layout_height="wrap_content" />
 
                 </RelativeLayout>
@@ -514,6 +525,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:id="@+id/table_objects"
+                        android:layout_marginEnd="@dimen/sixteen_dp"
                         android:layout_marginBottom="@dimen/twelve_dp"
                         android:textSize="15sp"
                         android:textColor="@color/about_user_right"
@@ -551,6 +563,7 @@
                         android:id="@+id/like_music"
                         android:textSize="15sp"
                         android:layout_marginBottom="@dimen/twelve_dp"
+                        android:layout_marginEnd="@dimen/sixteen_dp"
                         android:textColor="@color/about_user_right"
                         android:layout_toEndOf="@+id/like_music_s"
                         android:layout_marginTop="@dimen/sixteen_dp"
@@ -596,6 +609,7 @@
                         android:textColor="@color/about_user_right"
                         android:layout_marginBottom="@dimen/twelve_dp"
                         android:layout_toEndOf="@+id/table_s"
+                        android:layout_marginEnd="@dimen/sixteen_dp"
                         android:layout_marginTop="@dimen/sixteen_dp"
                         android:layout_height="wrap_content" />
 
@@ -629,6 +643,7 @@
                         android:layout_width="wrap_content"
                         android:textSize="15sp"
                         android:textColor="@color/about_user_right"
+                        android:layout_marginEnd="@dimen/sixteen_dp"
                         android:layout_marginBottom="@dimen/twelve_dp"
                         android:id="@+id/chair"
                         android:layout_toEndOf="@+id/chair_s"

@@ -221,10 +221,10 @@
     <string name="string_30">捐赠者列表</string>
     <string name="string_31">Github</string>
     <string name="string_32">https://github.com/CeuiLiSA/Pixiv-Shaft</string>
-    <string name="string_33">个人介绍</string>
-    <string name="string_34">个人主页</string>
-    <string name="string_35">Twitter</string>
-    <string name="string_36">Pawoo</string>
+    <string name="string_33">个人介绍：</string>
+    <string name="string_34">个人主页：</string>
+    <string name="string_35">Twitter：</string>
+    <string name="string_36">Pawoo：</string>
     <string name="string_37">电脑：</string>
     <string name="string_38">显示器：</string>
     <string name="string_39">软体：</string>

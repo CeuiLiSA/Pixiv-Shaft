@@ -19,7 +19,7 @@ public class UserContentBehavior extends CoordinatorLayout.Behavior<View> {
     private View contentView;
     private View centerView, toolbarView;
     private OverScroller scroller;
-    private int toolbarHeight = Shaft.statusHeight + Shaft.toolbarHeight;
+    private int toolbarHeight;
     private Runnable scrollRunnable = new Runnable() {
         @Override
         public void run() {
@@ -87,6 +87,7 @@ public class UserContentBehavior extends CoordinatorLayout.Behavior<View> {
         // 首先让父布局按照标准方式解析
         parent.onLayoutChild(child, layoutDirection);
         // 获取到 HeaderView 的高度
+        toolbarHeight = parent.findViewById(R.id.toolbar).getMeasuredHeight();
         headerHeight = parent.findViewById(R.id.imagesTitleBlockLayout).getMeasuredHeight() - toolbarHeight;
         parent.findViewById(R.id.content_item).setPadding(0, 0, 0, toolbarHeight);
         toolbarView = parent.findViewById(R.id.toolbar).findViewById(R.id.toolbar_title);

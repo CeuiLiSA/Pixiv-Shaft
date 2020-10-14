@@ -2,12 +2,13 @@ package ceui.lisa.model;
 
 import java.util.List;
 
+import ceui.lisa.interfaces.ListShow;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.ImageUrlsBean;
 import ceui.lisa.models.SeriesBean;
 import ceui.lisa.models.UserBean;
 
-public class IllustSeries {
+public class IllustSeries implements ListShow<IllustsBean> {
 
 
     private IllustsBean illust_series_first_illust;
@@ -45,6 +46,16 @@ public class IllustSeries {
 
     public void setIllust_series_detail(SeriesDetail illust_series_detail) {
         this.illust_series_detail = illust_series_detail;
+    }
+
+    @Override
+    public List<IllustsBean> getList() {
+        return illusts;
+    }
+
+    @Override
+    public String getNextUrl() {
+        return next_url;
     }
 
     public static class SeriesDetail{
