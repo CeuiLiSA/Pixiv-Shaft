@@ -20,6 +20,7 @@ import ceui.lisa.fragments.FragmentFeature;
 import ceui.lisa.fragments.FragmentFileName;
 import ceui.lisa.fragments.FragmentListSimpleUser;
 import ceui.lisa.fragments.FragmentMangaSeries;
+import ceui.lisa.fragments.FragmentMangaSeriesDetail;
 import ceui.lisa.fragments.FragmentMultiDownld;
 import ceui.lisa.fragments.FragmentNew;
 import ceui.lisa.fragments.FragmentNewNovel;
@@ -181,6 +182,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return new FragmentNewNovels();
                 case "漫画系列作品":
                     return FragmentMangaSeries.newInstance(intent.getIntExtra(Params.USER_ID, 0));
+                case "漫画系列详情":
+                    return FragmentMangaSeriesDetail.newInstance(intent.getIntExtra(Params.ID, 0));
                 case "精华列":
                     return new FragmentFeature();
                 default:

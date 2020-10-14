@@ -8,7 +8,7 @@ import ceui.lisa.models.ImageUrlsBean;
 import ceui.lisa.models.SeriesBean;
 import ceui.lisa.models.UserBean;
 
-public class IllustSeries implements ListShow<IllustsBean> {
+public class ListMangaSeriesDetail implements ListShow<IllustsBean> {
 
 
     private IllustsBean illust_series_first_illust;

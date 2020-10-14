@@ -1,10 +1,12 @@
 package ceui.lisa.fragments
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.widget.Toolbar
 import androidx.databinding.ViewDataBinding
 import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
+import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.adapters.BaseAdapter
 import ceui.lisa.adapters.MangaSeriesAdapter
 import ceui.lisa.core.BaseRepo
@@ -12,7 +14,6 @@ import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentBaseListBinding
 import ceui.lisa.feature.FeatureEntity
 import ceui.lisa.model.ListMangaSeries
-import ceui.lisa.models.IllustsBean
 import ceui.lisa.models.MangaSeriesItem
 import ceui.lisa.repo.MangaSeriesRepo
 import ceui.lisa.utils.Common
@@ -40,7 +41,12 @@ class FragmentMangaSeries : NetListFragment<FragmentBaseListBinding, ListMangaSe
     }
 
     override fun adapter(): BaseAdapter<*, out ViewDataBinding> {
-        return MangaSeriesAdapter(allItems, mContext)
+        return MangaSeriesAdapter(allItems, mContext).setOnItemClickListener { v, position, viewType ->
+            val intent = Intent(mContext, TemplateActivity::class.java)
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "漫画系列详情")
+            intent.putExtra(Params.ID, allItems[position].id)
+            startActivity(intent)
+        }
     }
 
     override fun repository(): BaseRepo {

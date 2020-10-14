@@ -22,5 +22,8 @@ class MangaSeriesAdapter(
         Glide.with(mContext)
                 .load(GlideUtil.getArticle(target.cover_image_urls.medium))
                 .into(bindView.baseBind.imageView)
+        bindView.itemView.setOnClickListener {
+            mOnItemClickListener.onItemClick(it, position, 0)
+        }
     }
 }
