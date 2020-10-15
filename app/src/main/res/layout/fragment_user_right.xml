@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+    </data>
+
+    <com.scwang.smartrefresh.layout.SmartRefreshLayout
+        android:layout_width="match_parent"
+        android:id="@+id/refreshLayout"
+        android:layout_height="match_parent">
+
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:orientation="vertical"
+                android:id="@+id/please_ll"
+                android:layout_height="wrap_content">
+
+                <com.zhy.view.flowlayout.TagFlowLayout
+                    android:layout_width="match_parent"
+                    android:id="@+id/tag_layout"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginTop="@dimen/sixteen_dp"
+                    android:layout_marginEnd="@dimen/eight_dp"
+                    android:layout_height="wrap_content">
+
+                </com.zhy.view.flowlayout.TagFlowLayout>
+
+
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_margin="@dimen/sixteen_dp"
+                        android:src="@mipmap/home"
+                        android:id="@+id/home"
+                        app:tint="#5E9CFB"
+                        android:layout_height="24dp">
+
+                    </ImageView>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="@dimen/sixteen_dp"
+                        android:layout_toEndOf="@+id/home"
+                        android:id="@+id/real_home"
+                        android:autoLink="all"
+                        android:textColorLink="@color/new_color_primary"
+                        android:text="https://www.iconfont.cn/search/index?searchType=icon"
+                        android:layout_height="wrap_content">
+
+                    </TextView>
+
+                </RelativeLayout>
+
+
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_margin="@dimen/sixteen_dp"
+                        android:src="@mipmap/twitter"
+                        android:id="@+id/twitter"
+                        app:tint="#00A7E5"
+                        android:layout_height="24dp">
+
+                    </ImageView>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:id="@+id/real_twitter"
+                        android:autoLink="all"
+                        android:textColorLink="@color/new_color_primary"
+                        android:layout_centerVertical="true"
+                        android:layout_marginEnd="@dimen/sixteen_dp"
+                        android:layout_toEndOf="@+id/twitter"
+                        android:text="https://www.iconfont.cn/search/index?searchType=icon"
+                        android:layout_height="wrap_content">
+
+                    </TextView>
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_margin="@dimen/sixteen_dp"
+                        android:src="@mipmap/address"
+                        android:id="@+id/address"
+                        app:tint="#FFA929"
+                        android:layout_height="24dp">
+
+                    </ImageView>
+
+                    <TextView
+                        android:id="@+id/real_address"
+                        android:layout_width="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:autoLink="all"
+                        android:textColorLink="@color/new_color_primary"
+                        android:layout_marginEnd="@dimen/sixteen_dp"
+                        android:layout_toEndOf="@+id/address"
+                        android:text="https://www.iconfont.cn/search/index?searchType=icon"
+                        android:layout_height="wrap_content">
+
+                    </TextView>
+
+                </RelativeLayout>
+
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_margin="@dimen/sixteen_dp"
+                        android:src="@mipmap/male_female"
+                        android:id="@+id/job"
+                        app:tint="#FC9AC4"
+                        android:layout_height="24dp">
+
+                    </ImageView>
+
+                    <TextView
+                        android:id="@+id/real_job"
+                        android:layout_width="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:autoLink="all"
+                        android:textColorLink="@color/new_color_primary"
+                        android:layout_marginEnd="@dimen/sixteen_dp"
+                        android:layout_toEndOf="@+id/job"
+                        android:text="https://www.iconfont.cn/search/index?searchType=icon"
+                        android:layout_height="wrap_content">
+
+                    </TextView>
+
+                </RelativeLayout>
+
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginStart="@dimen/sixteen_dp"
+                        android:layout_marginTop="@dimen/sixteen_dp"
+                        android:layout_marginBottom="@dimen/eight_dp"
+                        android:text="个人介绍"
+                        android:textSize="16sp"
+                        android:textColor="@color/new_color_primary">
+
+                    </TextView>
+
+
+                    <Button
+                        android:id="@+id/show_detail"
+                        style="@android:style/Widget.DeviceDefault.Button.Borderless.Small"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_marginStart="@dimen/sixteen_dp"
+                        android:layout_marginTop="@dimen/four_dp"
+                        android:layout_marginEnd="@dimen/sixteen_dp"
+                        android:layout_marginBottom="@dimen/four_dp"
+                        android:drawableEnd="@drawable/ic_arrow_right_little"
+                        android:gravity="center"
+                        android:text="详细信息"
+                        android:textColor="#999999"
+                        android:textSize="13sp">
+
+                    </Button>
+
+                </RelativeLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/sixteen_dp"
+                    android:layout_marginEnd="@dimen/sixteen_dp"
+                    android:layout_marginBottom="60dp"
+                    android:id="@+id/comment"
+                    android:autoLink="all"
+                    android:textIsSelectable="true"
+                    android:textColorLink="@color/new_color_primary"
+                    android:textColor="@color/black"
+                    android:textSize="14sp">
+
+                </TextView>
+
+            </LinearLayout>
+
+        </androidx.core.widget.NestedScrollView>
+
+    </com.scwang.smartrefresh.layout.SmartRefreshLayout>
+</layout>

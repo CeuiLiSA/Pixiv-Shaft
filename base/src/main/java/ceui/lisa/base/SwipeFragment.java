@@ -42,4 +42,12 @@ public abstract class SwipeFragment<T extends ViewDataBinding>
         super.onViewCreated(view, savedInstanceState);
         init();
     }
+
+    public boolean enableRefresh() {
+        return true;
+    }
+
+    public boolean enableLoadMore() {
+        return true;
+    }
 }

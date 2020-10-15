@@ -52,7 +52,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                         return;
                     }
                     mResponse = response;
-                    onResponse(mResponse);
+                    tryCatchResponse(mResponse);
                     if (!Common.isEmpty(mResponse.getList())) {
                         beforeFirstLoad(mResponse.getList());
                         mModel.load(mResponse.getList());
@@ -86,6 +86,14 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
             });
         } else {
             showDataBase();
+        }
+    }
+
+    private void tryCatchResponse(Response response) {
+        try {
+            onResponse(response);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

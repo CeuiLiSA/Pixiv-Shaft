@@ -4,6 +4,7 @@ import android.text.TextUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -339,6 +340,48 @@ public class UserDetailResponse implements Serializable, UserContainer {
 
         public String getTwitter_url() {
             return twitter_url;
+        }
+
+        public String getContent() {
+            String result = "";
+            if ("male".equals(gender)) {
+                result += "男性";
+            } else if ("female".equals(gender)) {
+                result += "女性";
+            } else {
+                result += "未知性别";
+            }
+
+            if (birth_year > 0) {
+                Calendar calendar = Calendar.getInstance();
+                int year = calendar.get(Calendar.YEAR);
+                int age = year - birth_year;
+
+                if (!TextUtils.isEmpty(result)) {
+                    result = result + "/" + age + "岁";
+                } else {
+                    result += age + "岁";
+                }
+            }
+
+            if (!TextUtils.isEmpty(birth_day)) {
+                if (!TextUtils.isEmpty(result)) {
+                    result = result + "/" + birth_day + "生日";
+                } else {
+                    result += birth_day + "生日";
+                }
+            }
+
+            if (!TextUtils.isEmpty(job)) {
+                if (!TextUtils.isEmpty(result)) {
+                    result = result + "/" + job;
+                } else {
+                    result += job;
+                }
+            }
+
+
+            return result;
         }
 
         public void setTwitter_url(String twitter_url) {

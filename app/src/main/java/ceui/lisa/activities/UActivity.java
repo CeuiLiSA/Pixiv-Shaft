@@ -10,8 +10,12 @@ import android.view.ViewTreeObserver;
 
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.bumptech.glide.Glide;
+import com.google.android.material.appbar.AppBarLayout;
 import com.zhy.view.flowlayout.FlowLayout;
 import com.zhy.view.flowlayout.TagAdapter;
 import com.zhy.view.flowlayout.TagFlowLayout;
@@ -23,8 +27,10 @@ import ceui.lisa.R;
 import ceui.lisa.adapters.StringAdapter;
 import ceui.lisa.base.BaseActivity;
 import ceui.lisa.cache.Cache;
+import ceui.lisa.databinding.ActivityNewUserBinding;
 import ceui.lisa.databinding.ActivityUserNewBinding;
 import ceui.lisa.databinding.TagItemBinding;
+import ceui.lisa.fragments.FragmentHolder;
 import ceui.lisa.fragments.FragmentRecmdIllust;
 import ceui.lisa.fragments.FragmentUserIllust;
 import ceui.lisa.fragments.FragmentUserInfo;
@@ -33,25 +39,50 @@ import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.Display;
 import ceui.lisa.models.UserDetailResponse;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
-import io.reactivex.Observer;
+import ceui.lisa.viewmodel.UserViewModel;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
-public class UActivity extends BaseActivity<ActivityUserNewBinding> implements Display<UserDetailResponse> {
+public class UActivity extends BaseActivity<ActivityNewUserBinding> implements Display<UserDetailResponse> {
 
-//    private int userID = 465084;
-    private int userID = 34234422;
+    private int userID;
+    private UserViewModel mUserViewModel;
 
     @Override
     protected int initLayout() {
-        return R.layout.activity_user_new;
+        return R.layout.activity_new_user;
     }
 
     @Override
     protected void initView() {
+        baseBind.toolbar.setPadding(0, Shaft.statusHeight, 0, 0);
         baseBind.toolbar.setNavigationOnClickListener(v -> finish());
+        baseBind.toolbarLayout.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                final int offset = baseBind.toolbarLayout.getHeight() - Shaft.statusHeight - Shaft.toolbarHeight;
+                baseBind.appBar.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
+                    @Override
+                    public void onOffsetChanged(AppBarLayout appBarLayout, int verticalOffset) {
+                        if (Math.abs(verticalOffset) < 15) {
+                            baseBind.centerHeader.setAlpha(1.0f);
+                            baseBind.toolbarTitle.setAlpha(0.0f);
+                        } else if((offset - Math.abs(verticalOffset)) < 15){
+                            baseBind.centerHeader.setAlpha(0.0f);
+                            baseBind.toolbarTitle.setAlpha(1.0f);
+                        } else {
+                            baseBind.centerHeader.setAlpha(1 + (float) verticalOffset / offset);
+                            baseBind.toolbarTitle.setAlpha(-(float) verticalOffset / offset);
+                        }
+                        Common.showLog(className + verticalOffset);
+                    }
+                });
+                baseBind.toolbarLayout.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+            }
+        });
     }
 
     @Override
@@ -61,10 +92,17 @@ public class UActivity extends BaseActivity<ActivityUserNewBinding> implements D
 
     @Override
     protected void initData() {
+        mUserViewModel = new ViewModelProvider(this).get(UserViewModel.class);
+        mUserViewModel.getUser().observe(this, new Observer<UserDetailResponse>() {
+            @Override
+            public void onChanged(UserDetailResponse userDetailResponse) {
+                invoke(userDetailResponse);
+            }
+        });
         UserDetailResponse user = Cache.get().getModel("UActivity Model " + userID, UserDetailResponse.class);
         if (user != null) {
             Common.showToast("使用本地的");
-            invoke(user);
+            mUserViewModel.getUser().setValue(user);
         } else {
             Common.showToast("使用远端的");
             getUserDetail();
@@ -77,9 +115,9 @@ public class UActivity extends BaseActivity<ActivityUserNewBinding> implements D
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new NullCtrl<UserDetailResponse>() {
                     @Override
-                    public void success(UserDetailResponse userDetailResponse) {
-                        Cache.get().saveModel("UActivity Model " + userID, userDetailResponse);
-                        invoke(userDetailResponse);
+                    public void success(UserDetailResponse user) {
+                        Cache.get().saveModel("UActivity Model " + userID, user);
+                        mUserViewModel.getUser().setValue(user);
                     }
                 });
     }
@@ -91,93 +129,45 @@ public class UActivity extends BaseActivity<ActivityUserNewBinding> implements D
 
     @Override
     public void invoke(UserDetailResponse data) {
-        List<String> content = new ArrayList<>();
-        if (data.getProfile().getTotal_illusts() > 0) {
-            content.add("插画作品：" + data.getProfile().getTotal_illusts());
-        }
-        if (data.getProfile().getTotal_manga() > 0) {
-            content.add("漫画作品：" + data.getProfile().getTotal_manga());
-        }
-        if (data.getProfile().getTotal_illust_series() > 0) {
-            content.add("漫画系列：" + data.getProfile().getTotal_illust_series());
-        }
-        if (data.getProfile().getTotal_novels() > 0) {
-            content.add("小说作品：" + data.getProfile().getTotal_novels());
-        }
-        if (data.getProfile().getTotal_novel_series() > 0) {
-            content.add("小说系列：" + data.getProfile().getTotal_novel_series());
-        }
-        if (data.getProfile().getTotal_illust_bookmarks_public() > 0) {
-            content.add("插画/漫画收藏：" + data.getProfile().getTotal_illust_bookmarks_public());
-        }
-        content.add("小说收藏");
-        baseBind.tagLayout.setAdapter(new TagAdapter<String>(content) {
-            @Override
-            public View getView(FlowLayout parent, int position, String s) {
-                TagItemBinding binding = DataBindingUtil.inflate(
-                        LayoutInflater.from(mContext), R.layout.tag_item, null, false);
-                binding.tagName.setText(s);
-                return binding.getRoot();
-            }
-        });
-        baseBind.tagLayout.setOnTagClickListener(new TagFlowLayout.OnTagClickListener() {
-            @Override
-            public boolean onTagClick(View view, int position, FlowLayout parent) {
-                Intent intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "漫画系列作品");
-                intent.putExtra(Params.USER_ID, data.getUser().getId());
-                startActivity(intent);
-                return false;
-            }
-        });
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, FragmentHolder.newInstance())
+                .commitNow();
 
-        if (!TextUtils.isEmpty(data.getUser().getComment())) {
-            baseBind.comment.setVisibility(View.VISIBLE);
-            baseBind.comment.setText(data.getUser().getComment());
-        } else {
-            baseBind.comment.setVisibility(View.GONE);
-        }
         if (data.getUser().isIs_premium()) {
             baseBind.vipImage.setVisibility(View.VISIBLE);
         } else {
             baseBind.vipImage.setVisibility(View.GONE);
         }
+        Glide.with(mContext).load(GlideUtil.getHead(data.getUser())).into(baseBind.userHead);
         baseBind.userName.setText(data.getUser().getName());
         baseBind.follow.setText(String.valueOf(data.getProfile().getTotal_follow_users()));
         baseBind.pFriend.setText(String.valueOf(data.getProfile().getTotal_mypixiv_users()));
-        baseBind.showDetail.setOnClickListener(new View.OnClickListener() {
+
+        View.OnClickListener pFriend = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "详细信息");
-                intent.putExtra(Params.CONTENT, data);
+                intent.putExtra(Params.USER_ID, data.getUser().getId());
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "好P友");
                 startActivity(intent);
             }
-        });
+        };
+        baseBind.pFriend.setOnClickListener(pFriend);
+        baseBind.pFriendS.setOnClickListener(pFriend);
 
-
-        baseBind.contentItem.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+        View.OnClickListener follow = new View.OnClickListener() {
             @Override
-            public void onGlobalLayout() {
-                Common.showLog(className + " height " + baseBind.contentItem.getHeight());
-                Common.showLog(className + " paddBottom " + baseBind.contentItem.getPaddingBottom());
-
-                ViewGroup.LayoutParams params = baseBind.recyList.getLayoutParams();
-                params.height = baseBind.contentItem.getHeight() - baseBind.contentItem.getPaddingBottom() - baseBind.pleaseLl.getHeight();
-                baseBind.recyList.setLayoutParams(params);
-
-                baseBind.contentItem.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+            public void onClick(View v) {
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(Params.USER_ID, data.getUser().getId());
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "正在关注");
+                startActivity(intent);
             }
-        });
+        };
+        baseBind.follow.setOnClickListener(follow);
+        baseBind.followS.setOnClickListener(follow);
 
-        List<String> temp = new ArrayList<>();
-        for (int i = 0; i < 50; i++) {
-            temp.add("我是第" + (i + 1) + "条数据啦啦啦啦");
-        }
-        StringAdapter adapter = new StringAdapter(temp, mContext);
-        baseBind.recyList.setLayoutManager(new LinearLayoutManager(mContext));
-        baseBind.recyList.setAdapter(adapter);
-        baseBind.smartRefreshLayout.setEnableRefresh(false);
 
     }
 }
