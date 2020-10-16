@@ -30,7 +30,6 @@ import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.DensityUtil;
-import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.DownloadItemDecoration;
 import gdut.bsx.share2.FileUtil;

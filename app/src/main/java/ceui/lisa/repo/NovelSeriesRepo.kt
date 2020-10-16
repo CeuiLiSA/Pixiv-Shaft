@@ -2,7 +2,6 @@ package ceui.lisa.repo
 
 import ceui.lisa.core.RemoteRepo
 import ceui.lisa.http.Retro
-import ceui.lisa.model.ListMangaSeries
 import ceui.lisa.model.ListNovelSeries
 import io.reactivex.Observable
 

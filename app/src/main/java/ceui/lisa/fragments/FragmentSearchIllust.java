@@ -9,23 +9,15 @@ import androidx.databinding.ViewDataBinding;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
-import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapter;
 import ceui.lisa.core.BaseRepo;
-import ceui.lisa.core.FilterMapper;
-import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentBaseListBinding;
-import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.repo.SearchIllustRepo;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
-import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.viewmodel.SearchModel;
-import io.reactivex.Observable;
-import io.reactivex.functions.Function;
 
 public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBinding, ListIllust,
         IllustsBean> {

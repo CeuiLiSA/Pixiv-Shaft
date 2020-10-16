@@ -12,7 +12,6 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 
-import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.EventAdapter;
 import ceui.lisa.adapters.IAdapter;

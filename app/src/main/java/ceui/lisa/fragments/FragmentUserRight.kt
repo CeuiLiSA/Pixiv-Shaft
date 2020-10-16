@@ -11,13 +11,11 @@ import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.base.SwipeFragment
 import ceui.lisa.databinding.FragmentUserRightBinding
 import ceui.lisa.databinding.TagItemBinding
-import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.lisa.viewmodel.UserViewModel
 import com.scwang.smartrefresh.layout.SmartRefreshLayout
 import com.zhy.view.flowlayout.FlowLayout
 import com.zhy.view.flowlayout.TagAdapter
-import com.zhy.view.flowlayout.TagFlowLayout
 import java.util.*
 
 class FragmentUserRight : SwipeFragment<FragmentUserRightBinding>() {

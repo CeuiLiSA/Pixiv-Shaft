@@ -4,16 +4,14 @@ import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-
 import com.google.gson.Gson;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 import com.scwang.smartrefresh.layout.header.ClassicsHeader;
 
 import ceui.lisa.R;
-import ceui.lisa.models.UserModel;
 import ceui.lisa.helper.ThemeHelper;
-import ceui.lisa.utils.Common;
+import ceui.lisa.models.UserModel;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Local;

@@ -1,6 +1,5 @@
 package ceui.lisa.fragments;
 
-import android.content.Context;
 import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -19,10 +18,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.qmuiteam.qmui.util.QMUIDisplayHelper;
 import com.qmuiteam.qmui.widget.popup.QMUIPopup;
 import com.qmuiteam.qmui.widget.popup.QMUIPopups;
-import com.scwang.smartrefresh.header.DeliveryHeader;
-import com.scwang.smartrefresh.layout.api.RefreshFooter;
-import com.scwang.smartrefresh.layout.api.RefreshHeader;
-import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 
 import java.util.ArrayList;
@@ -39,28 +34,23 @@ import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.EventAdapter;
 import ceui.lisa.core.BaseRepo;
 import ceui.lisa.core.Container;
-import ceui.lisa.core.FilterMapper;
 import ceui.lisa.core.PageData;
-import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustRecmdEntity;
 import ceui.lisa.databinding.FragmentNewRightBinding;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.helper.TagFilter;
 import ceui.lisa.http.NullCtrl;
-import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.repo.RightRepo;
-import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.ShareIllust;
 import io.reactivex.Observable;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 
 public class FragmentRight extends NetListFragment<FragmentNewRightBinding, ListIllust, IllustsBean> {

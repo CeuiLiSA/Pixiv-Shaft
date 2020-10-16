@@ -7,18 +7,16 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
-
 import ceui.lisa.R;
 import ceui.lisa.base.BaseActivity;
 import ceui.lisa.core.Container;
 import ceui.lisa.core.IDWithList;
 import ceui.lisa.core.TimeRecord;
 import ceui.lisa.databinding.ActivityViewPagerBinding;
-import ceui.lisa.fragments.FragmentSingleIllust;
 import ceui.lisa.fragments.FragmentIllust;
+import ceui.lisa.fragments.FragmentSingleIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 

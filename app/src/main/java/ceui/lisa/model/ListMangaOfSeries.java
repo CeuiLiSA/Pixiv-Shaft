@@ -5,7 +5,6 @@ import java.util.List;
 import ceui.lisa.interfaces.ListShow;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.ImageUrlsBean;
-import ceui.lisa.models.SeriesBean;
 import ceui.lisa.models.UserBean;
 
 public class ListMangaOfSeries implements ListShow<IllustsBean> {
@@ -57,7 +56,7 @@ public class ListMangaOfSeries implements ListShow<IllustsBean> {
         return next_url;
     }
 
-    public static class SeriesDetail{
+    public static class SeriesDetail {
         private int id;
         private int series_work_count;
         private int width;

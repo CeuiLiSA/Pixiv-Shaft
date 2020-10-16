@@ -2,41 +2,22 @@ package ceui.lisa.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.TextUtils;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 
-import androidx.databinding.DataBindingUtil;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.bumptech.glide.Glide;
 import com.github.ybq.android.spinkit.style.Wave;
 import com.google.android.material.appbar.AppBarLayout;
-import com.zhy.view.flowlayout.FlowLayout;
-import com.zhy.view.flowlayout.TagAdapter;
-import com.zhy.view.flowlayout.TagFlowLayout;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.adapters.StringAdapter;
 import ceui.lisa.base.BaseActivity;
-import ceui.lisa.cache.Cache;
 import ceui.lisa.databinding.ActivityNewUserBinding;
-import ceui.lisa.databinding.ActivityUserNewBinding;
-import ceui.lisa.databinding.TagItemBinding;
 import ceui.lisa.fragments.FragmentHolder;
-import ceui.lisa.fragments.FragmentRecmdIllust;
-import ceui.lisa.fragments.FragmentUserIllust;
-import ceui.lisa.fragments.FragmentUserInfo;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.Display;
@@ -47,7 +28,6 @@ import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.viewmodel.UserViewModel;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 public class UActivity extends BaseActivity<ActivityNewUserBinding> implements Display<UserDetailResponse> {
@@ -76,7 +56,7 @@ public class UActivity extends BaseActivity<ActivityNewUserBinding> implements D
                         if (Math.abs(verticalOffset) < 15) {
                             baseBind.centerHeader.setAlpha(1.0f);
                             baseBind.toolbarTitle.setAlpha(0.0f);
-                        } else if((offset - Math.abs(verticalOffset)) < 15){
+                        } else if ((offset - Math.abs(verticalOffset)) < 15) {
                             baseBind.centerHeader.setAlpha(0.0f);
                             baseBind.toolbarTitle.setAlpha(1.0f);
                         } else {

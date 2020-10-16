@@ -21,7 +21,6 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.SAdapter;
 import ceui.lisa.core.BaseRepo;
-import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentSelectTagBinding;
 import ceui.lisa.databinding.RecySelectTagBinding;
 import ceui.lisa.http.ErrorCtrl;
@@ -32,7 +31,6 @@ import ceui.lisa.models.TagsBean;
 import ceui.lisa.repo.SelectTagRepo;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
-import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 

@@ -137,9 +137,9 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
 
     @Override
     public void onBackPressed() {
-        if(index == baseBind.viewPager.getCurrentItem()){
+        if (index == baseBind.viewPager.getCurrentItem()) {
             super.onBackPressed();
-        }else {
+        } else {
             mActivity.finish();
         }
     }

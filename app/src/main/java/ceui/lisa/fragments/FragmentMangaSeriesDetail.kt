@@ -10,7 +10,6 @@ import ceui.lisa.databinding.FragmentBaseListBinding
 import ceui.lisa.model.ListMangaOfSeries
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.repo.MangaSeriesDetailRepo
-import ceui.lisa.utils.Dev
 import ceui.lisa.utils.Params
 
 class FragmentMangaSeriesDetail: NetListFragment<FragmentBaseListBinding,

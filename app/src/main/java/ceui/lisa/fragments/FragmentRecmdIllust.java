@@ -95,7 +95,7 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
 
     @Override
     public boolean showToolbar() {
-        return getString(R.string.string_240).equals(dataType) && false;
+        return getString(R.string.string_240).equals(dataType);
     }
 
     @Override

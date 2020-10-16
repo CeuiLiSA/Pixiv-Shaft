@@ -32,7 +32,6 @@ import java.util.Locale;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
-import ceui.lisa.base.BaseActivity;
 import ceui.lisa.base.SwipeFragment;
 import ceui.lisa.databinding.FragmentSettingsBinding;
 import ceui.lisa.helper.ThemeHelper;

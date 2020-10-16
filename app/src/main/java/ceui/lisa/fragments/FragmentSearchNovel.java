@@ -12,16 +12,11 @@ import androidx.lifecycle.ViewModelProvider;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.NAdapter;
 import ceui.lisa.core.BaseRepo;
-import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentBaseListBinding;
-import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListNovel;
 import ceui.lisa.models.NovelBean;
-import ceui.lisa.repo.SearchIllustRepo;
 import ceui.lisa.repo.SearchNovelRepo;
-import ceui.lisa.utils.Common;
 import ceui.lisa.viewmodel.SearchModel;
-import io.reactivex.Observable;
 
 public class FragmentSearchNovel extends NetListFragment<FragmentBaseListBinding, ListNovel,
         NovelBean> {

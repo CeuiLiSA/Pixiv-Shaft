@@ -9,7 +9,6 @@ import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.base.BaseFragment;
 import ceui.lisa.databinding.ViewpagerWithTablayoutBinding;
-import ceui.lisa.utils.Dev;
 
 public class FragmentNew extends BaseFragment<ViewpagerWithTablayoutBinding> {
 

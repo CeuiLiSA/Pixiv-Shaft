@@ -7,7 +7,6 @@ import ceui.lisa.adapters.NovelSeriesAdapter
 import ceui.lisa.core.BaseRepo
 import ceui.lisa.databinding.FragmentBaseListBinding
 import ceui.lisa.model.ListNovelSeries
-import ceui.lisa.models.MangaSeriesItem
 import ceui.lisa.models.NovelSeriesItem
 import ceui.lisa.repo.NovelSeriesRepo
 import ceui.lisa.utils.Params

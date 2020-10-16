@@ -10,7 +10,7 @@ class LikeIllustRepo(
         private val userID: Int,
         private val starType: String?,
         var tag: String?
-): RemoteRepo<ListIllust>() {
+) : RemoteRepo<ListIllust>() {
 
     override fun initApi(): Observable<ListIllust> {
         return if (TextUtils.isEmpty(tag)) {

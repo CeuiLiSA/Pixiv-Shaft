@@ -1,6 +1,5 @@
 package ceui.lisa.fragments
 
-import android.os.Bundle
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentPagerAdapter
 import androidx.lifecycle.ViewModelProvider
@@ -8,7 +7,6 @@ import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.base.BaseFragment
 import ceui.lisa.databinding.FragmentHolderBinding
-import ceui.lisa.models.UserDetailResponse
 import ceui.lisa.utils.Params
 import ceui.lisa.viewmodel.UserViewModel
 
@@ -30,7 +28,6 @@ class FragmentHolder: BaseFragment<FragmentHolderBinding>() {
     override fun initLayout() {
         mLayoutID = R.layout.fragment_holder
     }
-
 
     override fun initView() {
         val data = mUserViewModel.user.value ?: return

@@ -15,7 +15,7 @@ class SearchIllustRepo(
         var sortType: String?,
         var searchType: String?,
         var isPopular: Boolean
-): RemoteRepo<ListIllust>() {
+) : RemoteRepo<ListIllust>() {
 
     override fun initApi(): Observable<ListIllust> {
         return if (isPopular) {

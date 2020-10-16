@@ -2,23 +2,23 @@ package ceui.lisa.http;
 
 import java.util.List;
 
-import ceui.lisa.model.ListMangaOfSeries;
 import ceui.lisa.model.ListArticle;
+import ceui.lisa.model.ListBookmarkTag;
+import ceui.lisa.model.ListComment;
+import ceui.lisa.model.ListIllust;
 import ceui.lisa.model.ListLive;
+import ceui.lisa.model.ListMangaOfSeries;
 import ceui.lisa.model.ListMangaSeries;
+import ceui.lisa.model.ListNovel;
+import ceui.lisa.model.ListNovelOfSeries;
 import ceui.lisa.model.ListNovelSeries;
 import ceui.lisa.model.ListSimpleUser;
 import ceui.lisa.model.ListTag;
-import ceui.lisa.model.ListNovelOfSeries;
-import ceui.lisa.models.GifResponse;
-import ceui.lisa.model.ListBookmarkTag;
-import ceui.lisa.model.ListComment;
-import ceui.lisa.models.IllustSearchResponse;
-import ceui.lisa.model.ListIllust;
-import ceui.lisa.model.ListNovel;
-import ceui.lisa.model.ListUser;
 import ceui.lisa.model.ListTrendingtag;
+import ceui.lisa.model.ListUser;
 import ceui.lisa.models.CommentHolder;
+import ceui.lisa.models.GifResponse;
+import ceui.lisa.models.IllustSearchResponse;
 import ceui.lisa.models.MutedHistory;
 import ceui.lisa.models.NovelDetail;
 import ceui.lisa.models.NovelSearchResponse;
@@ -51,8 +51,8 @@ public interface AppApi {
      */
     @GET("v1/illust/ranking?filter=for_android")
     Observable<ListIllust> getRank(@Header("Authorization") String token,
-                                 @Query("mode") String mode,
-                                 @Query("date") String date);
+                                   @Query("mode") String mode,
+                                   @Query("date") String date);
 
     @GET("v1/novel/ranking?filter=for_android")
     Observable<ListNovel> getRankNovel(@Header("Authorization") String token,
@@ -84,7 +84,6 @@ public interface AppApi {
                                            @Path("type") String type);
 
 
-
     /**
      * 原版app登录时候的背景墙
      *
@@ -114,9 +113,9 @@ public interface AppApi {
 
     @GET("v1/search/novel?filter=for_android&include_translated_tag_results=true")
     Observable<ListNovel> searchNovel(@Header("Authorization") String token,
-                                        @Query("word") String word,
-                                        @Query("sort") String sort,
-                                        @Query("search_target") String search_target);
+                                      @Query("word") String word,
+                                      @Query("sort") String sort,
+                                      @Query("search_target") String search_target);
 
 
     @GET("v2/illust/related?filter=for_android")
@@ -279,7 +278,7 @@ public interface AppApi {
 
     @GET("v1/search/popular-preview/illust?filter=for_android&include_translated_tag_results=true&merge_plain_keyword_results=true&search_target=exact_match_for_tags")
     Observable<ListIllust> popularPreview(@Header("Authorization") String token,
-                                    @Query("word") String word);
+                                          @Query("word") String word);
 
 
     // v2/search/autocomplete?merge_plain_keyword_results=true&word=%E5%A5%B3%E4%BD%93 HTTP/1.1
@@ -340,13 +339,67 @@ public interface AppApi {
     Observable<ListNovel> getNewNovels(@Header("Authorization") String token);
 
 
+    //获取好P友
+    @GET("v1/novel/text")
+    Observable<NovelDetail> getNovelDetail(@Header("Authorization") String token,
+                                           @Query("novel_id") int novel_id);
+
+
+    //获取好P友
+    @GET("v1/user/me/state")
+    Observable<UserState> getAccountState(@Header("Authorization") String token);
+
+    @Multipart
+    @POST("v1/user/profile/edit")
+    Observable<NullResponse> updateUserProfile(@Header("Authorization") String token,
+                                               @Part List<MultipartBody.Part> parts);
+
+
+    @GET("v1/live/list")
+    Observable<ListLive> getLiveList(@Header("Authorization") String token,
+                                     @Query("list_type") String list_type);
+
+    @GET("v1/illust/bookmark/users?filter=for_android")
+    Observable<ListSimpleUser> getUsersWhoLikeThisIllust(@Header("Authorization") String token,
+                                                         @Query("illust_id") int illust_id);
+
+    @GET("v2/novel/series")
+    Observable<ListNovelOfSeries> getNovelSeries(@Header("Authorization") String token,
+                                                 @Query("series_id") int series_id);
+
+    @GET("v2/novel/detail")
+    Observable<NovelSearchResponse> getNovelByID(@Header("Authorization") String token,
+                                                 @Query("novel_id") int novel_id);
+
+    @GET("v1/illust/series?filter=for_android")
+    Observable<ListMangaOfSeries> getMangaSeriesById(@Header("Authorization") String token,
+                                                     @Query("illust_series_id") int illust_series_id);
+
+
+    @GET("v1/user/illust-series")
+    Observable<ListMangaSeries> getUserMangaSeries(@Header("Authorization") String token,
+                                                   @Query("user_id") int user_id);
+
+
+    @GET("v1/user/novel-series")
+    Observable<ListNovelSeries> getUserNovelSeries(@Header("Authorization") String token,
+                                                   @Query("user_id") int user_id);
+
+    @GET
+    Observable<ListNovelSeries> getNextUserNovelSeries(@Header("Authorization") String token,
+                                                       @Url String next_url);
+
+    @GET
+    Observable<ListMangaSeries> getNextUserMangaSeries(@Header("Authorization") String token,
+                                                       @Url String next_url);
+
     @GET
     Observable<ListUser> getNextUser(@Header("Authorization") String token,
                                      @Url String next_url);
 
     @GET
     Observable<ListSimpleUser> getNextSimpleUser(@Header("Authorization") String token,
-                                           @Url String next_url);
+                                                 @Url String next_url);
 
 
     @GET
@@ -364,60 +417,4 @@ public interface AppApi {
     @GET
     Observable<ListArticle> getNextArticals(@Header("Authorization") String token,
                                             @Url String next_url);
-
-    //获取好P友
-    @GET("v1/novel/text")
-    Observable<NovelDetail> getNovelDetail(@Header("Authorization") String token,
-                                           @Query("novel_id") int novel_id);
-
-
-    //获取好P友
-    @GET("v1/user/me/state")
-    Observable<UserState> getAccountState(@Header("Authorization") String token);
-
-    @Multipart
-    @POST("v1/user/profile/edit")
-    Observable<NullResponse> updateUserProfile(@Header("Authorization") String token,
-                                               @Part List<MultipartBody.Part> parts);
-
-
-
-    @GET("v1/live/list")
-    Observable<ListLive> getLiveList(@Header("Authorization") String token,
-                                     @Query("list_type") String list_type);
-
-    @GET("v1/illust/bookmark/users?filter=for_android")
-    Observable<ListSimpleUser> getUsersWhoLikeThisIllust(@Header("Authorization") String token,
-                                     @Query("illust_id") int illust_id);
-
-    @GET("v2/novel/series")
-    Observable<ListNovelOfSeries> getNovelSeries(@Header("Authorization") String token,
-                                                 @Query("series_id") int series_id);
-
-    @GET("v2/novel/detail")
-    Observable<NovelSearchResponse> getNovelByID(@Header("Authorization") String token,
-                                                 @Query("novel_id") int novel_id);
-
-    @GET("v1/illust/series?filter=for_android")
-    Observable<ListMangaOfSeries> getMangaSeriesById(@Header("Authorization") String token,
-                                                     @Query("illust_series_id") int illust_series_id);
-
-
-
-    @GET("v1/user/illust-series")
-    Observable<ListMangaSeries> getUserMangaSeries(@Header("Authorization") String token,
-                                                    @Query("user_id") int user_id);
-
-
-    @GET("v1/user/novel-series")
-    Observable<ListNovelSeries> getUserNovelSeries(@Header("Authorization") String token,
-                                                   @Query("user_id") int user_id);
-
-    @GET
-    Observable<ListNovelSeries> getNextUserNovelSeries(@Header("Authorization") String token,
-                                                       @Url String next_url);
-
-    @GET
-    Observable<ListMangaSeries> getNextUserMangaSeries(@Header("Authorization") String token,
-                                                       @Url String next_url);
 }

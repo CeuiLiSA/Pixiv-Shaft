@@ -3,7 +3,6 @@ package ceui.lisa.repo
 import ceui.lisa.core.RemoteRepo
 import ceui.lisa.http.Retro
 import ceui.lisa.model.ListIllust
-import ceui.lisa.utils.Dev
 import io.reactivex.Observable
 
 open class RecmdIllustRepo(

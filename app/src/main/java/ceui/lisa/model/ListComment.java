@@ -2,8 +2,8 @@ package ceui.lisa.model;
 
 import java.util.List;
 
-import ceui.lisa.models.CommentsBean;
 import ceui.lisa.interfaces.ListShow;
+import ceui.lisa.models.CommentsBean;
 
 public class ListComment implements ListShow<CommentsBean> {
     private List<CommentsBean> comments;

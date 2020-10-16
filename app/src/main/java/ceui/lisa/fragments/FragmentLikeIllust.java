@@ -10,8 +10,6 @@ import android.view.MenuItem;
 import androidx.appcompat.widget.Toolbar;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import java.util.UUID;
-
 import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapter;
