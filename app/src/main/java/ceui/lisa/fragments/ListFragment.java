@@ -109,18 +109,26 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
         mRefreshLayout.setOnRefreshListener(new OnRefreshListener() {
             @Override
             public void onRefresh(@NonNull RefreshLayout refreshLayout) {
-                clear();
-                fresh();
+                try {
+                    clear();
+                    fresh();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
         mRefreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
             @Override
             public void onLoadMore(@NonNull RefreshLayout refreshLayout) {
-                if (mModel.getBaseRepo().hasNext()) {
-                    loadMore();
-                } else {
-                    mRefreshLayout.finishLoadMore();
-                    mRefreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
+                try {
+                    if (mModel.getBaseRepo().hasNext()) {
+                        loadMore();
+                    } else {
+                        mRefreshLayout.finishLoadMore();
+                        mRefreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         });

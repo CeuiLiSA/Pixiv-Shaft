@@ -51,11 +51,16 @@ public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCo
             }
             baseBind = DataBindingUtil.setContentView(mActivity, mLayoutID);
 
+            initModel();
             initView();
             initData();
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void initModel() {
+
     }
 
     protected void initBundle(Bundle bundle) {

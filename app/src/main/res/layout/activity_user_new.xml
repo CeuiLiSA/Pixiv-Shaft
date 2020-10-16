@@ -76,13 +76,15 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="@dimen/twelve_dp"
+                    android:id="@+id/fans_ll"
+                    android:visibility="invisible"
                     android:orientation="horizontal">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_vertical"
-                        android:text="关注："
+                        android:text="@string/string_145"
                         android:textColor="@color/white"
                         android:textSize="13sp">
 
@@ -94,7 +96,6 @@
                         android:textStyle="bold"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="123"
                         android:textColor="@color/white"
                         android:textSize="15sp">
 
@@ -114,7 +115,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="好P友："
+                        android:text="@string/string_147"
                         android:layout_gravity="center_vertical"
                         android:textColor="@color/white"
                         android:textSize="13sp">
@@ -127,7 +128,6 @@
                         android:textStyle="bold"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="123"
                         android:textColor="@color/white"
                         android:textSize="15sp">
 

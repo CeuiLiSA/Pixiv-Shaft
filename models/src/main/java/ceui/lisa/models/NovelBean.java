@@ -52,6 +52,10 @@ public class NovelBean implements Serializable, Starable {
     private boolean is_mypixiv_only;
     private boolean is_x_restricted;
     private List<TagsBean> tags;
+    private boolean is_concluded;
+    private int content_count;
+    private int total_character_count;
+    private String display_text;
 
     public int getId() {
         return id;
@@ -248,5 +252,37 @@ public class NovelBean implements Serializable, Starable {
     @Override
     public void setItemStared(boolean isLiked) {
         setIs_bookmarked(isLiked);
+    }
+
+    public boolean isIs_concluded() {
+        return is_concluded;
+    }
+
+    public void setIs_concluded(boolean is_concluded) {
+        this.is_concluded = is_concluded;
+    }
+
+    public int getContent_count() {
+        return content_count;
+    }
+
+    public void setContent_count(int content_count) {
+        this.content_count = content_count;
+    }
+
+    public int getTotal_character_count() {
+        return total_character_count;
+    }
+
+    public void setTotal_character_count(int total_character_count) {
+        this.total_character_count = total_character_count;
+    }
+
+    public String getDisplay_text() {
+        return display_text;
+    }
+
+    public void setDisplay_text(String display_text) {
+        this.display_text = display_text;
     }
 }

@@ -2,13 +2,14 @@ package ceui.lisa.http;
 
 import java.util.List;
 
-import ceui.lisa.model.ListMangaSeriesDetail;
+import ceui.lisa.model.ListMangaOfSeries;
 import ceui.lisa.model.ListArticle;
 import ceui.lisa.model.ListLive;
 import ceui.lisa.model.ListMangaSeries;
+import ceui.lisa.model.ListNovelSeries;
 import ceui.lisa.model.ListSimpleUser;
 import ceui.lisa.model.ListTag;
-import ceui.lisa.model.NovelSeries;
+import ceui.lisa.model.ListNovelOfSeries;
 import ceui.lisa.models.GifResponse;
 import ceui.lisa.model.ListBookmarkTag;
 import ceui.lisa.model.ListComment;
@@ -357,8 +358,8 @@ public interface AppApi {
                                        @Url String next_url);
 
     @GET
-    Observable<NovelSeries> getNextSeriesNovel(@Header("Authorization") String token,
-                                               @Url String next_url);
+    Observable<ListNovelOfSeries> getNextSeriesNovel(@Header("Authorization") String token,
+                                                     @Url String next_url);
 
     @GET
     Observable<ListArticle> getNextArticals(@Header("Authorization") String token,
@@ -390,16 +391,16 @@ public interface AppApi {
                                      @Query("illust_id") int illust_id);
 
     @GET("v2/novel/series")
-    Observable<NovelSeries> getNovelSeries(@Header("Authorization") String token,
-                                                         @Query("series_id") int series_id);
+    Observable<ListNovelOfSeries> getNovelSeries(@Header("Authorization") String token,
+                                                 @Query("series_id") int series_id);
 
     @GET("v2/novel/detail")
     Observable<NovelSearchResponse> getNovelByID(@Header("Authorization") String token,
                                                  @Query("novel_id") int novel_id);
 
     @GET("v1/illust/series?filter=for_android")
-    Observable<ListMangaSeriesDetail> getMangaSeriesById(@Header("Authorization") String token,
-                                                      @Query("illust_series_id") int illust_series_id);
+    Observable<ListMangaOfSeries> getMangaSeriesById(@Header("Authorization") String token,
+                                                     @Query("illust_series_id") int illust_series_id);
 
 
 
@@ -408,5 +409,15 @@ public interface AppApi {
                                                     @Query("user_id") int user_id);
 
 
+    @GET("v1/user/novel-series")
+    Observable<ListNovelSeries> getUserNovelSeries(@Header("Authorization") String token,
+                                                   @Query("user_id") int user_id);
 
+    @GET
+    Observable<ListNovelSeries> getNextUserNovelSeries(@Header("Authorization") String token,
+                                                       @Url String next_url);
+
+    @GET
+    Observable<ListMangaSeries> getNextUserMangaSeries(@Header("Authorization") String token,
+                                                       @Url String next_url);
 }

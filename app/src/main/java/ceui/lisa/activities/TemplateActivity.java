@@ -25,6 +25,7 @@ import ceui.lisa.fragments.FragmentNew;
 import ceui.lisa.fragments.FragmentNewNovel;
 import ceui.lisa.fragments.FragmentNewNovels;
 import ceui.lisa.fragments.FragmentNovelSeries;
+import ceui.lisa.fragments.FragmentNovelSeriesDetail;
 import ceui.lisa.fragments.FragmentRecmdIllust;
 import ceui.lisa.fragments.FragmentSB;
 import ceui.lisa.fragments.FragmentUserInfo;
@@ -137,8 +138,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return FragmentWhoFollowThisUser.newInstance(intent.getIntExtra(Params.USER_ID, 0));
                 case "喜欢这个作品的用户":
                     return FragmentListSimpleUser.newInstance((IllustsBean) intent.getSerializableExtra(Params.CONTENT));
-                case "小说系列作品":
-                    return FragmentNovelSeries.newInstance((NovelBean) intent.getSerializableExtra(Params.CONTENT));
+                case "小说系列详情":
+                    return FragmentNovelSeriesDetail.newInstance(intent.getIntExtra(Params.ID, 0));
                 case "插画作品":
                     return FragmentUserIllust.newInstance(intent.getIntExtra(Params.USER_ID, 0),
                             true);
@@ -183,6 +184,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return FragmentMangaSeries.newInstance(intent.getIntExtra(Params.USER_ID, 0));
                 case "漫画系列详情":
                     return FragmentMangaSeriesDetail.newInstance(intent.getIntExtra(Params.ID, 0));
+                case "小说系列作品":
+                    return new FragmentNovelSeries();
                 case "精华列":
                     return new FragmentFeature();
                 default:

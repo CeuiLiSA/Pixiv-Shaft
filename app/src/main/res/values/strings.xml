@@ -333,8 +333,8 @@
     <string name="string_142">取消</string>
     <string name="string_143">提示</string>
     <string name="string_144">这将会删除所有的本地搜索历史</string>
-    <string name="string_147">好P友:</string>
-    <string name="string_145">关注:</string>
+    <string name="string_147">好P友：</string>
+    <string name="string_145">关注：</string>
     <string name="string_146">详细信息</string>
     <string name="string_148">请输入搜索内容</string>
     <string name="string_149">标签搜作品</string>
@@ -444,5 +444,7 @@
     <string name="string_253">确认删除全部记录吗</string>
     <string name="string_254">没有可以删除的记录</string>
     <string name="string_255">这将会删除所有的本地浏览历史</string>
+    <string name="string_256">暂不支持查看小说系列</string>
+    <string name="string_257">小说系列</string>
 
 </resources>

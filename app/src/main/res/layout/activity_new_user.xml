@@ -37,6 +37,7 @@
 
                 <LinearLayout
                     android:id="@+id/center_header"
+                    android:visibility="invisible"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
@@ -49,7 +50,6 @@
                         android:layout_gravity="center_horizontal"
                         android:layout_marginTop="48dp"
                         android:scaleType="centerCrop"
-                        android:src="@drawable/avatar_9"
                         app:civ_border_color="@color/new_color_primary"
                         app:civ_border_width="1dp">
 
@@ -65,7 +65,6 @@
                             android:id="@+id/user_name"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="だーすだーす"
                             android:textColor="@color/white"
                             android:textSize="19sp"
                             android:textStyle="bold">
@@ -109,7 +108,6 @@
                             android:id="@+id/follow"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="123"
                             android:textColor="@color/white"
                             android:textSize="15sp"
                             android:textStyle="bold">

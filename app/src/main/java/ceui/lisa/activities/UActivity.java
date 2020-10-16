@@ -91,7 +91,7 @@ public class UActivity extends BaseActivity<ActivityNewUserBinding> implements D
     }
 
     @Override
-    protected void initData() {
+    public void initModel() {
         mUserViewModel = new ViewModelProvider(this).get(UserViewModel.class);
         mUserViewModel.getUser().observe(this, new Observer<UserDetailResponse>() {
             @Override
@@ -99,24 +99,16 @@ public class UActivity extends BaseActivity<ActivityNewUserBinding> implements D
                 invoke(userDetailResponse);
             }
         });
-        UserDetailResponse user = Cache.get().getModel("UActivity Model " + userID, UserDetailResponse.class);
-        if (user != null) {
-            Common.showToast("使用本地的");
-            mUserViewModel.getUser().setValue(user);
-        } else {
-            Common.showToast("使用远端的");
-            getUserDetail();
-        }
     }
 
-    private void getUserDetail() {
+    @Override
+    protected void initData() {
         Retro.getAppApi().getUserDetail(Shaft.sUserModel.getResponse().getAccess_token(), userID)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new NullCtrl<UserDetailResponse>() {
                     @Override
                     public void success(UserDetailResponse user) {
-                        Cache.get().saveModel("UActivity Model " + userID, user);
                         mUserViewModel.getUser().setValue(user);
                     }
                 });
@@ -134,6 +126,7 @@ public class UActivity extends BaseActivity<ActivityNewUserBinding> implements D
                 .replace(R.id.fragment_container, FragmentHolder.newInstance())
                 .commitNow();
 
+        baseBind.centerHeader.setVisibility(View.VISIBLE);
         if (data.getUser().isIs_premium()) {
             baseBind.vipImage.setVisibility(View.VISIBLE);
         } else {

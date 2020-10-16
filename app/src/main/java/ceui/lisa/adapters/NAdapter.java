@@ -52,8 +52,8 @@ public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
                     @Override
                     public void onClick(View view) {
                         Intent intent = new Intent(mContext, TemplateActivity.class);
-                        intent.putExtra(Params.CONTENT, allIllust.get(position));
-                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说系列作品");
+                        intent.putExtra(Params.ID, allIllust.get(position).getId());
+                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说系列详情");
                         mContext.startActivity(intent);
                     }
                 });

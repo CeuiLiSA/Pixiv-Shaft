@@ -11,11 +11,13 @@ import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.base.SwipeFragment
 import ceui.lisa.databinding.FragmentUserRightBinding
 import ceui.lisa.databinding.TagItemBinding
+import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import ceui.lisa.viewmodel.UserViewModel
 import com.scwang.smartrefresh.layout.SmartRefreshLayout
 import com.zhy.view.flowlayout.FlowLayout
 import com.zhy.view.flowlayout.TagAdapter
+import com.zhy.view.flowlayout.TagFlowLayout
 import java.util.*
 
 class FragmentUserRight : SwipeFragment<FragmentUserRightBinding>() {
@@ -64,7 +66,37 @@ class FragmentUserRight : SwipeFragment<FragmentUserRightBinding>() {
                 return binding.root
             }
         }
-
+        baseBind.tagLayout.setOnTagClickListener(object :TagFlowLayout.OnTagClickListener{
+            override fun onTagClick(view: View?, position: Int, parent: FlowLayout?): Boolean {
+                val intent = Intent(mContext, TemplateActivity::class.java)
+                intent.putExtra(Params.USER_ID, data.user.userId)
+                when {
+                    content[position].contains("插画作品") -> {
+                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "插画作品")
+                    }
+                    content[position].contains("漫画作品") -> {
+                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "漫画作品")
+                    }
+                    content[position].contains("漫画系列") -> {
+                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "漫画系列作品")
+                    }
+                    content[position].contains("小说作品") -> {
+                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说作品")
+                    }
+                    content[position].contains("小说系列") -> {
+                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说系列作品")
+                    }
+                    content[position].contains("插画/漫画收藏") -> {
+                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "插画/漫画收藏")
+                    }
+                    content[position].contains("小说收藏") -> {
+                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说收藏")
+                    }
+                }
+                startActivity(intent)
+                return true
+            }
+        })
         if (!TextUtils.isEmpty(data.user.comment)) {
             baseBind.comment.visibility = View.VISIBLE
             baseBind.comment.text = data.user.comment

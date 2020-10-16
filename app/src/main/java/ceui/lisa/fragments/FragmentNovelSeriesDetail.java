@@ -12,24 +12,24 @@ import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.NAdapter;
 import ceui.lisa.core.BaseRepo;
 import ceui.lisa.databinding.FragmentNovelSeriesBinding;
-import ceui.lisa.model.NovelSeries;
+import ceui.lisa.model.ListNovelOfSeries;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.UserBean;
-import ceui.lisa.repo.NovelSeriesRepo;
+import ceui.lisa.repo.NovelSeriesDetailRepo;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 
-public class FragmentNovelSeries extends NetListFragment<FragmentNovelSeriesBinding,
-        NovelSeries, NovelBean>{
+public class FragmentNovelSeriesDetail extends NetListFragment<FragmentNovelSeriesBinding,
+        ListNovelOfSeries, NovelBean>{
 
-    private NovelBean novelBean;
+    private int seriesID;
 
-    public static FragmentNovelSeries newInstance(NovelBean n) {
+    public static FragmentNovelSeriesDetail newInstance(int seriesID) {
         Bundle args = new Bundle();
-        args.putSerializable(Params.CONTENT, n);
-        FragmentNovelSeries fragment = new FragmentNovelSeries();
+        args.putInt(Params.ID, seriesID);
+        FragmentNovelSeriesDetail fragment = new FragmentNovelSeriesDetail();
         fragment.setArguments(args);
         return fragment;
     }
@@ -41,7 +41,7 @@ public class FragmentNovelSeries extends NetListFragment<FragmentNovelSeriesBind
 
     @Override
     public void initBundle(Bundle bundle) {
-        novelBean = (NovelBean) bundle.getSerializable(Params.CONTENT);
+        seriesID = bundle.getInt(Params.ID);
     }
 
     @Override
@@ -51,7 +51,7 @@ public class FragmentNovelSeries extends NetListFragment<FragmentNovelSeriesBind
 
     @Override
     public BaseRepo repository() {
-        return new NovelSeriesRepo(novelBean.getSeries().getId());
+        return new NovelSeriesDetailRepo(seriesID);
     }
 
     @Override
@@ -60,19 +60,19 @@ public class FragmentNovelSeries extends NetListFragment<FragmentNovelSeriesBind
     }
 
     @Override
-    public void onResponse(NovelSeries novelSeries) {
+    public void onResponse(ListNovelOfSeries listNovelOfSeries) {
         try {
             baseBind.cardPixiv.setVisibility(View.VISIBLE);
-            baseBind.seriesTitle.setText("系列名称：" + novelSeries.getNovel_series_detail().getTitle());
+            baseBind.seriesTitle.setText("系列名称：" + listNovelOfSeries.getNovel_series_detail().getTitle());
             //每分钟五百字
-            float minute = novelSeries.getNovel_series_detail().getTotal_character_count() / 500.0f;
+            float minute = listNovelOfSeries.getNovel_series_detail().getTotal_character_count() / 500.0f;
             baseBind.seriesDetail.setText(String.format(getString(R.string.how_many_novels),
-                    novelSeries.getNovel_series_detail().getContent_count(),
-                    novelSeries.getNovel_series_detail().getTotal_character_count(),
+                    listNovelOfSeries.getNovel_series_detail().getContent_count(),
+                    listNovelOfSeries.getNovel_series_detail().getTotal_character_count(),
                     (int) Math.floor(minute / 60),
                     ((int)minute) % 60));
-            if (novelSeries.getList() != null && novelSeries.getList().size() != 0) {
-                NovelBean bean = novelSeries.getList().get(0);
+            if (listNovelOfSeries.getList() != null && listNovelOfSeries.getList().size() != 0) {
+                NovelBean bean = listNovelOfSeries.getList().get(0);
                 UserBean userBean = bean.getUser();
                 initUser(userBean);
             }

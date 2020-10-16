@@ -12,6 +12,6 @@ class MangaSeriesRepo(private val userID: Int) : RemoteRepo<ListMangaSeries>() {
     }
 
     override fun initNextApi(): Observable<ListMangaSeries>? {
-        return null
+        return Retro.getAppApi().getNextUserMangaSeries(token(), nextUrl)
     }
 }
