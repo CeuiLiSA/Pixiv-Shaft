@@ -199,6 +199,22 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             }
         });
 
+        baseBind.userNewUser.setChecked(Shaft.sSettings.isUseNewUserPage());
+        baseBind.userNewUser.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setUseNewUserPage(isChecked);
+                Common.showToast("设置成功", baseBind.userNewUser);
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.userNewUserRela.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                baseBind.userNewUser.performClick();
+            }
+        });
+
         baseBind.relatedNoLimit.setChecked(Shaft.sSettings.isRelatedIllustNoLimit());
         baseBind.relatedNoLimit.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -256,26 +272,6 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             @Override
             public void onClick(View v) {
                 baseBind.firstDetailOrigin.performClick();
-            }
-        });
-
-        baseBind.deleteStarIllust.setChecked(Shaft.sSettings.isDeleteStarIllust());
-        baseBind.deleteStarIllust.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    Shaft.sSettings.setDeleteStarIllust(true);
-                } else {
-                    Shaft.sSettings.setDeleteStarIllust(false);
-                }
-                Common.showToast("设置成功", baseBind.deleteStarIllust);
-                Local.setSettings(Shaft.sSettings);
-            }
-        });
-        baseBind.deleteStarIllustRela.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                baseBind.deleteStarIllust.performClick();
             }
         });
 

@@ -49,9 +49,6 @@ public class Settings {
     //一级详情FragmentSingleIllust 图片显示原图
     private boolean useOriginalImage = false;
 
-    //屏蔽，不显示已收藏的作品，默认不屏蔽
-    private boolean deleteStarIllust = false;
-
     //二级详情FragmentImageDetail 图片显示原图
     private boolean secondImageSize = true;
 
@@ -71,6 +68,9 @@ public class Settings {
 
     //作品详情使用新页面
     private boolean useFragmentIllust = true;
+
+    //个人中心使用新页面
+    private boolean useNewUserPage = true;
 
     private String illustPath = "";
 
@@ -120,14 +120,6 @@ public class Settings {
     private String searchFilter = "";
 
     public Settings() {
-    }
-
-    public boolean isDeleteStarIllust() {
-        return deleteStarIllust;
-    }
-
-    public void setDeleteStarIllust(boolean pDeleteStarIllust) {
-        deleteStarIllust = pDeleteStarIllust;
     }
 
     public boolean isSaveViewHistory() {
@@ -317,5 +309,13 @@ public class Settings {
 
     public void setNovelHolderColor(int novelHolderColor) {
         this.novelHolderColor = novelHolderColor;
+    }
+
+    public boolean isUseNewUserPage() {
+        return useNewUserPage;
+    }
+
+    public void setUseNewUserPage(boolean useNewUserPage) {
+        this.useNewUserPage = useNewUserPage;
     }
 }

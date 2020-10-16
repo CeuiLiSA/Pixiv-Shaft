@@ -175,7 +175,35 @@
 
                     </TextView>
 
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:text="取消关注"
+                        android:visibility="invisible"
+                        android:textSize="12sp"
+                        android:textColor="@color/white"
+                        android:paddingStart="@dimen/twelve_dip"
+                        android:paddingEnd="@dimen/twelve_dip"
+                        android:paddingTop="@dimen/six_dp"
+                        android:paddingBottom="@dimen/six_dp"
+                        android:background="@drawable/follow_button_stroke_new"
+                        android:layout_marginEnd="@dimen/eight_dp"
+                        android:layout_gravity="end|center_vertical"
+                        android:id="@+id/star_user"
+                        android:layout_height="wrap_content">
+
+                    </TextView>
+
                 </androidx.appcompat.widget.Toolbar>
+
+                <ProgressBar
+                    android:layout_width="wrap_content"
+                    android:id="@+id/progress"
+                    android:visibility="invisible"
+                    android:layout_gravity="center"
+                    android:indeterminateTint="@color/white"
+                    android:layout_height="wrap_content">
+
+                </ProgressBar>
 
             </com.google.android.material.appbar.CollapsingToolbarLayout>
 

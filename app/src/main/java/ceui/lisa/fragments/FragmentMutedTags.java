@@ -56,7 +56,7 @@ public class FragmentMutedTags extends LocalListFragment<FragmentBaseListBinding
                     mAdapter.notifyItemRangeChanged(position, allItems.size() - position);
                     if (allItems.size() == 0) {
                         mRecyclerView.setVisibility(View.INVISIBLE);
-                        noData.setVisibility(View.VISIBLE);
+                        emptyRela.setVisibility(View.VISIBLE);
                     }
                 }
             }
@@ -90,7 +90,7 @@ public class FragmentMutedTags extends LocalListFragment<FragmentBaseListBinding
                                         AppDatabase.getAppDatabase(mContext).searchDao().deleteAllMutedTags();
                                         Common.showToast(getString(R.string.string_220));
                                         mAdapter.clear();
-                                        noData.setVisibility(View.VISIBLE);
+                                        emptyRela.setVisibility(View.VISIBLE);
                                         dialog.dismiss();
                                     }
                                 })
@@ -140,7 +140,7 @@ public class FragmentMutedTags extends LocalListFragment<FragmentBaseListBinding
         if (!isExist) {
             if (allItems.size() == 0) {
                 mRecyclerView.setVisibility(View.VISIBLE);
-                noData.setVisibility(View.INVISIBLE);
+                emptyRela.setVisibility(View.INVISIBLE);
             }
 
             TagsBean tagsBean = new TagsBean();
@@ -157,6 +157,6 @@ public class FragmentMutedTags extends LocalListFragment<FragmentBaseListBinding
 
     @Override
     public String getToolbarTitle() {
-        return getString(R.string.string_208);
+        return getString(R.string.muted_history);
     }
 }

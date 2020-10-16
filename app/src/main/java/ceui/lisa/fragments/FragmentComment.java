@@ -251,7 +251,7 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
                 public void success(CommentHolder commentHolder) {
                     if (allItems.size() == 0) {
                         mRecyclerView.setVisibility(View.VISIBLE);
-                        noData.setVisibility(View.INVISIBLE);
+                        emptyRela.setVisibility(View.INVISIBLE);
                     }
 
                     if (Emoji.hasEmoji(commentHolder.getComment().getComment())) {

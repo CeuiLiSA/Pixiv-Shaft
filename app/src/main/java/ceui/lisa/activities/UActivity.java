@@ -7,6 +7,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.FragmentTransaction;
@@ -15,6 +17,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.bumptech.glide.Glide;
+import com.github.ybq.android.spinkit.style.Wave;
 import com.google.android.material.appbar.AppBarLayout;
 import com.zhy.view.flowlayout.FlowLayout;
 import com.zhy.view.flowlayout.TagAdapter;
@@ -41,6 +44,7 @@ import ceui.lisa.models.UserDetailResponse;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
+import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.viewmodel.UserViewModel;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
@@ -58,6 +62,8 @@ public class UActivity extends BaseActivity<ActivityNewUserBinding> implements D
 
     @Override
     protected void initView() {
+        Wave wave = new Wave();
+        baseBind.progress.setIndeterminateDrawable(wave);
         baseBind.toolbar.setPadding(0, Shaft.statusHeight, 0, 0);
         baseBind.toolbar.setNavigationOnClickListener(v -> finish());
         baseBind.toolbarLayout.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -103,6 +109,7 @@ public class UActivity extends BaseActivity<ActivityNewUserBinding> implements D
 
     @Override
     protected void initData() {
+        baseBind.progress.setVisibility(View.VISIBLE);
         Retro.getAppApi().getUserDetail(Shaft.sUserModel.getResponse().getAccess_token(), userID)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -110,6 +117,12 @@ public class UActivity extends BaseActivity<ActivityNewUserBinding> implements D
                     @Override
                     public void success(UserDetailResponse user) {
                         mUserViewModel.getUser().setValue(user);
+                    }
+
+                    @Override
+                    public void must(boolean isSuccess) {
+                        super.must(isSuccess);
+                        baseBind.progress.setVisibility(View.INVISIBLE);
                     }
                 });
     }
@@ -126,7 +139,35 @@ public class UActivity extends BaseActivity<ActivityNewUserBinding> implements D
                 .replace(R.id.fragment_container, FragmentHolder.newInstance())
                 .commitNow();
 
+        if (userID == Shaft.sUserModel.getUserId()) {
+            baseBind.starUser.setVisibility(View.INVISIBLE);
+        } else {
+            baseBind.starUser.setVisibility(View.VISIBLE);
+            if (data.getUser().isIs_followed()) {
+                baseBind.starUser.setText(R.string.string_177);
+            } else {
+                baseBind.starUser.setText(R.string.string_178);
+            }
+            baseBind.starUser.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (data.getUser().isIs_followed()) {
+                        baseBind.starUser.setText(R.string.string_178);
+                        PixivOperate.postUnFollowUser(data.getUser().getId());
+                        data.getUser().setIs_followed(false);
+                    } else {
+                        baseBind.starUser.setText(R.string.string_177);
+                        PixivOperate.postFollowUser(data.getUser().getId(), Params.TYPE_PUBLUC);
+                        data.getUser().setIs_followed(true);
+                    }
+                }
+            });
+        }
+
         baseBind.centerHeader.setVisibility(View.VISIBLE);
+        Animation animation = new AlphaAnimation(0.0f, 1.0f);
+        animation.setDuration(800L);
+        baseBind.centerHeader.startAnimation(animation);
         if (data.getUser().isIs_premium()) {
             baseBind.vipImage.setVisibility(View.VISIBLE);
         } else {
@@ -160,7 +201,6 @@ public class UActivity extends BaseActivity<ActivityNewUserBinding> implements D
         };
         baseBind.follow.setOnClickListener(follow);
         baseBind.followS.setOnClickListener(follow);
-
 
     }
 }

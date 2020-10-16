@@ -109,7 +109,7 @@ public class FragmentDownloadFinish extends LocalListFragment<FragmentBaseListBi
         IntentFilter intentFilter = new IntentFilter();
         mReceiver = new DownloadReceiver<>((Callback<DownloadEntity>) entity -> {
             mRecyclerView.setVisibility(View.VISIBLE);
-            noData.setVisibility(View.INVISIBLE);
+            emptyRela.setVisibility(View.INVISIBLE);
             allItems.add(0, entity);
             all.add(Shaft.sGson.fromJson(entity.getIllustGson(), IllustsBean.class));
             filePaths.add(0, entity.getFilePath());

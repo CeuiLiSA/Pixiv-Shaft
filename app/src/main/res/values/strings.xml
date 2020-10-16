@@ -138,6 +138,7 @@
     <string name="theme_mode">主题模式</string>
     <string name="custom_file_name">自定义下载文件名</string>
     <string name="illust_detail">作品详情使用新界面</string>
+    <string name="user_detail">个人中心使用新界面</string>
     <string name="file_name_type">文件命名格式</string>
     <string name="download_path">下载路径</string>
     <string name="illust_download_path">图片下载路径</string>
@@ -205,7 +206,6 @@
     <string name="string_14">添加</string>
     <string name="string_15">修改背景色</string>
     <string name="string_16">屏蔽标签</string>
-    <string name="string_17">屏蔽记录</string>
     <string name="string_18">取消</string>
     <string name="string_19">添加屏蔽</string>
     <string name="string_20">全部选择</string>
@@ -306,7 +306,6 @@
     <string name="string_115">0.00KB / 未知大小</string>
     <string name="string_116">作品ID</string>
     <string name="string_117">不选的话可能两个文件名重复，导致下载失败，必选项</string>
-    <string name="string_118">重新加载</string>
     <string name="string_119">取消屏蔽</string>
     <string name="string_120">复制</string>
     <string name="string_121">显示</string>
@@ -396,7 +395,6 @@
     <string name="string_205">已屏蔽的作品</string>
     <string name="string_206">无权限查看的作品</string>
     <string name="string_207">首页</string>
-    <string name="string_208">屏蔽记录</string>
     <string name="string_209">已存在于屏蔽列表</string>
     <string name="string_210">添加屏蔽标签</string>
     <string name="string_211">请输入标签名</string>

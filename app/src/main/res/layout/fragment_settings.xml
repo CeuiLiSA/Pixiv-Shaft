@@ -297,6 +297,23 @@
                         <View style="@style/half_divider" />
 
                         <RelativeLayout
+                            android:id="@+id/user_new_user_rela"
+                            style="@style/ripple_rela">
+
+                            <TextView
+                                style="@style/setting_text_left"
+                                android:text="@string/user_detail" />
+
+                            <Switch
+                                android:id="@+id/user_new_user"
+                                style="@style/setting_right_switch"/>
+
+
+                        </RelativeLayout>
+
+                        <View style="@style/half_divider" />
+
+                        <RelativeLayout
                             android:id="@+id/single_download_task_rela"
                             style="@style/ripple_rela">
 
@@ -306,23 +323,6 @@
 
                             <Switch
                                 android:id="@+id/single_download_task"
-                                style="@style/setting_right_switch"/>
-
-
-                        </RelativeLayout>
-
-                        <View style="@style/half_divider" />
-
-                        <RelativeLayout
-                            android:id="@+id/delete_star_illust_rela"
-                            style="@style/ripple_rela">
-
-                            <TextView
-                                style="@style/setting_text_left"
-                                android:text="@string/delete_star_illust" />
-
-                            <Switch
-                                android:id="@+id/delete_star_illust"
                                 style="@style/setting_right_switch"/>
 
 

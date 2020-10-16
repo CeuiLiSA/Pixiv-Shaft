@@ -38,7 +38,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/colorPrimary"
-                android:text="@string/string_17" />
+                android:text="@string/muted_history" />
 
             <Button
                 android:id="@+id/cancel"
