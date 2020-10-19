@@ -153,4 +153,43 @@
         <item name="android:textSize">16sp</item>
         <item name="android:textColor">@color/white</item>
     </style>
+
+
+    <style name="AboutUserLeft">
+        <item name="android:layout_width">80dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_margin">@dimen/sixteen_dp</item>
+        <item name="android:textColor">@color/about_user_left</item>
+        <item name="android:textSize">15sp</item>
+    </style>
+
+    <style name="AboutUserRight">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:background">@color/trans</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">@dimen/sixteen_dp</item>
+        <item name="android:layout_marginEnd">@dimen/sixteen_dp</item>
+        <item name="android:layout_marginBottom">@dimen/sixteen_dp</item>
+        <item name="android:textColor">@color/about_user_right</item>
+        <item name="android:textColorHint">@color/about_user_right</item>
+        <item name="android:autoLink">all</item>
+        <item name="android:textColorLink">@color/new_color_primary</item>
+        <item name="android:textSize">15sp</item>
+    </style>
+
+    <style name="AboutUserRightDarkText" parent="AboutUserRight">
+        <item name="android:textColor">@color/about_user_left</item>
+    </style>
+
+    <style name="LinearVertical">
+        <item name="android:orientation">vertical</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+
+    <style name="LinearHorizon">
+        <item name="android:orientation">horizontal</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
 </resources>

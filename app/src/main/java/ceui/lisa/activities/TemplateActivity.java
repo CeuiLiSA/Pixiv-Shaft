@@ -1,6 +1,7 @@
 package ceui.lisa.activities;
 
 import android.content.Intent;
+import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 
@@ -58,8 +59,10 @@ import ceui.lisa.fragments.FragmentUserNovel;
 import ceui.lisa.fragments.FragmentWalkThrough;
 import ceui.lisa.fragments.FragmentWebView;
 import ceui.lisa.fragments.FragmentWhoFollowThisUser;
+import ceui.lisa.fragments.FragmentWorkSpace;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.NovelBean;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseResult;
@@ -69,10 +72,15 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
     public static final String EXTRA_FRAGMENT = "dataType";
     public static final String EXTRA_KEYWORD = "keyword";
     protected Fragment childFragment;
+    private String dataType;
+
+    @Override
+    protected void initBundle(Bundle bundle) {
+        dataType = bundle.getString(EXTRA_FRAGMENT);
+    }
 
     protected Fragment createNewFragment() {
         Intent intent = getIntent();
-        String dataType = intent.getStringExtra(EXTRA_FRAGMENT);
         if (!TextUtils.isEmpty(dataType)) {
             switch (dataType) {
                 case "登录注册":
@@ -103,6 +111,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     ReverseResult result = intent.getParcelableExtra("result");
                     return FragmentWebView.newInstance(result.getTitle(), result.getUrl(), result.getResponseBody(), result.getMime(), result.getEncoding(), result.getHistory_url());
                 case "相关评论": {
+                    getWindow().setStatusBarColor(getResources().getColor(R.color.new_color_primary));
                     int id = intent.getIntExtra(Params.ILLUST_ID, 0);
                     String title = intent.getStringExtra(Params.ILLUST_TITLE);
                     return FragmentComment.newInstance(id, title);
@@ -188,6 +197,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return new FragmentNovelSeries();
                 case "精华列":
                     return new FragmentFeature();
+                case "我的作业环境":
+                    return new FragmentWorkSpace();
                 default:
                     return new Fragment();
             }
@@ -240,7 +251,11 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
 
     @Override
     public boolean hideStatusBar() {
-        return getIntent().getBooleanExtra("hideStatusBar", true);
+        if ("相关评论".equals(dataType)) {
+            return false;
+        } else {
+            return getIntent().getBooleanExtra("hideStatusBar", true);
+        }
     }
 
     @Override

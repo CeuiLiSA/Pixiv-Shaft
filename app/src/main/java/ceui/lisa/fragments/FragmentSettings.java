@@ -60,7 +60,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
     @Override
     protected void initData() {
         baseBind.toolbar.setNavigationOnClickListener(view -> mActivity.finish());
-        animate(baseBind.parentLinear);
+        Common.animate(baseBind.parentLinear);
 
         baseBind.loginOut.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -112,6 +112,15 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, TemplateActivity.class);
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "编辑个人资料");
+                startActivity(intent);
+            }
+        });
+
+        baseBind.workSpace.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "我的作业环境");
                 startActivity(intent);
             }
         });
@@ -211,6 +220,26 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             @Override
             public void onClick(View v) {
                 baseBind.userNewUser.performClick();
+            }
+        });
+
+        baseBind.deleteStarIllust.setChecked(Shaft.sSettings.isDeleteStarIllust());
+        baseBind.deleteStarIllust.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    Shaft.sSettings.setDeleteStarIllust(true);
+                } else {
+                    Shaft.sSettings.setDeleteStarIllust(false);
+                }
+                Common.showToast("设置成功", baseBind.deleteStarIllust);
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.deleteStarIllustRela.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                baseBind.deleteStarIllust.performClick();
             }
         });
 
@@ -425,31 +454,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
         baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
     }
 
-    private void animate(LinearLayout linearLayout) {
-        SpringChain springChain = SpringChain.create(40, 8, 60, 10);
 
-        int childCount = linearLayout.getChildCount();
-        for (int i = 0; i < childCount; i++) {
-            final View view = linearLayout.getChildAt(i);
-
-            final int position = i;
-            springChain.addSpring(new SimpleSpringListener() {
-                @Override
-                public void onSpringUpdate(Spring spring) {
-                    view.setTranslationX((float) spring.getCurrentValue());
-                    if (position == 0) {
-                        Common.showLog(className + (float) spring.getCurrentValue());
-                    }
-                }
-            });
-        }
-
-        List<Spring> springs = springChain.getAllSprings();
-        for (int i = 0; i < springs.size(); i++) {
-            springs.get(i).setCurrentValue(400);
-        }
-        springChain.setControlSpringIndex(0).getControlSpring().setEndValue(0);
-    }
 
 
     @Override

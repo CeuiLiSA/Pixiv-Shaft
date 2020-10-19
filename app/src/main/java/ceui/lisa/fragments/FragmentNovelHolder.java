@@ -79,24 +79,6 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
     @Override
     public void initView() {
         BarUtils.setNavBarColor(mActivity, getResources().getColor(R.color.hito_bg));
-        baseBind.toolbar.inflateMenu(R.menu.change_color);
-        baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                if (item.getItemId() == R.id.action_add) {
-                    if (Shaft.sSettings.getNovelHolderColor() != 0) {
-                        ColorPickerDialog.newBuilder()
-                                .setColor(Shaft.sSettings.getNovelHolderColor())
-                                .show(mActivity);
-                    } else {
-                        ColorPickerDialog.newBuilder()
-                                .setColor(getResources().getColor(R.color.novel_holder))
-                                .show(mActivity);
-                    }
-                }
-                return false;
-            }
-        });
         if (Shaft.sSettings.getNovelHolderColor() != 0) {
             setColor(Shaft.sSettings.getNovelHolderColor());
         }
@@ -113,22 +95,6 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                 isOpen = isTransformed;
             }
         };
-        baseBind.saveNovel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mNovelBean.setLocalSaved(true);
-                String fileName = Params.NOVEL_KEY + mNovelBean.getId();
-                Cache.get().saveModel(fileName, mNovelDetail);
-                DownloadEntity downloadEntity = new DownloadEntity();
-                downloadEntity.setFileName(fileName);
-                downloadEntity.setDownloadTime(System.currentTimeMillis());
-                downloadEntity.setFilePath(PathUtils.getInternalAppCachePath());
-                downloadEntity.setIllustGson(Shaft.sGson.toJson(mNovelBean));
-                AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(downloadEntity);
-                Common.showToast(getString(R.string.string_181), baseBind.saveNovel);
-                baseBind.transformationLayout.finishTransform();
-            }
-        });
         if (mNovelBean.isIs_bookmarked()) {
             baseBind.like.setText(mContext.getString(R.string.string_179));
         } else {
@@ -283,21 +249,51 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
         } else {
             baseBind.showNext.setVisibility(View.INVISIBLE);
         }
-        baseBind.exportTxt.setOnClickListener(new View.OnClickListener() {
+        baseBind.toolbar.getMenu().clear();
+        baseBind.toolbar.inflateMenu(R.menu.change_color);
+        baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
-            public void onClick(View v) {
-                TextWriter.writeToTxt(System.currentTimeMillis() + "_novel_tasks.txt",
-                        novelDetail.getNovel_text(), new Callback<File>() {
-                            @Override
-                            public void doSomething(File t) {
-                                new Share2.Builder(mActivity)
-                                        .setContentType(ShareContentType.FILE)
-                                        .setShareFileUri(FileUtil.getFileUri(mContext, ShareContentType.FILE, t))
-                                        .setTitle("Share File")
-                                        .build()
-                                        .shareBySystem();
-                            }
-                        });
+            public boolean onMenuItemClick(MenuItem item) {
+                if (item.getItemId() == R.id.action_add) {
+                    if (Shaft.sSettings.getNovelHolderColor() != 0) {
+                        ColorPickerDialog.newBuilder()
+                                .setColor(Shaft.sSettings.getNovelHolderColor())
+                                .show(mActivity);
+                    } else {
+                        ColorPickerDialog.newBuilder()
+                                .setColor(getResources().getColor(R.color.novel_holder))
+                                .show(mActivity);
+                    }
+                    return true;
+                } else if (item.getItemId() == R.id.action_save) {
+                    mNovelBean.setLocalSaved(true);
+                    String fileName = Params.NOVEL_KEY + mNovelBean.getId();
+                    Cache.get().saveModel(fileName, mNovelDetail);
+                    DownloadEntity downloadEntity = new DownloadEntity();
+                    downloadEntity.setFileName(fileName);
+                    downloadEntity.setDownloadTime(System.currentTimeMillis());
+                    downloadEntity.setFilePath(PathUtils.getInternalAppCachePath());
+                    downloadEntity.setIllustGson(Shaft.sGson.toJson(mNovelBean));
+                    AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(downloadEntity);
+                    Common.showToast(getString(R.string.string_181), baseBind.saveNovel);
+                    baseBind.transformationLayout.finishTransform();
+                    return true;
+                } else if (item.getItemId() == R.id.action_txt) {
+                    TextWriter.writeToTxt(System.currentTimeMillis() + "_novel_tasks.txt",
+                            novelDetail.getNovel_text(), new Callback<File>() {
+                                @Override
+                                public void doSomething(File t) {
+                                    new Share2.Builder(mActivity)
+                                            .setContentType(ShareContentType.FILE)
+                                            .setShareFileUri(FileUtil.getFileUri(mContext, ShareContentType.FILE, t))
+                                            .setTitle("Share File")
+                                            .build()
+                                            .shareBySystem();
+                                }
+                            });
+                    return true;
+                }
+                return false;
             }
         });
     }

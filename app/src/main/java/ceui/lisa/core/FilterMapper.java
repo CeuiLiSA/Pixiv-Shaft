@@ -15,7 +15,11 @@ public class FilterMapper extends Mapper<ListIllust> {
     @Override
     public ListIllust apply(ListIllust listIllust) {
         super.apply(listIllust);
-        listIllust.setIllusts(PixivOperate.getListWithoutBooked(listIllust));
+        if (Shaft.sSettings.isDeleteStarIllust()) {
+            //筛选作品，只留下未收藏的作品
+            List<IllustsBean> tempList = PixivOperate.getListWithoutBooked(listIllust);
+            listIllust.setIllusts(tempList);
+        }
         return listIllust;
     }
 }

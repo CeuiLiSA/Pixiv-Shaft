@@ -57,7 +57,7 @@ public class FragmentEditFile extends BaseFragment<FragmentEditFileBinding> {
     @Override
     protected void initData() {
         if (sUserModel == null) {
-            Common.showToast("你还没有登录");
+            Common.showToast(getString(R.string.string_260));
             mActivity.finish();
             return;
         }
@@ -81,17 +81,18 @@ public class FragmentEditFile extends BaseFragment<FragmentEditFileBinding> {
                 }
             }
         });
-        baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
+        baseBind.toolbar.toolbarTitle.setText(R.string.string_92);
+        baseBind.toolbar.toolbar.setNavigationOnClickListener(v -> finish());
     }
 
     private void submit() {
         if (imageFile == null) {
-            Common.showToast("你还没有做任何改变");
+            Common.showToast(getString(R.string.string_258));
             return;
         }
 
         if (imageFile.length() >= 5 * 1024 * 1024) {
-            Common.showToast("照片不能大于5M，本张照片大小：" +
+            Common.showToast(getString(R.string.string_259) +
                     FileSizeUtil.getFileOrFilesSize(imageFile, FileSizeUtil.SIZETYPE_MB) + "M");
             return;
         }
@@ -111,7 +112,7 @@ public class FragmentEditFile extends BaseFragment<FragmentEditFileBinding> {
                 .subscribe(new NullCtrl<NullResponse>() {
                     @Override
                     public void success(NullResponse nullResponse) {
-                        Common.showToast("修改成功！");
+                        Common.showToast(getString(R.string.string_261));
                         //修改好了之后刷新用户信息
                         PixivOperate.refreshUserData(sUserModel, new Callback<UserModel>() {
                             @Override
@@ -154,7 +155,7 @@ public class FragmentEditFile extends BaseFragment<FragmentEditFileBinding> {
             Uri imageUri = data.getData();
 
             if (imageUri == null) {
-                Common.showToast("图片选择失败");
+                Common.showToast(getString(R.string.string_262));
                 return;
             }
             imageFile = UriUtils.uri2File(imageUri);

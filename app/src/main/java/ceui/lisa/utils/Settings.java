@@ -41,6 +41,9 @@ public class Settings {
     //设置页面进场动画
     private boolean settingsAnimate = true;
 
+    //屏蔽，不显示已收藏的作品，默认不屏蔽
+    private boolean deleteStarIllust = false;
+
     //是否自动添加DNS，true开启直连  false自行代理
     private boolean autoFuckChina = true;
 
@@ -113,6 +116,15 @@ public class Settings {
         this.themeType = themeType;
         ThemeHelper.applyTheme(activity, themeType);
     }
+
+    public boolean isDeleteStarIllust() {
+        return deleteStarIllust;
+    }
+
+    public void setDeleteStarIllust(boolean pDeleteStarIllust) {
+        deleteStarIllust = pDeleteStarIllust;
+    }
+
 
     private String themeType = "";
 

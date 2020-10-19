@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+
+    </data>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <include
+            android:id="@+id/toolbar"
+            layout="@layout/toolbar_layout"/>
+
+        <com.scwang.smartrefresh.layout.SmartRefreshLayout
+            android:layout_width="match_parent"
+            android:id="@+id/refreshLayout"
+            android:layout_above="@+id/submit"
+            android:layout_below="@+id/toolbar"
+            android:layout_height="match_parent">
+
+            <androidx.core.widget.NestedScrollView
+                android:layout_width="match_parent"
+                android:layout_below="@+id/toolbar"
+                android:layout_height="match_parent">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:orientation="vertical"
+                    android:id="@+id/parent_linear"
+                    android:layout_height="match_parent">
+
+
+                    <LinearLayout
+                        style="@style/LinearVertical">
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_marginTop="40dp"
+                            android:background="@color/about_user_divider"
+                            android:layout_height="1dp">
+
+                        </View>
+
+
+                        <LinearLayout
+                            style="@style/LinearHorizon">
+
+                            <TextView
+                                android:text="@string/string_37"
+                                style="@style/AboutUserLeft"/>
+
+
+                            <EditText
+                                android:id="@+id/computer"
+                                style="@style/AboutUserRightDarkText"/>
+
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="@color/about_user_divider"
+                            android:layout_height="1dp">
+
+                        </View>
+
+                        <LinearLayout
+                            style="@style/LinearHorizon">
+
+                            <TextView
+                                android:text="@string/string_38"
+                                style="@style/AboutUserLeft"/>
+
+
+                            <EditText
+                                android:id="@+id/monitor"
+                                style="@style/AboutUserRightDarkText"/>
+
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:background="@color/about_user_divider"
+                            android:layout_height="1dp">
+
+                        </View>
+
+                    </LinearLayout>
+
+
+                <LinearLayout
+                    style="@style/LinearVertical">
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_marginTop="@dimen/tweenty_four_dp"
+                        android:background="@color/about_user_divider"
+                        android:layout_height="1dp">
+
+                    </View>
+
+                    <LinearLayout
+                        style="@style/LinearHorizon">
+
+                        <TextView
+                            android:text="@string/string_39"
+                            style="@style/AboutUserLeft"/>
+
+
+                        <EditText
+                            android:id="@+id/app"
+                            style="@style/AboutUserRightDarkText"/>
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:background="@color/about_user_divider"
+                        android:layout_height="1dp">
+
+                    </View>
+
+                    <LinearLayout
+                        style="@style/LinearHorizon">
+
+                        <TextView
+                            android:text="@string/string_40"
+                            style="@style/AboutUserLeft"/>
+
+
+                        <EditText
+                            android:id="@+id/scanner"
+                            style="@style/AboutUserRightDarkText"/>
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:background="@color/about_user_divider"
+                        android:layout_height="1dp">
+
+                    </View>
+
+                    <LinearLayout
+                        style="@style/LinearHorizon">
+
+                        <TextView
+                            android:text="@string/string_41"
+                            style="@style/AboutUserLeft"/>
+
+
+                        <EditText
+                            android:id="@+id/draw_board"
+                            style="@style/AboutUserRightDarkText"/>
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:background="@color/about_user_divider"
+                        android:layout_height="1dp">
+
+                    </View>
+
+                </LinearLayout>
+
+
+                <LinearLayout
+                    style="@style/LinearVertical">
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_marginTop="@dimen/tweenty_four_dp"
+                        android:background="@color/about_user_divider"
+                        android:layout_height="1dp">
+
+                    </View>
+
+                    <LinearLayout
+                        style="@style/LinearHorizon">
+
+                        <TextView
+                            android:text="@string/string_42"
+                            style="@style/AboutUserLeft"/>
+
+
+                        <EditText
+                            android:id="@+id/mouse"
+                            style="@style/AboutUserRightDarkText"/>
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:background="@color/about_user_divider"
+                        android:layout_height="1dp">
+
+                    </View>
+
+                    <LinearLayout
+                        style="@style/LinearHorizon">
+
+                        <TextView
+                            android:text="@string/string_43"
+                            style="@style/AboutUserLeft"/>
+
+
+                        <EditText
+                            android:id="@+id/printer"
+                            style="@style/AboutUserRightDarkText"/>
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:background="@color/about_user_divider"
+                        android:layout_height="1dp">
+
+                    </View>
+
+                    <LinearLayout
+                        style="@style/LinearHorizon">
+
+                        <TextView
+                            android:text="@string/string_44"
+                            style="@style/AboutUserLeft"/>
+
+
+                        <EditText
+                            android:id="@+id/table_objects"
+                            style="@style/AboutUserRightDarkText"/>
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:background="@color/about_user_divider"
+                        android:layout_height="1dp">
+
+                    </View>
+
+                    <LinearLayout
+                        style="@style/LinearHorizon">
+
+                        <TextView
+                            android:text="@string/string_45"
+                            style="@style/AboutUserLeft"/>
+
+
+                        <EditText
+                            android:id="@+id/like_music"
+                            style="@style/AboutUserRightDarkText"/>
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:background="@color/about_user_divider"
+                        android:layout_height="1dp">
+
+                    </View>
+
+                </LinearLayout>
+
+
+                <LinearLayout
+                    style="@style/LinearVertical">
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_marginTop="@dimen/tweenty_four_dp"
+                        android:background="@color/about_user_divider"
+                        android:layout_height="1dp">
+
+                    </View>
+
+                    <LinearLayout
+                        style="@style/LinearHorizon">
+
+                        <TextView
+                            android:text="@string/string_46"
+                            style="@style/AboutUserLeft"/>
+
+
+                        <EditText
+                            android:id="@+id/table"
+                            style="@style/AboutUserRightDarkText"/>
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:background="@color/about_user_divider"
+                        android:layout_height="1dp">
+
+                    </View>
+
+                    <LinearLayout
+                        style="@style/LinearHorizon">
+
+                        <TextView
+                            android:text="@string/string_47"
+                            style="@style/AboutUserLeft"/>
+
+
+                        <EditText
+                            android:id="@+id/chair"
+                            style="@style/AboutUserRightDarkText"/>
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:background="@color/about_user_divider"
+                        android:layout_height="1dp">
+
+                    </View>
+
+                    <LinearLayout
+                        style="@style/LinearHorizon">
+
+                        <TextView
+                            android:text="@string/string_263"
+                            style="@style/AboutUserLeft"/>
+
+
+                        <EditText
+                            android:id="@+id/other_text"
+                            style="@style/AboutUserRightDarkText"/>
+
+                    </LinearLayout>
+
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:background="@color/about_user_divider"
+                        android:layout_marginBottom="48dp"
+                        android:layout_height="1dp">
+
+                    </View>
+
+
+                </LinearLayout>
+
+
+                </LinearLayout>
+
+
+            </androidx.core.widget.NestedScrollView>
+
+        </com.scwang.smartrefresh.layout.SmartRefreshLayout>
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:id="@+id/progress"
+            android:layout_centerInParent="true"
+            android:indeterminateTint="@color/new_color_primary"
+            android:layout_height="wrap_content">
+
+        </ProgressBar>
+
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_alignParentBottom="true"
+            android:text="@string/string_55"
+            android:layout_marginTop="@dimen/six_dp"
+            android:layout_marginStart="@dimen/sixteen_dp"
+            android:layout_marginEnd="@dimen/sixteen_dp"
+            android:layout_marginBottom="@dimen/twelve_dip"
+            android:textColor="@color/white"
+            android:background="@drawable/primary_round_bg"
+            android:id="@+id/submit"
+            android:layout_height="wrap_content" />
+
+    </RelativeLayout>
+</layout>

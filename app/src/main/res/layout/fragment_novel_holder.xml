@@ -85,28 +85,11 @@
                         android:textSize="13sp"
                         android:id="@+id/save_novel"
                         android:layout_marginEnd="@dimen/six_dp"
-                        android:text="@string/string_82"
+                        android:text="@string/string_104"
                         android:layout_centerVertical="true"
                         android:textColor="@color/white_to_gray">
 
                     </Button>
-
-                    <Button
-                        android:id="@+id/export_txt"
-                        style="@android:style/Widget.DeviceDefault.Button.Borderless.Small"
-                        android:layout_width="wrap_content"
-                        android:paddingStart="@dimen/eight_dp"
-                        android:paddingEnd="@dimen/eight_dp"
-                        android:textSize="13sp"
-                        android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:layout_toStartOf="@+id/save_novel"
-                        android:gravity="center"
-                        android:text="@string/string_228"
-                        android:textColor="@color/white_to_gray">
-
-                    </Button>
-
 
                 </RelativeLayout>
 

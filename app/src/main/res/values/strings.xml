@@ -229,11 +229,11 @@
     <string name="string_38">显示器：</string>
     <string name="string_39">软体：</string>
     <string name="string_40">扫描仪：</string>
-    <string name="string_41">绘图板：</string>
+    <string name="string_41">数位板：</string>
     <string name="string_42">鼠标：</string>
     <string name="string_43">打印机：</string>
     <string name="string_44">桌上物品：</string>
-    <string name="string_45">绘画BGM：</string>
+    <string name="string_45">绘画音乐：</string>
     <string name="string_46">桌子：</string>
     <string name="string_47">椅子：</string>
     <string name="string_48">暂无内容</string>
@@ -444,5 +444,12 @@
     <string name="string_255">这将会删除所有的本地浏览历史</string>
     <string name="string_256">暂不支持查看小说系列</string>
     <string name="string_257">小说系列</string>
+    <string name="string_258">你还没有做任何改变</string>
+    <string name="string_259">照片不能大于5M，本张照片大小：</string>
+    <string name="string_260">你还没有登录</string>
+    <string name="string_261">修改成功！</string>
+    <string name="string_262">图片选择失败</string>
+    <string name="string_263">其他问题：</string>
+    <string name="string_267">我的作业环境</string>
 
 </resources>

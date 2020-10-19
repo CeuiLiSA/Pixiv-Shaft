@@ -19,18 +19,9 @@
             android:layout_height="match_parent">
 
 
-            <androidx.appcompat.widget.Toolbar
+            <include
                 android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:fitsSystemWindows="true"
-                android:background="@color/colorPrimary"
-                android:elevation="@dimen/six_dp"
-                app:navigationIcon="@drawable/ic_baseline_arrow_back_ios_24"
-                app:title="个人资料设置"
-                app:titleTextColor="@android:color/white">
-
-            </androidx.appcompat.widget.Toolbar>
+                layout="@layout/toolbar_layout" />
 
 
             <RelativeLayout
@@ -79,10 +70,11 @@
             android:layout_alignParentBottom="true"
             android:text="@string/string_55"
             android:layout_margin="@dimen/sixteen_dp"
+            android:textColor="@color/white"
+            android:background="@drawable/primary_round_bg"
             android:id="@+id/submit"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content" />
 
-        </Button>
     </RelativeLayout>
 
 </layout>

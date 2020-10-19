@@ -1,5 +1,6 @@
 package ceui.lisa.http;
 
+import java.util.HashMap;
 import java.util.List;
 
 import ceui.lisa.model.ListArticle;
@@ -28,6 +29,7 @@ import ceui.lisa.models.UserState;
 import io.reactivex.Observable;
 import okhttp3.MultipartBody;
 import retrofit2.http.Field;
+import retrofit2.http.FieldMap;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
@@ -384,6 +386,12 @@ public interface AppApi {
     @GET("v1/user/novel-series")
     Observable<ListNovelSeries> getUserNovelSeries(@Header("Authorization") String token,
                                                    @Query("user_id") int user_id);
+
+    @FormUrlEncoded
+    @POST("v1/user/workspace/edit")
+    Observable<NullResponse> editWorkSpace(@Header("Authorization") String token,
+                                           @FieldMap HashMap<String, String> fields);
+
 
     @GET
     Observable<ListNovelSeries> getNextUserNovelSeries(@Header("Authorization") String token,

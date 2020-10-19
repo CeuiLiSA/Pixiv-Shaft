@@ -18,9 +18,14 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.facebook.rebound.SimpleSpringListener;
+import com.facebook.rebound.Spring;
+import com.facebook.rebound.SpringChain;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
@@ -226,6 +231,37 @@ public class Common {
 
     public static String checkEmpty(String before) {
         return TextUtils.isEmpty(before) ? Shaft.getContext().getString(R.string.no_info) : before;
+    }
+
+    public static String checkEmpty(EditText before) {
+        if (before != null && before.getText() != null && !TextUtils.isEmpty(before.getText().toString())) {
+            return before.getText().toString();
+        } else {
+            return "";
+        }
+    }
+
+    public static void animate(LinearLayout linearLayout) {
+        SpringChain springChain = SpringChain.create(40, 8, 60, 10);
+
+        int childCount = linearLayout.getChildCount();
+        for (int i = 0; i < childCount; i++) {
+            final View view = linearLayout.getChildAt(i);
+
+            final int position = i;
+            springChain.addSpring(new SimpleSpringListener() {
+                @Override
+                public void onSpringUpdate(Spring spring) {
+                    view.setTranslationX((float) spring.getCurrentValue());
+                }
+            });
+        }
+
+        List<Spring> springs = springChain.getAllSprings();
+        for (int i = 0; i < springs.size(); i++) {
+            springs.get(i).setCurrentValue(400);
+        }
+        springChain.setControlSpringIndex(0).getControlSpring().setEndValue(0);
     }
 
     public static void createDialog(Context context){
