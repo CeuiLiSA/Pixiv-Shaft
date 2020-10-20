@@ -166,7 +166,7 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                         currentOne.playGif.setVisibility(View.INVISIBLE);
                         PixivOperate.getGifInfo(allIllust, new ErrorCtrl<GifResponse>() {
                             @Override
-                            public void onNext(GifResponse gifResponse) {
+                            public void next(GifResponse gifResponse) {
                                 //判断是否存在已解压的GIF原图文件夹
                                 File parentFile = FileCreator.createGifParentFile(allIllust);
                                 if (parentFile.exists() && parentFile.length() > 1000) {
@@ -274,7 +274,7 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ErrorCtrl<String>() {
                     @Override
-                    public void onNext(String s) {
+                    public void next(String s) {
                         if ("万事俱备".equals(s)) {
                             nowPlayGif();
                         }

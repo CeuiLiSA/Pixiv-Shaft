@@ -24,6 +24,7 @@ import ceui.lisa.models.MutedHistory;
 import ceui.lisa.models.NovelDetail;
 import ceui.lisa.models.NovelSearchResponse;
 import ceui.lisa.models.NullResponse;
+import ceui.lisa.models.Preset;
 import ceui.lisa.models.UserDetailResponse;
 import ceui.lisa.models.UserState;
 import io.reactivex.Observable;
@@ -392,6 +393,9 @@ public interface AppApi {
     Observable<NullResponse> editWorkSpace(@Header("Authorization") String token,
                                            @FieldMap HashMap<String, String> fields);
 
+
+    @GET("v1/user/profile/presets")
+    Observable<Preset> getPresets(@Header("Authorization") String token);
 
     @GET
     Observable<ListNovelSeries> getNextUserNovelSeries(@Header("Authorization") String token,

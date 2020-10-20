@@ -53,6 +53,95 @@
 
             </RelativeLayout>
 
+            <LinearLayout
+                style="@style/LinearHorizon">
+
+                <TextView
+                    android:text="@string/string_266"
+                    android:layout_width="60dp"
+                    style="@style/AboutUserLeft">
+
+                </TextView>
+
+                <androidx.appcompat.widget.AppCompatSpinner
+                    android:layout_width="match_parent"
+                    android:layout_marginEnd="@dimen/sixteen_dp"
+                    android:layout_gravity="center_vertical"
+                    android:id="@+id/sex"
+                    android:layout_height="wrap_content">
+
+
+                </androidx.appcompat.widget.AppCompatSpinner>
+
+            </LinearLayout>
+
+            <LinearLayout
+                style="@style/LinearHorizon">
+
+                <TextView
+                    android:text="@string/string_265"
+                    android:layout_width="60dp"
+                    style="@style/AboutUserLeft">
+
+                </TextView>
+
+                <androidx.appcompat.widget.AppCompatSpinner
+                    android:layout_width="match_parent"
+                    android:layout_marginEnd="@dimen/sixteen_dp"
+                    android:layout_gravity="center_vertical"
+                    android:id="@+id/address"
+                    android:layout_height="wrap_content">
+
+
+                </androidx.appcompat.widget.AppCompatSpinner>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/country_ll"
+                android:visibility="gone"
+                style="@style/LinearHorizon">
+
+                <TextView
+                    android:text="@string/string_269"
+                    android:layout_width="60dp"
+                    style="@style/AboutUserLeft">
+
+                </TextView>
+
+                <androidx.appcompat.widget.AppCompatSpinner
+                    android:layout_width="match_parent"
+                    android:layout_marginEnd="@dimen/sixteen_dp"
+                    android:layout_gravity="center_vertical"
+                    android:id="@+id/country"
+                    android:layout_height="wrap_content">
+
+
+                </androidx.appcompat.widget.AppCompatSpinner>
+
+            </LinearLayout>
+
+            <LinearLayout
+                style="@style/LinearHorizon">
+
+                <TextView
+                    android:text="@string/string_268"
+                    android:layout_width="60dp"
+                    style="@style/AboutUserLeft">
+
+                </TextView>
+
+                <androidx.appcompat.widget.AppCompatSpinner
+                    android:layout_width="match_parent"
+                    android:layout_marginEnd="@dimen/sixteen_dp"
+                    android:layout_gravity="center_vertical"
+                    android:id="@+id/job"
+                    android:layout_height="wrap_content">
+
+
+                </androidx.appcompat.widget.AppCompatSpinner>
+
+            </LinearLayout>
 
         </LinearLayout>
 

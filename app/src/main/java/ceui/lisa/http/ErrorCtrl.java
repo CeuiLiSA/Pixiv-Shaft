@@ -5,6 +5,7 @@ import android.text.TextUtils;
 import java.io.IOException;
 
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.core.TryCatchObserver;
 import ceui.lisa.models.Error500;
 import ceui.lisa.models.Error500Obj;
 import ceui.lisa.models.ErrorResponse;
@@ -14,16 +15,15 @@ import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 import retrofit2.HttpException;
 
-public abstract class ErrorCtrl<T> implements Observer<T> {
+public abstract class ErrorCtrl<T> extends TryCatchObserver<T> {
 
     @Override
-    public void onSubscribe(Disposable d) {
+    public void subscribe(Disposable d) {
 
     }
 
     @Override
-    public void onError(Throwable e) {
-        e.printStackTrace();
+    public void error(Throwable e) {
         if (e instanceof HttpException) {
             try {
                 HttpException httpException = (HttpException) e;
@@ -100,7 +100,7 @@ public abstract class ErrorCtrl<T> implements Observer<T> {
     }
 
     @Override
-    public void onComplete() {
-        Common.showLog(getClass().getSimpleName() + " onComplete() ");
+    public void complete() {
+
     }
 }

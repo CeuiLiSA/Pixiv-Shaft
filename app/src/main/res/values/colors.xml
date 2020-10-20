@@ -5,13 +5,13 @@
 <!--    <color name="colorAccent">#D81B60</color>-->
 <!--    <color name="light_primary_color">#B3E5FC</color>-->
 
-    <color name="colorPrimary">#00BCD4</color>
-    <color name="colorPrimaryDark">#0097A7</color>
+    <color name="colorPrimary">@color/new_color_primary</color>
+    <color name="colorPrimaryDark">@color/new_color_primary</color>
     <color name="colorAccent">#CDDC39</color>
     <color name="light_new_primary_color">#d1c4e9</color>
     <color name="illust_size_bg">#eeeffd</color>
 
-    <color name="hint_text">#00BCD4</color>
+    <color name="hint_text">@color/new_color_primary</color>
 
     <color name="background">#f2f2f2</color>
     <color name="dark_bg">#999999</color>

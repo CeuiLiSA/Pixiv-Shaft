@@ -80,7 +80,7 @@ public class UserActivity extends BaseActivity<ActicityUserBinding> implements D
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ErrorCtrl<UserDetailResponse>() {
                     @Override
-                    public void onNext(UserDetailResponse user) {
+                    public void next(UserDetailResponse user) {
                         mUserViewModel.getUser().setValue(user);
                     }
                 });

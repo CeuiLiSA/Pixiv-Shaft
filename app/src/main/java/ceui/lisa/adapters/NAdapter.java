@@ -12,6 +12,7 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
+import ceui.lisa.activities.UserActivity;
 import ceui.lisa.databinding.RecyNovelBinding;
 import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.interfaces.OnItemClickListener;
@@ -52,7 +53,7 @@ public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
                     @Override
                     public void onClick(View view) {
                         Intent intent = new Intent(mContext, TemplateActivity.class);
-                        intent.putExtra(Params.ID, allIllust.get(position).getId());
+                        intent.putExtra(Params.ID, allIllust.get(position).getSeries().getId());
                         intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说系列详情");
                         mContext.startActivity(intent);
                     }
@@ -84,6 +85,18 @@ public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
                 @Override
                 public void onClick(View v) {
                     mOnItemClickListener.onItemClick(bindView.baseBind.like, position, 2);
+                }
+            });
+            bindView.baseBind.userHead.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mOnItemClickListener.onItemClick(bindView.baseBind.like, position, 3);
+                }
+            });
+            bindView.baseBind.author.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mOnItemClickListener.onItemClick(bindView.baseBind.like, position, 3);
                 }
             });
             bindView.baseBind.like.setOnLongClickListener(new View.OnLongClickListener() {
@@ -119,6 +132,10 @@ public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
                     Intent intent = new Intent(mContext, TemplateActivity.class);
                     intent.putExtra(Params.URL, allIllust.get(position).getImage_urls().getMaxImage());
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "图片详情");
+                    mContext.startActivity(intent);
+                } else if (viewType == 3) {
+                    Intent intent = new Intent(mContext, UserActivity.class);
+                    intent.putExtra(Params.USER_ID, allIllust.get(position).getUser().getId());
                     mContext.startActivity(intent);
                 }
             }

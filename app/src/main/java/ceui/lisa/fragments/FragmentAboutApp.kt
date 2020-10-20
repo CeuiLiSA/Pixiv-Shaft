@@ -69,7 +69,13 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
             startActivity(intent)
         }
         baseBind.goTelegram.setOnClickListener {
-            Common.showToast(getString(R.string.string_226))
+            val uri = Uri.parse("https://t.me/joinchat/QBTiWBvo-jda7SEl4VgK-Q")
+            val myAppLinkToMarket = Intent(Intent.ACTION_VIEW, uri)
+            try {
+                startActivity(myAppLinkToMarket)
+            } catch (e: ActivityNotFoundException) {
+                Common.showToast("unable to find market app")
+            }
         }
         baseBind.goQq.setOnClickListener {
             val intent = Intent()

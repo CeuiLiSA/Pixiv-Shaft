@@ -142,6 +142,16 @@ public class UActivity extends BaseActivity<ActivityNewUserBinding> implements D
                     }
                 }
             });
+            baseBind.starUser.setOnLongClickListener(v1 -> {
+                if (!data.getUser().isIs_followed()) {
+                    baseBind.starUser.setText(R.string.string_177);
+                    data.getUser().setIs_followed(true);
+                    PixivOperate.postFollowUser(data.getUser().getId(), Params.TYPE_PRIVATE);
+                    return true;
+                } else {
+                    return false;
+                }
+            });
         }
 
         baseBind.centerHeader.setVisibility(View.VISIBLE);

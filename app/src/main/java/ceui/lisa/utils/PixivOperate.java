@@ -24,8 +24,8 @@ import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.database.SearchEntity;
 import ceui.lisa.database.TagMuteEntity;
 import ceui.lisa.fragments.FragmentLogin;
-import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.http.ErrorCtrl;
+import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.GifResponse;
@@ -65,8 +65,9 @@ public class PixivOperate {
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ErrorCtrl<NullResponse>() {
+
                     @Override
-                    public void onNext(NullResponse nullResponse) {
+                    public void next(NullResponse nullResponse) {
                         Intent intent = new Intent(Params.LIKED_USER);
                         intent.putExtra(Params.ID, userID);
                         intent.putExtra(Params.IS_LIKED, true);
@@ -88,7 +89,7 @@ public class PixivOperate {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ErrorCtrl<NullResponse>() {
                     @Override
-                    public void onNext(NullResponse nullResponse) {
+                    public void next(NullResponse nullResponse) {
                         Intent intent = new Intent(Params.LIKED_USER);
                         intent.putExtra(Params.ID, userID);
                         intent.putExtra(Params.IS_LIKED, false);
@@ -111,7 +112,7 @@ public class PixivOperate {
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {
                         @Override
-                        public void onNext(NullResponse nullResponse) {
+                        public void next(NullResponse nullResponse) {
                             Intent intent = new Intent(Params.LIKED_ILLUST);
                             intent.putExtra(Params.ID, illustsBean.getId());
                             intent.putExtra(Params.IS_LIKED, false);
@@ -127,13 +128,17 @@ public class PixivOperate {
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {
                         @Override
-                        public void onNext(NullResponse nullResponse) {
+                        public void next(NullResponse nullResponse) {
                             Intent intent = new Intent(Params.LIKED_ILLUST);
                             intent.putExtra(Params.ID, illustsBean.getId());
                             intent.putExtra(Params.IS_LIKED, true);
                             LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
 
-                            Common.showToast(getString(R.string.like_illust_success));
+                            if (Params.TYPE_PUBLUC.equals(starType)) {
+                                Common.showToast(getString(R.string.like_novel_success_public));
+                            } else {
+                                Common.showToast(getString(R.string.like_novel_success_private));
+                            }
                         }
                     });
         }
@@ -151,8 +156,9 @@ public class PixivOperate {
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {
+
                         @Override
-                        public void onNext(NullResponse nullResponse) {
+                        public void next(NullResponse nullResponse) {
                             Intent intent = new Intent(Params.LIKED_NOVEL);
                             intent.putExtra(Params.ID, novelBean.getId());
                             intent.putExtra(Params.IS_LIKED, false);
@@ -171,7 +177,7 @@ public class PixivOperate {
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {
                         @Override
-                        public void onNext(NullResponse nullResponse) {
+                        public void next(NullResponse nullResponse) {
                             Intent intent = new Intent(Params.LIKED_NOVEL);
                             intent.putExtra(Params.ID, novelBean.getId());
                             intent.putExtra(Params.IS_LIKED, true);
@@ -180,7 +186,11 @@ public class PixivOperate {
                             if(view instanceof Button){
                                 ((Button) view).setText("取消收藏");
                             }
-                            Common.showToast(getString(R.string.like_illust_success));
+                            if (Params.TYPE_PUBLUC.equals(starType)) {
+                                Common.showToast(getString(R.string.like_novel_success_public));
+                            } else {
+                                Common.showToast(getString(R.string.like_novel_success_private));
+                            }
                         }
                     });
         }
@@ -190,22 +200,19 @@ public class PixivOperate {
         Retro.getAppApi().getIllustByID(userModel.getResponse().getAccess_token(), illustID)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new ErrorCtrl<IllustSearchResponse>() {
+                .subscribe(new NullCtrl<IllustSearchResponse>() {
                     @Override
-                    public void onNext(IllustSearchResponse illustSearchResponse) {
-                        if (illustSearchResponse != null) {
-                            if (illustSearchResponse.getIllust() != null) {
-                                final String uuid = UUID.randomUUID().toString();
-                                final PageData pageData = new PageData(uuid,
-                                        Collections.singletonList(illustSearchResponse.getIllust()));
-                                Container.get().addPageToMap(pageData);
+                    public void success(IllustSearchResponse illustSearchResponse) {
+                        if (illustSearchResponse.getIllust() != null) {
+                            final String uuid = UUID.randomUUID().toString();
+                            final PageData pageData = new PageData(uuid,
+                                    Collections.singletonList(illustSearchResponse.getIllust()));
+                            Container.get().addPageToMap(pageData);
 
-                                Intent intent = new Intent(context, VActivity.class);
-                                intent.putExtra(Params.POSITION, 0);
-                                intent.putExtra(Params.PAGE_UUID, uuid);
-                                context.startActivity(intent);
-
-                            }
+                            Intent intent = new Intent(context, VActivity.class);
+                            intent.putExtra(Params.POSITION, 0);
+                            intent.putExtra(Params.PAGE_UUID, uuid);
+                            context.startActivity(intent);
                         }
                     }
                 });
@@ -216,29 +223,23 @@ public class PixivOperate {
         Retro.getAppApi().getIllustByID(userModel.getResponse().getAccess_token(), illustID)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new ErrorCtrl<IllustSearchResponse>() {
+                .subscribe(new NullCtrl<IllustSearchResponse>() {
                     @Override
-                    public void onNext(IllustSearchResponse illustSearchResponse) {
-                        if (illustSearchResponse != null) {
-                            if (illustSearchResponse.getIllust() != null) {
-                                final String uuid = UUID.randomUUID().toString();
-                                final PageData pageData = new PageData(uuid,
-                                        Collections.singletonList(illustSearchResponse.getIllust()));
-                                Container.get().addPageToMap(pageData);
+                    public void success(IllustSearchResponse illustSearchResponse) {
+                        if (illustSearchResponse.getIllust() != null) {
+                            final String uuid = UUID.randomUUID().toString();
+                            final PageData pageData = new PageData(uuid,
+                                    Collections.singletonList(illustSearchResponse.getIllust()));
+                            Container.get().addPageToMap(pageData);
 
-                                Intent intent = new Intent(context, VActivity.class);
-                                intent.putExtra(Params.POSITION, 0);
-                                intent.putExtra(Params.PAGE_UUID, uuid);
-                                context.startActivity(intent);
+                            Intent intent = new Intent(context, VActivity.class);
+                            intent.putExtra(Params.POSITION, 0);
+                            intent.putExtra(Params.PAGE_UUID, uuid);
+                            context.startActivity(intent);
 
-                                if (callback != null) {
-                                    callback.doSomething(null);
-                                }
-                            } else {
-                                Common.showToast("illustSearchResponse.getIllust() 为空");
+                            if (callback != null) {
+                                callback.doSomething(null);
                             }
-                        } else {
-                            Common.showToast("illustSearchResponse 为空");
                         }
                     }
                 });
@@ -249,10 +250,10 @@ public class PixivOperate {
         Retro.getAppApi().getNovelByID(userModel.getResponse().getAccess_token(), novel)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new ErrorCtrl<NovelSearchResponse>() {
+                .subscribe(new NullCtrl<NovelSearchResponse>() {
                     @Override
-                    public void onNext(NovelSearchResponse novelSearchResponse) {
-                        if (novelSearchResponse != null && novelSearchResponse.getNovel() != null) {
+                    public void success(NovelSearchResponse novelSearchResponse) {
+                        if (novelSearchResponse.getNovel() != null) {
                             Intent intent = new Intent(context, TemplateActivity.class);
                             intent.putExtra(Params.CONTENT, novelSearchResponse.getNovel());
                             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情");

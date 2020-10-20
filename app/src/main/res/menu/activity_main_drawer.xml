@@ -51,8 +51,14 @@
 
             <item
                 android:id="@+id/nav_feature"
-                android:icon="@mipmap/feature"
+                android:icon="@mipmap/jinhua"
                 android:title="@string/string_248" />
+
+            <item
+                android:id="@+id/nav_fans"
+                android:icon="@mipmap/fans"
+                android:title="@string/string_264" />
+
 
         </menu>
     </item>

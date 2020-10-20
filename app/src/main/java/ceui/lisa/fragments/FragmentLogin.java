@@ -277,20 +277,18 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
         Retro.getSignApi().pixivSign(SIGN_TOKEN, baseBind.signUserName.getText().toString(), SIGN_REF)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new ErrorCtrl<SignResponse>() {
+                .subscribe(new NullCtrl<SignResponse>() {
                     @Override
-                    public void onNext(SignResponse signResponse) {
-                        if (signResponse != null) {
-                            if (signResponse.isError()) {
-                                if (!TextUtils.isEmpty(signResponse.getMessage())) {
-                                    Common.showToast(signResponse.getMessage());
-                                } else {
-                                    Common.showToast("未知错误");
-                                }
-                                baseBind.progress.setVisibility(View.INVISIBLE);
+                    public void success(SignResponse signResponse) {
+                        if (signResponse.isError()) {
+                            if (!TextUtils.isEmpty(signResponse.getMessage())) {
+                                Common.showToast(signResponse.getMessage());
                             } else {
-                                login(signResponse.getBody().getUser_account(), signResponse.getBody().getPassword());
+                                Common.showToast("未知错误");
                             }
+                            baseBind.progress.setVisibility(View.INVISIBLE);
+                        } else {
+                            login(signResponse.getBody().getUser_account(), signResponse.getBody().getPassword());
                         }
                     }
                 });

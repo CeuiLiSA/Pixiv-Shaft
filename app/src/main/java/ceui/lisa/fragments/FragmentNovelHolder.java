@@ -137,7 +137,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                 @Override
                 public void onClick(View view) {
                     Intent intent = new Intent(mContext, TemplateActivity.class);
-                    intent.putExtra(Params.ID, mNovelBean.getId());
+                    intent.putExtra(Params.ID, mNovelBean.getSeries().getId());
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说系列详情");
                     startActivity(intent);
                 }

@@ -22,6 +22,7 @@ import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
 import ceui.lisa.databinding.FragmentLocalUserBinding;
 import ceui.lisa.http.ErrorCtrl;
+import ceui.lisa.http.NullCtrl;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.utils.Base64Util;
 import ceui.lisa.utils.Common;
@@ -84,16 +85,14 @@ public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
                     }
                 }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new ErrorCtrl<List<UserModel>>() {
+                .subscribe(new NullCtrl<List<UserModel>>() {
                     @Override
-                    public void onNext(List<UserModel> userModels) {
-                        if (userModels != null) {
-                            if (userModels.size() != 0) {
-                                for (int i = 0; i < userModels.size(); i++) {
-                                    View v = LayoutInflater.from(mContext).inflate(R.layout.recy_loal_user, null);
-                                    bindData(v, userModels.get(i));
-                                    baseBind.userList.addView(v);
-                                }
+                    public void success(List<UserModel> userModels) {
+                        if (userModels.size() != 0) {
+                            for (int i = 0; i < userModels.size(); i++) {
+                                View v = LayoutInflater.from(mContext).inflate(R.layout.recy_loal_user, null);
+                                bindData(v, userModels.get(i));
+                                baseBind.userList.addView(v);
                             }
                         }
                     }

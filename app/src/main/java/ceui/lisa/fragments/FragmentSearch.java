@@ -85,7 +85,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                 .debounce(800, TimeUnit.MILLISECONDS)
                 .subscribe(new ErrorCtrl<String>() {
                     @Override
-                    public void onNext(String s) {
+                    public void next(String s) {
                         completeWord(s);
                     }
                 });
@@ -255,36 +255,34 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
         Retro.getAppApi().getHotTags(sUserModel.getResponse().getAccess_token(), Params.TYPE_ILLUST)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new ErrorCtrl<ListTrendingtag>() {
+                .subscribe(new NullCtrl<ListTrendingtag>() {
                     @Override
-                    public void onNext(ListTrendingtag listTrendingtag) {
-                        if (listTrendingtag != null) {
-                            baseBind.hotTags.setAdapter(new TagAdapter<ListTrendingtag.TrendTagsBean>(
-                                    listTrendingtag.getList().subList(0, 15)) {
-                                @Override
-                                public View getView(FlowLayout parent, int position, ListTrendingtag.TrendTagsBean trendTagsBean) {
-                                    TextView tv = (TextView) LayoutInflater.from(mContext).inflate(R.layout.recy_single_line_text,
-                                            parent, false);
-                                    if (!TextUtils.isEmpty(trendTagsBean.getTranslated_name())) {
-                                        tv.setText(trendTagsBean.getTag() + "/" + trendTagsBean.getTranslated_name());
-                                    } else {
-                                        tv.setText(trendTagsBean.getTag());
-                                    }
-                                    return tv;
+                    public void success(ListTrendingtag listTrendingtag) {
+                        baseBind.hotTags.setAdapter(new TagAdapter<ListTrendingtag.TrendTagsBean>(
+                                listTrendingtag.getList().subList(0, 15)) {
+                            @Override
+                            public View getView(FlowLayout parent, int position, ListTrendingtag.TrendTagsBean trendTagsBean) {
+                                TextView tv = (TextView) LayoutInflater.from(mContext).inflate(R.layout.recy_single_line_text,
+                                        parent, false);
+                                if (!TextUtils.isEmpty(trendTagsBean.getTranslated_name())) {
+                                    tv.setText(trendTagsBean.getTag() + "/" + trendTagsBean.getTranslated_name());
+                                } else {
+                                    tv.setText(trendTagsBean.getTag());
                                 }
-                            });
-                            baseBind.hotTags.setOnTagClickListener(new TagFlowLayout.OnTagClickListener() {
-                                @Override
-                                public boolean onTagClick(View view, int position, FlowLayout parent) {
-                                    baseBind.hintList.setVisibility(View.INVISIBLE);
-                                    Intent intent = new Intent(mContext, SearchActivity.class);
-                                    intent.putExtra(Params.KEY_WORD, listTrendingtag.getList().get(position).getTag());
-                                    intent.putExtra(Params.INDEX, 0);
-                                    startActivity(intent);
-                                    return false;
-                                }
-                            });
-                        }
+                                return tv;
+                            }
+                        });
+                        baseBind.hotTags.setOnTagClickListener(new TagFlowLayout.OnTagClickListener() {
+                            @Override
+                            public boolean onTagClick(View view, int position, FlowLayout parent) {
+                                baseBind.hintList.setVisibility(View.INVISIBLE);
+                                Intent intent = new Intent(mContext, SearchActivity.class);
+                                intent.putExtra(Params.KEY_WORD, listTrendingtag.getList().get(position).getTag());
+                                intent.putExtra(Params.INDEX, 0);
+                                startActivity(intent);
+                                return false;
+                            }
+                        });
                     }
                 });
     }

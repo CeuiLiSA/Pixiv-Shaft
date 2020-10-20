@@ -9,6 +9,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.core.TryCatchObserverImpl;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
@@ -87,12 +88,7 @@ public class GifCreate {
                         }
                     }).subscribeOn(Schedulers.newThread())
                             .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe(new ErrorCtrl<String>() {
-                                @Override
-                                public void onNext(String s) {
-
-                                }
-                            });
+                            .subscribe(new TryCatchObserverImpl<>());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

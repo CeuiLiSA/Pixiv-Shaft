@@ -88,7 +88,7 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {
                         @Override
-                        public void onNext(NullResponse nullResponse) {
+                        public void next(NullResponse nullResponse) {
                             Common.showToast("收藏成功");
                             setFollowed();
                         }
@@ -104,7 +104,7 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {
                         @Override
-                        public void onNext(NullResponse nullResponse) {
+                        public void next(NullResponse nullResponse) {
                             Common.showToast("收藏成功");
                             setFollowed();
                         }
