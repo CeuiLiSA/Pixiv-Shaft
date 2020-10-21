@@ -19,6 +19,7 @@ import androidx.core.content.ContextCompat;
 
 import com.blankj.utilcode.util.UriUtils;
 import com.bumptech.glide.Glide;
+import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -27,6 +28,7 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.base.BaseFragment;
+import ceui.lisa.base.SwipeFragment;
 import ceui.lisa.databinding.FragmentEditFileBinding;
 import ceui.lisa.download.FileSizeUtil;
 import ceui.lisa.http.NullCtrl;
@@ -57,7 +59,7 @@ import retrofit2.Response;
 import static android.app.Activity.RESULT_OK;
 import static ceui.lisa.activities.Shaft.sUserModel;
 
-public class FragmentEditFile extends BaseFragment<FragmentEditFileBinding> implements Display<Preset> {
+public class FragmentEditFile extends SwipeFragment<FragmentEditFileBinding> implements Display<Preset> {
 
     private File imageFile = null;
 
@@ -126,6 +128,10 @@ public class FragmentEditFile extends BaseFragment<FragmentEditFileBinding> impl
         MultipartBody.Part addressPart = MultipartBody.Part.createFormData("address", address);
         MultipartBody.Part countyPart = MultipartBody.Part.createFormData("country", country);
         MultipartBody.Part jobPart = MultipartBody.Part.createFormData("job", job);
+        MultipartBody.Part userName = MultipartBody.Part.createFormData("user_name", Common.checkEmpty(baseBind.userName));
+        MultipartBody.Part webPage = MultipartBody.Part.createFormData("webpage", Common.checkEmpty(baseBind.webpage));
+        MultipartBody.Part twitter = MultipartBody.Part.createFormData("twitter", Common.checkEmpty(baseBind.twitter));
+        MultipartBody.Part comment = MultipartBody.Part.createFormData("comment", Common.checkEmpty(baseBind.comment));
 
         parts.add(sexPart);
         parts.add(addressPart);
@@ -133,6 +139,10 @@ public class FragmentEditFile extends BaseFragment<FragmentEditFileBinding> impl
             parts.add(countyPart);
         }
         parts.add(jobPart);
+        parts.add(userName);
+        parts.add(webPage);
+        parts.add(twitter);
+        parts.add(comment);
 
         Retro.getAppApi().updateUserProfile(sUserModel.getResponse().getAccess_token(), parts)
                 .subscribeOn(Schedulers.newThread())
@@ -301,10 +311,19 @@ public class FragmentEditFile extends BaseFragment<FragmentEditFileBinding> impl
                             baseBind.sex.setSelection(0);
                         }
 
+                        baseBind.userName.setText(user.getUser().getName());
+                        baseBind.webpage.setText(user.getProfile().getWebpage());
+                        baseBind.twitter.setText(user.getProfile().getTwitter_account());
+                        baseBind.comment.setText(user.getUser().getComment());
                     }
                 });
     }
 
     private String sex = "", address = "", job = "", country = "";
     private boolean isGlobal = false;
+
+    @Override
+    public SmartRefreshLayout getSmartRefreshLayout() {
+        return baseBind.refreshLayout;
+    }
 }

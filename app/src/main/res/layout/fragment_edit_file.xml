@@ -12,157 +12,265 @@
         android:layout_height="match_parent">
 
 
-
-        <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-
             <include
                 android:id="@+id/toolbar"
                 layout="@layout/toolbar_layout" />
 
-
-            <RelativeLayout
+            <com.scwang.smartrefresh.layout.SmartRefreshLayout
+                android:id="@+id/refreshLayout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="match_parent"
+                android:layout_above="@+id/submit"
+                android:layout_below="@+id/toolbar">
 
-                <de.hdodenhof.circleimageview.CircleImageView
-                    android:id="@+id/user_head"
-                    android:src="@mipmap/avatar"
-                    android:scaleType="centerCrop"
-                    android:layout_marginTop="40dp"
-                    android:layout_centerHorizontal="true"
-                    android:layout_width="80dp"
-                    android:layout_height="80dp"/>
-
-                <Button
-                    android:id="@+id/change_head"
-                    style="@style/Widget.AppCompat.Button.Borderless"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/eight_dp"
-                    android:textColor="@color/colorPrimary"
-                    android:layout_below="@+id/user_head"
-                    android:layout_centerHorizontal="true"
-                    android:text="@string/string_54">
-
-                </Button>
-
-
-            </RelativeLayout>
-
-            <LinearLayout
-                style="@style/LinearHorizon">
-
-                <TextView
-                    android:text="@string/string_266"
-                    android:layout_width="60dp"
-                    style="@style/AboutUserLeft">
-
-                </TextView>
-
-                <androidx.appcompat.widget.AppCompatSpinner
+                <androidx.core.widget.NestedScrollView
                     android:layout_width="match_parent"
-                    android:layout_marginEnd="@dimen/sixteen_dp"
-                    android:layout_gravity="center_vertical"
-                    android:id="@+id/sex"
-                    android:layout_height="wrap_content">
+                    android:layout_height="match_parent">
+
+                    <LinearLayout style="@style/LinearVertical">
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <de.hdodenhof.circleimageview.CircleImageView
+                                android:id="@+id/user_head"
+                                android:layout_width="80dp"
+                                android:layout_height="80dp"
+                                android:layout_centerHorizontal="true"
+                                android:layout_marginTop="40dp"
+                                android:scaleType="centerCrop"
+                                android:src="@mipmap/avatar" />
+
+                            <Button
+                                android:id="@+id/change_head"
+                                style="@style/Widget.AppCompat.Button.Borderless"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_below="@+id/user_head"
+                                android:layout_centerHorizontal="true"
+                                android:layout_marginTop="@dimen/eight_dp"
+                                android:text="@string/string_54"
+                                android:textColor="@color/colorPrimary">
+
+                            </Button>
 
 
-                </androidx.appcompat.widget.AppCompatSpinner>
+                        </RelativeLayout>
 
-            </LinearLayout>
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="@color/about_user_divider">
 
-            <LinearLayout
-                style="@style/LinearHorizon">
+                        </View>
 
-                <TextView
-                    android:text="@string/string_265"
-                    android:layout_width="60dp"
-                    style="@style/AboutUserLeft">
+                        <LinearLayout style="@style/LinearHorizon">
 
-                </TextView>
+                            <TextView
+                                style="@style/AboutUserLeft"
+                                android:layout_width="60dp"
+                                android:text="@string/string_266">
 
-                <androidx.appcompat.widget.AppCompatSpinner
-                    android:layout_width="match_parent"
-                    android:layout_marginEnd="@dimen/sixteen_dp"
-                    android:layout_gravity="center_vertical"
-                    android:id="@+id/address"
-                    android:layout_height="wrap_content">
+                            </TextView>
 
-
-                </androidx.appcompat.widget.AppCompatSpinner>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/country_ll"
-                android:visibility="gone"
-                style="@style/LinearHorizon">
-
-                <TextView
-                    android:text="@string/string_269"
-                    android:layout_width="60dp"
-                    style="@style/AboutUserLeft">
-
-                </TextView>
-
-                <androidx.appcompat.widget.AppCompatSpinner
-                    android:layout_width="match_parent"
-                    android:layout_marginEnd="@dimen/sixteen_dp"
-                    android:layout_gravity="center_vertical"
-                    android:id="@+id/country"
-                    android:layout_height="wrap_content">
+                            <androidx.appcompat.widget.AppCompatSpinner
+                                android:id="@+id/sex"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:layout_marginEnd="@dimen/sixteen_dp">
 
 
-                </androidx.appcompat.widget.AppCompatSpinner>
+                            </androidx.appcompat.widget.AppCompatSpinner>
 
-            </LinearLayout>
+                        </LinearLayout>
 
-            <LinearLayout
-                style="@style/LinearHorizon">
+                        <View style="@style/half_divider" />
 
-                <TextView
-                    android:text="@string/string_268"
-                    android:layout_width="60dp"
-                    style="@style/AboutUserLeft">
+                        <LinearLayout style="@style/LinearHorizon">
 
-                </TextView>
+                            <TextView
+                                style="@style/AboutUserLeft"
+                                android:layout_width="60dp"
+                                android:text="@string/string_265">
 
-                <androidx.appcompat.widget.AppCompatSpinner
-                    android:layout_width="match_parent"
-                    android:layout_marginEnd="@dimen/sixteen_dp"
-                    android:layout_gravity="center_vertical"
-                    android:id="@+id/job"
-                    android:layout_height="wrap_content">
+                            </TextView>
+
+                            <androidx.appcompat.widget.AppCompatSpinner
+                                android:id="@+id/address"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:layout_marginEnd="@dimen/sixteen_dp">
 
 
-                </androidx.appcompat.widget.AppCompatSpinner>
+                            </androidx.appcompat.widget.AppCompatSpinner>
 
-            </LinearLayout>
+                        </LinearLayout>
 
-        </LinearLayout>
+                        <View style="@style/half_divider" />
+
+                        <LinearLayout
+                            android:id="@+id/country_ll"
+                            style="@style/LinearHorizon"
+                            android:visibility="gone">
+
+                            <TextView
+                                style="@style/AboutUserLeft"
+                                android:layout_width="60dp"
+                                android:text="@string/string_269">
+
+                            </TextView>
+
+                            <androidx.appcompat.widget.AppCompatSpinner
+                                android:id="@+id/country"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:layout_marginEnd="@dimen/sixteen_dp">
+
+
+                            </androidx.appcompat.widget.AppCompatSpinner>
+
+                        </LinearLayout>
+
+                        <View style="@style/half_divider" />
+
+                        <LinearLayout style="@style/LinearHorizon">
+
+                            <TextView
+                                style="@style/AboutUserLeft"
+                                android:layout_width="60dp"
+                                android:text="@string/string_268">
+
+                            </TextView>
+
+                            <androidx.appcompat.widget.AppCompatSpinner
+                                android:id="@+id/job"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:layout_marginEnd="@dimen/sixteen_dp">
+
+
+                            </androidx.appcompat.widget.AppCompatSpinner>
+
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="@color/about_user_divider">
+
+                        </View>
+
+                        <LinearLayout style="@style/LinearVertical">
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="1dp"
+                                android:layout_marginTop="@dimen/tweenty_four_dp"
+                                android:background="@color/about_user_divider">
+
+                            </View>
+
+                            <LinearLayout style="@style/LinearHorizon">
+
+                                <TextView
+                                    style="@style/AboutUserLeft"
+                                    android:text="@string/string_270" />
+
+
+                                <EditText
+                                    android:id="@+id/user_name"
+                                    style="@style/AboutUserRightDarkText" />
+
+                            </LinearLayout>
+
+                            <View style="@style/half_divider" />
+
+                            <LinearLayout style="@style/LinearHorizon">
+
+                                <TextView
+                                    style="@style/AboutUserLeft"
+                                    android:text="@string/string_271" />
+
+
+                                <EditText
+                                    android:id="@+id/webpage"
+                                    style="@style/AboutUserRightDarkText" />
+
+                            </LinearLayout>
+
+                            <View style="@style/half_divider" />
+
+
+                            <LinearLayout style="@style/LinearHorizon">
+
+                                <TextView
+                                    style="@style/AboutUserLeft"
+                                    android:text="@string/string_272" />
+
+
+                                <EditText
+                                    android:id="@+id/twitter"
+                                    style="@style/AboutUserRightDarkText" />
+
+                            </LinearLayout>
+
+                            <View style="@style/half_divider" />
+
+
+                            <LinearLayout style="@style/LinearHorizon">
+
+                                <TextView
+                                    style="@style/AboutUserLeft"
+                                    android:text="@string/string_273" />
+
+
+                                <EditText
+                                    android:id="@+id/comment"
+                                    style="@style/AboutUserRightDarkText" />
+
+                            </LinearLayout>
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="1dp"
+                                android:layout_marginBottom="80dp"
+                                android:background="@color/about_user_divider">
+
+                            </View>
+
+                        </LinearLayout>
+
+
+                    </LinearLayout>
+
+                </androidx.core.widget.NestedScrollView>
+
+            </com.scwang.smartrefresh.layout.SmartRefreshLayout>
+
 
         <ProgressBar
-            android:layout_width="wrap_content"
             android:id="@+id/progress"
-            android:visibility="invisible"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:layout_height="wrap_content">
+            android:visibility="invisible">
 
         </ProgressBar>
 
         <Button
-            android:layout_width="match_parent"
-            android:layout_alignParentBottom="true"
-            android:text="@string/string_55"
-            android:layout_margin="@dimen/sixteen_dp"
-            android:textColor="@color/white"
-            android:background="@drawable/primary_round_bg"
             android:id="@+id/submit"
-            android:layout_height="wrap_content" />
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_margin="@dimen/sixteen_dp"
+            android:background="@drawable/primary_round_bg"
+            android:text="@string/string_55"
+            android:textColor="@color/white" />
 
     </RelativeLayout>
 

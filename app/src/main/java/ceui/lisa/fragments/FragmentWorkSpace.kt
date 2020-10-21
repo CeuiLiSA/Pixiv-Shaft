@@ -2,6 +2,7 @@ package ceui.lisa.fragments
 
 import android.text.TextUtils
 import android.view.View
+import android.widget.EditText
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.base.SwipeFragment
@@ -15,6 +16,7 @@ import ceui.lisa.utils.Common
 import com.scwang.smartrefresh.layout.SmartRefreshLayout
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import java.lang.Exception
 import java.lang.RuntimeException
 
 class FragmentWorkSpace: SwipeFragment<FragmentWorkSpaceBinding>(), Display<UserDetailResponse> {
@@ -43,65 +45,29 @@ class FragmentWorkSpace: SwipeFragment<FragmentWorkSpaceBinding>(), Display<User
     }
 
     override fun invoke(response: UserDetailResponse) {
-        if (!TextUtils.isEmpty(response.workspace.pc)) {
-            baseBind.computer.setText(response.workspace.pc)
-        } else {
-            baseBind.computer.hint = getString(R.string.no_info)
-        }
-        if (!TextUtils.isEmpty(response.workspace.monitor)) {
-            baseBind.monitor.setText(response.workspace.monitor)
-        } else {
-            baseBind.monitor.hint = getString(R.string.no_info)
-        }
-        if (!TextUtils.isEmpty(response.workspace.tool)) {
-            baseBind.app.setText(response.workspace.tool)
-        } else {
-            baseBind.app.hint = getString(R.string.no_info)
-        }
-        if (!TextUtils.isEmpty(response.workspace.scanner)) {
-            baseBind.scanner.setText(response.workspace.scanner)
-        } else {
-            baseBind.scanner.hint = getString(R.string.no_info)
-        }
-        if (!TextUtils.isEmpty(response.workspace.tablet)) {
-            baseBind.drawBoard.setText(response.workspace.tablet)
-        } else {
-            baseBind.drawBoard.hint = getString(R.string.no_info)
-        }
-        if (!TextUtils.isEmpty(response.workspace.mouse)) {
-            baseBind.mouse.setText(response.workspace.mouse)
-        } else {
-            baseBind.mouse.hint = getString(R.string.no_info)
-        }
-        if (!TextUtils.isEmpty(response.workspace.printer)) {
-            baseBind.printer.setText(response.workspace.printer)
-        } else {
-            baseBind.printer.hint = getString(R.string.no_info)
-        }
-        if (!TextUtils.isEmpty(response.workspace.desktop)) {
-            baseBind.tableObjects.setText(response.workspace.desktop)
-        } else {
-            baseBind.tableObjects.hint = getString(R.string.no_info)
-        }
-        if (!TextUtils.isEmpty(response.workspace.music)) {
-            baseBind.likeMusic.setText(response.workspace.music)
-        } else {
-            baseBind.likeMusic.hint = getString(R.string.no_info)
-        }
-        if (!TextUtils.isEmpty(response.workspace.desk)) {
-            baseBind.table.setText(response.workspace.desk)
-        } else {
-            baseBind.table.hint = getString(R.string.no_info)
-        }
-        if (!TextUtils.isEmpty(response.workspace.chair)) {
-            baseBind.chair.setText(response.workspace.chair)
-        } else {
-            baseBind.chair.hint = getString(R.string.no_info)
-        }
-        if (!TextUtils.isEmpty(response.workspace.comment)) {
-            baseBind.otherText.setText(response.workspace.comment)
-        } else {
-            baseBind.otherText.hint = getString(R.string.no_info)
+        setText(response.workspace.pc, baseBind.computer)
+        setText(response.workspace.monitor, baseBind.monitor)
+        setText(response.workspace.tool, baseBind.app)
+        setText(response.workspace.scanner, baseBind.scanner)
+        setText(response.workspace.tablet, baseBind.drawBoard)
+        setText(response.workspace.mouse, baseBind.mouse)
+        setText(response.workspace.printer, baseBind.printer)
+        setText(response.workspace.desktop, baseBind.tableObjects)
+        setText(response.workspace.music, baseBind.likeMusic)
+        setText(response.workspace.desk, baseBind.table)
+        setText(response.workspace.chair, baseBind.chair)
+        setText(response.workspace.comment, baseBind.otherText)
+    }
+
+    private fun setText(string: String, view: EditText) {
+        try {
+            if (!TextUtils.isEmpty(string)) {
+                view.setText(string)
+            } else {
+                view.hint = getString(R.string.no_info)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 

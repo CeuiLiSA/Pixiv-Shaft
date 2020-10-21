@@ -244,7 +244,7 @@
     <string name="string_51">pixiv ID (限小写英文和数字)</string>
     <string name="string_52">新密码</string>
     <string name="string_53">更新账号信息</string>
-    <string name="string_54">修改</string>
+    <string name="string_54">修改头像</string>
     <string name="string_55">更新个人资料</string>
     <string name="string_56">当前下载文件名示例：</string>
     <string name="string_57">12345678_title.png</string>
@@ -458,5 +458,9 @@
     <string name="string_267">我的作业环境</string>
     <string name="string_268">工作：</string>
     <string name="string_269">国家：</string>
+    <string name="string_270">昵称：</string>
+    <string name="string_271">主页：</string>
+    <string name="string_272">Twitter ID：</string>
+    <string name="string_273">自我介绍：</string>
 
 </resources>
