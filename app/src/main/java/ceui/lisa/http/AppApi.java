@@ -397,6 +397,13 @@ public interface AppApi {
     @GET("v1/user/profile/presets")
     Observable<Preset> getPresets(@Header("Authorization") String token);
 
+    @GET("v2/illust/mypixiv")
+    Observable<ListIllust> getNiceFriendIllust(@Header("Authorization") String token);
+
+    @GET("v1/novel/mypixiv")
+    Observable<ListNovel> getNiceFriendNovel(@Header("Authorization") String token);
+
+
     @GET
     Observable<ListNovelSeries> getNextUserNovelSeries(@Header("Authorization") String token,
                                                        @Url String next_url);
