@@ -7,6 +7,7 @@ import android.view.View;
 import androidx.recyclerview.widget.GridLayoutManager;
 
 import ceui.lisa.activities.SearchActivity;
+import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.TagAdapter;
 import ceui.lisa.core.RemoteRepo;
@@ -16,6 +17,7 @@ import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListTrendingtag;
 import ceui.lisa.repo.HotTagRepo;
 import ceui.lisa.utils.DensityUtil;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.TagItemDecoration;
 
@@ -67,10 +69,17 @@ public class FragmentHotTag extends NetListFragment<FragmentBaseListBinding,
         return new TagAdapter(allItems, mContext).setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                Intent intent = new Intent(mContext, SearchActivity.class);
-                intent.putExtra(Params.KEY_WORD, allItems.get(position).getTag());
-                intent.putExtra(Params.INDEX, Params.TYPE_ILLUST.equals(contentType) ? 0 : 2);
-                startActivity(intent);
+                if (Dev.isDev) {
+                    Intent intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "热度小说");
+                    intent.putExtra(Params.KEY_WORD, allItems.get(position).getTag());
+                    startActivity(intent);
+                } else {
+                    Intent intent = new Intent(mContext, SearchActivity.class);
+                    intent.putExtra(Params.KEY_WORD, allItems.get(position).getTag());
+                    intent.putExtra(Params.INDEX, Params.TYPE_ILLUST.equals(contentType) ? 0 : 2);
+                    startActivity(intent);
+                }
             }
         });
     }

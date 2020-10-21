@@ -25,6 +25,7 @@ import ceui.lisa.base.BaseActivity;
 import ceui.lisa.base.BaseFragment;
 import ceui.lisa.databinding.FragmentNewSearchBinding;
 import ceui.lisa.fragments.FragmentFilter;
+import ceui.lisa.fragments.FragmentPopularNovel;
 import ceui.lisa.fragments.FragmentSearchIllust;
 import ceui.lisa.fragments.FragmentSearchNovel;
 import ceui.lisa.utils.Common;
