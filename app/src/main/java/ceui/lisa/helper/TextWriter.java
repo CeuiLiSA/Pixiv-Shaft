@@ -6,6 +6,7 @@ import java.io.IOException;
 
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.interfaces.Callback;
+import ceui.lisa.utils.Common;
 
 public class TextWriter {
 
@@ -18,6 +19,7 @@ public class TextWriter {
                 e.printStackTrace();
             }
         }
+        Common.showLog("file path " + file.getPath());
 
         final FileOutputStream outStream;
         try {

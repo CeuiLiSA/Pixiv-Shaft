@@ -144,6 +144,7 @@
     <string name="file_name_type">文件命名格式</string>
     <string name="download_path">下载路径</string>
     <string name="illust_download_path">图片下载路径</string>
+    <string name="novel_txt_download_path">小说TXT保存路径</string>
     <string name="gif_unzip_path">GIF压缩包解压路径</string>
     <string name="gif_zip_path">GIF压缩包存放路径</string>
     <string name="gif_result_path">GIF生成路径</string>
@@ -272,7 +273,7 @@
     <string name="string_79">查看更多</string>
     <string name="string_80">动态</string>
     <string name="string_81">私人关注</string>
-    <string name="string_82">保存本地</string>
+    <string name="string_82">保存本地（已下载中可查看）</string>
     <string name="string_83">上一章节</string>
     <string name="string_84">下一章节</string>
     <string name="string_85">+ 关注</string>
@@ -464,5 +465,9 @@
     <string name="string_273">自我介绍：</string>
     <string name="string_274">好P友的插画/漫画作品</string>
     <string name="string_275">好P友的小说作品</string>
+    <string name="string_276">/storage/emulated/0/Shaft/SingleNovels</string>
+    <string name="string_277">导出TXT（文件夹中可查看）</string>
+    <string name="string_278">导出TXT并分享</string>
+    <string name="string_279">导出成功</string>
 
 </resources>

@@ -19,7 +19,7 @@ public class Settings {
     public static final String FILE_GIF_PATH = PathUtils.getExternalDownloadsPath();
 
     //log日志，
-    public static final String FILE_LOG_PATH = PathUtils.getExternalDownloadsPath();
+    public static final String FILE_LOG_PATH = PathUtils.getExternalDownloadsPath() + "/ShaftFiles";
 
     //下载的GIF 压缩包解压之后的结果存放在这里
     public static final String FILE_GIF_CHILD_PATH = PathUtils.getExternalAppCachePath();
@@ -77,6 +77,8 @@ public class Settings {
 
     private String illustPath = "";
 
+    private String novelPath = "";
+
     private String gifResultPath = "";
 
     private String gifZipPath = "";
@@ -99,6 +101,14 @@ public class Settings {
         } else {
             return ALL_LANGUAGE[0];
         }
+    }
+
+    public String getNovelPath() {
+        return TextUtils.isEmpty(novelPath) ? FILE_LOG_PATH : novelPath;
+    }
+
+    public void setNovelPath(String novelPath) {
+        this.novelPath = novelPath;
     }
 
     public void setAppLanguage(String appLanguage) {
@@ -269,10 +279,6 @@ public class Settings {
 
     public void setTrendsForPrivate(boolean trendsForPrivate) {
         this.trendsForPrivate = trendsForPrivate;
-    }
-
-    public static String getLogPath(){
-        return FILE_LOG_PATH;
     }
 
     public boolean isShowPixivDialog() {

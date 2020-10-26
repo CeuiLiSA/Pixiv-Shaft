@@ -100,7 +100,7 @@ public class FileCreator {
     }
 
     public static File createLogFile(String name) {
-        File parent = new File(Settings.getLogPath());
+        File parent = new File(Shaft.sSettings.getNovelPath());
         if (!parent.exists()) {
             parent.mkdir();
         }

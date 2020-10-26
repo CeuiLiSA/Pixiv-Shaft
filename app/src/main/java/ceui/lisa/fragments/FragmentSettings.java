@@ -49,6 +49,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
 
     private static final int illustPath_CODE = 10086;
     private static final int gifResultPath_CODE = 10087;
+    private static final int novelResultPath_CODE = 10090;
     private static final int gifZipPath_CODE = 10088;
     private static final int gifUnzipPath_CODE = 10089;
 
@@ -349,6 +350,30 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             }
         });
 
+
+        baseBind.novelDownloadResult.setText(Shaft.sSettings.getNovelPath());
+        baseBind.novelDownloadPath.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(mContext, FilePickerActivity.class);
+                // This works if you defined the intent filter
+                // Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+
+                // Set these depending on your use case. These are the defaults.
+                i.putExtra(FilePickerActivity.EXTRA_ALLOW_MULTIPLE, false);
+                i.putExtra(FilePickerActivity.EXTRA_ALLOW_CREATE_DIR, true);
+                i.putExtra(FilePickerActivity.EXTRA_MODE, FilePickerActivity.MODE_DIR);
+
+                // Configure initial directory by specifying a String.
+                // You could specify a String like "/storage/emulated/0/", but that can
+                // dangerous. Always use Android's API calls to get paths to the SD-card or
+                // internal memory.
+                i.putExtra(FilePickerActivity.EXTRA_START_PATH, Environment.getExternalStorageDirectory().getPath());
+
+                startActivityForResult(i, novelResultPath_CODE);
+            }
+        });
+
         baseBind.fuckChina.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -476,7 +501,6 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             return;
         }
 
-
         if (requestCode == gifResultPath_CODE && resultCode == Activity.RESULT_OK) {
             List<Uri> files = Utils.getSelectedFilesFromResult(data);
             for (Uri uri : files) {
@@ -486,6 +510,22 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                     Shaft.sSettings.setGifResultPath(path);
                     Local.setSettings(Shaft.sSettings);
                     baseBind.gifResult.setText(path);
+                } else {
+                    Common.showToast(getString(R.string.select_inner_storage));
+                }
+            }
+            return;
+        }
+
+        if (requestCode == novelResultPath_CODE && resultCode == Activity.RESULT_OK) {
+            List<Uri> files = Utils.getSelectedFilesFromResult(data);
+            for (Uri uri : files) {
+                File file = Utils.getFileForUri(uri);
+                String path = file.getPath();
+                if (path.startsWith("/storage/emulated/0/")) {
+                    Shaft.sSettings.setNovelPath(path);
+                    Local.setSettings(Shaft.sSettings);
+                    baseBind.novelDownloadResult.setText(path);
                 } else {
                     Common.showToast(getString(R.string.select_inner_storage));
                 }

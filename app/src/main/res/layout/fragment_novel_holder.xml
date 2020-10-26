@@ -103,8 +103,10 @@
                         android:id="@+id/novel_title"
                         android:textColor="@color/always_white"
                         android:textSize="15sp"
+                        android:layout_marginBottom="@dimen/sixteen_dp"
                         android:layout_marginEnd="@dimen/sixteen_dp"
                         android:maxLines="3"
+                        android:text="哈哈哈哈哈"
                         android:ellipsize="end"
                         android:layout_marginStart="@dimen/sixteen_dp"
                         android:layout_marginTop="@dimen/sixteen_dp"
@@ -118,13 +120,13 @@
                         android:textColor="@color/white_to_gray"
                         android:layout_marginEnd="@dimen/sixteen_dp"
                         android:textSize="15sp"
+                        android:text="哈哈哈哈哈"
                         android:textStyle="bold"
                         android:maxLines="2"
                         android:layout_marginBottom="@dimen/eight_dp"
                         android:ellipsize="end"
                         android:layout_below="@+id/novel_title"
                         android:layout_marginStart="@dimen/sixteen_dp"
-                        android:layout_marginTop="@dimen/sixteen_dp"
                         android:layout_height="wrap_content">
 
                     </TextView>

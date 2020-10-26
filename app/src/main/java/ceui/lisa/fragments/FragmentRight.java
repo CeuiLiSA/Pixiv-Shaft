@@ -32,6 +32,7 @@ import ceui.lisa.activities.UserActivity;
 import ceui.lisa.activities.VActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.EventAdapter;
+import ceui.lisa.adapters.IAdapter;
 import ceui.lisa.core.BaseRepo;
 import ceui.lisa.core.Container;
 import ceui.lisa.core.PageData;
@@ -62,99 +63,7 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
 
     @Override
     public BaseAdapter<?, ? extends ViewDataBinding> adapter() {
-        return new EventAdapter(allItems, mContext).setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(View v, int position, int viewType) {
-                if (viewType == 0) {
-                    final String uuid = UUID.randomUUID().toString();
-                    final PageData pageData = new PageData(uuid, allItems);
-                    Container.get().addPageToMap(pageData);
-
-                    Intent intent = new Intent(mContext, VActivity.class);
-                    intent.putExtra(Params.POSITION, position);
-                    intent.putExtra(Params.PAGE_UUID, uuid);
-                    mContext.startActivity(intent);
-                } else if (viewType == 1) {
-                    Intent intent = new Intent(mContext, UserActivity.class);
-                    intent.putExtra(Params.USER_ID, allItems.get(position).getUser().getId());
-                    startActivity(intent);
-                } else if (viewType == 2) {
-                    if (allItems.get(position).getPage_count() == 1) {
-                        IllustDownload.downloadIllust(allItems.get(position));
-                    } else {
-                        IllustDownload.downloadAllIllust(allItems.get(position));
-                    }
-                } else if (viewType == 3) {
-                    PixivOperate.postLike(allItems.get(position), Params.TYPE_PUBLUC);
-                } else if (viewType == 4) {
-                    View popView = LayoutInflater.from(mContext).inflate(R.layout.pop_window, null);
-                    QMUIPopup mNormalPopup = QMUIPopups.popup(mContext, QMUIDisplayHelper.dp2px(mContext, 250))
-                            .preferredDirection(QMUIPopup.DIRECTION_BOTTOM)
-                            .view(popView)
-                            .dimAmount(0.5f)
-                            .edgeProtection(QMUIDisplayHelper.dp2px(mContext, 20))
-                            .offsetX(QMUIDisplayHelper.dp2px(mContext, 80))
-                            .offsetYIfBottom(QMUIDisplayHelper.dp2px(mContext, 5))
-                            .shadow(true)
-                            .arrow(false)
-                            .animStyle(QMUIPopup.ANIM_GROW_FROM_RIGHT)
-                            .onDismiss(new PopupWindow.OnDismissListener() {
-                                @Override
-                                public void onDismiss() {
-                                }
-                            })
-                            .show(v);
-
-                    popView.findViewById(R.id.share).setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            new ShareIllust(mContext, allItems.get(position)) {
-                                @Override
-                                public void onPrepare() {
-
-                                }
-                            }.execute();
-                            mNormalPopup.dismiss();
-                        }
-                    });
-                    popView.findViewById(R.id.show_comment).setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            Intent intent = new Intent(mContext, TemplateActivity.class);
-                            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关评论");
-                            intent.putExtra(Params.ILLUST_ID, allItems.get(position).getId());
-                            intent.putExtra(Params.ILLUST_TITLE, allItems.get(position).getTitle());
-                            startActivity(intent);
-                            mNormalPopup.dismiss();
-                        }
-                    });
-
-                    TextView follow = popView.findViewById(R.id.follow);
-                    if (allItems.get(position).getUser().isIs_followed()) {
-                        follow.setText("取消关注");
-                    } else {
-                        follow.setText("添加关注");
-                    }
-
-                    popView.findViewById(R.id.stop_follow).setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            if (allItems.get(position).getUser().isIs_followed()) {
-                                PixivOperate.postUnFollowUser(allItems.get(position).getUser().getUserId());
-                                allItems.get(position).getUser().setIs_followed(false);
-                                follow.setText("添加关注");
-                            } else {
-                                PixivOperate.postFollowUser(allItems.get(position).getUser().getUserId(),
-                                        Params.TYPE_PUBLUC);
-                                allItems.get(position).getUser().setIs_followed(true);
-                                follow.setText("取消关注");
-                            }
-                            mNormalPopup.dismiss();
-                        }
-                    });
-                }
-            }
-        });
+        return new IAdapter(allItems, mContext);
     }
 
     @Override
@@ -212,7 +121,7 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
 
     @Override
     public void initRecyclerView() {
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
+        staggerRecyclerView();
     }
 
     @Override

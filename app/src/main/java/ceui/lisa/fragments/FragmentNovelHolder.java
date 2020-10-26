@@ -132,6 +132,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
         baseBind.viewPager.setHasFixedSize(false);
         baseBind.novelTitle.setText(String.format("%s%s", getString(R.string.string_182), mNovelBean.getTitle()));
         if (mNovelBean.getSeries() != null && !TextUtils.isEmpty(mNovelBean.getSeries().getTitle())) {
+            baseBind.novelSeries.setVisibility(View.VISIBLE);
             baseBind.novelSeries.setText(String.format("%s%s", getString(R.string.string_183), mNovelBean.getSeries().getTitle()));
             baseBind.novelSeries.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -142,13 +143,16 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                     startActivity(intent);
                 }
             });
+        } else {
+            baseBind.novelSeries.setVisibility(View.GONE);
         }
         if (mNovelBean.getTags() != null && mNovelBean.getTags().size() != 0) {
             baseBind.hotTags.setAdapter(new TagAdapter<TagsBean>(
                     mNovelBean.getTags()) {
                 @Override
                 public View getView(FlowLayout parent, int position, TagsBean trendTagsBean) {
-                    TextView tv = (TextView) LayoutInflater.from(mContext).inflate(R.layout.recy_single_novel_tag_text,
+                    TextView tv = (TextView) LayoutInflater.from(mContext).inflate(
+                            R.layout.recy_single_novel_tag_text_small,
                             parent, false);
                     tv.setText(trendTagsBean.getName());
                     return tv;
@@ -279,7 +283,12 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                     baseBind.transformationLayout.finishTransform();
                     return true;
                 } else if (item.getItemId() == R.id.action_txt) {
-                    TextWriter.writeToTxt(System.currentTimeMillis() + "_novel_tasks.txt",
+                    TextWriter.writeToTxt(mNovelBean.getTitle() + "_" + System.currentTimeMillis() + "_novel_tasks.txt",
+                            novelDetail.getNovel_text());
+                    Common.showToast(getString(R.string.string_279), baseBind.saveNovel);
+                    return true;
+                } else if (item.getItemId() == R.id.action_txt_and_share) {
+                    TextWriter.writeToTxt(mNovelBean.getTitle() + "_" + System.currentTimeMillis() + "_novel_tasks.txt",
                             novelDetail.getNovel_text(), new Callback<File>() {
                                 @Override
                                 public void doSomething(File t) {
@@ -291,6 +300,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                                             .shareBySystem();
                                 }
                             });
+                    Common.showToast(getString(R.string.string_279), baseBind.saveNovel);
                     return true;
                 }
                 return false;
