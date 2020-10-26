@@ -2,6 +2,7 @@ package ceui.lisa.activities;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 
 import com.google.gson.Gson;
@@ -76,5 +77,14 @@ public class Shaft extends Application {
             statusHeight = sContext.getResources().getDimensionPixelSize(resourceId);
         }
         toolbarHeight = DensityUtil.dp2px(56.0f);
+    }
+
+    @Override
+    public void unbindService(ServiceConnection conn) {
+        try {
+            super.unbindService(conn);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
