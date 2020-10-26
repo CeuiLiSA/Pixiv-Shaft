@@ -1,15 +1,14 @@
 package ceui.lisa.helper;
 
+import android.content.Context;
 import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 
+import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.utils.Common;
-
-import static ceui.lisa.fragments.FragmentFilter.THEME_NAME;
 
 public class ThemeHelper {
 
@@ -50,7 +49,12 @@ public class ThemeHelper {
         }
     }
 
-    public static int getThemeType() {
+    public static int getThemeType(Context context) {
+        String[] THEME_NAME = new String[]{
+                context.getResources().getString(R.string.string_298),
+                context.getResources().getString(R.string.string_299),
+                context.getResources().getString(R.string.string_300)
+        };
         String currentType = Shaft.sSettings.getThemeType();
         int index = 0;
         for (int i = 0; i < THEME_NAME.length; i++) {

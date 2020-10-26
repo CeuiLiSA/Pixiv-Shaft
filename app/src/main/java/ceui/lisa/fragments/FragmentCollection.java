@@ -24,14 +24,6 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBinding> {
 
-    private static final String[] CHINESE_TITLES = new String[]{
-            Shaft.getContext().getString(R.string.public_like_illust),
-            Shaft.getContext().getString(R.string.private_like_illust),
-            Shaft.getContext().getString(R.string.public_like_user),
-            Shaft.getContext().getString(R.string.private_like_user),
-            Shaft.getContext().getString(R.string.public_like_novel),
-            Shaft.getContext().getString(R.string.private_like_novel)
-    };
     private Fragment[] allPages;
 
 
@@ -42,6 +34,14 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
 
     @Override
     public void initView() {
+        String[] CHINESE_TITLES = new String[]{
+            Shaft.getContext().getString(R.string.public_like_illust),
+            Shaft.getContext().getString(R.string.private_like_illust),
+            Shaft.getContext().getString(R.string.public_like_user),
+            Shaft.getContext().getString(R.string.private_like_user),
+            Shaft.getContext().getString(R.string.public_like_novel),
+            Shaft.getContext().getString(R.string.private_like_novel)
+        };
         mActivity.getWindow().setStatusBarColor(getResources().getColor(R.color.new_color_primary));
         baseBind.toolbarTitle.setText(R.string.bookmark);
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());

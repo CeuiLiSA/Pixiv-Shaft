@@ -324,6 +324,12 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
             @Override
             public boolean onLongClick(View v) {
                 if (illust.getPage_count() == 1) {
+                    String[] IMG_RESOLUTION = new String[]{
+                            getString(R.string.string_280),
+                            getString(R.string.string_281),
+                            getString(R.string.string_282),
+                            getString(R.string.string_283)
+                    };
                     new QMUIDialog.CheckableDialogBuilder(mContext)
                             .setSkinManager(QMUISkinManager.defaultInstance(mContext))
                             .addItems(IMG_RESOLUTION, new DialogInterface.OnClickListener() {
@@ -356,7 +362,6 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 .into(baseBind.userHead);
     }
 
-    private static final String[] IMG_RESOLUTION = new String[]{"原图(original)", "大图(large)", "中图(medium)", "小图(square_medium)"};
     private StarReceiver mReceiver;
 
     @Override

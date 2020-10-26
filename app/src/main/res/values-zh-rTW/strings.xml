@@ -451,4 +451,27 @@
   <string name="string_277">匯出TXT（資料夾中可查看）</string>
   <string name="string_278">匯出TXT並分享</string>
   <string name="string_279">匯出成功</string>
+  <string name="string_280">原图(original)</string>
+  <string name="string_281">大图(large)</string>
+  <string name="string_282">中图(medium)</string>
+  <string name="string_283">小图(square_medium)</string>
+  <string name="string_284">标签 部分匹配</string>
+  <string name="string_285">标签 完全匹配</string>
+  <string name="string_286">标题/简介 匹配</string>
+  <string name="string_287">最新作品</string>
+  <string name="string_288">由旧到新</string>
+
+
+  <string name="string_289">\" 无限制\"</string>
+  <string name="string_290">\" 500人收藏\"</string>
+  <string name="string_291">\" 1000人收藏\"</string>
+  <string name="string_292">\" 2000人收藏\"</string>
+  <string name="string_293">\" 5000人收藏\"</string>
+  <string name="string_294">\" 7500人收藏\"</string>
+  <string name="string_295">\" 10000人收藏\"</string>
+  <string name="string_296">\" 20000人收藏\"</string>
+  <string name="string_297">\" 50000人收藏\"</string>
+  <string name="string_298">默认模式（跟随系统）</string>
+  <string name="string_299">白天模式（浅色）</string>
+  <string name="string_300">黑暗模式（深色）</string>
 </resources>

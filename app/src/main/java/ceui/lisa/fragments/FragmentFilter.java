@@ -20,24 +20,10 @@ import ceui.lisa.viewmodel.SearchModel;
 
 public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
 
-    public static final String[] TAG_MATCH = new String[]{"标签 部分匹配", "标签 完全匹配", "标题/简介 匹配"};
     public static final String[] TAG_MATCH_VALUE = new String[]{"partial_match_for_tags",
             "exact_match_for_tags", "title_and_caption"};
-
-    public static final String[] ALL_SIZE = new String[]{" 无限制", " 500人收藏", " 1000人收藏", " 2000人收藏",
-            " 5000人收藏", " 7500人收藏", " 10000人收藏", " 20000人收藏", " 50000人收藏"};
     public static final String[] ALL_SIZE_VALUE = new String[]{"", "500users入り", "1000users入り", "2000users入り",
             "5000users入り", "7500users入り", "10000users入り", "20000users入り", "50000users入り"};
-
-
-    public static final String[] THEME_NAME = new String[]{
-            "默认模式（跟随系统）",
-            "白天模式（浅色）",
-            "黑暗模式（深色）"
-    };
-
-
-    public static final String[] DATE_SORT = new String[]{"最新作品", "由旧到新"};
     public static final String[] DATE_SORT_VALUE = new String[]{"date_desc", "date_asc"};
 
     private SearchModel searchModel;
@@ -61,6 +47,11 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
                 searchModel.getNowGo().setValue("search_now");
             }
         });
+        String[] TAG_MATCH = new String[]{
+                getString(R.string.string_284),
+                getString(R.string.string_285),
+                getString(R.string.string_286)
+        };
         ArrayAdapter<String> tagAdapter = new ArrayAdapter<>(mContext,
                 R.layout.spinner_item, TAG_MATCH);
         baseBind.tagSpinner.setAdapter(tagAdapter);
@@ -76,7 +67,17 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
             }
         });
 
-
+        String[] ALL_SIZE = new String[]{
+                getString(R.string.string_289),
+                getString(R.string.string_290),
+                getString(R.string.string_291),
+                getString(R.string.string_292),
+                getString(R.string.string_293),
+                getString(R.string.string_294),
+                getString(R.string.string_295),
+                getString(R.string.string_296),
+                getString(R.string.string_297)
+        };
         ArrayAdapter<String> starAdapter = new ArrayAdapter<>(mContext,
                 R.layout.spinner_item, ALL_SIZE);
         baseBind.starSizeSpinner.setAdapter(starAdapter);
@@ -100,7 +101,10 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
             }
         });
 
-
+        String[] DATE_SORT = new String[]{
+                getString(R.string.string_287),
+                getString(R.string.string_288)
+        };
         ArrayAdapter<String> dateAdapter = new ArrayAdapter<>(mContext,
                 R.layout.spinner_item, DATE_SORT);
         baseBind.dateSpinner.setAdapter(dateAdapter);

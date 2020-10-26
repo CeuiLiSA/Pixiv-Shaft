@@ -39,9 +39,7 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 
-import static ceui.lisa.fragments.FragmentFilter.ALL_SIZE;
 import static ceui.lisa.fragments.FragmentFilter.ALL_SIZE_VALUE;
-import static ceui.lisa.fragments.FragmentFilter.THEME_NAME;
 import static ceui.lisa.utils.Settings.ALL_LANGUAGE;
 
 
@@ -389,6 +387,17 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
         baseBind.searchFilterRela.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                String[] ALL_SIZE = new String[]{
+                        getString(R.string.string_289),
+                        getString(R.string.string_290),
+                        getString(R.string.string_291),
+                        getString(R.string.string_292),
+                        getString(R.string.string_293),
+                        getString(R.string.string_294),
+                        getString(R.string.string_295),
+                        getString(R.string.string_296),
+                        getString(R.string.string_297)
+                };
                 new QMUIDialog.CheckableDialogBuilder(mContext)
                         .setSkinManager(QMUISkinManager.defaultInstance(mContext))
                         .addItems(ALL_SIZE, new DialogInterface.OnClickListener() {
@@ -449,7 +458,12 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
         baseBind.themeModeRela.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final int index = ThemeHelper.getThemeType();
+                final int index = ThemeHelper.getThemeType(mContext);
+                String[] THEME_NAME = new String[]{
+                        getString(R.string.string_298),
+                        getString(R.string.string_299),
+                        getString(R.string.string_300)
+                };
                 new QMUIDialog.CheckableDialogBuilder(mActivity)
                         .setCheckedIndex(index)
                         .setSkinManager(QMUISkinManager.defaultInstance(mContext))

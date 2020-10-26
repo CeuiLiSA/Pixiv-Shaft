@@ -12,12 +12,6 @@ import ceui.lisa.databinding.ViewpagerWithTablayoutBinding;
 
 public class FragmentNew extends BaseFragment<ViewpagerWithTablayoutBinding> {
 
-    private static final String[] CHINESE_TITLES = new String[]{
-            Shaft.getContext().getString(R.string.type_illust),
-            Shaft.getContext().getString(R.string.type_manga),
-            Shaft.getContext().getString(R.string.type_novel)
-    };
-
     @Override
     public void initLayout() {
         mLayoutID = R.layout.viewpager_with_tablayout;
@@ -25,6 +19,11 @@ public class FragmentNew extends BaseFragment<ViewpagerWithTablayoutBinding> {
 
     @Override
     public void initView() {
+        String[] CHINESE_TITLES = new String[]{
+                Shaft.getContext().getString(R.string.type_illust),
+                Shaft.getContext().getString(R.string.type_manga),
+                Shaft.getContext().getString(R.string.type_novel)
+        };
         mActivity.getWindow().setStatusBarColor(getResources().getColor(R.color.new_color_primary));
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
         baseBind.toolbarTitle.setText(R.string.string_204);

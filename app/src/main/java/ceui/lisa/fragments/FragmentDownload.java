@@ -25,11 +25,6 @@ import ceui.lisa.utils.Common;
  */
 public class FragmentDownload extends BaseFragment<ViewpagerWithTablayoutBinding> {
 
-    private static final String[] CHINESE_TITLES = new String[]{
-            Shaft.getContext().getString(R.string.now_downloading),
-            Shaft.getContext().getString(R.string.has_download)
-    };
-
     private Fragment[] allPages = new Fragment[]{new FragmentDownloading(), new FragmentDownloadFinish()};
 
     @Override
@@ -39,6 +34,10 @@ public class FragmentDownload extends BaseFragment<ViewpagerWithTablayoutBinding
 
     @Override
     public void initView() {
+        String[] CHINESE_TITLES = new String[]{
+                Shaft.getContext().getString(R.string.now_downloading),
+                Shaft.getContext().getString(R.string.has_download)
+        };
         mActivity.getWindow().setStatusBarColor(getResources().getColor(R.color.new_color_primary));
         baseBind.toolbarTitle.setText(R.string.string_203);
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
