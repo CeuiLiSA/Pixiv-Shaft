@@ -163,8 +163,8 @@
   <string name="add">追加</string>
   <string name="fullscreen_layout">フルスクリーンレイアウト</string>
   <string name="how_many_novels">%d個の作品、%d個の字を読み終わったら、%d時間%d分かかります。</string>
-  <string name="scroll_behavior">京大理スクロール動作</string>
-  <string name="head_behavior">京大理ヘッド挙動</string>
+  <string name="scroll_behavior">ceui.lisa.pixiv.ScrollBehavior</string>
+  <string name="head_behavior">ceui.lisa.pixiv.HeadBehavior</string>
   <string name="title_activity_splash">飛沫</string>
   <string name="first_fragment_label">最初の断片</string>
   <string name="second_fragment_label">第二の欠片</string>
@@ -204,7 +204,7 @@
   <string name="string_29">作者を寄付する</string>
   <string name="string_30">ドナーリスト</string>
   <string name="string_31">github</string>
-  <string name="string_32">https/github.com/Cuilisa/Pixiv-Shaft</string>
+  <string name="string_32">https://github.com/CeuiLiSA/Pixiv-Shaft</string>
   <string name="string_33">個人紹介：</string>
   <string name="string_34">個人のホームページ:</string>
   <string name="string_35">Twitter</string>
@@ -270,8 +270,8 @@
   <string name="string_95">テーマ</string>
   <string name="string_96">10000</string>
   <string name="string_97">簡体字中国語</string>
-  <string name="string_98">/記憶/エミュレート/ 0 /軸/シングルイメージ</string>
-  <string name="string_99">/記憶/エミュレート/ 0 /軸/シングルイメージ</string>
+  <string name="string_98">/storage/emulated/0/Shaft/SingleImages</string>
+  <string name="string_99">/storage/emulated/0/Shaft/SingleImages</string>
   <string name="string_100">キャッシュ</string>
   <string name="string_101">画像キャッシュをクリア</string>
   <string name="string_102">GIFキャッシュをクリア</string>
@@ -446,7 +446,7 @@
   <string name="string_273">自己紹介：</string>
   <string name="string_274">P友のイラスト/漫画作品</string>
   <string name="string_275">良いP友の小説作品</string>
-  <string name="string_276">/記憶/エミュレート/ 0 /シャフト/ singlenovel</string>
+  <string name="string_276">/storage/emulated/0/Shaft/SingleNovels</string>
   <string name="string_277">エクスポートTXT(フォルダから表示可能)</string>
   <string name="string_278">TXTをエクスポートして共有します</string>
   <string name="string_279">エクスポート成功</string>

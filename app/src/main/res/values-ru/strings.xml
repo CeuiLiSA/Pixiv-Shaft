@@ -163,8 +163,8 @@
   <string name="add">Добавить</string>
   <string name="fullscreen_layout">панельная схема</string>
   <string name="how_many_novels">% d - произведение,% d - слово, которое требуется для чтения:% d час% d мин</string>
-  <string name="scroll_behavior">Pixivповедение прокрутки</string>
-  <string name="head_behavior">Pixivповедение головы</string>
+  <string name="scroll_behavior">ceui.lisa.pixiv.ScrollBehavior</string>
+  <string name="head_behavior">ceui.lisa.pixiv.HeadBehavior</string>
   <string name="title_activity_splash">разбрызгивающая деятельность</string>
   <string name="first_fragment_label">первый фрагмент</string>
   <string name="second_fragment_label">Второй осколок</string>
@@ -270,8 +270,8 @@
   <string name="string_95">тема</string>
   <string name="string_96">10 000</string>
   <string name="string_97">упрощенный китайский язык</string>
-  <string name="string_98">/ запоминание / моделирование / 0 / ось / отдельное отображение</string>
-  <string name="string_99">/ запоминание / моделирование / 0 / ось / отдельное отображение</string>
+  <string name="string_98">/storage/emulated/0/Shaft/SingleImages</string>
+  <string name="string_99">/storage/emulated/0/Shaft/SingleImages</string>
   <string name="string_100">Кэш</string>
   <string name="string_101">Очистить кеш изображений</string>
   <string name="string_102">Очистить кеш GIF</string>
@@ -446,7 +446,7 @@
   <string name="string_273">Я представляю:</string>
   <string name="string_274">автор комиксов / комиксов</string>
   <string name="string_275">Романы хороших P друзей</string>
-  <string name="string_276">/ запоминание / моделирование / 0 / ось / роман</string>
+  <string name="string_276">/storage/emulated/0/Shaft/SingleNovels</string>
   <string name="string_277">экспорт TXT (просмотр папок)</string>
   <string name="string_278">экспорт и совместное использование TXT</string>
   <string name="string_279">экспортировать успех</string>

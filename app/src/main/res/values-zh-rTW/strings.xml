@@ -164,8 +164,8 @@
   <string name="add">添加</string>
   <string name="fullscreen_layout">全屏佈局</string>
   <string name="how_many_novels">%d個作品，%d個字，看完需要：%d小時%d分鐘</string>
-  <string name="scroll_behavior">ceui.lisa.pixiv.滾動行為</string>
-  <string name="head_behavior">ceui.lisa.pixiv.頭部行為</string>
+  <string name="scroll_behavior">ceui.lisa.pixiv.ScrollBehavior</string>
+  <string name="head_behavior">ceui.lisa.pixiv.HeadBehavior</string>
   <string name="title_activity_splash">噴濺活動</string>
   <string name="first_fragment_label">第一個片段</string>
   <string name="second_fragment_label">第二個碎片</string>
@@ -205,7 +205,7 @@
   <string name="string_29">捐助作者</string>
   <string name="string_30">捐贈者清單</string>
   <string name="string_31">github</string>
-  <string name="string_32">https//github.com/Ceuilisa/Pixiv-Shaft</string>
+  <string name="string_32">https://github.com/CeuiLiSA/Pixiv-Shaft</string>
   <string name="string_33">個人介紹：</string>
   <string name="string_34">個人主頁：</string>
   <string name="string_35">推特：</string>
@@ -271,8 +271,8 @@
   <string name="string_95">主題</string>
   <string name="string_96">10000</string>
   <string name="string_97">簡體中文</string>
-  <string name="string_98">/存儲/類比/0/軸/單個映射</string>
-  <string name="string_99">/存儲/類比/0/軸/單個映射</string>
+  <string name="string_98">/storage/emulated/0/Shaft/SingleImages</string>
+  <string name="string_99">/storage/emulated/0/Shaft/SingleImages</string>
   <string name="string_100">緩存</string>
   <string name="string_101">清除圖片緩存</string>
   <string name="string_102">清除GIF緩存</string>
@@ -447,7 +447,7 @@
   <string name="string_273">自我介紹：</string>
   <string name="string_274">好P友的插畫/漫畫作品</string>
   <string name="string_275">好P友的小說作品</string>
-  <string name="string_276">/存儲/類比/0/軸/單小說</string>
+  <string name="string_276">/storage/emulated/0/Shaft/SingleNovels</string>
   <string name="string_277">匯出TXT（資料夾中可查看）</string>
   <string name="string_278">匯出TXT並分享</string>
   <string name="string_279">匯出成功</string>
