@@ -426,6 +426,8 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                                     LanguageUtils.applyLanguage(Locale.US, "");
                                 } else if (which == 3) {
                                     LanguageUtils.applyLanguage(Locale.TRADITIONAL_CHINESE, "");
+                                } else if (which == 4) {
+                                    LanguageUtils.applyLanguage(new Locale("RU","ru",""), "");
                                 }
                                 dialog.dismiss();
                             }
