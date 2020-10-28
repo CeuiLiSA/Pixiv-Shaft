@@ -85,7 +85,7 @@
 
 
     <style name="setting_text_left">
-        <item name="android:textColor">@color/black</item>
+        <item name="android:textColor">@color/black_to_grey</item>
         <item name="android:layout_marginStart">@dimen/sixteen_dp</item>
         <item name="android:layout_marginTop">@dimen/twelve_dp</item>
         <item name="android:layout_marginBottom">@dimen/twelve_dp</item>
@@ -96,7 +96,7 @@
     </style>
 
     <style name="setting_text_head">
-        <item name="android:textColor">@color/new_color_primary</item>
+        <item name="android:textColor">@color/primary_to_grey</item>
         <item name="android:layout_marginStart">@dimen/sixteen_dp</item>
         <item name="android:layout_marginTop">30dp</item>
         <item name="android:layout_marginBottom">@dimen/eight_dp</item>
@@ -126,15 +126,15 @@
 
     <style name="full_divider">
         <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">0.6dp</item>
-        <item name="android:background">#e3e3e3</item>
+        <item name="android:layout_height">0.5dp</item>
+        <item name="android:background">@color/settings_divider</item>
     </style>
 
     <style name="half_divider">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_marginStart">@dimen/sixteen_dp</item>
-        <item name="android:layout_height">0.6dp</item>
-        <item name="android:background">#e3e3e3</item>
+        <item name="android:layout_height">0.5dp</item>
+        <item name="android:background">@color/settings_divider</item>
     </style>
 
     <style name="ripple_rela">
@@ -145,9 +145,9 @@
     </style>
 
     <style name="SCBSwitch" parent="Theme.AppCompat.Light">
-        <item name="colorControlActivated">@color/new_color_primary</item>
+        <item name="colorControlActivated">@color/primary_to_grey</item>
         <item name="colorSwitchThumbNormal">#f1f1f1</item>
-        <item name="android:colorForeground">#42221f1f</item>
+        <item name="android:colorForeground">#434343</item>
     </style>
 
     <style name="BarTheme">

@@ -24,7 +24,9 @@
     <color name="follow_user_illust_divider">#ececec</color>
 
 
-    <color name="white">#303030</color>
+    <color name="white">#FFFFFF</color>
+    <color name="white_and_black">#141414</color>
+    <color name="f0_and_black">#141414</color>
 
     <color name="always_white">#FFFFFF</color>
 
@@ -48,7 +50,7 @@
     <color name="normal_bg">#434343</color>
     <color name="second_text_color">#8E8E8E</color>
     <color name="no_data_color">#BDBDBD</color>
-    <color name="white_to_deep_dark">#434343</color>
+    <color name="white_to_deep_dark">#040404</color>
     <color name="comment_content">#8E8E8E</color>
     <color name="comment_parent_bg">#607D8B</color>
 
@@ -57,4 +59,20 @@
     <color name="about_user_left">#777777</color>
     <color name="about_user_right">#BBBBBB</color>
     <color name="about_user_white">#434343</color>
+    <color name="rank_title">#A9A9A9</color>
+    <color name="fragment_right_divider">#141414</color>
+    <color name="recmd_user_horizontal">#333333</color>
+    <color name="new_color_primary">#141414</color>
+    <color name="settings_divider">#222222</color>
+    <color name="black_to_grey">#DEDEDE</color>
+    <color name="primary_to_grey">#DEDEDE</color>
+    <color name="f5_to_deep_dark">#040404</color>
+    <color name="primary_to_huise">#646464</color>
+    <color name="white_to_1414">#141414</color>
+    <color name="user_name_horizontal">#040404</color>
+    <color name="white_to_black">#000000</color>
+    <color name="fragment_center">#2A2A2A</color>
+    <color name="fragment_illust_divider">#e3e3e3</color>
+    <color name="button_stroke">#434343</color>
+
 </resources>

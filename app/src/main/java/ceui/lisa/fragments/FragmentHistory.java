@@ -33,6 +33,7 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 import ceui.lisa.viewmodel.BaseModel;
 import ceui.lisa.viewmodel.HistoryModel;
+import jp.wasabeef.recyclerview.animators.BaseItemAnimator;
 
 
 public class FragmentHistory extends LocalListFragment<FragmentBaseListBinding,

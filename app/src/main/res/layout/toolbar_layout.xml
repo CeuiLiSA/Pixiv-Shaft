@@ -29,7 +29,7 @@
             android:ellipsize="end"
             android:layout_gravity="center"
             android:id="@+id/toolbar_title"
-            android:textColor="@color/white"
+            android:textColor="@color/always_white"
             android:textSize="18sp">
 
         </TextView>

@@ -42,7 +42,7 @@
                 android:elevation="@dimen/six_dp"
                 app:behavior_peekHeight="180dp"
                 app:layout_behavior="@string/bottom_sheet_behavior"
-                app:qmui_backgroundColor="@color/white"
+                app:qmui_backgroundColor="@color/fragment_center"
                 app:qmui_borderWidth="0dp"
                 app:qmui_radiusTopLeft="20dp"
                 app:qmui_radiusTopRight="20dp">
@@ -156,7 +156,7 @@
                             android:paddingBottom="@dimen/four_dp"
                             android:text="@string/string_69"
                             android:textColor="@color/white"
-                            app:qmui_backgroundColor="#686bdd"
+                            app:qmui_backgroundColor="@color/new_color_primary"
                             app:qmui_borderWidth="0dp"
                             app:qmui_radius="@dimen/six_dp">
 
@@ -168,11 +168,11 @@
 
                 <View
                     android:layout_width="match_parent"
-                    android:layout_height="1dp"
+                    android:layout_height="0.5dp"
                     android:id="@+id/view_divider"
                     android:layout_marginStart="@dimen/tweenty_four_dp"
                     android:layout_marginEnd="@dimen/tweenty_four_dp"
-                    android:background="#f3f4f5">
+                    android:background="@color/settings_divider">
 
                 </View>
 
@@ -421,16 +421,17 @@
             android:id="@+id/bottom_linear"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@color/fragment_center"
             android:layout_alignParentBottom="true"
             android:orientation="vertical">
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
+                android:layout_height="0.5dp"
                 android:layout_marginStart="@dimen/tweenty_four_dp"
                 android:layout_marginEnd="@dimen/tweenty_four_dp"
                 android:layout_marginBottom="@dimen/eight_dp"
-                android:background="#f3f4f5">
+                android:background="@color/settings_divider">
 
             </View>
 
@@ -448,7 +449,7 @@
                     android:layout_weight="1"
                     android:background="@drawable/button_stroke_new"
                     android:src="@drawable/ic_chat_black_24dp"
-                    android:tint="#666af6">
+                    app:tint="#666af6">
 
                 </ImageButton>
 
@@ -463,7 +464,7 @@
                     android:background="@drawable/button_stroke_new"
                     android:src="@drawable/ic_equalizer_black_24dp"
                     android:textColor="#9f9fb4"
-                    android:tint="#666af6">
+                    app:tint="#666af6">
 
                 </ImageButton>
 

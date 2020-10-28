@@ -26,6 +26,7 @@ import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.base.BaseFragment;
 import ceui.lisa.core.BaseRepo;
+import ceui.lisa.ui.LandingAnimatorNew;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
 import ceui.lisa.view.SpacesItemDecoration;

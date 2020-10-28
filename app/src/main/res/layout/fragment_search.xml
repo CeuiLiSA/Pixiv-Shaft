@@ -8,7 +8,7 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:background="@color/white"
+        android:background="@color/fragment_center"
         android:id="@+id/base_parent"
         android:layout_height="match_parent">
 

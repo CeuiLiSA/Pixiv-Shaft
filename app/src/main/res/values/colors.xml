@@ -46,6 +46,7 @@
     <color name="second_text_color">#333333</color>
     <color name="no_data_color">#666666</color>
     <color name="white_to_deep_dark">#FFFFFF</color>
+    <color name="f5_to_deep_dark">#F5F5F5</color>
     <color name="comment_content">#333333</color>
     <color name="comment_parent_bg">#F2F2F2</color>
     <color name="about_user_divider">#E3E3E3</color>
@@ -62,6 +63,21 @@
 
     <color name="new_color_primary">#686bdd</color>
     <color name="novel_holder">#000339</color>
+    <color name="rank_title">#333333</color>
+    <color name="fragment_right_divider">#f0f0f0</color>
+    <color name="recmd_user_horizontal">#eff0fe</color>
+    <color name="settings_divider">#e3e3e3</color>
+    <color name="fragment_illust_divider">#f3f4f5</color>
+    <color name="white_and_black">#FFFFFF</color>
+    <color name="f0_and_black">#f0f0f0</color>
+    <color name="black_to_grey">#000000</color>
+    <color name="primary_to_grey">@color/new_color_primary</color>
+    <color name="primary_to_huise">@color/new_color_primary</color>
+    <color name="white_to_1414">#FFFFFF</color>
+    <color name="user_name_horizontal">#7377ff</color>
+    <color name="white_to_black">#FFFFFF</color>
+    <color name="fragment_center">#FFFFFF</color>
+    <color name="button_stroke">#e8e8f2</color>
 
 
 </resources>

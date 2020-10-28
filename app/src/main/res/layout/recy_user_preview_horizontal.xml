@@ -12,7 +12,7 @@
         android:clickable="true"
         android:foreground="?attr/selectableItemBackground"
         app:cardCornerRadius="@dimen/twelve_dp"
-        app:cardBackgroundColor="#eff0fe"
+        app:cardBackgroundColor="@color/recmd_user_horizontal"
         app:cardElevation="2dp">
 
         <LinearLayout
@@ -34,7 +34,7 @@
 
             <TextView
                 android:layout_width="wrap_content"
-                android:textColor="#7377ff"
+                android:textColor="@color/user_name_horizontal"
                 android:maxLines="1"
                 android:textStyle="bold"
                 android:id="@+id/user_name"

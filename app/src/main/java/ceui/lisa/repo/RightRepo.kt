@@ -11,6 +11,7 @@ import com.scwang.smartrefresh.header.DeliveryHeader
 import com.scwang.smartrefresh.layout.api.RefreshFooter
 import com.scwang.smartrefresh.layout.api.RefreshHeader
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter
+import com.scwang.smartrefresh.layout.header.ClassicsHeader
 import io.reactivex.Observable
 import io.reactivex.functions.Function
 
@@ -25,11 +26,11 @@ class RightRepo(var restrict: String?) : RemoteRepo<ListIllust>() {
     }
 
     override fun getFooter(context: Context): RefreshFooter {
-        return ClassicsFooter(context).setPrimaryColorId(R.color.white)
+        return ClassicsFooter(context).setPrimaryColor(context.resources.getColor(R.color.fragment_center))
     }
 
     override fun getHeader(context: Context): RefreshHeader {
-        return DeliveryHeader(context)
+        return ClassicsHeader(context).setPrimaryColor(context.resources.getColor(R.color.fragment_center))
     }
 
     override fun mapper(): Function<ListIllust, ListIllust> {
