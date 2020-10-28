@@ -75,13 +75,6 @@
 
                 <data android:scheme="pixiv" />
             </intent-filter>
-
-
-            <intent-filter>
-                <action android:name="android.intent.action.SEND" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="image/*" />
-            </intent-filter>
         </activity>
 
         <meta-data
@@ -115,6 +108,17 @@
         <activity android:name=".activities.SearchActivity" />
         <activity android:name=".activities.VActivity" />
         <activity android:name=".activities.UActivity" />
+        <activity
+            android:label="@string/string_311"
+            android:name=".activities.OutReversActivity" >
+
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
+
+        </activity>
 
     </application>
 

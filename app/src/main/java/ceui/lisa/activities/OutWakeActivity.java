@@ -2,21 +2,16 @@ package ceui.lisa.activities;
 
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Bundle;
 import android.text.TextUtils;
 
-import java.io.File;
 import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.base.BaseActivity;
 import ceui.lisa.databinding.ActivityOutWakeBinding;
 import ceui.lisa.interfaces.Callback;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
-import ceui.lisa.utils.ReverseImage;
-import ceui.lisa.utils.ReverseWebviewCallback;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
@@ -41,21 +36,6 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
     protected void initData() {
         Intent intent = getIntent();
         if (intent != null) {
-            if (Intent.ACTION_SEND.equals(intent.getAction())) {
-                try {
-                    Bundle bundle = getIntent().getExtras();
-                    if (bundle != null) {
-                        Uri imageUri = (Uri) getIntent().getParcelableExtra(Intent.EXTRA_STREAM);
-                        ReverseImage.reverse(new File(Common.getRealFilePath(mContext, imageUri)),
-                                ReverseImage.ReverseProvider.SauceNao, new ReverseWebviewCallback(this));
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                return;
-            }
-
-
             Uri uri = intent.getData();
             if (uri != null) {
 
