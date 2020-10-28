@@ -24,7 +24,8 @@
         android:roundIcon="@mipmap/logo_final_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activities.MainActivity">
+        <activity
+            android:name=".activities.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -50,7 +51,9 @@
             android:windowSoftInputMode="adjustPan" />
         <activity android:name=".activities.RankActivity" />
         <activity android:name=".activities.ImageDetailActivity" />
-        <activity android:name=".activities.OutWakeActivity">
+        <activity
+            android:label="@string/string_310"
+            android:name=".activities.OutWakeActivity">
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
 
@@ -71,6 +74,13 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data android:scheme="pixiv" />
+            </intent-filter>
+
+
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
             </intent-filter>
         </activity>
 
