@@ -145,7 +145,7 @@ public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
                 userModel.getResponse().getUser().setPassword(passwordWithSign);
                 String userJson = Shaft.sGson.toJson(userModel);
                 Common.copy(mContext, userJson, false);
-                Common.showToast("已导出到剪切板", exp);
+                Common.showToast("已导出到剪切板", 2);
             }
         });
 

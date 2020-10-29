@@ -47,10 +47,10 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
             startActivity(intent)
         }
         baseBind.projectWebsite.setOnClickListener {
-            val intent = Intent(mContext, TemplateActivity::class.java)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接")
-            intent.putExtra(Params.URL, "https://github.com/CeuiLiSA/Pixiv-Shaft")
-            intent.putExtra(Params.TITLE, "项目主页")
+            val intent = Intent(Intent.ACTION_VIEW)
+            intent.addCategory(Intent.CATEGORY_DEFAULT)
+            intent.addCategory(Intent.CATEGORY_BROWSABLE)
+            intent.data = Uri.parse("https://github.com/CeuiLiSA/Pixiv-Shaft")
             startActivity(intent)
         }
         baseBind.dontCatchMe.setOnClickListener {

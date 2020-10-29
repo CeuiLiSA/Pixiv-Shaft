@@ -53,6 +53,7 @@ import ceui.lisa.fragments.FragmentSB;
 import ceui.lisa.fragments.FragmentSearch;
 import ceui.lisa.fragments.FragmentSearchUser;
 import ceui.lisa.fragments.FragmentSettings;
+import ceui.lisa.fragments.FragmentStorage;
 import ceui.lisa.fragments.FragmentUserIllust;
 import ceui.lisa.fragments.FragmentUserInfo;
 import ceui.lisa.fragments.FragmentUserManga;
@@ -202,6 +203,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return new FragmentFeature();
                 case "我的作业环境":
                     return new FragmentWorkSpace();
+                case "存储访问":
+                    return new FragmentStorage();
                 default:
                     return new Fragment();
             }

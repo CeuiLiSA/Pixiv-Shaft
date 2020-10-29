@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+
+    </data>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <Button
+            android:layout_width="wrap_content"
+            android:text="存储"
+            android:layout_centerInParent="true"
+            android:id="@+id/store"
+            android:layout_height="wrap_content">
+
+        </Button>
+
+        <ProgressBar
+            android:layout_width="match_parent"
+            android:id="@+id/progress"
+            android:progress="0"
+            android:layout_alignParentBottom="true"
+            android:layout_margin="24dp"
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+            android:layout_height="wrap_content">
+
+        </ProgressBar>
+
+    </RelativeLayout>
+</layout>

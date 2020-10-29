@@ -234,7 +234,7 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
             }
 
             if (baseBind.inputBox.getText().toString().length() == 0) {
-                Common.showToast(getString(R.string.string_161), baseBind.inputBox, 3);
+                Common.showToast(getString(R.string.string_161), 3);
                 return;
             }
 

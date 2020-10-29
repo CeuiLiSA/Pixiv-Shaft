@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 
+import androidx.cardview.widget.CardView;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Observer;
@@ -90,6 +91,8 @@ public class UserActivity extends BaseActivity<ActicityUserBinding> implements D
                 gray(isChecked);
             }
         });
+
+
     }
 
     @Override

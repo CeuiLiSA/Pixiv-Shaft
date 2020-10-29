@@ -107,6 +107,12 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
     @Override
     protected void initData() {
+        if (Dev.isDev && false) {
+            Intent intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "存储访问");
+            startActivity(intent);
+            return;
+        }
         if (sUserModel != null && sUserModel.getResponse().getUser().isIs_login()) {
             final RxPermissions rxPermissions = new RxPermissions(mActivity);
             Disposable disposable = rxPermissions

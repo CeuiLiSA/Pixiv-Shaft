@@ -15,6 +15,18 @@ android {
         versionCode 127
         versionName "2.3.7"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = [
+                        //必须，告知RxHttp你依赖的okhttp版本，目前已适配 v3.12.0 - v4.9.0版本  (v4.3.0除外)
+                        rxhttp_okhttp: '4.4.0',
+                        //使用asXxx方法时必须，告知RxHttp你依赖的rxjava版本，可传入rxjava2、rxjava3
+                        rxhttp_rxjava: 'rxjava3',
+                        rxhttp_package: 'rxhttp'   //非必须，指定RxHttp类包名
+                ]
+            }
+        }
     }
 
     buildTypes {
@@ -101,6 +113,15 @@ dependencies {
 
     implementation 'com.effective.android:panelSwitchHelper-androidx:1.3.1'
     implementation 'com.makeramen:roundedimageview:2.3.0'
+
+
+
+    implementation 'com.ljx.rxhttp:rxhttp:2.4.1'
+    kapt 'com.ljx.rxhttp:rxhttp-compiler:2.4.1'
+
+    implementation 'io.reactivex.rxjava3:rxjava:3.0.6'
+    implementation 'io.reactivex.rxjava3:rxandroid:3.0.0'
+    implementation 'com.ljx.rxlife3:rxlife-rxjava:3.0.0'
 
 
     implementation project(path: ':models')

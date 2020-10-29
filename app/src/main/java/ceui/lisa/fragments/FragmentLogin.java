@@ -86,7 +86,7 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
                     if (userJson != null
                             && !TextUtils.isEmpty(userJson)
                             && userJson.contains(Params.USER_KEY)) {
-                        Common.showToast("导入成功", baseBind.toolbar);
+                        Common.showToast("导入成功", 2);
                         UserModel exportUser = Shaft.sGson.fromJson(userJson, UserModel.class);
 
                         String pwd = exportUser.getResponse().getUser().getPassword();
@@ -94,6 +94,7 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
                         if (!TextUtils.isEmpty(pwd) && pwd.startsWith(Params.SECRET_PWD_KEY)) {
                             String secret = pwd.substring(Params.SECRET_PWD_KEY.length());
                             String realPwd = Base64Util.decode(secret);
+                            Common.showLog(className + "real password: " + realPwd);
                             exportUser.getResponse().getUser().setPassword(realPwd);
                         }
                         Local.saveUser(exportUser);
@@ -103,7 +104,7 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
                         MainActivity.newInstance(intent, mContext);
                         mActivity.finish();
                     } else {
-                        Common.showToast("剪贴板无用户信息", baseBind.toolbar, 3);
+                        Common.showToast("剪贴板无用户信息", 3);
                     }
                     return true;
                 }
@@ -147,10 +148,10 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
                     if (baseBind.password.getText().toString().length() != 0) {
                         login(baseBind.userName.getText().toString(), baseBind.password.getText().toString());
                     } else {
-                        Common.showToast("请输入密码", baseBind.login, 3);
+                        Common.showToast("请输入密码", 3);
                     }
                 } else {
-                    Common.showToast("请输入用户名", baseBind.login, 3);
+                    Common.showToast("请输入用户名", 3);
                 }
             }
         });
@@ -160,7 +161,7 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
                 if (baseBind.signUserName.getText().toString().length() != 0) {
                     sign();
                 } else {
-                    Common.showToast("请输入用户名", baseBind.sign, 3);
+                    Common.showToast("请输入用户名", 3);
                 }
             }
         });

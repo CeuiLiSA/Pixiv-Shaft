@@ -134,7 +134,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 } else {
                     Shaft.sSettings.setSaveViewHistory(false);
                 }
-                Common.showToast("设置成功", baseBind.saveHistory);
+                Common.showToast("设置成功", 2);
                 Local.setSettings(Shaft.sSettings);
             }
         });
@@ -156,7 +156,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                     Shaft.sSettings.setSingleDownloadTask(false);
                     DownloadDispatcher.setMaxParallelRunningCount(5);
                 }
-                Common.showToast("设置成功", baseBind.singleDownloadTask);
+                Common.showToast("设置成功", 2);
                 Local.setSettings(Shaft.sSettings);
             }
         });
@@ -176,7 +176,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 } else {
                     Shaft.sSettings.setShowLikeButton(false);
                 }
-                Common.showToast("重启APP生效", baseBind.showLikeButton);
+                Common.showToast("重启APP生效", 2);
                 Local.setSettings(Shaft.sSettings);
             }
         });
@@ -196,7 +196,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 } else {
                     Shaft.sSettings.setUseFragmentIllust(false);
                 }
-                Common.showToast("设置成功", baseBind.illustDetailUserNew);
+                Common.showToast("设置成功", 2);
                 Local.setSettings(Shaft.sSettings);
             }
         });
@@ -212,7 +212,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 Shaft.sSettings.setUseNewUserPage(isChecked);
-                Common.showToast("设置成功", baseBind.userNewUser);
+                Common.showToast("设置成功", 2);
                 Local.setSettings(Shaft.sSettings);
             }
         });
@@ -232,7 +232,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 } else {
                     Shaft.sSettings.setDeleteStarIllust(false);
                 }
-                Common.showToast("设置成功", baseBind.deleteStarIllust);
+                Common.showToast("设置成功", 2);
                 Local.setSettings(Shaft.sSettings);
             }
         });
@@ -252,7 +252,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 } else {
                     Shaft.sSettings.setRelatedIllustNoLimit(false);
                 }
-                Common.showToast("设置成功", baseBind.relatedNoLimit);
+                Common.showToast("设置成功", 2);
                 Local.setSettings(Shaft.sSettings);
             }
         });
@@ -272,7 +272,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 } else {
                     Shaft.sSettings.setAutoFuckChina(false);
                 }
-                Common.showToast("设置成功", baseBind.autoDns);
+                Common.showToast("设置成功", 2);
                 Local.setSettings(Shaft.sSettings);
             }
         });
@@ -292,7 +292,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 } else {
                     Shaft.sSettings.setFirstImageSize(false);
                 }
-                Common.showToast("设置成功", baseBind.firstDetailOrigin);
+                Common.showToast("设置成功", 2);
                 Local.setSettings(Shaft.sSettings);
             }
         });
@@ -405,7 +405,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 Shaft.sSettings.setSearchFilter(ALL_SIZE_VALUE[which]);
-                                Common.showToast("设置成功", baseBind.searchFilter);
+                                Common.showToast("设置成功", 2);
                                 Local.setSettings(Shaft.sSettings);
                                 baseBind.searchFilter.setText(ALL_SIZE[which]);
                                 dialog.dismiss();
@@ -426,7 +426,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                             public void onClick(DialogInterface dialog, int which) {
                                 Shaft.sSettings.setAppLanguage(ALL_LANGUAGE[which]);
                                 baseBind.appLanguage.setText(ALL_LANGUAGE[which]);
-                                Common.showToast("设置成功", baseBind.appLanguage);
+                                Common.showToast("设置成功", 2);
                                 Local.setSettings(Shaft.sSettings);
                                 if (which == 0) {
                                     LanguageUtils.applyLanguage(Locale.SIMPLIFIED_CHINESE, "");

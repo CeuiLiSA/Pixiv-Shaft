@@ -279,13 +279,13 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                     downloadEntity.setFilePath(PathUtils.getInternalAppCachePath());
                     downloadEntity.setIllustGson(Shaft.sGson.toJson(mNovelBean));
                     AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(downloadEntity);
-                    Common.showToast(getString(R.string.string_181), baseBind.saveNovel);
+                    Common.showToast(getString(R.string.string_181), 2);
                     baseBind.transformationLayout.finishTransform();
                     return true;
                 } else if (item.getItemId() == R.id.action_txt) {
                     TextWriter.writeToTxt(mNovelBean.getTitle() + "_" + System.currentTimeMillis() + "_novel_tasks.txt",
                             novelDetail.getNovel_text());
-                    Common.showToast(getString(R.string.string_279), baseBind.saveNovel);
+                    Common.showToast(getString(R.string.string_279), 2);
                     return true;
                 } else if (item.getItemId() == R.id.action_txt_and_share) {
                     TextWriter.writeToTxt(mNovelBean.getTitle() + "_" + System.currentTimeMillis() + "_novel_tasks.txt",
@@ -300,7 +300,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                                             .shareBySystem();
                                 }
                             });
-                    Common.showToast(getString(R.string.string_279), baseBind.saveNovel);
+                    Common.showToast(getString(R.string.string_279), 2);
                     return true;
                 }
                 return false;

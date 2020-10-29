@@ -5,7 +5,6 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ContentResolver;
 import android.content.Context;
-import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -29,7 +28,6 @@ import com.facebook.rebound.SpringChain;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
-import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -114,12 +112,10 @@ public class Common {
     }
 
     public static <T> void showToast(T t) {
-        if (toast == null) {
-            toast = Toast.makeText(Shaft.getContext(), String.valueOf(t), Toast.LENGTH_SHORT);
-        } else {
+        if (toast != null) {
             toast.cancel();
-            toast = Toast.makeText(Shaft.getContext(), String.valueOf(t), Toast.LENGTH_SHORT);
         }
+        toast = Toast.makeText(Shaft.getContext(), String.valueOf(t), Toast.LENGTH_SHORT);
         View view = LayoutInflater.from(Shaft.getContext()).inflate(R.layout.toast_item, null);
         TextView textView = view.findViewById(R.id.toast_text);
         textView.setText(String.valueOf(t));
@@ -127,37 +123,40 @@ public class Common {
         toast.show();
     }
 
-    public static <T> void showToast(T t, View view) {
-        showToast(t, view, QMUITipDialog.Builder.ICON_TYPE_SUCCESS);
-    }
 
     //2成功， 3失败， 4info
-    public static <T> void showToast(T t, View view, int type) {
-        final QMUITipDialog tipDialog = new QMUITipDialog.Builder(view.getContext())
-                .setIconType(type)
-                .setTipWord(String.valueOf(t))
-                .create();
-        tipDialog.show();
-        view.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if(tipDialog.isShowing()) { //check if dialog is showing.
-
-                    //get the Context object that was used to great the dialog
-                    Context context = ((ContextWrapper)tipDialog.getContext()).getBaseContext();
-
-                    //if the Context used here was an activity AND it hasn't been finished or destroyed
-                    //then dismiss it
-                    if(context instanceof Activity) {
-                        if(!((Activity)context).isFinishing() && !((Activity)context).isDestroyed()) {
-                            tipDialog.dismiss();
-                        }
-                    } else {
-                        tipDialog.dismiss();
-                    }
-                }
+    public static <T> void showToast(T t, int type) {
+        if (type == 2) {
+            if (toast != null) {
+                toast.cancel();
             }
-        }, 1000L);
+            toast = Toast.makeText(Shaft.getContext(), String.valueOf(t), Toast.LENGTH_SHORT);
+            View v = LayoutInflater.from(Shaft.getContext()).inflate(R.layout.toast_item_green, null);
+            TextView textView = v.findViewById(R.id.toast_text);
+            textView.setText(String.valueOf(t));
+            toast.setView(v);
+            toast.show();
+        } else if (type == 3) {
+            if (toast != null) {
+                toast.cancel();
+            }
+            toast = Toast.makeText(Shaft.getContext(), String.valueOf(t), Toast.LENGTH_SHORT);
+            View v = LayoutInflater.from(Shaft.getContext()).inflate(R.layout.toast_item_green_red, null);
+            TextView textView = v.findViewById(R.id.toast_text);
+            textView.setText(String.valueOf(t));
+            toast.setView(v);
+            toast.show();
+        } else if (type == 4) {
+            if (toast != null) {
+                toast.cancel();
+            }
+            toast = Toast.makeText(Shaft.getContext(), String.valueOf(t), Toast.LENGTH_SHORT);
+            View v = LayoutInflater.from(Shaft.getContext()).inflate(R.layout.toast_item_gray, null);
+            TextView textView = v.findViewById(R.id.toast_text);
+            textView.setText(String.valueOf(t));
+            toast.setView(v);
+            toast.show();
+        }
     }
 
     public static String getAppVersionCode(Context context) {
@@ -186,20 +185,6 @@ public class Common {
             Log.e("VersionInfo", "Exception", e);
         }
         return versionName;
-    }
-
-    public static void success(Context context, String s, View view) {
-        QMUITipDialog dialog = new QMUITipDialog.Builder(context)
-                .setIconType(QMUITipDialog.Builder.ICON_TYPE_SUCCESS)
-                .setTipWord(s)
-                .create();
-        dialog.show();
-        view.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                dialog.dismiss();
-            }
-        }, 1500);
     }
 
     public static <T> void showToast(T t, boolean isLong) {
