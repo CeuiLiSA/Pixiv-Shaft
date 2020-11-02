@@ -187,8 +187,6 @@
     <string name="next">Next</string>
     <string name="previous">Previous</string>
 
-    <string name="hello_first_fragment">Hello first fragment</string>
-    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
     <string name="file_path">路径：</string>
     <string name="add_account">添加账号</string>
 
@@ -306,7 +304,7 @@
     <string name="string_112">查看评论</string>
     <string name="string_113">批量下载</string>
     <string name="string_114">收藏</string>
-    <string name="string_115">0.00KB / 未知大小</string>
+    <string name="string_115">0.00KB / 未连接</string>
     <string name="string_116">作品ID</string>
     <string name="string_117">不选的话可能两个文件名重复，导致下载失败，必选项</string>
     <string name="string_119">取消屏蔽</string>

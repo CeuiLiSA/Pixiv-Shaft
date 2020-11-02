@@ -162,7 +162,7 @@
 	<string name="never_show_again">never show again</string>
 	<string name="add">Add to</string>
 	<string name="fullscreen_layout">fullscreen layout</string>
-	<string name="how_many_novels">A work% d,% d characters, reading requires:% d% d minutes hours</string>
+	<string name="how_many_novels">A work %d, %d characters, reading requires: %d hours %d minute</string>
 	<string name="scroll_behavior">ceui.lisa.pixiv.ScrollBehavior</string>
 	<string name="head_behavior">ceui.lisa.pixiv.HeadBehavior</string>
 	<string name="title_activity_splash">SplashActivity</string>
@@ -170,8 +170,6 @@
 	<string name="second_fragment_label">Second Fragment</string>
 	<string name="next">Next</string>
 	<string name="previous">Previous</string>
-	<string name="hello_first_fragment">Hello first fragment</string>
-	<string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
 	<string name="file_path">path:</string>
 	<string name="add_account">Adding accounts</string>
 	<string name="string_1">Mask Set</string>
@@ -355,7 +353,7 @@
 	<string name="string_181">Successfully saved</string>
 	<string name="string_182">title:</string>
 	<string name="string_183">series:</string>
-	<string name="string_184">Series:% s</string>
+	<string name="string_184">Series: %s</string>
 	<string name="string_185">Delete account information after exit?</string>
 	<string name="string_186">Delete account information</string>
 	<string name="string_187">cancel</string>
@@ -471,4 +469,6 @@
 	<string name="string_298">The default mode (follow the system)</string>
 	<string name="string_299">Day mode (light)</string>
 	<string name="string_300">Dark mode (dark)</string>
+  <string name="string_310">View with shaft</string>
+  <string name="string_311">Search source search using shaft</string>
 </resources>

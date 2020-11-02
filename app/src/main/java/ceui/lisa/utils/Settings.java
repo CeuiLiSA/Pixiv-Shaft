@@ -95,12 +95,22 @@ public class Settings {
 
     private String fileNameJson = "";
 
+    private String rootPathUri = "";
+
     public String getAppLanguage() {
         if(!TextUtils.isEmpty(appLanguage)){
             return appLanguage;
         } else {
             return ALL_LANGUAGE[0];
         }
+    }
+
+    public String getRootPathUri() {
+        return rootPathUri;
+    }
+
+    public void setRootPathUri(String rootPathUri) {
+        this.rootPathUri = rootPathUri;
     }
 
     public String getNovelPath() {

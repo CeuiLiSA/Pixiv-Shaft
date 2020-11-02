@@ -11,21 +11,35 @@
 
         <Button
             android:layout_width="wrap_content"
-            android:text="存储"
+            android:text="请求"
             android:layout_centerInParent="true"
             android:id="@+id/store"
             android:layout_height="wrap_content">
 
         </Button>
 
-        <ProgressBar
-            android:layout_width="match_parent"
-            android:id="@+id/progress"
-            android:progress="0"
-            android:layout_alignParentBottom="true"
-            android:layout_margin="24dp"
-            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+
+        <Button
+            android:layout_width="wrap_content"
+            android:text="下载"
+            android:layout_below="@+id/store"
+            android:layout_centerInParent="true"
+            android:id="@+id/save"
             android:layout_height="wrap_content">
+
+        </Button>
+
+        <ProgressBar
+            android:id="@+id/progress"
+            style="@android:style/Widget.Material.Light.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginEnd="24dp"
+            android:layout_marginBottom="24dp"
+            android:progress="0">
 
         </ProgressBar>
 

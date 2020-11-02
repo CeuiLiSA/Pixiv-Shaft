@@ -20,7 +20,7 @@ import ceui.lisa.feature.FeatureEntity;
                 UUIDEntity.class, //记录用户屏蔽的标签
                 FeatureEntity.class //记录用户收藏的精华列表
         },
-        version = 17,
+        version = 18,
         exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {

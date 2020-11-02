@@ -49,6 +49,13 @@ public class Params {
     public static final String DOWNLOAD_FINISH         = "ceui.lisa.fragments.NetListFragment DOWNLOAD_FINISH";
     public static final String DOWNLOAD_ING         = "ceui.lisa.fragments.NetListFragment DOWNLOAD_ING";
 
+    public static final String MAP_KEY = "Referer";
+    public static final String MAP_KEY_SMALL = "referer";
+    public static final String IMAGE_REFERER = "https://app-api.pixiv.net/";
+    public static final String USER_AGENT = "User-Agent";
+    public static final String PHONE_MODEL = "PixivAndroidApp/5.0.155 (Android 6.0.1; SONY D6653)";
+
+
     public static final String IMAGE_UNKNOWN = "https://s.pximg.net/common/images/limit_unknown_360.png";
     public static final String HEAD_UNKNOWN  = "https://s.pximg.net/common/images/no_profile.png";
 

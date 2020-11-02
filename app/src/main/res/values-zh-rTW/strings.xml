@@ -22,7 +22,7 @@
   <string name="double_click_finish">再按一次退出~</string>
   <string name="delete_all">刪除全部</string>
   <string name="illust_filter">篩選</string>
-  <string name="share_illust">％1 $ S |</string>
+  <string name="share_illust">%1$s | %2$s #Pixiv %3$s</string>
   <string name="share">分享</string>
   <string name="webview_handler_open_in_browser">在瀏覽器中打開</string>
   <string name="webview_handler_copy_link_addr">複製鏈接地址</string>
@@ -171,8 +171,6 @@
   <string name="second_fragment_label">第二個碎片</string>
   <string name="next">下一個</string>
   <string name="previous">上一個</string>
-  <string name="hello_first_fragment">你好，第一個片段</string>
-  <string name="hello_second_fragment">你好，第二個片段。參數：%1$s</string>
   <string name="file_path">路徑：</string>
   <string name="add_account">添加帳號</string>
   <string name="string_1">遮罩設定</string>
@@ -472,4 +470,6 @@
   <string name="string_298">默認模式（跟隨系統）</string>
   <string name="string_299">白天模式（淺色）</string>
   <string name="string_300">黑暗模式（深色）</string>
+  <string name="string_310">使用Shaft查看</string>
+  <string name="string_311">使用Shaft以圖搜源搜索</string>
 </resources>

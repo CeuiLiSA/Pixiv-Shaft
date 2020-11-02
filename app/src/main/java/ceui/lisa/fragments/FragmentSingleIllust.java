@@ -181,11 +181,6 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
         }
 
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
-        if (illust.isShield()) {
-            baseBind.toolbar.setTitle(R.string.string_205);
-            baseBind.refreshLayout.setVisibility(View.INVISIBLE);
-            return;
-        }
 
         if (illust.getId() == 0) {
             baseBind.toolbar.setTitle(R.string.string_206);
@@ -224,9 +219,9 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
                 GifCreate.createGif(illust);
             } else {
                 if (illust.getPage_count() == 1) {
-                    IllustDownload.downloadIllust(illust);
+                    IllustDownload.downloadIllust(illust, mContext);
                 } else {
-                    IllustDownload.downloadAllIllust(illust);
+                    IllustDownload.downloadAllIllust(illust, mContext);
                 }
             }
         });

@@ -12,17 +12,16 @@ import ceui.lisa.models.IllustsBean;
 
 public class GlideUtil {
 
-    private static final String MAP_KEY = "Referer";
-    //private static final String MAP_VALUE_HEAD = "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=";
-    private static final String IMAGE_REFERER = "https://app-api.pixiv.net/";
-
     private static Headers sHeaders = () -> {
         HashMap<String, String> hashMap = new HashMap<>();
-        hashMap.put(MAP_KEY, IMAGE_REFERER);
+        hashMap.put(Params.MAP_KEY, Params.IMAGE_REFERER);
+        hashMap.put(Params.USER_AGENT, Params.PHONE_MODEL);
+        hashMap.put(Params.MAP_KEY_SMALL, Params.IMAGE_REFERER);
         return hashMap;
     };
 
     public static GlideUrl getMediumImg(IllustsBean illustsBean) {
+        Common.showLog("展示image " + illustsBean.getImage_urls().getMedium());
         return new GlideUrl(illustsBean.getImage_urls().getMedium(), sHeaders);
     }
 
@@ -81,30 +80,4 @@ public class GlideUtil {
             return new GlideUrl(illustsBean.getMeta_pages().get(i).getImage_urls().getOriginal(), sHeaders);
         }
     }
-
-    public static GlideUrl getOriginalWithPixviCat(IllustsBean illustsBean, int i) {
-        String result;
-        if (illustsBean.getPage_count() == 1) {
-            result = head + illustsBean.getId() + ".png";
-        } else {
-            result = head + illustsBean.getId() + "-" + (i + 1) +  ".png";
-        }
-        Common.showLog("GlideUrl getOriginalWithPixviCat " + result);
-        return new GlideUrl(result);
-    }
-
-    public static GlideUrl getOriginalWithInvertProxy(IllustsBean illustsBean, int i) {
-        String result;
-        if (illustsBean.getPage_count() == 1) {
-            result = illustsBean.getMeta_single_page().getOriginal_image_url()
-                    .replace("pximg.net", "pixiv.cat");
-        } else {
-            result = illustsBean.getMeta_pages().get(i).getImage_urls().getOriginal()
-                    .replace("pximg.net", "pixiv.cat");
-        }
-        Common.showLog("GlideUrl getOriginalWithInvertProxy " + result);
-        return new GlideUrl(result);
-    }
-
-    private static final String head = "https://pixiv.cat/";
 }

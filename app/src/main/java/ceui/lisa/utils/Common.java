@@ -323,4 +323,8 @@ public class Common {
         }
     }
 
+
+    public static String getPathByName(String name) {
+        return Shaft.getContext().getExternalCacheDir() + "/" + name;
+    }
 }

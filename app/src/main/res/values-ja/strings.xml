@@ -23,7 +23,7 @@
 	<string name="double_click_finish">終了するにはもう一度押して〜</string>
 	<string name="delete_all">すべて削除</string>
 	<string name="illust_filter">フィルタ</string>
-	<string name="share_illust">％1 $ sの|</string>
+	<string name="share_illust">%1$s | %2$s #Pixiv %3$s</string>
 	<string name="share">シェア</string>
 	<string name="webview_handler_open_in_browser">ブラウザで開く</string>
 	<string name="webview_handler_copy_link_addr">コピーリンクアドレス</string>
@@ -169,8 +169,6 @@
 	<string name="second_fragment_label">第二の欠片</string>
 	<string name="next">次</string>
 	<string name="previous">前</string>
-	<string name="hello_first_fragment">こんにちは、最初の断片</string>
-	<string name="hello_second_fragment">こんにちは第二フラグメント。arg : % 1 s s s</string>
 	<string name="file_path">パス:</string>
 	<string name="add_account">アカウントを追加</string>
 	<string name="string_1">シールド設定</string>
@@ -354,7 +352,7 @@
 	<string name="string_181">保存に成功しました</string>
 	<string name="string_182">タイトル:</string>
 	<string name="string_183">シリーズ:</string>
-	<string name="string_184">シリーズ:%s</string>
+	<string name="string_184">シリーズ: %s</string>
 	<string name="string_185">終了後、アカウント情報を削除しますか？</string>
 	<string name="string_186">アカウント情報を削除</string>
 	<string name="string_187">キャンセル</string>
@@ -470,4 +468,6 @@
 	<string name="string_298">デフォルトモード（システムに従ってください）</string>
 	<string name="string_299">デイモード（ライト）</string>
 	<string name="string_300">ダークモード（暗いです）</string>
+	<string name="string_310">Shaftを使って見る</string>
+	<string name="string_311">Shaftを使ってソース検索を行います。</string>
 </resources>

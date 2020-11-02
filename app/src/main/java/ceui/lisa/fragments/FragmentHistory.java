@@ -46,13 +46,12 @@ public class FragmentHistory extends LocalListFragment<FragmentBaseListBinding,
             public void onItemClick(View v, int position, int viewType) {
                 Common.showLog(className + position + " " + allItems.size());
                 if (viewType == 0) {
-                    final String uuid = UUID.randomUUID().toString();
-                    final PageData pageData = new PageData(uuid, ((HistoryModel)mModel).getAll());
+                    final PageData pageData = new PageData(((HistoryModel)mModel).getAll());
                     Container.get().addPageToMap(pageData);
 
                     Intent intent = new Intent(mContext, VActivity.class);
                     intent.putExtra(Params.POSITION, position);
-                    intent.putExtra(Params.PAGE_UUID, uuid);
+                    intent.putExtra(Params.PAGE_UUID, pageData.getUUID());
                     mContext.startActivity(intent);
                 } else if (viewType == 1) {
                     Intent intent = new Intent(mContext, UserActivity.class);

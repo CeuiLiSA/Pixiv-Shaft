@@ -100,7 +100,7 @@
   <string name="recomment_user">рекомендуемый пользователь</string>
   <string name="you_mother_fucker_want_to_read_novel">Что?вы ещё хотите посмотреть японский роман?</string>
   <string name="user_info">сведения</string>
-  <string name="how_many_illust_works">% d - произведение</string>
+  <string name="how_many_illust_works">%d - произведение</string>
   <string name="user_main_page">личная страница</string>
   <string name="user_collections">коллекция</string>
   <string name="download_manager">управление загрузкой</string>
@@ -170,8 +170,6 @@
   <string name="second_fragment_label">Второй осколок</string>
   <string name="next">След.</string>
   <string name="previous">След.</string>
-  <string name="hello_first_fragment">Привет, первый фрагмент</string>
-  <string name="hello_second_fragment">Привет, второй фрагмент.Параметры:</string>
   <string name="file_path">путь:</string>
   <string name="add_account">Добавить номер счёта</string>
   <string name="string_1">Настройки экрана</string>
@@ -355,7 +353,7 @@
   <string name="string_181">сохранить успешно</string>
   <string name="string_182">Заголовок:</string>
   <string name="string_183">серия:</string>
-  <string name="string_184">серия:</string>
+  <string name="string_184">серия: %s</string>
   <string name="string_185">Удалить сообщение с счёта после выхода?</string>
   <string name="string_186">Удалить номер счета</string>
   <string name="string_187">отмена</string>
@@ -471,5 +469,6 @@
   <string name="string_298">Режим по умолчанию (следовать системе)</string>
   <string name="string_299">Дневной режим (свет)</string>
   <string name="string_300">Режим Dark (темный)</string>
-
+	<string name="string_310">Используйте Shaf для просмотра</string>
+	<string name="string_311">Использовать вал для поиска Поиск Поиск</string>
 </resources>

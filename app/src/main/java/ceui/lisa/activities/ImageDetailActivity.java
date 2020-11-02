@@ -69,7 +69,7 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
             downloadSingle.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    IllustDownload.downloadIllust(mIllustsBean, baseBind.viewPager.getCurrentItem());
+                    IllustDownload.downloadIllust(mIllustsBean, baseBind.viewPager.getCurrentItem(), mContext);
                 }
             });
             baseBind.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {

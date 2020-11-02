@@ -29,8 +29,8 @@ import java.io.File;
 
 import ceui.lisa.R;
 import ceui.lisa.base.BaseActivity;
+import ceui.lisa.core.Manager;
 import ceui.lisa.databinding.ActivityCoverBinding;
-import ceui.lisa.download.TaskQueue;
 import ceui.lisa.fragments.FragmentCenter;
 import ceui.lisa.fragments.FragmentLeft;
 import ceui.lisa.fragments.FragmentRight;
@@ -251,14 +251,13 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
     public void exit() {
         if ((System.currentTimeMillis() - mExitTime) > 2000) {
-            if (TaskQueue.get().getTasks().size() != 0) {
+            if (Manager.get().getContent().size() != 0) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
                 builder.setTitle(getString(R.string.shaft_hint));
                 builder.setMessage(mContext.getString(R.string.you_have_download_plan));
                 builder.setPositiveButton(mContext.getString(R.string.sure), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        TaskQueue.get().clearTask();
                         finish();
                     }
                 });

@@ -20,7 +20,6 @@ import ceui.lisa.R;
 import ceui.lisa.activities.UserActivity;
 import ceui.lisa.base.BaseFragment;
 import ceui.lisa.databinding.FragmentWebviewBinding;
-import ceui.lisa.download.WebDownload;
 import ceui.lisa.utils.ClipBoardUtils;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
@@ -220,10 +219,6 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                 }
                 case COPY_LINK_TEXT: {
                     Common.showToast("不会");
-                    break;
-                }
-                case DOWNLOAD_LINK: {
-                    WebDownload.download(mIntentUrl);
                     break;
                 }
                 case SEARCH_GOOGLE: {

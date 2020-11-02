@@ -32,7 +32,6 @@ import java.util.concurrent.ExecutionException;
 import ceui.lisa.R;
 import ceui.lisa.database.IllustTask;
 import ceui.lisa.download.FileCreator;
-import ceui.lisa.download.GifListener;
 import ceui.lisa.download.GifQueue;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.http.ErrorCtrl;
@@ -128,13 +127,6 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                     //如果不存在已合成的GIF文件，想播放gif必须先调用v1/ugoira/metadata 接口获取delay
                     //（就算你已经有了gif图片列表，不掉接口也不知道delay）
 
-                    GifListener.OnGifPrepared onGifPrepared = new GifListener.OnGifPrepared() {
-                        @Override
-                        public void play(int delay) {
-                            currentOne.mProgressBar.setVisibility(View.INVISIBLE);
-                            tryPlayGif(delay);
-                        }
-                    };
 
                     //检查是否正在下载
                     if (GifQueue.get().getTasks() != null &&
@@ -145,11 +137,6 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                         for (IllustTask task : GifQueue.get().getTasks()) {
                             if (task.getIllustsBean().getId() == allIllust.getId()) {
                                 isDownloading = true;
-                                //如果正在下载，更新listener
-                                currentOne.mProgressBar.setVisibility(View.VISIBLE);
-                                GifListener gifListener = (GifListener) task.getDownloadTask().getListener();
-                                gifListener.bindProgress(currentOne.mProgressBar);
-                                gifListener.bindListener(onGifPrepared);
                                 break;
                             }
                         }
@@ -175,10 +162,7 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                                 } else {
                                     //不存在就去下载
                                     currentOne.mProgressBar.setVisibility(View.VISIBLE);
-                                    GifListener gifListener = new GifListener(allIllust, gifResponse.getDelay());
-                                    gifListener.bindProgress(currentOne.mProgressBar);
-                                    gifListener.bindListener(onGifPrepared);
-                                    IllustDownload.downloadGif(gifResponse, allIllust, gifListener);
+                                    IllustDownload.downloadGif(gifResponse, allIllust, mContext);
                                 }
                             }
                         });

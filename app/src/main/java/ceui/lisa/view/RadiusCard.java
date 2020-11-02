@@ -2,10 +2,14 @@ package ceui.lisa.view;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.cardview.widget.CardView;
+
+import ceui.lisa.R;
+import ceui.lisa.utils.Common;
 
 public class RadiusCard extends CardView {
 

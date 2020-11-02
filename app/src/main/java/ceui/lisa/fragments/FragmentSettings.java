@@ -7,22 +7,16 @@ import android.net.Uri;
 import android.os.Environment;
 import android.view.View;
 import android.widget.CompoundButton;
-import android.widget.LinearLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.blankj.utilcode.util.LanguageUtils;
-import com.facebook.rebound.SimpleSpringListener;
-import com.facebook.rebound.Spring;
-import com.facebook.rebound.SpringChain;
-import com.liulishuo.okdownload.core.dispatcher.DownloadDispatcher;
 import com.nononsenseapps.filepicker.FilePickerActivity;
 import com.nononsenseapps.filepicker.Utils;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
-import com.scwang.smartrefresh.layout.api.RefreshHeader;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
 
@@ -149,13 +143,6 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
         baseBind.singleDownloadTask.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    Shaft.sSettings.setSingleDownloadTask(true);
-                    DownloadDispatcher.setMaxParallelRunningCount(1);
-                } else {
-                    Shaft.sSettings.setSingleDownloadTask(false);
-                    DownloadDispatcher.setMaxParallelRunningCount(5);
-                }
                 Common.showToast("设置成功", 2);
                 Local.setSettings(Shaft.sSettings);
             }
@@ -437,7 +424,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                                 } else if (which == 3) {
                                     LanguageUtils.applyLanguage(Locale.TRADITIONAL_CHINESE, "");
                                 } else if (which == 4) {
-                                    LanguageUtils.applyLanguage(new Locale("RU","ru",""), "");
+                                    LanguageUtils.applyLanguage(new Locale("RU", "ru", ""), "");
                                 }
                                 dialog.dismiss();
                             }
@@ -495,8 +482,6 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
         baseBind.refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));
         baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
     }
-
-
 
 
     @Override

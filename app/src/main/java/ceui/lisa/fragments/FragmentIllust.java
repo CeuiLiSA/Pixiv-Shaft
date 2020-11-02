@@ -314,9 +314,9 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 GifCreate.createGif(illust);
             } else {
                 if (illust.getPage_count() == 1) {
-                    IllustDownload.downloadIllust(illust);
+                    IllustDownload.downloadIllust(illust, mContext);
                 } else {
-                    IllustDownload.downloadAllIllust(illust);
+                    IllustDownload.downloadAllIllust(illust, mContext);
                 }
             }
         });

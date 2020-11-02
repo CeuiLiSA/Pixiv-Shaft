@@ -204,14 +204,13 @@ public class PixivOperate {
                     @Override
                     public void success(IllustSearchResponse illustSearchResponse) {
                         if (illustSearchResponse.getIllust() != null) {
-                            final String uuid = UUID.randomUUID().toString();
-                            final PageData pageData = new PageData(uuid,
+                            final PageData pageData = new PageData(
                                     Collections.singletonList(illustSearchResponse.getIllust()));
                             Container.get().addPageToMap(pageData);
 
                             Intent intent = new Intent(context, VActivity.class);
                             intent.putExtra(Params.POSITION, 0);
-                            intent.putExtra(Params.PAGE_UUID, uuid);
+                            intent.putExtra(Params.PAGE_UUID, pageData.getUUID());
                             context.startActivity(intent);
                         }
                     }
@@ -227,14 +226,13 @@ public class PixivOperate {
                     @Override
                     public void success(IllustSearchResponse illustSearchResponse) {
                         if (illustSearchResponse.getIllust() != null) {
-                            final String uuid = UUID.randomUUID().toString();
-                            final PageData pageData = new PageData(uuid,
+                            final PageData pageData = new PageData(
                                     Collections.singletonList(illustSearchResponse.getIllust()));
                             Container.get().addPageToMap(pageData);
 
                             Intent intent = new Intent(context, VActivity.class);
                             intent.putExtra(Params.POSITION, 0);
-                            intent.putExtra(Params.PAGE_UUID, uuid);
+                            intent.putExtra(Params.PAGE_UUID, pageData.getUUID());
                             context.startActivity(intent);
 
                             if (callback != null) {

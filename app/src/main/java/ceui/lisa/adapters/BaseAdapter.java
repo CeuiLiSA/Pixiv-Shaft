@@ -38,7 +38,7 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
         int viewType = getItemViewType(position);
         if (viewType == ITEM_NORMAL) {
             int index = position - headerSize();
-            bindData(allIllust.get(index), (ViewHolder<BindView>) holder, index);
+            tryCatchBindData(allIllust.get(index), (ViewHolder<BindView>) holder, index);
         } else if (viewType == ITEM_HEAD) {
 
         }
@@ -52,6 +52,14 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
     public abstract void initLayout();
 
     public abstract void bindData(Item target, ViewHolder<BindView> bindView, int position);
+
+    private void tryCatchBindData(Item target, ViewHolder<BindView> bindView, int position){
+        try {
+            bindData(target, bindView, position);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     @NonNull
     @Override

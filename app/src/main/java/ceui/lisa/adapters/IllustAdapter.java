@@ -137,7 +137,7 @@ public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDet
         Glide.with(mContext)
                 .asBitmap()
                 .load(Shaft.sSettings.isFirstImageSize() ?
-                        GlideUtil.getOriginalWithInvertProxy(allIllust, position) :
+                        GlideUtil.getOriginal(allIllust, position) :
                         GlideUtil.getLargeImage(allIllust, position))
                 .transition(BitmapTransitionOptions.withCrossFade())
                 .error(getBuilder(holder.baseBind.progress, position))
@@ -169,7 +169,7 @@ public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDet
         return Glide.with(mContext)
                 .asBitmap()
                 .load(Shaft.sSettings.isFirstImageSize() ?
-                        GlideUtil.getOriginalWithInvertProxy(allIllust, position) :
+                        GlideUtil.getOriginal(allIllust, position) :
                         GlideUtil.getLargeImage(allIllust, position))
                 .transition(BitmapTransitionOptions.withCrossFade())
                 .listener(new RequestListener<Bitmap>() {

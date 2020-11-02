@@ -124,7 +124,7 @@ public class FragmentImageDetail extends BaseFragment<FragmentImageDetailBinding
         if (Shaft.sSettings.isFirstImageSize()) {
             Common.showLog(className + "展示原图");
             Glide.with(mContext)
-                    .load(GlideUtil.getOriginalWithInvertProxy(mIllustsBean, index))
+                    .load(GlideUtil.getOriginal(mIllustsBean, index))
                     .transition(withCrossFade())
                     .listener(requestListener)
                     .into(baseBind.illustImage);
