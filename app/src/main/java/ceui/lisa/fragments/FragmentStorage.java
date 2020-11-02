@@ -94,13 +94,9 @@ public class FragmentStorage extends BaseFragment<FragmentStorageBinding> {
         baseBind.save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                DocumentFile child = SAFile.getDocument(mContext, temp.get(0), 0);
-                if (child.exists()) {
-                    Common.showLog("child.exists() 111");
-                } else {
-                    Common.showLog("child.exists() 222");
-                }
-                Common.showLog(child.getUri().toString());
+                Uri rootUri = Uri.parse(Shaft.sSettings.getRootPathUri());
+
+
 
             }
         });

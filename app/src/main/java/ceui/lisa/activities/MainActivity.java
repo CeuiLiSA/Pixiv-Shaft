@@ -107,7 +107,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
     @Override
     protected void initData() {
-        if (Dev.isDev && false) {
+        if (Dev.isDev && true) {
             Intent intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "存储访问");
             startActivity(intent);

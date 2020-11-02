@@ -16,12 +16,15 @@ public class SAFile {
 
     public static DocumentFile getDocument(Context context, IllustsBean illust, int index) {
         Uri rootUri = Uri.parse(Shaft.sSettings.getRootPathUri());
-        DocumentFile file = DocumentFile.fromTreeUri(context, rootUri);
-        assert file != null;
-        return file.createFile(
-                getMimeType(illust, index),
-                FileCreator.createIllustFile(illust, index).getName()
-        );
+        DocumentFile root = DocumentFile.fromTreeUri(context, rootUri);
+        String displayName = FileCreator.createIllustFile(illust, index).getName();
+        assert root != null;
+        DocumentFile file = root.findFile(displayName);
+        if (file != null) {
+            return file;
+        } else {
+            return root.createFile(getMimeType(illust, index), displayName);
+        }
     }
 
 //    public static File getFile(Context context, IllustsBean illust, int index) {

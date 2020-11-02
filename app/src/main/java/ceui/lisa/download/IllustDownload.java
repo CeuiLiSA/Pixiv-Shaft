@@ -28,17 +28,10 @@ public class IllustDownload {
             return;
         }
 
-        File file = FileCreator.createIllustFile(illust);
-        if (file.exists()) {
-            Common.showToast(Shaft.getContext().getString(R.string.image_alredy_exist));
-            return;
-        }
-
         if (illust.getPage_count() == 1) {
             DownloadItem item = new DownloadItem(illust);
             item.setUrl(illust.getMeta_single_page().getOriginal_image_url());
-            item.setUri(SAFile.getDocument(context, illust, 0).getUri());
-            item.setName(file.getName());
+            item.setFile(SAFile.getDocument(context, illust, 0));
             Manager.get().addTask(item);
             Manager.get().start(context);
         }
@@ -52,19 +45,12 @@ public class IllustDownload {
             return;
         }
 
-        File file = FileCreator.createIllustFile(illust, index);
-        if (file.exists()) {
-            Common.showToast(Shaft.getContext().getString(R.string.image_alredy_exist));
-            return;
-        }
-
         if (illust.getPage_count() == 1) {
             downloadIllust(illust, context);
         } else {
             DownloadItem item = new DownloadItem(illust);
             item.setUrl(illust.getMeta_pages().get(index).getImage_urls().getOriginal());
-            item.setUri(SAFile.getDocument(context, illust, index).getUri());
-            item.setName(file.getName());
+            item.setFile(SAFile.getDocument(context, illust, index));
             Manager.get().addTask(item);
             Manager.get().start(context);
             Common.showToast(Shaft.getContext().getString(R.string.one_item_added));
@@ -83,20 +69,13 @@ public class IllustDownload {
             return;
         }
 
-
         List<DownloadItem> tempList = new ArrayList<>();
-
         for (int i = 0; i < illust.getPage_count(); i++) {
-            File file = FileCreator.createIllustFile(illust, i);
-            if (!file.exists()) {
-                DownloadItem item = new DownloadItem(illust);
-                item.setUrl("https://pixiv.cat/" + illust.getId() + "-" + (i+1) + ".jpg");
-                item.setUri(SAFile.getDocument(context, illust, i).getUri());
-                item.setName(file.getName());
-                tempList.add(item);
-            }
+            DownloadItem item = new DownloadItem(illust);
+            item.setUrl("https://pixiv.cat/" + illust.getId() + "-" + (i+1) + ".jpg");
+            item.setFile(SAFile.getDocument(context, illust, i));
+            tempList.add(item);
         }
-
         Manager.get().addTasks(tempList);
         Manager.get().start(context);
         Common.showToast(tempList.size() + Shaft.getContext().getString(R.string.has_been_added));
@@ -122,25 +101,16 @@ public class IllustDownload {
                 final IllustsBean illust = beans.get(i);
 
                 if (illust.getPage_count() == 1) {
-                    File file = FileCreator.createIllustFile(illust);
-                    if (!file.exists()) {
-                        DownloadItem item = new DownloadItem(illust);
-                        item.setUrl(illust.getMeta_single_page().getOriginal_image_url());
-                        item.setUri(SAFile.getDocument(context, illust, 0).getUri());
-                        item.setName(file.getName());
-                        tempList.add(item);
-                    }
+                    DownloadItem item = new DownloadItem(illust);
+                    item.setUrl(illust.getMeta_single_page().getOriginal_image_url());
+                    item.setFile(SAFile.getDocument(context, illust, 0));
+                    tempList.add(item);
                 } else {
                     for (int j = 0; j < illust.getPage_count(); j++) {
-
-                        File file = FileCreator.createIllustFile(illust, j);
-                        if (!file.exists()) {
-                            DownloadItem item = new DownloadItem(illust);
-                            item.setUrl(illust.getMeta_pages().get(j).getImage_urls().getOriginal());
-                            item.setUri(SAFile.getDocument(context, illust, j).getUri());
-                            item.setName(file.getName());
-                            tempList.add(item);
-                        }
+                        DownloadItem item = new DownloadItem(illust);
+                        item.setUrl(illust.getMeta_pages().get(j).getImage_urls().getOriginal());
+                        item.setFile(SAFile.getDocument(context, illust, j));
+                        tempList.add(item);
                     }
                 }
             }
@@ -154,8 +124,7 @@ public class IllustDownload {
         File file = FileCreator.createGifZipFile(illust);
         DownloadItem item = new DownloadItem(illust);
         item.setUrl(response.getUgoira_metadata().getZip_urls().getMedium());
-        item.setUri(SAFile.getDocument(context, illust, 1).getUri());
-        item.setName(file.getName());
+        item.setFile(SAFile.getDocument(context, illust, 1));
         Manager.get().addTask(item);
         Manager.get().start(context);
         Common.showToast("图组ZIP已加入下载队列");
