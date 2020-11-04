@@ -61,8 +61,8 @@
 
 
 
-    <color name="new_color_primary">#008BF4</color>
-<!--    <color name="new_color_primary">#686bdd</color>-->
+<!--    <color name="new_color_primary">#008BF4</color>-->
+    <color name="new_color_primary">#686bdd</color>
     <color name="novel_holder">#000339</color>
     <color name="rank_title">#333333</color>
     <color name="fragment_right_divider">#f0f0f0</color>

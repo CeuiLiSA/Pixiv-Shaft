@@ -477,69 +477,12 @@
                                 android:layout_below="@+id/illust_path_s"
                                 android:layout_marginStart="@dimen/sixteen_dp"
                                 android:layout_marginBottom="@dimen/twelve_dp"
-                                android:ellipsize="start"
-                                android:singleLine="true"
                                 android:text="@string/string_98"
                                 android:textColor="@color/primary_to_huise"
                                 android:textSize="13sp">
 
 
                             </TextView>
-
-                        </RelativeLayout>
-
-                        <View style="@style/half_divider" />
-
-                        <RelativeLayout
-                            android:id="@+id/gif_unzip_path"
-                            style="@style/ripple_rela">
-
-                            <TextView
-                                android:id="@+id/gif_result_s"
-                                android:layout_marginBottom="@dimen/six_dp"
-                                style="@style/setting_text_left"
-                                android:text="@string/gif_result_path" />
-
-                            <TextView
-                                android:id="@+id/gif_result"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_below="@+id/gif_result_s"
-                                android:layout_marginStart="@dimen/sixteen_dp"
-                                android:layout_marginBottom="@dimen/twelve_dp"
-                                android:ellipsize="start"
-                                android:singleLine="true"
-                                android:text="@string/string_99"
-                                android:textColor="@color/primary_to_huise"
-                                android:textSize="13sp" />
-
-                        </RelativeLayout>
-
-
-                        <View style="@style/half_divider" />
-
-                        <RelativeLayout
-                            android:id="@+id/novel_download_path"
-                            style="@style/ripple_rela">
-
-                            <TextView
-                                android:id="@+id/novel_download_result_s"
-                                android:layout_marginBottom="@dimen/six_dp"
-                                style="@style/setting_text_left"
-                                android:text="@string/novel_txt_download_path" />
-
-                            <TextView
-                                android:id="@+id/novel_download_result"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_below="@+id/novel_download_result_s"
-                                android:layout_marginStart="@dimen/sixteen_dp"
-                                android:layout_marginBottom="@dimen/twelve_dp"
-                                android:ellipsize="start"
-                                android:singleLine="true"
-                                android:text="@string/string_276"
-                                android:textColor="@color/primary_to_huise"
-                                android:textSize="13sp" />
 
                         </RelativeLayout>
 

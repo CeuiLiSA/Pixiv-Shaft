@@ -1,18 +1,13 @@
 package ceui.lisa.fragments;
 
-import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.Uri;
-import android.os.Environment;
 import android.view.View;
 import android.widget.CompoundButton;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.blankj.utilcode.util.LanguageUtils;
-import com.nononsenseapps.filepicker.FilePickerActivity;
-import com.nononsenseapps.filepicker.Utils;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
@@ -20,11 +15,12 @@ import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
 
-import java.io.File;
-import java.util.List;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.Locale;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.FragmentSettingsBinding;
@@ -39,11 +35,7 @@ import static ceui.lisa.utils.Settings.ALL_LANGUAGE;
 
 public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
 
-    private static final int illustPath_CODE = 10086;
-    private static final int gifResultPath_CODE = 10087;
-    private static final int novelResultPath_CODE = 10090;
-    private static final int gifZipPath_CODE = 10088;
-    private static final int gifUnzipPath_CODE = 10089;
+    private boolean freshPath = false;
 
     @Override
     public void initLayout() {
@@ -289,73 +281,17 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             }
         });
 
-        baseBind.illustPath.setText(Shaft.sSettings.getIllustPath());
+        try {
+            baseBind.illustPath.setText(URLDecoder.decode(Shaft.sSettings.getRootPathUri(), "utf-8"));
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
         baseBind.illustPath.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(mContext, FilePickerActivity.class);
-                // This works if you defined the intent filter
-                // Intent i = new Intent(Intent.ACTION_GET_CONTENT);
-
-                // Set these depending on your use case. These are the defaults.
-                i.putExtra(FilePickerActivity.EXTRA_ALLOW_MULTIPLE, false);
-                i.putExtra(FilePickerActivity.EXTRA_ALLOW_CREATE_DIR, true);
-                i.putExtra(FilePickerActivity.EXTRA_MODE, FilePickerActivity.MODE_DIR);
-
-                // Configure initial directory by specifying a String.
-                // You could specify a String like "/storage/emulated/0/", but that can
-                // dangerous. Always use Android's API calls to get paths to the SD-card or
-                // internal memory.
-                i.putExtra(FilePickerActivity.EXTRA_START_PATH, Environment.getExternalStorageDirectory().getPath());
-
-                startActivityForResult(i, illustPath_CODE);
-            }
-        });
-
-        baseBind.gifResult.setText(Shaft.sSettings.getGifResultPath());
-        baseBind.gifResult.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent i = new Intent(mContext, FilePickerActivity.class);
-                // This works if you defined the intent filter
-                // Intent i = new Intent(Intent.ACTION_GET_CONTENT);
-
-                // Set these depending on your use case. These are the defaults.
-                i.putExtra(FilePickerActivity.EXTRA_ALLOW_MULTIPLE, false);
-                i.putExtra(FilePickerActivity.EXTRA_ALLOW_CREATE_DIR, true);
-                i.putExtra(FilePickerActivity.EXTRA_MODE, FilePickerActivity.MODE_DIR);
-
-                // Configure initial directory by specifying a String.
-                // You could specify a String like "/storage/emulated/0/", but that can
-                // dangerous. Always use Android's API calls to get paths to the SD-card or
-                // internal memory.
-                i.putExtra(FilePickerActivity.EXTRA_START_PATH, Environment.getExternalStorageDirectory().getPath());
-
-                startActivityForResult(i, gifResultPath_CODE);
-            }
-        });
-
-
-        baseBind.novelDownloadResult.setText(Shaft.sSettings.getNovelPath());
-        baseBind.novelDownloadPath.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent i = new Intent(mContext, FilePickerActivity.class);
-                // This works if you defined the intent filter
-                // Intent i = new Intent(Intent.ACTION_GET_CONTENT);
-
-                // Set these depending on your use case. These are the defaults.
-                i.putExtra(FilePickerActivity.EXTRA_ALLOW_MULTIPLE, false);
-                i.putExtra(FilePickerActivity.EXTRA_ALLOW_CREATE_DIR, true);
-                i.putExtra(FilePickerActivity.EXTRA_MODE, FilePickerActivity.MODE_DIR);
-
-                // Configure initial directory by specifying a String.
-                // You could specify a String like "/storage/emulated/0/", but that can
-                // dangerous. Always use Android's API calls to get paths to the SD-card or
-                // internal memory.
-                i.putExtra(FilePickerActivity.EXTRA_START_PATH, Environment.getExternalStorageDirectory().getPath());
-
-                startActivityForResult(i, novelResultPath_CODE);
+                freshPath = true;
+                mActivity.startActivityForResult(
+                        new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE), BaseActivity.ASK_URI);
             }
         });
 
@@ -482,61 +418,21 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
         baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
     }
 
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == illustPath_CODE && resultCode == Activity.RESULT_OK) {
-            List<Uri> files = Utils.getSelectedFilesFromResult(data);
-            for (Uri uri : files) {
-                File file = Utils.getFileForUri(uri);
-                String path = file.getPath();
-                if (path.startsWith("/storage/emulated/0/")) {
-                    Shaft.sSettings.setIllustPath(path);
-                    Local.setSettings(Shaft.sSettings);
-                    baseBind.illustPath.setText(path);
-                } else {
-                    Common.showToast(getString(R.string.select_inner_storage));
-                }
-            }
-            return;
-        }
-
-        if (requestCode == gifResultPath_CODE && resultCode == Activity.RESULT_OK) {
-            List<Uri> files = Utils.getSelectedFilesFromResult(data);
-            for (Uri uri : files) {
-                File file = Utils.getFileForUri(uri);
-                String path = file.getPath();
-                if (path.startsWith("/storage/emulated/0/")) {
-                    Shaft.sSettings.setGifResultPath(path);
-                    Local.setSettings(Shaft.sSettings);
-                    baseBind.gifResult.setText(path);
-                } else {
-                    Common.showToast(getString(R.string.select_inner_storage));
-                }
-            }
-            return;
-        }
-
-        if (requestCode == novelResultPath_CODE && resultCode == Activity.RESULT_OK) {
-            List<Uri> files = Utils.getSelectedFilesFromResult(data);
-            for (Uri uri : files) {
-                File file = Utils.getFileForUri(uri);
-                String path = file.getPath();
-                if (path.startsWith("/storage/emulated/0/")) {
-                    Shaft.sSettings.setNovelPath(path);
-                    Local.setSettings(Shaft.sSettings);
-                    baseBind.novelDownloadResult.setText(path);
-                } else {
-                    Common.showToast(getString(R.string.select_inner_storage));
-                }
-            }
-            return;
-        }
-    }
-
     @Override
     public SmartRefreshLayout getSmartRefreshLayout() {
         return baseBind.refreshLayout;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (freshPath) {
+            try {
+                baseBind.illustPath.setText(URLDecoder.decode(Shaft.sSettings.getRootPathUri(), "utf-8"));
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+            freshPath = false;
+        }
     }
 }

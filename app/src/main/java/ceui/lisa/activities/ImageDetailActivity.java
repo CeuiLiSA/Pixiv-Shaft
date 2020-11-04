@@ -11,6 +11,8 @@ import com.ToxicBakery.viewpager.transforms.CubeOutTransformer;
 import com.blankj.utilcode.util.BarUtils;
 import com.blankj.utilcode.util.ColorUtils;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -116,7 +118,12 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
 
                 @Override
                 public void onPageSelected(int i) {
-                    downloadSingle.setText(String.format("%s%s", getString(R.string.file_path), localIllust.get(i)));
+                    try {
+                        downloadSingle.setText(String.format("%s%s", getString(R.string.file_path),
+                                URLDecoder.decode(localIllust.get(i), "utf-8")));
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
                 }
 
                 @Override
@@ -124,7 +131,12 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
 
                 }
             });
-            downloadSingle.setText(String.format("%s%s", getString(R.string.file_path), localIllust.get(index)));
+            try {
+                downloadSingle.setText(String.format("%s%s", getString(R.string.file_path),
+                        URLDecoder.decode(localIllust.get(index), "utf-8")));
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
         }
     }
 
