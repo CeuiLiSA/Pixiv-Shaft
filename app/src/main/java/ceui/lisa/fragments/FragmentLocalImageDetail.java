@@ -6,7 +6,6 @@ import android.view.View;
 import com.bumptech.glide.Glide;
 
 import ceui.lisa.R;
-import ceui.lisa.base.BaseFragment;
 import ceui.lisa.databinding.FragmentImageDetailBinding;
 import ceui.lisa.utils.Params;
 

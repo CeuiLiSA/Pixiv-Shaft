@@ -28,13 +28,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.ImageDetailActivity;
 import ceui.lisa.activities.SearchActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UserActivity;
 import ceui.lisa.adapters.IllustDetailAdapter;
-import ceui.lisa.base.BaseFragment;
 import ceui.lisa.databinding.FragmentSingleIllustBinding;
 import ceui.lisa.dialogs.MuteDialog;
 import ceui.lisa.download.FileCreator;
@@ -219,9 +219,9 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
                 GifCreate.createGif(illust);
             } else {
                 if (illust.getPage_count() == 1) {
-                    IllustDownload.downloadIllust(illust, mContext);
+                    IllustDownload.downloadIllust(illust, (BaseActivity<?>) mContext);
                 } else {
-                    IllustDownload.downloadAllIllust(illust, mContext);
+                    IllustDownload.downloadAllIllust(illust, (BaseActivity<?>) mContext);
                 }
             }
         });

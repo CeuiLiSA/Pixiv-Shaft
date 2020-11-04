@@ -28,18 +28,19 @@ import com.bumptech.glide.Glide;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.zhy.view.flowlayout.FlowLayout;
 import com.zhy.view.flowlayout.TagAdapter;
 import com.zhy.view.flowlayout.TagFlowLayout;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.SearchActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UserActivity;
 import ceui.lisa.adapters.IllustAdapter;
-import ceui.lisa.base.SwipeFragment;
 import ceui.lisa.databinding.FragmentIllustBinding;
 import ceui.lisa.dialogs.MuteDialog;
 import ceui.lisa.download.GifCreate;
@@ -314,9 +315,9 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 GifCreate.createGif(illust);
             } else {
                 if (illust.getPage_count() == 1) {
-                    IllustDownload.downloadIllust(illust, mContext);
+                    IllustDownload.downloadIllust(illust, (BaseActivity<?>) mContext);
                 } else {
-                    IllustDownload.downloadAllIllust(illust, mContext);
+                    IllustDownload.downloadAllIllust(illust, (BaseActivity<?>) mContext);
                 }
             }
         });

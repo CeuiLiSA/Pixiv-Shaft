@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.base.BaseActivity;
 import ceui.lisa.databinding.ActivityImageDetailBinding;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.fragments.FragmentImageDetail;
@@ -69,7 +68,7 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
             downloadSingle.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    IllustDownload.downloadIllust(mIllustsBean, baseBind.viewPager.getCurrentItem(), mContext);
+                    IllustDownload.downloadIllust(mIllustsBean, baseBind.viewPager.getCurrentItem(), (BaseActivity<?>) mContext);
                 }
             });
             baseBind.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {

@@ -1,10 +1,13 @@
 package ceui.lisa.adapters;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
 import androidx.databinding.DataBindingUtil;
+
+import com.bumptech.glide.Glide;
 
 import java.util.List;
 
@@ -15,6 +18,7 @@ import ceui.lisa.databinding.RecyDownloadTaskBinding;
 import ceui.lisa.download.DownloadHolder;
 import ceui.lisa.download.FileSizeUtil;
 import ceui.lisa.interfaces.Callback;
+import ceui.lisa.utils.GlideUtil;
 import rxhttp.wrapper.entity.Progress;
 
 //正在下载
@@ -45,6 +49,11 @@ public class DownloadingAdapter extends BaseAdapter<DownloadItem, RecyDownloadTa
     public void bindData(DownloadItem target, ViewHolder<RecyDownloadTaskBinding> bindView, int position) {
         bindView.baseBind.taskName.setText(target.getName());
         bindView.baseBind.progress.setTag(target.getUuid());
+        if (!TextUtils.isEmpty(target.getShowUrl())) {
+            Glide.with(mContext)
+                    .load(GlideUtil.getMediumImg(target.getShowUrl()))
+                    .into(bindView.baseBind.illustImage);
+        }
         if (position == 0) {
             bindView.baseBind.progress.setProgress(Manager.get().getCurrentProgress());
             bindView.baseBind.state.setText("正在下载");

@@ -1,7 +1,6 @@
 package ceui.lisa.fragments
 
 import ceui.lisa.R
-import ceui.lisa.base.BaseFragment
 import ceui.lisa.databinding.FragmentUserInfoBinding
 import ceui.lisa.interfaces.Display
 import ceui.lisa.models.UserDetailResponse

@@ -15,8 +15,6 @@ import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.base.BaseFragment;
-import ceui.lisa.core.Manager;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.databinding.ViewpagerWithTablayoutBinding;
 import ceui.lisa.utils.Common;

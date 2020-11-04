@@ -5,7 +5,6 @@ import android.content.Intent
 import android.net.Uri
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
-import ceui.lisa.base.SwipeFragment
 import ceui.lisa.databinding.FragmentAboutBinding
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.PackageUtils

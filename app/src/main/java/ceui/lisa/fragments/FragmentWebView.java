@@ -18,7 +18,6 @@ import com.just.agentweb.WebViewClient;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.UserActivity;
-import ceui.lisa.base.BaseFragment;
 import ceui.lisa.databinding.FragmentWebviewBinding;
 import ceui.lisa.utils.ClipBoardUtils;
 import ceui.lisa.utils.Common;

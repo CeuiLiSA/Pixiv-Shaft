@@ -8,7 +8,6 @@ import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
-import ceui.lisa.base.SwipeFragment
 import ceui.lisa.databinding.FragmentUserRightBinding
 import ceui.lisa.databinding.TagItemBinding
 import ceui.lisa.utils.Params

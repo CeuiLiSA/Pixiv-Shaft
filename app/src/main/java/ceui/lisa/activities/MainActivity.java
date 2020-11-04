@@ -1,6 +1,5 @@
 package ceui.lisa.activities;
 
-import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
@@ -23,12 +22,10 @@ import androidx.fragment.app.FragmentPagerAdapter;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.navigation.NavigationView;
-import com.tbruyelle.rxpermissions2.RxPermissions;
 
 import java.io.File;
 
 import ceui.lisa.R;
-import ceui.lisa.base.BaseActivity;
 import ceui.lisa.core.Manager;
 import ceui.lisa.databinding.ActivityCoverBinding;
 import ceui.lisa.fragments.FragmentCenter;
@@ -41,7 +38,6 @@ import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseImage;
 import ceui.lisa.utils.ReverseWebviewCallback;
-import io.reactivex.disposables.Disposable;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
@@ -107,26 +103,8 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
     @Override
     protected void initData() {
-        if (Dev.isDev && true) {
-            Intent intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "存储访问");
-            startActivity(intent);
-            return;
-        }
         if (sUserModel != null && sUserModel.getResponse().getUser().isIs_login()) {
-            final RxPermissions rxPermissions = new RxPermissions(mActivity);
-            Disposable disposable = rxPermissions
-                    .requestEachCombined(
-                            Manifest.permission.WRITE_EXTERNAL_STORAGE
-                    )
-                    .subscribe(permission -> {
-                        if (permission.granted) {
-                            initFragment();
-                        } else {
-                            Common.showToast(mActivity.getString(R.string.access_denied));
-                            finish();
-                        }
-                    });
+            initFragment();
         } else {
             Intent intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "登录注册");

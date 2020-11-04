@@ -16,7 +16,6 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.adapters.NHAdapter;
-import ceui.lisa.base.BaseFragment;
 import ceui.lisa.databinding.FragmentLikeIllustHorizontalBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;

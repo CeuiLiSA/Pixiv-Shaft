@@ -7,7 +7,6 @@ import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 
-import androidx.cardview.widget.CardView;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Observer;
@@ -22,7 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.base.BaseActivity;
 import ceui.lisa.databinding.ActicityUserBinding;
 import ceui.lisa.fragments.FragmentLikeIllustHorizontal;
 import ceui.lisa.fragments.FragmentLikeNovelHorizontal;

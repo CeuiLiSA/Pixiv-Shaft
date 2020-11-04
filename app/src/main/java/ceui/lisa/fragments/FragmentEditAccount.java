@@ -4,7 +4,6 @@ import android.text.TextUtils;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.base.BaseFragment;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
 import ceui.lisa.databinding.FragmentEditAccountBinding;

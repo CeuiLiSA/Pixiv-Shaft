@@ -8,7 +8,7 @@
     <color name="colorPrimary">@color/new_color_primary</color>
     <color name="colorPrimaryDark">@color/new_color_primary</color>
     <color name="colorAccent">#CDDC39</color>
-    <color name="light_new_primary_color">#d1c4e9</color>
+    <color name="light_new_primary_color">#eceff1</color>
     <color name="illust_size_bg">#eeeffd</color>
 
     <color name="hint_text">@color/new_color_primary</color>
@@ -61,7 +61,8 @@
 
 
 
-    <color name="new_color_primary">#686bdd</color>
+    <color name="new_color_primary">#008BF4</color>
+<!--    <color name="new_color_primary">#686bdd</color>-->
     <color name="novel_holder">#000339</color>
     <color name="rank_title">#333333</color>
     <color name="fragment_right_divider">#f0f0f0</color>

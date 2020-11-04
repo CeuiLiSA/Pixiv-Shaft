@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.database.IllustTask;
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.download.GifQueue;
@@ -162,7 +163,7 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                                 } else {
                                     //不存在就去下载
                                     currentOne.mProgressBar.setVisibility(View.VISIBLE);
-                                    IllustDownload.downloadGif(gifResponse, allIllust, mContext);
+                                    IllustDownload.downloadGif(gifResponse, allIllust, (BaseActivity<?>) mContext);
                                 }
                             }
                         });

@@ -20,7 +20,6 @@ import com.github.chrisbanes.photoview.OnPhotoTapListener;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.base.BaseFragment;
 import ceui.lisa.databinding.FragmentImageDetailBinding;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;

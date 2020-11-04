@@ -11,7 +11,6 @@ import androidx.fragment.app.FragmentPagerAdapter;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
-import ceui.lisa.base.BaseFragment;
 import ceui.lisa.databinding.FragmentNewNovelBinding;
 import ceui.lisa.utils.Params;
 

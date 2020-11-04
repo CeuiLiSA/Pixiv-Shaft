@@ -39,6 +39,7 @@ import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UserActivity;
+import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.models.UserContainer;
 import okhttp3.MediaType;
 import okhttp3.Response;
@@ -105,6 +106,10 @@ public class Common {
             }
         }
         return data;
+    }
+
+    public void showUriDialog(BaseActivity<?> activity) {
+
     }
 
     public static <T> void showLog(T t) {

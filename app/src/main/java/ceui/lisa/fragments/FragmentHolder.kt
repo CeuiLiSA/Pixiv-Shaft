@@ -5,7 +5,6 @@ import androidx.fragment.app.FragmentPagerAdapter
 import androidx.lifecycle.ViewModelProvider
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
-import ceui.lisa.base.BaseFragment
 import ceui.lisa.databinding.FragmentHolderBinding
 import ceui.lisa.utils.Params
 import ceui.lisa.viewmodel.UserViewModel

@@ -1,4 +1,4 @@
-package ceui.lisa.base;
+package ceui.lisa.activities;
 
 import android.content.Context;
 import android.content.Intent;
@@ -6,9 +6,9 @@ import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
-import android.view.WindowManager;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,6 +16,9 @@ import androidx.databinding.DataBindingUtil;
 import androidx.databinding.ViewDataBinding;
 import androidx.fragment.app.FragmentActivity;
 
+import ceui.lisa.interfaces.FeedBack;
+import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Local;
 
 
 public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCompatActivity {
@@ -25,6 +28,9 @@ public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCo
     protected int mLayoutID;
     protected Layout baseBind;
     protected String className = this.getClass().getSimpleName() + " ";
+
+    public static final int ASK_URI = 42;
+    private FeedBack mFeedBack;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -92,5 +98,33 @@ public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCo
             Paint normalPaint = new Paint();
             getWindow().getDecorView().setLayerType(View.LAYER_TYPE_HARDWARE, normalPaint);
         }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == ASK_URI) {
+            Common.showLog(className + "onActivityResult ");
+            if (resultCode != RESULT_OK || data == null) {
+                return;
+            }
+            Uri treeUri = data.getData();
+            Shaft.sSettings.setRootPathUri(treeUri.toString());
+            mContext.getContentResolver().takePersistableUriPermission(treeUri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION |
+                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            Local.setSettings(Shaft.sSettings);
+            doAfterGranted();
+        }
+    }
+
+    public void doAfterGranted() {
+        if (mFeedBack != null) {
+            mFeedBack.doSomething();
+        }
+    }
+
+    public void setFeedBack(FeedBack feedBack) {
+        mFeedBack = feedBack;
     }
 }

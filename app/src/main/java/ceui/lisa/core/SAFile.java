@@ -27,15 +27,6 @@ public class SAFile {
         }
     }
 
-//    public static File getFile(Context context, IllustsBean illust, int index) {
-//        Uri rootUri = Uri.parse(Shaft.sSettings.getRootPathUri());
-//        return new File(DocumentFile.fromTreeUri(context, rootUri).getUri());
-//    }
-
-    public static String getMimeType(IllustsBean illust) {
-        return getMimeType(illust, 0);
-    }
-
     public static String getMimeType(IllustsBean illust, int index) {
         String mimeType = "image/png";
         if (illust == null) {
@@ -52,7 +43,7 @@ public class SAFile {
         if (url.contains(".")) {
             mimeType = "image/" + url.substring(url.lastIndexOf(".") + 1);
         }
-        Common.showLog("getMimeType fileUrl: " + url + ", fileType: " + mimeType);
+        Common.showLog("SAFile getMimeType: " + url + ", fileType: " + mimeType);
         return mimeType;
     }
 }

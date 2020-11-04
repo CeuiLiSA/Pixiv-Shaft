@@ -15,7 +15,6 @@ import com.github.ybq.android.spinkit.style.Wave;
 import com.google.android.material.appbar.AppBarLayout;
 
 import ceui.lisa.R;
-import ceui.lisa.base.BaseActivity;
 import ceui.lisa.databinding.ActivityNewUserBinding;
 import ceui.lisa.fragments.FragmentHolder;
 import ceui.lisa.http.NullCtrl;

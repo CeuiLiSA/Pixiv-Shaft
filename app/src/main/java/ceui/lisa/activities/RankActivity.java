@@ -15,7 +15,6 @@ import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 import java.util.Calendar;
 
 import ceui.lisa.R;
-import ceui.lisa.base.BaseActivity;
 import ceui.lisa.databinding.ActivityMultiViewPagerBinding;
 import ceui.lisa.fragments.FragmentRankIllust;
 import ceui.lisa.fragments.FragmentRankNovel;

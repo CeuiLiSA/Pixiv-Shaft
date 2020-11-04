@@ -5,7 +5,6 @@ import android.view.View
 import android.widget.EditText
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
-import ceui.lisa.base.SwipeFragment
 import ceui.lisa.databinding.FragmentWorkSpaceBinding
 import ceui.lisa.http.NullCtrl
 import ceui.lisa.http.Retro
@@ -17,7 +16,6 @@ import com.scwang.smartrefresh.layout.SmartRefreshLayout
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import java.lang.Exception
-import java.lang.RuntimeException
 
 class FragmentWorkSpace: SwipeFragment<FragmentWorkSpaceBinding>(), Display<UserDetailResponse> {
 

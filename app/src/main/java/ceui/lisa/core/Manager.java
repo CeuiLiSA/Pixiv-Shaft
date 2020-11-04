@@ -1,23 +1,19 @@
 package ceui.lisa.core;
 
 
-import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.provider.MediaStore;
 
-import androidx.documentfile.provider.DocumentFile;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.DownloadEntity;
+import ceui.lisa.download.ImageSaver;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
@@ -57,16 +53,28 @@ public class Manager {
     }
 
     public void start(Context context) {
-        Common.showLog("Manager start ");
+        if (isRunning) {
+            Common.showLog("Manager 正在下载中，不用多次start");
+            return;
+        }
+        checkPipe(context);
+    }
 
+    private void checkPipe(Context context) {
         if (Common.isEmpty(content)) {
+            isRunning = false;
+            Common.showLog("Manager 已经全部下载完成");
             Common.showToast("全部下载完成");
             return;
         }
+        isRunning = true;
+        DownloadItem item = content.get(0);
+        downloadOne(item, context);
+    }
 
-        final DownloadItem bean = content.get(0);
+    private void downloadOne(DownloadItem bean, Context context) {
+        Common.showLog("Manager 下载单个 ");
         uuid = bean.getUuid();
-        ContentResolver contentResolver = context.getContentResolver();
         Uri item = bean.getUri();
         RxHttp.get(bean.getUrl())
                 .addHeader(Params.MAP_KEY, Params.IMAGE_REFERER)
@@ -74,24 +82,28 @@ public class Manager {
                     @Override
                     public void accept(Progress progress) {
                         currentProgress = progress.getProgress();
+                        Common.showLog("manager currentProgress " + currentProgress);
                         if (mCallback != null) {
                             mCallback.doSomething(progress);
                         }
                     }
                 }) //指定主线程回调
                 .subscribe(s -> {//s为String类型，这里为文件存储路径
+                    Common.showLog("downloadOne " + s);
+                    //下载完成，处理相关逻辑
                     currentProgress = 0;
-                    contentResolver.update(item, null, null, null);
 
-                    //通知
                     {
+                        //通知
+                        Common.showLog("通知 DOWNLOAD_ING 下载完成");
                         Intent intent = new Intent(Params.DOWNLOAD_ING);
                         intent.putExtra(Params.INDEX, 0);
                         LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
                     }
 
-                    //通知
                     {
+                        //通知
+                        Common.showLog("通知 DOWNLOAD_FINISH 下载完成");
                         DownloadEntity downloadEntity = new DownloadEntity();
                         downloadEntity.setIllustGson(Shaft.sGson.toJson(bean.getIllust()));
                         downloadEntity.setFileName(bean.getName());
@@ -104,15 +116,14 @@ public class Manager {
                         LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
                     }
 
-                    content.remove(0);
-                    start(context);
 
+                    content.remove(bean);
+                    checkPipe(context);
 
-                    //下载完成，处理相关逻辑
+//                    contentResolver.update(item, null, null, null);
                 }, throwable -> {
                     //下载失败，处理相关逻辑
                     Common.showLog(throwable.toString());
-
                 });
     }
 

@@ -12,13 +12,11 @@ import com.github.ybq.android.spinkit.style.Wave;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.VActivity;
 import ceui.lisa.adapters.LAdapter;
-import ceui.lisa.base.BaseFragment;
 import ceui.lisa.core.Container;
 import ceui.lisa.core.PageData;
 import ceui.lisa.databinding.FragmentLikeIllustHorizontalBinding;

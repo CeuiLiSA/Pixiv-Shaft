@@ -29,7 +29,6 @@ import ceui.lisa.activities.SearchActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.adapters.VAdapter;
-import ceui.lisa.base.BaseFragment;
 import ceui.lisa.cache.Cache;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.DownloadEntity;

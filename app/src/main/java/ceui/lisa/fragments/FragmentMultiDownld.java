@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.VActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.MultiDownldAdapter;
@@ -104,7 +105,7 @@ public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownload
         baseBind.startDownload.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                IllustDownload.downloadAllIllust(allItems, mContext);
+                IllustDownload.downloadAllIllust(allItems, (BaseActivity<?>) mContext);
             }
         });
     }

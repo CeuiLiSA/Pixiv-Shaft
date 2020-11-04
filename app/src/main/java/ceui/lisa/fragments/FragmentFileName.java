@@ -18,7 +18,6 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.FileNameAdapter;
-import ceui.lisa.base.SwipeFragment;
 import ceui.lisa.databinding.FragmentFileNameBinding;
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.model.CustomFileNameCell;

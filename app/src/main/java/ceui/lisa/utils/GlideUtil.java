@@ -12,7 +12,7 @@ import ceui.lisa.models.IllustsBean;
 
 public class GlideUtil {
 
-    private static Headers sHeaders = () -> {
+    private static final Headers sHeaders = () -> {
         HashMap<String, String> hashMap = new HashMap<>();
         hashMap.put(Params.MAP_KEY, Params.IMAGE_REFERER);
         hashMap.put(Params.USER_AGENT, Params.PHONE_MODEL);

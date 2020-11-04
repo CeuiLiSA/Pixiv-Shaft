@@ -12,7 +12,6 @@ import androidx.fragment.app.FragmentManager;
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener;
 
 import ceui.lisa.R;
-import ceui.lisa.base.BaseActivity;
 import ceui.lisa.databinding.ActivityFragmentBinding;
 import ceui.lisa.fragments.FragmentAboutApp;
 import ceui.lisa.fragments.FragmentBookedTag;
@@ -64,7 +63,6 @@ import ceui.lisa.fragments.FragmentWhoFollowThisUser;
 import ceui.lisa.fragments.FragmentWorkSpace;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.NovelBean;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseResult;
