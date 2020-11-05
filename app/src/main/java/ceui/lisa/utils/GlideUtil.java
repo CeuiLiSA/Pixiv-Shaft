@@ -16,7 +16,7 @@ public class GlideUtil {
         HashMap<String, String> hashMap = new HashMap<>();
         hashMap.put(Params.MAP_KEY, Params.IMAGE_REFERER);
         hashMap.put(Params.USER_AGENT, Params.PHONE_MODEL);
-        hashMap.put(Params.MAP_KEY_SMALL, Params.IMAGE_REFERER);
+        hashMap.put(Params.HOST, Params.HOST_NAME);
         return hashMap;
     };
 

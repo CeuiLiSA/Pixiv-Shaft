@@ -53,7 +53,9 @@ public class Params {
     public static final String MAP_KEY_SMALL = "referer";
     public static final String IMAGE_REFERER = "https://app-api.pixiv.net/";
     public static final String USER_AGENT = "User-Agent";
-    public static final String PHONE_MODEL = "PixivAndroidApp/5.0.155 (Android 6.0.1; SONY D6653)";
+    public static final String PHONE_MODEL = "PixivIOSApp/5.8.0";
+    public static final String HOST = "Host";
+    public static final String HOST_NAME = "i.pximg.net";
 
 
     public static final String IMAGE_UNKNOWN = "https://s.pximg.net/common/images/limit_unknown_360.png";
