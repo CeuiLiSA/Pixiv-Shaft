@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
+import android.graphics.drawable.AnimationDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -16,44 +18,56 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.ActivityOptionsCompat;
+import androidx.documentfile.provider.DocumentFile;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
+import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
-import ceui.lisa.activities.ImageDetailActivity;
 import ceui.lisa.activities.SearchActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UserActivity;
-import ceui.lisa.adapters.IllustDetailAdapter;
-import ceui.lisa.databinding.FragmentSingleIllustBinding;
+import ceui.lisa.core.Manager;
+import ceui.lisa.core.SAFile;
+import ceui.lisa.databinding.FragmentUgoraBinding;
 import ceui.lisa.dialogs.MuteDialog;
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.download.GifCreate;
 import ceui.lisa.download.IllustDownload;
-import ceui.lisa.interfaces.OnItemClickListener;
+import ceui.lisa.http.ErrorCtrl;
+import ceui.lisa.interfaces.Callback;
+import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.notification.BaseReceiver;
 import ceui.lisa.notification.StarReceiver;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.ShareIllust;
-import ceui.lisa.view.LinearItemDecorationNoLRTB;
-import ceui.lisa.view.ScrollChange;
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 import jp.wasabeef.glide.transformations.BlurTransformation;
 import me.next.tagview.TagCloudView;
+import rxhttp.wrapper.entity.Progress;
 
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 import static com.bumptech.glide.request.RequestOptions.bitmapTransform;
@@ -61,16 +75,15 @@ import static com.bumptech.glide.request.RequestOptions.bitmapTransform;
 /**
  * 插画详情
  */
-public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBinding> {
+public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
 
     private IllustsBean illust;
-    private IllustDetailAdapter mDetailAdapter;
     private StarReceiver mReceiver;
 
-    public static FragmentSingleIllust newInstance(IllustsBean illust) {
+    public static FragmentSingleUgora newInstance(IllustsBean illust) {
         Bundle args = new Bundle();
         args.putSerializable(Params.CONTENT, illust);
-        FragmentSingleIllust fragment = new FragmentSingleIllust();
+        FragmentSingleUgora fragment = new FragmentSingleUgora();
         fragment.setArguments(args);
         return fragment;
     }
@@ -82,7 +95,7 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
 
     @Override
     public void initLayout() {
-        mLayoutID = R.layout.fragment_single_illust;
+        mLayoutID = R.layout.fragment_ugora;
     }
 
     private void loadImage() {
@@ -101,33 +114,23 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
                 break;
         }
 
+        int imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
+                2 * mContext.getResources().getDimensionPixelSize(R.dimen.twelve_dp));
+        ViewGroup.LayoutParams params = baseBind.illustImage.getLayoutParams();
+        params.height = imageSize * illust.getHeight() / illust.getWidth();
+        params.width = imageSize;
+        baseBind.illustImage.setLayoutParams(params);
 
-        mDetailAdapter = new IllustDetailAdapter(illust, mActivity);
-        mDetailAdapter.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(View v, int position, int viewType) {
-                if (viewType == 0) {
-                    Intent intent = new Intent(mContext, ImageDetailActivity.class);
-                    intent.putExtra("illust", illust);
-                    intent.putExtra("dataType", "二级详情");
-                    intent.putExtra("index", position);
-                    if (Shaft.sSettings.isFirstImageSize()) {
-                        mActivity.startActivity(intent);
-                    } else {
-                        if (mDetailAdapter.getHasLoad().get(position)) {
-                            Bundle bundle = ActivityOptionsCompat.makeSceneTransitionAnimation(mActivity,
-                                    v, "big_image_" + position).toBundle();
-                            startActivity(intent, bundle);
-                        } else {
-                            mActivity.startActivity(intent);
-                        }
+        Glide.with(mContext)
+                .asDrawable()
+                .load(GlideUtil.getLargeImage(illust))
+                .transition(DrawableTransitionOptions.withCrossFade())
+                .into(new SimpleTarget<Drawable>() {
+                    @Override
+                    public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
+                        baseBind.illustImage.setImageDrawable(resource);
                     }
-                } else if (viewType == 1) {
-
-                }
-            }
-        });
-        baseBind.recyclerView.setAdapter(mDetailAdapter);
+                });
     }
 
     @Override
@@ -168,6 +171,71 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
         super.onDestroy();
     }
 
+    private AnimationDrawable animationDrawable;
+
+    public void tryPlayGif(DocumentFile parentFile, int delay) {
+        if (parentFile != null && parentFile.isDirectory()) {
+            //获取所有的gif帧
+            final DocumentFile[] listfile = parentFile.listFiles();
+            Observable.create(new ObservableOnSubscribe<String>() {
+                @Override
+                public void subscribe(ObservableEmitter<String> emitter) {
+                    try {
+                        List<DocumentFile> allFiles = Arrays.asList(listfile);
+                        Collections.sort(allFiles, new Comparator<DocumentFile>() {
+                            @Override
+                            public int compare(DocumentFile o1, DocumentFile o2) {
+                                if (Integer.valueOf(o1.getName().substring(0, o1.getName().length() - 4)) >
+                                        Integer.valueOf(o2.getName().substring(0, o2.getName().length() - 4))) {
+                                    return 1;
+                                } else {
+                                    return -1;
+                                }
+                            }
+                        });
+
+                        animationDrawable = new AnimationDrawable();
+                        for (int i = 0; i < allFiles.size(); i++) {
+
+                            Drawable drawable = Glide.with(mContext)
+                                    .load(allFiles.get(i).getUri())
+                                    .skipMemoryCache(true)
+                                    .submit()
+                                    .get();
+                            animationDrawable.addFrame(drawable, delay);
+
+                        }
+                        emitter.onNext("万事俱备");
+                    } catch (ExecutionException | InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new ErrorCtrl<String>() {
+                        @Override
+                        public void next(String s) {
+                            if ("万事俱备".equals(s)) {
+                                nowPlayGif();
+                            }
+                        }
+                    });
+        }
+    }
+
+    public void nowPlayGif() {
+        if (animationDrawable != null) {
+            baseBind.illustImage.setImageDrawable(animationDrawable);
+            animationDrawable.start();
+        }
+    }
+
+    public void nowStopGif() {
+        if (animationDrawable != null) {
+            animationDrawable.stop();
+        }
+    }
+
     @Override
     public void initView() {
         if (illust == null) {
@@ -181,6 +249,32 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
             baseBind.refreshLayout.setVisibility(View.INVISIBLE);
             return;
         }
+
+        Manager.get().setCallback(new Callback<Progress>() {
+            @Override
+            public void doSomething(Progress t) {
+
+            }
+        });
+
+        baseBind.playGif.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Common.showToast("重构中，暂不支持");
+//                PixivOperate.getGifInfo(illust, new ErrorCtrl<GifResponse>() {
+//                    @Override
+//                    public void next(GifResponse gifResponse) {
+//                        DocumentFile file = SAFile.findGifFile(mContext, illust);
+//                        if (file != null && file.length() > 1024) {
+//                            tryPlayGif(SAFile.findGifUnzipFolder(mContext, illust), gifResponse.getDelay());
+//                        } else {
+//                            IllustDownload.downloadGif(gifResponse,
+//                                    SAFile.createGifFile(mContext, illust), illust, (BaseActivity<?>) mContext);
+//                        }
+//                    }
+//                });
+            }
+        });
 
         baseBind.refreshLayout.setVisibility(View.VISIBLE);
         baseBind.refreshLayout.setEnableLoadMore(true);
@@ -209,10 +303,14 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
         });
 
         baseBind.download.setOnClickListener(v -> {
-            if (illust.getPage_count() == 1) {
-                IllustDownload.downloadIllust(illust, (BaseActivity<?>) mContext);
+            if (illust.isGif()) {
+                GifCreate.createGif(illust);
             } else {
-                IllustDownload.downloadAllIllust(illust, (BaseActivity<?>) mContext);
+                if (illust.getPage_count() == 1) {
+                    IllustDownload.downloadIllust(illust, (BaseActivity<?>) mContext);
+                } else {
+                    IllustDownload.downloadAllIllust(illust, (BaseActivity<?>) mContext);
+                }
             }
         });
         File file = FileCreator.createIllustFile(illust);
@@ -364,10 +462,6 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
         baseBind.illustView.setText(String.valueOf(illust.getTotal_view()));
         baseBind.illustLike.setText(String.valueOf(illust.getTotal_bookmarks()));
 
-        ScrollChange layoutManager = new ScrollChange(mContext);
-        baseBind.recyclerView.setLayoutManager(layoutManager);
-        baseBind.recyclerView.setNestedScrollingEnabled(true);
-        baseBind.recyclerView.addItemDecoration(new LinearItemDecorationNoLRTB(DensityUtil.dp2px(1.0f)));
 
         if (illust.getUser().isIs_followed()) {
             baseBind.follow.setText("取消关注");
@@ -398,40 +492,8 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
                 Common.copy(mContext, String.valueOf(illust.getId()));
             }
         });
-        if (illust.getPage_count() == 1) {
-            baseBind.pSize.setVisibility(View.GONE);
-            baseBind.darkBlank.setVisibility(View.INVISIBLE);
-            baseBind.seeAll.setVisibility(View.INVISIBLE);
-            baseBind.illustList.open();
-        } else {
-            baseBind.pSize.setVisibility(View.VISIBLE);
-            baseBind.pSize.setText(illust.getPage_count() + "P");
-            baseBind.darkBlank.setVisibility(View.VISIBLE);
-            baseBind.seeAll.setVisibility(View.VISIBLE);
-            baseBind.illustList.close();
-            baseBind.seeAll.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (baseBind.illustList.isExpand()) {
-                        baseBind.illustList.close();
-                        baseBind.seeAll.setText("点击展开");
-                    } else {
-                        baseBind.illustList.open();
-                        baseBind.seeAll.setText("点击折叠");
-                    }
-                }
-            });
-        }
     }
 
-//    @Override
-//    public void onPause() {
-//        super.onPause();
-//        //如果是GIF，停止播放
-//        if (illust != null && "ugoira".equals(illust.getType()) && mDetailAdapter != null) {
-//            mDetailAdapter.nowStopGif();
-//        }
-//    }
 
     @Override
     public void vertical() {
@@ -449,20 +511,4 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
         headParams.height = Shaft.statusHeight * 3 / 5 + Shaft.toolbarHeight;
         baseBind.head.setLayoutParams(headParams);
     }
-
-//    @Override
-//    public void setUserVisibleHint(boolean isVisibleToUser) {
-//        super.setUserVisibleHint(isVisibleToUser);
-//        if (illust != null) {
-//            if (isVisibleToUser) {
-//                if ("ugoira".equals(illust.getType()) && mDetailAdapter != null) {
-//                    mDetailAdapter.nowPlayGif();
-//                }
-//            } else {
-//                if ("ugoira".equals(illust.getType()) && mDetailAdapter != null) {
-//                    mDetailAdapter.nowStopGif();
-//                }
-//            }
-//        }
-//    }
 }

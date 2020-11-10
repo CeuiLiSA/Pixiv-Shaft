@@ -81,10 +81,17 @@ public class DownloadedAdapter extends BaseAdapter<DownloadEntity, RecyViewHisto
             bindView.baseBind.illustImage.setLayoutParams(params);
 
             IllustsBean currentIllust = Shaft.sGson.fromJson(allIllust.get(position).getIllustGson(), IllustsBean.class);
-            Glide.with(mContext)
-                    .load(allIllust.get(position).getFilePath())
-                    .placeholder(R.color.light_bg)
-                    .into(bindView.baseBind.illustImage);
+            if (currentIllust.isGif()) {
+                Glide.with(mContext)
+                        .load(currentIllust.getImage_urls().getMedium())
+                        .placeholder(R.color.light_bg)
+                        .into(bindView.baseBind.illustImage);
+            } else {
+                Glide.with(mContext)
+                        .load(allIllust.get(position).getFilePath())
+                        .placeholder(R.color.light_bg)
+                        .into(bindView.baseBind.illustImage);
+            }
             bindView.baseBind.title.setText(allIllust.get(position).getFileName());
             bindView.baseBind.author.setText("by: " + currentIllust.getUser().getName());
             bindView.baseBind.time.setText(mTime.format(allIllust.get(position).getDownloadTime()));

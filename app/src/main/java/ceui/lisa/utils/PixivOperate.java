@@ -3,10 +3,18 @@ package ceui.lisa.utils;
 
 import android.content.Context;
 import android.content.Intent;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 
+import androidx.documentfile.provider.DocumentFile;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
+import com.blankj.utilcode.util.UriUtils;
+import com.blankj.utilcode.util.ZipUtils;
+
+import net.lingala.zip4j.ZipFile;
+import net.lingala.zip4j.exception.ZipException;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,6 +27,7 @@ import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.VActivity;
 import ceui.lisa.core.Container;
 import ceui.lisa.core.PageData;
+import ceui.lisa.core.SAFile;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.database.SearchEntity;
@@ -273,6 +282,23 @@ public class PixivOperate {
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(errorCtrl);
+    }
+
+    public static void unzipGif(DocumentFile file, IllustsBean illust, Context context) {
+        try {
+            Common.showLog(file.getName());
+            if (!TextUtils.isEmpty(file.getName()) && file.getName().contains(".zip")) {
+                try {
+                    ZipFile zipFile = new ZipFile(UriUtils.uri2File(file.getUri()));
+                    zipFile.extractAll(UriUtils.uri2File(SAFile.findGifUnzipFolder(context, illust).getUri()).getPath());
+                    Common.showToast("图组ZIP解压完成");
+                } catch (ZipException e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static void muteTag(TagsBean tagsBean) {

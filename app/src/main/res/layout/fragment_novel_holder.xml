@@ -65,13 +65,30 @@
                         android:id="@+id/user_name"
                         android:layout_marginEnd="@dimen/eight_dp"
                         android:textStyle="bold"
-                        android:layout_toStartOf="@+id/save_novel"
+                        android:layout_toStartOf="@+id/save_novel_txt"
                         android:textSize="16sp"
                         android:layout_marginStart="@dimen/eight_dp"
                         android:layout_toEndOf="@+id/user_head"
                         android:textColor="@color/always_white"
                         android:layout_centerVertical="true"
                         android:layout_height="wrap_content" />
+
+                    <Button
+                        style="@android:style/Widget.DeviceDefault.Button.Borderless.Small"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:paddingStart="@dimen/eight_dp"
+                        android:layout_toStartOf="@+id/save_novel"
+                        android:paddingEnd="@dimen/eight_dp"
+                        android:textSize="13sp"
+                        android:id="@+id/save_novel_txt"
+                        android:layout_marginEnd="@dimen/six_dp"
+                        android:text="@string/string_314"
+                        android:layout_centerVertical="true"
+                        android:textColor="@color/white_to_gray">
+
+                    </Button>
 
 
                     <Button

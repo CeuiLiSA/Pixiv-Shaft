@@ -1,6 +1,7 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
@@ -86,12 +87,12 @@ public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownload
                         Common.showToast("没有选择任何作品");
                     } else {
                         TextWriter.writeToTxt(System.currentTimeMillis() + "_download_tasks.txt",
-                                result, new Callback<File>() {
+                                result, mContext, new Callback<Uri>() {
                                     @Override
-                                    public void doSomething(File t) {
+                                    public void doSomething(Uri t) {
                                         new Share2.Builder(mActivity)
                                                 .setContentType(ShareContentType.FILE)
-                                                .setShareFileUri(FileUtil.getFileUri(mContext, ShareContentType.FILE, t))
+                                                .setShareFileUri(t)
                                                 .setTitle("Share File")
                                                 .build()
                                                 .shareBySystem();

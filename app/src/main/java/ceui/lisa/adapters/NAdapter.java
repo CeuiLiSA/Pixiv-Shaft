@@ -44,6 +44,7 @@ public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
     @Override
     public void bindData(NovelBean target, ViewHolder<RecyNovelBinding> bindView, int position) {
         if (target.getSeries() != null && !TextUtils.isEmpty(target.getSeries().getTitle())) {
+            bindView.baseBind.series.setVisibility(View.VISIBLE);
             bindView.baseBind.series.setText(String.format(mContext.getString(R.string.string_184),
                     target.getSeries().getTitle()));
             if (showShop) {
@@ -59,6 +60,8 @@ public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
                     }
                 });
             }
+        } else {
+            bindView.baseBind.series.setVisibility(View.GONE);
         }
         if (showShop) {
             bindView.baseBind.title.setText("#" + (position + 1) + " " + target.getTitle());

@@ -281,11 +281,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             }
         });
 
-        try {
-            baseBind.illustPath.setText(URLDecoder.decode(Shaft.sSettings.getRootPathUri(), "utf-8"));
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
+        setPath();
         baseBind.illustPath.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -427,12 +423,16 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
     public void onResume() {
         super.onResume();
         if (freshPath) {
-            try {
-                baseBind.illustPath.setText(URLDecoder.decode(Shaft.sSettings.getRootPathUri(), "utf-8"));
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
+            setPath();
             freshPath = false;
+        }
+    }
+
+    private void setPath() {
+        try {
+            baseBind.illustPath.setText(URLDecoder.decode(Shaft.sSettings.getRootPathUri(), "utf-8"));
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
         }
     }
 }

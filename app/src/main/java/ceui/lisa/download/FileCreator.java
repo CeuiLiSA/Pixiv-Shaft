@@ -27,6 +27,18 @@ public class FileCreator {
         );
     }
 
+    public static File createGifUnZipFolder(IllustsBean illustsBean) {
+        if (illustsBean == null) {
+            return null;
+        }
+
+        return new File(Shaft.sSettings.getGifZipPath(), deleteSpecialWords(
+                illustsBean.getTitle() + "_" + illustsBean.getId())
+        );
+    }
+
+
+
     public static File createGifFile(IllustsBean illustsBean) {
         if (illustsBean == null) {
             return null;
@@ -80,7 +92,7 @@ public class FileCreator {
         return new File(Shaft.sSettings.getIllustPath(), customFileName(illustsBean, index));
     }
 
-    private static String deleteSpecialWords(String before) {
+    public static String deleteSpecialWords(String before) {
         if (!TextUtils.isEmpty(before)) {
             String temp1 = before.replace("-", DASH);
             String temp2 = temp1.replace("/", DASH);

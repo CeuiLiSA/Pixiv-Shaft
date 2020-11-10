@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.text.TextUtils;
 
+import androidx.documentfile.provider.DocumentFile;
+
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
@@ -32,10 +34,9 @@ public class IllustDownload {
                 item.setUrl(getUrl(illust, 0));
                 item.setFile(SAFile.getDocument(activity, illust, 0));
                 item.setShowUrl(getShowUrl(illust, 0));
-                Manager.get().addTask(item);
-                Manager.get().start(activity);
+                Manager.get().addTask(item, activity);
+                Common.showToast(Shaft.getContext().getString(R.string.one_item_added));
             }
-            Common.showToast(Shaft.getContext().getString(R.string.one_item_added));
         });
     }
 
@@ -49,8 +50,7 @@ public class IllustDownload {
                 item.setUrl(getUrl(illust, index));
                 item.setFile(SAFile.getDocument(activity, illust, index));
                 item.setShowUrl(getShowUrl(illust, index));
-                Manager.get().addTask(item);
-                Manager.get().start(activity);
+                Manager.get().addTask(item, activity);
                 Common.showToast(Shaft.getContext().getString(R.string.one_item_added));
             }
         });
@@ -61,20 +61,18 @@ public class IllustDownload {
         check(activity, () -> {
             if (illust.getPage_count() == 1) {
                 downloadIllust(illust, activity);
-                return;
+            } else {
+                List<DownloadItem> tempList = new ArrayList<>();
+                for (int i = 0; i < illust.getPage_count(); i++) {
+                    DownloadItem item = new DownloadItem(illust);
+                    item.setUrl(getUrl(illust, i));
+                    item.setFile(SAFile.getDocument(activity, illust, i));
+                    item.setShowUrl(getShowUrl(illust, i));
+                    tempList.add(item);
+                }
+                Manager.get().addTasks(tempList, activity);
+                Common.showToast(tempList.size() + Shaft.getContext().getString(R.string.has_been_added));
             }
-
-            List<DownloadItem> tempList = new ArrayList<>();
-            for (int i = 0; i < illust.getPage_count(); i++) {
-                DownloadItem item = new DownloadItem(illust);
-                item.setUrl(getUrl(illust, i));
-                item.setFile(SAFile.getDocument(activity, illust, i));
-                item.setShowUrl(getShowUrl(illust, i));
-                tempList.add(item);
-            }
-            Manager.get().addTasks(tempList);
-            Manager.get().start(activity);
-            Common.showToast(tempList.size() + Shaft.getContext().getString(R.string.has_been_added));
         });
     }
 
@@ -103,19 +101,18 @@ public class IllustDownload {
                     }
                 }
             }
-            Manager.get().addTasks(tempList);
-            Manager.get().start(activity);
+            Manager.get().addTasks(tempList, activity);
             Common.showToast(tempList.size() + Shaft.getContext().getString(R.string.has_been_added));
         });
     }
 
-    public static void downloadGif(GifResponse response, IllustsBean illust, BaseActivity<?> activity) {
+    public static void downloadGif(GifResponse response, DocumentFile file, IllustsBean illust, BaseActivity<?> activity) {
         check(activity, () -> {
             DownloadItem item = new DownloadItem(illust);
             item.setUrl(response.getUgoira_metadata().getZip_urls().getMedium());
-            item.setFile(SAFile.getDocument(activity, illust, 1));
-            Manager.get().addTask(item);
-            Manager.get().start(activity);
+            item.setFile(file);
+            item.setShowUrl(illust.getImage_urls().getMedium());
+            Manager.get().addTask(item, activity);
             Common.showToast("图组ZIP已加入下载队列");
         });
     }

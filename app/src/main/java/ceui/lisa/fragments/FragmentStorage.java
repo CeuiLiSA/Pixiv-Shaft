@@ -47,16 +47,7 @@ public class FragmentStorage extends BaseFragment<FragmentStorageBinding> {
         baseBind.store.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (!TextUtils.isEmpty(Shaft.sSettings.getRootPathUri())) {
-                    Common.showToast(Shaft.sSettings.getRootPathUri());
 
-                    IllustDownload.downloadIllust(temp.get(0), (BaseActivity<?>) mContext);
-                    Intent intent = new Intent(mContext, TemplateActivity.class);
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载管理");
-                    startActivity(intent);
-                } else {
-                    startActivityForResult(new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE), 42);
-                }
             }
         });
 
