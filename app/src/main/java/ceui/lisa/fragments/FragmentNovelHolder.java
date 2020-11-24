@@ -21,11 +21,11 @@ import com.zhy.view.flowlayout.FlowLayout;
 import com.zhy.view.flowlayout.TagAdapter;
 import com.zhy.view.flowlayout.TagFlowLayout;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.SearchActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
@@ -35,7 +35,7 @@ import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.databinding.FragmentNovelHolderBinding;
 import ceui.lisa.download.FileCreator;
-import ceui.lisa.helper.TextWriter;
+import ceui.lisa.download.IllustDownload;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.Callback;
@@ -47,7 +47,6 @@ import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.view.ScrollChange;
-import gdut.bsx.share2.FileUtil;
 import gdut.bsx.share2.Share2;
 import gdut.bsx.share2.ShareContentType;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -115,9 +114,11 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
         } else {
             baseBind.like.setText(mContext.getString(R.string.string_180));
         }
+        Common.showLog(className + "getNovel 000");
         baseBind.like.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Common.showLog(className + "getNovel 111");
                 PixivOperate.postLikeNovel(mNovelBean, Shaft.sUserModel,
                         Params.TYPE_PUBLUC, baseBind.like);
             }
@@ -261,10 +262,14 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
         baseBind.saveNovelTxt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                TextWriter.writeToTxt(FileCreator.deleteSpecialWords(
+                IllustDownload.downloadNovel((BaseActivity<?>) mContext, FileCreator.deleteSpecialWords(
                         mNovelBean.getTitle() + "_" + mNovelBean.getId() + "_novel_tasks.txt"
-                ), novelDetail.getNovel_text(), mContext);
-                    Common.showToast(getString(R.string.string_279), 2);
+                ), novelDetail.getNovel_text(), new Callback<Uri>() {
+                    @Override
+                    public void doSomething(Uri t) {
+                        Common.showToast(getString(R.string.string_279), 2);
+                    }
+                });
             }
         });
         baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
@@ -295,25 +300,30 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                     baseBind.transformationLayout.finishTransform();
                     return true;
                 } else if (item.getItemId() == R.id.action_txt) {
-                    TextWriter.writeToTxt(FileCreator.deleteSpecialWords(
+                    IllustDownload.downloadNovel((BaseActivity<?>) mContext, FileCreator.deleteSpecialWords(
                             mNovelBean.getTitle() + "_" + mNovelBean.getId() + "_novel_tasks.txt"
-                    ), novelDetail.getNovel_text(), mContext);
-                    Common.showToast(getString(R.string.string_279), 2);
+                    ), novelDetail.getNovel_text(), new Callback<Uri>() {
+                        @Override
+                        public void doSomething(Uri t) {
+                            Common.showToast(getString(R.string.string_279), 2);
+                        }
+                    });
                     return true;
                 } else if (item.getItemId() == R.id.action_txt_and_share) {
-                    TextWriter.writeToTxt(FileCreator.deleteSpecialWords(
-                    mNovelBean.getTitle() + "_" + mNovelBean.getId() + "_novel_tasks.txt"
-                    ), novelDetail.getNovel_text(), mContext, new Callback<Uri>() {
-                                @Override
-                                public void doSomething(Uri uri) {
-                                    new Share2.Builder(mActivity)
-                                            .setContentType(ShareContentType.FILE)
-                                            .setShareFileUri(uri)
-                                            .setTitle("Share File")
-                                            .build()
-                                            .shareBySystem();
-                                }
-                            });
+                    IllustDownload.downloadNovel((BaseActivity<?>) mActivity,
+                            FileCreator.deleteSpecialWords(mNovelBean.getTitle() + "_" +
+                                    mNovelBean.getId() + "_novel_tasks.txt"),
+                            novelDetail.getNovel_text(), new Callback<Uri>() {
+                        @Override
+                        public void doSomething(Uri uri) {
+                            new Share2.Builder(mActivity)
+                                    .setContentType(ShareContentType.FILE)
+                                    .setShareFileUri(uri)
+                                    .setTitle("Share File")
+                                    .build()
+                                    .shareBySystem();
+                        }
+                    });
                     Common.showToast(getString(R.string.string_279), 2);
                     return true;
                 }

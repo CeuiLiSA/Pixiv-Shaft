@@ -66,13 +66,13 @@
                 <com.scwang.smartrefresh.layout.SmartRefreshLayout
                     android:layout_width="match_parent"
                     android:id="@+id/refreshLayout"
-                    android:background="@color/white"
+                    android:background="@color/white_to_deep_dark"
                     android:layout_above="@+id/bottom_rela"
                     android:layout_height="match_parent">
 
                     <androidx.recyclerview.widget.RecyclerView
                         android:layout_width="match_parent"
-                        android:background="@color/white"
+                        android:background="@color/white_to_deep_dark"
                         android:id="@+id/recyclerView"
                         android:layout_height="match_parent">
 
@@ -85,7 +85,7 @@
                     android:layout_width="match_parent"
                     android:id="@+id/bottom_rela"
                     android:layout_alignParentBottom="true"
-                    app:cardBackgroundColor="@color/white"
+                    app:cardBackgroundColor="@color/white_to_1414"
                     app:cardElevation="@dimen/four_dp"
                     app:cardCornerRadius="0dp"
                     android:layout_height="50dp">
@@ -103,7 +103,7 @@
                             android:layout_marginEnd="@dimen/eight_dp"
                             android:layout_marginStart="@dimen/sixteen_dp"
                             android:layout_toStartOf="@+id/post"
-                            android:background="@color/white"
+                            android:background="@color/white_to_1414"
                             android:layout_height="match_parent">
 
 

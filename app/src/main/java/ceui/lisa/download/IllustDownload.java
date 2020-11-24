@@ -2,6 +2,7 @@ package ceui.lisa.download;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.text.TextUtils;
 
 import androidx.documentfile.provider.DocumentFile;
@@ -11,6 +12,7 @@ import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 
 import java.io.File;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,6 +22,7 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.core.DownloadItem;
 import ceui.lisa.core.Manager;
 import ceui.lisa.core.SAFile;
+import ceui.lisa.interfaces.Callback;
 import ceui.lisa.interfaces.FeedBack;
 import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.IllustsBean;
@@ -117,6 +120,31 @@ public class IllustDownload {
         });
     }
 
+    public static void downloadNovel(BaseActivity<?> activity, String displayName, String content, Callback<Uri> targetCallback) {
+        check(activity, new FeedBack() {
+            @Override
+            public void doSomething() {
+                DocumentFile documentFile = SAFile.findNovelFile(activity, displayName);
+                if (documentFile != null && documentFile.length() > 100) {
+                    Common.showLog("writeToTxt 已下载，不用新建");
+                } else {
+                    documentFile = SAFile.createNovelFile(activity, displayName);
+                    Common.showLog("writeToTxt 需要新建");
+                    try {
+                        OutputStream outStream = activity.getContentResolver().openOutputStream(documentFile.getUri());
+                        outStream.write(content.getBytes());
+                        outStream.close();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                if(targetCallback != null) {
+                    targetCallback.doSomething(documentFile.getUri());
+                }
+            }
+        });
+    }
+
     public static String getUrl(IllustsBean illust, int index) {
         if (illust.getPage_count() == 1) {
             return "https://pixiv.cat/" + illust.getId() + "." + getMimeType(illust, index);
@@ -149,7 +177,7 @@ public class IllustDownload {
         return result;
     }
 
-    private static void check(BaseActivity<?> activity, FeedBack feedBack) {
+    public static void check(BaseActivity<?> activity, FeedBack feedBack) {
         if (TextUtils.isEmpty(Shaft.sSettings.getRootPathUri())) {
             activity.setFeedBack(feedBack);
             new QMUIDialog.MessageDialogBuilder(activity)

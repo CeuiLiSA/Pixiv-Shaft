@@ -9,9 +9,7 @@ import android.view.View;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.GridLayoutManager;
 
-import java.io.File;
 import java.util.List;
-import java.util.UUID;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
@@ -25,7 +23,6 @@ import ceui.lisa.core.PageData;
 import ceui.lisa.databinding.FragmentMultiDownloadBinding;
 import ceui.lisa.databinding.RecyMultiDownloadBinding;
 import ceui.lisa.download.IllustDownload;
-import ceui.lisa.helper.TextWriter;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.IllustsBean;
@@ -34,7 +31,6 @@ import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.DownloadItemDecoration;
-import gdut.bsx.share2.FileUtil;
 import gdut.bsx.share2.Share2;
 import gdut.bsx.share2.ShareContentType;
 
@@ -86,8 +82,9 @@ public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownload
                     if (TextUtils.isEmpty(result)) {
                         Common.showToast("没有选择任何作品");
                     } else {
-                        TextWriter.writeToTxt(System.currentTimeMillis() + "_download_tasks.txt",
-                                result, mContext, new Callback<Uri>() {
+                        IllustDownload.downloadNovel((BaseActivity<?>) mContext,
+                                System.currentTimeMillis() + "_download_tasks.txt", result,
+                                new Callback<Uri>() {
                                     @Override
                                     public void doSomething(Uri t) {
                                         new Share2.Builder(mActivity)

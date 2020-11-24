@@ -9,7 +9,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:orientation="vertical"
-        android:background="#f5f5f5"
+        android:background="@color/f5_to_deep_dark"
         android:layout_height="match_parent">
 
         <androidx.appcompat.widget.Toolbar
@@ -70,7 +70,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:text="@string/string_23"
-                        android:textColor="@color/new_color_primary"
+                        android:textColor="@color/primary_to_huise"
                         android:textSize="19sp"
                         android:layout_marginBottom="@dimen/sixteen_dp"
                         android:textStyle="bold"
@@ -82,7 +82,7 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:orientation="vertical"
-                        android:background="@color/white"
+                        android:background="@color/white_and_black"
                         android:layout_height="wrap_content">
 
                         <View style="@style/full_divider" />
@@ -118,7 +118,7 @@
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:background="@color/white"
+                        android:background="@color/white_and_black"
                         android:orientation="vertical"
                         android:layout_height="wrap_content">
 
@@ -193,7 +193,7 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:orientation="vertical"
-                        android:background="@color/white"
+                        android:background="@color/white_and_black"
                         android:layout_height="wrap_content">
 
                         <View style="@style/full_divider" />
@@ -257,7 +257,7 @@
                         android:layout_width="match_parent"
                         android:layout_marginBottom="60dp"
                         android:orientation="vertical"
-                        android:background="@color/white"
+                        android:background="@color/white_and_black"
                         android:layout_height="wrap_content">
 
                         <View style="@style/full_divider" />
@@ -290,7 +290,8 @@
                                 android:layout_marginTop="@dimen/eight_dp"
                                 android:layout_marginStart="@dimen/sixteen_dp"
                                 android:layout_marginBottom="@dimen/eight_dp"
-                                android:layout_height="36dp">
+                                android:layout_height="36dp"
+                                app:tint="@color/black_to_grey">
 
                             </ImageView>
 

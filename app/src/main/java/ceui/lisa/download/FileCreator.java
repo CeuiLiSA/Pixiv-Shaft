@@ -132,8 +132,7 @@ public class FileCreator {
             result = defaultFileCells();
         } else {
             result = new ArrayList<>(Shaft.sGson.fromJson(Shaft.sSettings.getFileNameJson(),
-                    new TypeToken<List<CustomFileNameCell>>() {
-                    }.getType()));
+                    new TypeToken<List<CustomFileNameCell>>() {}.getType()));
         }
         String fileUrl;
         if (illustsBean.getPage_count() == 1) {
@@ -190,12 +189,10 @@ public class FileCreator {
                         }
                         break;
                     case P_SIZE:
-                        if (illustsBean.getPage_count() != 1) {
-                            if (!TextUtils.isEmpty(fileName)) {
-                                fileName = fileName + "_p" + (index + 1);
-                            } else {
-                                fileName = "p" + (index + 1);
-                            }
+                        if (!TextUtils.isEmpty(fileName)) {
+                            fileName = fileName + "_p" + index;
+                        } else {
+                            fileName = "p" + index;
                         }
                         break;
                     case USER_ID:
@@ -231,7 +228,7 @@ public class FileCreator {
         List<CustomFileNameCell> cells = new ArrayList<>();
         cells.add(new CustomFileNameCell("作品标题", "作品标题，可选项", 1, true));
         cells.add(new CustomFileNameCell("作品ID", "不选的话可能两个文件名重复，导致下载失败，必选项", 2, true));
-        cells.add(new CustomFileNameCell("作品P数", "显示当前图片是作品的第几P，如果只有1P则隐藏，必选项", 3, true));
+        cells.add(new CustomFileNameCell("作品P数", "显示当前图片是作品的第几P，必选项", 3, true));
         cells.add(new CustomFileNameCell("画师ID", "画师ID，可选项", 4, false));
         cells.add(new CustomFileNameCell("画师昵称", "画师昵称，可选项", 5, false));
         cells.add(new CustomFileNameCell("作品尺寸", "显示当前图片的尺寸信息，可选项", 6, false));
