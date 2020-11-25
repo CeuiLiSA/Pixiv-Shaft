@@ -55,6 +55,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                     if (!Common.isEmpty(mResponse.getList())) {
                         beforeFirstLoad(mResponse.getList());
                         mModel.load(mResponse.getList());
+                        allItems = mModel.getContent();
                         onFirstLoaded(mResponse.getList());
                         mRecyclerView.setVisibility(View.VISIBLE);
                         emptyRela.setVisibility(View.INVISIBLE);
@@ -109,6 +110,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                     if (!Common.isEmpty(mResponse.getList())) {
                         beforeNextLoad(mResponse.getList());
                         mModel.load(mResponse.getList());
+                        allItems = mModel.getContent();
                         onNextLoaded(mResponse.getList());
                         mAdapter.notifyItemRangeInserted(getStartSize(), mResponse.getList().size());
                     }

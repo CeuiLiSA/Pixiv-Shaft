@@ -31,7 +31,7 @@ public class UserModel implements Serializable, UserContainer {
         private String local_user;
 
         public String getAccess_token() {
-            return access_token;
+            return "Bearer " + access_token;
         }
 
         public void setAccess_token(String access_token) {
@@ -93,26 +93,5 @@ public class UserModel implements Serializable, UserContainer {
         public void setLocal_user(String local_user) {
             this.local_user = local_user;
         }
-
-        @Override
-        public String toString() {
-            return "ResponseBean{" +
-                    "access_token='" + access_token + '\'' +
-                    ", expires_in=" + expires_in +
-                    ", token_type='" + token_type + '\'' +
-                    ", scope='" + scope + '\'' +
-                    ", refresh_token='" + refresh_token + '\'' +
-                    ", user=" + user +
-                    ", device_token='" + device_token + '\'' +
-                    ", local_user='" + local_user + '\'' +
-                    '}';
-        }
-    }
-
-    @Override
-    public String toString() {
-        return "UserModel{" +
-                "response=" + response +
-                '}';
     }
 }

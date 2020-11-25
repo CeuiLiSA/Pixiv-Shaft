@@ -9,43 +9,33 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.PopupWindow;
 
-import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.DataSource;
-import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.RequestBuilder;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
-import com.bumptech.glide.request.RequestListener;
-import com.bumptech.glide.request.target.Target;
 import com.qmuiteam.qmui.util.QMUIDisplayHelper;
 import com.qmuiteam.qmui.widget.popup.QMUIPopup;
 import com.qmuiteam.qmui.widget.popup.QMUIPopups;
 
 import java.util.List;
-import java.util.UUID;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.VActivity;
+import ceui.lisa.core.Container;
 import ceui.lisa.core.PageData;
 import ceui.lisa.core.TimeRecord;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.dialogs.MuteDialog;
-import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.interfaces.MultiDownload;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.IllustsBean;
-import ceui.lisa.utils.Common;
-import ceui.lisa.core.Container;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
-import jp.wasabeef.glide.transformations.BlurTransformation;
-
-import static com.bumptech.glide.request.RequestOptions.bitmapTransform;
 
 public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding> implements MultiDownload {
 
@@ -125,6 +115,7 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
                 .load(GlideUtil.getMediumImg(target))
                 .placeholder(R.color.second_light_bg)
                 .transition(DrawableTransitionOptions.withCrossFade())
+                .error(getBuilder(target))
                 .into(bindView.baseBind.illustImage);
 
         if (target.getPage_count() == 1) {
@@ -146,6 +137,13 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
                 return true;
             }
         });
+    }
+
+    public RequestBuilder<Drawable> getBuilder(IllustsBean illust) {
+        return Glide.with(mContext)
+                .load(GlideUtil.getMediumImg(illust))
+                .placeholder(R.color.second_light_bg)
+                .transition(DrawableTransitionOptions.withCrossFade());
     }
 
     @Override

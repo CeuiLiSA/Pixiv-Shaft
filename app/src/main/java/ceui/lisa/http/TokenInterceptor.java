@@ -1,5 +1,7 @@
 package ceui.lisa.http;
 
+import android.text.TextUtils;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -20,6 +22,7 @@ import retrofit2.Call;
 public class TokenInterceptor implements Interceptor {
 
     private static final String TOKEN_ERROR = "Error occurred at the OAuth process";
+    private static final int TOKEN_LENGTH = 50;
 
     @NotNull
     @Override
@@ -28,6 +31,7 @@ public class TokenInterceptor implements Interceptor {
         Response response = chain.proceed(request);
 
         if (isTokenExpired(response)) {
+            Common.showLog("getNewToken 检测到是过期Token ");
             response.close();
             String newToken = getNewToken(request.header("Authorization"));
             Request newRequest = chain.request()
@@ -57,7 +61,10 @@ public class TokenInterceptor implements Interceptor {
      * @return
      */
     private synchronized String getNewToken(String tokenForThisRequest) throws IOException {
-        if (Shaft.sUserModel.getResponse().getAccess_token().equals(tokenForThisRequest)) {
+        if (Shaft.sUserModel.getResponse().getAccess_token().equals(tokenForThisRequest) ||
+                tokenForThisRequest.length() != TOKEN_LENGTH ||
+                Shaft.sUserModel.getResponse().getAccess_token().length() != TOKEN_LENGTH) {
+            Common.showLog("getNewToken 主动获取最新的token old:" + tokenForThisRequest + " new:" + Shaft.sUserModel.getResponse().getAccess_token());
             UserModel userModel = Local.getUser();
             Call<UserModel> call = Retro.getAccountApi().refreshToken(
                     FragmentLogin.CLIENT_ID,
@@ -75,12 +82,10 @@ public class TokenInterceptor implements Interceptor {
                 newUser.getResponse().getUser().setIs_login(true);
             }
             Local.saveUser(newUser);
-            if (newUser != null && newUser.getResponse() != null) {
-                return newUser.getResponse().getAccess_token();
-            } else {
-                return "ERROR ON GET TOKEN";
-            }
+            Common.showLog("getNewToken 获取到了最新的 token:" + newUser.getResponse().getAccess_token());
+            return newUser.getResponse().getAccess_token();
         } else {
+            Common.showLog("getNewToken 使用最新的token old:" + tokenForThisRequest + " new:" + Shaft.sUserModel.getResponse().getAccess_token());
             return Shaft.sUserModel.getResponse().getAccess_token();
         }
     }
