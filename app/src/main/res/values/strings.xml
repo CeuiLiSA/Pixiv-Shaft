@@ -495,5 +495,8 @@
     <string name="string_312">前往设定</string>
     <string name="string_313">下载文件不需要请求权限，但是需要设定保存文件的目录文件夹</string>
     <string name="string_314">导出TXT</string>
+    <string name="string_315">批量操作</string>
+    <string name="string_316">全部收藏</string>
+    <string name="string_317">全部取消收藏</string>
 
 </resources>

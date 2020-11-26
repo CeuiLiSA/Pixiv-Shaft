@@ -168,7 +168,11 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 break;
             case R.id.nav_fans:
                 intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "粉丝");
+                if (Dev.isDev) {
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "任务中心");
+                } else {
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "粉丝");
+                }
                 break;
             default:
                 break;

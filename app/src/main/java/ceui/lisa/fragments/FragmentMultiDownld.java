@@ -23,6 +23,8 @@ import ceui.lisa.core.PageData;
 import ceui.lisa.databinding.FragmentMultiDownloadBinding;
 import ceui.lisa.databinding.RecyMultiDownloadBinding;
 import ceui.lisa.download.IllustDownload;
+import ceui.lisa.feature.worker.BatchStarTask;
+import ceui.lisa.feature.worker.Worker;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.IllustsBean;
@@ -96,6 +98,20 @@ public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownload
                                     }
                                 });
                     }
+                } else if (item.getItemId() == R.id.action_4) {
+                    for (IllustsBean allItem : allItems) {
+                        BatchStarTask task = new BatchStarTask(allItem.getUser().getName(),
+                                allItem.getId(), 0);
+                        Worker.get().addTask(task);
+                    }
+                    Worker.get().start();
+                } else if (item.getItemId() == R.id.action_5) {
+                    for (IllustsBean allItem : allItems) {
+                        BatchStarTask task = new BatchStarTask(allItem.getUser().getName(),
+                                allItem.getId(), 1);
+                        Worker.get().addTask(task);
+                    }
+                    Worker.get().start();
                 }
                 return false;
             }

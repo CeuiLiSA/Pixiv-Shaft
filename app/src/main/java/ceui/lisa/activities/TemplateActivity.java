@@ -17,6 +17,7 @@ import ceui.lisa.fragments.FragmentAboutApp;
 import ceui.lisa.fragments.FragmentBookedTag;
 import ceui.lisa.fragments.FragmentCollection;
 import ceui.lisa.fragments.FragmentComment;
+import ceui.lisa.fragments.FragmentDoing;
 import ceui.lisa.fragments.FragmentDonate;
 import ceui.lisa.fragments.FragmentDownload;
 import ceui.lisa.fragments.FragmentEditAccount;
@@ -203,6 +204,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return new FragmentWorkSpace();
                 case "存储访问":
                     return new FragmentStorage();
+                case "任务中心":
+                    return new FragmentDoing();
                 default:
                     return new Fragment();
             }
