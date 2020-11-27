@@ -124,11 +124,6 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
         Intent intent = null;
         switch (id) {
-            case R.id.nav_camera:
-                intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "收藏夹");
-                intent.putExtra("hideStatusBar", false);
-                break;
             case R.id.nav_gallery:
                 intent = new Intent(mContext, TemplateActivity.class);
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载管理");
@@ -173,6 +168,21 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 } else {
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "粉丝");
                 }
+                break;
+            case R.id.illust_star:
+                intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "我的插画收藏");
+                intent.putExtra("hideStatusBar", false);
+                break;
+            case R.id.novel_star:
+                intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "我的小说收藏");
+                intent.putExtra("hideStatusBar", false);
+                break;
+            case R.id.follow_user:
+                intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "我的关注");
+                intent.putExtra("hideStatusBar", false);
                 break;
             default:
                 break;

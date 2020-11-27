@@ -18,6 +18,7 @@ public abstract class TryCatchObserver<T> implements Observer<T> {
     @Override
     public void onNext(@NonNull T t) {
         try {
+            must();
             next(t);
         } catch (Exception e) {
             e.printStackTrace();
@@ -27,6 +28,7 @@ public abstract class TryCatchObserver<T> implements Observer<T> {
     @Override
     public void onError(@NonNull Throwable e) {
         try {
+            must();
             error(e);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -43,7 +45,14 @@ public abstract class TryCatchObserver<T> implements Observer<T> {
     }
 
     public abstract void subscribe(Disposable d);
+
     public abstract void next(T t);
+
     public abstract void error(Throwable e);
+
     public abstract void complete();
+
+    public void must() {
+
+    }
 }

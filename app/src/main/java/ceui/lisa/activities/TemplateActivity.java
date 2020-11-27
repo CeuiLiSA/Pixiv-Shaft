@@ -161,8 +161,6 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                             Params.TYPE_PUBLUC, true);
                 case "下载管理":
                     return new FragmentDownload();
-                case "收藏夹":
-                    return new FragmentCollection();
                 case "推荐漫画":
                     return FragmentRecmdIllust.newInstance("漫画");
                 case "热度小说":
@@ -206,6 +204,12 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return new FragmentStorage();
                 case "任务中心":
                     return new FragmentDoing();
+                case "我的插画收藏":
+                    return FragmentCollection.newInstance(0);
+                case "我的小说收藏":
+                    return FragmentCollection.newInstance(1);
+                case "我的关注":
+                    return FragmentCollection.newInstance(2);
                 default:
                     return new Fragment();
             }

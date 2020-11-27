@@ -9,10 +9,7 @@
             android:id="@+id/main_page"
             android:icon="@drawable/ic_home_black_24dp"
             android:title="@string/user_main_page" />
-        <item
-            android:id="@+id/nav_camera"
-            android:icon="@drawable/ic_collection"
-            android:title="@string/user_collections" />
+
         <item
             android:id="@+id/nav_gallery"
             android:icon="@drawable/ic_file_download_black_24dp"
@@ -32,6 +29,31 @@
             android:icon="@drawable/ic_menu_manage"
             android:title="@string/app_settings" />
     </group>
+
+    <item android:title="@string/string_318">
+        <menu>
+            <item
+                android:id="@+id/illust_star"
+                android:icon="@drawable/ic_error_black_24dp"
+                android:title="@string/string_319" />
+
+            <item
+                android:id="@+id/novel_star"
+                android:icon="@drawable/ic_error_black_24dp"
+                android:title="@string/string_320" />
+
+            <item
+                android:id="@+id/follow_user"
+                android:icon="@drawable/ic_error_black_24dp"
+                android:title="@string/string_321" />
+
+            <item
+                android:id="@+id/nav_fans"
+                android:icon="@mipmap/fans"
+                android:title="@string/string_322" />
+        </menu>
+
+    </item>
 
     <item android:title="@string/the_others">
         <menu>
@@ -53,12 +75,6 @@
                 android:id="@+id/nav_feature"
                 android:icon="@mipmap/jinhua"
                 android:title="@string/string_248" />
-
-            <item
-                android:id="@+id/nav_fans"
-                android:icon="@mipmap/fans"
-                android:title="@string/string_264" />
-
 
         </menu>
     </item>

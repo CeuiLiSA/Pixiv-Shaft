@@ -498,5 +498,11 @@
     <string name="string_315">批量操作</string>
     <string name="string_316">全部收藏</string>
     <string name="string_317">全部取消收藏</string>
+    <string name="string_318">我的</string>
+    <string name="string_319">我的插画收藏</string>
+    <string name="string_320">我的小说收藏</string>
+    <string name="string_321">我的关注</string>
+    <string name="string_322">我的粉丝</string>
+    <string name="string_323">我的好P友</string>
 
 </resources>

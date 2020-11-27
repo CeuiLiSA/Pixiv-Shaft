@@ -37,14 +37,16 @@ public class BatchFollowTask extends AbstractTask {
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {
-
                         @Override
                         public void next(NullResponse nullResponse) {
                             Intent intent = new Intent(Params.LIKED_USER);
                             intent.putExtra(Params.ID, userID);
                             intent.putExtra(Params.IS_LIKED, true);
                             LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
+                        }
 
+                        @Override
+                        public void must() {
                             end.next();
                         }
                     });
@@ -60,7 +62,10 @@ public class BatchFollowTask extends AbstractTask {
                             intent.putExtra(Params.ID, userID);
                             intent.putExtra(Params.IS_LIKED, false);
                             LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
+                        }
 
+                        @Override
+                        public void must() {
                             end.next();
                         }
                     });

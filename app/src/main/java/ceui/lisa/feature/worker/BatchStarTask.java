@@ -36,14 +36,17 @@ public class BatchStarTask extends AbstractTask {
             Retro.getAppApi().postLike(Shaft.sUserModel.getResponse().getAccess_token(), illustID, Params.TYPE_PUBLUC)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Consumer<NullResponse>() {
+                    .subscribe(new ErrorCtrl<NullResponse>() {
                         @Override
-                        public void accept(NullResponse nullResponse) throws Exception {
+                        public void next(NullResponse nullResponse) {
                             Intent intent = new Intent(Params.LIKED_ILLUST);
                             intent.putExtra(Params.ID, illustID);
                             intent.putExtra(Params.IS_LIKED, true);
                             LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
+                        }
 
+                        @Override
+                        public void must() {
                             end.next();
                         }
                     });
@@ -58,7 +61,10 @@ public class BatchStarTask extends AbstractTask {
                             intent.putExtra(Params.ID, illustID);
                             intent.putExtra(Params.IS_LIKED, false);
                             LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
+                        }
 
+                        @Override
+                        public void must() {
                             end.next();
                         }
                     });
