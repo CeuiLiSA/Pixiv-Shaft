@@ -472,6 +472,18 @@
   <string name="string_300">黑暗模式（深色）</string>  
   <string name="string_310">使用Shaft查看</string>  
   <string name="string_311">使用Shaft以圖搜源搜索</string>  
-  <string name="string_312">前往設定</string>
-  <string name="string_313">下載檔案不需要請求許可權，但是需要設定保存檔案的目錄資料夾</string>
+  <string name="string_312">前往設定</string>  
+  <string name="string_313">下載檔案不需要請求許可權，但是需要設定保存檔案的目錄資料夾</string>  
+  <string name="string_314">匯出TXT</string>  
+  <string name="string_315">批量操作</string>  
+  <string name="string_316">全部收藏</string>  
+  <string name="string_317">全部取消收藏</string>  
+  <string name="string_318">我的</string>  
+  <string name="string_319">我的插畫收藏</string>  
+  <string name="string_320">我的小說收藏</string>  
+  <string name="string_321">我的關注</string>  
+  <string name="string_322">我的粉絲</string>  
+  <string name="string_323">我的好P友</string>  
+  <string name="string_324">主題色彩</string>  
+  <string name="string_325">點擊設定</string>
 </resources>

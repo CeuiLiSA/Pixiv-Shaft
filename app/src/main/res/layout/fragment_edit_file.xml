@@ -51,7 +51,7 @@
                                 android:layout_centerHorizontal="true"
                                 android:layout_marginTop="@dimen/eight_dp"
                                 android:text="@string/string_54"
-                                android:textColor="@color/colorPrimary">
+                                android:textColor="?attr/colorPrimary">
 
                             </Button>
 
@@ -275,3 +275,4 @@
     </RelativeLayout>
 
 </layout>
+

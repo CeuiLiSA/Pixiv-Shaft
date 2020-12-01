@@ -18,7 +18,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fitsSystemWindows="true"
-            android:background="@color/new_color_primary"
+            android:background="?attr/colorPrimary"
             android:elevation="@dimen/six_dp"
             android:theme="@style/AppTheme.AppBarOverlay"
             app:popupTheme="@style/AppTheme.PopupOverlay"
@@ -118,7 +118,7 @@
                             android:layout_alignParentEnd="true"
                             android:layout_marginEnd="@dimen/sixteen_dp"
                             android:layout_height="30dp"
-                            app:tint="@color/colorPrimary">
+                            app:tint="?attr/colorPrimary">
                         </ImageView>
 
                         <ImageView
@@ -192,3 +192,5 @@
 
     </LinearLayout>
 </layout>
+
+

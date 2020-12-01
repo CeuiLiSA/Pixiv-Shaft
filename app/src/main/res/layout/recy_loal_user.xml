@@ -45,7 +45,7 @@
         android:layout_alignBottom="@+id/user_head"
         android:layout_toEndOf="@+id/login_time"
         android:text="@string/string_120"
-        android:textColor="@color/colorPrimary"
+        android:textColor="?attr/colorPrimary"
         android:textSize="13sp" />
 
     <TextView
@@ -58,7 +58,7 @@
         android:layout_alignBottom="@+id/user_head"
         android:layout_toEndOf="@+id/double_pwd"
         android:text="@string/string_121"
-        android:textColor="@color/colorPrimary"
+        android:textColor="?attr/colorPrimary"
         android:textSize="13sp" />
 
     <ImageView
@@ -90,3 +90,4 @@
         android:background="@color/light_bg" />
 
 </RelativeLayout>
+

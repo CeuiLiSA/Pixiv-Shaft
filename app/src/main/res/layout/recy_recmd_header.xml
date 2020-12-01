@@ -39,8 +39,8 @@
             android:text="@string/see_more"
             android:drawableEnd="@drawable/ic_chevron_right_black_24dp"
             android:gravity="center"
-            android:drawableTint="@color/new_color_primary"
-            android:textColor="@color/new_color_primary"
+            android:drawableTint="?attr/colorPrimary"
+            android:textColor="?attr/colorPrimary"
             android:textSize="13sp" />
 
         <androidx.recyclerview.widget.RecyclerView
@@ -88,3 +88,4 @@
     </RelativeLayout>
 
 </layout>
+

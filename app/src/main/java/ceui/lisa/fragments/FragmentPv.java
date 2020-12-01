@@ -4,6 +4,8 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 
+import com.blankj.utilcode.util.BarUtils;
+
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.ViewpagerWithTablayoutBinding;
@@ -22,7 +24,7 @@ public class FragmentPv extends BaseFragment<ViewpagerWithTablayoutBinding> {
                 Shaft.getContext().getString(R.string.type_illust),
                 Shaft.getContext().getString(R.string.type_manga)
         };
-        mActivity.getWindow().setStatusBarColor(getResources().getColor(R.color.new_color_primary));
+        BarUtils.setStatusBarColor(mActivity, android.R.attr.colorPrimary);
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
         baseBind.toolbarTitle.setText(R.string.string_191);
         baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager(), 0) {

@@ -93,7 +93,7 @@
                         android:layout_marginEnd="@dimen/tweenty_four_dp"
                         android:layout_marginBottom="@dimen/eight_dp"
                         android:orientation="vertical"
-                        app:qmui_backgroundColor="#4749a0"
+                        app:qmui_backgroundColor="?attr/colorPrimaryDark"
                         app:qmui_borderWidth="0dp"
                         app:qmui_radius="20dp">
 
@@ -156,7 +156,7 @@
                             android:paddingBottom="@dimen/four_dp"
                             android:text="@string/string_69"
                             android:textColor="@color/white"
-                            app:qmui_backgroundColor="@color/new_color_primary"
+                            app:qmui_backgroundColor="?attr/colorPrimary"
                             app:qmui_borderWidth="0dp"
                             app:qmui_radius="@dimen/six_dp">
 
@@ -213,7 +213,7 @@
                                         android:layout_height="45dp"
                                         android:padding="@dimen/twelve_dp"
                                         android:src="@drawable/ic_remove_red_eye_black_24dp"
-                                        app:tint="#666af6">
+                                        app:tint="?attr/colorPrimary">
 
 
                                     </ImageView>
@@ -227,7 +227,7 @@
                                     android:layout_marginTop="@dimen/four_dp"
                                     android:layout_toEndOf="@+id/left_rela"
                                     android:text="@string/string_70"
-                                    android:textColor="#666af6"
+                                    android:textColor="?attr/colorPrimary"
                                     android:textSize="12sp"
                                     android:textStyle="bold">
 
@@ -241,7 +241,7 @@
                                     android:layout_marginStart="@dimen/eight_dp"
                                     android:layout_marginBottom="@dimen/four_dp"
                                     android:layout_toEndOf="@+id/left_rela"
-                                    android:textColor="#666af6"
+                                    android:textColor="?attr/colorPrimary"
                                     android:textSize="14sp"
                                     android:textStyle="bold">
 
@@ -273,7 +273,7 @@
                                         android:layout_height="45dp"
                                         android:padding="@dimen/twelve_dp"
                                         android:src="@drawable/ic_favorite_black_24dp"
-                                        app:tint="#666af6">
+                                        app:tint="?attr/colorPrimary">
 
 
                                     </ImageView>
@@ -287,7 +287,7 @@
                                     android:layout_marginTop="@dimen/four_dp"
                                     android:layout_toEndOf="@+id/right_rela"
                                     android:text="@string/string_71"
-                                    android:textColor="#666af6"
+                                    android:textColor="?attr/colorPrimary"
                                     android:textSize="12sp"
                                     android:textStyle="bold">
 
@@ -301,7 +301,7 @@
                                     android:layout_marginStart="@dimen/eight_dp"
                                     android:layout_marginBottom="@dimen/four_dp"
                                     android:layout_toEndOf="@+id/right_rela"
-                                    android:textColor="#666af6"
+                                    android:textColor="?attr/colorPrimary"
                                     android:textSize="14sp"
                                     android:textStyle="bold">
 
@@ -325,7 +325,7 @@
                             android:id="@+id/description"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:textColorLink="@color/new_color_primary"
+                            android:textColorLink="?attr/colorPrimary"
                             android:layout_marginStart="@dimen/tweenty_four_dp"
                             android:layout_marginTop="@dimen/six_dp"
                             android:layout_marginEnd="@dimen/tweenty_four_dp"
@@ -449,7 +449,7 @@
                     android:layout_weight="1"
                     android:background="@drawable/button_stroke_new"
                     android:src="@drawable/ic_chat_black_24dp"
-                    app:tint="#666af6">
+                    app:tint="?attr/colorPrimary">
 
                 </ImageButton>
 
@@ -464,7 +464,7 @@
                     android:background="@drawable/button_stroke_new"
                     android:src="@drawable/ic_equalizer_black_24dp"
                     android:textColor="#9f9fb4"
-                    app:tint="#666af6">
+                    app:tint="?attr/colorPrimary">
 
                 </ImageButton>
 
@@ -478,7 +478,7 @@
                     android:layout_weight="2"
                     android:text="@string/string_72"
                     android:textColor="@color/white"
-                    app:qmui_backgroundColor="#666af6"
+                    app:qmui_backgroundColor="?attr/colorPrimary"
                     app:qmui_borderColor="#eaebf9"
                     app:qmui_borderWidth="0dp"
                     app:qmui_radius="@dimen/eight_dp">
@@ -506,3 +506,4 @@
     </RelativeLayout>
 
 </layout>
+

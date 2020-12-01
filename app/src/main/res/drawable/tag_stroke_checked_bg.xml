@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <stroke android:color="@color/colorPrimary"
+    <stroke android:color="?attr/colorPrimary"
         android:width="0.5dp"
         />
     <corners android:topLeftRadius="60dp"
@@ -9,3 +9,4 @@
         android:bottomLeftRadius="60dp" />
     <!--圆角矩形白色背景-->
 </shape>
+

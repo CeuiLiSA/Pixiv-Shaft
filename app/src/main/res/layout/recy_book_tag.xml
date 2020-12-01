@@ -9,7 +9,7 @@
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:clickable="true"
-        app:cardBackgroundColor="@color/new_color_primary"
+        app:cardBackgroundColor="?attr/colorPrimary"
         app:cardCornerRadius="@dimen/four_dp"
         app:cardElevation="2dp"
         android:foreground="?attr/selectableItemBackground"
@@ -49,3 +49,4 @@
 
     </androidx.cardview.widget.CardView>
 </layout>
+

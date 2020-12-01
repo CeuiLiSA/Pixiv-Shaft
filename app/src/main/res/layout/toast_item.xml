@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ceui.lisa.view.RadiusCard
+<androidx.cardview.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_margin="36dp"
-    app:cardBackgroundColor="@color/new_color_primary"
+    app:cardBackgroundColor="?attr/colorPrimary"
     app:cardElevation="@dimen/four_dp"
     android:layout_height="wrap_content">
 
@@ -19,4 +19,4 @@
         android:layout_height="wrap_content" />
 
 
-</ceui.lisa.view.RadiusCard>
+</androidx.cardview.widget.CardView>

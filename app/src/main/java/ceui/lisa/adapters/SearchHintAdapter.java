@@ -31,7 +31,7 @@ public class SearchHintAdapter extends BaseAdapter<ListTrendingtag.TrendTagsBean
 
     @Override
     public void bindData(ListTrendingtag.TrendTagsBean target, ViewHolder<RecySearchHintBinding> bindView, int position) {
-        SpannableString string = matcherSearchText(mContext.getResources().getColor(R.color.colorPrimary),
+        SpannableString string = matcherSearchText(mContext.getResources().getColor(R.color.design_default_color_primary),
                 target.getName(), mKeyword);
         bindView.baseBind.titleText.setText(string);
         if (!TextUtils.isEmpty(target.getTranslated_name()) && !target.getTranslated_name().equals(target.getName())) {

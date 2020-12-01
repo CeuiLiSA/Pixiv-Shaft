@@ -16,7 +16,7 @@
             android:id="@+id/tab_layout"
             app:tabIndicatorFullWidth="false"
             android:elevation="@dimen/eight_dp"
-            app:tabIndicatorColor="@color/new_color_primary"
+            app:tabIndicatorColor="?attr/colorPrimary"
             android:layout_height="35dp">
 
         </com.google.android.material.tabs.TabLayout>
@@ -30,3 +30,4 @@
 
     </LinearLayout>
 </layout>
+

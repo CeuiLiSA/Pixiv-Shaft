@@ -14,7 +14,7 @@
             android:layout_width="match_parent"
             app:title=" "
             android:id="@+id/toolbar"
-            android:background="@color/new_color_primary"
+            android:background="?attr/colorPrimary"
             app:titleTextColor="@android:color/white"
             android:fitsSystemWindows="true"
             app:navigationIcon="@drawable/ic_baseline_arrow_back_ios_24"
@@ -46,3 +46,4 @@
 
     </RelativeLayout>
 </layout>
+

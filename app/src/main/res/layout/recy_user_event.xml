@@ -89,7 +89,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/sixteen_dp"
-            android:textColorLink="@color/new_color_primary"
+            android:textColorLink="?attr/colorPrimary"
             android:layout_marginEnd="@dimen/eight_dp"
             android:textColor="#333333"
             android:layout_marginBottom="@dimen/eight_dp"
@@ -171,3 +171,4 @@
     </LinearLayout>
 
 </layout>
+

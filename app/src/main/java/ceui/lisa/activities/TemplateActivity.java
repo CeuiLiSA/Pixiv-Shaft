@@ -9,6 +9,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
+import com.blankj.utilcode.util.BarUtils;
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener;
 
 import ceui.lisa.R;
@@ -16,6 +17,7 @@ import ceui.lisa.databinding.ActivityFragmentBinding;
 import ceui.lisa.fragments.FragmentAboutApp;
 import ceui.lisa.fragments.FragmentBookedTag;
 import ceui.lisa.fragments.FragmentCollection;
+import ceui.lisa.fragments.FragmentColors;
 import ceui.lisa.fragments.FragmentComment;
 import ceui.lisa.fragments.FragmentDoing;
 import ceui.lisa.fragments.FragmentDonate;
@@ -112,7 +114,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     ReverseResult result = intent.getParcelableExtra("result");
                     return FragmentWebView.newInstance(result.getTitle(), result.getUrl(), result.getResponseBody(), result.getMime(), result.getEncoding(), result.getHistory_url());
                 case "相关评论": {
-                    getWindow().setStatusBarColor(getResources().getColor(R.color.new_color_primary));
+                    BarUtils.setStatusBarColor(mActivity, android.R.attr.colorPrimary);
                     int id = intent.getIntExtra(Params.ILLUST_ID, 0);
                     String title = intent.getStringExtra(Params.ILLUST_TITLE);
                     return FragmentComment.newInstance(id, title);
@@ -210,6 +212,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return FragmentCollection.newInstance(1);
                 case "我的关注":
                     return FragmentCollection.newInstance(2);
+                case "主题颜色":
+                    return new FragmentColors();
                 default:
                     return new Fragment();
             }

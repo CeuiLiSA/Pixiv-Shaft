@@ -67,7 +67,7 @@
             android:lineSpacingExtra="@dimen/four_dp"
             android:layout_height="wrap_content"
             android:clickable="false"
-            android:textColorLink="@color/new_color_primary"
+            android:textColorLink="?attr/colorPrimary"
             android:layout_below="@+id/user_head"
             android:layout_alignStart="@+id/user_name"
             android:layout_marginTop="@dimen/eight_dp"
@@ -94,7 +94,7 @@
                 android:lineSpacingExtra="@dimen/four_dp"
                 android:clickable="false"
                 android:paddingStart="@dimen/six_dp"
-                android:textColorLink="@color/new_color_primary"
+                android:textColorLink="?attr/colorPrimary"
                 android:paddingTop="@dimen/six_dp"
                 android:paddingEnd="@dimen/six_dp"
                 android:paddingBottom="@dimen/six_dp"
@@ -111,3 +111,4 @@
 
     </RelativeLayout>
 </layout>
+

@@ -31,7 +31,7 @@
                 android:text="@string/string_61"
                 android:textSize="14sp"
                 android:id="@+id/tag_s"
-                android:textColor="@color/new_color_primary"
+                android:textColor="?attr/colorPrimary"
                 android:layout_margin="@dimen/sixteen_dp"
                 android:layout_height="wrap_content" />
 
@@ -71,7 +71,7 @@
                 android:text="@string/string_62"
                 android:textSize="13sp"
                 android:id="@+id/star_s"
-                android:textColor="@color/new_color_primary"
+                android:textColor="?attr/colorPrimary"
                 android:layout_margin="@dimen/sixteen_dp"
                 android:layout_height="wrap_content" />
 
@@ -110,7 +110,7 @@
                 android:layout_width="wrap_content"
                 android:text="@string/string_63"
                 android:textSize="13sp"
-                android:textColor="@color/new_color_primary"
+                android:textColor="?attr/colorPrimary"
                 android:id="@+id/date_s"
                 android:layout_margin="@dimen/sixteen_dp"
                 android:layout_height="wrap_content" />
@@ -150,7 +150,7 @@
                 android:layout_width="wrap_content"
                 android:text="@string/string_64"
                 android:textSize="16sp"
-                android:textColor="@color/new_color_primary"
+                android:textColor="?attr/colorPrimary"
                 android:layout_margin="@dimen/sixteen_dp"
                 android:layout_height="wrap_content" />
 
@@ -193,3 +193,4 @@
     </androidx.core.widget.NestedScrollView>
 
 </layout>
+

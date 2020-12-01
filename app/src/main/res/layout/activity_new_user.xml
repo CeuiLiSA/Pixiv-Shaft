@@ -50,7 +50,7 @@
                         android:layout_gravity="center_horizontal"
                         android:layout_marginTop="48dp"
                         android:scaleType="centerCrop"
-                        app:civ_border_color="@color/new_color_primary"
+                        app:civ_border_color="?attr/colorPrimary"
                         app:civ_border_width="1dp">
 
                     </de.hdodenhof.circleimageview.CircleImageView>
@@ -220,3 +220,4 @@
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
 </layout>
+

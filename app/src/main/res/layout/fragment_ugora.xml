@@ -74,7 +74,7 @@
                                 android:layout_centerInParent="true"
                                 android:src="@drawable/ic_play_gif"
                                 android:layout_height="36dp"
-                                app:tint="@color/new_color_primary">
+                                app:tint="?attr/colorPrimary">
 
                             </ImageButton>
 
@@ -133,7 +133,7 @@
                                     android:layout_marginEnd="@dimen/eight_dp"
                                     android:layout_toStartOf="@+id/follow"
                                     android:layout_toEndOf="@+id/user_head"
-                                    android:textColor="@color/colorPrimary"
+                                    android:textColor="?attr/colorPrimary"
                                     android:textSize="16sp"
                                     android:textStyle="bold" />
 
@@ -146,7 +146,7 @@
                                     android:layout_centerVertical="true"
                                     android:layout_marginEnd="@dimen/sixteen_dp"
                                     android:text="@string/string_104"
-                                    android:textColor="@color/colorPrimary"
+                                    android:textColor="?attr/colorPrimary"
                                     android:textStyle="bold" />
 
 
@@ -222,7 +222,7 @@
                                     android:layout_marginBottom="10dp"
                                     android:drawableEnd="@drawable/ic_edit_black_24dp"
                                     android:drawablePadding="2dp"
-                                    android:drawableTint="@color/colorPrimary"
+                                    android:drawableTint="?attr/colorPrimary"
                                     android:textSize="12sp" />
 
                                 <TextView
@@ -233,7 +233,7 @@
                                     android:layout_marginBottom="10dp"
                                     android:drawableEnd="@drawable/ic_remove_red_eye_black_24dp"
                                     android:drawablePadding="2dp"
-                                    android:drawableTint="@color/colorPrimary"
+                                    android:drawableTint="?attr/colorPrimary"
                                     android:gravity="center"
                                     android:textSize="12sp"
                                     android:textStyle="bold" />
@@ -248,7 +248,7 @@
                                     android:layout_marginBottom="10dp"
                                     android:drawableEnd="@drawable/ic_favorite_black_24dp"
                                     android:drawablePadding="2dp"
-                                    android:drawableTint="@color/colorPrimary"
+                                    android:drawableTint="?attr/colorPrimary"
                                     android:gravity="center"
                                     android:textSize="12sp"
                                     android:textStyle="bold" />
@@ -288,7 +288,7 @@
                                 android:layout_marginBottom="@dimen/eight_dp"
                                 android:layout_weight="1"
                                 android:src="@drawable/ic_file_download_black_24dp"
-                                app:backgroundTint="@color/colorPrimary" />
+                                app:backgroundTint="?attr/colorPrimary" />
 
                             <com.google.android.material.floatingactionbutton.FloatingActionButton
                                 android:id="@+id/related"
@@ -300,7 +300,7 @@
                                 android:layout_marginBottom="@dimen/eight_dp"
                                 android:layout_weight="1"
                                 android:src="@drawable/ic_equalizer_black_24dp"
-                                app:backgroundTint="@color/colorPrimary" />
+                                app:backgroundTint="?attr/colorPrimary" />
 
                             <com.google.android.material.floatingactionbutton.FloatingActionButton
                                 android:id="@+id/comment"
@@ -312,7 +312,7 @@
                                 android:layout_marginBottom="@dimen/eight_dp"
                                 android:layout_weight="1"
                                 android:src="@drawable/ic_chat_black_24dp"
-                                app:backgroundTint="@color/colorPrimary" />
+                                app:backgroundTint="?attr/colorPrimary" />
 
                             <com.google.android.material.floatingactionbutton.FloatingActionButton
                                 android:id="@+id/post_like"
@@ -325,7 +325,7 @@
                                 android:layout_weight="1"
                                 android:foregroundTint="@color/white"
                                 android:src="@drawable/ic_favorite_black_24dp"
-                                app:backgroundTint="@color/colorPrimary" />
+                                app:backgroundTint="?attr/colorPrimary" />
 
                         </LinearLayout>
 
@@ -357,3 +357,6 @@
 
     </RelativeLayout>
 </layout>
+
+
+

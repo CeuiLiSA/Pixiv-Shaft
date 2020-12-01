@@ -16,7 +16,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/new_color_primary"
+            android:background="?attr/colorPrimary"
             android:elevation="@dimen/six_dp"
             android:fitsSystemWindows="true"
             android:theme="@style/AppTheme.AppBarOverlay"
@@ -65,7 +65,7 @@
             android:layout_width="wrap_content"
             android:id="@+id/start_download"
             android:layout_margin="@dimen/sixteen_dp"
-            app:backgroundTint="@color/new_color_primary"
+            app:backgroundTint="?attr/colorPrimary"
             app:elevation="@dimen/four_dp"
             android:layout_alignParentEnd="true"
             android:layout_alignParentBottom="true"
@@ -74,3 +74,4 @@
 
     </RelativeLayout>
 </layout>
+

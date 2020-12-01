@@ -18,6 +18,7 @@ import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.blankj.utilcode.util.BarUtils;
 import com.mxn.soul.flowingdrawer_core.ElasticDrawer;
 
 import ceui.lisa.R;
@@ -58,7 +59,6 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 
     @Override
     protected void initView() {
-        getWindow().setStatusBarColor(getResources().getColor(R.color.new_color_primary));
         final String[] TITLES = new String[]{
                 getString(R.string.string_136),
                 getString(R.string.string_137),

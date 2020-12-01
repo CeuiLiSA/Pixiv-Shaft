@@ -9,6 +9,7 @@ import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import com.ToxicBakery.viewpager.transforms.DrawerTransformer;
+import com.blankj.utilcode.util.BarUtils;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
@@ -37,7 +38,7 @@ public class FragmentDownload extends BaseFragment<ViewpagerWithTablayoutBinding
                 Shaft.getContext().getString(R.string.now_downloading),
                 Shaft.getContext().getString(R.string.has_download)
         };
-        mActivity.getWindow().setStatusBarColor(getResources().getColor(R.color.new_color_primary));
+        BarUtils.setStatusBarColor(mActivity, android.R.attr.colorPrimary);
         baseBind.toolbarTitle.setText(R.string.string_203);
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
         baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {

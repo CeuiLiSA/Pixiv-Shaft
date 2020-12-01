@@ -42,8 +42,8 @@
 <!--                app:abb_rippleEnabled="true"-->
 <!--                app:abb_iconSize="30dp"-->
 <!--                app:abb_textSize="16sp"-->
-<!--                app:abb_indicatorColor="@color/new_color_primary"-->
-<!--                app:abb_tabColorSelected="@color/new_color_primary"-->
+<!--                app:abb_indicatorColor="?attr/colorPrimary"-->
+<!--                app:abb_tabColorSelected="?attr/colorPrimary"-->
 <!--                app:abb_indicatorHeight="4dp"-->
 <!--                app:abb_tabs="@menu/main_activity"-->
 <!--                app:abb_selectedIndex="0" />-->
@@ -72,3 +72,4 @@
 
     </androidx.drawerlayout.widget.DrawerLayout>
 </layout>
+

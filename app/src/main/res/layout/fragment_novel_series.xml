@@ -77,7 +77,7 @@
                                     android:layout_toStartOf="@+id/post_like_user"
                                     android:ellipsize="end"
                                     android:maxLines="1"
-                                    android:textColor="@color/new_color_primary"
+                                    android:textColor="?attr/colorPrimary"
                                     android:textSize="15sp"
                                     android:textStyle="bold" />
 
@@ -95,9 +95,9 @@
                                     android:paddingEnd="@dimen/sixteen_dp"
                                     android:paddingBottom="@dimen/four_dp"
                                     android:text="@string/string_85"
-                                    android:textColor="@color/new_color_primary"
+                                    android:textColor="?attr/colorPrimary"
                                     android:textSize="13sp"
-                                    app:qmui_borderColor="@color/new_color_primary" />
+                                    app:qmui_borderColor="?attr/colorPrimary" />
 
                             </RelativeLayout>
 
@@ -158,3 +158,4 @@
         </com.scwang.smartrefresh.layout.SmartRefreshLayout>
     </RelativeLayout>
 </layout>
+

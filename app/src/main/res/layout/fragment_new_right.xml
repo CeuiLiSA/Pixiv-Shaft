@@ -16,7 +16,7 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_gravity=""
-            android:background="@color/new_color_primary"
+            android:background="?attr/colorPrimary"
             android:elevation="@dimen/four_dp">
 
         </ImageView>
@@ -25,7 +25,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/new_color_primary"
+            android:background="?attr/colorPrimary"
             android:elevation="@dimen/four_dp"
             app:navigationIcon="@drawable/ic_baseline_dns_24"
             app:titleTextColor="@color/white">
@@ -83,8 +83,8 @@
                         android:layout_alignParentEnd="true"
                         android:layout_marginTop="@dimen/twelve_dp"
                         android:id="@+id/see_more"
-                        android:drawableTint="@color/new_color_primary"
-                        android:textColor="@color/new_color_primary"
+                        android:drawableTint="?attr/colorPrimary"
+                        android:textColor="?attr/colorPrimary"
                         android:layout_marginEnd="@dimen/twelve_dp"
                         android:gravity="center_vertical"
                         android:text="@string/string_79"
@@ -150,8 +150,7 @@
                         android:text="@string/string_81"
                         android:id="@+id/show_private"
                         android:textSize="12sp"
-                        android:theme="@style/SCBSwitch"
-                        android:textColor="@color/new_color_primary"
+                        android:textColor="?attr/colorPrimary"
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
                         android:layout_marginEnd="@dimen/sixteen_dp"
@@ -196,3 +195,4 @@
     </LinearLayout>
 
 </layout>
+

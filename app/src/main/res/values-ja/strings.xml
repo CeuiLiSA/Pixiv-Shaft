@@ -471,6 +471,18 @@
   <string name="string_300">ダークモード（暗いです）</string>  
   <string name="string_310">Shaftを使って見る</string>  
   <string name="string_311">Shaftを使ってソース検索を行います。</string>  
-  <string name="string_312">設定に行きます</string>
-  <string name="string_313">ファイルをダウンロードするには権限を要求する必要はありませんが、ファイルを保存するディレクトリフォルダを設定する必要があります。</string>
+  <string name="string_312">設定に行きます</string>  
+  <string name="string_313">ファイルをダウンロードするには権限を要求する必要はありませんが、ファイルを保存するディレクトリフォルダを設定する必要があります。</string>  
+  <string name="string_314">エクスポートTXT</string>  
+  <string name="string_315">一括操作</string>  
+  <string name="string_316">すべてのコレクション</string>  
+  <string name="string_317">コレクションをすべてキャンセル</string>  
+  <string name="string_318">私の</string>  
+  <string name="string_319">私のイラストコレクション</string>  
+  <string name="string_320">私の小説コレクション</string>  
+  <string name="string_321">私の関心</string>  
+  <string name="string_322">私のファン</string>  
+  <string name="string_323">私の良いP友達</string>  
+  <string name="string_324">テーマカラー</string>  
+  <string name="string_325">設定をクリックします</string>
 </resources>

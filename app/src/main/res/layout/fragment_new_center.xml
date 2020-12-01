@@ -17,7 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_gravity=""
-            android:background="@color/new_color_primary"
+            android:background="?attr/colorPrimary"
             android:elevation="@dimen/four_dp">
 
         </ImageView>
@@ -26,7 +26,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/new_color_primary"
+            android:background="?attr/colorPrimary"
             android:elevation="@dimen/four_dp"
             app:navigationIcon="@drawable/ic_baseline_dns_24"
             app:titleTextColor="@color/white">
@@ -281,3 +281,4 @@
 
 
 </layout>
+

@@ -14,7 +14,7 @@
         <com.google.android.material.appbar.AppBarLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/new_color_primary">
+            android:background="?attr/colorPrimary">
 
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
@@ -61,3 +61,4 @@
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>
+

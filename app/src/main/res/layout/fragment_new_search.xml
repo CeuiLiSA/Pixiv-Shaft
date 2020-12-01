@@ -15,14 +15,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/app_bar"
-            android:background="@color/new_color_primary">
+            android:background="?attr/colorPrimary">
 
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 app:layout_scrollFlags="scroll|enterAlways"
                 android:layout_height="wrap_content"
-                android:background="@color/new_color_primary"
+                android:background="?attr/colorPrimary"
                 android:elevation="0dp"
                 android:fitsSystemWindows="true"
                 android:theme="@style/AppTheme.AppBarOverlay"
@@ -106,3 +106,4 @@
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>
+

@@ -222,14 +222,10 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
                 alertDialog.show();
                 alertDialog
                         .getButton(AlertDialog.BUTTON_POSITIVE)
-                        .setTextColor(
-                                getResources().getColor(R.color.colorPrimary)
-                        );
+                        .setTextColor(android.R.attr.colorPrimary);
                 alertDialog
                         .getButton(AlertDialog.BUTTON_NEGATIVE)
-                        .setTextColor(
-                                getResources().getColor(R.color.colorPrimary)
-                        );
+                        .setTextColor(android.R.attr.colorPrimary);
                 return;
             }
 

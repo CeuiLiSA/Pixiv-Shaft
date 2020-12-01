@@ -13,7 +13,7 @@
 
         <com.google.android.material.appbar.AppBarLayout
             android:layout_width="match_parent"
-            android:background="@color/new_color_primary"
+            android:background="?attr/colorPrimary"
             android:layout_height="wrap_content">
 
 
@@ -43,7 +43,7 @@
                 android:id="@+id/tab_layout"
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
-                android:background="@color/new_color_primary"
+                android:background="?attr/colorPrimary"
                 app:tabIndicatorColor="@android:color/white"
                 app:tabIndicatorFullWidth="false"
                 app:tabSelectedTextColor="@android:color/white"
@@ -63,3 +63,4 @@
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>
+

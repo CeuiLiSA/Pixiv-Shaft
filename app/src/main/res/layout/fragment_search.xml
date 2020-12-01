@@ -16,7 +16,7 @@
             android:orientation="vertical"
             android:id="@+id/top_rela"
             android:layout_width="match_parent"
-            android:background="@color/new_color_primary"
+            android:background="?attr/colorPrimary"
             android:layout_height="wrap_content">
 
             <ImageView
@@ -127,7 +127,7 @@
                             android:layout_alignParentEnd="true"
                             android:textSize="14sp"
                             android:id="@+id/clear_history"
-                            android:textColor="@color/new_color_primary"
+                            android:textColor="?attr/colorPrimary"
                             android:layout_marginEnd="@dimen/sixteen_dp"
                             android:layout_marginTop="@dimen/tweenty_four_dp"
                             android:layout_marginBottom="@dimen/eight_dp"
@@ -195,3 +195,4 @@
         </FrameLayout>
     </RelativeLayout>
 </layout>
+

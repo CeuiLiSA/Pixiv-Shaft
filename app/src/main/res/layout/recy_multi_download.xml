@@ -25,7 +25,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
-            android:buttonTint="@color/new_color_primary"
+            android:buttonTint="?attr/colorPrimary"
             android:layout_alignParentBottom="true"
             android:layout_marginStart="@dimen/eight_dp"
             android:layout_marginTop="@dimen/eight_dp"
@@ -36,3 +36,4 @@
 
     </RelativeLayout>
 </layout>
+

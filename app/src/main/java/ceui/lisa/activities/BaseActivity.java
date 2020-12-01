@@ -37,7 +37,8 @@ public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCo
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         try {
-//            setTheme(R.style.AppTheme_Red);
+            updateTheme();
+
             mLayoutID = initLayout();
 
             mContext = this;
@@ -128,5 +129,44 @@ public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCo
 
     public void setFeedBack(FeedBack feedBack) {
         mFeedBack = feedBack;
+    }
+
+    private void updateTheme() {
+        int current = Shaft.sSettings.getThemeIndex();
+        switch (current) {
+            case 0:
+                setTheme(R.style.AppTheme_Index0);
+                break;
+            case 1:
+                setTheme(R.style.AppTheme_Index1);
+                break;
+            case 2:
+                setTheme(R.style.AppTheme_Index2);
+                break;
+            case 3:
+                setTheme(R.style.AppTheme_Index3);
+                break;
+            case 4:
+                setTheme(R.style.AppTheme_Index4);
+                break;
+            case 5:
+                setTheme(R.style.AppTheme_Index5);
+                break;
+            case 6:
+                setTheme(R.style.AppTheme_Index6);
+                break;
+            case 7:
+                setTheme(R.style.AppTheme_Index7);
+                break;
+            case 8:
+                setTheme(R.style.AppTheme_Index8);
+                break;
+            case 9:
+                setTheme(R.style.AppTheme_Index9);
+                break;
+            default:
+                setTheme(R.style.AppTheme_Default);
+                break;
+        }
     }
 }

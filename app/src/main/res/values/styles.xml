@@ -1,24 +1,83 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="QMUI.Compat.NoActionBar">
         <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorPrimary">#686bdd</item>
+        <item name="colorPrimaryDark">#4749a0</item>
+        <item name="colorControlActivated">?attr/colorPrimary</item>
+        <item name="colorSwitchThumbNormal">#F1F1F1</item>
         <item name="android:windowContentTransitions">true</item>
         <item name="android:windowAllowEnterTransitionOverlap">true</item>
         <item name="android:windowAllowReturnTransitionOverlap">true</item>
+        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimary</item>
     </style>
 
-    <style name="AppTheme.Red" parent="QMUI.Compat.NoActionBar">
+    <style name="AppTheme.Default" parent="AppTheme">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">#686bdd</item>
+        <item name="colorPrimaryDark">#4749a0</item>
+    </style>
+
+    <style name="AppTheme.Index0" parent="AppTheme">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">#686bdd</item>
+        <item name="colorPrimaryDark">#4749a0</item>
+    </style>
+
+    <style name="AppTheme.Index1" parent="AppTheme">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">#56baec</item>
+        <item name="colorPrimaryDark">#4ba2ce</item>
+    </style>
+
+    <style name="AppTheme.Index2" parent="AppTheme">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">#008BF3</item>
+        <item name="colorPrimaryDark">#0277cf</item>
+    </style>
+
+    <style name="AppTheme.Index3" parent="AppTheme">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">#03d0bf</item>
+        <item name="colorPrimaryDark">#04a598</item>
+    </style>
+
+    <style name="AppTheme.Index4" parent="AppTheme">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">#fee65e</item>
+        <item name="colorPrimaryDark">#dbc650</item>
+    </style>
+
+    <style name="AppTheme.Index5" parent="AppTheme">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">#fe83a2</item>
+        <item name="colorPrimaryDark">#d67089</item>
+    </style>
+
+
+    <style name="AppTheme.Index6" parent="AppTheme">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">#F44336</item>
-        <item name="colorPrimaryDark">#F44336</item>
-        <item name="colorAccent">@color/colorAccent</item>
-        <item name="android:windowContentTransitions">true</item>
-        <item name="android:windowAllowEnterTransitionOverlap">true</item>
-        <item name="android:windowAllowReturnTransitionOverlap">true</item>
+        <item name="colorPrimaryDark">#D32F2F</item>
+    </style>
+
+    <style name="AppTheme.Index7" parent="AppTheme">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">#673AB7</item>
+        <item name="colorPrimaryDark">#512DA8</item>
+    </style>
+
+    <style name="AppTheme.Index8" parent="AppTheme">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">#4CAF50</item>
+        <item name="colorPrimaryDark">#689F38</item>
+    </style>
+
+    <style name="AppTheme.Index9" parent="AppTheme">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">#E91E63</item>
+        <item name="colorPrimaryDark">#C2185B</item>
     </style>
 
     <style name="AppTheme.NoActionBar">
@@ -52,8 +111,8 @@
 
 
     <style name="My_CheckBox" parent="@android:style/Widget.Material.CompoundButton.CheckBox">
-        <item name="android:colorControlActivated">@color/colorPrimary</item>
-        <item name="android:colorControlNormal">@color/white</item>
+        <item name="android:colorControlActivated">?attr/colorPrimary</item>
+        <item name="android:colorControlNormal">?attr/colorPrimaryDark</item>
     </style>
 
     <style name="dialog_animation_scale" parent="@android:style/Animation.Dialog">
@@ -81,7 +140,7 @@
     </style>
 
     <style name="setting_text_head">
-        <item name="android:textColor">@color/primary_to_grey</item>
+        <item name="android:textColor">?attr/colorPrimary</item>
         <item name="android:layout_marginStart">@dimen/sixteen_dp</item>
         <item name="android:layout_marginTop">30dp</item>
         <item name="android:layout_marginBottom">@dimen/eight_dp</item>
@@ -106,7 +165,7 @@
         <item name="android:layout_centerVertical">true</item>
         <item name="android:layout_alignParentEnd">true</item>
         <item name="android:checked">true</item>
-        <item name="android:theme">@style/SCBSwitch</item>
+        <item name="android:colorForeground">#434343</item>
     </style>
 
     <style name="full_divider">
@@ -127,12 +186,6 @@
         <item name="android:layout_height">wrap_content</item>
         <item name="android:clickable">true</item>
         <item name="android:background">?android:attr/selectableItemBackground</item>
-    </style>
-
-    <style name="SCBSwitch" parent="Theme.AppCompat.Light">
-        <item name="colorControlActivated">@color/primary_to_grey</item>
-        <item name="colorSwitchThumbNormal">#f1f1f1</item>
-        <item name="android:colorForeground">#434343</item>
     </style>
 
     <style name="BarTheme">
@@ -159,7 +212,7 @@
         <item name="android:textColor">@color/about_user_right</item>
         <item name="android:textColorHint">@color/about_user_right</item>
         <item name="android:autoLink">all</item>
-        <item name="android:textColorLink">@color/new_color_primary</item>
+        <item name="android:textColorLink">?attr/colorPrimary</item>
         <item name="android:textSize">15sp</item>
     </style>
 
@@ -179,3 +232,5 @@
         <item name="android:layout_height">wrap_content</item>
     </style>
 </resources>
+
+

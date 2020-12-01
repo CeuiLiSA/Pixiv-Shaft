@@ -17,7 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fitsSystemWindows="true"
-            android:background="@color/new_color_primary"
+            android:background="?attr/colorPrimary"
             android:elevation="@dimen/six_dp"
             app:navigationIcon="@drawable/ic_baseline_arrow_back_ios_24"
             app:titleTextColor="@android:color/white">
@@ -70,7 +70,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:text="@string/string_23"
-                        android:textColor="@color/primary_to_huise"
+                        android:textColor="?attr/colorPrimary"
                         android:textSize="19sp"
                         android:layout_marginBottom="@dimen/sixteen_dp"
                         android:textStyle="bold"
@@ -338,3 +338,4 @@
 
     </LinearLayout>
 </layout>
+

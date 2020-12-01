@@ -54,7 +54,7 @@
                         android:layout_toEndOf="@+id/home"
                         android:id="@+id/real_home"
                         android:autoLink="all"
-                        android:textColorLink="@color/new_color_primary"
+                        android:textColorLink="?attr/colorPrimary"
                         android:text="https://www.iconfont.cn/search/index?searchType=icon"
                         android:layout_height="wrap_content">
 
@@ -82,7 +82,7 @@
                         android:layout_width="wrap_content"
                         android:id="@+id/real_twitter"
                         android:autoLink="all"
-                        android:textColorLink="@color/new_color_primary"
+                        android:textColorLink="?attr/colorPrimary"
                         android:layout_centerVertical="true"
                         android:layout_marginEnd="@dimen/sixteen_dp"
                         android:layout_toEndOf="@+id/twitter"
@@ -112,7 +112,7 @@
                         android:layout_width="wrap_content"
                         android:layout_centerVertical="true"
                         android:autoLink="all"
-                        android:textColorLink="@color/new_color_primary"
+                        android:textColorLink="?attr/colorPrimary"
                         android:layout_marginEnd="@dimen/sixteen_dp"
                         android:layout_toEndOf="@+id/address"
                         android:text="https://www.iconfont.cn/search/index?searchType=icon"
@@ -142,7 +142,7 @@
                         android:layout_width="wrap_content"
                         android:layout_centerVertical="true"
                         android:autoLink="all"
-                        android:textColorLink="@color/new_color_primary"
+                        android:textColorLink="?attr/colorPrimary"
                         android:layout_marginEnd="@dimen/sixteen_dp"
                         android:layout_toEndOf="@+id/job"
                         android:text="https://www.iconfont.cn/search/index?searchType=icon"
@@ -166,7 +166,7 @@
                         android:layout_marginBottom="@dimen/eight_dp"
                         android:text="个人介绍"
                         android:textSize="16sp"
-                        android:textColor="@color/new_color_primary">
+                        android:textColor="?attr/colorPrimary">
 
                     </TextView>
 
@@ -201,7 +201,7 @@
                     android:id="@+id/comment"
                     android:autoLink="all"
                     android:textIsSelectable="true"
-                    android:textColorLink="@color/new_color_primary"
+                    android:textColorLink="?attr/colorPrimary"
                     android:textColor="@color/black"
                     android:textSize="14sp">
 
@@ -213,3 +213,4 @@
 
     </com.scwang.smartrefresh.layout.SmartRefreshLayout>
 </layout>
+

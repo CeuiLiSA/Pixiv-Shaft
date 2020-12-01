@@ -402,7 +402,14 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                         .show();
             }
         });
-
+        baseBind.colorSelectRela.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "主题颜色");
+                startActivity(intent);
+            }
+        });
 
         baseBind.clearGifCache.setOnClickListener(new View.OnClickListener() {
             @Override

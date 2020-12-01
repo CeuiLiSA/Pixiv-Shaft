@@ -32,7 +32,7 @@
                 android:layout_marginEnd="@dimen/tweenty_four_dp"
                 android:hint="@string/email_address"
                 app:met_floatingLabel="highlight"
-                app:met_primaryColor="@color/new_color_primary"
+                app:met_primaryColor="?attr/colorPrimary"
                 app:met_singleLineEllipsis="true" />
 
 
@@ -45,7 +45,7 @@
                 android:layout_marginEnd="@dimen/tweenty_four_dp"
                 android:hint="@string/string_51"
                 app:met_floatingLabel="highlight"
-                app:met_primaryColor="@color/new_color_primary"
+                app:met_primaryColor="?attr/colorPrimary"
                 app:met_singleLineEllipsis="true" />
 
 
@@ -58,7 +58,7 @@
                 android:layout_marginEnd="@dimen/tweenty_four_dp"
                 android:hint="@string/string_52"
                 app:met_floatingLabel="highlight"
-                app:met_primaryColor="@color/new_color_primary"
+                app:met_primaryColor="?attr/colorPrimary"
                 app:met_singleLineEllipsis="true" />
 
         </LinearLayout>
@@ -86,3 +86,4 @@
     </RelativeLayout>
 
 </layout>
+

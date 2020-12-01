@@ -355,7 +355,7 @@
             android:layout_width="wrap_content"
             android:id="@+id/progress"
             android:layout_centerInParent="true"
-            android:indeterminateTint="@color/new_color_primary"
+            android:indeterminateTint="?attr/colorPrimary"
             android:layout_height="wrap_content">
 
         </ProgressBar>
@@ -376,3 +376,4 @@
 
     </RelativeLayout>
 </layout>
+

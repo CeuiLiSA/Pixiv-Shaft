@@ -471,6 +471,18 @@
   <string name="string_300">Dark mode (dark)</string>  
   <string name="string_310">View with shaft</string>  
   <string name="string_311">Search source search using shaft</string>  
-  <string name="string_312">Go to settings</string>
-  <string name="string_313">You do not need to request permission to download a file, but you need to set the directory folder to save the file</string>
+  <string name="string_312">Go to settings</string>  
+  <string name="string_313">You do not need to request permission to download a file, but you need to set the directory folder to save the file</string>  
+  <string name="string_314">Export TXT</string>  
+  <string name="string_315">Batch operation</string>  
+  <string name="string_316">All collections</string>  
+  <string name="string_317">Cancel collection all</string>  
+  <string name="string_318">my</string>  
+  <string name="string_319">My illustration collection</string>  
+  <string name="string_320">My collection of Novels</string>  
+  <string name="string_321">My concerns</string>  
+  <string name="string_322">My fans</string>  
+  <string name="string_323">My good friend p</string>  
+  <string name="string_324">Theme color</string>  
+  <string name="string_325">Click settings</string>
 </resources>

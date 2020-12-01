@@ -63,7 +63,6 @@
                 android:layout_toEndOf="@+id/private_star_s"
                 android:layout_marginTop="@dimen/sixteen_dp"
                 android:id="@+id/is_private"
-                android:theme="@style/SCBSwitch"
                 android:layout_marginStart="@dimen/eight_dp"
                 android:layout_marginBottom="@dimen/sixteen_dp"
                 android:layout_height="wrap_content" />
@@ -76,7 +75,7 @@
                 android:layout_alignParentEnd="true"
                 android:textSize="15sp"
                 android:id="@+id/submit_area"
-                android:textColor="@color/new_color_primary"
+                android:textColor="?attr/colorPrimary"
                 android:textStyle="bold"
                 android:layout_centerVertical="true"
                 android:layout_marginEnd="@dimen/sixteen_dp"
@@ -86,3 +85,4 @@
 
     </RelativeLayout>
 </layout>
+

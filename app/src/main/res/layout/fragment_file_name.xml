@@ -40,7 +40,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:id="@+id/file_name"
-                    android:textColor="#666af6"
+                    android:textColor="?attr/colorPrimary"
                     android:layout_below="@+id/now_name"
                     android:text="@string/string_57"
                     android:layout_marginBottom="@dimen/sixteen_dp"
@@ -119,7 +119,7 @@
                 android:layout_weight="2"
                 android:text="@string/string_60"
                 android:textColor="@color/white"
-                app:qmui_backgroundColor="#666af6"
+                app:qmui_backgroundColor="?attr/colorPrimary"
                 app:qmui_borderColor="#eaebf9"
                 app:qmui_borderWidth="0dp"
                 app:qmui_radius="@dimen/eight_dp">

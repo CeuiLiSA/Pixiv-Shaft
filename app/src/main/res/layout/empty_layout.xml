@@ -16,13 +16,13 @@
             android:id="@+id/no_data"
             android:src="@mipmap/empty_img"
             android:layout_centerHorizontal="true"
-            android:tint="@color/new_color_primary"
+            android:tint="?attr/colorPrimary"
             android:scaleType="centerCrop"
             android:layout_height="wrap_content" />
 
         <TextView
             android:layout_width="wrap_content"
-            android:textColor="@color/new_color_primary"
+            android:textColor="?attr/colorPrimary"
             android:text="@string/string_243"
             android:layout_marginTop="@dimen/twelve_dp"
             android:textStyle="bold"
@@ -35,3 +35,4 @@
 
     </RelativeLayout>
 </layout>
+

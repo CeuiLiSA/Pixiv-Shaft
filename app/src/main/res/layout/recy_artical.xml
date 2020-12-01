@@ -24,7 +24,7 @@
 
             <ImageView
                 android:layout_width="match_parent"
-                android:background="@color/new_color_primary"
+                android:background="?attr/colorPrimary"
                 android:layout_height="@dimen/six_dp">
 
             </ImageView>
@@ -59,3 +59,4 @@
 
     </androidx.cardview.widget.CardView>
 </layout>
+

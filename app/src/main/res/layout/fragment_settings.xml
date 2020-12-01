@@ -16,7 +16,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/new_color_primary"
+            android:background="?attr/colorPrimary"
             android:elevation="@dimen/six_dp"
             android:fitsSystemWindows="true"
             app:navigationIcon="@drawable/ic_baseline_arrow_back_ios_24">
@@ -173,11 +173,11 @@
                                 android:ellipsize="start"
                                 android:singleLine="true"
                                 android:text="@string/see_pixiv_ez"
-                                android:textColor="@color/primary_to_huise"
+                                android:textColor="?attr/colorPrimary"
                                 android:textSize="13sp" />
 
 
-                            <Switch
+                            <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/auto_dns"
                                 style="@style/setting_right_switch" />
 
@@ -196,7 +196,7 @@
                                 android:text="@string/show_original_image" />
 
 
-                            <Switch
+                            <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/first_detail_origin"
                                 style="@style/setting_right_switch"/>
 
@@ -213,7 +213,7 @@
                                 style="@style/setting_text_left"
                                 android:text="@string/save_view_history" />
 
-                            <Switch
+                            <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/save_history"
                                 style="@style/setting_right_switch"/>
 
@@ -230,7 +230,7 @@
                                 style="@style/setting_text_left"
                                 android:text="@string/show_like_button" />
 
-                            <Switch
+                            <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/show_like_button"
                                 style="@style/setting_right_switch"/>
 
@@ -247,7 +247,7 @@
                                 style="@style/setting_text_left"
                                 android:text="@string/slide_down_endless" />
 
-                            <Switch
+                            <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/related_no_limit"
                                 style="@style/setting_right_switch"/>
 
@@ -273,7 +273,7 @@
                                 android:layout_marginEnd="@dimen/sixteen_dp"
                                 android:layout_centerVertical="true"
                                 android:text="@string/string_94"
-                                android:textColor="@color/primary_to_huise"
+                                android:textColor="?attr/colorPrimary"
                                 android:textSize="14sp">
 
                             </TextView>
@@ -304,7 +304,7 @@
                                 style="@style/setting_text_left"
                                 android:text="@string/illust_detail" />
 
-                            <Switch
+                            <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/illust_detail_user_new"
                                 style="@style/setting_right_switch"/>
 
@@ -321,7 +321,7 @@
                                 style="@style/setting_text_left"
                                 android:text="@string/user_detail" />
 
-                            <Switch
+                            <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/user_new_user"
                                 style="@style/setting_right_switch"/>
 
@@ -338,7 +338,7 @@
                                 style="@style/setting_text_left"
                                 android:text="@string/delete_star_illust" />
 
-                            <Switch
+                            <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/delete_star_illust"
                                 style="@style/setting_right_switch"/>
 
@@ -355,7 +355,7 @@
                                 style="@style/setting_text_left"
                                 android:text="@string/single_download_task" />
 
-                            <Switch
+                            <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/single_download_task"
                                 style="@style/setting_right_switch"/>
 
@@ -380,7 +380,34 @@
                                 android:layout_marginEnd="@dimen/sixteen_dp"
                                 android:layout_centerVertical="true"
                                 android:text="@string/string_95"
-                                android:textColor="@color/primary_to_huise"
+                                android:textColor="?attr/colorPrimary"
+                                android:textSize="14sp">
+
+
+                            </TextView>
+
+
+                        </RelativeLayout>
+
+                        <View style="@style/half_divider" />
+
+                        <RelativeLayout
+                            android:id="@+id/color_select_rela"
+                            style="@style/ripple_rela">
+
+                            <TextView
+                                style="@style/setting_text_left"
+                                android:text="@string/string_324" />
+
+                            <TextView
+                                android:id="@+id/color_select"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
+                                android:layout_centerVertical="true"
+                                android:text="@string/string_325"
+                                android:textColor="?attr/colorPrimary"
                                 android:textSize="14sp">
 
 
@@ -408,7 +435,7 @@
                                 android:layout_marginEnd="@dimen/sixteen_dp"
                                 android:layout_centerVertical="true"
                                 android:text="@string/string_96"
-                                android:textColor="@color/primary_to_huise"
+                                android:textColor="?attr/colorPrimary"
                                 android:textSize="14sp">
 
 
@@ -435,7 +462,7 @@
                                 android:layout_centerVertical="true"
                                 android:layout_alignParentEnd="true"
                                 android:text="@string/string_97"
-                                android:textColor="@color/primary_to_huise"
+                                android:textColor="?attr/colorPrimary"
                                 android:textSize="14sp">
 
 
@@ -478,7 +505,7 @@
                                 android:layout_marginStart="@dimen/sixteen_dp"
                                 android:layout_marginBottom="@dimen/twelve_dp"
                                 android:text="@string/string_98"
-                                android:textColor="@color/primary_to_huise"
+                                android:textColor="?attr/colorPrimary"
                                 android:textSize="13sp">
 
 
@@ -539,3 +566,4 @@
 
     </LinearLayout>
 </layout>
+

@@ -39,7 +39,6 @@ public class Shaft extends Application {
 
     static {
         SmartRefreshLayout.setDefaultRefreshHeaderCreator((context, layout) -> {
-            layout.setPrimaryColorsId(R.color.colorPrimary, android.R.color.white);//全局设置主题颜色
             return new ClassicsHeader(context);//.setTimeFormat(new DynamicTimeFormat("更新于 %s"));//指定为经典Header，默认是 贝塞尔雷达Header
         });
 
@@ -68,6 +67,8 @@ public class Shaft extends Application {
 
         sSettings = Local.getSettings();
 
+        updateTheme();
+
         ThemeHelper.applyTheme(null, sSettings.getThemeType());
 
         //计算状态栏高度并赋值
@@ -77,6 +78,45 @@ public class Shaft extends Application {
             statusHeight = sContext.getResources().getDimensionPixelSize(resourceId);
         }
         toolbarHeight = DensityUtil.dp2px(56.0f);
+    }
+
+    private void updateTheme() {
+        int current = Shaft.sSettings.getThemeIndex();
+        switch (current) {
+            case 0:
+                setTheme(R.style.AppTheme_Index0);
+                break;
+            case 1:
+                setTheme(R.style.AppTheme_Index1);
+                break;
+            case 2:
+                setTheme(R.style.AppTheme_Index2);
+                break;
+            case 3:
+                setTheme(R.style.AppTheme_Index3);
+                break;
+            case 4:
+                setTheme(R.style.AppTheme_Index4);
+                break;
+            case 5:
+                setTheme(R.style.AppTheme_Index5);
+                break;
+            case 6:
+                setTheme(R.style.AppTheme_Index6);
+                break;
+            case 7:
+                setTheme(R.style.AppTheme_Index7);
+                break;
+            case 8:
+                setTheme(R.style.AppTheme_Index8);
+                break;
+            case 9:
+                setTheme(R.style.AppTheme_Index9);
+                break;
+            default:
+                setTheme(R.style.AppTheme_Default);
+                break;
+        }
     }
 
     @Override

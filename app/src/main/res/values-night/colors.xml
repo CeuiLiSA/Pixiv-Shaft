@@ -1,15 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-<!--    <color name="colorPrimary">#56baec</color>-->
-<!--    <color name="colorPrimaryDark">#56baec</color>-->
-<!--    <color name="colorAccent">#D81B60</color>-->
-<!--    <color name="light_primary_color">#B3E5FC</color>-->
 
-    <color name="colorPrimary">#607D8B</color>
-    <color name="colorPrimaryDark">#455A64</color>
     <color name="colorAccent">#009688</color>
-
-    <color name="hint_text">#607D8B</color>
 
 
     <color name="background">#f2f2f2</color>
@@ -62,12 +54,11 @@
     <color name="rank_title">#A9A9A9</color>
     <color name="fragment_right_divider">#141414</color>
     <color name="recmd_user_horizontal">#333333</color>
-    <color name="new_color_primary">#141414</color>
     <color name="settings_divider">#222222</color>
     <color name="black_to_grey">#DEDEDE</color>
-    <color name="primary_to_grey">#DEDEDE</color>
+<!--    <color name="primary_to_grey">#DEDEDE</color>-->
     <color name="f5_to_deep_dark">#040404</color>
-    <color name="primary_to_huise">#646464</color>
+<!--    <color name="primary_to_huise">#646464</color>-->
     <color name="white_to_1414">#141414</color>
     <color name="user_name_horizontal">#040404</color>
     <color name="white_to_black">#000000</color>

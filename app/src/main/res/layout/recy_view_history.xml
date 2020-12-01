@@ -52,7 +52,7 @@
                 android:layout_toEndOf="@+id/illust_image"
                 android:layout_marginStart="@dimen/eight_dp"
                 android:layout_marginEnd="@dimen/sixteen_dp"
-                android:textColor="@color/new_color_primary"
+                android:textColor="?attr/colorPrimary"
                 android:layout_height="wrap_content" />
 
 
@@ -91,3 +91,4 @@
         </RelativeLayout>
     </androidx.cardview.widget.CardView>
 </layout>
+

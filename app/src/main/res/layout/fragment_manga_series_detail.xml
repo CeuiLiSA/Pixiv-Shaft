@@ -13,7 +13,7 @@
 
         <com.google.android.material.appbar.AppBarLayout
             android:layout_width="match_parent"
-            android:background="@color/new_color_primary"
+            android:background="?attr/colorPrimary"
             android:layout_height="wrap_content">
 
             <com.google.android.material.appbar.CollapsingToolbarLayout
@@ -39,7 +39,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:fitsSystemWindows="true"
-                    android:background="@color/new_color_primary"
+                    android:background="?attr/colorPrimary"
                     android:elevation="0dp"
                     android:theme="@style/AppTheme.AppBarOverlay"
                     app:popupTheme="@style/AppTheme.PopupOverlay"
@@ -83,3 +83,4 @@
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>
+

@@ -68,7 +68,6 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
 
     @Override
     public void initView() {
-        BarUtils.setNavBarColor(mActivity, getResources().getColor(R.color.new_color_primary));
         baseBind.toolbar.setPadding(0, Shaft.statusHeight, 0, 0);
         baseBind.toolbar.inflateMenu(R.menu.login_menu);
         baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {

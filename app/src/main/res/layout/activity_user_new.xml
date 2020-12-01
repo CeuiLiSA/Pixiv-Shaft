@@ -172,7 +172,7 @@
                             android:layout_marginBottom="@dimen/eight_dp"
                             android:text="个人介绍"
                             android:textSize="16sp"
-                            android:textColor="@color/new_color_primary">
+                            android:textColor="?attr/colorPrimary">
 
                         </TextView>
 
@@ -207,7 +207,7 @@
                         android:id="@+id/comment"
                         android:autoLink="all"
                         android:gravity="center"
-                        android:textColorLink="@color/new_color_primary"
+                        android:textColorLink="?attr/colorPrimary"
                         android:textColor="#5c5c5c"
                         android:textSize="13sp">
 
@@ -280,3 +280,4 @@
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>
+

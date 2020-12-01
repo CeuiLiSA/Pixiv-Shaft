@@ -471,6 +471,18 @@
   <string name="string_300">Режим Dark (темный)</string>  
   <string name="string_310">Используйте Shaf для просмотра</string>  
   <string name="string_311">Использовать вал для поиска Поиск Поиск</string>  
-  <string name="string_312">поставить</string>
-  <string name="string_313">для загрузки файлов не требуется прав на запрос, но необходимо установить папку для сохранения файлов</string>
+  <string name="string_312">поставить</string>  
+  <string name="string_313">для загрузки файлов не требуется прав на запрос, но необходимо установить папку для сохранения файлов</string>  
+  <string name="string_314">экспорт TXT</string>  
+  <string name="string_315">пакетная операция</string>  
+  <string name="string_316">вся коллекция</string>  
+  <string name="string_317">закрыть коллекцию</string>  
+  <string name="string_318">мой</string>  
+  <string name="string_319">коллекция иллюстраций</string>  
+  <string name="string_320">коллекция моих романов</string>  
+  <string name="string_321">мое беспокойство</string>  
+  <string name="string_322">мои поклонники</string>  
+  <string name="string_323">мой хороший друг пи</string>  
+  <string name="string_324">тематический цвет</string>  
+  <string name="string_325">Щёлкните на настройки</string>
 </resources>

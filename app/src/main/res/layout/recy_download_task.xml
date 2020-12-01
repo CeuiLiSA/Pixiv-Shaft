@@ -37,7 +37,7 @@
                 style="@style/Widget.AppCompat.ProgressBar.Horizontal"
                 android:layout_width="match_parent"
                 android:layout_toEndOf="@+id/illust_image"
-                android:progressTint="@color/new_color_primary"
+                android:progressTint="?attr/colorPrimary"
                 android:layout_alignParentBottom="true"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/six_dp"
@@ -70,3 +70,4 @@
 
     </androidx.cardview.widget.CardView>
 </layout>
+

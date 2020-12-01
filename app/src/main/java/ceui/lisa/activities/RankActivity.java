@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 
 import com.ToxicBakery.viewpager.transforms.DrawerTransformer;
+import com.blankj.utilcode.util.BarUtils;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 
 import java.util.Calendar;
@@ -35,7 +36,6 @@ public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> im
 
     @Override
     protected void initView() {
-        getWindow().setStatusBarColor(getResources().getColor(R.color.new_color_primary));
         setSupportActionBar(baseBind.toolbar);
         baseBind.toolbar.setNavigationOnClickListener(v -> finish());
         dataType = getIntent().getStringExtra("dataType");
@@ -121,7 +121,6 @@ public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> im
 
     @Override
     protected void initData() {
-
     }
 
     @Override
@@ -156,7 +155,7 @@ public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> im
             start.set(2008, 1, 1);
             dpd.setMinDate(start);
             dpd.setMaxDate(now);
-            dpd.setAccentColor(getResources().getColor(R.color.colorPrimary));
+            dpd.setAccentColor(android.R.attr.colorPrimary);
             dpd.show(getFragmentManager(), "DatePickerDialog");
             return true;
         }
@@ -173,5 +172,10 @@ public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> im
         intent.putExtra("index", baseBind.viewPager.getCurrentItem());
         startActivity(intent);
         finish();
+    }
+
+    @Override
+    public boolean hideStatusBar() {
+        return false;
     }
 }

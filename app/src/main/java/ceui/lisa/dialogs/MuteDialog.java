@@ -57,7 +57,7 @@ public class MuteDialog extends BaseDialog<DialogMuteTagBinding> {
             public void onSelected(int position, View view) {
                 super.onSelected(position, view);
                 view.setBackgroundResource(R.drawable.tag_stroke_checked_bg);
-                ((TextView) view).setTextColor(getResources().getColor(R.color.colorPrimary));
+                ((TextView) view).setTextColor(android.R.attr.colorPrimary);
                 selected.add(mIllust.getTags().get(position));
             }
 
