@@ -19,8 +19,10 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.viewpager.widget.ViewPager;
 
 import com.bumptech.glide.Glide;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 
 import java.io.File;
@@ -79,6 +81,62 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             }
         });
         baseBind.viewPager.setOffscreenPageLimit(3);
+        baseBind.navigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                if (item.getItemId() == R.id.action_1) {
+                    if (baseBind.viewPager.getCurrentItem() != 0) {
+                        baseBind.viewPager.setCurrentItem(0);
+                    }
+                    return true;
+                } else if (item.getItemId() == R.id.action_2) {
+                    if (baseBind.viewPager.getCurrentItem() != 1) {
+                        baseBind.viewPager.setCurrentItem(1);
+                    }
+                    return true;
+                } else if (item.getItemId() == R.id.action_3) {
+                    if (baseBind.viewPager.getCurrentItem() != 2) {
+                        baseBind.viewPager.setCurrentItem(2);
+                    }
+                    return true;
+                }
+                return false;
+            }
+        });
+        baseBind.navigationView.setOnNavigationItemReselectedListener(new BottomNavigationView.OnNavigationItemReselectedListener() {
+            @Override
+            public void onNavigationItemReselected(@NonNull MenuItem item) {
+                if (item.getItemId() == R.id.action_1) {
+                    Common.showToast("刷新左侧");
+                } else if (item.getItemId() == R.id.action_2) {
+                    Common.showToast("刷新中间");
+                } else if (item.getItemId() == R.id.action_3) {
+                    Common.showToast("刷新右侧");
+                }
+            }
+        });
+        baseBind.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                if (position == 0) {
+                    baseBind.navigationView.setSelectedItemId(R.id.action_1);
+                } else if (position == 1) {
+                    baseBind.navigationView.setSelectedItemId(R.id.action_2);
+                } else {
+                    baseBind.navigationView.setSelectedItemId(R.id.action_3);
+                }
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
     }
 
     private void initFragment() {
@@ -98,7 +156,6 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 return baseFragments.length;
             }
         });
-        baseBind.navigationView.setupWithViewPager(baseBind.viewPager);
     }
 
     @Override

@@ -16,7 +16,7 @@ import ceui.lisa.utils.Common;
 
 public class BaseModel<T> extends ViewModel{
 
-    private List<T> content = new ArrayList<>();
+    private final List<T> content = new ArrayList<>();
     private boolean isLoaded = false;
     private BaseRepo mBaseRepo;
 

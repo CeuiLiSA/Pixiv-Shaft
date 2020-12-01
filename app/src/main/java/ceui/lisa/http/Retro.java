@@ -44,12 +44,11 @@ public class Retro {
         String osVersion = DeviceUtils.getSDKVersionName();
         String phoneName = DeviceUtils.getModel();
         before.addHeader("User-Agent", "PixivAndroidApp/5.0.175 (Android " + osVersion + "; " + phoneName + ")")
-                .addHeader("Accept-Language", "zh_CN")
-                .addHeader("X-Client-Time", pixivHeaders.getXClientTime())
-                .addHeader("X-Client-Hash", pixivHeaders.getXClientHash());
-//        if (addAuth && Shaft.sUserModel != null) {
-//            before.addHeader("Authorization", Shaft.sUserModel.getResponse().getAccess_token());
-//        }
+                .addHeader("accept-language", "zh-cn")
+                .addHeader(":authority", "app-api.pixiv.net")
+                .addHeader("x-client-time", pixivHeaders.getXClientTime())
+                .addHeader("x-client-hash", pixivHeaders.getXClientHash());
+
         return before;
     }
 

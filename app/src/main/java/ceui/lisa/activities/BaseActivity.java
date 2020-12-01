@@ -16,6 +16,7 @@ import androidx.databinding.DataBindingUtil;
 import androidx.databinding.ViewDataBinding;
 import androidx.fragment.app.FragmentActivity;
 
+import ceui.lisa.R;
 import ceui.lisa.interfaces.FeedBack;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
@@ -36,6 +37,7 @@ public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCo
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         try {
+//            setTheme(R.style.AppTheme_Red);
             mLayoutID = initLayout();
 
             mContext = this;

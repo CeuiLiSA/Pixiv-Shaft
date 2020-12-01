@@ -7,7 +7,6 @@ import androidx.annotation.Nullable;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.base.list.BaseViewHolder;
 import ceui.lisa.databinding.RecyStringBinding;
 
 public class StringAdapter extends BaseAdapter<String, RecyStringBinding> {
