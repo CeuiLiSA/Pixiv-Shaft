@@ -31,7 +31,6 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:id="@+id/toolbar_title"
-                    android:text="@string/ranking_list"
                     android:textColor="@color/white"
                     android:textSize="18sp">
 

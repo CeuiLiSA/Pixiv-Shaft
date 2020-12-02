@@ -99,6 +99,7 @@
             </intent-filter>
 
         </activity>
+        <activity android:name=".activities.VPActivity" />
 
     </application>
 

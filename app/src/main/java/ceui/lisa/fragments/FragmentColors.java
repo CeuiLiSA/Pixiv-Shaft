@@ -14,6 +14,7 @@ import java.util.Locale;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
+import ceui.lisa.adapters.ColorAdapter;
 import ceui.lisa.adapters.ViewHolder;
 import ceui.lisa.core.BaseRepo;
 import ceui.lisa.core.LocalRepo;
@@ -31,58 +32,7 @@ public class FragmentColors extends LocalListFragment<FragmentBaseListBinding, C
 
     @Override
     public BaseAdapter<?, ? extends ViewDataBinding> adapter() {
-        return new BaseAdapter<ColorItem, RecyColorBinding>(allItems, mContext) {
-            @Override
-            public void initLayout() {
-                this.mLayoutID = R.layout.recy_color;
-            }
-
-            @Override
-            public void bindData(ColorItem target, ViewHolder<RecyColorBinding> bindView, int position) {
-                bindView.baseBind.card.setCardBackgroundColor(Color.parseColor(target.getColor()));
-                if (target.isSelect()) {
-                    bindView.baseBind.name.setText(target.getName() + "（正在使用）");
-                } else {
-                    bindView.baseBind.name.setText(target.getName());
-                }
-                bindView.baseBind.value.setText(target.getColor());
-                bindView.itemView.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        mOnItemClickListener.onItemClick(v, position, 0);
-                    }
-                });
-            }
-        }.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(View v, int position, int viewType) {
-                Shaft.sSettings.setThemeIndex(position);
-                Local.setSettings(Shaft.sSettings);
-
-                int index = 0;
-                String temp = Shaft.sSettings.getAppLanguage();
-                for (int i = 0; i < ALL_LANGUAGE.length; i++) {
-                    if (ALL_LANGUAGE[i].equals(temp)) {
-                        index = i;
-                        break;
-                    }
-                }
-
-                if (index == 0) {
-                    LanguageUtils.applyLanguage(Locale.SIMPLIFIED_CHINESE, "");
-                } else if (index == 1) {
-                    LanguageUtils.applyLanguage(Locale.JAPAN, "");
-                } else if (index == 2) {
-                    LanguageUtils.applyLanguage(Locale.US, "");
-                } else if (index == 3) {
-                    LanguageUtils.applyLanguage(Locale.TRADITIONAL_CHINESE, "");
-                } else if (index == 4) {
-                    LanguageUtils.applyLanguage(new Locale("RU", "ru", ""), "");
-                }
-
-                Common.showToast("设置成功");
-            }
-        });
+        return new ColorAdapter(allItems, mContext);
     }
 
     @Override

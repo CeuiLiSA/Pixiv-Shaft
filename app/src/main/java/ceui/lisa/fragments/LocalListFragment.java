@@ -21,7 +21,7 @@ public abstract class LocalListFragment<Layout extends ViewDataBinding, Item>
         if (mLocalRepo.first() != null && mLocalRepo.first().size() != 0) {
             List<Item> firstList = mLocalRepo.first();
             if (mModel != null) {
-                mModel.load(firstList);
+                mModel.load(firstList, true);
             }
             onFirstLoaded(firstList);
             mRecyclerView.setVisibility(View.VISIBLE);
@@ -41,7 +41,7 @@ public abstract class LocalListFragment<Layout extends ViewDataBinding, Item>
                 mLocalRepo.next().size() != 0) {
             List<Item> nextList = mLocalRepo.next();
             if (mModel != null) {
-                mModel.load(nextList);
+                mModel.load(nextList, false);
             }
             onNextLoaded(nextList);
             mAdapter.notifyItemRangeInserted(getStartSize(), mLocalRepo.next().size());
@@ -56,5 +56,6 @@ public abstract class LocalListFragment<Layout extends ViewDataBinding, Item>
     @Override
     protected void initData() {
         mLocalRepo = (LocalRepo<List<Item>>) mModel.getBaseRepo();
+        super.initData();
     }
 }

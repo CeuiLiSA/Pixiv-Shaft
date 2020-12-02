@@ -33,7 +33,7 @@ import jp.wasabeef.recyclerview.animators.BaseItemAnimator;
 import jp.wasabeef.recyclerview.animators.LandingAnimator;
 
 public abstract class ListFragment<Layout extends ViewDataBinding, Item>
-        extends BaseFragment<Layout> {
+        extends BaseLazyFragment<Layout> {
 
     public static final long animateDuration = 400L;
     public static final int PAGE_SIZE = 20;
@@ -132,13 +132,17 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
             }
         });
 
+        allItems = mModel.getContent();
         mAdapter = adapter();
         if (mAdapter != null) {
             mRecyclerView.setAdapter(mAdapter);
         }
 
         onAdapterPrepared();
+    }
 
+    @Override
+    public void lazyData() {
         //进页面主动刷新
         if (autoRefresh() && !mModel.isLoaded()) {
             mRefreshLayout.autoRefresh();

@@ -47,27 +47,35 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
             mRemoteRepo.getFirstData(new NullCtrl<Response>() {
                 @Override
                 public void success(Response response) {
+                    Common.showLog("trace 000");
                     if (!isAdded()) {
                         return;
                     }
+                    Common.showLog("trace 111");
                     mResponse = response;
                     tryCatchResponse(mResponse);
                     if (!Common.isEmpty(mResponse.getList())) {
+                        Common.showLog("trace 222 " + mAdapter.getItemCount());
                         beforeFirstLoad(mResponse.getList());
-                        mModel.load(mResponse.getList());
+                        mModel.load(mResponse.getList(), true);
                         allItems = mModel.getContent();
                         onFirstLoaded(mResponse.getList());
                         mRecyclerView.setVisibility(View.VISIBLE);
                         emptyRela.setVisibility(View.INVISIBLE);
                         mAdapter.notifyItemRangeInserted(getStartSize(), mResponse.getList().size());
+                        Common.showLog("trace 777 " + mAdapter.getItemCount() + " allItems.size():" + allItems.size() + " modelSize:" + mModel.getContent().size());
                     } else {
+                        Common.showLog("trace 333");
                         mRecyclerView.setVisibility(View.INVISIBLE);
                         emptyRela.setVisibility(View.VISIBLE);
                     }
+                    Common.showLog("trace 444");
                     mRemoteRepo.setNextUrl(mResponse.getNextUrl());
                     if (!TextUtils.isEmpty(mResponse.getNextUrl())) {
+                        Common.showLog("trace 555");
                         mRefreshLayout.setRefreshFooter(new ClassicsFooter(mContext));
                     } else {
+                        Common.showLog("trace 666");
                         mRefreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
                     }
                 }
@@ -109,7 +117,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                     mResponse = response;
                     if (!Common.isEmpty(mResponse.getList())) {
                         beforeNextLoad(mResponse.getList());
-                        mModel.load(mResponse.getList());
+                        mModel.load(mResponse.getList(), false);
                         allItems = mModel.getContent();
                         onNextLoaded(mResponse.getList());
                         mAdapter.notifyItemRangeInserted(getStartSize(), mResponse.getList().size());
@@ -138,6 +146,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
     @Override
     protected void initData() {
         mRemoteRepo = (RemoteRepo<Response>) mModel.getBaseRepo();
+        super.initData();
     }
 
     /**

@@ -7,6 +7,7 @@ import android.view.MenuItem;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 
 import com.ToxicBakery.viewpager.transforms.DrawerTransformer;
@@ -17,6 +18,7 @@ import java.util.Calendar;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.ActivityMultiViewPagerBinding;
+import ceui.lisa.fragments.FragmentDoing;
 import ceui.lisa.fragments.FragmentRankIllust;
 import ceui.lisa.fragments.FragmentRankNovel;
 import ceui.lisa.fragments.NetListFragment;
@@ -25,7 +27,6 @@ import ceui.lisa.utils.Common;
 public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> implements
         DatePickerDialog.OnDateSetListener {
 
-    private final NetListFragment[] allPages = new NetListFragment[]{null, null, null, null, null, null, null, null};
     private String dataType = "";
     private String queryDate = "";
 
@@ -69,20 +70,18 @@ public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> im
                 getString(R.string.string_134)
         };
 
-
-        baseBind.viewPager.setAdapter(new FragmentStatePagerAdapter(getSupportFragmentManager(), 0) {
+        baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override
             public Fragment getItem(int i) {
-                if (allPages[i] == null) {
-                    if ("插画".equals(dataType)) {
-                        allPages[i] = FragmentRankIllust.newInstance(i, queryDate, false);
-                    } else if ("漫画".equals(dataType)) {
-                        allPages[i] = FragmentRankIllust.newInstance(i, queryDate, true);
-                    } else if ("小说".equals(dataType)) {
-                        allPages[i] = FragmentRankNovel.newInstance(i, queryDate);
-                    }
+                if ("插画".equals(dataType)) {
+                    return FragmentRankIllust.newInstance(i, queryDate, false);
+                } else if ("漫画".equals(dataType)) {
+                    return FragmentRankIllust.newInstance(i, queryDate, true);
+                } else if ("小说".equals(dataType)) {
+                    return FragmentRankNovel.newInstance(i, queryDate);
+                } else {
+                    return new Fragment();
                 }
-                return allPages[i];
             }
 
             @Override

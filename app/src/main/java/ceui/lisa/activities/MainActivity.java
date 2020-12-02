@@ -219,10 +219,10 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "精华列");
                 break;
             case R.id.nav_fans:
-                intent = new Intent(mContext, TemplateActivity.class);
                 if (Dev.isDev) {
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "任务中心");
+                    intent = new Intent(mContext, VPActivity.class);
                 } else {
+                    intent = new Intent(mContext, TemplateActivity.class);
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "粉丝");
                 }
                 break;
