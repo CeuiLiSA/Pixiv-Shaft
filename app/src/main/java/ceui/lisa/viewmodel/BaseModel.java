@@ -20,6 +20,10 @@ public class BaseModel<T> extends ViewModel{
     private boolean isLoaded = false;
     private BaseRepo mBaseRepo;
 
+    public BaseModel() {
+        Common.showLog("trace 构造 000");
+    }
+
     public List<T> getContent() {
         if (content == null) {
             content = new ArrayList<>();

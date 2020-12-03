@@ -13,7 +13,7 @@ import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
 
 public abstract class SwipeFragment<T extends ViewDataBinding>
-        extends BaseFragment<T> implements Swipe {
+        extends BaseLazyFragment<T> implements Swipe {
 
     @Override
     public RefreshHeader getHeader() {

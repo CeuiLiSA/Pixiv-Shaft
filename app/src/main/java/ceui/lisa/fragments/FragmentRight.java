@@ -1,54 +1,37 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
-import android.widget.PopupWindow;
-import android.widget.TextView;
 
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.databinding.ViewDataBinding;
 import androidx.fragment.app.FragmentTransaction;
-import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.qmuiteam.qmui.util.QMUIDisplayHelper;
-import com.qmuiteam.qmui.widget.popup.QMUIPopup;
-import com.qmuiteam.qmui.widget.popup.QMUIPopups;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
-import ceui.lisa.activities.UserActivity;
-import ceui.lisa.activities.VActivity;
 import ceui.lisa.adapters.BaseAdapter;
-import ceui.lisa.adapters.EventAdapter;
 import ceui.lisa.adapters.IAdapter;
 import ceui.lisa.core.BaseRepo;
-import ceui.lisa.core.Container;
-import ceui.lisa.core.PageData;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustRecmdEntity;
 import ceui.lisa.databinding.FragmentNewRightBinding;
-import ceui.lisa.download.IllustDownload;
 import ceui.lisa.helper.TagFilter;
 import ceui.lisa.http.NullCtrl;
-import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.repo.RightRepo;
 import ceui.lisa.utils.Params;
-import ceui.lisa.utils.PixivOperate;
-import ceui.lisa.utils.ShareIllust;
 import io.reactivex.Observable;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -125,20 +108,16 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
     }
 
     @Override
-    public void setUserVisibleHint(boolean isVisibleToUser) {
-        super.setUserVisibleHint(isVisibleToUser);
+    public void lazyData() {
+        super.lazyData();
 
-        if (isVisibleToUser && !isLoad && isAdded()) {
-            FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
+        FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
 
-            FragmentRecmdUserHorizontal recmdUser = new FragmentRecmdUserHorizontal();
-            transaction.add(R.id.user_recmd_fragment, recmdUser, "FragmentRecmdUserHorizontal");
-            transaction.commitNow();
+        FragmentRecmdUserHorizontal recmdUser = new FragmentRecmdUserHorizontal();
+        transaction.add(R.id.user_recmd_fragment, recmdUser, "FragmentRecmdUserHorizontal");
+        transaction.commitNow();
 
-            baseBind.refreshLayout.autoRefresh();
-
-            isLoad = true;
-        }
+        baseBind.refreshLayout.autoRefresh();
     }
 
     @Override
@@ -147,8 +126,6 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
     }
 
     private String restrict = Params.TYPE_PUBLUC;
-
-    private boolean isLoad = false;
 
     @Override
     public void showDataBase() {

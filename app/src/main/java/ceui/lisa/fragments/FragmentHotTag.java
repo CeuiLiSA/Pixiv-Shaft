@@ -25,7 +25,6 @@ import ceui.lisa.view.TagItemDecoration;
 public class FragmentHotTag extends NetListFragment<FragmentBaseListBinding,
         ListTrendingtag, ListTrendingtag.TrendTagsBean> {
 
-    private boolean isLoad = false;
     private String contentType = "";
 
     public static FragmentHotTag newInstance(String type) {
@@ -86,21 +85,6 @@ public class FragmentHotTag extends NetListFragment<FragmentBaseListBinding,
 
     @Override
     public boolean showToolbar() {
-        return false;
-    }
-
-    @Override
-    public void setUserVisibleHint(boolean isVisibleToUser) {
-        super.setUserVisibleHint(isVisibleToUser);
-
-        if (isVisibleToUser && !isLoad) {
-            baseBind.refreshLayout.autoRefresh();
-            isLoad = true;
-        }
-    }
-
-    @Override
-    public boolean autoRefresh() {
         return false;
     }
 }

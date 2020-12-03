@@ -90,23 +90,13 @@ public class FragmentCenter extends SwipeFragment<FragmentNewCenterBinding> {
     }
 
     @Override
-    public void setUserVisibleHint(boolean isVisibleToUser) {
-        super.setUserVisibleHint(isVisibleToUser);
-        Common.showLog(className + "setUserVisibleHint " + isVisibleToUser);
+    public void lazyData() {
+        FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
 
-        if (isVisibleToUser && !isLoad && isAdded()) {
-            FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
-
-            FragmentPivisionHorizontal pivisionFragment = new FragmentPivisionHorizontal();
-            transaction.add(R.id.fragment_pivision, pivisionFragment, "FragmentPivisionHorizontal");
-            transaction.commitNow();
-
-            isLoad = true;
-        }
-
+        FragmentPivisionHorizontal pivisionFragment = new FragmentPivisionHorizontal();
+        transaction.add(R.id.fragment_pivision, pivisionFragment, "FragmentPivisionHorizontal");
+        transaction.commitNow();
     }
-
-    private boolean isLoad = false;
 
     @Override
     public SmartRefreshLayout getSmartRefreshLayout() {

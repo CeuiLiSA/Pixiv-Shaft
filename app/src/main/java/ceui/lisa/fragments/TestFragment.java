@@ -35,7 +35,7 @@ public class TestFragment extends BaseLazyFragment<FragmentTestBinding>{
 
     @Override
     public void initModel() {
-        mVPModel = new ViewModelProvider(mActivity).get(VPModel.class);
+        mVPModel = new ViewModelProvider(this).get(VPModel.class);
     }
 
     @Override

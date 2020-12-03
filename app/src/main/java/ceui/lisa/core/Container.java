@@ -11,8 +11,6 @@ import ceui.lisa.utils.Common;
 
 public class Container {
 
-
-
     private HashMap<String, IDWithList<IllustsBean>> pages = new HashMap<>();
 
     /**
@@ -77,7 +75,7 @@ public class Container {
     }
 
     private static class SingleTonHolder {
-        private static Container INSTANCE = new Container();
+        private static final Container INSTANCE = new Container();
     }
 
     public static Container get() {

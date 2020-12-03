@@ -80,7 +80,6 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 Common.showUser(mContext, sUserModel);
             }
         });
-        baseBind.viewPager.setOffscreenPageLimit(3);
         baseBind.navigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -220,7 +219,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 break;
             case R.id.nav_fans:
                 if (Dev.isDev) {
-                    intent = new Intent(mContext, VPActivity.class);
+//                    intent = new Intent(mContext, VPActivity.class);
+                    intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "测试测试");
                 } else {
                     intent = new Intent(mContext, TemplateActivity.class);
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "粉丝");

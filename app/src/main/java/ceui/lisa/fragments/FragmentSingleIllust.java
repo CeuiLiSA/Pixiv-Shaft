@@ -424,15 +424,6 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
         }
     }
 
-//    @Override
-//    public void onPause() {
-//        super.onPause();
-//        //如果是GIF，停止播放
-//        if (illust != null && "ugoira".equals(illust.getType()) && mDetailAdapter != null) {
-//            mDetailAdapter.nowStopGif();
-//        }
-//    }
-
     @Override
     public void vertical() {
         //竖屏
@@ -449,20 +440,4 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
         headParams.height = Shaft.statusHeight * 3 / 5 + Shaft.toolbarHeight;
         baseBind.head.setLayoutParams(headParams);
     }
-
-//    @Override
-//    public void setUserVisibleHint(boolean isVisibleToUser) {
-//        super.setUserVisibleHint(isVisibleToUser);
-//        if (illust != null) {
-//            if (isVisibleToUser) {
-//                if ("ugoira".equals(illust.getType()) && mDetailAdapter != null) {
-//                    mDetailAdapter.nowPlayGif();
-//                }
-//            } else {
-//                if ("ugoira".equals(illust.getType()) && mDetailAdapter != null) {
-//                    mDetailAdapter.nowStopGif();
-//                }
-//            }
-//        }
-//    }
 }

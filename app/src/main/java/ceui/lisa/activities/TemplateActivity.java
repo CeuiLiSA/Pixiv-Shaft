@@ -64,6 +64,7 @@ import ceui.lisa.fragments.FragmentWalkThrough;
 import ceui.lisa.fragments.FragmentWebView;
 import ceui.lisa.fragments.FragmentWhoFollowThisUser;
 import ceui.lisa.fragments.FragmentWorkSpace;
+import ceui.lisa.fragments.TestFragment;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.utils.Local;
@@ -214,6 +215,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return FragmentCollection.newInstance(2);
                 case "主题颜色":
                     return new FragmentColors();
+                case "测试测试":
+                    return new TestFragment();
                 default:
                     return new Fragment();
             }

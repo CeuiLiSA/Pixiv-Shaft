@@ -8,20 +8,16 @@ import android.view.MenuItem;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
-import androidx.fragment.app.FragmentStatePagerAdapter;
 
 import com.ToxicBakery.viewpager.transforms.DrawerTransformer;
-import com.blankj.utilcode.util.BarUtils;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 
 import java.util.Calendar;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.ActivityMultiViewPagerBinding;
-import ceui.lisa.fragments.FragmentDoing;
 import ceui.lisa.fragments.FragmentRankIllust;
 import ceui.lisa.fragments.FragmentRankNovel;
-import ceui.lisa.fragments.NetListFragment;
 import ceui.lisa.utils.Common;
 
 public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> implements
