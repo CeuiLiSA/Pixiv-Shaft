@@ -17,6 +17,9 @@ import androidx.databinding.ViewDataBinding;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
+import java.util.Random;
+import java.util.UUID;
+
 
 public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragment {
 
@@ -30,9 +33,11 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
     protected Context mContext;
     private boolean isVertical;
     protected boolean isInit;
+    protected String uuid;
 
     public BaseFragment() {
-        Log.d(className, " newInstance");
+        uuid = UUID.randomUUID().toString();
+        Log.d(className, " newInstance " + uuid);
     }
 
     @Override
@@ -104,6 +109,7 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         try {
+            rootView.setTag(uuid);
             if (isVertical) {
                 vertical();
             } else {
@@ -148,5 +154,13 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
 
     public void initModel() {
 
+    }
+
+    public View getRootView() {
+        return rootView;
+    }
+
+    public void setRootView(View rootView) {
+        this.rootView = rootView;
     }
 }

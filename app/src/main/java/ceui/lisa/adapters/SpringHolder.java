@@ -18,7 +18,6 @@ class SpringHolder extends ViewHolder<RecyViewHistoryBinding> {
         spring = springSystem.createSpring();
         spring.setSpringConfig(SpringConfig.fromOrigamiTensionAndFriction(40, 5));
         spring.addListener(new SimpleSpringListener() {
-
             @Override
             public void onSpringUpdate(Spring spring) {
                 itemView.setTranslationX((float) spring.getCurrentValue());

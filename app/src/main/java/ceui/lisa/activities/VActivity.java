@@ -92,9 +92,6 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
         } else {
             finish();
         }
-
-        TimeRecord.end();
-        TimeRecord.result();
     }
 
     @Override

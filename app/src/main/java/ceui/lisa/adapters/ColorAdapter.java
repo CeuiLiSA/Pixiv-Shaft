@@ -19,6 +19,7 @@ import ceui.lisa.databinding.RecyColorBinding;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ColorItem;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Local;
 
 public class ColorAdapter extends BaseAdapter<ColorItem, RecyColorBinding> {
@@ -54,6 +55,10 @@ public class ColorAdapter extends BaseAdapter<ColorItem, RecyColorBinding> {
         setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
+                if (Dev.isDev) {
+                    return;
+                }
+
                 if (position == Shaft.sSettings.getThemeIndex()) {
                     return;
                 }
