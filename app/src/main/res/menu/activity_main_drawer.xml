@@ -34,17 +34,17 @@
         <menu>
             <item
                 android:id="@+id/illust_star"
-                android:icon="@drawable/ic_error_black_24dp"
+                android:icon="@drawable/ic_baseline_palette_24"
                 android:title="@string/string_319" />
 
             <item
                 android:id="@+id/novel_star"
-                android:icon="@drawable/ic_error_black_24dp"
+                android:icon="@drawable/ic_baseline_menu_book_24"
                 android:title="@string/string_320" />
 
             <item
                 android:id="@+id/follow_user"
-                android:icon="@drawable/ic_error_black_24dp"
+                android:icon="@drawable/ic_baseline_how_to_reg_24"
                 android:title="@string/string_321" />
 
             <item

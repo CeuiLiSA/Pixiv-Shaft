@@ -55,10 +55,6 @@ public class ColorAdapter extends BaseAdapter<ColorItem, RecyColorBinding> {
         setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                if (Dev.isDev) {
-                    return;
-                }
-
                 if (position == Shaft.sSettings.getThemeIndex()) {
                     return;
                 }

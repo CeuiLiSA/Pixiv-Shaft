@@ -28,7 +28,7 @@ public class GlideUrlChild extends GlideUrl {
 
     private static Headers getHeaders(String url) {
         HashMap<String, String> hashMap = new HashMap<>();
-        hashMap.put(Params.MAP_KEY, Params.IMAGE_REFERER);
+        hashMap.put(Params.MAP_KEY_SMALL, Params.IMAGE_REFERER);
         hashMap.put(Params.USER_AGENT, Params.PHONE_MODEL);
         try {
             hashMap.put(Params.HOST, Uri.parse(url).getHost());

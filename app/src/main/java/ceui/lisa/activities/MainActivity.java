@@ -106,11 +106,17 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             @Override
             public void onNavigationItemReselected(@NonNull MenuItem item) {
                 if (item.getItemId() == R.id.action_1) {
-                    Common.showToast("刷新左侧");
+                    if (baseFragments[0] instanceof FragmentLeft) {
+                        ((FragmentLeft) baseFragments[0]).scrollToTop();
+                    }
                 } else if (item.getItemId() == R.id.action_2) {
-                    Common.showToast("刷新中间");
+                    if (baseFragments[1] instanceof FragmentCenter) {
+                        ((FragmentCenter) baseFragments[1]).lazyData();
+                    }
                 } else if (item.getItemId() == R.id.action_3) {
-                    Common.showToast("刷新右侧");
+                    if (baseFragments[2] instanceof FragmentRight) {
+                        ((FragmentRight) baseFragments[2]).scrollToTop();
+                    }
                 }
             }
         });
@@ -220,8 +226,6 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             case R.id.nav_fans:
                 if (Dev.isDev) {
                     intent = new Intent(mContext, VPActivity.class);
-//                    intent = new Intent(mContext, TemplateActivity.class);
-//                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "测试测试");
                 } else {
                     intent = new Intent(mContext, TemplateActivity.class);
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "粉丝");

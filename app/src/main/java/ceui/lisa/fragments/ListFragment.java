@@ -25,6 +25,7 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.core.BaseRepo;
+import ceui.lisa.interfaces.FeedBack;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
 import ceui.lisa.view.SpacesItemDecoration;
@@ -147,6 +148,30 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
         if (autoRefresh() && !mModel.isLoaded()) {
             mRefreshLayout.autoRefresh();
         }
+    }
+
+    public void forceRefresh() {
+        scrollToTop(() -> mRefreshLayout.autoRefresh());
+    }
+
+    public void scrollToTop(FeedBack feedBack) {
+        try {
+            mRecyclerView.smoothScrollToPosition(0);
+            mRecyclerView.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (feedBack != null) {
+                        feedBack.doSomething();
+                    }
+                }
+            }, animateDuration);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void scrollToTop() {
+        scrollToTop(null);
     }
 
     public abstract void fresh();

@@ -71,7 +71,7 @@ public class VPActivity extends BaseActivity<ActivityMultiViewPagerTestBinding> 
 
             @Override
             public void onPageSelected(int position) {
-                Common.showLog("设置了一个 " + baseBind.viewPager.findViewWithTag());
+//                Common.showLog("设置了一个 " + baseBind.viewPager.findViewWithTag());
             }
 
             @Override

@@ -161,4 +161,10 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
                     }
                 });
     }
+
+    @Override
+    public void forceRefresh() {
+        baseBind.recyclerView.smoothScrollToPosition(0);
+//        super.forceRefresh();
+    }
 }
