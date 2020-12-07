@@ -200,4 +200,28 @@ public class IllustDownload {
             }
         }
     }
+
+    public static void checkNew(BaseActivity<?> activity, FeedBack feedBack) {
+        if (TextUtils.isEmpty(Shaft.sSettings.getRootPathUri())) {
+            activity.setFeedBack(feedBack);
+            new QMUIDialog.MessageDialogBuilder(activity)
+                    .setTitle(activity.getResources().getString(R.string.string_143))
+                    .setMessage(activity.getResources().getString(R.string.string_313))
+                    .setSkinManager(QMUISkinManager.defaultInstance(activity))
+                    .addAction(0, activity.getResources().getString(R.string.string_142),
+                            QMUIDialogAction.ACTION_PROP_NEGATIVE,
+                            (dialog, index) -> dialog.dismiss())
+                    .addAction(0, activity.getResources().getString(R.string.string_312),
+                            (dialog, index) -> {
+                                activity.startActivityForResult(
+                                        new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE), BaseActivity.ASK_URI);
+                                dialog.dismiss();
+                            })
+                    .show();
+        } else {
+            if (feedBack != null) {
+                feedBack.doSomething();
+            }
+        }
+    }
 }

@@ -26,7 +26,7 @@ public class ReverseImage {
     private static final String SAUCENAO_BASE_URL = "https://saucenao.com/";
     private static final String TINEYE_BASE_URL = "https://www.tineye.com/";
 
-    public static void reverse(File file, ReverseProvider reverseProvider, Callback callback) {
+    public static void reverse(byte[] file, ReverseProvider reverseProvider, Callback callback) {
 
         RequestBody requestBody = RequestBody.create(MediaType.parse("multipart/form-data"), file);
 
@@ -38,15 +38,15 @@ public class ReverseImage {
         MultipartBody.Part formData;
         switch (reverseProvider.name()) {
             case "Iqdb":
-                formData = MultipartBody.Part.createFormData("file", file.getName(), requestBody);
+                formData = MultipartBody.Part.createFormData("file", "pixiv_image.png", requestBody);
                 observable = ((IqdbApi) o).query(formData);
                 break;
             case "SauceNao":
-                formData = MultipartBody.Part.createFormData("file", file.getName(), requestBody);
+                formData = MultipartBody.Part.createFormData("file", "pixiv_image.png", requestBody);
                 observable = ((SauceNaoApi) o).query(formData);
                 break;
             case "TinEye":
-                formData = MultipartBody.Part.createFormData("image", file.getName(), requestBody);
+                formData = MultipartBody.Part.createFormData("image", "pixiv_image.png", requestBody);
                 observable = ((TinEyeApi) o).query(formData);
                 break;
             default:

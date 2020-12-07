@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 
+import com.blankj.utilcode.util.UriUtils;
+
 import java.io.File;
 
 import ceui.lisa.utils.Common;
@@ -20,8 +22,8 @@ public class OutReversActivity extends OutWakeActivity {
                 try {
                     Bundle bundle = getIntent().getExtras();
                     if (bundle != null) {
-                        Uri imageUri = (Uri) getIntent().getParcelableExtra(Intent.EXTRA_STREAM);
-                        ReverseImage.reverse(new File(Common.getRealFilePath(mContext, imageUri)),
+                        Uri imageUri = getIntent().getParcelableExtra(Intent.EXTRA_STREAM);
+                        ReverseImage.reverse(UriUtils.uri2Bytes(imageUri),
                                 ReverseImage.ReverseProvider.SauceNao, new ReverseWebviewCallback(this));
                     }
                 } catch (Exception e) {

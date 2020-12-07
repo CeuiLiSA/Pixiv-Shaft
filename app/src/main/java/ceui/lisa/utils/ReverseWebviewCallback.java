@@ -35,6 +35,7 @@ public class ReverseWebviewCallback implements ReverseImage.Callback {
 
     @Override
     public void onError(Throwable e) {
+        e.printStackTrace();
         Common.showToast(e.getMessage());
     }
 }

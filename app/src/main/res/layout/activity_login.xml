@@ -253,6 +253,7 @@
             android:id="@+id/progress"
             android:visibility="invisible"
             android:layout_height="wrap_content"
+            android:indeterminateTint="@color/always_white"
             app:layout_constraintBottom_toBottomOf="parent"
             android:layout_marginBottom="48dp"
             app:layout_constraintEnd_toEndOf="parent"
