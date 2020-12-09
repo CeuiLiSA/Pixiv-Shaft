@@ -132,6 +132,8 @@ public class Manager {
                 }, throwable -> {
                     //下载失败，处理相关逻辑
                     Common.showLog(throwable.toString());
+                    content.remove(bean);
+                    checkPipe(context);
                 });
     }
 

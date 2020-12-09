@@ -38,9 +38,11 @@ public class DownloadItem implements Serializable {
     }
 
     public void setFile(DocumentFile file) {
-        mFile = file;
-        name = mFile.getName();
-        uri = mFile.getUri();
+        if (file != null) {
+            mFile = file;
+            name = mFile.getName();
+            uri = mFile.getUri();
+        }
     }
 
     public String getUuid() {

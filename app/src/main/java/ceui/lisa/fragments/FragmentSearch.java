@@ -97,7 +97,9 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                 String key = String.valueOf(charSequence);
                 if (key.length() != 0 && searchType == 0) {
-                    fuck.onNext(key);
+                    if (fuck != null) {
+                        fuck.onNext(key);
+                    }
                     baseBind.clear.setVisibility(View.VISIBLE);
                 } else {
                     baseBind.hintList.setVisibility(View.GONE);

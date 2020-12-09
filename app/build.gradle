@@ -126,6 +126,9 @@ dependencies {
     implementation 'com.makeramen:roundedimageview:2.3.0'
 
 
+    implementation 'com.shizhefei:LargeImageView:1.1.0'
+
+    
     implementation 'com.ljx.rxhttp:rxhttp:2.4.1'
     kapt 'com.ljx.rxhttp:rxhttp-compiler:2.4.1'
 

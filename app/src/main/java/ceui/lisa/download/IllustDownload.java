@@ -1,6 +1,5 @@
 package ceui.lisa.download;
 
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.text.TextUtils;
@@ -11,7 +10,6 @@ import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 
-import java.io.File;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +36,6 @@ public class IllustDownload {
                 item.setFile(SAFile.getDocument(activity, illust, 0));
                 item.setShowUrl(getShowUrl(illust, 0));
                 Manager.get().addTask(item, activity);
-                Common.showToast(Shaft.getContext().getString(R.string.one_item_added));
             }
         });
     }
@@ -54,7 +51,6 @@ public class IllustDownload {
                 item.setFile(SAFile.getDocument(activity, illust, index));
                 item.setShowUrl(getShowUrl(illust, index));
                 Manager.get().addTask(item, activity);
-                Common.showToast(Shaft.getContext().getString(R.string.one_item_added));
             }
         });
     }
@@ -74,7 +70,6 @@ public class IllustDownload {
                     tempList.add(item);
                 }
                 Manager.get().addTasks(tempList, activity);
-                Common.showToast(tempList.size() + Shaft.getContext().getString(R.string.has_been_added));
             }
         });
     }
@@ -105,7 +100,6 @@ public class IllustDownload {
                 }
             }
             Manager.get().addTasks(tempList, activity);
-            Common.showToast(tempList.size() + Shaft.getContext().getString(R.string.has_been_added));
         });
     }
 
@@ -116,7 +110,6 @@ public class IllustDownload {
             item.setFile(file);
             item.setShowUrl(illust.getImage_urls().getMedium());
             Manager.get().addTask(item, activity);
-            Common.showToast("图组ZIP已加入下载队列");
         });
     }
 
@@ -138,7 +131,7 @@ public class IllustDownload {
                         e.printStackTrace();
                     }
                 }
-                if(targetCallback != null) {
+                if (targetCallback != null) {
                     targetCallback.doSomething(documentFile.getUri());
                 }
             }
@@ -150,7 +143,7 @@ public class IllustDownload {
             return "https://pixiv.cat/" + illust.getId() + "." + getMimeType(illust, index);
         } else {
             return "https://pixiv.cat/" + illust.getId() +
-                    "-" + (index+1) + "." + getMimeType(illust, index);
+                    "-" + (index + 1) + "." + getMimeType(illust, index);
         }
     }
 
@@ -189,32 +182,13 @@ public class IllustDownload {
                             (dialog, index) -> dialog.dismiss())
                     .addAction(0, activity.getResources().getString(R.string.string_312),
                             (dialog, index) -> {
-                                activity.startActivityForResult(
-                                        new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE), BaseActivity.ASK_URI);
-                                dialog.dismiss();
-                            })
-                    .show();
-        } else {
-            if (feedBack != null) {
-                feedBack.doSomething();
-            }
-        }
-    }
-
-    public static void checkNew(BaseActivity<?> activity, FeedBack feedBack) {
-        if (TextUtils.isEmpty(Shaft.sSettings.getRootPathUri())) {
-            activity.setFeedBack(feedBack);
-            new QMUIDialog.MessageDialogBuilder(activity)
-                    .setTitle(activity.getResources().getString(R.string.string_143))
-                    .setMessage(activity.getResources().getString(R.string.string_313))
-                    .setSkinManager(QMUISkinManager.defaultInstance(activity))
-                    .addAction(0, activity.getResources().getString(R.string.string_142),
-                            QMUIDialogAction.ACTION_PROP_NEGATIVE,
-                            (dialog, index) -> dialog.dismiss())
-                    .addAction(0, activity.getResources().getString(R.string.string_312),
-                            (dialog, index) -> {
-                                activity.startActivityForResult(
-                                        new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE), BaseActivity.ASK_URI);
+                                try {
+                                    activity.startActivityForResult(
+                                            new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE), BaseActivity.ASK_URI);
+                                } catch (Exception e) {
+                                    Common.showToast(e.toString());
+                                    e.printStackTrace();
+                                }
                                 dialog.dismiss();
                             })
                     .show();
