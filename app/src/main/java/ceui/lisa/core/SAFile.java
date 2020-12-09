@@ -2,15 +2,13 @@ package ceui.lisa.core;
 
 import android.content.Context;
 import android.net.Uri;
+import android.provider.DocumentsContract;
 
 import androidx.documentfile.provider.DocumentFile;
-
-import java.io.File;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.models.IllustsBean;
-import ceui.lisa.models.NovelBean;
 import ceui.lisa.utils.Common;
 
 public class SAFile {
@@ -18,12 +16,17 @@ public class SAFile {
     public static DocumentFile getDocument(Context context, IllustsBean illust, int index) {
         Uri rootUri = Uri.parse(Shaft.sSettings.getRootPathUri());
         DocumentFile root = DocumentFile.fromTreeUri(context, rootUri);
+        String id = DocumentsContract.getTreeDocumentId(rootUri);
         String displayName = FileCreator.createIllustFile(illust, index).getName();
-        assert root != null;
-        DocumentFile file = root.findFile(displayName);
-        if (file != null) {
-            return file;
+        id = id + "/" + displayName;
+
+        Uri childrenUri = DocumentsContract.buildDocumentUriUsingTree(rootUri, id);
+        DocumentFile childFile = DocumentFile.fromSingleUri(context, childrenUri);
+
+        if (childFile != null && childFile.exists()) {
+            return childFile;
         } else {
+            assert root != null;
             return root.createFile(getMimeType(illust, index), displayName);
         }
     }

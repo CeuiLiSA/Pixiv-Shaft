@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+    </data>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:background="@color/black"
+        android:layout_height="match_parent">
+
+
+        <xyz.zpayh.hdimage.HDImageView
+            android:layout_width="match_parent"
+            android:scaleType="fitCenter"
+            android:id="@+id/illust_image"
+            android:layout_height="match_parent">
+
+        </xyz.zpayh.hdimage.HDImageView>
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:id="@+id/progress"
+            android:layout_centerInParent="true"
+            android:layout_height="wrap_content">
+
+        </ProgressBar>
+
+    </RelativeLayout>
+</layout>

@@ -7,11 +7,13 @@ import com.bumptech.glide.Glide;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.FragmentImageDetailBinding;
+import ceui.lisa.databinding.FragmentImageDetailLocalBinding;
 import ceui.lisa.utils.Params;
+import xyz.zpayh.hdimage.OnBitmapLoadListener;
 
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
-public class FragmentLocalImageDetail extends BaseFragment<FragmentImageDetailBinding> {
+public class FragmentLocalImageDetail extends BaseFragment<FragmentImageDetailLocalBinding> {
 
     private String filePath;
 
@@ -30,15 +32,28 @@ public class FragmentLocalImageDetail extends BaseFragment<FragmentImageDetailBi
 
     @Override
     public void initLayout() {
-        mLayoutID = R.layout.fragment_image_detail;
+        mLayoutID = R.layout.fragment_image_detail_local;
     }
 
     @Override
     public void initView() {
-        Glide.with(mContext)
-                .load(filePath)
-                .transition(withCrossFade())
-                .into(baseBind.illustImage);
-        baseBind.progress.setVisibility(View.INVISIBLE);
+        baseBind.illustImage.setMaxScale(1.75f);
+        baseBind.illustImage.setImageURI(filePath);
+        baseBind.illustImage.setOnBitmapLoadListener(new OnBitmapLoadListener() {
+            @Override
+            public void onBitmapLoadReady() {
+
+            }
+
+            @Override
+            public void onBitmapLoaded(int width, int height) {
+                baseBind.progress.setVisibility(View.INVISIBLE);
+            }
+
+            @Override
+            public void onBitmapLoadError(Exception e) {
+                baseBind.progress.setVisibility(View.INVISIBLE);
+            }
+        });
     }
 }
