@@ -8,6 +8,7 @@ import android.net.Uri;
 import androidx.documentfile.provider.DocumentFile;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,11 +31,12 @@ public class Manager {
 
     private List<DownloadItem> content = new ArrayList<>();
     private Disposable handle = null;
-    private long nonius = 0L;
+    private long nonius;
 
     private boolean isRunning = false;
 
     private Manager() {
+        nonius = 0L;
     }
 
     public void restore(Context context) {
@@ -63,15 +65,15 @@ public class Manager {
         if (content == null) {
             content = new ArrayList<>();
         }
-//        boolean isTaskExist = false;
-//        for (DownloadItem item : content) {
-//            if (item.isSame(bean)) {
-//                isTaskExist = true;
-//            }
-//        }
-//        if (!isTaskExist) {
-//            safeAdd(bean);
-//        }
+        boolean isTaskExist = false;
+        for (DownloadItem item : content) {
+            if (item.isSame(bean)) {
+                isTaskExist = true;
+            }
+        }
+        if (!isTaskExist) {
+            safeAdd(bean);
+        }
         safeAdd(bean);
         start(context);
     }
@@ -173,8 +175,7 @@ public class Manager {
 //                    contentResolver.update(item, null, null, null);
                 }, throwable -> {
                     //下载失败，处理相关逻辑
-                    Common.showLog(throwable.toString());
-                    safeDelete(bean);
+                    Common.showLog("下载失败" + throwable.toString());
                     checkPipe(context);
                 });
     }

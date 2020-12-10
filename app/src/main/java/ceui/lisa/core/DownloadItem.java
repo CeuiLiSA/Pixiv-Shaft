@@ -8,6 +8,7 @@ import androidx.documentfile.provider.DocumentFile;
 import java.io.Serializable;
 import java.util.UUID;
 
+import ceui.lisa.download.FileCreator;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 
@@ -19,9 +20,11 @@ public class DownloadItem implements Serializable {
     private String uuid;
     private IllustsBean illust;
 
-    public DownloadItem(IllustsBean illustsBean) {
+    public DownloadItem(IllustsBean illustsBean, int index) {
         this.illust = illustsBean;
         this.uuid = UUID.randomUUID().toString();
+        this.name = FileCreator.customFileName(illustsBean, index);
+        Common.showLog("随机生成一个UUID");
     }
 
     public String getShowUrl() {

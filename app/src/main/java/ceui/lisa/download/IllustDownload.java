@@ -31,7 +31,7 @@ public class IllustDownload {
     public static void downloadIllust(IllustsBean illust, BaseActivity<?> activity) {
         check(activity, () -> {
             if (illust.getPage_count() == 1) {
-                DownloadItem item = new DownloadItem(illust);
+                DownloadItem item = new DownloadItem(illust, 0);
                 item.setUrl(getUrl(illust, 0));
                 item.setShowUrl(getShowUrl(illust, 0));
                 Manager.get().addTask(item, activity);
@@ -45,7 +45,7 @@ public class IllustDownload {
             if (illust.getPage_count() == 1) {
                 downloadIllust(illust, activity);
             } else {
-                DownloadItem item = new DownloadItem(illust);
+                DownloadItem item = new DownloadItem(illust, index);
                 item.setUrl(getUrl(illust, index));
                 item.setShowUrl(getShowUrl(illust, index));
                 Manager.get().addTask(item, activity);
@@ -61,7 +61,7 @@ public class IllustDownload {
             } else {
                 List<DownloadItem> tempList = new ArrayList<>();
                 for (int i = 0; i < illust.getPage_count(); i++) {
-                    DownloadItem item = new DownloadItem(illust);
+                    DownloadItem item = new DownloadItem(illust, i);
                     item.setUrl(getUrl(illust, i));
                     item.setShowUrl(getShowUrl(illust, i));
                     tempList.add(item);
@@ -80,13 +80,13 @@ public class IllustDownload {
                     final IllustsBean illust = beans.get(i);
 
                     if (illust.getPage_count() == 1) {
-                        DownloadItem item = new DownloadItem(illust);
+                        DownloadItem item = new DownloadItem(illust, 0);
                         item.setUrl(getUrl(illust, 0));
                         item.setShowUrl(getShowUrl(illust, 0));
                         tempList.add(item);
                     } else {
                         for (int j = 0; j < illust.getPage_count(); j++) {
-                            DownloadItem item = new DownloadItem(illust);
+                            DownloadItem item = new DownloadItem(illust, j);
                             item.setUrl(getUrl(illust, j));
                             item.setShowUrl(getShowUrl(illust, j));
                             tempList.add(item);
@@ -100,7 +100,7 @@ public class IllustDownload {
 
     public static void downloadGif(GifResponse response, DocumentFile file, IllustsBean illust, BaseActivity<?> activity) {
         check(activity, () -> {
-            DownloadItem item = new DownloadItem(illust);
+            DownloadItem item = new DownloadItem(illust, 0);
             item.setUrl(response.getUgoira_metadata().getZip_urls().getMedium());
             item.setShowUrl(illust.getImage_urls().getMedium());
             Manager.get().addTask(item, activity);
@@ -133,13 +133,13 @@ public class IllustDownload {
     }
 
     public static String getUrl(IllustsBean illust, int index) {
-//        if (illust.getPage_count() == 1) {
-//            return "https://pixiv.cat/" + illust.getId() + "." + getMimeType(illust, index);
-//        } else {
-//            return "https://pixiv.cat/" + illust.getId() +
-//                    "-" + (index + 1) + "." + getMimeType(illust, index);
-//        }
-        return "http://update.9158.com/miaolive/Miaolive.apk";
+        if (illust.getPage_count() == 1) {
+            return "https://pixiv.cat/" + illust.getId() + "." + getMimeType(illust, index);
+        } else {
+            return "https://pixiv.cat/" + illust.getId() +
+                    "-" + (index + 1) + "." + getMimeType(illust, index);
+        }
+//        return "http://update.9158.com/miaolive/Miaolive.apk";
     }
 
     public static String getShowUrl(IllustsBean illust, int index) {

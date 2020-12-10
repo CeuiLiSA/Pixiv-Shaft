@@ -2,8 +2,10 @@ package ceui.lisa.activities;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
 
 import com.google.gson.Gson;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
@@ -13,6 +15,7 @@ import com.scwang.smartrefresh.layout.header.ClassicsHeader;
 import ceui.lisa.R;
 import ceui.lisa.helper.ThemeHelper;
 import ceui.lisa.models.UserModel;
+import ceui.lisa.notification.NetWorkStateReceiver;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Local;
@@ -27,6 +30,7 @@ public class Shaft extends Application {
     public static Settings sSettings;
     public static Gson sGson;
     public static SharedPreferences sPreferences;
+    protected NetWorkStateReceiver netWorkStateReceiver;
 
     /**
      * 状态栏高度，初始化
@@ -78,6 +82,13 @@ public class Shaft extends Application {
             statusHeight = sContext.getResources().getDimensionPixelSize(resourceId);
         }
         toolbarHeight = DensityUtil.dp2px(56.0f);
+
+        if (netWorkStateReceiver == null) {
+            netWorkStateReceiver = new NetWorkStateReceiver();
+        }
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+        registerReceiver(netWorkStateReceiver, filter);
     }
 
     private void updateTheme() {

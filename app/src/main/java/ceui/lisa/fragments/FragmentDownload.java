@@ -1,5 +1,6 @@
 package ceui.lisa.fragments;
 
+import android.net.ConnectivityManager;
 import android.view.MenuItem;
 
 import androidx.annotation.Nullable;
@@ -16,6 +17,7 @@ import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.core.Manager;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.databinding.ViewpagerWithTablayoutBinding;
 import ceui.lisa.utils.Common;
@@ -40,6 +42,7 @@ public class FragmentDownload extends BaseFragment<ViewpagerWithTablayoutBinding
         };
         BarUtils.setStatusBarColor(mActivity, android.R.attr.colorPrimary);
         baseBind.toolbarTitle.setText(R.string.string_203);
+        baseBind.toolbar.inflateMenu(R.menu.start_all);
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
         baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
@@ -71,6 +74,10 @@ public class FragmentDownload extends BaseFragment<ViewpagerWithTablayoutBinding
                         Common.showToast("没有可删除的记录");
                     }
                     return true;
+                } else if (item.getItemId() == R.id.action_start) {
+                    Manager.get().start(mContext);
+                } else if (item.getItemId() == R.id.action_stop) {
+                    Manager.get().stop();
                 }
                 return false;
             }
@@ -105,10 +112,10 @@ public class FragmentDownload extends BaseFragment<ViewpagerWithTablayoutBinding
             @Override
             public void onPageSelected(int i) {
                 if (i == 0) {
-                    Common.showLog("清空menu");
                     baseBind.toolbar.getMenu().clear();
+                    baseBind.toolbar.inflateMenu(R.menu.start_all);
                 } else {
-                    Common.showLog("添加menu");
+                    baseBind.toolbar.getMenu().clear();
                     baseBind.toolbar.inflateMenu(R.menu.delete_all);
                 }
             }
