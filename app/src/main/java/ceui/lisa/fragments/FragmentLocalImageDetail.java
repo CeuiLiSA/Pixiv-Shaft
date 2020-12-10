@@ -37,7 +37,6 @@ public class FragmentLocalImageDetail extends BaseFragment<FragmentImageDetailLo
 
     @Override
     public void initView() {
-        baseBind.illustImage.setMaxScale(1.75f);
         baseBind.illustImage.setImageURI(filePath);
         baseBind.illustImage.setOnBitmapLoadListener(new OnBitmapLoadListener() {
             @Override

@@ -3,6 +3,7 @@ package ceui.lisa.adapters;
 import android.content.Context;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.databinding.DataBindingUtil;
@@ -76,5 +77,11 @@ public class DownloadingAdapter extends BaseAdapter<DownloadItem, RecyDownloadTa
             bindView.baseBind.state.setText("等待中");
             bindView.baseBind.currentSize.setText(mContext.getString(R.string.string_115));
         }
+        bindView.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Manager.get().start(mContext);
+            }
+        });
     }
 }

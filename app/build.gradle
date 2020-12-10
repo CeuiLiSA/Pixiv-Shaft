@@ -129,8 +129,8 @@ dependencies {
     implementation 'com.shizhefei:LargeImageView:1.1.0'
 
     
-    implementation 'com.ljx.rxhttp:rxhttp:2.4.1'
-    kapt 'com.ljx.rxhttp:rxhttp-compiler:2.4.1'
+    implementation 'com.ljx.rxhttp:rxhttp:2.4.4'
+    kapt 'com.ljx.rxhttp:rxhttp-compiler:2.4.4'
 
     implementation 'io.reactivex.rxjava3:rxjava:3.0.6'
     implementation 'io.reactivex.rxjava3:rxandroid:3.0.0'

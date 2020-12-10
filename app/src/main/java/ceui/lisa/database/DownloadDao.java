@@ -22,6 +22,11 @@ public interface DownloadDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insert(DownloadEntity illustTask);
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insertDownloading(DownloadingEntity entity);
+
+    @Delete
+    void deleteDownloading(DownloadingEntity entity);
 
     /**
      * 删除一条下载记录
@@ -40,6 +45,9 @@ public interface DownloadDao {
      */
     @Query("SELECT * FROM illust_download_table ORDER BY downloadTime DESC LIMIT :limit OFFSET :offset")
     List<DownloadEntity> getAll(int limit, int offset);
+
+    @Query("SELECT * FROM illust_downloading_table")
+    List<DownloadingEntity> getAllDownloading();
 
     /**
      *

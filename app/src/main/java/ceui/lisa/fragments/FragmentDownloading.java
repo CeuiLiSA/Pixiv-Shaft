@@ -16,11 +16,8 @@ import ceui.lisa.core.Manager;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyDownloadTaskBinding;
 import ceui.lisa.interfaces.Callback;
-import ceui.lisa.models.IllustsBean;
 import ceui.lisa.notification.DownloadReceiver;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
-import rxhttp.wrapper.entity.Progress;
 
 public class FragmentDownloading extends LocalListFragment<FragmentBaseListBinding, DownloadItem> {
 

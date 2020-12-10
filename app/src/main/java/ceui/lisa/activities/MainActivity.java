@@ -158,6 +158,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 return baseFragments.length;
             }
         });
+        Manager.get().restore(mContext);
     }
 
     @Override
@@ -313,6 +314,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 builder.setPositiveButton(mContext.getString(R.string.sure), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        Manager.get().stop();
                         finish();
                     }
                 });

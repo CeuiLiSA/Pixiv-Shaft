@@ -43,6 +43,16 @@ public class Settings {
     //瀑布流List点击动画
     private boolean mainListAnimate = true;
 
+    private long currentProgress = 0L;
+
+    public long getCurrentProgress() {
+        return currentProgress;
+    }
+
+    public void setCurrentProgress(long currentProgress) {
+        this.currentProgress = currentProgress;
+    }
+
     private boolean trendsForPrivate = false;
 
     //浏览历史List点击动画

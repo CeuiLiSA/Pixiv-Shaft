@@ -9,6 +9,7 @@ import com.bumptech.glide.load.model.Headers;
 import java.util.HashMap;
 import java.util.Map;
 
+import ceui.lisa.download.IllustDownload;
 import ceui.lisa.models.UserBean;
 import ceui.lisa.models.IllustsBean;
 
@@ -61,10 +62,6 @@ public class GlideUtil {
 
 
     public static GlideUrl getOriginal(IllustsBean illustsBean, int i) {
-        if (illustsBean.getPage_count() == 1) {
-            return new GlideUrlChild(illustsBean.getMeta_single_page().getOriginal_image_url());
-        } else {
-            return new GlideUrlChild(illustsBean.getMeta_pages().get(i).getImage_urls().getOriginal());
-        }
+        return new GlideUrlChild(IllustDownload.getUrl(illustsBean, i));
     }
 }
