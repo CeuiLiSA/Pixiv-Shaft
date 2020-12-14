@@ -12,8 +12,8 @@ android {
         applicationId "ceui.lisa.pixiv"
         minSdkVersion 21
         targetSdkVersion 30
-        versionCode 136
-        versionName "2.4.8"
+        versionCode 138
+        versionName "2.5.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         javaCompileOptions {
@@ -140,6 +140,9 @@ dependencies {
     implementation 'xyz.zpayh:hdimageview-glide:3.0.0'
 
     implementation project(path: ':models')
+
+
+    implementation 'com.github.tbruyelle:rxpermissions:0.12'
 
 
     testImplementation 'junit:junit:4.13'

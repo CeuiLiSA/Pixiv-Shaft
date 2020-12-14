@@ -11,5 +11,11 @@
         android:id="@+id/action_stop"
         android:orderInCategory="100"
         android:title="@string/string_327"
-        app:showAsAction="always" />
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_clear"
+        android:orderInCategory="100"
+        android:title="@string/string_328"
+        app:showAsAction="never" />
 </menu>

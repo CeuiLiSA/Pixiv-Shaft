@@ -79,6 +79,8 @@ public class FragmentDownloadFinish extends LocalListFragment<FragmentBaseListBi
 
     @Override
     public void onFirstLoaded(List<DownloadEntity> illustHistoryEntities) {
+        all.clear();
+        filePaths.clear();
         for (int i = 0; i < illustHistoryEntities.size(); i++) {
             IllustsBean illustsBean = Shaft.sGson.fromJson(
                     illustHistoryEntities.get(i).getIllustGson(), IllustsBean.class);

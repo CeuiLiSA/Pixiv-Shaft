@@ -18,20 +18,12 @@ import ceui.lisa.utils.Settings;
 public class FileCreator {
 
     public static File createGifZipFile(IllustsBean illustsBean) {
-        if (illustsBean == null) {
-            return null;
-        }
-
         return new File(Shaft.sSettings.getGifZipPath(), deleteSpecialWords(
                 illustsBean.getTitle() + DASH + illustsBean.getId() + ".zip")
         );
     }
 
     public static File createGifUnZipFolder(IllustsBean illustsBean) {
-        if (illustsBean == null) {
-            return null;
-        }
-
         return new File(Shaft.sSettings.getGifZipPath(), deleteSpecialWords(
                 illustsBean.getTitle() + "_" + illustsBean.getId())
         );
@@ -40,10 +32,6 @@ public class FileCreator {
 
 
     public static File createGifFile(IllustsBean illustsBean) {
-        if (illustsBean == null) {
-            return null;
-        }
-
         return new File(Shaft.sSettings.getGifResultPath(), deleteSpecialWords(
                 illustsBean.getTitle() + DASH + illustsBean.getId() + ".gif")
         );
@@ -51,44 +39,18 @@ public class FileCreator {
 
 
     public static File createGifParentFile(IllustsBean illustsBean) {
-        if (illustsBean == null) {
-            return null;
-        }
-
         return new File(Shaft.sSettings.getGifUnzipPath() + deleteSpecialWords(
                 illustsBean.getTitle() + DASH + illustsBean.getId())
         );
     }
 
-    /**
-     *
-     * index 0 "title_123456789_p0.png"
-     * index 1 "title_123456789_p0.jpg"
-     * index 2 "123456789_title_p0.png"
-     * index 3 "123456789_title_p0.jpg"
-     *
-     * @param illustsBean illustsBean
-     * @return file
-     */
     public static File createIllustFile(IllustsBean illustsBean) {
         return createIllustFile(illustsBean, 0);
     }
 
-
     private static final String DASH = "_";
-    /**
-     *
-     * index 0 "title_123456789_p0.png"
-     * index 1 "title_123456789_p0.jpg"
-     * index 2 "123456789_title_p0.png"
-     * index 3 "123456789_title_p0.jpg"
-     *
-     */
-    public static File createIllustFile(IllustsBean illustsBean, int index) {
-        if (illustsBean == null) {
-            return null;
-        }
 
+    public static File createIllustFile(IllustsBean illustsBean, int index) {
         return new File(Shaft.sSettings.getIllustPath(), customFileName(illustsBean, index));
     }
 
@@ -101,22 +63,6 @@ public class FileCreator {
         } else {
             return "untitle_" + System.currentTimeMillis() + ".png";
         }
-    }
-
-    public static File createWebFile(String name) {
-        File parent = new File(Shaft.sSettings.getIllustPath());
-        if (!parent.exists()) {
-            parent.mkdir();
-        }
-        return new File(parent, deleteSpecialWords(name));
-    }
-
-    public static File createLogFile(String name) {
-        File parent = new File(Shaft.sSettings.getNovelPath());
-        if (!parent.exists()) {
-            parent.mkdir();
-        }
-        return new File(parent, deleteSpecialWords(name));
     }
 
     public static final int ILLUST_TITLE = 1;
@@ -145,11 +91,9 @@ public class FileCreator {
     }
 
     public static String getMimeTypeFromUrl(String url) {
-        String result;
+        String result = "png";
         if (url.contains(".")) {
             result = url.substring(url.lastIndexOf(".") + 1);
-        } else {
-            result = "png";
         }
         Common.showLog("getMimeType fileUrl: " + url + ", fileType: " + result);
         return result;

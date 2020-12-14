@@ -78,6 +78,32 @@ public class FragmentDownload extends BaseFragment<ViewpagerWithTablayoutBinding
                     Manager.get().start(mContext);
                 } else if (item.getItemId() == R.id.action_stop) {
                     Manager.get().stop();
+                } else if (item.getItemId() == R.id.action_clear) {
+                    if (allPages[0] instanceof FragmentDownloading &&
+                            ((FragmentDownloading) allPages[0]).getCount() > 0) {
+                        new QMUIDialog.MessageDialogBuilder(mActivity)
+                                .setTitle("提示")
+                                .setMessage("清空所有未完成的任务吗？")
+                                .setSkinManager(QMUISkinManager.defaultInstance(mActivity))
+                                .addAction("取消", new QMUIDialogAction.ActionListener() {
+                                    @Override
+                                    public void onClick(QMUIDialog dialog, int index) {
+                                        dialog.dismiss();
+                                    }
+                                })
+                                .addAction(0, "清空", QMUIDialogAction.ACTION_PROP_NEGATIVE, new QMUIDialogAction.ActionListener() {
+                                    @Override
+                                    public void onClick(QMUIDialog dialog, int index) {
+                                        Manager.get().clear();
+                                        ((FragmentDownloading) allPages[0]).clearAndRefresh();
+                                        Common.showToast("下载任务清除成功");
+                                        dialog.dismiss();
+                                    }
+                                })
+                                .show();
+                    } else {
+                        Common.showToast("没有可删除的记录");
+                    }
                 }
                 return false;
             }

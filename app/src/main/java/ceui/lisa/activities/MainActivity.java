@@ -1,5 +1,6 @@
 package ceui.lisa.activities;
 
+import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
@@ -23,6 +24,7 @@ import com.blankj.utilcode.util.UriUtils;
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
+import com.tbruyelle.rxpermissions3.RxPermissions;
 
 import ceui.lisa.R;
 import ceui.lisa.core.Manager;
@@ -37,6 +39,7 @@ import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseImage;
 import ceui.lisa.utils.ReverseWebviewCallback;
+import io.reactivex.rxjava3.disposables.Disposable;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
@@ -164,7 +167,22 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     @Override
     protected void initData() {
         if (sUserModel != null && sUserModel.getResponse().getUser().isIs_login()) {
-            initFragment();
+            if (Common.isAndroidQ()) {
+                initFragment();
+            } else {
+                new RxPermissions(mActivity)
+                        .requestEachCombined(
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE
+                        )
+                        .subscribe(permission -> {
+                            if (permission.granted) {
+                                initFragment();
+                            } else {
+                                Common.showToast(mActivity.getString(R.string.access_denied));
+                                finish();
+                            }
+                        });
+            }
         } else {
             Intent intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "登录注册");

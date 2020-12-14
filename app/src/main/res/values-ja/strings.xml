@@ -484,5 +484,10 @@
   <string name="string_322">私のファン</string>  
   <string name="string_323">私の良いP友達</string>  
   <string name="string_324">テーマカラー</string>  
-  <string name="string_325">設定をクリックします</string>
+  <string name="string_325">設定をクリックします</string>  
+  <string name="string_326">開始</string>  
+  <string name="string_327">停止</string>  
+  <string name="string_328">任務をクリアする</string>  
+  <string name="string_329">システムバージョンがAndroid 10より低いので、フォルダをカスタマイズできません。</string>  
+  <string name="string_330">設定されていません</string>
 </resources>

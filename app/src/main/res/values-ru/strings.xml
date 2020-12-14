@@ -484,5 +484,10 @@
   <string name="string_322">мои поклонники</string>  
   <string name="string_323">мой хороший друг пи</string>  
   <string name="string_324">тематический цвет</string>  
-  <string name="string_325">Щёлкните на настройки</string>
+  <string name="string_325">Щёлкните на настройки</string>  
+  <string name="string_326">Начало</string>  
+  <string name="string_327">пауза</string>  
+  <string name="string_328">Очистить задачу</string>  
+  <string name="string_329">Системные версии ниже Android 10, не удаётся настроить папку</string>  
+  <string name="string_330">пока не установлено</string>
 </resources>

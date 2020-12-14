@@ -55,6 +55,9 @@ public interface DownloadDao {
     @Query("DELETE FROM illust_download_table")
     void deleteAllDownload();
 
+    @Query("DELETE FROM illust_downloading_table")
+    void deleteAllDownloading();
+
 
     /**
      * 新增一个浏览历史

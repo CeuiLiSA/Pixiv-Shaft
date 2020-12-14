@@ -2,8 +2,10 @@ package ceui.lisa.fragments;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.CompoundButton;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -285,9 +287,13 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
         baseBind.illustPath.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                freshPath = true;
-                mActivity.startActivityForResult(
-                        new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE), BaseActivity.ASK_URI);
+                if (Common.isAndroidQ()) {
+                    freshPath = true;
+                    mActivity.startActivityForResult(
+                            new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE), BaseActivity.ASK_URI);
+                } else {
+                    Common.showToast(getString(R.string.string_329), true);
+                }
             }
         });
 
@@ -437,8 +443,16 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
 
     private void setPath() {
         try {
-            baseBind.illustPath.setText(URLDecoder.decode(Shaft.sSettings.getRootPathUri(), "utf-8"));
-        } catch (UnsupportedEncodingException e) {
+            if (Common.isAndroidQ()) {
+                if (!TextUtils.isEmpty(Shaft.sSettings.getRootPathUri())) {
+                    baseBind.illustPath.setText(URLDecoder.decode(Shaft.sSettings.getRootPathUri(), "utf-8"));
+                } else {
+                    baseBind.illustPath.setText(R.string.string_330);
+                }
+            } else {
+                baseBind.illustPath.setText(Shaft.sSettings.getIllustPath());
+            }
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

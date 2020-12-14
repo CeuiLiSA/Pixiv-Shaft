@@ -116,9 +116,10 @@ public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCo
             }
             Uri treeUri = data.getData();
             Shaft.sSettings.setRootPathUri(treeUri.toString());
-            mContext.getContentResolver().takePersistableUriPermission(treeUri,
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION |
-                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            final int takeFlags = data.getFlags()
+                    & (Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            mContext.getContentResolver().takePersistableUriPermission(treeUri,takeFlags);
             Local.setSettings(Shaft.sSettings);
             doAfterGranted();
         }

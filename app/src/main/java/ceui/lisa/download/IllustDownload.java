@@ -166,7 +166,7 @@ public class IllustDownload {
     }
 
     public static void check(BaseActivity<?> activity, FeedBack feedBack) {
-        if (TextUtils.isEmpty(Shaft.sSettings.getRootPathUri())) {
+        if (Common.isAndroidQ() && TextUtils.isEmpty(Shaft.sSettings.getRootPathUri())) {
             activity.setFeedBack(feedBack);
             new QMUIDialog.MessageDialogBuilder(activity)
                     .setTitle(activity.getResources().getString(R.string.string_143))

@@ -484,5 +484,10 @@
   <string name="string_322">내 팬.</string>  
   <string name="string_323">나의 좋 은 P 친구</string>  
   <string name="string_324">테마 컬러</string>  
-  <string name="string_325">클릭 설정</string>
+  <string name="string_325">클릭 설정</string>  
+  <string name="string_326">시작 하 다.</string>  
+  <string name="string_327">잠시 멈추다.</string>  
+  <string name="string_328">퀘 스 트 비우 기</string>  
+  <string name="string_329">시스템 버 전이 Android 10 보다 낮 아 폴 더 를 사용자 정의 할 수 없습니다.</string>  
+  <string name="string_330">아직 설정 하지 않 음</string>
 </resources>

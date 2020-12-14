@@ -62,6 +62,10 @@ public class Manager {
     }
 
     public void addTask(DownloadItem bean, Context context) {
+        addTask(bean, context, true);
+    }
+
+    public void addTask(DownloadItem bean, Context context, boolean showToast) {
         if (content == null) {
             content = new ArrayList<>();
         }
@@ -74,7 +78,10 @@ public class Manager {
         if (!isTaskExist) {
             safeAdd(bean);
         }
-        safeAdd(bean);
+        if (showToast) {
+            String str = "当前" + content.size() + "个任务正在下载中";
+            Common.showToast(str);
+        }
         start(context);
     }
 
@@ -88,17 +95,23 @@ public class Manager {
     }
 
     private void safeDelete(DownloadItem item) {
+        safeDelete(item, true);
+    }
+
+    private void safeDelete(DownloadItem item, boolean isDownloadSuccess) {
         content.remove(item);
-        DownloadingEntity entity = new DownloadingEntity();
-        entity.setUuid(item.getUuid());
-        entity.setTaskGson(Shaft.sGson.toJson(item));
-        AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().deleteDownloading(entity);
+        if (isDownloadSuccess) {
+            DownloadingEntity entity = new DownloadingEntity();
+            entity.setUuid(item.getUuid());
+            entity.setTaskGson(Shaft.sGson.toJson(item));
+            AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().deleteDownloading(entity);
+        }
     }
 
     public void addTasks(List<DownloadItem> list, Context context) {
         if (!Common.isEmpty(list)) {
             for (DownloadItem item : list) {
-                addTask(item, context);
+                addTask(item, context, false);
             }
         }
     }
@@ -120,18 +133,17 @@ public class Manager {
         }
         isRunning = true;
         DownloadItem item = content.get(0);
-        downloadOne(item, context);
+        downloadOne(context, item);
     }
 
-    private void downloadOne(DownloadItem bean, Context context) {
+    private void downloadOne(Context context, DownloadItem bean) {
+        Android10DownloadFactory factory = new Android10DownloadFactory(context, bean);
         Common.showLog("Manager 下载单个 当前进度" + nonius);
         uuid = bean.getUuid();
-        DocumentFile file = SAFile.getDocument(context, bean.getIllust(), 0);
-        Uri item = file.getUri();
         handle = RxHttp.get(bean.getUrl())
                 .addHeader(Params.MAP_KEY, Params.IMAGE_REFERER)
                 .setRangeHeader(nonius, true)
-                .asDownload(context, item, AndroidSchedulers.mainThread(), new Consumer<Progress>() {
+                .asDownload(factory, AndroidSchedulers.mainThread(), new Consumer<Progress>() {
                     @Override
                     public void accept(Progress progress) {
                         nonius = progress.getCurrentSize();
@@ -161,7 +173,7 @@ public class Manager {
                         downloadEntity.setIllustGson(Shaft.sGson.toJson(bean.getIllust()));
                         downloadEntity.setFileName(bean.getName());
                         downloadEntity.setDownloadTime(System.currentTimeMillis());
-                        downloadEntity.setFilePath(item.toString());
+                        downloadEntity.setFilePath(factory.fileUri.toString());
                         AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(downloadEntity);
                         //通知FragmentDownloadFinish 添加这一项
                         Intent intent = new Intent(Params.DOWNLOAD_FINISH);
@@ -175,7 +187,8 @@ public class Manager {
 //                    contentResolver.update(item, null, null, null);
                 }, throwable -> {
                     //下载失败，处理相关逻辑
-                    Common.showLog("下载失败" + throwable.toString());
+                    Common.showLog("下载失败 " + throwable.toString());
+                    safeDelete(bean, false);
                     checkPipe(context);
                 });
     }
@@ -213,5 +226,11 @@ public class Manager {
         }
         Shaft.sSettings.setCurrentProgress(nonius);
         Local.setSettings(Shaft.sSettings);
+    }
+
+    public void clear() {
+        stop();
+        AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().deleteAllDownloading();
+        content.clear();
     }
 }

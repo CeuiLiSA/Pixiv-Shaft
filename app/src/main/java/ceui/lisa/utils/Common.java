@@ -10,6 +10,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Log;
@@ -328,8 +329,7 @@ public class Common {
         }
     }
 
-
-    public static String getPathByName(String name) {
-        return Shaft.getContext().getExternalCacheDir() + "/" + name;
+    public static boolean isAndroidQ() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q;
     }
 }

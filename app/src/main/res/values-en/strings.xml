@@ -484,5 +484,10 @@
   <string name="string_322">My fans</string>  
   <string name="string_323">My good friend p</string>  
   <string name="string_324">Theme color</string>  
-  <string name="string_325">Click settings</string>
+  <string name="string_325">Click settings</string>  
+  <string name="string_326">start</string>  
+  <string name="string_327">suspend</string>  
+  <string name="string_328">Clear task</string>  
+  <string name="string_329">The system version is lower than Android 10, unable to customize the folder</string>  
+  <string name="string_330">Not set yet</string>
 </resources>
