@@ -136,10 +136,10 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                 }
             });
         } else {
-            mRefreshLayout.finishLoadMore();
             if (mRemoteRepo.showNoDataHint()) {
                 Common.showToast("没有更多数据啦");
             }
+            mRefreshLayout.finishLoadMore();
         }
     }
 

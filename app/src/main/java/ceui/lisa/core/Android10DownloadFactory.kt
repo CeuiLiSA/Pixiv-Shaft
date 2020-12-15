@@ -15,14 +15,18 @@ class Android10DownloadFactory constructor(
 ) : UriFactory(context) {
 
     lateinit var fileUri: Uri
+    var fileLength: Long = 0L
+
 
     override fun insert(response: Response): Uri {
         return if (Common.isAndroidQ()) {
             val documentFile = SAFile.getDocument(context, item.illust, item.index)
+            fileLength = documentFile.length()
             fileUri = documentFile.uri
             fileUri
         } else {
             val file = FileCreator.createIllustFile(item.illust, item.index)
+            fileLength = file.length()
             fileUri = Uri.fromFile(file)
             fileUri
         }

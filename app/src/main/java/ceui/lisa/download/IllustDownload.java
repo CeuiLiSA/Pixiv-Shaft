@@ -35,6 +35,7 @@ public class IllustDownload {
                 item.setUrl(getUrl(illust, 0));
                 item.setShowUrl(getShowUrl(illust, 0));
                 Manager.get().addTask(item, activity);
+                Common.showToast(1 + "个任务已经加入下载队列");
             }
         });
     }
@@ -49,6 +50,7 @@ public class IllustDownload {
                 item.setUrl(getUrl(illust, index));
                 item.setShowUrl(getShowUrl(illust, index));
                 Manager.get().addTask(item, activity);
+                Common.showToast(1 + "个任务已经加入下载队列");
             }
         });
     }
@@ -67,6 +69,7 @@ public class IllustDownload {
                     tempList.add(item);
                 }
                 Manager.get().addTasks(tempList, activity);
+                Common.showToast(tempList.size() + "个任务已经加入下载队列");
             }
         });
     }
@@ -95,6 +98,7 @@ public class IllustDownload {
                 }
             }
             Manager.get().addTasks(tempList, activity);
+            Common.showToast(tempList.size() + "个任务已经加入下载队列");
         });
     }
 

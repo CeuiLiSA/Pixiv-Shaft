@@ -62,10 +62,6 @@ public class Manager {
     }
 
     public void addTask(DownloadItem bean, Context context) {
-        addTask(bean, context, true);
-    }
-
-    public void addTask(DownloadItem bean, Context context, boolean showToast) {
         if (content == null) {
             content = new ArrayList<>();
         }
@@ -77,10 +73,6 @@ public class Manager {
         }
         if (!isTaskExist) {
             safeAdd(bean);
-        }
-        if (showToast) {
-            String str = "当前" + content.size() + "个任务正在下载中";
-            Common.showToast(str);
         }
         start(context);
     }
@@ -111,7 +103,7 @@ public class Manager {
     public void addTasks(List<DownloadItem> list, Context context) {
         if (!Common.isEmpty(list)) {
             for (DownloadItem item : list) {
-                addTask(item, context, false);
+                addTask(item, context);
             }
         }
     }
@@ -148,7 +140,7 @@ public class Manager {
                     public void accept(Progress progress) {
                         nonius = progress.getCurrentSize();
                         currentProgress = progress.getProgress();
-                        Common.showLog("manager currentProgress " + currentProgress);
+                        Common.showLog("before: " + factory.getFileLength() + " manager currentProgress " + currentProgress + " end:" + progress.getTotalSize());
                         if (mCallback != null) {
                             mCallback.doSomething(progress);
                         }

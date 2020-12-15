@@ -82,10 +82,16 @@ dependencies {
     api 'com.squareup.retrofit2:adapter-rxjava2:2.9.0'
 
 
+    implementation 'me.jessyan:progressmanager:1.5.0'
+
     api "io.reactivex.rxjava2:rxjava:2.2.19"
     api 'io.reactivex.rxjava2:rxandroid:2.1.1'
 
-    api 'com.github.bumptech.glide:glide:4.11.0'
+
+    implementation 'com.github.bumptech.glide:glide:4.11.0'
+    kapt 'com.github.bumptech.glide:compiler:4.11.0'
+    implementation 'com.github.bumptech.glide:okhttp3-integration:4.9.0'
+
 
     api 'com.scwang.smartrefresh:SmartRefreshLayout:1.1.2'
     api 'com.scwang.smartrefresh:SmartRefreshHeader:1.1.2'
@@ -137,7 +143,6 @@ dependencies {
     implementation 'com.ljx.rxlife3:rxlife-rxjava:3.0.0'
 
     implementation 'xyz.zpayh:hdimageview:3.0.1'
-    implementation 'xyz.zpayh:hdimageview-glide:3.0.0'
 
     implementation project(path: ':models')
 

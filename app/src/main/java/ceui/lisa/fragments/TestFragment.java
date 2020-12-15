@@ -2,21 +2,21 @@ package ceui.lisa.fragments;
 
 import android.os.Bundle;
 
-import androidx.lifecycle.ViewModelProvider;
-import androidx.recyclerview.widget.LinearLayoutManager;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 import ceui.lisa.R;
-import ceui.lisa.adapters.ColorAdapter;
+import ceui.lisa.core.GlideApp;
+import ceui.lisa.core.GlideConfiguration;
 import ceui.lisa.databinding.FragmentTestBinding;
-import ceui.lisa.model.ColorItem;
 import ceui.lisa.utils.Common;
-import ceui.lisa.viewmodel.VPModel;
+import me.jessyan.progressmanager.ProgressListener;
+import me.jessyan.progressmanager.ProgressManager;
+import me.jessyan.progressmanager.body.ProgressInfo;
+import okhttp3.OkHttpClient;
 
 public class TestFragment extends BaseFragment<FragmentTestBinding>{
 
-    private int index;
-    private VPModel mVPModel;
-    private ColorAdapter mColorAdapter;
 
     public static TestFragment newInstance(int index) {
         Bundle args = new Bundle();
@@ -28,48 +28,23 @@ public class TestFragment extends BaseFragment<FragmentTestBinding>{
 
     @Override
     protected void initView() {
-        mColorAdapter = new ColorAdapter(mVPModel.getRightList(index), mContext);
-        baseBind.recyList.setLayoutManager(new LinearLayoutManager(mContext));
-        baseBind.recyList.setAdapter(mColorAdapter);
-    }
+        ProgressManager.getInstance().addResponseListener("https://pixiv.cat/76749683.jpg", new ProgressListener() {
+            @Override
+            public void onProgress(ProgressInfo progressInfo) {
+                Common.showLog(progressInfo.getPercent());
+            }
 
-    @Override
-    public void initModel() {
-        mVPModel = new ViewModelProvider(mActivity).get(VPModel.class);
-    }
+            @Override
+            public void onError(long id, Exception e) {
 
-    @Override
-    protected void initData() {
-        super.initData();
-        Common.showLog("trace getRightList add " + mVPModel.getRightList(index).size());
-        if (mVPModel.getRightList(index).size() == 0) {
-            mVPModel.getRightList(index).add(new ColorItem(0, "矢尹紫", "#686bdd", false));
-            mVPModel.getRightList(index).add(new ColorItem(1, "经典蓝", "#56baec", false));
-            mVPModel.getRightList(index).add(new ColorItem(2, "官方蓝", "#008BF3", false));
-            mVPModel.getRightList(index).add(new ColorItem(3, "浅葱绿", "#03d0bf", false));
-            mVPModel.getRightList(index).add(new ColorItem(4, "盛夏黄", "#fee65e", false));
-            mVPModel.getRightList(index).add(new ColorItem(5, "樱桃粉", "#fe83a2", false));
-            mVPModel.getRightList(index).add(new ColorItem(6, "元气红", "#f44336", false));
-            mVPModel.getRightList(index).add(new ColorItem(7, "基佬紫", "#673AB7", false));
-            mVPModel.getRightList(index).add(new ColorItem(8, "老实绿", "#4CAF50", false));
-            mVPModel.getRightList(index).add(new ColorItem(9, "少女粉", "#E91E63", false));
-            mVPModel.getRightList(index).add(new ColorItem(0, "矢尹紫", "#686bdd", false));
-            mVPModel.getRightList(index).add(new ColorItem(1, "经典蓝", "#56baec", false));
-            mVPModel.getRightList(index).add(new ColorItem(2, "官方蓝", "#008BF3", false));
-            mVPModel.getRightList(index).add(new ColorItem(3, "浅葱绿", "#03d0bf", false));
-            mVPModel.getRightList(index).add(new ColorItem(4, "盛夏黄", "#fee65e", false));
-            mVPModel.getRightList(index).add(new ColorItem(5, "樱桃粉", "#fe83a2", false));
-            mVPModel.getRightList(index).add(new ColorItem(6, "元气红", "#f44336", false));
-            mVPModel.getRightList(index).add(new ColorItem(7, "基佬紫", "#673AB7", false));
-            mVPModel.getRightList(index).add(new ColorItem(8, "老实绿", "#4CAF50", false));
-            mVPModel.getRightList(index).add(new ColorItem(9, "少女粉", "#E91E63", false));
-            mColorAdapter.notifyDataSetChanged();
-        }
-    }
+            }
+        });
 
-    @Override
-    protected void initBundle(Bundle bundle) {
-        index = bundle.getInt("index");
+        GlideApp.with(mContext)
+                .load("https://pixiv.cat/76749683.jpg")
+                .centerCrop()
+                .diskCacheStrategy(DiskCacheStrategy.NONE)
+                .into(baseBind.imageView);
     }
 
     @Override

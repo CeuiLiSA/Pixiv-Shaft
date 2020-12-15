@@ -130,4 +130,9 @@ public class FragmentDownloadFinish extends LocalListFragment<FragmentBaseListBi
             LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mReceiver);
         }
     }
+
+    @Override
+    public boolean isLazy() {
+        return false;
+    }
 }

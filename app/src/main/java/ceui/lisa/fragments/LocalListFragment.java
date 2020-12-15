@@ -18,10 +18,11 @@ public abstract class LocalListFragment<Layout extends ViewDataBinding, Item>
     @Override
     public void fresh() {
         emptyRela.setVisibility(View.INVISIBLE);
-        if (mLocalRepo.first() != null && mLocalRepo.first().size() != 0) {
-            List<Item> firstList = mLocalRepo.first();
+        List<Item> firstList = mLocalRepo.first();
+        if (!Common.isEmpty(firstList)) {
             if (mModel != null) {
                 mModel.load(firstList, true);
+                allItems = mModel.getContent();
             }
             onFirstLoaded(firstList);
             mRecyclerView.setVisibility(View.VISIBLE);
@@ -36,15 +37,14 @@ public abstract class LocalListFragment<Layout extends ViewDataBinding, Item>
 
     @Override
     public void loadMore() {
-        if (mLocalRepo.hasNext() &&
-                mLocalRepo.next() != null &&
-                mLocalRepo.next().size() != 0) {
-            List<Item> nextList = mLocalRepo.next();
+        List<Item> nextList = mLocalRepo.next();
+        if (mLocalRepo.hasNext() && !Common.isEmpty(nextList)) {
             if (mModel != null) {
                 mModel.load(nextList, false);
+                allItems = mModel.getContent();
             }
             onNextLoaded(nextList);
-            mAdapter.notifyItemRangeInserted(getStartSize(), mLocalRepo.next().size());
+            mAdapter.notifyItemRangeInserted(getStartSize(), nextList.size());
         } else {
             if (mLocalRepo.showNoDataHint()) {
                 Common.showToast(getString(R.string.string_224));
