@@ -20,6 +20,7 @@ import ceui.lisa.core.GlideApp;
 import ceui.lisa.databinding.FragmentImageDetailBinding;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 import me.jessyan.progressmanager.ProgressListener;
 import me.jessyan.progressmanager.ProgressManager;
@@ -93,6 +94,7 @@ public class FragmentImageDetail extends BaseFragment<FragmentImageDetailBinding
                     public boolean onResourceReady(File resource, Object model, Target<File> target, DataSource dataSource, boolean isFirstResource) {
                         baseBind.donutProgress.setVisibility(View.INVISIBLE);
                         baseBind.realIllustImage.setImageURI(Uri.fromFile(resource));
+                        Common.showLog("onResourceReady " + resource.getPath());
                         return false;
                     }
                 })

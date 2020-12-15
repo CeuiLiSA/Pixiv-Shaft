@@ -16,7 +16,15 @@ import ceui.lisa.models.IllustsBean;
 public class GlideUtil {
 
     public static GlideUrl getMediumImg(IllustsBean illustsBean) {
-        return new GlideUrlChild(illustsBean.getImage_urls().getMedium());
+        String url = illustsBean.getImage_urls().getMedium();
+        String finalUrl;
+        if (url.contains("i.pximg.net")) {
+            finalUrl = url.replace("i.pximg.net", "i.pixiv.cat");
+        } else {
+            finalUrl = url;
+        }
+        Common.showLog("准备加载  "+ finalUrl);
+        return new GlideUrlChild(finalUrl);
     }
 
     public static GlideUrl getMediumImg(String imageUrl) {

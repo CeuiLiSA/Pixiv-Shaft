@@ -30,6 +30,7 @@ import ceui.lisa.download.IllustDownload;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.transformer.UniformScaleTransformation;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.GlideUtil;
 import me.jessyan.progressmanager.ProgressListener;
 import me.jessyan.progressmanager.ProgressManager;
 import me.jessyan.progressmanager.body.ProgressInfo;

@@ -58,11 +58,7 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
             baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
                 @Override
                 public Fragment getItem(int i) {
-                    if (Shaft.sSettings.isFirstImageSize()) {
-                        return FragmentLocalImageDetail.newInstance(IllustDownload.getUrl(mIllustsBean, i));
-                    } else {
-                        return FragmentImageDetail.newInstance(mIllustsBean, i);
-                    }
+                    return FragmentImageDetail.newInstance(mIllustsBean, i);
                 }
 
                 @Override
