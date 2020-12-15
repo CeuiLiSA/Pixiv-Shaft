@@ -3,18 +3,14 @@ package ceui.lisa.fragments;
 import android.os.Bundle;
 import android.view.View;
 
-import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 import ceui.lisa.R;
 import ceui.lisa.core.GlideApp;
-import ceui.lisa.core.GlideConfiguration;
 import ceui.lisa.databinding.FragmentTestBinding;
-import ceui.lisa.utils.Common;
 import me.jessyan.progressmanager.ProgressListener;
 import me.jessyan.progressmanager.ProgressManager;
 import me.jessyan.progressmanager.body.ProgressInfo;
-import okhttp3.OkHttpClient;
 
 public class TestFragment extends BaseFragment<FragmentTestBinding>{
 

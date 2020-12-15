@@ -1,6 +1,5 @@
 package ceui.lisa.fragments;
 
-import android.net.ConnectivityManager;
 import android.view.MenuItem;
 
 import androidx.annotation.Nullable;

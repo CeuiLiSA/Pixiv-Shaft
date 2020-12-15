@@ -1,9 +1,7 @@
 package ceui.lisa.fragments;
 
 import android.os.Bundle;
-import android.view.MenuItem;
 
-import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
@@ -20,13 +18,10 @@ import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustRecmdEntity;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
-import ceui.lisa.feature.worker.BatchFollowTask;
-import ceui.lisa.feature.worker.Worker;
 import ceui.lisa.helper.TagFilter;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
-import ceui.lisa.models.UserPreviewsBean;
 import ceui.lisa.repo.RecmdIllustRepo;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;

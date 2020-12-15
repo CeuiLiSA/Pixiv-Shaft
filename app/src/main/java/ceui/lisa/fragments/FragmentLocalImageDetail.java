@@ -3,15 +3,10 @@ package ceui.lisa.fragments;
 import android.os.Bundle;
 import android.view.View;
 
-import com.bumptech.glide.Glide;
-
 import ceui.lisa.R;
-import ceui.lisa.databinding.FragmentImageDetailBinding;
 import ceui.lisa.databinding.FragmentImageDetailLocalBinding;
 import ceui.lisa.utils.Params;
 import xyz.zpayh.hdimage.OnBitmapLoadListener;
-
-import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
 public class FragmentLocalImageDetail extends BaseFragment<FragmentImageDetailLocalBinding> {
 

@@ -1,32 +1,17 @@
 package ceui.lisa.fragments;
 
-import android.graphics.Color;
-import android.view.View;
-
 import androidx.databinding.ViewDataBinding;
-
-import com.blankj.utilcode.util.LanguageUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
-import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.ColorAdapter;
-import ceui.lisa.adapters.ViewHolder;
 import ceui.lisa.core.BaseRepo;
 import ceui.lisa.core.LocalRepo;
 import ceui.lisa.databinding.FragmentBaseListBinding;
-import ceui.lisa.databinding.RecyColorBinding;
-import ceui.lisa.helper.ThemeHelper;
-import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ColorItem;
-import ceui.lisa.utils.Common;
-import ceui.lisa.utils.Local;
-
-import static ceui.lisa.utils.Settings.ALL_LANGUAGE;
 
 public class FragmentColors extends LocalListFragment<FragmentBaseListBinding, ColorItem> {
 

@@ -1,17 +1,11 @@
 package ceui.lisa.fragments;
 
-import android.view.MenuItem;
-
-import androidx.appcompat.widget.Toolbar;
-
 import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.UAdapter;
 import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyUserPreviewBinding;
-import ceui.lisa.feature.worker.BatchFollowTask;
-import ceui.lisa.feature.worker.Worker;
 import ceui.lisa.model.ListUser;
 import ceui.lisa.models.UserPreviewsBean;
 import ceui.lisa.repo.RecmdUserRepo;

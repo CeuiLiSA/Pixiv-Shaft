@@ -1,7 +1,6 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
-import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.ViewGroup;
 

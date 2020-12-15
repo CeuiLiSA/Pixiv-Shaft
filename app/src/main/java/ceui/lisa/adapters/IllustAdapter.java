@@ -7,7 +7,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,25 +14,25 @@ import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.RequestBuilder;
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.load.resource.bitmap.BitmapTransitionOptions;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
-import com.github.ybq.android.spinkit.style.Wave;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.ImageDetailActivity;
-import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.RecyIllustDetailBinding;
+import ceui.lisa.download.IllustDownload;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.transformer.UniformScaleTransformation;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.GlideUtil;
+import me.jessyan.progressmanager.ProgressListener;
+import me.jessyan.progressmanager.ProgressManager;
+import me.jessyan.progressmanager.body.ProgressInfo;
 
 public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDetailBinding>> {
 
@@ -43,8 +42,8 @@ public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDet
     private Map<Integer, Boolean> hasLoad = new HashMap<>();
     private int maxHeight;
 
-    public IllustAdapter(Context context, IllustsBean illustsBean, int maxHeight){
-        Common.showLog("IllustAdapter maxHeight " + maxHeight );
+    public IllustAdapter(Context context, IllustsBean illustsBean, int maxHeight) {
+        Common.showLog("IllustAdapter maxHeight " + maxHeight);
         mContext = context;
         allIllust = illustsBean;
         this.maxHeight = maxHeight;
@@ -65,8 +64,6 @@ public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDet
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder<RecyIllustDetailBinding> holder, int position) {
-        Wave wave = new Wave();
-        holder.baseBind.progress.setIndeterminateDrawable(wave);
         if (position == 0) {
             if (allIllust.getPage_count() == 1) {
 
@@ -109,13 +106,6 @@ public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDet
             loadIllust(holder, position, true);
         }
 
-        if (hasLoad.get(position)) {
-            Common.showLog("hasLoad 隐藏掉 " + position);
-            holder.baseBind.progress.setVisibility(View.INVISIBLE);
-        } else {
-            Common.showLog("hasLoad 显示掉 " + position);
-            holder.baseBind.progress.setVisibility(View.VISIBLE);
-        }
 
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(mContext, ImageDetailActivity.class);
@@ -127,23 +117,31 @@ public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDet
     }
 
     /**
-     *
      * @param holder
      * @param position
      * @param changeSize 是否自动计算宽高
      */
-    private void loadIllust(ViewHolder<RecyIllustDetailBinding> holder, int position, boolean changeSize){
-        holder.baseBind.progress.setVisibility(View.VISIBLE);
+    private void loadIllust(ViewHolder<RecyIllustDetailBinding> holder, int position, boolean changeSize) {
+        final String imageUrl = IllustDownload.getUrl(allIllust, position);
+        ProgressManager.getInstance().addResponseListener(imageUrl, new ProgressListener() {
+            @Override
+            public void onProgress(ProgressInfo progressInfo) {
+                holder.baseBind.donutProgress.setProgress(progressInfo.getPercent());
+            }
+
+            @Override
+            public void onError(long id, Exception e) {
+
+            }
+        });
         Glide.with(mContext)
                 .asBitmap()
-                .load(Shaft.sSettings.isFirstImageSize() ?
-                        GlideUtil.getOriginal(allIllust, position) :
-                        GlideUtil.getLargeImage(allIllust, position))
+                .load(imageUrl)
                 .transition(BitmapTransitionOptions.withCrossFade())
-                .error(getBuilder(holder.baseBind.progress, position))
                 .listener(new RequestListener<Bitmap>() {
                     @Override
                     public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {
+                        holder.baseBind.donutProgress.setVisibility(View.INVISIBLE);
                         hasLoad.put(position, false);
                         Common.showLog("IllustAdapter onLoadFailed " + position);
                         return false;
@@ -151,7 +149,7 @@ public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDet
 
                     @Override
                     public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
-                        holder.baseBind.progress.setVisibility(View.INVISIBLE);
+                        holder.baseBind.donutProgress.setVisibility(View.INVISIBLE);
                         Common.showLog("IllustAdapter onResourceReady " + position);
                         hasLoad.put(position, true);
                         return false;
@@ -163,30 +161,5 @@ public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDet
     @Override
     public int getItemCount() {
         return allIllust.getPage_count();
-    }
-
-    public RequestBuilder<Bitmap> getBuilder(ProgressBar progressBar, int position) {
-        return Glide.with(mContext)
-                .asBitmap()
-                .load(Shaft.sSettings.isFirstImageSize() ?
-                        GlideUtil.getOriginal(allIllust, position) :
-                        GlideUtil.getLargeImage(allIllust, position))
-                .transition(BitmapTransitionOptions.withCrossFade())
-                .listener(new RequestListener<Bitmap>() {
-                    @Override
-                    public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {
-                        hasLoad.put(position, false);
-                        Common.showLog("IllustAdapter onLoadFailed " + position);
-                        return false;
-                    }
-
-                    @Override
-                    public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
-                        progressBar.setVisibility(View.INVISIBLE);
-                        Common.showLog("IllustAdapter onResourceReady " + position);
-                        hasLoad.put(position, true);
-                        return false;
-                    }
-                });
     }
 }

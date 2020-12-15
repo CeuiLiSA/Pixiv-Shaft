@@ -16,7 +16,6 @@ import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.FragmentNewCenterBinding;
-import ceui.lisa.utils.Common;
 
 public class FragmentCenter extends SwipeFragment<FragmentNewCenterBinding> {
 

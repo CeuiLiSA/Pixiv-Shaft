@@ -18,14 +18,6 @@
             android:scaleType="fitCenter"
             android:layout_height="match_parent" />
 
-        <com.github.chrisbanes.photoview.PhotoView
-            android:layout_width="match_parent"
-            android:id="@+id/illust_image"
-            android:visibility="gone"
-            android:transitionName="big_image"
-            android:scaleType="fitCenter"
-            android:layout_height="match_parent" />
-
         <com.github.lzyzsd.circleprogress.DonutProgress
             android:id="@+id/donut_progress"
             app:donut_finished_color="?attr/colorPrimary"
