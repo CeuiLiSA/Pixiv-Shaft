@@ -1,6 +1,7 @@
 package ceui.lisa.fragments;
 
 import android.os.Bundle;
+import android.view.View;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -31,7 +32,11 @@ public class TestFragment extends BaseFragment<FragmentTestBinding>{
         ProgressManager.getInstance().addResponseListener("https://pixiv.cat/76749683.jpg", new ProgressListener() {
             @Override
             public void onProgress(ProgressInfo progressInfo) {
-                Common.showLog(progressInfo.getPercent());
+                if (progressInfo.isFinish()) {
+                    baseBind.donutProgress.setVisibility(View.INVISIBLE);
+                } else {
+                    baseBind.donutProgress.setProgress(progressInfo.getPercent());
+                }
             }
 
             @Override
