@@ -25,7 +25,6 @@ public class FragmentNew extends BaseFragment<ViewpagerWithTablayoutBinding> {
                 Shaft.getContext().getString(R.string.type_manga),
                 Shaft.getContext().getString(R.string.type_novel)
         };
-        BarUtils.setStatusBarColor(mActivity, android.R.attr.colorPrimary);
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
         baseBind.toolbarTitle.setText(R.string.string_204);
         baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {

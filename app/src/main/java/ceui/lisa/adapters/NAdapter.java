@@ -70,7 +70,7 @@ public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
         }
         bindView.baseBind.author.setText(target.getUser().getName());
         bindView.baseBind.howManyWord.setText(target.getText_length() + "字");
-        Glide.with(mContext).load(GlideUtil.getMediumImg(target.getImage_urls().getMaxImage())).into(bindView.baseBind.cover);
+        Glide.with(mContext).load(GlideUtil.getUrl(target.getImage_urls().getMaxImage())).into(bindView.baseBind.cover);
         Glide.with(mContext).load(GlideUtil.getHead(target.getUser())).into(bindView.baseBind.userHead);
         if (target.isIs_bookmarked()) {
             bindView.baseBind.like.setText(R.string.string_169);

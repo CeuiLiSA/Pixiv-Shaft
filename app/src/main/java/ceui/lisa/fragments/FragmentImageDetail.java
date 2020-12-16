@@ -2,6 +2,7 @@ package ceui.lisa.fragments;
 
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -68,11 +69,16 @@ public class FragmentImageDetail extends BaseFragment<FragmentImageDetailBinding
     }
 
     private void loadImage() {
-        final String imageUrl = IllustDownload.getUrl(mIllustsBean, index);
+        final String imageUrl;
+        if (!TextUtils.isEmpty(url)) {
+            imageUrl = url;
+        } else {
+            imageUrl = IllustDownload.getUrl(mIllustsBean, index);
+        }
         ProgressManager.getInstance().addResponseListener(imageUrl, new ProgressListener() {
             @Override
             public void onProgress(ProgressInfo progressInfo) {
-                baseBind.donutProgress.setProgress(progressInfo.getPercent());
+                baseBind.progressLayout.donutProgress.setProgress(progressInfo.getPercent());
             }
 
             @Override
@@ -86,13 +92,13 @@ public class FragmentImageDetail extends BaseFragment<FragmentImageDetailBinding
                 .listener(new RequestListener<File>() {
                     @Override
                     public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<File> target, boolean isFirstResource) {
-                        baseBind.donutProgress.setVisibility(View.INVISIBLE);
+                        baseBind.progressLayout.donutProgress.setVisibility(View.INVISIBLE);
                         return false;
                     }
 
                     @Override
                     public boolean onResourceReady(File resource, Object model, Target<File> target, DataSource dataSource, boolean isFirstResource) {
-                        baseBind.donutProgress.setVisibility(View.INVISIBLE);
+                        baseBind.progressLayout.donutProgress.setVisibility(View.INVISIBLE);
                         baseBind.realIllustImage.setImageURI(Uri.fromFile(resource));
                         Common.showLog("onResourceReady " + resource.getPath());
                         return false;

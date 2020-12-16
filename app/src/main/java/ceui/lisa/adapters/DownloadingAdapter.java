@@ -52,7 +52,7 @@ public class DownloadingAdapter extends BaseAdapter<DownloadItem, RecyDownloadTa
         bindView.baseBind.progress.setTag(target.getUuid());
         if (!TextUtils.isEmpty(target.getShowUrl())) {
             Glide.with(mContext)
-                    .load(GlideUtil.getMediumImg(target.getShowUrl()))
+                    .load(GlideUtil.getUrl(target.getShowUrl()))
                     .into(bindView.baseBind.illustImage);
         }
         if (position == 0) {

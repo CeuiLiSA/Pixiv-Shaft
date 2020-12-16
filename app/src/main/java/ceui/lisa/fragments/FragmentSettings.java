@@ -261,34 +261,39 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             }
         });
 
-        baseBind.firstDetailOrigin.setChecked(Shaft.sSettings.isFirstImageSize());
-        baseBind.firstDetailOrigin.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    Shaft.sSettings.setFirstImageSize(true);
-                } else {
-                    Shaft.sSettings.setFirstImageSize(false);
-                }
-                Common.showToast("设置成功", 2);
-                Local.setSettings(Shaft.sSettings);
-            }
-        });
-        baseBind.firstDetailOriginRela.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                baseBind.firstDetailOrigin.performClick();
-            }
-        });
+//        baseBind.firstDetailOrigin.setChecked(Shaft.sSettings.isFirstImageSize());
+//        baseBind.firstDetailOrigin.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+//            @Override
+//            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//                if (isChecked) {
+//                    Shaft.sSettings.setFirstImageSize(true);
+//                } else {
+//                    Shaft.sSettings.setFirstImageSize(false);
+//                }
+//                Common.showToast("设置成功", 2);
+//                Local.setSettings(Shaft.sSettings);
+//            }
+//        });
+//        baseBind.firstDetailOriginRela.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                baseBind.firstDetailOrigin.performClick();
+//            }
+//        });
 
         setPath();
-        baseBind.illustPath.setOnClickListener(new View.OnClickListener() {
+        baseBind.singleIllustPath.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (Common.isAndroidQ()) {
-                    freshPath = true;
-                    mActivity.startActivityForResult(
-                            new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE), BaseActivity.ASK_URI);
+                    try {
+                        freshPath = true;
+                        mActivity.startActivityForResult(
+                                new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE), BaseActivity.ASK_URI);
+                    } catch (Exception e) {
+                        Common.showToast("手机系统被阉割，没这个功能：" + e.toString(), true);
+                        e.printStackTrace();
+                    }
                 } else {
                     Common.showToast(getString(R.string.string_329), true);
                 }

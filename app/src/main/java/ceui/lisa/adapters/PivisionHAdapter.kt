@@ -19,7 +19,7 @@ class PivisionHAdapter(targetList: MutableList<SpotlightArticlesBean>, context: 
                           bindView: ViewHolder<RecyArticalHorizonBinding>, position: Int) {
         bindView.baseBind.title.text = allIllust[position].title
         Glide.with(mContext)
-                .load(GlideUtil.getMediumImg(allIllust[position].thumbnail))
+                .load(GlideUtil.getUrl(allIllust[position].thumbnail))
                 .into(bindView.baseBind.illustImage)
         if (mOnItemClickListener != null) {
             bindView.itemView.setOnClickListener { v: View1? ->

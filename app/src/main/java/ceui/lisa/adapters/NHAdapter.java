@@ -27,10 +27,10 @@ public class NHAdapter extends BaseAdapter<NovelBean, RecyRankNovelHorizontalBin
         bindView.baseBind.novelLength.setText(allIllust.get(position).getText_length() + "字");
         bindView.baseBind.title.setText(allIllust.get(position).getTitle());
         bindView.baseBind.author.setText(allIllust.get(position).getUser().getName());
-        Glide.with(mContext).load(GlideUtil.getMediumImg(allIllust.get(position)
+        Glide.with(mContext).load(GlideUtil.getUrl(allIllust.get(position)
                 .getImage_urls().getMedium()))
                 .placeholder(R.color.light_bg).into(bindView.baseBind.illustImage);
-        Glide.with(mContext).load(GlideUtil.getMediumImg(allIllust.get(position)
+        Glide.with(mContext).load(GlideUtil.getUrl(allIllust.get(position)
                 .getUser().getProfile_image_urls().getMedium()))
                 .placeholder(R.color.light_bg).into(bindView.baseBind.userHead);
         if (mOnItemClickListener != null) {

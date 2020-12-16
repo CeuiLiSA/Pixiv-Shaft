@@ -18,16 +18,9 @@
 
         </ImageView>
 
-        <com.github.lzyzsd.circleprogress.DonutProgress
-            android:id="@+id/donut_progress"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            app:donut_circle_starting_degree="-90"
-            app:donut_finished_color="?attr/colorPrimary"
-            app:donut_finished_stroke_width="@dimen/four_dp"
-            app:donut_text_color="?attr/colorPrimary"
-            app:donut_unfinished_stroke_width="@dimen/four_dp" />
+        <include
+            android:id="@+id/progress_layout"
+            layout="@layout/item_progress" />
 
     </RelativeLayout>
 

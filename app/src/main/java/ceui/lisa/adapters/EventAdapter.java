@@ -49,7 +49,7 @@ public class EventAdapter extends BaseAdapter<IllustsBean, RecyUserEventBinding>
             bindView.baseBind.postTime.setText(allIllust.get(position).getCreate_date().substring(0, 16) + "发布");
         }
 
-        Glide.with(mContext).load(GlideUtil.getMediumImg(allIllust.get(position)
+        Glide.with(mContext).load(GlideUtil.getUrl(allIllust.get(position)
                 .getUser().getProfile_image_urls().getMedium())).into(bindView.baseBind.userHead);
         Glide.with(mContext).load(GlideUtil.getLargeImage(allIllust.get(position)))
                 .placeholder(R.color.light_bg)

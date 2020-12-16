@@ -84,7 +84,6 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
             };
         }
 
-        BarUtils.setStatusBarColor(mActivity, android.R.attr.colorPrimary);
         if (type == 0) {
             baseBind.toolbarTitle.setText(R.string.string_319);
         } else if (type == 1) {

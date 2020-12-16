@@ -36,7 +36,7 @@ public class ArticleAdapter extends BaseAdapter<SpotlightArticlesBean, RecyArtic
         bindView.baseBind.illustImage.setLayoutParams(params);
         bindView.baseBind.title.setText(target.getTitle());
 
-        Glide.with(mContext).load(GlideUtil.getMediumImg(target.getThumbnail()))
+        Glide.with(mContext).load(GlideUtil.getUrl(target.getThumbnail()))
                 .into(bindView.baseBind.illustImage);
         if (mOnItemClickListener != null) {
             bindView.itemView.setOnClickListener(v ->

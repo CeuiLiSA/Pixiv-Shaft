@@ -1,6 +1,7 @@
 package ceui.lisa.models;
 
 import android.text.TextUtils;
+import android.util.Log;
 
 import java.io.Serializable;
 
@@ -17,8 +18,11 @@ public class ImageUrlsBean implements Serializable {
     private String large;
     private String original;
 
+    public static final String HOST_OLD = "i.pximg.net";
+    public static final String HOST_NEW = "i.pixiv.cat";
+
     public String getSquare_medium() {
-        return square_medium;
+        return changeToPixivCat(square_medium);
     }
 
     public void setSquare_medium(String square_medium) {
@@ -26,7 +30,7 @@ public class ImageUrlsBean implements Serializable {
     }
 
     public String getMedium() {
-        return medium;
+        return changeToPixivCat(medium);
     }
 
     public void setMedium(String medium) {
@@ -34,7 +38,7 @@ public class ImageUrlsBean implements Serializable {
     }
 
     public String getLarge() {
-        return large;
+        return changeToPixivCat(large);
     }
 
     public void setLarge(String large) {
@@ -42,7 +46,7 @@ public class ImageUrlsBean implements Serializable {
     }
 
     public String getOriginal() {
-        return original;
+        return changeToPixivCat(original);
     }
 
     public void setOriginal(String original) {
@@ -51,15 +55,26 @@ public class ImageUrlsBean implements Serializable {
 
     public String getMaxImage() {
         if (!TextUtils.isEmpty(original)) {
-            return original;
+            return getOriginal();
         } else if (!TextUtils.isEmpty(large)) {
-            return large;
+            return getLarge();
         } else if (!TextUtils.isEmpty(medium)) {
-            return medium;
+            return getMedium();
         } else if (!TextUtils.isEmpty(square_medium)) {
-            return square_medium;
+            return getSquare_medium();
         } else {
             return "";
         }
+    }
+
+    protected String changeToPixivCat(String before) {
+        String finalUrl;
+        if (!TextUtils.isEmpty(before) && before.contains(HOST_OLD)) {
+            finalUrl = before.replace(HOST_OLD, HOST_NEW);
+        } else {
+            finalUrl = before;
+        }
+        Log.d("==SHAFT== log ==> ", "changeToPixivCat " + finalUrl);
+        return finalUrl;
     }
 }

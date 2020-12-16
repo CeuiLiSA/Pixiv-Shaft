@@ -92,7 +92,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
 
                 @Override
                 public void updateDrawState(TextPaint ds) {
-                    ds.setColor(android.R.attr.colorPrimary);
+                    ds.setColor(R.attr.colorPrimary);
                 }
             };
             SpannableString spannableString;
@@ -358,7 +358,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
             }
         });
         Glide.with(mContext)
-                .load(GlideUtil.getMediumImg(illust.getUser().getProfile_image_urls().getMedium()))
+                .load(GlideUtil.getUrl(illust.getUser().getProfile_image_urls().getMedium()))
                 .into(baseBind.userHead);
     }
 

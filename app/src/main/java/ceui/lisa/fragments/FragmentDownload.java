@@ -39,7 +39,6 @@ public class FragmentDownload extends BaseFragment<ViewpagerWithTablayoutBinding
                 Shaft.getContext().getString(R.string.now_downloading),
                 Shaft.getContext().getString(R.string.has_download)
         };
-        BarUtils.setStatusBarColor(mActivity, android.R.attr.colorPrimary);
         baseBind.toolbarTitle.setText(R.string.string_203);
         baseBind.toolbar.inflateMenu(R.menu.start_all);
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());

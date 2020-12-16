@@ -100,7 +100,7 @@ public class UserActivity extends BaseActivity<ActicityUserBinding> implements D
 
     @Override
     public void invoke(UserDetailResponse currentUser) {
-        Glide.with(mContext).load(GlideUtil.getMediumImg(currentUser
+        Glide.with(mContext).load(GlideUtil.getUrl(currentUser
                 .getUser().getProfile_image_urls().getMaxImage()))
                 .placeholder(R.color.light_bg).into(baseBind.userHead);
         baseBind.userHead.setOnClickListener(new View.OnClickListener() {
@@ -240,7 +240,7 @@ public class UserActivity extends BaseActivity<ActicityUserBinding> implements D
 
         if (!TextUtils.isEmpty(currentUser.getWorkspace().getWorkspace_image_url())) {
             Glide.with(mContext)
-                    .load(GlideUtil.getMediumImg(currentUser.getWorkspace().getWorkspace_image_url()))
+                    .load(GlideUtil.getUrl(currentUser.getWorkspace().getWorkspace_image_url()))
                     .transition(withCrossFade())
                     .into(baseBind.userBackground);
 

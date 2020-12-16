@@ -127,7 +127,7 @@ public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDet
         ProgressManager.getInstance().addResponseListener(imageUrl, new ProgressListener() {
             @Override
             public void onProgress(ProgressInfo progressInfo) {
-                holder.baseBind.donutProgress.setProgress(progressInfo.getPercent());
+                holder.baseBind.progressLayout.donutProgress.setProgress(progressInfo.getPercent());
             }
 
             @Override
@@ -142,7 +142,7 @@ public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDet
                 .listener(new RequestListener<Bitmap>() {
                     @Override
                     public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {
-                        holder.baseBind.donutProgress.setVisibility(View.INVISIBLE);
+                        holder.baseBind.progressLayout.donutProgress.setVisibility(View.INVISIBLE);
                         hasLoad.put(position, false);
                         Common.showLog("IllustAdapter onLoadFailed " + position);
                         return false;
@@ -150,7 +150,7 @@ public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDet
 
                     @Override
                     public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
-                        holder.baseBind.donutProgress.setVisibility(View.INVISIBLE);
+                        holder.baseBind.progressLayout.donutProgress.setVisibility(View.INVISIBLE);
                         Common.showLog("IllustAdapter onResourceReady " + position);
                         hasLoad.put(position, true);
                         return false;

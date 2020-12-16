@@ -46,7 +46,12 @@ public class FragmentPivision extends NetListFragment<FragmentBaseListBinding,
 
     @Override
     public RemoteRepo<ListArticle> repository() {
-        return new PivisionRepo(dataType, false);
+        return new PivisionRepo(dataType, false){
+            @Override
+            public boolean localData() {
+                return false;
+            }
+        };
     }
 
     @Override

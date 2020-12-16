@@ -37,7 +37,7 @@ public class SimpleUserAdapter extends BaseAdapter<UserBean, RecySimpleUserBindi
     @Override
     public void bindData(UserBean target, ViewHolder<RecySimpleUserBinding> bindView, int position) {
         bindView.baseBind.userName.setText(target.getName());
-        Glide.with(mContext).load(GlideUtil.getMediumImg(allIllust.get(position)
+        Glide.with(mContext).load(GlideUtil.getUrl(allIllust.get(position)
                 .getProfile_image_urls().getMedium())).into(bindView.baseBind.userHead);
         bindView.baseBind.postLikeUser.setText(allIllust.get(position).isIs_followed() ?
                 mContext.getString(R.string.post_unfollow) : mContext.getString(R.string.post_follow));

@@ -22,7 +22,7 @@ class MangaSeriesAdapter(
         bindView.baseBind.seriesSize.text = "共" + target.series_work_count + "话"
         if (!TextUtils.isEmpty(target.cover_image_urls.medium)) {
             Glide.with(mContext)
-                    .load(GlideUtil.getArticle(target.cover_image_urls.medium))
+                    .load(GlideUtil.getUrl(target.cover_image_urls.medium))
                     .into(bindView.baseBind.imageView)
         }
         bindView.itemView.setOnClickListener {

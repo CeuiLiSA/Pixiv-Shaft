@@ -184,24 +184,24 @@
 
                         </RelativeLayout>
 
-                        <View style="@style/half_divider" />
+<!--                        <View style="@style/half_divider" />-->
 
-                        <RelativeLayout
-                            android:id="@+id/first_detail_origin_rela"
-                            style="@style/ripple_rela">
-
-
-                            <TextView
-                                style="@style/setting_text_left"
-                                android:text="@string/show_original_image" />
+<!--                        <RelativeLayout-->
+<!--                            android:id="@+id/first_detail_origin_rela"-->
+<!--                            style="@style/ripple_rela">-->
 
 
-                            <androidx.appcompat.widget.SwitchCompat
-                                android:id="@+id/first_detail_origin"
-                                style="@style/setting_right_switch"/>
+<!--                            <TextView-->
+<!--                                style="@style/setting_text_left"-->
+<!--                                android:text="@string/show_original_image" />-->
 
 
-                        </RelativeLayout>
+<!--                            <androidx.appcompat.widget.SwitchCompat-->
+<!--                                android:id="@+id/first_detail_origin"-->
+<!--                                style="@style/setting_right_switch"/>-->
+
+
+<!--                        </RelativeLayout>-->
 
                         <View style="@style/half_divider" />
 

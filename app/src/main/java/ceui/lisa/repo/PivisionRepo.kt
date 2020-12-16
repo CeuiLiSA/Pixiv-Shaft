@@ -6,7 +6,7 @@ import ceui.lisa.model.ListArticle
 import ceui.lisa.utils.Dev
 import io.reactivex.Observable
 
-class PivisionRepo(
+open class PivisionRepo(
         private val dataType: String?,
         private val isHorizontal: Boolean
 ) : RemoteRepo<ListArticle>() {

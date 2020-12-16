@@ -19,7 +19,7 @@ import ceui.lisa.view.LinearItemWithHeadDecoration;
 public class FragmentRecmdNovel extends NetListFragment<FragmentBaseListBinding,
         ListNovel, NovelBean> {
 
-    private List<NovelBean> ranking = new ArrayList<>();
+    private final List<NovelBean> ranking = new ArrayList<>();
 
     @Override
     public RemoteRepo<ListNovel> repository() {

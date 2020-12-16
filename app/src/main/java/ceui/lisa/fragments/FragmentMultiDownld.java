@@ -74,7 +74,7 @@ public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownload
                                 content.append("\n");
                             } else {
                                 for (int i = 0; i < illustsBean.getPage_count(); i++) {
-                                    content.append(illustsBean.getMeta_pages().get(i).getImage_urls().getMaxImage());
+                                    content.append(illustsBean.getMeta_pages().get(i).getImage_urls().getOriginal());
                                     content.append("\n");
                                 }
                             }

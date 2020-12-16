@@ -86,7 +86,7 @@ public class HistoryAdapter extends BaseAdapter<IllustHistoryEntity, RecyViewHis
 
             NovelBean current = Shaft.sGson.fromJson(allIllust.get(position).getIllustJson(), NovelBean.class);
             Glide.with(mContext)
-                    .load(GlideUtil.getMediumImg(current.getImage_urls().getMedium()))
+                    .load(GlideUtil.getUrl(current.getImage_urls().getMedium()))
                     .placeholder(R.color.light_bg)
                     .into(bindView.baseBind.illustImage);
             bindView.baseBind.title.setText(current.getTitle());

@@ -1,37 +1,19 @@
 package ceui.lisa.utils;
 
-import android.net.Uri;
 import android.text.TextUtils;
 
 import com.bumptech.glide.load.model.GlideUrl;
-import com.bumptech.glide.load.model.Headers;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import ceui.lisa.download.IllustDownload;
-import ceui.lisa.models.UserBean;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.models.UserBean;
 
 public class GlideUtil {
 
     public static GlideUrl getMediumImg(IllustsBean illustsBean) {
-        String url = illustsBean.getImage_urls().getMedium();
-        String finalUrl;
-        if (url.contains("i.pximg.net")) {
-            finalUrl = url.replace("i.pximg.net", "i.pixiv.cat");
-        } else {
-            finalUrl = url;
-        }
-        Common.showLog("准备加载  "+ finalUrl);
-        return new GlideUrlChild(finalUrl);
+        return new GlideUrlChild(illustsBean.getImage_urls().getMedium());
     }
 
-    public static GlideUrl getMediumImg(String imageUrl) {
-        return new GlideUrlChild(imageUrl);
-    }
-
-    public static GlideUrl getArticle(String url) {
+    public static GlideUrl getUrl(String url) {
         return new GlideUrlChild(url);
     }
 
@@ -66,10 +48,5 @@ public class GlideUtil {
         } else {
             return new GlideUrlChild(illustsBean.getMeta_pages().get(i).getImage_urls().getLarge());
         }
-    }
-
-
-    public static GlideUrl getOriginal(IllustsBean illustsBean, int i) {
-        return new GlideUrlChild(IllustDownload.getUrl(illustsBean, i));
     }
 }
