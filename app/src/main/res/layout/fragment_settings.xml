@@ -531,13 +531,16 @@
                         <View style="@style/full_divider" />
 
                         <RelativeLayout
+                            android:id="@+id/clear_image_cache"
                             style="@style/ripple_rela">
 
                             <TextView
                                 style="@style/setting_text_left"
                                 android:text="@string/string_101" />
 
-                            <TextView style="@style/setting_right_arrow" />
+                            <TextView
+                                android:id="@+id/image_cache_size"
+                                style="@style/setting_right_arrow" />
 
                         </RelativeLayout>
 
@@ -551,7 +554,9 @@
                                 style="@style/setting_text_left"
                                 android:text="@string/string_102" />
 
-                            <TextView style="@style/setting_right_arrow" />
+                            <TextView
+                                android:id="@+id/gif_cache_size"
+                                style="@style/setting_right_arrow" />
 
                         </RelativeLayout>
 

@@ -25,10 +25,9 @@ public class FileCreator {
 
     public static File createGifUnZipFolder(IllustsBean illustsBean) {
         return new File(Shaft.sSettings.getGifZipPath(), deleteSpecialWords(
-                illustsBean.getTitle() + "_" + illustsBean.getId())
+                illustsBean.getTitle() + "_" + illustsBean.getId() + "_unzip")
         );
     }
-
 
 
     public static File createGifFile(IllustsBean illustsBean) {

@@ -8,6 +8,7 @@ import android.widget.CompoundButton;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.blankj.utilcode.util.FileUtils;
 import com.blankj.utilcode.util.LanguageUtils;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
@@ -23,6 +24,7 @@ import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
+import ceui.lisa.core.SAFile;
 import ceui.lisa.databinding.FragmentSettingsBinding;
 import ceui.lisa.helper.ThemeHelper;
 import ceui.lisa.utils.Common;
@@ -420,10 +422,23 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             }
         });
 
+        baseBind.imageCacheSize.setText(FileUtils.getSize(SAFile.getImageCache(mContext)));
+        baseBind.clearImageCache.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FileUtils.deleteAllInDir(SAFile.getImageCache(mContext));
+                Common.showToast("图片缓存清除成功！");
+                baseBind.imageCacheSize.setText(FileUtils.getSize(SAFile.getImageCache(mContext)));
+            }
+        });
+
+        baseBind.gifCacheSize.setText(FileUtils.getSize(SAFile.getGifCache(mContext)));
         baseBind.clearGifCache.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                FileUtils.deleteAllInDir(SAFile.getGifCache(mContext));
+                Common.showToast("GIF缓存清除成功！");
+                baseBind.gifCacheSize.setText(FileUtils.getSize(SAFile.getGifCache(mContext)));
             }
         });
         baseBind.refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));

@@ -1,6 +1,8 @@
 package ceui.lisa.models;
 
-public class MetaPagesBean {
+import java.io.Serializable;
+
+public class MetaPagesBean implements Serializable {
     /**
      * image_urls : {"square_medium":"https://i.pximg.net/c/360x360_10_webp/img-master/img/2018/12/15/00/00/10/72114149_p0_square1200.jpg","medium":"https://i.pximg.net/c/540x540_70/img-master/img/2018/12/15/00/00/10/72114149_p0_master1200.jpg","large":"https://i.pximg.net/c/600x1200_90_webp/img-master/img/2018/12/15/00/00/10/72114149_p0_master1200.jpg","original":"https://i.pximg.net/img-original/img/2018/12/15/00/00/10/72114149_p0.png"}
      */

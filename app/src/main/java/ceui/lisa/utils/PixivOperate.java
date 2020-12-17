@@ -15,11 +15,20 @@ import com.blankj.utilcode.util.ZipUtils;
 
 import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.io.inputstream.ZipInputStream;
+import net.lingala.zip4j.model.LocalFileHeader;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.zip.ZipEntry;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
@@ -36,6 +45,7 @@ import ceui.lisa.fragments.FragmentLogin;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
+import ceui.lisa.interfaces.FeedBack;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.IllustSearchResponse;
@@ -282,23 +292,6 @@ public class PixivOperate {
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(errorCtrl);
-    }
-
-    public static void unzipGif(DocumentFile file, IllustsBean illust, Context context) {
-        try {
-            Common.showLog(file.getName());
-            if (!TextUtils.isEmpty(file.getName()) && file.getName().contains(".zip")) {
-                try {
-                    ZipFile zipFile = new ZipFile(UriUtils.uri2File(file.getUri()));
-                    zipFile.extractAll(UriUtils.uri2File(SAFile.findGifUnzipFolder(context, illust).getUri()).getPath());
-                    Common.showToast("图组ZIP解压完成");
-                } catch (ZipException e) {
-                    e.printStackTrace();
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public static void muteTag(TagsBean tagsBean) {

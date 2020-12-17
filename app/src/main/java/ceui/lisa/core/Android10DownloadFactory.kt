@@ -15,20 +15,23 @@ class Android10DownloadFactory constructor(
 ) : UriFactory(context) {
 
     lateinit var fileUri: Uri
-    var fileLength: Long = 0L
-
 
     override fun insert(response: Response): Uri {
-        return if (Common.isAndroidQ()) {
-            val documentFile = SAFile.getDocument(context, item.illust, item.index)
-            fileLength = documentFile.length()
-            fileUri = documentFile.uri
-            fileUri
-        } else {
-            val file = FileCreator.createIllustFile(item.illust, item.index)
-            fileLength = file.length()
+        if (item.illust.isGif) {
+            val file = SAFile.createZipFile(context, item.name)
             fileUri = Uri.fromFile(file)
-            fileUri
+            return fileUri
+        } else {
+            if (Common.isAndroidQ()) {
+                val documentFile = SAFile.getDocument(context, item.illust, item.index)
+                fileUri = documentFile.uri
+                return fileUri
+            } else {
+                val file = FileCreator.createIllustFile(item.illust, item.index)
+                fileUri = Uri.fromFile(file)
+                return fileUri
+            }
         }
+
     }
 }

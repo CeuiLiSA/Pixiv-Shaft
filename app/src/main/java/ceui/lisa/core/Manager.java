@@ -4,12 +4,20 @@ package ceui.lisa.core;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.text.TextUtils;
 
 import androidx.documentfile.provider.DocumentFile;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import com.blankj.utilcode.util.ZipUtils;
+
+import net.lingala.zip4j.io.inputstream.ZipInputStream;
+import net.lingala.zip4j.model.LocalFileHeader;
+
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,9 +26,11 @@ import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.database.DownloadingEntity;
 import ceui.lisa.interfaces.Callback;
+import ceui.lisa.interfaces.FeedBack;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
+import ceui.lisa.utils.PixivOperate;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.functions.Consumer;
@@ -140,7 +150,6 @@ public class Manager {
                     public void accept(Progress progress) {
                         nonius = progress.getCurrentSize();
                         currentProgress = progress.getProgress();
-                        Common.showLog("before: " + factory.getFileLength() + " manager currentProgress " + currentProgress + " end:" + progress.getTotalSize());
                         if (mCallback != null) {
                             mCallback.doSomething(progress);
                         }
@@ -151,6 +160,15 @@ public class Manager {
                     //下载完成，处理相关逻辑
                     currentProgress = 0;
                     nonius = 0L;
+
+                    if(bean.getIllust().isGif()){
+                        ZipUtils.unzipFile(SAFile.createZipFile(context, bean.getName()),
+                                SAFile.createCacheUnzipFolder(context, bean.getIllust()));
+                        Intent intent = new Intent(Params.PLAY_GIF);
+                        intent.putExtra(Params.GIF_DELAY, bean.getDelay());
+                        intent.putExtra(Params.ID, bean.getIllust().getId());
+                        LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
+                    }
 
                     {
                         //通知 DOWNLOAD_ING 下载完成

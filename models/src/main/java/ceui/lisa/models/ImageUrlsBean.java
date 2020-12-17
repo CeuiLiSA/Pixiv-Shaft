@@ -74,7 +74,7 @@ public class ImageUrlsBean implements Serializable {
         } else {
             finalUrl = before;
         }
-        Log.d("==SHAFT== log ==> ", "changeToPixivCat " + finalUrl);
+        Log.d("==SHAFT== log ==> ", "PixivCatUrl " + finalUrl);
         return finalUrl;
     }
 }

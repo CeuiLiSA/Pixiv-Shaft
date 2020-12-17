@@ -102,13 +102,12 @@ public class IllustDownload {
         });
     }
 
-    public static void downloadGif(GifResponse response, DocumentFile file, IllustsBean illust, BaseActivity<?> activity) {
-        check(activity, () -> {
-            DownloadItem item = new DownloadItem(illust, 0);
-            item.setUrl(response.getUgoira_metadata().getZip_urls().getMedium());
-            item.setShowUrl(illust.getImage_urls().getMedium());
-            Manager.get().addTask(item, activity);
-        });
+    public static void downloadGif(GifResponse response, IllustsBean illust, BaseActivity<?> activity) {
+        DownloadItem item = new DownloadItem(illust, 0);
+        item.setUrl(response.getUgoira_metadata().getZip_urls().getMedium());
+        item.setShowUrl(illust.getImage_urls().getMedium());
+        item.setDelay(response.getDelay());
+        Manager.get().addTask(item, activity);
     }
 
     public static void downloadNovel(BaseActivity<?> activity, String displayName, String content, Callback<Uri> targetCallback) {

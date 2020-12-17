@@ -41,9 +41,11 @@ public class Params {
     public static final String IS_LIKED      = "is liked";
     public static final String IS_POPULAR    = "is popular";
     public static final String LAST_CLASS    = "last class";
+    public static final String GIF_DELAY         = "gif delay";
 
     public static final String FILTER_ILLUST        = "ceui.lisa.fragments.NetListFragment FILTER_ILLUST";
     public static final String LIKED_ILLUST        = "ceui.lisa.fragments.NetListFragment LIKED_ILLUST";
+    public static final String PLAY_GIF        = "ceui.lisa.fragments.FragmentSingleUgora PLAY_GIF";
     public static final String LIKED_USER          = "ceui.lisa.fragments.NetListFragment LIKED_USER";
     public static final String LIKED_NOVEL         = "ceui.lisa.fragments.NetListFragment LIKED_NOVEL";
     public static final String DOWNLOAD_FINISH         = "ceui.lisa.fragments.NetListFragment DOWNLOAD_FINISH";

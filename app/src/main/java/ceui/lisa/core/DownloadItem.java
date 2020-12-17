@@ -18,15 +18,28 @@ public class DownloadItem implements Serializable {
     private String url;
     private String showUrl;
     private String uuid;
+    private int delay;
     private final IllustsBean illust;
     private int index;
 
     public DownloadItem(IllustsBean illustsBean, int index) {
         this.illust = illustsBean;
         this.uuid = UUID.randomUUID().toString();
-        this.name = FileCreator.customFileName(illustsBean, index);
+        if (this.illust.isGif()) {
+            this.name = FileCreator.createGifZipFile(illustsBean).getName();
+        } else {
+            this.name = FileCreator.customFileName(illustsBean, index);
+        }
         this.index = index;
         Common.showLog("随机生成一个UUID");
+    }
+
+    public int getDelay() {
+        return delay;
+    }
+
+    public void setDelay(int delay) {
+        this.delay = delay;
     }
 
     public int getIndex() {

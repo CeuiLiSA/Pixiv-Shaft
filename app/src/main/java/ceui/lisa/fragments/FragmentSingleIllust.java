@@ -108,17 +108,7 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
                     intent.putExtra("illust", illust);
                     intent.putExtra("dataType", "二级详情");
                     intent.putExtra("index", position);
-                    if (Shaft.sSettings.isFirstImageSize()) {
-                        mActivity.startActivity(intent);
-                    } else {
-                        if (mDetailAdapter.getHasLoad().get(position)) {
-                            Bundle bundle = ActivityOptionsCompat.makeSceneTransitionAnimation(mActivity,
-                                    v, "big_image_" + position).toBundle();
-                            startActivity(intent, bundle);
-                        } else {
-                            mActivity.startActivity(intent);
-                        }
-                    }
+                    mActivity.startActivity(intent);
                 } else if (viewType == 1) {
 
                 }
