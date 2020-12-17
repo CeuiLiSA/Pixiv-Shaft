@@ -2,6 +2,7 @@ package ceui.lisa.fragments;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.CompoundButton;
@@ -31,6 +32,7 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 
+import static android.provider.DocumentsContract.EXTRA_INITIAL_URI;
 import static ceui.lisa.fragments.FragmentFilter.ALL_SIZE_VALUE;
 import static ceui.lisa.utils.Settings.ALL_LANGUAGE;
 
@@ -290,8 +292,15 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 if (Common.isAndroidQ()) {
                     try {
                         freshPath = true;
-                        mActivity.startActivityForResult(
-                                new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE), BaseActivity.ASK_URI);
+                        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+                        Uri start;
+                        if (!TextUtils.isEmpty(Shaft.sSettings.getRootPathUri())) {
+                            start = Uri.parse(Shaft.sSettings.getRootPathUri());
+                        } else {
+                            start = Uri.parse("content://com.android.externalstorage.documents/document/primary:Download");
+                        }
+                        intent.putExtra(EXTRA_INITIAL_URI, start);
+                        mActivity.startActivityForResult(intent, BaseActivity.ASK_URI);
                     } catch (Exception e) {
                         Common.showToast("手机系统被阉割，没这个功能：" + e.toString(), true);
                         e.printStackTrace();
