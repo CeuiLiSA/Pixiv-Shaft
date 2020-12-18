@@ -1,6 +1,8 @@
 package ceui.lisa.models;
 
-public class ProfileImageUrlsBean extends ImageUrlsBean{
+import android.text.TextUtils;
+
+public class ProfileImageUrlsBean extends ImageUrlsBean {
 
     private String px_16x16;
     private String px_50x50;
@@ -28,5 +30,21 @@ public class ProfileImageUrlsBean extends ImageUrlsBean{
 
     public void setPx_170x170(String px_170x170) {
         this.px_170x170 = px_170x170;
+    }
+
+    @Override
+    public String getMaxImage() {
+        String url = super.getMaxImage();
+        if (!TextUtils.isEmpty(url)) {
+            return url;
+        } else if(!TextUtils.isEmpty(px_170x170)){
+            return px_170x170;
+        } else if(!TextUtils.isEmpty(px_50x50)){
+            return px_50x50;
+        } else if(!TextUtils.isEmpty(px_16x16)){
+            return px_16x16;
+        } else {
+            return "";
+        }
     }
 }

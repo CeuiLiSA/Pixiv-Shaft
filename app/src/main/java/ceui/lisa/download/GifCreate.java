@@ -1,5 +1,7 @@
 package ceui.lisa.download;
 
+import android.content.Context;
+
 import com.lchad.gifflen.Gifflen;
 
 import java.io.File;
@@ -9,6 +11,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.core.SAFile;
 import ceui.lisa.core.TryCatchObserverImpl;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.models.IllustsBean;
@@ -21,8 +24,8 @@ import io.reactivex.schedulers.Schedulers;
 
 public class GifCreate {
 
-    public static void createGif(IllustsBean illustsBean) {
-        File parentFile = FileCreator.createGifParentFile(illustsBean);
+    public static void createGif(Context context, IllustsBean illustsBean) {
+        File parentFile = SAFile.createCacheUnzipFolder(context, illustsBean);
         if (parentFile.exists() && parentFile.length() > 1024) {
             File realGifFile = FileCreator.createGifFile(illustsBean);
             if (realGifFile.exists() && realGifFile.length() > 1024) {
@@ -74,7 +77,6 @@ public class GifCreate {
 
 
                             if (illustsBean.getWidth() > 450 && illustsBean.getHeight() > 450) {
-
                                 if (illustsBean.getWidth() < illustsBean.getHeight()) {
                                     mGiffle.encode(450 * illustsBean.getWidth() / illustsBean.getHeight(),
                                             450, realGifFile.getPath(), allFiles);

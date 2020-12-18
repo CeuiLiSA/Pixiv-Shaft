@@ -18,11 +18,8 @@ public class ImageUrlsBean implements Serializable {
     private String large;
     private String original;
 
-    public static final String HOST_OLD = "i.pximg.net";
-    public static final String HOST_NEW = "i.pixiv.cat";
-
     public String getSquare_medium() {
-        return changeToPixivCat(square_medium);
+        return square_medium;
     }
 
     public void setSquare_medium(String square_medium) {
@@ -30,7 +27,7 @@ public class ImageUrlsBean implements Serializable {
     }
 
     public String getMedium() {
-        return changeToPixivCat(medium);
+        return medium;
     }
 
     public void setMedium(String medium) {
@@ -38,7 +35,7 @@ public class ImageUrlsBean implements Serializable {
     }
 
     public String getLarge() {
-        return changeToPixivCat(large);
+        return large;
     }
 
     public void setLarge(String large) {
@@ -46,7 +43,7 @@ public class ImageUrlsBean implements Serializable {
     }
 
     public String getOriginal() {
-        return changeToPixivCat(original);
+        return original;
     }
 
     public void setOriginal(String original) {
@@ -65,16 +62,5 @@ public class ImageUrlsBean implements Serializable {
         } else {
             return "";
         }
-    }
-
-    protected String changeToPixivCat(String before) {
-        String finalUrl;
-        if (!TextUtils.isEmpty(before) && before.contains(HOST_OLD)) {
-            finalUrl = before.replace(HOST_OLD, HOST_NEW);
-        } else {
-            finalUrl = before;
-        }
-        Log.d("==SHAFT== log ==> ", "PixivCatUrl " + finalUrl);
-        return finalUrl;
     }
 }

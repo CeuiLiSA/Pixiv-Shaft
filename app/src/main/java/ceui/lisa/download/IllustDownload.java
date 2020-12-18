@@ -20,11 +20,14 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.core.DownloadItem;
 import ceui.lisa.core.Manager;
 import ceui.lisa.core.SAFile;
+import ceui.lisa.core.UrlFactory;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.interfaces.FeedBack;
 import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
+
+import static android.provider.DocumentsContract.EXTRA_INITIAL_URI;
 
 public class IllustDownload {
 
@@ -137,10 +140,9 @@ public class IllustDownload {
 
     public static String getUrl(IllustsBean illust, int index) {
         if (illust.getPage_count() == 1) {
-            return "https://pixiv.cat/" + illust.getId() + "." + getMimeType(illust, index);
+            return UrlFactory.invoke(illust.getMeta_single_page().getOriginal_image_url());
         } else {
-            return "https://pixiv.cat/" + illust.getId() +
-                    "-" + (index + 1) + "." + getMimeType(illust, index);
+            return UrlFactory.invoke(illust.getMeta_pages().get(index).getImage_urls().getOriginal());
         }
 //        return "http://update.9158.com/miaolive/Miaolive.apk";
     }
@@ -181,8 +183,20 @@ public class IllustDownload {
                     .addAction(0, activity.getResources().getString(R.string.string_312),
                             (dialog, index) -> {
                                 try {
-                                    activity.startActivityForResult(
-                                            new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE), BaseActivity.ASK_URI);
+                                    new Thread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+                                            Uri start;
+                                            if (!TextUtils.isEmpty(Shaft.sSettings.getRootPathUri())) {
+                                                start = Uri.parse(Shaft.sSettings.getRootPathUri());
+                                            } else {
+                                                start = Uri.parse("content://com.android.externalstorage.documents/document/primary:Download");
+                                            }
+                                            intent.putExtra(EXTRA_INITIAL_URI, start);
+                                            activity.startActivityForResult(intent, BaseActivity.ASK_URI);
+                                        }
+                                    }).start();
                                 } catch (Exception e) {
                                     Common.showToast(e.toString());
                                     e.printStackTrace();

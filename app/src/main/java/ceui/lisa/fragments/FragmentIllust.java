@@ -310,14 +310,10 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
         baseBind.totalView.setText(String.valueOf(illust.getTotal_view()));
         baseBind.totalLike.setText(String.valueOf(illust.getTotal_bookmarks()));
         baseBind.download.setOnClickListener(v -> {
-            if (illust.isGif()) {
-                GifCreate.createGif(illust);
+            if (illust.getPage_count() == 1) {
+                IllustDownload.downloadIllust(illust, (BaseActivity<?>) mContext);
             } else {
-                if (illust.getPage_count() == 1) {
-                    IllustDownload.downloadIllust(illust, (BaseActivity<?>) mContext);
-                } else {
-                    IllustDownload.downloadAllIllust(illust, (BaseActivity<?>) mContext);
-                }
+                IllustDownload.downloadAllIllust(illust, (BaseActivity<?>) mContext);
             }
         });
         baseBind.download.setOnLongClickListener(new View.OnLongClickListener() {

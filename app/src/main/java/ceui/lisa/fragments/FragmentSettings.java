@@ -134,21 +134,6 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             }
         });
 
-        baseBind.singleDownloadTask.setChecked(Shaft.sSettings.isSingleDownloadTask());
-        baseBind.singleDownloadTask.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                Common.showToast("设置成功", 2);
-                Local.setSettings(Shaft.sSettings);
-            }
-        });
-        baseBind.singleDownloadTaskRela.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                baseBind.singleDownloadTask.performClick();
-            }
-        });
-
         baseBind.showLikeButton.setChecked(Shaft.sSettings.isShowLikeButton());
         baseBind.showLikeButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -265,25 +250,25 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             }
         });
 
-//        baseBind.firstDetailOrigin.setChecked(Shaft.sSettings.isFirstImageSize());
-//        baseBind.firstDetailOrigin.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-//            @Override
-//            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-//                if (isChecked) {
-//                    Shaft.sSettings.setFirstImageSize(true);
-//                } else {
-//                    Shaft.sSettings.setFirstImageSize(false);
-//                }
-//                Common.showToast("设置成功", 2);
-//                Local.setSettings(Shaft.sSettings);
-//            }
-//        });
-//        baseBind.firstDetailOriginRela.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                baseBind.firstDetailOrigin.performClick();
-//            }
-//        });
+        baseBind.firstDetailOrigin.setChecked(Shaft.sSettings.isUsePixivCat());
+        baseBind.firstDetailOrigin.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    Shaft.sSettings.setUsePixivCat(true);
+                } else {
+                    Shaft.sSettings.setUsePixivCat(false);
+                }
+                Common.showToast("设置成功");
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.firstDetailOriginRela.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                baseBind.firstDetailOrigin.performClick();
+            }
+        });
 
         setPath();
         baseBind.singleIllustPath.setOnClickListener(new View.OnClickListener() {
@@ -291,16 +276,21 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             public void onClick(View v) {
                 if (Common.isAndroidQ()) {
                     try {
-                        freshPath = true;
-                        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-                        Uri start;
-                        if (!TextUtils.isEmpty(Shaft.sSettings.getRootPathUri())) {
-                            start = Uri.parse(Shaft.sSettings.getRootPathUri());
-                        } else {
-                            start = Uri.parse("content://com.android.externalstorage.documents/document/primary:Download");
-                        }
-                        intent.putExtra(EXTRA_INITIAL_URI, start);
-                        mActivity.startActivityForResult(intent, BaseActivity.ASK_URI);
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                freshPath = true;
+                                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+                                Uri start;
+                                if (!TextUtils.isEmpty(Shaft.sSettings.getRootPathUri())) {
+                                    start = Uri.parse(Shaft.sSettings.getRootPathUri());
+                                } else {
+                                    start = Uri.parse("content://com.android.externalstorage.documents/document/primary:Download");
+                                }
+                                intent.putExtra(EXTRA_INITIAL_URI, start);
+                                mActivity.startActivityForResult(intent, BaseActivity.ASK_URI);
+                            }
+                        }).start();
                     } catch (Exception e) {
                         Common.showToast("手机系统被阉割，没这个功能：" + e.toString(), true);
                         e.printStackTrace();

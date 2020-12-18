@@ -78,14 +78,10 @@
 
                             </ImageButton>
 
-                            <ProgressBar
-                                android:layout_width="match_parent"
-                                android:id="@+id/progress"
-                                android:layout_alignParentBottom="true"
-                                style="@android:style/Widget.DeviceDefault.Light.ProgressBar.Horizontal"
-                                android:layout_height="wrap_content">
-
-                            </ProgressBar>
+                            <include
+                                android:id="@+id/progress_layout"
+                                android:visibility="gone"
+                                layout="@layout/item_progress" />
 
                         </RelativeLayout>
 

@@ -511,5 +511,6 @@
     <string name="string_328">清空任务</string>
     <string name="string_329">系统版本低于Android 10，无法自定义文件夹</string>
     <string name="string_330">暂未设置</string>
+    <string name="string_331">使用PixivCat代理</string>
 
 </resources>

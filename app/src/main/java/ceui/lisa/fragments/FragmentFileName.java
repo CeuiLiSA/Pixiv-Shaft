@@ -2,6 +2,7 @@ package ceui.lisa.fragments;
 
 import android.text.TextUtils;
 import android.view.View;
+import android.widget.CompoundButton;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.ItemTouchHelper;
@@ -66,6 +67,15 @@ public class FragmentFileName extends SwipeFragment<FragmentFileNameBinding> {
                 if (mAdapter != null) {
                     mAdapter.unCheckAll();
                 }
+            }
+        });
+        baseBind.hasP0.setChecked(Shaft.sSettings.isHasP0());
+        baseBind.hasP0.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setHasP0(isChecked);
+                Common.showToast("设置成功");
+                Local.setSettings(Shaft.sSettings);
             }
         });
     }

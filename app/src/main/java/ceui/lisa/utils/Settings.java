@@ -69,8 +69,8 @@ public class Settings {
 
     private boolean relatedIllustNoLimit = true;
 
-    //一级详情FragmentSingleIllust 图片显示原图
-    private boolean useOriginalImage = false;
+    //使用pixiv cat 代理 展示图片
+    private boolean usePixivCat = true;
 
     //二级详情FragmentImageDetail 图片显示原图
     private boolean secondImageSize = true;
@@ -86,8 +86,8 @@ public class Settings {
 
     private boolean saveViewHistory = true;
 
-    //只允许一个任务处于下载中，用来保证下载顺序
-    private boolean singleDownloadTask = false;
+    //单P作品的文件名是否带P0
+    private boolean hasP0 = false;
 
     //作品详情使用新页面
     private boolean useFragmentIllust = true;
@@ -186,6 +186,14 @@ public class Settings {
         return TextUtils.isEmpty(searchFilter) ? " 无限制" : searchFilter;
     }
 
+    public boolean isUsePixivCat() {
+        return usePixivCat;
+    }
+
+    public void setUsePixivCat(boolean usePixivCat) {
+        this.usePixivCat = usePixivCat;
+    }
+
     public void setSearchFilter(String searchFilter) {
         this.searchFilter = searchFilter;
     }
@@ -237,14 +245,6 @@ public class Settings {
 
     public void setSettingsAnimate(boolean settingsAnimate) {
         this.settingsAnimate = settingsAnimate;
-    }
-
-    public boolean isFirstImageSize() {
-        return useOriginalImage;
-    }
-
-    public void setFirstImageSize(boolean firstImageSize) {
-        this.useOriginalImage = firstImageSize;
     }
 
     public boolean isSecondImageSize() {
@@ -343,12 +343,12 @@ public class Settings {
         this.fileNameJson = fileNameJson;
     }
 
-    public boolean isSingleDownloadTask() {
-        return singleDownloadTask;
+    public boolean isHasP0() {
+        return hasP0;
     }
 
-    public void setSingleDownloadTask(boolean singleDownloadTask) {
-        this.singleDownloadTask = singleDownloadTask;
+    public void setHasP0(boolean hasP0) {
+        this.hasP0 = hasP0;
     }
 
     public int getNovelHolderColor() {

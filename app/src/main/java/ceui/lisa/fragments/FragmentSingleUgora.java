@@ -171,6 +171,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
             mPlayReceiver = new PlayReceiver(new BaseReceiver.CallBack() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
+                    baseBind.progressLayout.donutProgress.setVisibility(View.GONE);
                     Bundle bundle = intent.getExtras();
                     if (bundle != null) {
                         int id = bundle.getInt(Params.ID);
@@ -184,15 +185,15 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
             intentFilter.addAction(Params.PLAY_GIF);
             LocalBroadcastManager.getInstance(mContext).registerReceiver(mPlayReceiver, intentFilter);
         }
-
-
-
     }
 
     @Override
     public void onDestroy() {
-        if (mReceiver != null) {
+        try {
             LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mReceiver);
+            LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mPlayReceiver);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         super.onDestroy();
     }
@@ -200,7 +201,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
     private AnimationDrawable animationDrawable;
 
     public void tryPlayGif(File parentFile, int delay) {
-        baseBind.progress.setVisibility(View.INVISIBLE);
+        baseBind.progressLayout.donutProgress.setVisibility(View.GONE);
         baseBind.playGif.setVisibility(View.INVISIBLE);
         if (parentFile != null && parentFile.isDirectory()) {
             //获取所有的gif帧
@@ -223,15 +224,13 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
                         });
 
                         animationDrawable = new AnimationDrawable();
-                        for (int i = 0; i < allFiles.size(); i++) {
-
+                        for (File allFile : allFiles) {
                             Drawable drawable = Glide.with(mContext)
-                                    .load(allFiles.get(i))
+                                    .load(allFile)
                                     .skipMemoryCache(true)
                                     .submit()
                                     .get();
                             animationDrawable.addFrame(drawable, delay);
-
                         }
                         emitter.onNext("万事俱备");
                     } catch (ExecutionException | InterruptedException e) {
@@ -251,7 +250,20 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
         }
     }
 
+    @Override
+    public void onPause() {
+        super.onPause();
+        nowStopGif();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        nowPlayGif();
+    }
+
     public void nowPlayGif() {
+        Common.showLog("FragmentSingleUgora nowPlayGif ");
         if (animationDrawable != null) {
             baseBind.illustImage.setImageDrawable(animationDrawable);
             animationDrawable.start();
@@ -259,6 +271,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
     }
 
     public void nowStopGif() {
+        Common.showLog("FragmentSingleUgora nowStopGif ");
         if (animationDrawable != null) {
             animationDrawable.stop();
         }
@@ -278,12 +291,21 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
             return;
         }
 
-        Manager.get().setCallback(new Callback<Progress>() {
-            @Override
-            public void doSomething(Progress t) {
+        if (illust.getId() == Manager.get().getCurrentIllustID()) {
+            Manager.get().setCallback(new Callback<Progress>() {
+                @Override
+                public void doSomething(Progress t) {
+                    try {
+                        baseBind.playGif.setVisibility(View.INVISIBLE);
+                        baseBind.progressLayout.donutProgress.setVisibility(View.VISIBLE);
+                        baseBind.progressLayout.donutProgress.setProgress(t.getProgress());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
 
-            }
-        });
 
         baseBind.playGif.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -291,6 +313,18 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
                 PixivOperate.getGifInfo(illust, new ErrorCtrl<GifResponse>() {
                     @Override
                     public void next(GifResponse gifResponse) {
+                        Manager.get().setCallback(new Callback<Progress>() {
+                            @Override
+                            public void doSomething(Progress t) {
+                                try {
+                                    baseBind.playGif.setVisibility(View.INVISIBLE);
+                                    baseBind.progressLayout.donutProgress.setVisibility(View.VISIBLE);
+                                    baseBind.progressLayout.donutProgress.setProgress(t.getProgress());
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        });
                         File gifUnzipFile = SAFile.createCacheUnzipFolder(mContext, illust);
                         if (gifUnzipFile.exists() && gifUnzipFile.listFiles() != null && gifUnzipFile.listFiles().length != 0) {
                             tryPlayGif(gifUnzipFile, gifResponse.getDelay());
@@ -329,15 +363,16 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
         });
 
         baseBind.download.setOnClickListener(v -> {
-            if (illust.isGif()) {
-                GifCreate.createGif(illust);
-            } else {
-                if (illust.getPage_count() == 1) {
-                    IllustDownload.downloadIllust(illust, (BaseActivity<?>) mContext);
-                } else {
-                    IllustDownload.downloadAllIllust(illust, (BaseActivity<?>) mContext);
-                }
-            }
+            Common.showToast("仅支持播放，暂不支持保存");
+//            if (illust.isGif()) {
+//                GifCreate.createGif(mContext, illust);
+//            } else {
+//                if (illust.getPage_count() == 1) {
+//                    IllustDownload.downloadIllust(illust, (BaseActivity<?>) mContext);
+//                } else {
+//                    IllustDownload.downloadAllIllust(illust, (BaseActivity<?>) mContext);
+//                }
+//            }
         });
         File file = FileCreator.createIllustFile(illust);
         if (file.exists()) {

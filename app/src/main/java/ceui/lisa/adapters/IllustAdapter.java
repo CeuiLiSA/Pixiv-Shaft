@@ -30,6 +30,7 @@ import ceui.lisa.download.IllustDownload;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.transformer.UniformScaleTransformation;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.GlideUrlChild;
 import ceui.lisa.utils.GlideUtil;
 import me.jessyan.progressmanager.ProgressListener;
 import me.jessyan.progressmanager.ProgressManager;
@@ -137,7 +138,7 @@ public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDet
         });
         Glide.with(mContext)
                 .asBitmap()
-                .load(imageUrl)
+                .load(new GlideUrlChild(imageUrl))
                 .transition(BitmapTransitionOptions.withCrossFade())
                 .listener(new RequestListener<Bitmap>() {
                     @Override

@@ -132,10 +132,20 @@ public class FileCreator {
                         }
                         break;
                     case P_SIZE:
-                        if (!TextUtils.isEmpty(fileName)) {
-                            fileName = fileName + "_p" + index;
+                        if (Shaft.sSettings.isHasP0()) {
+                            if (!TextUtils.isEmpty(fileName)) {
+                                fileName = fileName + "_p" + index;
+                            } else {
+                                fileName = "p" + index;
+                            }
                         } else {
-                            fileName = "p" + index;
+                            if (illustsBean.getPage_count() != 1) {
+                                if (!TextUtils.isEmpty(fileName)) {
+                                    fileName = fileName + "_p" + (index + 1);
+                                } else {
+                                    fileName = "p" + (index + 1);
+                                }
+                            }
                         }
                         break;
                     case USER_ID:

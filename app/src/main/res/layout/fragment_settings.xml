@@ -184,24 +184,24 @@
 
                         </RelativeLayout>
 
-<!--                        <View style="@style/half_divider" />-->
+                        <View style="@style/half_divider" />
 
-<!--                        <RelativeLayout-->
-<!--                            android:id="@+id/first_detail_origin_rela"-->
-<!--                            style="@style/ripple_rela">-->
-
-
-<!--                            <TextView-->
-<!--                                style="@style/setting_text_left"-->
-<!--                                android:text="@string/show_original_image" />-->
+                        <RelativeLayout
+                            android:id="@+id/first_detail_origin_rela"
+                            style="@style/ripple_rela">
 
 
-<!--                            <androidx.appcompat.widget.SwitchCompat-->
-<!--                                android:id="@+id/first_detail_origin"-->
-<!--                                style="@style/setting_right_switch"/>-->
+                            <TextView
+                                style="@style/setting_text_left"
+                                android:text="@string/string_331" />
 
 
-<!--                        </RelativeLayout>-->
+                            <androidx.appcompat.widget.SwitchCompat
+                                android:id="@+id/first_detail_origin"
+                                style="@style/setting_right_switch"/>
+
+
+                        </RelativeLayout>
 
                         <View style="@style/half_divider" />
 
@@ -340,23 +340,6 @@
 
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/delete_star_illust"
-                                style="@style/setting_right_switch"/>
-
-
-                        </RelativeLayout>
-
-                        <View style="@style/half_divider" />
-
-                        <RelativeLayout
-                            android:id="@+id/single_download_task_rela"
-                            style="@style/ripple_rela">
-
-                            <TextView
-                                style="@style/setting_text_left"
-                                android:text="@string/single_download_task" />
-
-                            <androidx.appcompat.widget.SwitchCompat
-                                android:id="@+id/single_download_task"
                                 style="@style/setting_right_switch"/>
 
 

@@ -56,7 +56,6 @@
                     android:layout_height="match_parent"
                     android:id="@+id/recyclerView"
                     android:layout_below="@+id/file_name"
-                    android:layout_above="@+id/last_name_rela"
                     android:layout_width="match_parent">
 
                 </androidx.recyclerview.widget.RecyclerView>
@@ -66,67 +65,85 @@
 
         </com.scwang.smartrefresh.layout.SmartRefreshLayout>
 
-
-
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_alignParentBottom="true"
             android:id="@+id/submit_linear"
+            android:layout_alignParentBottom="true"
+            android:orientation="vertical"
             android:layout_height="wrap_content">
 
-            <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
-                android:id="@+id/remove_all"
-                android:layout_width="0dp"
-                android:layout_marginTop="@dimen/eight_dp"
-                android:layout_height="45dp"
-                android:layout_marginStart="@dimen/tweenty_four_dp"
-                android:layout_marginEnd="@dimen/six_dp"
-                android:layout_marginBottom="@dimen/eight_dp"
-                android:layout_weight="1"
-                android:text="@string/string_58"
-                android:textColor="#9f9fb4"
-                app:qmui_backgroundColor="@color/white"
-                app:qmui_borderColor="#eaebf9"
-                app:qmui_radius="@dimen/eight_dp">
+            <CheckBox
+                android:layout_width="wrap_content"
+                android:text="单P作品，文件名带上p0"
+                android:paddingTop="@dimen/four_dp"
+                android:id="@+id/has_p0"
+                android:paddingBottom="@dimen/four_dp"
+                android:layout_marginStart="@dimen/sixteen_dp"
+                android:layout_height="wrap_content">
 
-            </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton>
+            </CheckBox>
 
-            <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
-                android:id="@+id/show_now"
-                android:layout_width="0dp"
-                android:layout_height="45dp"
-                android:layout_marginStart="@dimen/six_dp"
-                android:layout_marginTop="@dimen/eight_dp"
-                android:layout_marginEnd="@dimen/six_dp"
-                android:layout_marginBottom="@dimen/eight_dp"
-                android:layout_weight="1"
-                android:text="@string/string_59"
-                android:textColor="#9f9fb4"
-                app:qmui_backgroundColor="@color/white"
-                app:qmui_borderColor="#eaebf9"
-                app:qmui_radius="@dimen/eight_dp">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
-            </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton>
+                <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
+                    android:id="@+id/remove_all"
+                    android:layout_width="0dp"
+                    android:layout_marginTop="@dimen/eight_dp"
+                    android:layout_height="45dp"
+                    android:layout_marginStart="@dimen/tweenty_four_dp"
+                    android:layout_marginEnd="@dimen/six_dp"
+                    android:layout_marginBottom="@dimen/eight_dp"
+                    android:layout_weight="1"
+                    android:text="@string/string_58"
+                    android:textColor="#9f9fb4"
+                    app:qmui_backgroundColor="@color/white"
+                    app:qmui_borderColor="#eaebf9"
+                    app:qmui_radius="@dimen/eight_dp">
 
-            <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
-                android:id="@+id/save_now"
-                android:layout_width="0dp"
-                android:layout_height="45dp"
-                android:layout_marginStart="@dimen/six_dp"
-                android:layout_marginEnd="@dimen/tweenty_four_dp"
-                android:layout_marginBottom="@dimen/eight_dp"
-                android:layout_marginTop="@dimen/eight_dp"
-                android:layout_weight="2"
-                android:text="@string/string_60"
-                android:textColor="@color/white"
-                app:qmui_backgroundColor="?attr/colorPrimary"
-                app:qmui_borderColor="#eaebf9"
-                app:qmui_borderWidth="0dp"
-                app:qmui_radius="@dimen/eight_dp">
+                </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton>
 
-            </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton>
+                <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
+                    android:id="@+id/show_now"
+                    android:layout_width="0dp"
+                    android:layout_height="45dp"
+                    android:layout_marginStart="@dimen/six_dp"
+                    android:layout_marginTop="@dimen/eight_dp"
+                    android:layout_marginEnd="@dimen/six_dp"
+                    android:layout_marginBottom="@dimen/eight_dp"
+                    android:layout_weight="1"
+                    android:text="@string/string_59"
+                    android:textColor="#9f9fb4"
+                    app:qmui_backgroundColor="@color/white"
+                    app:qmui_borderColor="#eaebf9"
+                    app:qmui_radius="@dimen/eight_dp">
+
+                </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton>
+
+                <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
+                    android:id="@+id/save_now"
+                    android:layout_width="0dp"
+                    android:layout_height="45dp"
+                    android:layout_marginStart="@dimen/six_dp"
+                    android:layout_marginEnd="@dimen/tweenty_four_dp"
+                    android:layout_marginBottom="@dimen/eight_dp"
+                    android:layout_marginTop="@dimen/eight_dp"
+                    android:layout_weight="2"
+                    android:text="@string/string_60"
+                    android:textColor="@color/white"
+                    app:qmui_backgroundColor="?attr/colorPrimary"
+                    app:qmui_borderColor="#eaebf9"
+                    app:qmui_borderWidth="0dp"
+                    app:qmui_radius="@dimen/eight_dp">
+
+                </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton>
+
+            </LinearLayout>
+
 
         </LinearLayout>
+
 
     </RelativeLayout>
 </layout>

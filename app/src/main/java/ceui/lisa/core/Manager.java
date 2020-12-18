@@ -140,6 +140,7 @@ public class Manager {
 
     private void downloadOne(Context context, DownloadItem bean) {
         Android10DownloadFactory factory = new Android10DownloadFactory(context, bean);
+        currentIllustID = bean.getIllust().getId();
         Common.showLog("Manager 下载单个 当前进度" + nonius);
         uuid = bean.getUuid();
         handle = RxHttp.get(bean.getUrl())
@@ -150,8 +151,12 @@ public class Manager {
                     public void accept(Progress progress) {
                         nonius = progress.getCurrentSize();
                         currentProgress = progress.getProgress();
-                        if (mCallback != null) {
-                            mCallback.doSomething(progress);
+                        try {
+                            if (mCallback != null) {
+                                mCallback.doSomething(progress);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
                     }
                 }) //指定主线程回调
@@ -210,6 +215,15 @@ public class Manager {
     }
 
     private String uuid;
+    private int currentIllustID;
+
+    public int getCurrentIllustID() {
+        return currentIllustID;
+    }
+
+    public void setCurrentIllustID(int currentIllustID) {
+        this.currentIllustID = currentIllustID;
+    }
 
     public String getUuid() {
         return uuid;

@@ -11,7 +11,7 @@ public class MetaSinglePageBean extends ImageUrlsBean implements Serializable {
     private String original_image_url;
 
     public String getOriginal_image_url() {
-        return changeToPixivCat(original_image_url);
+        return original_image_url;
     }
 
     public void setOriginal_image_url(String original_image_url) {
