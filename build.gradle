@@ -27,6 +27,7 @@ allprojects {
         maven { url "https://oss.jfrog.org/libs-snapshot" }
         maven { url "http://dl.bintray.com/waynejo/maven" }
         maven { url "http://dl.bintray.com/gigamole/maven/" }
+        maven { url "http://dl.bintray.com/waynejo/maven" }
         mavenCentral()
     }
 

@@ -32,14 +32,8 @@ public class SAFile {
             return null;
         }
         String id = DocumentsContract.getTreeDocumentId(rootUri);
-        String displayName;
-        if (illust.isGif()) {
-            displayName = FileCreator.createGifZipFile(illust).getName();
-        } else {
-            displayName = FileCreator.createIllustFile(illust, index).getName();
-        }
+        String displayName = FileCreator.createIllustFile(illust, index).getName();
         id = id + "/" + displayName;
-
         Uri childrenUri = DocumentsContract.buildDocumentUriUsingTree(rootUri, id);
         DocumentFile childFile = DocumentFile.fromSingleUri(context, childrenUri);
 
@@ -48,6 +42,27 @@ public class SAFile {
         } else {
             assert root != null;
             return root.createFile(getMimeType(illust, index), displayName);
+        }
+    }
+
+    public static DocumentFile getGifDocument(Context context, IllustsBean illust) {
+        Uri rootUri = Uri.parse(Shaft.sSettings.getRootPathUri());
+        DocumentFile root = DocumentFile.fromTreeUri(context, rootUri);
+        if (!root.exists() || !root.isDirectory()) {
+            Common.showToast("创建文件失败，已授权的下载目录是否被移除?", true);
+            return null;
+        }
+        String id = DocumentsContract.getTreeDocumentId(rootUri);
+        String displayName = FileCreator.createGifFile(illust).getName();
+        id = id + "/" + displayName;
+        Uri childrenUri = DocumentsContract.buildDocumentUriUsingTree(rootUri, id);
+        DocumentFile childFile = DocumentFile.fromSingleUri(context, childrenUri);
+
+        if (childFile != null && childFile.exists()) {
+            return childFile;
+        } else {
+            assert root != null;
+            return root.createFile("image/gif", displayName);
         }
     }
 
@@ -73,6 +88,14 @@ public class SAFile {
         return cacheDir;
     }
 
+    public static File getGifResultCache(Context context) {
+        File cacheDir = new File(context.getCacheDir().getPath() + "/gif result cache");
+        if (!cacheDir.exists()) {
+            cacheDir.mkdir();
+        }
+        return cacheDir;
+    }
+
     public static File createZipFile(Context context, String zipName) {
         File zipFile = new File(getGifCache(context), zipName);
         if (!zipFile.exists()) {
@@ -92,6 +115,18 @@ public class SAFile {
             unzipDirFile.mkdir();
         }
         return unzipDirFile;
+    }
+
+    public static File createZipResultFile(Context context, String gifName) {
+        File zipFile = new File(getGifResultCache(context), gifName);
+        if (!zipFile.exists()) {
+            try {
+                zipFile.createNewFile();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return zipFile;
     }
 
     public static DocumentFile createNovelFile(Context context, String displayName) {

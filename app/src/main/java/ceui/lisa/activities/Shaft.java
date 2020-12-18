@@ -11,6 +11,7 @@ import com.google.gson.Gson;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 import com.scwang.smartrefresh.layout.header.ClassicsHeader;
+import com.tencent.mmkv.MMKV;
 
 import ceui.lisa.R;
 import ceui.lisa.helper.ThemeHelper;
@@ -92,6 +93,9 @@ public class Shaft extends Application {
         if (netWorkStateReceiver == null) {
             netWorkStateReceiver = new NetWorkStateReceiver();
         }
+
+        MMKV.initialize(this);
+
         IntentFilter filter = new IntentFilter();
         filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         registerReceiver(netWorkStateReceiver, filter);

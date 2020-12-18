@@ -11,12 +11,14 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.blankj.utilcode.util.FileUtils;
 import com.blankj.utilcode.util.LanguageUtils;
+import com.blankj.utilcode.util.UriUtils;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
+import com.tencent.mmkv.MMKV;
 
 import java.net.URLDecoder;
 import java.util.Locale;
@@ -435,6 +437,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
         baseBind.clearGifCache.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                MMKV.defaultMMKV().clearAll();
                 FileUtils.deleteAllInDir(SAFile.getGifCache(mContext));
                 Common.showToast("GIF缓存清除成功！");
                 baseBind.gifCacheSize.setText(FileUtils.getSize(SAFile.getGifCache(mContext)));

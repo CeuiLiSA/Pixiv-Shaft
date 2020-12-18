@@ -10,6 +10,7 @@ import androidx.documentfile.provider.DocumentFile;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.blankj.utilcode.util.ZipUtils;
+import com.tencent.mmkv.MMKV;
 
 import net.lingala.zip4j.io.inputstream.ZipInputStream;
 import net.lingala.zip4j.model.LocalFileHeader;
@@ -27,6 +28,7 @@ import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.database.DownloadingEntity;
 import ceui.lisa.download.FileCreator;
+import ceui.lisa.download.ImageSaver;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.interfaces.FeedBack;
 import ceui.lisa.utils.Common;
@@ -160,9 +162,11 @@ public class Manager {
 
     private void downloadOne(Context context, DownloadItem bean) {
         final Uri downloadUri;
+        final File downloadFile;
         if (bean.getIllust().isGif()) {
             File file = SAFile.createZipFile(context, bean.getName());
             downloadUri = Uri.fromFile(file);
+            downloadFile = null;
         } else {
             if (Common.isAndroidQ()) {
                 DocumentFile file = SAFile.getDocument(context, bean.getIllust(), bean.getIndex());
@@ -171,14 +175,14 @@ public class Manager {
                 } else {
                     downloadUri = null;
                 }
+                downloadFile = null;
             } else {
-                File file = FileCreator.createIllustFile(bean.getIllust(), bean.getIndex());
-                downloadUri = Uri.fromFile(file);
+                downloadFile = FileCreator.createIllustFile(bean.getIllust(), bean.getIndex());
+                downloadUri = Uri.fromFile(downloadFile);
             }
         }
 
         if (downloadUri != null) {
-//            Android10DownloadFactory factory = new Android10DownloadFactory(context, bean);
             currentIllustID = bean.getIllust().getId();
             Common.showLog("Manager 下载单个 当前进度" + nonius);
             uuid = bean.getUuid();
@@ -206,12 +210,8 @@ public class Manager {
                         nonius = 0L;
 
                         if(bean.getIllust().isGif()){
-                            ZipUtils.unzipFile(SAFile.createZipFile(context, bean.getName()),
-                                    SAFile.createCacheUnzipFolder(context, bean.getIllust()));
-                            Intent intent = new Intent(Params.PLAY_GIF);
-                            intent.putExtra(Params.GIF_DELAY, bean.getDelay());
-                            intent.putExtra(Params.ID, bean.getIllust().getId());
-                            LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
+                            MMKV.defaultMMKV().encode(Params.ILLUST_ID + "_" + bean.getIllust().getId(), true);
+                            PixivOperate.unzipAndePlay(context, bean.getIllust());
                         }
 
                         {
@@ -235,10 +235,21 @@ public class Manager {
                             LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
                         }
 
+                        {
+                            //通知相册刷新图片
+                            if (downloadFile != null) {
+                                new ImageSaver() {
+                                    @Override
+                                    public File whichFile() {
+                                        return downloadFile;
+                                    }
+                                }.execute();
+                            }
+                        }
+
                         safeDelete(bean);
                         checkPipe(context);
 
-//                    contentResolver.update(item, null, null, null);
                     }, throwable -> {
                         //下载失败，处理相关逻辑
                         Common.showLog("下载失败 " + throwable.toString());

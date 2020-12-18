@@ -18,7 +18,6 @@ public class DownloadItem implements Serializable {
     private String url;
     private String showUrl;
     private String uuid;
-    private int delay;
     private boolean isProcessed;
     private final IllustsBean illust;
     private int index;
@@ -41,14 +40,6 @@ public class DownloadItem implements Serializable {
 
     public void setProcessed(boolean processed) {
         isProcessed = processed;
-    }
-
-    public int getDelay() {
-        return delay;
-    }
-
-    public void setDelay(int delay) {
-        this.delay = delay;
     }
 
     public int getIndex() {

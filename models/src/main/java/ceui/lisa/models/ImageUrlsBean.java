@@ -63,4 +63,14 @@ public class ImageUrlsBean implements Serializable {
             return "";
         }
     }
+
+    @Override
+    public String toString() {
+        return "ImageUrlsBean{" +
+                "square_medium='" + square_medium + '\'' +
+                ", medium='" + medium + '\'' +
+                ", large='" + large + '\'' +
+                ", original='" + original + '\'' +
+                '}';
+    }
 }

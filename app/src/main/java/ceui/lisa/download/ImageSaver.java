@@ -9,9 +9,9 @@ import ceui.lisa.utils.Common;
 
 public abstract class ImageSaver {
 
-    abstract File whichFile();
+    public abstract File whichFile();
 
-    void execute() {
+    public void execute() {
         File file = whichFile();
         if (file == null) {
             return;

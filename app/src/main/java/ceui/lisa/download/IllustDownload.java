@@ -1,8 +1,10 @@
 package ceui.lisa.download;
 
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.text.TextUtils;
+import android.util.Log;
 
 import androidx.documentfile.provider.DocumentFile;
 
@@ -10,6 +12,11 @@ import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -108,8 +115,7 @@ public class IllustDownload {
     public static void downloadGif(GifResponse response, IllustsBean illust, BaseActivity<?> activity) {
         DownloadItem item = new DownloadItem(illust, 0);
         item.setUrl(response.getUgoira_metadata().getZip_urls().getMedium());
-        item.setShowUrl(illust.getImage_urls().getMedium());
-        item.setDelay(response.getDelay());
+        item.setShowUrl(UrlFactory.invoke(illust.getImage_urls().getMedium()));
         Manager.get().addTask(item, activity);
     }
 
@@ -138,6 +144,57 @@ public class IllustDownload {
         });
     }
 
+    public static void saveGif(File fromGif, IllustsBean illust, BaseActivity<?> activity) {
+        check(activity, () -> {
+            DocumentFile file = SAFile.getGifDocument(activity, illust);
+            if (file != null) {
+                if (copyFile(fromGif, file.getUri(), activity)) {
+                    Common.showToast("GIF保存成功");
+                }
+            }
+        });
+    }
+
+    public static boolean copyFile(File src, Uri des, Context context) {
+        if (!src.exists()) {
+            Log.e("cppyFile", "file not exist:" + src.getAbsolutePath());
+            return false;
+        }
+        BufferedInputStream bis = null;
+        BufferedOutputStream bos = null;
+        try {
+            bis = new BufferedInputStream(new FileInputStream(src));
+            bos = new BufferedOutputStream(context.getContentResolver().openOutputStream(des));
+            byte[] buffer = new byte[4 * 1024];
+            int count;
+            while ((count = bis.read(buffer, 0, buffer.length)) != -1) {
+                if (count > 0) {
+                    bos.write(buffer, 0, count);
+                }
+            }
+            bos.flush();
+            return true;
+        } catch (Exception e) {
+            Log.e("copyFile", "exception:", e);
+        } finally {
+            if (bis != null) {
+                try {
+                    bis.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (bos != null) {
+                try {
+                    bos.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return false;
+    }
+
     public static String getUrl(IllustsBean illust, int index) {
         if (illust.getPage_count() == 1) {
             return UrlFactory.invoke(illust.getMeta_single_page().getOriginal_image_url());
@@ -153,21 +210,6 @@ public class IllustDownload {
         } else {
             return illust.getMeta_pages().get(index).getImage_urls().getMedium();
         }
-    }
-
-    public static String getMimeType(IllustsBean illust, int index) {
-        String url;
-        if (illust.getPage_count() == 1) {
-            url = illust.getMeta_single_page().getOriginal_image_url();
-        } else {
-            url = illust.getMeta_pages().get(index).getImage_urls().getOriginal();
-        }
-
-        String result = "png";
-        if (url.contains(".")) {
-            result = url.substring(url.lastIndexOf(".") + 1);
-        }
-        return result;
     }
 
     public static void check(BaseActivity<?> activity, FeedBack feedBack) {

@@ -147,8 +147,8 @@ dependencies {
     implementation 'xyz.zpayh:hdimageview:3.0.1'
 
     implementation project(path: ':models')
-
-
+    implementation 'com.waynejo:androidndkgif:0.3.3'
+    implementation 'com.tencent:mmkv-static:1.2.6'
     implementation 'com.github.tbruyelle:rxpermissions:0.12'
 
 
