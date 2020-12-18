@@ -19,6 +19,7 @@ public class DownloadItem implements Serializable {
     private String showUrl;
     private String uuid;
     private int delay;
+    private boolean isProcessed;
     private final IllustsBean illust;
     private int index;
 
@@ -32,6 +33,14 @@ public class DownloadItem implements Serializable {
         }
         this.index = index;
         Common.showLog("随机生成一个UUID");
+    }
+
+    public boolean isProcessed() {
+        return isProcessed;
+    }
+
+    public void setProcessed(boolean processed) {
+        isProcessed = processed;
     }
 
     public int getDelay() {

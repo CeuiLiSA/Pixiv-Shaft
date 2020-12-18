@@ -37,8 +37,8 @@ public class IllustDownload {
                 DownloadItem item = new DownloadItem(illust, 0);
                 item.setUrl(getUrl(illust, 0));
                 item.setShowUrl(getShowUrl(illust, 0));
-                Manager.get().addTask(item, activity);
                 Common.showToast(1 + "个任务已经加入下载队列");
+                Manager.get().addTask(item, activity);
             }
         });
     }
@@ -52,8 +52,8 @@ public class IllustDownload {
                 DownloadItem item = new DownloadItem(illust, index);
                 item.setUrl(getUrl(illust, index));
                 item.setShowUrl(getShowUrl(illust, index));
-                Manager.get().addTask(item, activity);
                 Common.showToast(1 + "个任务已经加入下载队列");
+                Manager.get().addTask(item, activity);
             }
         });
     }
@@ -71,8 +71,8 @@ public class IllustDownload {
                     item.setShowUrl(getShowUrl(illust, i));
                     tempList.add(item);
                 }
-                Manager.get().addTasks(tempList, activity);
                 Common.showToast(tempList.size() + "个任务已经加入下载队列");
+                Manager.get().addTasks(tempList, activity);
             }
         });
     }
@@ -100,8 +100,8 @@ public class IllustDownload {
                     }
                 }
             }
-            Manager.get().addTasks(tempList, activity);
             Common.showToast(tempList.size() + "个任务已经加入下载队列");
+            Manager.get().addTasks(tempList, activity);
         });
     }
 

@@ -27,6 +27,10 @@ public class SAFile {
     public static DocumentFile getDocument(Context context, IllustsBean illust, int index) {
         Uri rootUri = Uri.parse(Shaft.sSettings.getRootPathUri());
         DocumentFile root = DocumentFile.fromTreeUri(context, rootUri);
+        if (!root.exists() || !root.isDirectory()) {
+            Common.showToast("创建文件失败，已授权的下载目录是否被移除?", true);
+            return null;
+        }
         String id = DocumentsContract.getTreeDocumentId(rootUri);
         String displayName;
         if (illust.isGif()) {

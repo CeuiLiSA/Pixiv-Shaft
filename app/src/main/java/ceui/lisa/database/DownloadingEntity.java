@@ -11,15 +11,26 @@ public final class DownloadingEntity implements Serializable {
 
     @PrimaryKey()
     @NonNull
+    private String fileName = "";
+
+
     private String uuid = "";
     private String taskGson;
 
     @NonNull
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(@NonNull String fileName) {
+        this.fileName = fileName;
+    }
+
     public String getUuid() {
         return uuid;
     }
 
-    public void setUuid(@NonNull String uuid) {
+    public void setUuid(String uuid) {
         this.uuid = uuid;
     }
 

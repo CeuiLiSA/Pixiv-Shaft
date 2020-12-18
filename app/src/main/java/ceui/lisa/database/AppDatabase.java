@@ -21,7 +21,7 @@ import ceui.lisa.feature.FeatureEntity;
                 FeatureEntity.class, //记录用户收藏的精华列表
                 DownloadingEntity.class //记录用户正在下载中的列表
         },
-        version = 21,
+        version = 22,
         exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
