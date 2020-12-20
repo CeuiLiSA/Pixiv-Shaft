@@ -179,10 +179,10 @@
   <string name="string_5">загрузка</string>  
   <string name="string_6">коллекция</string>  
   <string name="string_7">загрузка изображений</string>  
-  <string name="string_8">вал</string>  
+  <string name="string_8">PixShaft</string>  
   <string name="string_9">Имя пользователя / номер счета почтового ящика</string>  
   <string name="string_10">пароль</string>  
-  <string name="string_11">вал</string>  
+  <string name="string_11">PixShaft</string>  
   <string name="string_12">Имя пользователя (может меняться в любое время)</string>  
   <string name="string_13">+ внимание</string>  
   <string name="string_14">Добавить</string>  
@@ -193,7 +193,7 @@
   <string name="string_20">Выбрать все</string>  
   <string name="string_21">Отменить выделение</string>  
   <string name="string_22">Экспорт ссылок для загрузки</string>  
-  <string name="string_23">вал</string>  
+  <string name="string_23">PixShaft</string>  
   <string name="string_24">имя версии:</string>  
   <string name="string_25">тип версии:</string>  
   <string name="string_26">программное обеспечение</string>  
