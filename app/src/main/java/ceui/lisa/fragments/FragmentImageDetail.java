@@ -17,11 +17,14 @@ import com.bumptech.glide.request.target.Target;
 import java.io.File;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.core.GlideApp;
+import ceui.lisa.core.UrlFactory;
 import ceui.lisa.databinding.FragmentImageDetailBinding;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.GlideUrlChild;
 import ceui.lisa.utils.Params;
 import me.jessyan.progressmanager.ProgressListener;
 import me.jessyan.progressmanager.ProgressManager;
@@ -73,7 +76,11 @@ public class FragmentImageDetail extends BaseFragment<FragmentImageDetailBinding
         if (!TextUtils.isEmpty(url)) {
             imageUrl = url;
         } else {
-            imageUrl = IllustDownload.getUrl(mIllustsBean, index);
+            if (Shaft.sSettings.isShowOriginalImage()) {
+                imageUrl = IllustDownload.getUrl(mIllustsBean, index);
+            } else {
+                imageUrl = UrlFactory.invoke(mIllustsBean.getImage_urls().getLarge());
+            }
         }
         ProgressManager.getInstance().addResponseListener(imageUrl, new ProgressListener() {
             @Override
@@ -88,7 +95,7 @@ public class FragmentImageDetail extends BaseFragment<FragmentImageDetailBinding
         });
         GlideApp.with(mContext)
                 .asFile()
-                .load(imageUrl)
+                .load(new GlideUrlChild(imageUrl))
                 .listener(new RequestListener<File>() {
                     @Override
                     public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<File> target, boolean isFirstResource) {

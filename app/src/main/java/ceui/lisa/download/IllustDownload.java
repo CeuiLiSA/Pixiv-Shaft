@@ -50,7 +50,6 @@ public class IllustDownload {
         });
     }
 
-
     public static void downloadIllust(IllustsBean illust, int index, BaseActivity<?> activity) {
         check(activity, () -> {
             if (illust.getPage_count() == 1) {

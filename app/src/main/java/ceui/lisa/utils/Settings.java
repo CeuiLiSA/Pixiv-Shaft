@@ -70,10 +70,10 @@ public class Settings {
     private boolean relatedIllustNoLimit = true;
 
     //使用pixiv cat 代理 展示图片
-    private boolean usePixivCat = true;
+    private boolean usePixivCat = false;
 
     //二级详情FragmentImageDetail 图片显示原图
-    private boolean showOriginalImage = true;
+    private boolean showOriginalImage = false;
 
     //是否显示开屏 dialog
     private boolean showPixivDialog = true;
