@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <resources> 
-  <string name="app_name">축.</string>  
+  <string name="app_name">PixShaft</string>  
   <string name="navigation_drawer_open">내 비게 이 션 서랍 을 열다</string>  
   <string name="navigation_drawer_close">내 비게 이 션 서랍 닫 기</string>  
   <string name="nav_header_title">안 드 로 이 드 스튜디오</string>  
@@ -179,10 +179,10 @@
   <string name="string_5">다운로드 하 다.</string>  
   <string name="string_6">수집 하 다.</string>  
   <string name="string_7">사진 을 다운로드 하 다.</string>  
-  <string name="string_8">축.</string>  
+  <string name="string_8">PixShaft</string>  
   <string name="string_9">아 이 디 / 메 일주 소 계 정</string>  
   <string name="string_10">비밀 번호</string>  
-  <string name="string_11">축.</string>  
+  <string name="string_11">PixShaft</string>  
   <string name="string_12">사용자 이름 (수시로 변경 가능)</string>  
   <string name="string_13">+ 관심</string>  
   <string name="string_14">첨가 하 다.</string>  
@@ -193,7 +193,7 @@
   <string name="string_20">모든 선택</string>  
   <string name="string_21">총선 을 취소 하 다</string>  
   <string name="string_22">다운로드 링크 내 보 내기</string>  
-  <string name="string_23">축.</string>  
+  <string name="string_23">PixShaft</string>  
   <string name="string_24">버 전 이름:</string>  
   <string name="string_25">버 전 모델:</string>  
   <string name="string_26">소프트웨어.</string>  
