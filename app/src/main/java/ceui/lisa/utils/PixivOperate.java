@@ -432,7 +432,7 @@ public class PixivOperate {
 
                     GifEncoder gifEncoder = new GifEncoder();
                     gifEncoder.init(illustsBean.getWidth(), illustsBean.getHeight(), gifFile.getPath(),
-                            GifEncoder.EncodingType.ENCODING_TYPE_STABLE_HIGH_MEMORY);
+                            GifEncoder.EncodingType.ENCODING_TYPE_NORMAL_LOW_MEMORY);
 
                     GifResponse gifResponse = Cache.get().getModel(Params.ILLUST_ID + "_" + illustsBean.getId(), GifResponse.class);
                     int delayMs = 60;

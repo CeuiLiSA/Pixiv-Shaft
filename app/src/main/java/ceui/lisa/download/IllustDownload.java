@@ -201,7 +201,6 @@ public class IllustDownload {
         } else {
             return UrlFactory.invoke(illust.getMeta_pages().get(index).getImage_urls().getOriginal());
         }
-//        return "http://update.9158.com/miaolive/Miaolive.apk";
     }
 
     public static String getShowUrl(IllustsBean illust, int index) {

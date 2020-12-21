@@ -25,6 +25,7 @@ import java.util.Map;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.ImageDetailActivity;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.RecyIllustDetailBinding;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.models.IllustsBean;
@@ -125,6 +126,11 @@ public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDet
      */
     private void loadIllust(ViewHolder<RecyIllustDetailBinding> holder, int position, boolean changeSize) {
         final String imageUrl = IllustDownload.getUrl(allIllust, position);
+        if (Shaft.sSettings.isShowOriginalImage()) {
+
+        } else {
+
+        }
         ProgressManager.getInstance().addResponseListener(imageUrl, new ProgressListener() {
             @Override
             public void onProgress(ProgressInfo progressInfo) {

@@ -141,9 +141,10 @@
 
                     </LinearLayout>
 
+
                     <TextView
                         style="@style/setting_text_head"
-                        android:text="@string/normal"/>
+                        android:text="@string/about_network"/>
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -174,7 +175,7 @@
                                 android:singleLine="true"
                                 android:text="@string/see_pixiv_ez"
                                 android:textColor="?attr/colorPrimary"
-                                android:textSize="13sp" />
+                                android:textSize="12sp" />
 
 
                             <androidx.appcompat.widget.SwitchCompat
@@ -186,24 +187,85 @@
 
                         <View style="@style/half_divider" />
 
+
                         <RelativeLayout
                             android:id="@+id/first_detail_origin_rela"
                             style="@style/ripple_rela">
 
-
                             <TextView
                                 style="@style/setting_text_left"
+                                android:layout_marginBottom="@dimen/six_dp"
+                                android:id="@+id/use_pixivcat_mark"
                                 android:text="@string/string_331" />
 
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_toStartOf="@+id/first_detail_origin"
+                                android:layout_height="wrap_content"
+                                android:layout_below="@+id/use_pixivcat_mark"
+                                android:layout_marginStart="@dimen/sixteen_dp"
+                                android:layout_marginBottom="@dimen/twelve_dp"
+                                android:textColor="?attr/colorPrimary"
+                                android:ellipsize="start"
+                                android:singleLine="true"
+                                android:text="@string/string_333"
+                                android:textSize="12sp" />
 
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/first_detail_origin"
                                 style="@style/setting_right_switch"/>
 
-
                         </RelativeLayout>
 
                         <View style="@style/half_divider" />
+
+
+                        <RelativeLayout
+                            android:id="@+id/show_original_image_rela"
+                            style="@style/ripple_rela">
+
+                            <TextView
+                                style="@style/setting_text_left"
+                                android:id="@+id/show_original_image_mark"
+                                android:layout_marginBottom="@dimen/six_dp"
+                                android:text="@string/string_332" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_toStartOf="@+id/show_original_image"
+                                android:layout_height="wrap_content"
+                                android:layout_below="@+id/show_original_image_mark"
+                                android:layout_marginStart="@dimen/sixteen_dp"
+                                android:layout_marginBottom="@dimen/twelve_dp"
+                                android:textColor="?attr/colorPrimary"
+                                android:ellipsize="start"
+                                android:singleLine="true"
+                                android:text="@string/string_334"
+                                android:textSize="12sp" />
+
+                            <androidx.appcompat.widget.SwitchCompat
+                                android:id="@+id/show_original_image"
+                                style="@style/setting_right_switch"/>
+
+                        </RelativeLayout>
+
+                        <View style="@style/full_divider" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        style="@style/setting_text_head"
+                        android:text="@string/normal"/>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/white_and_black"
+                        android:orientation="vertical">
+
+                        <View style="@style/full_divider" />
+
+
 
                         <RelativeLayout
                             android:id="@+id/save_history_rela"
@@ -232,6 +294,23 @@
 
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/show_like_button"
+                                style="@style/setting_right_switch"/>
+
+
+                        </RelativeLayout>
+
+                        <View style="@style/half_divider" />
+
+                        <RelativeLayout
+                            android:id="@+id/delete_star_illust_rela"
+                            style="@style/ripple_rela">
+
+                            <TextView
+                                style="@style/setting_text_left"
+                                android:text="@string/delete_star_illust" />
+
+                            <androidx.appcompat.widget.SwitchCompat
+                                android:id="@+id/delete_star_illust"
                                 style="@style/setting_right_switch"/>
 
 
@@ -323,23 +402,6 @@
 
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/user_new_user"
-                                style="@style/setting_right_switch"/>
-
-
-                        </RelativeLayout>
-
-                        <View style="@style/half_divider" />
-
-                        <RelativeLayout
-                            android:id="@+id/delete_star_illust_rela"
-                            style="@style/ripple_rela">
-
-                            <TextView
-                                style="@style/setting_text_left"
-                                android:text="@string/delete_star_illust" />
-
-                            <androidx.appcompat.widget.SwitchCompat
-                                android:id="@+id/delete_star_illust"
                                 style="@style/setting_right_switch"/>
 
 

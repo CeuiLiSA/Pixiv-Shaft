@@ -512,5 +512,9 @@
     <string name="string_329">系统版本低于Android 10，无法自定义文件夹</string>
     <string name="string_330">暂未设置</string>
     <string name="string_331">使用PixivCat代理</string>
+    <string name="string_332">详情/二级详情页面显示原图</string>
+    <string name="string_333">加速加载图片，如果觉得加载变慢了，可以关闭</string>
+    <string name="string_334">原图画质好，如果觉得原图加载太慢了，可以关闭</string>
+    <string name="about_network">网络</string>
 
 </resources>

@@ -73,7 +73,7 @@ public class Settings {
     private boolean usePixivCat = true;
 
     //二级详情FragmentImageDetail 图片显示原图
-    private boolean secondImageSize = true;
+    private boolean showOriginalImage = true;
 
     //是否显示开屏 dialog
     private boolean showPixivDialog = true;
@@ -247,12 +247,12 @@ public class Settings {
         this.settingsAnimate = settingsAnimate;
     }
 
-    public boolean isSecondImageSize() {
-        return secondImageSize;
+    public boolean isShowOriginalImage() {
+        return showOriginalImage;
     }
 
-    public void setSecondImageSize(boolean secondImageSize) {
-        this.secondImageSize = secondImageSize;
+    public void setShowOriginalImage(boolean showOriginalImage) {
+        this.showOriginalImage = showOriginalImage;
     }
 
     public boolean isDirectDownloadAllImage() {

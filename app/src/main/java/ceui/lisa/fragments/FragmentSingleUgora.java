@@ -317,13 +317,14 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
         });
 
         baseBind.download.setOnClickListener(v -> {
-            File gifFile = SAFile.createZipResultFile(mContext, FileCreator.createGifFile(illust).getName());
-            Common.showLog("nowPlayGif " + gifFile.getPath());
-            if (gifFile.exists() && gifFile.length() > 1024) {
-                IllustDownload.saveGif(gifFile, illust, (BaseActivity<?>) mActivity);
-            } else {
-                Common.showToast("请先播放后下载");
-            }
+            Common.showToast("暂时仅支持播放，后续版本支持下载");
+//            File gifFile = SAFile.createZipResultFile(mContext, FileCreator.createGifFile(illust).getName());
+//            Common.showLog("nowPlayGif " + gifFile.getPath());
+//            if (gifFile.exists() && gifFile.length() > 1024) {
+//                IllustDownload.saveGif(gifFile, illust, (BaseActivity<?>) mActivity);
+//            } else {
+//                Common.showToast("请先播放后下载");
+//            }
         });
         File file = FileCreator.createIllustFile(illust);
         if (file.exists()) {

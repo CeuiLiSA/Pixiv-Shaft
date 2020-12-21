@@ -272,6 +272,24 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             }
         });
 
+        //是否显示原图
+        baseBind.showOriginalImage.setChecked(Shaft.sSettings.isShowOriginalImage());
+        baseBind.showOriginalImage.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setShowOriginalImage(isChecked);
+                Common.showToast("设置成功");
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.showOriginalImageRela.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                baseBind.showOriginalImage.performClick();
+            }
+        });
+
+
         setPath();
         baseBind.singleIllustPath.setOnClickListener(new View.OnClickListener() {
             @Override
