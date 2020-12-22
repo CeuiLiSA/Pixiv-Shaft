@@ -7,6 +7,8 @@ import java.io.File;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 
+import static android.os.Environment.DIRECTORY_PICTURES;
+
 public class LegacyFile implements FileProxy {
 
     private static final String GIF_CACHE = "/gif cache";
@@ -14,7 +16,7 @@ public class LegacyFile implements FileProxy {
 
     @Override
     public File imageCacheFolder(Context context) {
-        File cacheDir = new File(context.getCacheDir().getPath() + IMAGE_CACHE);
+        File cacheDir = new File(context.getExternalCacheDir().getPath() + IMAGE_CACHE);
         if (!cacheDir.exists()) {
             cacheDir.mkdir();
         }
@@ -24,7 +26,7 @@ public class LegacyFile implements FileProxy {
 
     @Override
     public File gifCacheFolder(Context context) {
-        File cacheDir = new File(context.getCacheDir().getPath() + GIF_CACHE);
+        File cacheDir = new File(context.getExternalCacheDir().getPath() + GIF_CACHE);
         if (!cacheDir.exists()) {
             cacheDir.mkdir();
         }
@@ -61,7 +63,7 @@ public class LegacyFile implements FileProxy {
 
     @Override
     public File gifResultFile(Context context, IllustsBean illust) {
-        File gifCacheFolder = gifCacheFolder(context);
+        File gifCacheFolder = context.getExternalFilesDir(DIRECTORY_PICTURES);
         String gifResultName = new FileName().gifName(illust);
         File gifResult = new File(gifCacheFolder, gifResultName);
         if (!gifResult.exists()) {

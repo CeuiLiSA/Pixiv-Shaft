@@ -4,7 +4,9 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.Cursor;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextPaint;
@@ -24,6 +26,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.blankj.utilcode.util.PathUtils;
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
@@ -32,6 +35,8 @@ import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.zhy.view.flowlayout.FlowLayout;
 import com.zhy.view.flowlayout.TagAdapter;
 import com.zhy.view.flowlayout.TagFlowLayout;
+
+import java.io.File;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
@@ -42,6 +47,7 @@ import ceui.lisa.activities.UserActivity;
 import ceui.lisa.adapters.IllustAdapter;
 import ceui.lisa.databinding.FragmentIllustBinding;
 import ceui.lisa.dialogs.MuteDialog;
+import ceui.lisa.download.FileCreator;
 import ceui.lisa.download.GifCreate;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.models.IllustsBean;
@@ -316,6 +322,32 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 IllustDownload.downloadAllIllust(illust, (BaseActivity<?>) mContext);
             }
         });
+
+
+        if (illust.getPage_count() == 1) {
+            if (Common.isAndroidQ()) {
+
+            } else {
+                String displayName = FileCreator.createIllustFile(illust).getName();
+                String selection = MediaStore.Images.Media.DISPLAY_NAME + " = '" + displayName + "'";
+
+                Cursor cursor = mContext.getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                        null, selection, null, null);
+                if (cursor != null && cursor.getCount() > 0) {
+                    baseBind.download.setText("已下载");
+                }
+
+
+//                File parentFile = new File(PathUtils.getExternalPicturesPath() + "/ShaftImages");
+//                if (!parentFile.exists()) {
+//                    parentFile.mkdir();
+//                }
+//                File imageFile = new File(parentFile, displayName);
+//                if (imageFile.exists() && imageFile.length() > 1024) {
+//                    baseBind.download.setText("已下载");
+//                }
+            }
+        }
         baseBind.download.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {

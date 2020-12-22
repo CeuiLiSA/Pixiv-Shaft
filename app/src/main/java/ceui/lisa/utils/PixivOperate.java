@@ -1,9 +1,13 @@
 package ceui.lisa.utils;
 
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
+import android.os.Build;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Button;
 
@@ -13,6 +17,7 @@ import com.blankj.utilcode.util.FileUtils;
 import com.blankj.utilcode.util.ZipUtils;
 import com.waynejo.androidndkgif.GifEncoder;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,6 +39,7 @@ import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.database.SearchEntity;
 import ceui.lisa.database.TagMuteEntity;
 import ceui.lisa.download.FileCreator;
+import ceui.lisa.download.ImageSaver;
 import ceui.lisa.file.LegacyFile;
 import ceui.lisa.fragments.FragmentLogin;
 import ceui.lisa.http.ErrorCtrl;
@@ -443,6 +449,17 @@ public class PixivOperate {
                     Intent intent = new Intent(Params.PLAY_GIF);
                     intent.putExtra(Params.ID, illustsBean.getId());
                     LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
+
+
+
+
+
+                    new ImageSaver() {
+                        @Override
+                        public File whichFile() {
+                            return gifFile;
+                        }
+                    }.execute();
                 }
             }).subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())

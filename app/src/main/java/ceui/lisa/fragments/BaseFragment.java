@@ -61,11 +61,13 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
             initModel();
 
             //获取屏幕方向
-            int ori = getResources().getConfiguration().orientation;
-            if (ori == Configuration.ORIENTATION_LANDSCAPE) {
-                isVertical = false;
-            } else if (ori == Configuration.ORIENTATION_PORTRAIT) {
-                isVertical = true;
+            if (getResources() != null) {
+                int ori = getResources().getConfiguration().orientation;
+                if (ori == Configuration.ORIENTATION_LANDSCAPE) {
+                    isVertical = false;
+                } else if (ori == Configuration.ORIENTATION_PORTRAIT) {
+                    isVertical = true;
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();

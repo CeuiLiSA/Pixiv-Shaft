@@ -30,7 +30,9 @@ public abstract class ImageSaver {
             mime[0] = "image/png";
         }
         MediaScannerConnection.scanFile(
-                Shaft.getContext(), path, mime, (path1, uri) -> { }
+                Shaft.getContext(), path, mime, (path1, uri) -> {
+                    Common.showLog("ImageSaver path1 " + path1 + " uri " + uri);
+                }
         );
     }
 

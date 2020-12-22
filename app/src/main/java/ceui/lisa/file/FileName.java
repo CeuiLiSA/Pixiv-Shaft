@@ -20,4 +20,6 @@ public class FileName implements FileNameProxy {
     public String gifName(IllustsBean illust) {
         return illust.getTitle() + DASH + illust.getId() + ".gif";
     }
+
+
 }

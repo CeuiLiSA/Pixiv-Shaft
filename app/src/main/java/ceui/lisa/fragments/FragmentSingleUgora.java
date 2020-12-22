@@ -1,11 +1,16 @@
 package ceui.lisa.fragments;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
@@ -26,7 +31,11 @@ import com.bumptech.glide.request.transition.Transition;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -197,6 +206,37 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
             Glide.with(mContext)
                     .load(gifFile)
                     .into(baseBind.illustImage);
+
+
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.MediaColumns.DISPLAY_NAME, gifFile.getName());
+            values.put(MediaStore.MediaColumns.MIME_TYPE, "image/gif");
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/ShaftImages");
+            }
+            try {
+                BufferedInputStream bis = new BufferedInputStream(new FileInputStream(gifFile));
+                Uri uri = mContext.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+                if (uri != null) {
+                    OutputStream outputStream = mContext.getContentResolver().openOutputStream(uri);
+                    if (outputStream != null) {
+                        BufferedOutputStream bos = new BufferedOutputStream(outputStream);
+                        byte[] buffer = new byte[1024];
+                        int bytes = bis.read(buffer);
+                        while (bytes >= 0) {
+                            bos.write(buffer, 0, bytes);
+                            bos.flush();
+                            bytes = bis.read(buffer);
+                        }
+                        bos.close();
+                    }
+                }
+                bis.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            mContext.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(gifFile)));
         } else {
             boolean hasDownload = Shaft.getMMKV().decodeBool(Params.ILLUST_ID + "_" + illust.getId());
             File zipFile = new LegacyFile().gifZipFile(mContext, illust);
