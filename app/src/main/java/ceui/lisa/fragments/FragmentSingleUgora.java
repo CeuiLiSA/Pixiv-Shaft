@@ -4,15 +4,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
-import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,30 +17,18 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
-import androidx.documentfile.provider.DocumentFile;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import com.blankj.utilcode.util.FileUtils;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
-import com.tencent.mmkv.MMKV;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
@@ -57,9 +42,8 @@ import ceui.lisa.core.SAFile;
 import ceui.lisa.databinding.FragmentUgoraBinding;
 import ceui.lisa.dialogs.MuteDialog;
 import ceui.lisa.download.FileCreator;
-import ceui.lisa.download.GifCreate;
 import ceui.lisa.download.IllustDownload;
-import ceui.lisa.download.ImageSaver;
+import ceui.lisa.file.LegacyFile;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.models.GifResponse;
@@ -72,11 +56,6 @@ import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.ShareIllust;
-import io.reactivex.Observable;
-import io.reactivex.ObservableEmitter;
-import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
 import jp.wasabeef.glide.transformations.BlurTransformation;
 import me.next.tagview.TagCloudView;
 import rxhttp.wrapper.entity.Progress;
@@ -209,7 +188,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
     }
 
     public void nowPlayGif() {
-        File gifFile = SAFile.createZipResultFile(mContext, FileCreator.createGifFile(illust).getName());
+        File gifFile = new LegacyFile().gifResultFile(mContext, illust);
         Common.showLog("nowPlayGif " + gifFile.getPath());
         if (gifFile.exists() && gifFile.length() > 1024) {
             Common.showLog("GIF文件已存在，直接播放");
@@ -219,8 +198,8 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
                     .load(gifFile)
                     .into(baseBind.illustImage);
         } else {
-            boolean hasDownload = MMKV.defaultMMKV().decodeBool(Params.ILLUST_ID + "_" + illust.getId());
-            File zipFile = SAFile.createZipFile(mContext, FileCreator.createGifZipFile(illust).getName());
+            boolean hasDownload = Shaft.getMMKV().decodeBool(Params.ILLUST_ID + "_" + illust.getId());
+            File zipFile = new LegacyFile().gifZipFile(mContext, illust);
             if (hasDownload && zipFile.exists() && zipFile.length() > 1024) {
                 PixivOperate.unzipAndePlay(mContext, illust);
             } else {

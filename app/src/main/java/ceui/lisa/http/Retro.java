@@ -65,7 +65,6 @@ public class Retro {
         }
         if (Shaft.sSettings.isAutoFuckChina()) {
             builder.sslSocketFactory(new RubySSLSocketFactory(), new pixivOkHttpClient());
-            //builder.dns(new CloudFlareDns(CloudFlareDNSService.Companion.invoke()));
             builder.dns(HttpDns.getInstance());
         }
         OkHttpClient client = builder.build();
@@ -112,7 +111,7 @@ public class Retro {
 
 
     private static class Holder {
-        private static Retrofit appRetrofit = buildRetrofit(API_BASE_URL);
+        private static final Retrofit appRetrofit = buildRetrofit(API_BASE_URL);
     }
 
     private static Retrofit get() {
@@ -123,18 +122,8 @@ public class Retro {
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(
                 message -> Log.i("RetroLog", message));
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-        return new OkHttpClient
-                .Builder()
-                .addInterceptor(
-//                        new LoggingInterceptor.Builder()
-//                                .loggable(true)
-//                                .request()
-//                                .requestTag("Request")
-//                                .response()
-//                                .responseTag("Response")
-//                                .build()
-                        loggingInterceptor
-                )
+        return new OkHttpClient.Builder()
+                .addInterceptor(loggingInterceptor)
                 .protocols(Collections.singletonList(Protocol.HTTP_1_1));
     }
 }

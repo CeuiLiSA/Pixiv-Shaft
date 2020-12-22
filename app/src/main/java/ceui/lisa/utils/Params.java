@@ -66,6 +66,7 @@ public class Params {
     public static final String TYPE_PRIVATE = "private";
 
     public static final String SHOW_LONG_DIALOG = "show long dialog";
+    public static final String IS_MIGRATE = "IS_MIGRATE";
     public static final String LONG_DIALOG_MESSAGE = "1.首先对前段时间自己生产的BUG跟各位说声抱歉。\n" +
             "2.android 11会全面启用SAF存储访问框架，所以我把曾经用的很舒服但是即将被废弃的传统存储文件方式换成了SAF的访问模式。为了软件后续的持久发展，这是必经之路。\n" +
             "3.自己在简单适配了原生安卓，三星，一加，索尼之后就发布新版本Shaft了，但是没有预料到有的国产厂商把手机系统魔改的这么狠。导致即便我严格遵守SAF框架细则来操作文件，仍然有的手机无法正常下载。这是我没适配好的问题，至今也是站在十字路口不知道改怎么解决，到底该返回舒适区，用即将被弃用的老版本文件系统，还是走一步看一步，用新的版本SAF框架呢？\n" +

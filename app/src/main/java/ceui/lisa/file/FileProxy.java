@@ -1,16 +1,21 @@
 package ceui.lisa.file;
 
 
+import android.content.Context;
+
 import java.io.File;
 
 import ceui.lisa.models.IllustsBean;
-import ceui.lisa.models.NovelDetail;
 
 public interface FileProxy {
 
-    File imageFile(IllustsBean illust, int index);
+    File imageCacheFolder(Context context);
 
-    File gifFile(IllustsBean illust);
+    File gifCacheFolder(Context context);
 
-    File novelFile(NovelDetail novel);
+    File gifZipFile(Context context, IllustsBean illust);
+
+    File gifUnzipFolder(Context context, IllustsBean illust);
+
+    File gifResultFile(Context context, IllustsBean illust);
 }

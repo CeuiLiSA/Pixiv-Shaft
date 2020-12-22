@@ -11,14 +11,12 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.blankj.utilcode.util.FileUtils;
 import com.blankj.utilcode.util.LanguageUtils;
-import com.blankj.utilcode.util.UriUtils;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
-import com.tencent.mmkv.MMKV;
 
 import java.net.URLDecoder;
 import java.util.Locale;
@@ -29,6 +27,7 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.core.SAFile;
 import ceui.lisa.databinding.FragmentSettingsBinding;
+import ceui.lisa.file.LegacyFile;
 import ceui.lisa.helper.ThemeHelper;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
@@ -441,24 +440,24 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             }
         });
 
-        baseBind.imageCacheSize.setText(FileUtils.getSize(SAFile.getImageCache(mContext)));
+        baseBind.imageCacheSize.setText(FileUtils.getSize(new LegacyFile().imageCacheFolder(mContext)));
         baseBind.clearImageCache.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                FileUtils.deleteAllInDir(SAFile.getImageCache(mContext));
+                FileUtils.deleteAllInDir(new LegacyFile().imageCacheFolder(mContext));
                 Common.showToast("图片缓存清除成功！");
-                baseBind.imageCacheSize.setText(FileUtils.getSize(SAFile.getImageCache(mContext)));
+                baseBind.imageCacheSize.setText(FileUtils.getSize(new LegacyFile().imageCacheFolder(mContext)));
             }
         });
 
-        baseBind.gifCacheSize.setText(FileUtils.getSize(SAFile.getGifCache(mContext)));
+        baseBind.gifCacheSize.setText(FileUtils.getSize(new LegacyFile().gifCacheFolder(mContext)));
         baseBind.clearGifCache.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                MMKV.defaultMMKV().clearAll();
-                FileUtils.deleteAllInDir(SAFile.getGifCache(mContext));
+                Shaft.getMMKV().clearAll();
+                FileUtils.deleteAllInDir(new LegacyFile().gifCacheFolder(mContext));
                 Common.showToast("GIF缓存清除成功！");
-                baseBind.gifCacheSize.setText(FileUtils.getSize(SAFile.getGifCache(mContext)));
+                baseBind.gifCacheSize.setText(FileUtils.getSize(new LegacyFile().gifCacheFolder(mContext)));
             }
         });
         baseBind.refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));

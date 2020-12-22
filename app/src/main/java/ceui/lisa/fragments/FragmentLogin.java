@@ -176,7 +176,7 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
     }
 
     private void setTitle() {
-        if (Local.getBoolean(Params.USE_DEBUG, false)) {
+        if (Shaft.getMMKV().decodeBool(Params.USE_DEBUG, false)) {
             baseBind.title.setText("Shaft(测试版)");
             baseBind.userName.setText(Dev.USER_ACCOUNT);
             baseBind.password.setText(Dev.USER_PWD);
@@ -193,10 +193,10 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 if (which == 0) {
-                    Local.setBoolean(Params.USE_DEBUG, false);
+                    Shaft.getMMKV().encode(Params.USE_DEBUG, false);
                     Dev.isDev = false;
                 } else if (which == 1) {
-                    Local.setBoolean(Params.USE_DEBUG, true);
+                    Shaft.getMMKV().encode(Params.USE_DEBUG, true);
                     Dev.isDev = true;
                 }
                 mHitCountDown = TAPS_TO_BE_A_DEVELOPER;
@@ -209,7 +209,7 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
 
     @Override
     protected void initData() {
-        if (Local.getBoolean(Params.SHOW_DIALOG, true)) {
+        if (Shaft.getMMKV().decodeBool(Params.SHOW_DIALOG, true)) {
             Common.createDialog(mContext);
         }
         rotate = springSystem.createSpring();

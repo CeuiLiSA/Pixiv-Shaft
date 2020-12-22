@@ -4,36 +4,21 @@ package ceui.lisa.utils;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
-import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 
-import androidx.documentfile.provider.DocumentFile;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.blankj.utilcode.util.FileUtils;
-import com.blankj.utilcode.util.UriUtils;
 import com.blankj.utilcode.util.ZipUtils;
 import com.waynejo.androidndkgif.GifEncoder;
 
-import net.lingala.zip4j.ZipFile;
-import net.lingala.zip4j.exception.ZipException;
-import net.lingala.zip4j.io.inputstream.ZipInputStream;
-import net.lingala.zip4j.model.LocalFileHeader;
-
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.UUID;
-import java.util.zip.ZipEntry;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
@@ -49,11 +34,11 @@ import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.database.SearchEntity;
 import ceui.lisa.database.TagMuteEntity;
 import ceui.lisa.download.FileCreator;
+import ceui.lisa.file.LegacyFile;
 import ceui.lisa.fragments.FragmentLogin;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
-import ceui.lisa.interfaces.FeedBack;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.IllustSearchResponse;
@@ -427,7 +412,7 @@ public class PixivOperate {
                         }
                     });
 
-                    File gifFile = SAFile.createZipResultFile(context, FileCreator.createGifFile(illustsBean).getName());
+                    File gifFile = new LegacyFile().gifResultFile(context, illustsBean);
                     Common.showLog("gifFile " + gifFile.getPath());
 
                     GifEncoder gifEncoder = new GifEncoder();
@@ -469,9 +454,9 @@ public class PixivOperate {
 
     public static void unzipAndePlay(Context context, IllustsBean illustsBean) {
         try {
-            File fromZip = SAFile.createZipFile(context,
-                    FileCreator.createGifZipFile(illustsBean).getName());
-            File toFolder = SAFile.createCacheUnzipFolder(context, illustsBean);
+            LegacyFile legacyFile = new LegacyFile();
+            File fromZip = legacyFile.gifZipFile(context, illustsBean);
+            File toFolder = legacyFile.gifUnzipFolder(context, illustsBean);
             justUnzipFile(fromZip, toFolder);
             encodeGif(context, toFolder, illustsBean);
         } catch (Exception e) {

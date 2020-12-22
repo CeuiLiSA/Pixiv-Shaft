@@ -4,22 +4,11 @@ package ceui.lisa.core;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.text.TextUtils;
 
 import androidx.documentfile.provider.DocumentFile;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import com.blankj.utilcode.util.ZipUtils;
-import com.tencent.mmkv.MMKV;
-
-import net.lingala.zip4j.io.inputstream.ZipInputStream;
-import net.lingala.zip4j.model.LocalFileHeader;
-
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,8 +18,8 @@ import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.database.DownloadingEntity;
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.download.ImageSaver;
+import ceui.lisa.file.LegacyFile;
 import ceui.lisa.interfaces.Callback;
-import ceui.lisa.interfaces.FeedBack;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
@@ -164,7 +153,7 @@ public class Manager {
         final Uri downloadUri;
         final File downloadFile;
         if (bean.getIllust().isGif()) {
-            File file = SAFile.createZipFile(context, bean.getName());
+            File file = new LegacyFile().gifZipFile(context, bean.getIllust());
             downloadUri = Uri.fromFile(file);
             downloadFile = null;
         } else {
@@ -210,7 +199,7 @@ public class Manager {
                         nonius = 0L;
 
                         if(bean.getIllust().isGif()){
-                            MMKV.defaultMMKV().encode(Params.ILLUST_ID + "_" + bean.getIllust().getId(), true);
+                            Shaft.getMMKV().encode(Params.ILLUST_ID + "_" + bean.getIllust().getId(), true);
                             PixivOperate.unzipAndePlay(context, bean.getIllust());
                         }
 

@@ -255,14 +255,16 @@ public class Common {
                 .addAction(context.getString(R.string.string_189), new QMUIDialogAction.ActionListener() {
                     @Override
                     public void onClick(QMUIDialog dialog, int index) {
-                        Local.setBoolean(Params.SHOW_DIALOG, false);
+                        //保存SHOW_DIALOG 为false，不再提示
+                        Shaft.getMMKV().encode(Params.SHOW_DIALOG, false);
                         dialog.dismiss();
                     }
                 })
                 .addAction(context.getString(R.string.string_190), new QMUIDialogAction.ActionListener() {
                     @Override
                     public void onClick(QMUIDialog dialog, int index) {
-                        Local.setBoolean(Params.SHOW_DIALOG, true);
+                        //保存SHOW_DIALOG 为true，需要继续提示
+                        Shaft.getMMKV().encode(Params.SHOW_DIALOG, true);
                         dialog.dismiss();
                     }
                 })

@@ -130,7 +130,11 @@ public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDet
         if (Shaft.sSettings.isShowOriginalImage()) {
             imageUrl = IllustDownload.getUrl(allIllust, position);
         } else {
-            imageUrl = UrlFactory.invoke(allIllust.getImage_urls().getLarge());
+            if (allIllust.getPage_count() == 1) {
+                imageUrl = UrlFactory.invoke(allIllust.getImage_urls().getLarge());
+            } else {
+                imageUrl = UrlFactory.invoke(allIllust.getMeta_pages().get(position).getImage_urls().getLarge());
+            }
         }
         ProgressManager.getInstance().addResponseListener(imageUrl, new ProgressListener() {
             @Override

@@ -42,14 +42,4 @@ public class Local {
         editor.apply();
         Shaft.sSettings = settings;
     }
-
-    public static boolean getBoolean(String key, boolean defValue) {
-        return Shaft.sPreferences.getBoolean(key, defValue);
-    }
-
-    public static void setBoolean(String key, boolean value) {
-        SharedPreferences.Editor editor = Shaft.sPreferences.edit();
-        editor.putBoolean(key, value);
-        editor.apply();
-    }
 }

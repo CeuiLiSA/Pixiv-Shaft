@@ -2,7 +2,6 @@ package ceui.lisa.models;
 
 public class NewUser {
 
-
     /**
      * access_token : mHc-FNKwg3OvAqq_PNGkDMwtg616FI4gRvg0zvqnJvg
      * expires_in : 3600
@@ -15,7 +14,7 @@ public class NewUser {
      */
 
     private String access_token;
-    private Integer expires_in;
+    private int expires_in;
     private String token_type;
     private String scope;
     private String refresh_token;
@@ -30,11 +29,11 @@ public class NewUser {
         this.access_token = access_token;
     }
 
-    public Integer getExpires_in() {
+    public int getExpires_in() {
         return expires_in;
     }
 
-    public void setExpires_in(Integer expires_in) {
+    public void setExpires_in(int expires_in) {
         this.expires_in = expires_in;
     }
 

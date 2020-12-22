@@ -2,25 +2,16 @@ package ceui.lisa.core;
 
 import android.content.Context;
 import android.net.Uri;
-import android.os.Environment;
 import android.provider.DocumentsContract;
 
 import androidx.documentfile.provider.DocumentFile;
 
-import com.blankj.utilcode.util.FileUtils;
-
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
-
-import static android.provider.DocumentsContract.Document.MIME_TYPE_DIR;
 
 public class SAFile {
 
@@ -70,63 +61,6 @@ public class SAFile {
         Uri rootUri = Uri.parse(Shaft.sSettings.getRootPathUri());
         DocumentFile root = DocumentFile.fromTreeUri(context, rootUri);
         return root.findFile(displayName);
-    }
-
-    public static File getImageCache(Context context) {
-        File cacheDir = new File(context.getCacheDir().getPath() + "/image_manager_disk_cache");
-        if (!cacheDir.exists()) {
-            cacheDir.mkdir();
-        }
-        return cacheDir;
-    }
-
-    public static File getGifCache(Context context) {
-        File cacheDir = new File(context.getCacheDir().getPath() + "/gif cache");
-        if (!cacheDir.exists()) {
-            cacheDir.mkdir();
-        }
-        return cacheDir;
-    }
-
-    public static File getGifResultCache(Context context) {
-        File cacheDir = new File(context.getCacheDir().getPath() + "/gif result cache");
-        if (!cacheDir.exists()) {
-            cacheDir.mkdir();
-        }
-        return cacheDir;
-    }
-
-    public static File createZipFile(Context context, String zipName) {
-        File zipFile = new File(getGifCache(context), zipName);
-        if (!zipFile.exists()) {
-            try {
-                zipFile.createNewFile();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return zipFile;
-    }
-
-    public static File createCacheUnzipFolder(Context context, IllustsBean illust) {
-        String unzipDirName = FileCreator.createGifUnZipFolder(illust).getName();
-        File unzipDirFile = new File(getGifCache(context).getPath() + "/" + unzipDirName);
-        if (!unzipDirFile.exists()) {
-            unzipDirFile.mkdir();
-        }
-        return unzipDirFile;
-    }
-
-    public static File createZipResultFile(Context context, String gifName) {
-        File zipFile = new File(getGifResultCache(context), gifName);
-        if (!zipFile.exists()) {
-            try {
-                zipFile.createNewFile();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return zipFile;
     }
 
     public static DocumentFile createNovelFile(Context context, String displayName) {

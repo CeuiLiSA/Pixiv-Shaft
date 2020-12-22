@@ -79,7 +79,11 @@ public class FragmentImageDetail extends BaseFragment<FragmentImageDetailBinding
             if (Shaft.sSettings.isShowOriginalImage()) {
                 imageUrl = IllustDownload.getUrl(mIllustsBean, index);
             } else {
-                imageUrl = UrlFactory.invoke(mIllustsBean.getImage_urls().getLarge());
+                if (mIllustsBean.getPage_count() == 1) {
+                    imageUrl = UrlFactory.invoke(mIllustsBean.getImage_urls().getLarge());
+                } else {
+                    imageUrl = UrlFactory.invoke(mIllustsBean.getMeta_pages().get(index).getImage_urls().getLarge());
+                }
             }
         }
         ProgressManager.getInstance().addResponseListener(imageUrl, new ProgressListener() {

@@ -17,6 +17,7 @@ import ceui.lisa.R;
 import ceui.lisa.helper.ThemeHelper;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.notification.NetWorkStateReceiver;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Local;
@@ -35,6 +36,7 @@ public class Shaft extends Application {
     public static SharedPreferences sPreferences;
     protected NetWorkStateReceiver netWorkStateReceiver;
     private OkHttpClient mOkHttpClient;
+    private static MMKV mmkv;
 
     /**
      * 状态栏高度，初始化
@@ -69,9 +71,10 @@ public class Shaft extends Application {
 
         sPreferences = getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE);
 
+        MMKV.initialize(this);
+
         sUserModel = Local.getUser();
 
-        Dev.isDev = Local.getBoolean(Params.USE_DEBUG, false);
 
         sSettings = Local.getSettings();
 
@@ -94,7 +97,6 @@ public class Shaft extends Application {
             netWorkStateReceiver = new NetWorkStateReceiver();
         }
 
-        MMKV.initialize(this);
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
@@ -151,5 +153,12 @@ public class Shaft extends Application {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static MMKV getMMKV() {
+        if (mmkv == null) {
+            mmkv = MMKV.defaultMMKV();
+        }
+        return mmkv;
     }
 }

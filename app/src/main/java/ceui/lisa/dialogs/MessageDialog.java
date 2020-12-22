@@ -9,6 +9,7 @@ import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.tencent.mmkv.MMKV;
 
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.utils.Params;
 
 public class MessageDialog {
@@ -22,7 +23,7 @@ public class MessageDialog {
                 .addAction("我知道了", new QMUIDialogAction.ActionListener() {
                     @Override
                     public void onClick(QMUIDialog dialog, int index) {
-                        MMKV.defaultMMKV().encode(Params.SHOW_LONG_DIALOG, false);
+                        Shaft.getMMKV().encode(Params.SHOW_LONG_DIALOG, false);
                         dialog.dismiss();
                     }
                 })

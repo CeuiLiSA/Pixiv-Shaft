@@ -1,8 +1,10 @@
 package ceui.lisa.activities;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -44,6 +46,7 @@ import ceui.lisa.utils.ReverseWebviewCallback;
 import io.reactivex.rxjava3.disposables.Disposable;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
+import static ceui.lisa.utils.Local.LOCAL_DATA;
 import static ceui.lisa.utils.Params.LONG_DIALOG_MESSAGE;
 
 /**
@@ -70,7 +73,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
     @Override
     protected void initView() {
-        Dev.isDev = Local.getBoolean(Params.USE_DEBUG, false);
+        Dev.isDev = Shaft.getMMKV().decodeBool(Params.USE_DEBUG, false);
         baseBind.drawerLayout.setScrimColor(Color.TRANSPARENT);
         baseBind.navView.setNavigationItemSelectedListener(this);
         userHead = baseBind.navView.getHeaderView(0).findViewById(R.id.user_head);
@@ -164,7 +167,17 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 return baseFragments.length;
             }
         });
-        if (MMKV.defaultMMKV().decodeBool(Params.SHOW_LONG_DIALOG, true)) {
+
+//        if (Shaft.getMMKV().decodeBool(Params.IS_MIGRATE, false)) {
+//            Common.showLog("已经迁移到MMKV");
+//        } else {
+//            Shaft.getMMKV().importFromSharedPreferences(getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE));
+//            Shaft.getMMKV().encode(Params.IS_MIGRATE, true);
+//            Common.showLog("未迁移到MMKV");
+//        }
+
+
+        if (Shaft.getMMKV().decodeBool(Params.SHOW_LONG_DIALOG, true)) {
             MessageDialog.showMessage(this, LONG_DIALOG_MESSAGE);
         }
         Manager.get().restore(mContext);
