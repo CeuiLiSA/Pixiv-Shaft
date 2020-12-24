@@ -20,6 +20,7 @@ import ceui.lisa.download.FileCreator;
 import ceui.lisa.download.ImageSaver;
 import ceui.lisa.file.Android10DownloadFactory;
 import ceui.lisa.file.LegacyFile;
+import ceui.lisa.helper.Android10DownloadFactory22;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
@@ -171,7 +172,8 @@ public class Manager {
 //                downloadUri = Uri.fromFile(downloadFile);
 //            }
 //        }
-        Android10DownloadFactory factory = new Android10DownloadFactory(context, bean);
+//        Android10DownloadFactory factory = new Android10DownloadFactory(context, bean);
+        Android10DownloadFactory22 factory = new Android10DownloadFactory22(context, bean.getName());
         currentIllustID = bean.getIllust().getId();
         Common.showLog("Manager 下载单个 当前进度" + nonius);
         uuid = bean.getUuid();
@@ -216,7 +218,7 @@ public class Manager {
                         downloadEntity.setIllustGson(Shaft.sGson.toJson(bean.getIllust()));
                         downloadEntity.setFileName(bean.getName());
                         downloadEntity.setDownloadTime(System.currentTimeMillis());
-                        downloadEntity.setFilePath(factory.getUri().toString());
+//                        downloadEntity.setFilePath(factory.getUri().toString());
                         AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(downloadEntity);
                         //通知FragmentDownloadFinish 添加这一项
                         Intent intent = new Intent(Params.DOWNLOAD_FINISH);

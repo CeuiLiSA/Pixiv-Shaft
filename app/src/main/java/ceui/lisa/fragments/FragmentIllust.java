@@ -327,6 +327,16 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
         if (illust.getPage_count() == 1) {
             if (Common.isAndroidQ()) {
 
+                String displayName = FileCreator.createIllustFile(illust).getName();
+                String selection = MediaStore.Images.Media.DISPLAY_NAME + " = '" + displayName + "'";
+
+                Cursor cursor = mContext.getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                        null, selection, null, null);
+                if (cursor != null && cursor.getCount() > 0) {
+                    baseBind.download.setText("已下载");
+                    Common.showLog("cursor " + cursor.toString());
+                }
+
             } else {
                 String displayName = FileCreator.createIllustFile(illust).getName();
                 String selection = MediaStore.Images.Media.DISPLAY_NAME + " = '" + displayName + "'";

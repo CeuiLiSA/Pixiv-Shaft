@@ -2,6 +2,7 @@ package ceui.lisa.file;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
@@ -38,11 +39,34 @@ public class Android10DownloadFactory extends UriFactory {
         mUri = uri;
     }
 
+
+    public Uri getInsertUri() {
+        return MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+    }
+
+
     @NotNull
     @Override
     public Uri insert(@NotNull Response response) throws IOException {
         String displayName = FileCreator.createIllustFile(mDownloadItem.getIllust(),
                 mDownloadItem.getIndex()).getName();
+
+
+
+        String selection = MediaStore.Images.Media.DISPLAY_NAME + " = '" + displayName + "'";
+
+
+
+        // content://media/external/images/media/73404
+        Cursor cursor = getContext().getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                null, selection, null, null);
+        if (cursor != null && cursor.getCount() > 0) {
+            cursor.moveToFirst();
+            String aaa = "_data = " + cursor.getLong(0);
+            Common.showLog("已存在的文件 uri " + aaa + " " + cursor.getCount());
+        }
+
+
         ContentValues values = new ContentValues();
         values.put(MediaStore.MediaColumns.DISPLAY_NAME, displayName);
         values.put(MediaStore.MediaColumns.MIME_TYPE, response.body().contentType().toString());
@@ -57,6 +81,7 @@ public class Android10DownloadFactory extends UriFactory {
             values.put(MediaStore.MediaColumns.DATA, imageFile.getPath());
         }
         mUri = getContext().getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+
         return mUri;
     }
 }
