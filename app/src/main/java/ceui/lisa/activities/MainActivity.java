@@ -1,10 +1,8 @@
 package ceui.lisa.activities;
 
 import android.Manifest;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -27,27 +25,21 @@ import com.bumptech.glide.Glide;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 import com.tbruyelle.rxpermissions3.RxPermissions;
-import com.tencent.mmkv.MMKV;
 
 import ceui.lisa.R;
 import ceui.lisa.core.Manager;
 import ceui.lisa.databinding.ActivityCoverBinding;
-import ceui.lisa.dialogs.MessageDialog;
 import ceui.lisa.fragments.FragmentCenter;
 import ceui.lisa.fragments.FragmentLeft;
 import ceui.lisa.fragments.FragmentRight;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
-import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseImage;
 import ceui.lisa.utils.ReverseWebviewCallback;
-import io.reactivex.rxjava3.disposables.Disposable;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
-import static ceui.lisa.utils.Local.LOCAL_DATA;
-import static ceui.lisa.utils.Params.LONG_DIALOG_MESSAGE;
 
 /**
  * 主页
@@ -177,9 +169,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 //        }
 
 
-        if (Shaft.getMMKV().decodeBool(Params.SHOW_LONG_DIALOG, true)) {
-            MessageDialog.showMessage(this, LONG_DIALOG_MESSAGE);
-        }
+
         Manager.get().restore(mContext);
     }
 

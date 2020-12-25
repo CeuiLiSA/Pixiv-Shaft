@@ -30,7 +30,7 @@ class RightRepo(var restrict: String?) : RemoteRepo<ListIllust>() {
     }
 
     override fun getHeader(context: Context): RefreshHeader {
-        return ClassicsHeader(context).setPrimaryColor(context.resources.getColor(R.color.fragment_center))
+        return DeliveryHeader(context)
     }
 
     override fun mapper(): Function<ListIllust, ListIllust> {

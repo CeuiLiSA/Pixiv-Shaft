@@ -40,8 +40,6 @@ import static ceui.lisa.utils.Settings.ALL_LANGUAGE;
 
 public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
 
-    private boolean freshPath = false;
-
     @Override
     public void initLayout() {
         mLayoutID = R.layout.fragment_settings;
@@ -289,34 +287,11 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
         });
 
 
-        setPath();
+        baseBind.illustPath.setText(Shaft.sSettings.getIllustPath());
         baseBind.singleIllustPath.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (Common.isAndroidQ()) {
-                    try {
-                        new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                freshPath = true;
-                                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-                                Uri start;
-                                if (!TextUtils.isEmpty(Shaft.sSettings.getRootPathUri())) {
-                                    start = Uri.parse(Shaft.sSettings.getRootPathUri());
-                                } else {
-                                    start = Uri.parse("content://com.android.externalstorage.documents/document/primary:Download");
-                                }
-                                intent.putExtra(EXTRA_INITIAL_URI, start);
-                                mActivity.startActivityForResult(intent, BaseActivity.ASK_URI);
-                            }
-                        }).start();
-                    } catch (Exception e) {
-                        Common.showToast("手机系统被阉割，没这个功能：" + e.toString(), true);
-                        e.printStackTrace();
-                    }
-                } else {
-                    Common.showToast(getString(R.string.string_329), true);
-                }
+                Common.showToast(getString(R.string.string_329), true);
             }
         });
 
@@ -467,30 +442,5 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
     @Override
     public SmartRefreshLayout getSmartRefreshLayout() {
         return baseBind.refreshLayout;
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        if (freshPath) {
-            setPath();
-            freshPath = false;
-        }
-    }
-
-    private void setPath() {
-        try {
-            if (Common.isAndroidQ()) {
-                if (!TextUtils.isEmpty(Shaft.sSettings.getRootPathUri())) {
-                    baseBind.illustPath.setText(URLDecoder.decode(Shaft.sSettings.getRootPathUri(), "utf-8"));
-                } else {
-                    baseBind.illustPath.setText(R.string.string_330);
-                }
-            } else {
-                baseBind.illustPath.setText(Shaft.sSettings.getIllustPath());
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 }

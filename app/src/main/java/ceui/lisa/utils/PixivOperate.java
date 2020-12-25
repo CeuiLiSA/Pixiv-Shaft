@@ -4,10 +4,12 @@ package ceui.lisa.utils;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
@@ -422,25 +424,55 @@ public class PixivOperate {
                     Common.showLog("gifFile " + gifFile.getPath());
 
                     GifEncoder gifEncoder = new GifEncoder();
-                    gifEncoder.init(illustsBean.getWidth(), illustsBean.getHeight(), gifFile.getPath(),
+
+
+                    BitmapFactory.Options options = new BitmapFactory.Options();
+                    options.inJustDecodeBounds = true;//这个参数设置为true才有效，
+                    Bitmap bmp = BitmapFactory.decodeFile(allFiles.get(0).getPath(), options);//这里的bitmap是个空
+                    int outHeight=options.outHeight;
+                    int outWidth= options.outWidth;
+                    Common.showLog("通过Options获取到的图片大小" + "width:" + outWidth + " height: " + outHeight);
+
+
+
+                    gifEncoder.init(outWidth, outHeight, gifFile.getPath(),
                             GifEncoder.EncodingType.ENCODING_TYPE_NORMAL_LOW_MEMORY);
 
                     GifResponse gifResponse = Cache.get().getModel(Params.ILLUST_ID + "_" + illustsBean.getId(), GifResponse.class);
                     int delayMs = 60;
                     if (gifResponse != null) {
-                        delayMs = gifResponse.getDelay();
-                        Common.showLog("GifResponse " + gifResponse.toString());
+
+
+                        if (allFiles.size() == gifResponse.getUgoira_metadata().getFrames().size()) {
+                            Common.showLog("使用返回的delay 00");
+                            for (int i = 0; i < allFiles.size(); i++) {
+                                Common.showLog("编码中 00 " + allFiles.size());
+                                gifEncoder.encodeFrame(BitmapFactory.decodeFile(allFiles.get(i).getPath()),
+                                        gifResponse.getUgoira_metadata().getFrames().get(i).getDelay());
+                            }
+                        } else {
+                            delayMs = gifResponse.getDelay();
+                            Common.showLog("使用返回的delay 11");
+                            for (int i = 0; i < allFiles.size(); i++) {
+                                Common.showLog("编码中 00 " + allFiles.size());
+                                gifEncoder.encodeFrame(BitmapFactory.decodeFile(allFiles.get(i).getPath()),
+                                        delayMs);
+                            }
+                        }
+
                     } else {
-                        Common.showLog("GifResponse null ");
+                        Common.showLog("使用返回的delay 22");
+                        for (int i = 0; i < allFiles.size(); i++) {
+                            Common.showLog("编码中 00 " + allFiles.size());
+                            gifEncoder.encodeFrame(BitmapFactory.decodeFile(allFiles.get(i).getPath()),
+                                    delayMs);
+                        }
                     }
 
                     Common.showLog("allFiles size " + allFiles.size());
 
 
-                    for (File singleImage : allFiles) {
-                        Common.showLog("编码中 00 " + allFiles.size());
-                        gifEncoder.encodeFrame(BitmapFactory.decodeFile(singleImage.getPath()), delayMs);
-                    }
+
 
                     gifEncoder.close();
 
@@ -449,17 +481,6 @@ public class PixivOperate {
                     Intent intent = new Intent(Params.PLAY_GIF);
                     intent.putExtra(Params.ID, illustsBean.getId());
                     LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
-
-
-
-
-
-                    new ImageSaver() {
-                        @Override
-                        public File whichFile() {
-                            return gifFile;
-                        }
-                    }.execute();
                 }
             }).subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())

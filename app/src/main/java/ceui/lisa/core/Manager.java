@@ -152,28 +152,7 @@ public class Manager {
     }
 
     private void downloadOne(Context context, DownloadItem bean) {
-//        final Uri downloadUri;
-//        final File downloadFile;
-//        if (bean.getIllust().isGif()) {
-//            File file = new LegacyFile().gifZipFile(context, bean.getIllust());
-//            downloadUri = Uri.fromFile(file);
-//            downloadFile = null;
-//        } else {
-//            if (Common.isAndroidQ()) {
-//                DocumentFile file = SAFile.getDocument(context, bean.getIllust(), bean.getIndex());
-//                if (file != null) {
-//                    downloadUri = file.getUri();
-//                } else {
-//                    downloadUri = null;
-//                }
-//                downloadFile = null;
-//            } else {
-//                downloadFile = FileCreator.createIllustFile(bean.getIllust(), bean.getIndex());
-//                downloadUri = Uri.fromFile(downloadFile);
-//            }
-//        }
-//        Android10DownloadFactory factory = new Android10DownloadFactory(context, bean);
-        Android10DownloadFactory22 factory = new Android10DownloadFactory22(context, bean.getName());
+        Android10DownloadFactory22 factory = new Android10DownloadFactory22(context, bean);
         currentIllustID = bean.getIllust().getId();
         Common.showLog("Manager 下载单个 当前进度" + nonius);
         uuid = bean.getUuid();
@@ -218,24 +197,12 @@ public class Manager {
                         downloadEntity.setIllustGson(Shaft.sGson.toJson(bean.getIllust()));
                         downloadEntity.setFileName(bean.getName());
                         downloadEntity.setDownloadTime(System.currentTimeMillis());
-//                        downloadEntity.setFilePath(factory.getUri().toString());
+                        downloadEntity.setFilePath(factory.getFileUri().toString());
                         AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(downloadEntity);
                         //通知FragmentDownloadFinish 添加这一项
                         Intent intent = new Intent(Params.DOWNLOAD_FINISH);
                         intent.putExtra(Params.CONTENT, downloadEntity);
                         LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
-                    }
-
-                    {
-                        //通知相册刷新图片
-//                            if (downloadFile != null) {
-//                                new ImageSaver() {
-//                                    @Override
-//                                    public File whichFile() {
-//                                        return downloadFile;
-//                                    }
-//                                }.execute();
-//                            }
                     }
 
                     safeDelete(bean);
