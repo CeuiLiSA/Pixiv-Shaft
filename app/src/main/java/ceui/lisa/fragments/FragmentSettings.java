@@ -429,7 +429,6 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
         baseBind.clearGifCache.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Shaft.getMMKV().clearAll();
                 FileUtils.deleteAllInDir(new LegacyFile().gifCacheFolder(mContext));
                 Common.showToast("GIF缓存清除成功！");
                 baseBind.gifCacheSize.setText(FileUtils.getSize(new LegacyFile().gifCacheFolder(mContext)));

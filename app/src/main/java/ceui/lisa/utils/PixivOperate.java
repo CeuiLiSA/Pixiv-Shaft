@@ -47,6 +47,8 @@ import ceui.lisa.fragments.FragmentLogin;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
+import ceui.lisa.interfaces.Back;
+import ceui.lisa.interfaces.FeedBack;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.IllustSearchResponse;
@@ -398,7 +400,7 @@ public class PixivOperate {
         }
     }
 
-    public static void encodeGif(Context context, File parentFile, IllustsBean illustsBean) {
+    public static void encodeGif(Context context, File parentFile, IllustsBean illustsBean, Back callback) {
         try {
             Common.showLog("encodeGif 开始");
             Observable.create(new ObservableOnSubscribe<String>() {
@@ -446,9 +448,13 @@ public class PixivOperate {
                         if (allFiles.size() == gifResponse.getUgoira_metadata().getFrames().size()) {
                             Common.showLog("使用返回的delay 00");
                             for (int i = 0; i < allFiles.size(); i++) {
-                                Common.showLog("编码中 00 " + allFiles.size());
+                                Common.showLog("编码中 00 " + allFiles.size() + " " + (i + 1));
                                 gifEncoder.encodeFrame(BitmapFactory.decodeFile(allFiles.get(i).getPath()),
                                         gifResponse.getUgoira_metadata().getFrames().get(i).getDelay());
+                                if (callback != null) {
+                                    float pro = i / (float) (allFiles.size() - 1);
+                                    callback.invoke(pro);
+                                }
                             }
                         } else {
                             delayMs = gifResponse.getDelay();
@@ -490,13 +496,13 @@ public class PixivOperate {
         }
     }
 
-    public static void unzipAndePlay(Context context, IllustsBean illustsBean) {
+    public static void unzipAndePlay(Context context, IllustsBean illustsBean, Back callback) {
         try {
             LegacyFile legacyFile = new LegacyFile();
             File fromZip = legacyFile.gifZipFile(context, illustsBean);
             File toFolder = legacyFile.gifUnzipFolder(context, illustsBean);
             justUnzipFile(fromZip, toFolder);
-            encodeGif(context, toFolder, illustsBean);
+            encodeGif(context, toFolder, illustsBean, callback);
         } catch (Exception e) {
             e.printStackTrace();
         }

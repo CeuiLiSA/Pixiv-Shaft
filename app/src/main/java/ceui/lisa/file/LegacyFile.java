@@ -63,7 +63,7 @@ public class LegacyFile implements FileProxy {
 
     @Override
     public File gifResultFile(Context context, IllustsBean illust) {
-        File gifCacheFolder = context.getExternalFilesDir(DIRECTORY_PICTURES);
+        File gifCacheFolder = gifCacheFolder(context);
         String gifResultName = new FileName().gifName(illust);
         File gifResult = new File(gifCacheFolder, gifResultName);
         if (!gifResult.exists()) {

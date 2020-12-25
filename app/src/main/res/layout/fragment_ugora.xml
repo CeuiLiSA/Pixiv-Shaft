@@ -351,6 +351,15 @@
 
         </androidx.appcompat.widget.Toolbar>
 
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:visibility="invisible"
+            android:id="@+id/progress"
+            android:layout_centerInParent="true"
+            android:layout_height="wrap_content">
+
+        </ProgressBar>
+
     </RelativeLayout>
 </layout>
 

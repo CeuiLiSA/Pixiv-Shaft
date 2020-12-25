@@ -180,8 +180,12 @@ public class Manager {
                     nonius = 0L;
 
                     if(bean.getIllust().isGif()){
-                        Shaft.getMMKV().encode(Params.ILLUST_ID + "_" + bean.getIllust().getId(), true);
-                        PixivOperate.unzipAndePlay(context, bean.getIllust());
+                        PixivOperate.unzipAndePlay(context, bean.getIllust(), null);
+//                        Shaft.getMMKV().encode(Params.ILLUST_ID + "_" + bean.getIllust().getId(), true);
+//                        LegacyFile legacyFile = new LegacyFile();
+//                        File fromZip = legacyFile.gifZipFile(context, bean.getIllust());
+//                        File toFolder = legacyFile.gifUnzipFolder(context, bean.getIllust());
+//                        PixivOperate.justUnzipFile(fromZip, toFolder);
                     }
 
                     {
@@ -210,6 +214,8 @@ public class Manager {
 
                 }, throwable -> {
                     //下载失败，处理相关逻辑
+                    throwable.printStackTrace();
+                    Common.showToast("下载失败，原因：" + throwable.toString());
                     Common.showLog("下载失败 " + throwable.toString());
                     safeDelete(bean, false);
                     checkPipe(context);

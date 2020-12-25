@@ -8,8 +8,8 @@
 
     <com.github.lzyzsd.circleprogress.DonutProgress
         android:id="@+id/donut_progress"
-        android:layout_width="72dp"
-        android:layout_height="72dp"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
         android:layout_centerInParent="true"
         app:donut_circle_starting_degree="-90"
         app:donut_finished_color="?attr/colorPrimary"
