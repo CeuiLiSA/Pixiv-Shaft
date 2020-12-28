@@ -17,6 +17,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.blankj.utilcode.util.FileUtils;
 import com.blankj.utilcode.util.ZipUtils;
+import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 import com.waynejo.androidndkgif.GifEncoder;
 
 import java.io.BufferedInputStream;
@@ -222,6 +223,11 @@ public class PixivOperate {
     }
 
     public static void getIllustByID(UserModel userModel, int illustID, Context context) {
+        QMUITipDialog tipDialog = new QMUITipDialog.Builder(context)
+                .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
+                .setTipWord("正在加载")
+                .create();
+        tipDialog.show();
         Retro.getAppApi().getIllustByID(userModel.getResponse().getAccess_token(), illustID)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -237,6 +243,16 @@ public class PixivOperate {
                             intent.putExtra(Params.POSITION, 0);
                             intent.putExtra(Params.PAGE_UUID, pageData.getUUID());
                             context.startActivity(intent);
+                        }
+                    }
+
+                    @Override
+                    public void must() {
+                        super.must();
+                        try {
+                            tipDialog.dismiss();
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
                     }
                 });

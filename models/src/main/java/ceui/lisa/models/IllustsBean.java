@@ -1,8 +1,5 @@
 package ceui.lisa.models;
 
-import android.text.TextUtils;
-
-import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 
@@ -34,7 +31,6 @@ public class IllustsBean implements Serializable, Starable {
      */
 
     private int id;
-    private int gifDelay;
     private String title;
     private String type;
     private ImageUrlsBean image_urls;
@@ -260,15 +256,6 @@ public class IllustsBean implements Serializable, Starable {
         return getWidth() + "px * " + getHeight() + "px";
     }
 
-    public int getGifDelay() {
-        return gifDelay;
-    }
-
-    public void setGifDelay(int gifDelay) {
-        this.gifDelay = gifDelay;
-    }
-
-
     @Override
     public String toString() {
         return "IllustsBean{" +
@@ -340,6 +327,6 @@ public class IllustsBean implements Serializable, Starable {
     }
 
     public boolean isR18() {
-        return x_restrict == 1 || sanity_level == 6;
+        return x_restrict == 1 || sanity_level >= 4;
     }
 }
