@@ -24,14 +24,24 @@ class Android10DownloadFactory22 constructor(
 ) : UriFactory(context) {
 
     private val relativePath: String = Environment.DIRECTORY_PICTURES + "/ShaftImages"
+    private val relativePathR18: String = Environment.DIRECTORY_PICTURES + "/ShaftImages-R18"
     lateinit var fileUri: Uri
 
     override fun query(): Uri? {
         if (Common.isAndroidQ()) {
-            return MediaStore.Images.Media.EXTERNAL_CONTENT_URI.query(context, item.name, relativePath)
+            if (item.illust.isR18) {
+                return MediaStore.Images.Media.EXTERNAL_CONTENT_URI.query(context, item.name, relativePathR18)
+            } else {
+                return MediaStore.Images.Media.EXTERNAL_CONTENT_URI.query(context, item.name, relativePath)
+            }
         } else {
-            val file = File("${PathUtils.getExternalPicturesPath()}/ShaftImages/${item.name}")
-            return Uri.fromFile(file)
+            if (item.illust.isR18) {
+                val file = File("${PathUtils.getExternalPicturesPath()}/ShaftImages-R18/${item.name}")
+                return Uri.fromFile(file)
+            } else {
+                val file = File("${PathUtils.getExternalPicturesPath()}/ShaftImages/${item.name}")
+                return Uri.fromFile(file)
+            }
         }
     }
 
@@ -44,29 +54,56 @@ class Android10DownloadFactory22 constructor(
         } else {
             // 大于等于 android 10， 使用 contentResolver insert 生成文件
             if (Common.isAndroidQ()) {
-                val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI.query(context, item.name, relativePath)
-                if (uri != null) {
-                    val outputStream: OutputStream = context.contentResolver.openOutputStream(uri, "rwt")!!
-                    outputStream.write(ByteArray(0))
-                    outputStream.flush()
-                    outputStream.close()
-                    fileUri = uri
+                if (item.illust.isR18) {
+                    val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI.query(context, item.name, relativePathR18)
+                    if (uri != null) {
+                        val outputStream: OutputStream = context.contentResolver.openOutputStream(uri, "rwt")!!
+                        outputStream.write(ByteArray(0))
+                        outputStream.flush()
+                        outputStream.close()
+                        fileUri = uri
+                        return fileUri
+                    }
+                    fileUri = ContentValues().run {
+                        put(MediaStore.MediaColumns.RELATIVE_PATH, relativePathR18) //下载到指定目录
+                        put(MediaStore.MediaColumns.DISPLAY_NAME, item.name)   //文件名
+                        //取contentType响应头作为文件类型
+                        put(MediaStore.MediaColumns.MIME_TYPE, response.body?.contentType().toString())
+                        context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, this)
+                        //当相同路径下的文件，在文件管理器中被手动删除时，就会插入失败
+                    } ?: throw NullPointerException("Uri insert failed. Try changing filename")
+                    return fileUri
+                } else {
+                    val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI.query(context, item.name, relativePath)
+                    if (uri != null) {
+                        val outputStream: OutputStream = context.contentResolver.openOutputStream(uri, "rwt")!!
+                        outputStream.write(ByteArray(0))
+                        outputStream.flush()
+                        outputStream.close()
+                        fileUri = uri
+                        return fileUri
+                    }
+                    fileUri = ContentValues().run {
+                        put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath) //下载到指定目录
+                        put(MediaStore.MediaColumns.DISPLAY_NAME, item.name)   //文件名
+                        //取contentType响应头作为文件类型
+                        put(MediaStore.MediaColumns.MIME_TYPE, response.body?.contentType().toString())
+                        context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, this)
+                        //当相同路径下的文件，在文件管理器中被手动删除时，就会插入失败
+                    } ?: throw NullPointerException("Uri insert failed. Try changing filename")
                     return fileUri
                 }
-                fileUri = ContentValues().run {
-                    put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath) //下载到指定目录
-                    put(MediaStore.MediaColumns.DISPLAY_NAME, item.name)   //文件名
-                    //取contentType响应头作为文件类型
-                    put(MediaStore.MediaColumns.MIME_TYPE, response.body?.contentType().toString())
-                    context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, this)
-                    //当相同路径下的文件，在文件管理器中被手动删除时，就会插入失败
-                } ?: throw NullPointerException("Uri insert failed. Try changing filename")
-                return fileUri
+
             } else {
                 // 低于 android 10， 使用 File 操作
 
 
-                val parentFile = File(PathUtils.getExternalPicturesPath() + "/ShaftImages")
+                val parentFile: File
+                if (item.illust.isR18) {
+                    parentFile = File(PathUtils.getExternalPicturesPath() + "/ShaftImages-R18")
+                } else {
+                    parentFile = File(PathUtils.getExternalPicturesPath() + "/ShaftImages")
+                }
                 if (!parentFile.exists()) {
                     parentFile.mkdir()
                 }
@@ -81,7 +118,7 @@ class Android10DownloadFactory22 constructor(
                     override fun whichFile(): File {
                         return imageFile
                     }
-                }.execute()
+                }.execute(context)
 
                 fileUri = Uri.fromFile(imageFile)
                 return fileUri

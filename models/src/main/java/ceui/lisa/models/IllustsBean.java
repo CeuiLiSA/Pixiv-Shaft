@@ -338,4 +338,8 @@ public class IllustsBean implements Serializable, Starable {
     public void setItemStared(boolean isLike) {
         setIs_bookmarked(isLike);
     }
+
+    public boolean isR18() {
+        return x_restrict == 1 || sanity_level == 6;
+    }
 }

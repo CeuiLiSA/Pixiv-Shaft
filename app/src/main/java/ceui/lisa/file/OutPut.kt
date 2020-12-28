@@ -65,7 +65,7 @@ object OutPut {
                 override fun whichFile(): File {
                     return gifResult
                 }
-            }.execute()
+            }.execute(context)
             Common.showToast("GIF保存成功")
         }
     }
