@@ -20,6 +20,7 @@ import ceui.lisa.core.LocalRepo;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.databinding.FragmentBaseListBinding;
+import ceui.lisa.databinding.RecyDownloadedBinding;
 import ceui.lisa.databinding.RecyViewHistoryBinding;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.interfaces.OnItemClickListener;
@@ -36,7 +37,7 @@ public class FragmentDownloadFinish extends LocalListFragment<FragmentBaseListBi
     private DownloadReceiver<?> mReceiver;
 
     @Override
-    public BaseAdapter<DownloadEntity, RecyViewHistoryBinding> adapter() {
+    public BaseAdapter<DownloadEntity, RecyDownloadedBinding> adapter() {
         return new DownloadedAdapter(allItems, mContext).setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {

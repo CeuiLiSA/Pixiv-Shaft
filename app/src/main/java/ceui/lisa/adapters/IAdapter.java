@@ -42,7 +42,6 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
     private static final int MIN_HEIGHT = 350;
     private static final int MAX_HEIGHT = 600;
     private int imageSize;
-    private boolean showLikeButton = false;
 
     public IAdapter(List<IllustsBean> targetList, Context context) {
         super(targetList, context);
@@ -52,7 +51,6 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
 
     private void initImageSize() {
         imageSize = (mContext.getResources().getDisplayMetrics().widthPixels) / 2;
-        showLikeButton = Shaft.sSettings.isShowLikeButton();
     }
 
     @Override
@@ -74,42 +72,40 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
         }
         bindView.baseBind.illustImage.setLayoutParams(params);
 
-        if (showLikeButton) {
-            bindView.baseBind.likeButton.setVisibility(View.VISIBLE);
-            if (target.isIs_bookmarked()) {
-                bindView.baseBind.likeButton.setImageTintList(
-                        ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.has_bookmarked)));
-            } else {
-                bindView.baseBind.likeButton.setImageTintList(
-                        ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.not_bookmarked)));
-            }
-            bindView.baseBind.likeButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (target.isIs_bookmarked()) {
-                        bindView.baseBind.likeButton.setImageTintList(
-                                ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.not_bookmarked)));
-                    } else {
-                        bindView.baseBind.likeButton.setImageTintList(
-                                ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.has_bookmarked)));
-                    }
+        if (target.isIs_bookmarked()) {
+            bindView.baseBind.likeButton.setImageTintList(
+                    ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.has_bookmarked)));
+        } else {
+            bindView.baseBind.likeButton.setImageTintList(
+                    ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.not_bookmarked)));
+        }
+        bindView.baseBind.likeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (target.isIs_bookmarked()) {
+                    bindView.baseBind.likeButton.setImageTintList(
+                            ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.not_bookmarked)));
+                } else {
+                    bindView.baseBind.likeButton.setImageTintList(
+                            ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.has_bookmarked)));
+                }
+                if (Shaft.sSettings.isPrivateStar()) {
+                    PixivOperate.postLike(target, Params.TYPE_PRIVATE);
+                } else {
                     PixivOperate.postLike(target, Params.TYPE_PUBLUC);
                 }
-            });
-            bindView.baseBind.likeButton.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    Intent intent = new Intent(mContext, TemplateActivity.class);
-                    intent.putExtra(Params.ILLUST_ID, target.getId());
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏");
-                    mContext.startActivity(intent);
-                    return true;
-                }
-            });
-
-        } else {
-            bindView.baseBind.likeButton.setVisibility(View.GONE);
-        }
+            }
+        });
+        bindView.baseBind.likeButton.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(Params.ILLUST_ID, target.getId());
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏");
+                mContext.startActivity(intent);
+                return true;
+            }
+        });
 
         Glide.with(mContext)
                 .load(GlideUtil.getMediumImg(target))

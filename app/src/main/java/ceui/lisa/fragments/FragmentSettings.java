@@ -133,16 +133,12 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             }
         });
 
-        baseBind.showLikeButton.setChecked(Shaft.sSettings.isShowLikeButton());
+        baseBind.showLikeButton.setChecked(Shaft.sSettings.isPrivateStar());
         baseBind.showLikeButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    Shaft.sSettings.setShowLikeButton(true);
-                } else {
-                    Shaft.sSettings.setShowLikeButton(false);
-                }
-                Common.showToast("重启APP生效", 2);
+                Shaft.sSettings.setPrivateStar(isChecked);
+                Common.showToast("设置成功", 2);
                 Local.setSettings(Shaft.sSettings);
             }
         });

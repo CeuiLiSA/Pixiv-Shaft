@@ -1,12 +1,14 @@
 package ceui.lisa.fragments;
 
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.FragmentImageDetailLocalBinding;
 import ceui.lisa.utils.Params;
 import xyz.zpayh.hdimage.OnBitmapLoadListener;
+import xyz.zpayh.hdimage.state.ScaleType;
 
 public class FragmentLocalImageDetail extends BaseFragment<FragmentImageDetailLocalBinding> {
 
@@ -32,22 +34,11 @@ public class FragmentLocalImageDetail extends BaseFragment<FragmentImageDetailLo
 
     @Override
     public void initView() {
-        baseBind.illustImage.setImageURI(filePath);
-        baseBind.illustImage.setOnBitmapLoadListener(new OnBitmapLoadListener() {
-            @Override
-            public void onBitmapLoadReady() {
-
-            }
-
-            @Override
-            public void onBitmapLoaded(int width, int height) {
-                baseBind.progress.setVisibility(View.INVISIBLE);
-            }
-
-            @Override
-            public void onBitmapLoadError(Exception e) {
-                baseBind.progress.setVisibility(View.INVISIBLE);
-            }
-        });
+        if (!TextUtils.isEmpty(filePath) && filePath.contains(".zip")) {
+            baseBind.illustImage.setScaleType(ScaleType.CENTER_CROP);
+            baseBind.illustImage.setImageURI("res:///" + R.mipmap.zip);
+        } else {
+            baseBind.illustImage.setImageURI(filePath);
+        }
     }
 }

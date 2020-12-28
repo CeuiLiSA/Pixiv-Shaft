@@ -290,7 +290,7 @@
 
                             <TextView
                                 style="@style/setting_text_left"
-                                android:text="@string/show_like_button" />
+                                android:text="@string/string_335" />
 
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/show_like_button"

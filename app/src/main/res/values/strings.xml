@@ -516,5 +516,6 @@
     <string name="string_333">加速加载图片，如果觉得加载变慢了，可以关闭</string>
     <string name="string_334">原图画质好，如果觉得原图加载太慢了，可以关闭</string>
     <string name="about_network">网络</string>
+    <string name="string_335">添加收藏默认私人收藏</string>
 
 </resources>

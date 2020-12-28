@@ -152,7 +152,11 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 } else {
                     baseBind.postLike.setImageResource(R.drawable.ic_favorite_red_24dp);
                 }
-                PixivOperate.postLike(illust, Params.TYPE_PUBLUC);
+                if (Shaft.sSettings.isPrivateStar()) {
+                    PixivOperate.postLike(illust, Params.TYPE_PRIVATE);
+                } else {
+                    PixivOperate.postLike(illust, Params.TYPE_PUBLUC);
+                }
             }
         });
         baseBind.postLike.setOnLongClickListener(new View.OnLongClickListener() {

@@ -12,8 +12,6 @@ public final class DownloadingEntity implements Serializable {
     @PrimaryKey()
     @NonNull
     private String fileName = "";
-
-
     private String uuid = "";
     private String taskGson;
 

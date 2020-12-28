@@ -78,6 +78,9 @@ public class Settings {
     //是否显示开屏 dialog
     private boolean showPixivDialog = true;
 
+    //默认私人收藏
+    private boolean privateStar = false;
+
     //列表页面是否显示收藏按钮
     private boolean showLikeButton = true;
 
@@ -135,6 +138,14 @@ public class Settings {
 
     public String getNovelPath() {
         return TextUtils.isEmpty(novelPath) ? FILE_LOG_PATH : novelPath;
+    }
+
+    public boolean isPrivateStar() {
+        return privateStar;
+    }
+
+    public void setPrivateStar(boolean privateStar) {
+        this.privateStar = privateStar;
     }
 
     public void setNovelPath(String novelPath) {

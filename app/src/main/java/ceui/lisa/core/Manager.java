@@ -3,12 +3,9 @@ package ceui.lisa.core;
 
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 
-import androidx.documentfile.provider.DocumentFile;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,10 +13,6 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.database.DownloadingEntity;
-import ceui.lisa.download.FileCreator;
-import ceui.lisa.download.ImageSaver;
-import ceui.lisa.file.Android10DownloadFactory;
-import ceui.lisa.file.LegacyFile;
 import ceui.lisa.helper.Android10DownloadFactory22;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.utils.Common;
@@ -47,6 +40,7 @@ public class Manager {
     public void restore(Context context) {
         List<DownloadingEntity> downloadingEntities = AppDatabase.getAppDatabase(context).downloadDao().getAllDownloading();
         if (!Common.isEmpty(downloadingEntities)) {
+            Common.showLog("downloadingEntities " + downloadingEntities.size());
             if (content != null) {
                 content = new ArrayList<>();
             }
@@ -86,6 +80,7 @@ public class Manager {
         Common.showLog("Manager safeAdd " + item.getUuid());
         content.add(item);
         DownloadingEntity entity = new DownloadingEntity();
+        entity.setFileName(item.getName());
         entity.setUuid(item.getUuid());
         entity.setTaskGson(Shaft.sGson.toJson(item));
         AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insertDownloading(entity);
@@ -99,6 +94,7 @@ public class Manager {
         item.setProcessed(true);
         if (isDownloadSuccess) {
             DownloadingEntity entity = new DownloadingEntity();
+            entity.setFileName(item.getName());
             entity.setUuid(item.getUuid());
             entity.setTaskGson(Shaft.sGson.toJson(item));
             AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().deleteDownloading(entity);
@@ -124,10 +120,10 @@ public class Manager {
             Common.showLog("Manager 正在下载中，不用多次start");
             return;
         }
-        checkPipe(context);
+        loop(context);
     }
 
-    private void checkPipe(Context context) {
+    private void loop(Context context) {
         if (Common.isEmpty(content)) {
             isRunning = false;
             Common.showLog("Manager 已经全部下载完成");
@@ -210,7 +206,7 @@ public class Manager {
                     }
 
                     safeDelete(bean);
-                    checkPipe(context);
+                    loop(context);
 
                 }, throwable -> {
                     //下载失败，处理相关逻辑
@@ -218,7 +214,7 @@ public class Manager {
                     Common.showToast("下载失败，原因：" + throwable.toString());
                     Common.showLog("下载失败 " + throwable.toString());
                     safeDelete(bean, false);
-                    checkPipe(context);
+                    loop(context);
                 });
 //        if (factory != null) {
 //

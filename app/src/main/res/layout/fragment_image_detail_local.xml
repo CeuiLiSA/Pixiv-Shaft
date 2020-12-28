@@ -20,13 +20,5 @@
 
         </xyz.zpayh.hdimage.HDImageView>
 
-        <ProgressBar
-            android:layout_width="wrap_content"
-            android:id="@+id/progress"
-            android:layout_centerInParent="true"
-            android:layout_height="wrap_content">
-
-        </ProgressBar>
-
     </RelativeLayout>
 </layout>
