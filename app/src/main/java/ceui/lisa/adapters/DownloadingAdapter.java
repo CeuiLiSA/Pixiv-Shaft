@@ -57,25 +57,34 @@ public class DownloadingAdapter extends BaseAdapter<DownloadItem, RecyDownloadTa
         }
         if (position == 0) {
             bindView.baseBind.progress.setProgress(Manager.get().getCurrentProgress());
-            bindView.baseBind.state.setText("正在下载");
             Manager.get().setCallback(new Callback<Progress>() {
                 @Override
                 public void doSomething(Progress t) {
                     if (Manager.get().getUuid().equals(bindView.baseBind.progress.getTag())) {
                         bindView.baseBind.progress.setProgress(t.getProgress());
+                        bindView.baseBind.state.setText("正在下载");
                         bindView.baseBind.currentSize.setText(String.format("%s / %s",
                                 FileSizeUtil.formatFileSize(t.getCurrentSize()),
                                 FileSizeUtil.formatFileSize(t.getTotalSize())));
                     } else {
                         bindView.baseBind.progress.setProgress(0);
+                        if (target.isProcessed()) {
+                            bindView.baseBind.state.setText("已失败");
+                        } else {
+                            bindView.baseBind.state.setText("未开始");
+                        }
                         bindView.baseBind.currentSize.setText(mContext.getString(R.string.string_115));
                     }
                 }
             });
         } else {
             bindView.baseBind.progress.setProgress(0);
-            bindView.baseBind.state.setText("等待中");
             bindView.baseBind.currentSize.setText(mContext.getString(R.string.string_115));
+        }
+        if (target.isProcessed()) {
+            bindView.baseBind.state.setText("已失败");
+        } else {
+            bindView.baseBind.state.setText("未开始");
         }
         bindView.itemView.setOnClickListener(new View.OnClickListener() {
             @Override

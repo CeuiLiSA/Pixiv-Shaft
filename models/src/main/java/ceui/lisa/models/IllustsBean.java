@@ -326,7 +326,7 @@ public class IllustsBean implements Serializable, Starable {
         setIs_bookmarked(isLike);
     }
 
-    public boolean isR18() {
+    public boolean isR18File() {
         return x_restrict == 1 || sanity_level >= 4;
     }
 }

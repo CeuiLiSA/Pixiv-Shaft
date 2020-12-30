@@ -316,10 +316,6 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
                 Common.showToast("请先播放后下载");
             }
         });
-        File file = FileCreator.createIllustFile(illust);
-        if (file.exists()) {
-            baseBind.download.setImageResource(R.drawable.ic_has_download);
-        }
         baseBind.userName.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {

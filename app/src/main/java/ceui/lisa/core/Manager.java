@@ -15,7 +15,9 @@ import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.database.DownloadingEntity;
 import ceui.lisa.helper.Android10DownloadFactory22;
 import ceui.lisa.interfaces.Callback;
+import ceui.lisa.model.Holder;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
@@ -91,14 +93,18 @@ public class Manager {
     }
 
     private void safeDelete(DownloadItem item, boolean isDownloadSuccess) {
-        item.setProcessed(true);
+        content.remove(item);
         if (isDownloadSuccess) {
             DownloadingEntity entity = new DownloadingEntity();
             entity.setFileName(item.getName());
             entity.setUuid(item.getUuid());
             entity.setTaskGson(Shaft.sGson.toJson(item));
             AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().deleteDownloading(entity);
-            content.remove(item);
+            Common.showToast(item.getName() + "已下载完成");
+        } else {
+            item.setProcessed(true);
+            //加到队列尾部
+            content.add(item);
         }
     }
 
@@ -134,7 +140,7 @@ public class Manager {
         if (item != null) {
             downloadOne(context, item);
         } else {
-            isRunning = false;
+            stop();
         }
     }
 
@@ -177,17 +183,16 @@ public class Manager {
 
                     if(bean.getIllust().isGif()){
                         PixivOperate.unzipAndePlay(context, bean.getIllust(), null);
-//                        Shaft.getMMKV().encode(Params.ILLUST_ID + "_" + bean.getIllust().getId(), true);
-//                        LegacyFile legacyFile = new LegacyFile();
-//                        File fromZip = legacyFile.gifZipFile(context, bean.getIllust());
-//                        File toFolder = legacyFile.gifUnzipFolder(context, bean.getIllust());
-//                        PixivOperate.justUnzipFile(fromZip, toFolder);
                     }
 
                     {
                         //通知 DOWNLOAD_ING 下载完成
                         Intent intent = new Intent(Params.DOWNLOAD_ING);
-                        intent.putExtra(Params.INDEX, 0);
+                        Holder holder = new Holder();
+                        holder.setCode(Params.DOWNLOAD_SUCCESS);
+                        holder.setIndex(0);
+                        holder.setDownloadItem(bean);
+                        intent.putExtra(Params.CONTENT, holder);
                         LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
                     }
 
@@ -211,17 +216,26 @@ public class Manager {
                 }, throwable -> {
                     //下载失败，处理相关逻辑
                     throwable.printStackTrace();
-                    Common.showToast("下载失败，原因：" + throwable.toString());
-                    Common.showLog("下载失败 " + throwable.toString());
+                    if (!Dev.isDev) {
+                        Common.showToast("下载失败，原因：" + throwable.toString());
+                    }
+                    Common.showLog("下载失败，原因：" + throwable.toString());
                     safeDelete(bean, false);
+
+                    {
+                        //通知 DOWNLOAD_ING 有一项下载失败
+                        Intent intent = new Intent(Params.DOWNLOAD_ING);
+                        Holder holder = new Holder();
+                        holder.setCode(Params.DOWNLOAD_FAILED);
+                        holder.setIndex(0);
+                        holder.setDownloadItem(bean);
+                        intent.putExtra(Params.CONTENT, holder);
+                        LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
+                    }
+
+
                     loop(context);
                 });
-//        if (factory != null) {
-//
-//        } else {
-//            safeDelete(bean, false);
-//            checkPipe(context);
-//        }
     }
 
     private int currentProgress;
@@ -264,6 +278,7 @@ public class Manager {
         if (handle != null) {
             handle.dispose();
         }
+        Common.showLog("已经停止");
         Shaft.sSettings.setCurrentProgress(nonius);
         Local.setSettings(Shaft.sSettings);
     }

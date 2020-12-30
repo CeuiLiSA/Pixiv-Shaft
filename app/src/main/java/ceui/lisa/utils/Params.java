@@ -57,6 +57,8 @@ public class Params {
     public static final String PHONE_MODEL = "PixivIOSApp/5.8.0";
     public static final String HOST = "Host";
     public static final String HOST_NAME = "i.pximg.net";
+    public static final int    DOWNLOAD_FAILED = -86;
+    public static final int    DOWNLOAD_SUCCESS = -87;
 
 
     public static final String IMAGE_UNKNOWN = "https://s.pximg.net/common/images/limit_unknown_360.png";

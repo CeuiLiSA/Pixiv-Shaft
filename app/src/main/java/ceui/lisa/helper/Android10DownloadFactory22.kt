@@ -3,13 +3,14 @@ package ceui.lisa.helper
 import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
-import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import ceui.lisa.activities.Shaft
 import ceui.lisa.core.DownloadItem
 import ceui.lisa.download.ImageSaver
 import ceui.lisa.file.LegacyFile
 import ceui.lisa.utils.Common
+import ceui.lisa.utils.Settings
 import com.blankj.utilcode.util.FileUtils
 import com.blankj.utilcode.util.PathUtils
 import okhttp3.Response
@@ -23,19 +24,19 @@ class Android10DownloadFactory22 constructor(
         private val item: DownloadItem,
 ) : UriFactory(context) {
 
-    private val relativePath: String = Environment.DIRECTORY_PICTURES + "/ShaftImages"
-    private val relativePathR18: String = Environment.DIRECTORY_PICTURES + "/ShaftImages-R18"
     lateinit var fileUri: Uri
 
     override fun query(): Uri? {
         if (Common.isAndroidQ()) {
-            if (item.illust.isR18) {
+            val relativePath: String = Environment.DIRECTORY_PICTURES + "/ShaftImages"
+            val relativePathR18: String = Environment.DIRECTORY_PICTURES + "/ShaftImages-R18"
+            if (item.illust.isR18File && Shaft.sSettings.isR18DivideSave) {
                 return MediaStore.Images.Media.EXTERNAL_CONTENT_URI.query(context, item.name, relativePathR18)
             } else {
                 return MediaStore.Images.Media.EXTERNAL_CONTENT_URI.query(context, item.name, relativePath)
             }
         } else {
-            if (item.illust.isR18) {
+            if (item.illust.isR18File && Shaft.sSettings.isR18DivideSave) {
                 val file = File("${PathUtils.getExternalPicturesPath()}/ShaftImages-R18/${item.name}")
                 return Uri.fromFile(file)
             } else {
@@ -54,7 +55,9 @@ class Android10DownloadFactory22 constructor(
         } else {
             // 大于等于 android 10， 使用 contentResolver insert 生成文件
             if (Common.isAndroidQ()) {
-                if (item.illust.isR18) {
+                val relativePath: String = Environment.DIRECTORY_PICTURES + "/ShaftImages"
+                val relativePathR18: String = Environment.DIRECTORY_PICTURES + "/ShaftImages-R18"
+                if (item.illust.isR18File && Shaft.sSettings.isR18DivideSave) {
                     val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI.query(context, item.name, relativePathR18)
                     if (uri != null) {
                         val outputStream: OutputStream = context.contentResolver.openOutputStream(uri, "rwt")!!
@@ -96,13 +99,11 @@ class Android10DownloadFactory22 constructor(
 
             } else {
                 // 低于 android 10， 使用 File 操作
-
-
                 val parentFile: File
-                if (item.illust.isR18) {
-                    parentFile = File(PathUtils.getExternalPicturesPath() + "/ShaftImages-R18")
+                if (item.illust.isR18File && Shaft.sSettings.isR18DivideSave) {
+                    parentFile = File(Settings.FILE_PATH_SINGLE_R18)
                 } else {
-                    parentFile = File(PathUtils.getExternalPicturesPath() + "/ShaftImages")
+                    parentFile = File(Settings.FILE_PATH_SINGLE)
                 }
                 if (!parentFile.exists()) {
                     parentFile.mkdir()

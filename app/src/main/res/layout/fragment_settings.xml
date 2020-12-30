@@ -284,23 +284,6 @@
                         <View style="@style/half_divider" />
 
                         <RelativeLayout
-                            android:id="@+id/show_like_button_rela"
-                            style="@style/ripple_rela">
-
-                            <TextView
-                                style="@style/setting_text_left"
-                                android:text="@string/string_335" />
-
-                            <androidx.appcompat.widget.SwitchCompat
-                                android:id="@+id/show_like_button"
-                                style="@style/setting_right_switch"/>
-
-
-                        </RelativeLayout>
-
-                        <View style="@style/half_divider" />
-
-                        <RelativeLayout
                             android:id="@+id/delete_star_illust_rela"
                             style="@style/ripple_rela">
 
@@ -310,6 +293,23 @@
 
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/delete_star_illust"
+                                style="@style/setting_right_switch"/>
+
+
+                        </RelativeLayout>
+
+                        <View style="@style/half_divider" />
+
+                        <RelativeLayout
+                            android:id="@+id/show_like_button_rela"
+                            style="@style/ripple_rela">
+
+                            <TextView
+                                style="@style/setting_text_left"
+                                android:text="@string/string_335" />
+
+                            <androidx.appcompat.widget.SwitchCompat
+                                android:id="@+id/show_like_button"
                                 style="@style/setting_right_switch"/>
 
 
@@ -329,6 +329,22 @@
                                 android:id="@+id/related_no_limit"
                                 style="@style/setting_right_switch"/>
 
+
+                        </RelativeLayout>
+
+                        <View style="@style/half_divider" />
+
+                        <RelativeLayout
+                            android:id="@+id/r18_divide_save_rela"
+                            style="@style/ripple_rela">
+
+                            <TextView
+                                style="@style/setting_text_left"
+                                android:text="@string/string_338" />
+
+                            <androidx.appcompat.widget.SwitchCompat
+                                android:id="@+id/r18_divide_save"
+                                style="@style/setting_right_switch"/>
 
                         </RelativeLayout>
 
@@ -355,8 +371,6 @@
                                 android:textSize="14sp">
 
                             </TextView>
-
-
                         </RelativeLayout>
                     </LinearLayout>
 

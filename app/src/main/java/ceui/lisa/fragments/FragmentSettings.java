@@ -265,6 +265,22 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             }
         });
 
+        baseBind.r18DivideSave.setChecked(Shaft.sSettings.isR18DivideSave());
+        baseBind.r18DivideSave.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setR18DivideSave(isChecked);
+                Common.showToast("设置成功");
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.r18DivideSaveRela.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                baseBind.r18DivideSave.performClick();
+            }
+        });
+
         //是否显示原图
         baseBind.showOriginalImage.setChecked(Shaft.sSettings.isShowOriginalImage());
         baseBind.showOriginalImage.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {

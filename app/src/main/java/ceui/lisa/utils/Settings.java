@@ -14,6 +14,7 @@ public class Settings {
 
     //只包含1P图片的下载路径
     public static final String FILE_PATH_SINGLE = PathUtils.getExternalPicturesPath() + "/ShaftImages";
+    public static final String FILE_PATH_SINGLE_R18 = PathUtils.getExternalPicturesPath() + "/ShaftImages-R18";
 
     //下载的GIF 压缩包存放在这里
     public static final String FILE_GIF_PATH = PathUtils.getExternalDownloadsPath();
@@ -99,6 +100,8 @@ public class Settings {
 
     private boolean saveViewHistory = true;
 
+    private boolean r18DivideSave = false;
+
     //单P作品的文件名是否带P0
     private boolean hasP0 = false;
 
@@ -136,6 +139,14 @@ public class Settings {
         } else {
             return ALL_LANGUAGE[0];
         }
+    }
+
+    public boolean isR18DivideSave() {
+        return r18DivideSave;
+    }
+
+    public void setR18DivideSave(boolean r18DivideSave) {
+        this.r18DivideSave = r18DivideSave;
     }
 
     public String getRootPathUri() {

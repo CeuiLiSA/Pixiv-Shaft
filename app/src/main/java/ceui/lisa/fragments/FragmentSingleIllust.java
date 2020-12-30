@@ -202,10 +202,6 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
                 IllustDownload.downloadAllIllust(illust, (BaseActivity<?>) mContext);
             }
         });
-        File file = FileCreator.createIllustFile(illust);
-        if (file.exists()) {
-            baseBind.download.setImageResource(R.drawable.ic_has_download);
-        }
         baseBind.userName.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
@@ -412,6 +408,22 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
                     }
                 }
             });
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        checkDownload();
+    }
+
+    private void checkDownload() {
+        if (illust.getPage_count() == 1) {
+            if (FileCreator.isExist(illust, 0)) {
+                baseBind.download.setImageResource(R.drawable.ic_has_download);
+            } else {
+                baseBind.download.setImageResource(R.drawable.ic_file_download_black_24dp);
+            }
         }
     }
 

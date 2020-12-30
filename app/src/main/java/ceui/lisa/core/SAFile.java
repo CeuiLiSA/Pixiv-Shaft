@@ -15,26 +15,26 @@ import ceui.lisa.utils.Common;
 
 public class SAFile {
 
-    public static DocumentFile getDocument(Context context, IllustsBean illust, int index) {
-        Uri rootUri = Uri.parse(Shaft.sSettings.getRootPathUri());
-        DocumentFile root = DocumentFile.fromTreeUri(context, rootUri);
-        if (!root.exists() || !root.isDirectory()) {
-            Common.showToast("创建文件失败，已授权的下载目录是否被移除?", true);
-            return null;
-        }
-        String id = DocumentsContract.getTreeDocumentId(rootUri);
-        String displayName = FileCreator.createIllustFile(illust, index).getName();
-        id = id + "/" + displayName;
-        Uri childrenUri = DocumentsContract.buildDocumentUriUsingTree(rootUri, id);
-        DocumentFile childFile = DocumentFile.fromSingleUri(context, childrenUri);
-
-        if (childFile != null && childFile.exists()) {
-            return childFile;
-        } else {
-            assert root != null;
-            return root.createFile(getMimeType(illust, index), displayName);
-        }
-    }
+//    public static DocumentFile getDocument(Context context, IllustsBean illust, int index) {
+//        Uri rootUri = Uri.parse(Shaft.sSettings.getRootPathUri());
+//        DocumentFile root = DocumentFile.fromTreeUri(context, rootUri);
+//        if (!root.exists() || !root.isDirectory()) {
+//            Common.showToast("创建文件失败，已授权的下载目录是否被移除?", true);
+//            return null;
+//        }
+//        String id = DocumentsContract.getTreeDocumentId(rootUri);
+//        String displayName = FileCreator.createIllustFile(illust, index).getName();
+//        id = id + "/" + displayName;
+//        Uri childrenUri = DocumentsContract.buildDocumentUriUsingTree(rootUri, id);
+//        DocumentFile childFile = DocumentFile.fromSingleUri(context, childrenUri);
+//
+//        if (childFile != null && childFile.exists()) {
+//            return childFile;
+//        } else {
+//            assert root != null;
+//            return root.createFile(getMimeType(illust, index), displayName);
+//        }
+//    }
 
     public static DocumentFile getGifDocument(Context context, IllustsBean illust) {
         Uri rootUri = Uri.parse(Shaft.sSettings.getRootPathUri());

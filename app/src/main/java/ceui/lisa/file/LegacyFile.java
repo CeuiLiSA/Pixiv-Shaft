@@ -8,6 +8,7 @@ import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 
 import static android.os.Environment.DIRECTORY_PICTURES;
+import static ceui.lisa.utils.Settings.FILE_PATH_SINGLE_R18;
 
 public class LegacyFile implements FileProxy {
 

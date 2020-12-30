@@ -12,7 +12,9 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.model.CustomFileNameCell;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.Settings;
+
+import static ceui.lisa.utils.Settings.FILE_PATH_SINGLE;
+import static ceui.lisa.utils.Settings.FILE_PATH_SINGLE_R18;
 
 
 public class FileCreator {
@@ -43,14 +45,12 @@ public class FileCreator {
         );
     }
 
-    public static File createIllustFile(IllustsBean illustsBean) {
-        return createIllustFile(illustsBean, 0);
-    }
-
     private static final String DASH = "_";
 
-    public static File createIllustFile(IllustsBean illustsBean, int index) {
-        return new File(Shaft.sSettings.getIllustPath(), customFileName(illustsBean, index));
+    public static boolean isExist(IllustsBean illust, int index) {
+        File file = new File(FILE_PATH_SINGLE, customFileName(illust, index));
+        File fileR18 = new File(FILE_PATH_SINGLE_R18, customFileName(illust, index));
+        return file.exists() || fileR18.exists();
     }
 
     public static String deleteSpecialWords(String before) {

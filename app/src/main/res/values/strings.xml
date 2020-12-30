@@ -518,5 +518,7 @@
     <string name="about_network">网络</string>
     <string name="string_335">添加收藏默认私人收藏</string>
     <string name="string_336">图片纵向展示列数</string>
+    <string name="string_337">已下载</string>
+    <string name="string_338">R18作品下载至另一目录</string>
 
 </resources>

@@ -9,6 +9,7 @@ import java.io.Serializable;
 import java.util.UUID;
 
 import ceui.lisa.download.FileCreator;
+import ceui.lisa.file.FileName;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 
@@ -26,7 +27,7 @@ public class DownloadItem implements Serializable {
         this.illust = illustsBean;
         this.uuid = UUID.randomUUID().toString();
         if (this.illust.isGif()) {
-            this.name = FileCreator.createGifZipFile(illustsBean).getName();
+            this.name = new FileName().zipName(illustsBean);
         } else {
             this.name = FileCreator.customFileName(illustsBean, index);
         }
