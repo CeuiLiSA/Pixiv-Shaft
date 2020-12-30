@@ -22,6 +22,7 @@
                 android:layout_width="match_parent"
                 app:layout_scrollFlags="scroll|enterAlways"
                 android:layout_height="wrap_content"
+                app:contentInsetStartWithNavigation="0dp"
                 android:background="?attr/colorPrimary"
                 android:elevation="0dp"
                 android:fitsSystemWindows="true"

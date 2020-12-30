@@ -402,6 +402,47 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                         .show();
             }
         });
+
+
+        baseBind.lineCount.setText(Shaft.sSettings.getLineCount() + "列");
+        baseBind.lineCountRela.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int index = 0;
+                if (Shaft.sSettings.getLineCount() == 3) {
+                    index = 1;
+                } else if (Shaft.sSettings.getLineCount() == 4) {
+                    index = 2;
+                }
+                String[] LINE_COUNT = new String[]{
+                        "2列",
+                        "3列",
+                        "4列"
+                };
+                final int selectIndex = index;
+                new QMUIDialog.CheckableDialogBuilder(mActivity)
+                        .setCheckedIndex(index)
+                        .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                        .addItems(LINE_COUNT, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                if (which == selectIndex) {
+                                    Common.showLog("什么也不做");
+                                } else {
+                                    int lineCount = which + 2;
+                                    Shaft.sSettings.setLineCount(lineCount);
+                                    baseBind.lineCount.setText(String.format("%d列", lineCount));
+                                    Local.setSettings(Shaft.sSettings);
+                                    Common.showToast("重启APP生效", 2);
+                                }
+                                dialog.dismiss();
+                            }
+                        })
+                        .show();
+            }
+        });
+
+
         baseBind.colorSelectRela.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

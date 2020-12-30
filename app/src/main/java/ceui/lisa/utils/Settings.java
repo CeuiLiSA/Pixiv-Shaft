@@ -32,6 +32,16 @@ public class Settings {
 
     private int themeIndex;
 
+    private int lineCount = 2;
+
+    public int getLineCount() {
+        return lineCount;
+    }
+
+    public void setLineCount(int lineCount) {
+        this.lineCount = lineCount;
+    }
+
     public int getThemeIndex() {
         return themeIndex;
     }

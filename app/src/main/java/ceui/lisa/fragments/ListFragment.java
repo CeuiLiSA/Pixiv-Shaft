@@ -23,6 +23,7 @@ import com.scwang.smartrefresh.layout.listener.OnRefreshListener;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.core.BaseRepo;
 import ceui.lisa.interfaces.FeedBack;
@@ -215,7 +216,7 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
 
     protected void staggerRecyclerView() {
         StaggeredGridLayoutManager manager = new StaggeredGridLayoutManager(
-                2, StaggeredGridLayoutManager.VERTICAL);
+                Shaft.sSettings.getLineCount(), StaggeredGridLayoutManager.VERTICAL);
         mRecyclerView.setLayoutManager(manager);
         mRecyclerView.addItemDecoration(new SpacesItemDecoration(
                 DensityUtil.dp2px(8.0f)));

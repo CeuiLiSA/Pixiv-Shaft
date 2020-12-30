@@ -517,5 +517,6 @@
     <string name="string_334">原图画质好，如果觉得原图加载太慢了，可以关闭</string>
     <string name="about_network">网络</string>
     <string name="string_335">添加收藏默认私人收藏</string>
+    <string name="string_336">图片纵向展示列数</string>
 
 </resources>

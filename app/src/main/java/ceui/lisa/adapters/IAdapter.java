@@ -50,7 +50,7 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
     }
 
     private void initImageSize() {
-        imageSize = (mContext.getResources().getDisplayMetrics().widthPixels) / 2;
+        imageSize = (mContext.getResources().getDisplayMetrics().widthPixels) / Shaft.sSettings.getLineCount();
     }
 
     @Override
@@ -65,10 +65,12 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
         params.width = imageSize;
         params.height = target.getHeight() * imageSize / target.getWidth();
 
-        if (params.height < MIN_HEIGHT) {
-            params.height = MIN_HEIGHT;
-        } else if (params.height > MAX_HEIGHT) {
-            params.height = MAX_HEIGHT;
+        if (Shaft.sSettings.getLineCount() == 2) {
+            if (params.height < MIN_HEIGHT) {
+                params.height = MIN_HEIGHT;
+            } else if (params.height > MAX_HEIGHT) {
+                params.height = MAX_HEIGHT;
+            }
         }
         bindView.baseBind.illustImage.setLayoutParams(params);
 

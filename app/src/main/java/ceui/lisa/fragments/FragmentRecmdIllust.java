@@ -82,7 +82,7 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
     @Override
     public void initRecyclerView() {
         StaggeredGridLayoutManager layoutManager =
-                new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
+                new StaggeredGridLayoutManager(Shaft.sSettings.getLineCount(), StaggeredGridLayoutManager.VERTICAL);
         layoutManager.setGapStrategy(StaggeredGridLayoutManager.GAP_HANDLING_NONE);
         baseBind.recyclerView.setLayoutManager(layoutManager);
         baseBind.recyclerView.addItemDecoration(new SpacesItemWithHeadDecoration(DensityUtil.dp2px(8.0f)));
