@@ -37,6 +37,7 @@ public class Manager {
     private boolean isRunning = false;
 
     private Manager() {
+        currentIllustID = 0;
         nonius = 0L;
     }
 
@@ -180,18 +181,19 @@ public class Manager {
                 .doFinally(new Action() {
                     @Override
                     public void run() throws Throwable {
+                        //下载完成，处理相关逻辑
+                        currentIllustID = 0;
+                        currentProgress = 0;
+                        nonius = 0L;
                         loop(context);
                         Common.showLog("doFinally ");
                     }
                 })
                 .subscribe(s -> {//s为String类型，这里为文件存储路径
                     Common.showLog("downloadOne " + s);
-                    //下载完成，处理相关逻辑
-                    currentProgress = 0;
-                    nonius = 0L;
 
                     if(bean.getIllust().isGif()){
-                        PixivOperate.unzipAndePlay(context, bean.getIllust(), null);
+                        PixivOperate.unzipAndePlay(context, bean.getIllust());
                     }
 
                     {
@@ -251,10 +253,6 @@ public class Manager {
 
     public int getCurrentIllustID() {
         return currentIllustID;
-    }
-
-    public void setCurrentIllustID(int currentIllustID) {
-        this.currentIllustID = currentIllustID;
     }
 
     public String getUuid() {

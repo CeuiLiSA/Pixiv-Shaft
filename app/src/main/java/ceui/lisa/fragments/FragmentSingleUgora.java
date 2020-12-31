@@ -176,6 +176,25 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
             intentFilter.addAction(Params.PLAY_GIF);
             LocalBroadcastManager.getInstance(mContext).registerReceiver(mPlayReceiver, intentFilter);
         }
+
+        if (illust.getId() == Manager.get().getCurrentIllustID()) {
+            PixivOperate.setBack(new Back() {
+                @Override
+                public void invoke(float progress) {
+                    baseBind.progressLayout.donutProgress.setProgress((float) (Math.round(progress * 100)));
+                }
+            });
+        }
+
+//        File gifFile = new LegacyFile().gifResultFile(mContext, illust);
+//        if (gifFile.exists() && gifFile.length() > 1024) {
+//            Common.showLog(illust.getTitle() + " GIF文件已存在，直接播放");
+//            baseBind.playGif.setVisibility(View.INVISIBLE);
+//            baseBind.progressLayout.donutProgress.setVisibility(View.INVISIBLE);
+//            Glide.with(mContext)
+//                    .load(gifFile)
+//                    .into(baseBind.illustImage);
+//        }
     }
 
     @Override
@@ -191,6 +210,12 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
 
     public void nowPlayGif() {
         File gifFile = new LegacyFile().gifResultFile(mContext, illust);
+        PixivOperate.setBack(new Back() {
+            @Override
+            public void invoke(float progress) {
+                baseBind.progressLayout.donutProgress.setProgress((float) (Math.round(progress * 100)));
+            }
+        });
         Common.showLog("nowPlayGif " + gifFile.getPath());
         if (gifFile.exists() && gifFile.length() > 1024) {
             Common.showLog("GIF文件已存在，直接播放");
@@ -205,12 +230,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
             if (hasDownload && zipFile.exists() && zipFile.length() > 1024) {
                 baseBind.playGif.setVisibility(View.INVISIBLE);
                 baseBind.progressLayout.donutProgress.setVisibility(View.VISIBLE);
-                PixivOperate.unzipAndePlay(mContext, illust, new Back() {
-                    @Override
-                    public void invoke(float progress) {
-                        baseBind.progressLayout.donutProgress.setProgress((float) (Math.round(progress * 100)));
-                    }
-                });
+                PixivOperate.unzipAndePlay(mContext, illust);
             } else {
                 Common.showToast("获取GIF信息");
                 baseBind.progress.setVisibility(View.VISIBLE);

@@ -416,7 +416,7 @@ public class PixivOperate {
         }
     }
 
-    public static void encodeGif(Context context, File parentFile, IllustsBean illustsBean, Back callback) {
+    public static void encodeGif(Context context, File parentFile, IllustsBean illustsBean) {
         try {
             Common.showLog("encodeGif 开始");
             Observable.create(new ObservableOnSubscribe<String>() {
@@ -446,7 +446,7 @@ public class PixivOperate {
 
                     BitmapFactory.Options options = new BitmapFactory.Options();
                     options.inJustDecodeBounds = true;//这个参数设置为true才有效，
-                    Bitmap bmp = BitmapFactory.decodeFile(allFiles.get(0).getPath(), options);//这里的bitmap是个空
+                    BitmapFactory.decodeFile(allFiles.get(0).getPath(), options);//这里的bitmap是个空
                     int outHeight=options.outHeight;
                     int outWidth= options.outWidth;
                     Common.showLog("通过Options获取到的图片大小" + "width:" + outWidth + " height: " + outHeight);
@@ -459,17 +459,19 @@ public class PixivOperate {
                     GifResponse gifResponse = Cache.get().getModel(Params.ILLUST_ID + "_" + illustsBean.getId(), GifResponse.class);
                     int delayMs = 60;
                     if (gifResponse != null) {
-
-
                         if (allFiles.size() == gifResponse.getUgoira_metadata().getFrames().size()) {
                             Common.showLog("使用返回的delay 00");
                             for (int i = 0; i < allFiles.size(); i++) {
                                 Common.showLog("编码中 00 " + allFiles.size() + " " + (i + 1));
                                 gifEncoder.encodeFrame(BitmapFactory.decodeFile(allFiles.get(i).getPath()),
                                         gifResponse.getUgoira_metadata().getFrames().get(i).getDelay());
-                                if (callback != null) {
-                                    float pro = i / (float) (allFiles.size() - 1);
-                                    callback.invoke(pro);
+                                try {
+                                    if (sBack != null) {
+                                        float proc = i / (float) (allFiles.size() - 1);
+                                        sBack.invoke(proc);
+                                    }
+                                } catch (Exception e) {
+                                    e.printStackTrace();
                                 }
                             }
                         } else {
@@ -512,15 +514,21 @@ public class PixivOperate {
         }
     }
 
-    public static void unzipAndePlay(Context context, IllustsBean illustsBean, Back callback) {
+    public static void unzipAndePlay(Context context, IllustsBean illustsBean) {
         try {
             LegacyFile legacyFile = new LegacyFile();
             File fromZip = legacyFile.gifZipFile(context, illustsBean);
             File toFolder = legacyFile.gifUnzipFolder(context, illustsBean);
             justUnzipFile(fromZip, toFolder);
-            encodeGif(context, toFolder, illustsBean, callback);
+            encodeGif(context, toFolder, illustsBean);
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private static Back sBack = null;
+
+    public static void setBack(Back back) {
+        sBack = back;
     }
 }

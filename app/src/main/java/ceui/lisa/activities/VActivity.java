@@ -100,6 +100,12 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
     }
 
     @Override
+    protected void onDestroy() {
+        PixivOperate.setBack(null);
+        super.onDestroy();
+    }
+
+    @Override
     public boolean hideStatusBar() {
         return true;
     }
