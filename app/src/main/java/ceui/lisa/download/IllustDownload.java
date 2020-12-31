@@ -4,19 +4,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.text.TextUtils;
-import android.util.Log;
 
-import androidx.documentfile.provider.DocumentFile;
+import androidx.core.content.FileProvider;
 
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,8 +22,8 @@ import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.core.DownloadItem;
 import ceui.lisa.core.Manager;
-import ceui.lisa.core.SAFile;
 import ceui.lisa.core.UrlFactory;
+import ceui.lisa.file.LegacyFile;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.interfaces.FeedBack;
 import ceui.lisa.models.GifResponse;
@@ -148,76 +144,21 @@ public class IllustDownload {
         check(activity, new FeedBack() {
             @Override
             public void doSomething() {
-                DocumentFile documentFile = SAFile.findNovelFile(activity, displayName);
-                if (documentFile != null && documentFile.length() > 100) {
-                    Common.showLog("writeToTxt 已下载，不用新建");
-                } else {
-                    documentFile = SAFile.createNovelFile(activity, displayName);
-                    Common.showLog("writeToTxt 需要新建");
-                    try {
-                        OutputStream outStream = activity.getContentResolver().openOutputStream(documentFile.getUri());
-                        outStream.write(content.getBytes());
-                        outStream.close();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                File textFile = new LegacyFile().textFile(activity, displayName);
+                try {
+                    OutputStream outStream = new FileOutputStream(textFile);
+                    outStream.write(content.getBytes());
+                    outStream.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
+                Uri photoURI = FileProvider.getUriForFile(activity,
+                        activity.getApplicationContext().getPackageName() + ".provider", textFile);
                 if (targetCallback != null) {
-                    targetCallback.doSomething(documentFile.getUri());
+                    targetCallback.doSomething(photoURI);
                 }
             }
         });
-    }
-
-    public static void saveGif(File fromGif, IllustsBean illust, BaseActivity<?> activity) {
-        check(activity, () -> {
-            DocumentFile file = SAFile.getGifDocument(activity, illust);
-            if (file != null) {
-                if (copyFile(fromGif, file.getUri(), activity)) {
-                    Common.showToast("GIF保存成功");
-                }
-            }
-        });
-    }
-
-    public static boolean copyFile(File src, Uri des, Context context) {
-        if (!src.exists()) {
-            Log.e("cppyFile", "file not exist:" + src.getAbsolutePath());
-            return false;
-        }
-        BufferedInputStream bis = null;
-        BufferedOutputStream bos = null;
-        try {
-            bis = new BufferedInputStream(new FileInputStream(src));
-            bos = new BufferedOutputStream(context.getContentResolver().openOutputStream(des));
-            byte[] buffer = new byte[4 * 1024];
-            int count;
-            while ((count = bis.read(buffer, 0, buffer.length)) != -1) {
-                if (count > 0) {
-                    bos.write(buffer, 0, count);
-                }
-            }
-            bos.flush();
-            return true;
-        } catch (Exception e) {
-            Log.e("copyFile", "exception:", e);
-        } finally {
-            if (bis != null) {
-                try {
-                    bis.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (bos != null) {
-                try {
-                    bos.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return false;
     }
 
     public static String getUrl(IllustsBean illust, int index) {

@@ -17,7 +17,7 @@ public class LegacyFile implements FileProxy {
 
     @Override
     public File imageCacheFolder(Context context) {
-        File cacheDir = new File(context.getExternalCacheDir().getPath() + IMAGE_CACHE);
+        File cacheDir = new File(context.getCacheDir().getPath() + IMAGE_CACHE);
         if (!cacheDir.exists()) {
             cacheDir.mkdir();
         }
@@ -76,5 +76,19 @@ public class LegacyFile implements FileProxy {
         }
         Common.showLog("LegacyFile gifResultFile " + gifResult.getPath());
         return gifResult;
+    }
+
+    @Override
+    public File textFile(Context context, String name) {
+        File gifCacheFolder = gifCacheFolder(context);
+        File textFile = new File(gifCacheFolder, name);
+        if (!textFile.exists()) {
+            try {
+                textFile.createNewFile();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return textFile;
     }
 }

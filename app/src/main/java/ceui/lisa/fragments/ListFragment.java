@@ -84,15 +84,7 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
 
         mRecyclerView = rootView.findViewById(R.id.recyclerView);
         initRecyclerView();
-
-
-        if (mRecyclerView.getLayoutManager() instanceof StaggeredGridLayoutManager) {
-            //do nothing
-        } else {
-            //设置item动画
-            mRecyclerView.setItemAnimator(animation());
-        }
-
+        mRecyclerView.setItemAnimator(animation());
 
         mRefreshLayout = rootView.findViewById(R.id.refreshLayout);
         mRefreshLayout.setPrimaryColorsId(R.color.white);
@@ -111,6 +103,10 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
             @Override
             public void onRefresh(@NonNull RefreshLayout refreshLayout) {
                 try {
+                    if (mRecyclerView.getLayoutManager() instanceof StaggeredGridLayoutManager
+                            && mRecyclerView.getItemAnimator() == null) {
+                        mRecyclerView.setItemAnimator(animation());
+                    }
                     clear();
                     fresh();
                 } catch (Exception e) {
@@ -122,6 +118,10 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
             @Override
             public void onLoadMore(@NonNull RefreshLayout refreshLayout) {
                 try {
+                    if (mRecyclerView.getLayoutManager() instanceof StaggeredGridLayoutManager
+                            && mRecyclerView.getItemAnimator() != null) {
+                        mRecyclerView.setItemAnimator(null);
+                    }
                     if (mModel.getBaseRepo().hasNext()) {
                         loadMore();
                     } else {

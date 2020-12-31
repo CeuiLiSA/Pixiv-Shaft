@@ -18,4 +18,6 @@ public interface FileProxy {
     File gifUnzipFolder(Context context, IllustsBean illust);
 
     File gifResultFile(Context context, IllustsBean illust);
+
+    File textFile(Context context, String name);
 }

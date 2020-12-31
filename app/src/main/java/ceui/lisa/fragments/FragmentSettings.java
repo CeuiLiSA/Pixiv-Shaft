@@ -2,8 +2,6 @@ package ceui.lisa.fragments;
 
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.Uri;
-import android.text.TextUtils;
 import android.view.View;
 import android.widget.CompoundButton;
 
@@ -18,14 +16,11 @@ import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
 
-import java.net.URLDecoder;
 import java.util.Locale;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
-import ceui.lisa.core.SAFile;
 import ceui.lisa.databinding.FragmentSettingsBinding;
 import ceui.lisa.file.LegacyFile;
 import ceui.lisa.helper.ThemeHelper;
@@ -33,7 +28,6 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 
-import static android.provider.DocumentsContract.EXTRA_INITIAL_URI;
 import static ceui.lisa.fragments.FragmentFilter.ALL_SIZE_VALUE;
 import static ceui.lisa.utils.Settings.ALL_LANGUAGE;
 

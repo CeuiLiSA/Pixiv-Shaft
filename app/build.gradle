@@ -118,7 +118,7 @@ dependencies {
     implementation 'android.arch.persistence.room:runtime:1.1.1'
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
     kapt 'android.arch.persistence.room:compiler:1.1.1'
-    implementation 'jp.wasabeef:recyclerview-animators:3.0.0'
+    implementation 'jp.wasabeef:recyclerview-animators:4.0.1'
     implementation 'gdut.bsx:share2:0.9.3'
     implementation "com.github.skydoves:transformationlayout:1.0.4"
     implementation 'com.blankj:utilcodex:1.29.0'

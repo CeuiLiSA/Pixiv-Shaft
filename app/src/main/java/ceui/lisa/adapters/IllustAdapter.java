@@ -99,8 +99,6 @@ public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDet
                         loadIllust(holder, position, false);
                     }
                 }
-
-
             } else {
                 holder.baseBind.illust.setScaleType(ImageView.ScaleType.CENTER_CROP);
                 loadIllust(holder, position, true);

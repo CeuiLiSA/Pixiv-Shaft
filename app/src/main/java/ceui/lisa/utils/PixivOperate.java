@@ -1,15 +1,9 @@
 package ceui.lisa.utils;
 
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.Build;
-import android.os.Environment;
-import android.provider.MediaStore;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
@@ -20,7 +14,6 @@ import com.blankj.utilcode.util.ZipUtils;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 import com.waynejo.androidndkgif.GifEncoder;
 
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,21 +28,17 @@ import ceui.lisa.activities.VActivity;
 import ceui.lisa.cache.Cache;
 import ceui.lisa.core.Container;
 import ceui.lisa.core.PageData;
-import ceui.lisa.core.SAFile;
 import ceui.lisa.core.TryCatchObserverImpl;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.database.SearchEntity;
 import ceui.lisa.database.TagMuteEntity;
-import ceui.lisa.download.FileCreator;
-import ceui.lisa.download.ImageSaver;
 import ceui.lisa.file.LegacyFile;
 import ceui.lisa.fragments.FragmentLogin;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.Back;
-import ceui.lisa.interfaces.FeedBack;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.IllustSearchResponse;
