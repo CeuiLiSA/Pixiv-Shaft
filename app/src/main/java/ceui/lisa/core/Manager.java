@@ -23,6 +23,7 @@ import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.functions.Action;
 import io.reactivex.rxjava3.functions.Consumer;
 import rxhttp.RxHttp;
 import rxhttp.wrapper.entity.Progress;
@@ -166,6 +167,7 @@ public class Manager {
                     public void accept(Progress progress) {
                         nonius = progress.getCurrentSize();
                         currentProgress = progress.getProgress();
+                        Common.showLog("currentProgress " + currentProgress);
                         try {
                             if (mCallback != null) {
                                 mCallback.doSomething(progress);
@@ -175,6 +177,13 @@ public class Manager {
                         }
                     }
                 }) //指定主线程回调
+                .doFinally(new Action() {
+                    @Override
+                    public void run() throws Throwable {
+                        loop(context);
+                        Common.showLog("doFinally ");
+                    }
+                })
                 .subscribe(s -> {//s为String类型，这里为文件存储路径
                     Common.showLog("downloadOne " + s);
                     //下载完成，处理相关逻辑
@@ -209,10 +218,7 @@ public class Manager {
                         intent.putExtra(Params.CONTENT, downloadEntity);
                         LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
                     }
-
                     safeDelete(bean);
-                    loop(context);
-
                 }, throwable -> {
                     //下载失败，处理相关逻辑
                     throwable.printStackTrace();
@@ -221,7 +227,6 @@ public class Manager {
                     }
                     Common.showLog("下载失败，原因：" + throwable.toString());
                     safeDelete(bean, false);
-
                     {
                         //通知 DOWNLOAD_ING 有一项下载失败
                         Intent intent = new Intent(Params.DOWNLOAD_ING);
@@ -232,9 +237,6 @@ public class Manager {
                         intent.putExtra(Params.CONTENT, holder);
                         LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
                     }
-
-
-                    loop(context);
                 });
     }
 

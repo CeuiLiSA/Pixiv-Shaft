@@ -50,6 +50,16 @@ public class IllustDownload {
         });
     }
 
+    public static void downloadIllust(IllustsBean illust, Context context) {
+        if (illust.getPage_count() == 1) {
+            DownloadItem item = new DownloadItem(illust, 0);
+            item.setUrl(getUrl(illust, 0));
+            item.setShowUrl(getShowUrl(illust, 0));
+            Common.showToast(1 + "个任务已经加入下载队列");
+            Manager.get().addTask(item, context);
+        }
+    }
+
     public static void downloadIllust(IllustsBean illust, int index, BaseActivity<?> activity) {
         check(activity, () -> {
             if (illust.getPage_count() == 1) {
@@ -81,6 +91,22 @@ public class IllustDownload {
                 Manager.get().addTasks(tempList, activity);
             }
         });
+    }
+
+    public static void downloadAllIllust(IllustsBean illust, Context context) {
+        if (illust.getPage_count() == 1) {
+            downloadIllust(illust, context);
+        } else {
+            List<DownloadItem> tempList = new ArrayList<>();
+            for (int i = 0; i < illust.getPage_count(); i++) {
+                DownloadItem item = new DownloadItem(illust, i);
+                item.setUrl(getUrl(illust, i));
+                item.setShowUrl(getShowUrl(illust, i));
+                tempList.add(item);
+            }
+            Common.showToast(tempList.size() + "个任务已经加入下载队列");
+            Manager.get().addTasks(tempList, context);
+        }
     }
 
 

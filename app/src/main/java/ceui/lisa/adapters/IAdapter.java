@@ -30,6 +30,7 @@ import ceui.lisa.core.PageData;
 import ceui.lisa.core.TimeRecord;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.dialogs.MuteDialog;
+import ceui.lisa.download.IllustDownload;
 import ceui.lisa.interfaces.MultiDownload;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.IllustsBean;
@@ -202,6 +203,13 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
             @Override
             public void onClick(View v) {
                 startDownload();
+                mNormalPopup.dismiss();
+            }
+        });
+        popView.findViewById(R.id.download_this_one).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                IllustDownload.downloadAllIllust(illust, mContext);
                 mNormalPopup.dismiss();
             }
         });

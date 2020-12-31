@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
@@ -91,11 +92,11 @@
 
         <ImageView
             android:layout_width="wrap_content"
-            android:src="@drawable/ic_file_download_black_24dp"
-            android:tint="#999999"
+            android:src="@drawable/ic_baseline_done_all_24"
             android:id="@+id/s2"
             android:layout_centerVertical="true"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            app:tint="#999999">
 
         </ImageView>
 
@@ -106,6 +107,43 @@
             android:text="@string/string_113"
             android:textSize="15sp"
             android:layout_toEndOf="@+id/s2"
+            android:layout_marginStart="@dimen/sixteen_dp"
+            android:layout_marginTop="@dimen/six_dp"
+            android:layout_centerVertical="true"
+            android:layout_marginBottom="@dimen/six_dp"
+            android:layout_height="wrap_content">
+
+        </TextView>
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:background="?android:attr/selectableItemBackground"
+        android:clickable="true"
+        android:paddingStart="@dimen/tweenty_four_dp"
+        android:paddingTop="@dimen/six_dp"
+        android:paddingBottom="@dimen/twelve_dp"
+        android:id="@+id/download_this_one"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:src="@drawable/ic_file_download_black_24dp"
+            android:id="@+id/s4"
+            android:layout_centerVertical="true"
+            android:layout_height="wrap_content"
+            app:tint="#999999">
+
+        </ImageView>
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:textColor="@color/black"
+            android:text="@string/string_339"
+            android:textSize="15sp"
+            android:layout_toEndOf="@+id/s4"
             android:layout_marginStart="@dimen/sixteen_dp"
             android:layout_marginTop="@dimen/six_dp"
             android:layout_centerVertical="true"
