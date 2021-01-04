@@ -44,13 +44,25 @@ public class FragmentHistory extends LocalListFragment<FragmentBaseListBinding,
             public void onItemClick(View v, int position, int viewType) {
                 Common.showLog(className + position + " " + allItems.size());
                 if (viewType == 0) {
-                    final PageData pageData = new PageData(((HistoryModel)mModel).getAll());
-                    Container.get().addPageToMap(pageData);
+                    List<IllustsBean> allImages = ((HistoryModel) mModel).getAll();
+                    if (!Common.isEmpty(allImages)) {
+                        final PageData pageData = new PageData(allImages);
+                        Container.get().addPageToMap(pageData);
 
-                    Intent intent = new Intent(mContext, VActivity.class);
-                    intent.putExtra(Params.POSITION, position);
-                    intent.putExtra(Params.PAGE_UUID, pageData.getUUID());
-                    mContext.startActivity(intent);
+                        IllustHistoryEntity historyEntity = allItems.get(position);
+                        int index = 0;
+                        for (int i = 0; i < allImages.size(); i++) {
+                            if (allImages.get(i).getId() == historyEntity.getIllustID()) {
+                                index = i;
+                                break;
+                            }
+                        }
+
+                        Intent intent = new Intent(mContext, VActivity.class);
+                        intent.putExtra(Params.POSITION, index);
+                        intent.putExtra(Params.PAGE_UUID, pageData.getUUID());
+                        mContext.startActivity(intent);
+                    }
                 } else if (viewType == 1) {
                     Intent intent = new Intent(mContext, UserActivity.class);
                     intent.putExtra(Params.USER_ID, (int) v.getTag());
