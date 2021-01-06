@@ -7,8 +7,8 @@ import ceui.lisa.utils.Common;
 
 public class UrlFactory {
 
-    private static final String HOST_OLD = "i.pximg.net";
-    private static final String HOST_NEW = "i.pixiv.cat";
+    public static final String HOST_OLD = "i.pximg.net";
+    public static final String HOST_NEW = "i.pixiv.cat";
 
     public static String invoke(String before) {
         if (Shaft.sSettings.isUsePixivCat() && !TextUtils.isEmpty(before) && before.contains(HOST_OLD)) {

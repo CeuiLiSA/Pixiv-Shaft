@@ -20,8 +20,12 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
+import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.target.Target;
 import com.bumptech.glide.request.transition.Transition;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
@@ -222,6 +226,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
             baseBind.playGif.setVisibility(View.INVISIBLE);
             baseBind.progressLayout.donutProgress.setVisibility(View.INVISIBLE);
             Glide.with(mContext)
+                    .asGif()
                     .load(gifFile)
                     .into(baseBind.illustImage);
         } else {

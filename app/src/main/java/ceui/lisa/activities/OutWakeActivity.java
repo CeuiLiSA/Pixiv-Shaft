@@ -7,8 +7,10 @@ import android.text.TextUtils;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.core.UrlFactory;
 import ceui.lisa.databinding.ActivityOutWakeBinding;
 import ceui.lisa.interfaces.Callback;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 
@@ -71,9 +73,30 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
 
                     //http网页跳转到这里
                     if (scheme.contains("http")) {
+                        try {
+                            String uriString = uri.toString();
+                            if (uriString.contains(UrlFactory.HOST_OLD)) {
+                                int index = uriString.lastIndexOf("/");
+                                String end = uriString.substring(index + 1);
+                                String idString = end.split("_")[0];
+
+                                Common.showLog("end " + end + " idString " + idString);
+                                PixivOperate.getIllustByID(Shaft.sUserModel, Integer.parseInt(idString), mContext, new Callback<Void>() {
+                                    @Override
+                                    public void doSomething(Void t) {
+                                        finish();
+                                    }
+                                });
+                                return;
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+
                         String illustID = uri.getQueryParameter("illust_id");
                         if (!TextUtils.isEmpty(illustID)) {
-                            PixivOperate.getIllustByID(Shaft.sUserModel, Integer.valueOf(illustID), mContext, new Callback<Void>() {
+                            PixivOperate.getIllustByID(Shaft.sUserModel, Integer.parseInt(illustID), mContext, new Callback<Void>() {
                                 @Override
                                 public void doSomething(Void t) {
                                     finish();

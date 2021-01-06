@@ -56,6 +56,7 @@ import ceui.lisa.notification.BaseReceiver;
 import ceui.lisa.notification.StarReceiver;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
@@ -265,7 +266,14 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
         });
         if (!TextUtils.isEmpty(illust.getCaption())) {
             baseBind.description.setVisibility(View.VISIBLE);
-            baseBind.description.setHtml(illust.getCaption());
+            if (Dev.isDev) {
+                Common.showLog("illust.getCaption() " + illust.getCaption());
+                String temp = illust.getCaption().replace("http://dengekibunko.jp/newreleases/978-4-04-893829-7/",
+                        "https://i.pximg.net/img-original/img/2021/01/06/00/04/52/86849274_p0.png");
+                baseBind.description.setHtml(temp);
+            } else {
+                baseBind.description.setHtml(illust.getCaption());
+            }
         } else {
             baseBind.description.setVisibility(View.GONE);
         }

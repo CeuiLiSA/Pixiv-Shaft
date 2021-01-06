@@ -625,6 +625,7 @@
 
                             <TextView
                                 android:id="@+id/image_cache_size"
+                                android:textColor="?attr/colorPrimary"
                                 style="@style/setting_right_arrow" />
 
                         </RelativeLayout>
@@ -641,6 +642,7 @@
 
                             <TextView
                                 android:id="@+id/gif_cache_size"
+                                android:textColor="?attr/colorPrimary"
                                 style="@style/setting_right_arrow" />
 
                         </RelativeLayout>

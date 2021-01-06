@@ -116,6 +116,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
             @Override
             public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
                 if (!TextUtils.isEmpty(baseBind.inputBox.getText().toString())) {
+                    Common.hideKeyboard(mActivity);
                     dispatchClick(baseBind.inputBox.getText().toString(), searchType);
                     return true;
                 } else {

@@ -193,6 +193,7 @@ public class Manager {
                     Common.showLog("downloadOne " + s);
 
                     if(bean.getIllust().isGif()){
+                        Shaft.getMMKV().encode(Params.ILLUST_ID + "_" + bean.getIllust().getId(), true);
                         PixivOperate.unzipAndePlay(context, bean.getIllust());
                     }
 

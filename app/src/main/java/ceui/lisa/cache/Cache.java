@@ -34,7 +34,7 @@ public class Cache implements IOperate, Proxy<IOperate>{
     }
 
     private static class Holder {
-        private static Cache INSTANCE = new Cache();
+        private static final Cache INSTANCE = new Cache();
     }
 
     public static Cache get() {
