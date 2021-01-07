@@ -53,4 +53,12 @@ public class GlideUtil {
             return new GlideUrlChild(invoke(illustsBean.getMeta_pages().get(i).getImage_urls().getLarge()));
         }
     }
+
+    public static GlideUrl getOriginalImage(IllustsBean illustsBean, int i) {
+        if (illustsBean.getPage_count() == 1) {
+            return new GlideUrlChild(illustsBean.getMeta_single_page().getOriginal_image_url());
+        } else {
+            return new GlideUrlChild(illustsBean.getMeta_pages().get(i).getImage_urls().getOriginal());
+        }
+    }
 }

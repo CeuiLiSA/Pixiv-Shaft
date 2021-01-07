@@ -32,6 +32,7 @@ import java.util.concurrent.ExecutionException;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
+import ceui.lisa.core.UrlFactory;
 import ceui.lisa.database.IllustTask;
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.download.GifQueue;
@@ -61,25 +62,18 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     private OnItemClickListener mOnItemClickListener;
     private IllustsBean allIllust;
     private int imageSize;
+    private boolean isForceOriginal = false;
 
-    public Map<Integer, Boolean> getHasLoad() {
-        if (hasLoad == null) {
-            hasLoad = new HashMap<>();
-        }
-        return hasLoad;
-    }
-
-    private Map<Integer, Boolean> hasLoad = new HashMap<>();
-
-    public IllustDetailAdapter(IllustsBean list, FragmentActivity context) {
+    public IllustDetailAdapter(IllustsBean list, Context context, boolean isForceOriginal) {
         mContext = context;
         allIllust = list;
+        this.isForceOriginal = isForceOriginal;
         imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
                 2 * mContext.getResources().getDimensionPixelSize(R.dimen.twelve_dp));
-        hasLoad.clear();
-        for (int i = 0; i < list.getPage_count(); i++) {
-            hasLoad.put(i, false);
-        }
+    }
+
+    public IllustDetailAdapter(IllustsBean list, Context context) {
+        this(list, context, false);
     }
 
     @NonNull
@@ -95,6 +89,7 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         final TagHolder currentOne = (TagHolder) holder;
 
+        Common.showLog("IllustDetailAdapter onBindViewHolder 000");
         if (position == 0) {
             ViewGroup.LayoutParams params = currentOne.illust.getLayoutParams();
             params.height = imageSize * allIllust.getHeight() / allIllust.getWidth();
@@ -102,19 +97,22 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             currentOne.illust.setLayoutParams(params);
             Glide.with(mContext)
                     .asDrawable()
-                    .load(GlideUtil.getLargeImage(allIllust, position))
+                    .load(isForceOriginal ?
+                            GlideUtil.getOriginalImage(allIllust, position) :
+                            GlideUtil.getLargeImage(allIllust, position))
                     .transition(DrawableTransitionOptions.withCrossFade())
                     .into(new SimpleTarget<Drawable>() {
                         @Override
                         public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
                             currentOne.illust.setImageDrawable(resource);
-                            hasLoad.put(0, true);
                         }
                     });
         } else {
             Glide.with(mContext)
                     .asBitmap()
-                    .load(GlideUtil.getLargeImage(allIllust, position))
+                    .load(isForceOriginal ?
+                            GlideUtil.getOriginalImage(allIllust, position) :
+                            GlideUtil.getLargeImage(allIllust, position))
                     .transition(withCrossFade())
                     .into(new SimpleTarget<Bitmap>() {
                         @Override
@@ -124,7 +122,6 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                             params.height = imageSize * resource.getHeight() / resource.getWidth();
                             currentOne.illust.setLayoutParams(params);
                             currentOne.illust.setImageBitmap(resource);
-                            hasLoad.put(position, true);
                         }
                     });
         }

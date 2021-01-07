@@ -68,17 +68,10 @@ public class FragmentHotTag extends NetListFragment<FragmentBaseListBinding,
         return new TagAdapter(allItems, mContext).setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                if (Dev.isDev) {
-                    Intent intent = new Intent(mContext, TemplateActivity.class);
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "热度小说");
-                    intent.putExtra(Params.KEY_WORD, allItems.get(position).getTag());
-                    startActivity(intent);
-                } else {
-                    Intent intent = new Intent(mContext, SearchActivity.class);
-                    intent.putExtra(Params.KEY_WORD, allItems.get(position).getTag());
-                    intent.putExtra(Params.INDEX, Params.TYPE_ILLUST.equals(contentType) ? 0 : 2);
-                    startActivity(intent);
-                }
+                Intent intent = new Intent(mContext, SearchActivity.class);
+                intent.putExtra(Params.KEY_WORD, allItems.get(position).getTag());
+                intent.putExtra(Params.INDEX, Params.TYPE_ILLUST.equals(contentType) ? 0 : 2);
+                startActivity(intent);
             }
         });
     }

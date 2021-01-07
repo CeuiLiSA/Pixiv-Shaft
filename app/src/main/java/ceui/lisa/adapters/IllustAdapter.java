@@ -43,19 +43,20 @@ public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDet
     private Context mContext;
     private IllustsBean allIllust;
     private int imageSize;
-    private Map<Integer, Boolean> hasLoad = new HashMap<>();
     private int maxHeight;
+    private boolean isForceOriginal;
 
     public IllustAdapter(Context context, IllustsBean illustsBean, int maxHeight) {
+        this(context, illustsBean, maxHeight, false);
+    }
+
+    public IllustAdapter(Context context, IllustsBean illustsBean, int maxHeight, boolean isForceOriginal) {
         Common.showLog("IllustAdapter maxHeight " + maxHeight);
         mContext = context;
         allIllust = illustsBean;
         this.maxHeight = maxHeight;
         imageSize = mContext.getResources().getDisplayMetrics().widthPixels;
-        hasLoad.clear();
-        for (int i = 0; i < allIllust.getPage_count(); i++) {
-            hasLoad.put(i, false);
-        }
+        this.isForceOriginal = isForceOriginal;
     }
 
     @NonNull
@@ -70,7 +71,6 @@ public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDet
     public void onBindViewHolder(@NonNull ViewHolder<RecyIllustDetailBinding> holder, int position) {
         if (position == 0) {
             if (allIllust.getPage_count() == 1) {
-
                 //获取屏幕imageview的宽高比率
                 float screenRatio = (float) imageSize / maxHeight;
                 //获取作品的宽高比率
@@ -82,6 +82,7 @@ public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDet
                     ViewGroup.LayoutParams params = holder.baseBind.illust.getLayoutParams();
                     params.width = imageSize;
                     params.height = maxHeight;
+                    Common.showLog("onBindViewHolder " + maxHeight);
                     holder.baseBind.illust.setLayoutParams(params);
                     loadIllust(holder, position, false);
                 } else {
@@ -125,7 +126,7 @@ public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDet
      */
     private void loadIllust(ViewHolder<RecyIllustDetailBinding> holder, int position, boolean changeSize) {
         final String imageUrl;
-        if (Shaft.sSettings.isShowOriginalImage()) {
+        if (Shaft.sSettings.isShowOriginalImage() || isForceOriginal) {
             imageUrl = IllustDownload.getUrl(allIllust, position);
         } else {
             if (allIllust.getPage_count() == 1) {
@@ -153,16 +154,12 @@ public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDet
                     @Override
                     public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {
                         holder.baseBind.progressLayout.donutProgress.setVisibility(View.INVISIBLE);
-                        hasLoad.put(position, false);
-                        Common.showLog("IllustAdapter onLoadFailed " + position);
                         return false;
                     }
 
                     @Override
                     public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
                         holder.baseBind.progressLayout.donutProgress.setVisibility(View.INVISIBLE);
-                        Common.showLog("IllustAdapter onResourceReady " + position);
-                        hasLoad.put(position, true);
                         return false;
                     }
                 })

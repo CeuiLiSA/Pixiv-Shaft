@@ -56,7 +56,6 @@ import ceui.lisa.notification.BaseReceiver;
 import ceui.lisa.notification.StarReceiver;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
-import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
@@ -136,6 +135,9 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 } else if (menuItem.getItemId() == R.id.action_dislike) {
                     MuteDialog muteDialog = MuteDialog.newInstance(illust);
                     muteDialog.show(getChildFragmentManager(), "MuteDialog");
+                } else if (menuItem.getItemId() == R.id.action_show_original) {
+                    baseBind.recyclerView.setAdapter(new IllustAdapter(mContext, illust,
+                            recyHeight, true));
                 }
                 return false;
             }
@@ -228,8 +230,9 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 });
 
                 baseBind.recyclerView.setLayoutManager(new LinearLayoutManager(mContext));
-                baseBind.recyclerView.setAdapter(new IllustAdapter(mContext, illust,
-                        baseBind.recyclerView.getHeight() - bottomCardHeight + DensityUtil.dp2px(16.0f)));
+
+                recyHeight = baseBind.recyclerView.getHeight() - bottomCardHeight + DensityUtil.dp2px(16.0f);
+                baseBind.recyclerView.setAdapter(new IllustAdapter(mContext, illust, recyHeight));
 
                 baseBind.coreLinear.getViewTreeObserver().removeOnGlobalLayoutListener(this);
             }
@@ -266,14 +269,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
         });
         if (!TextUtils.isEmpty(illust.getCaption())) {
             baseBind.description.setVisibility(View.VISIBLE);
-            if (Dev.isDev) {
-                Common.showLog("illust.getCaption() " + illust.getCaption());
-                String temp = illust.getCaption().replace("http://dengekibunko.jp/newreleases/978-4-04-893829-7/",
-                        "https://i.pximg.net/img-original/img/2021/01/06/00/04/52/86849274_p0.png");
-                baseBind.description.setHtml(temp);
-            } else {
-                baseBind.description.setHtml(illust.getCaption());
-            }
+            baseBind.description.setHtml(illust.getCaption());
         } else {
             baseBind.description.setVisibility(View.GONE);
         }
@@ -385,6 +381,8 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
         super.onResume();
         checkDownload();
     }
+
+    private int recyHeight = 0;
 
     private void checkDownload() {
         if (illust.getPage_count() == 1) {

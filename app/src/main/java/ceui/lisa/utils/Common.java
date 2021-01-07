@@ -27,6 +27,7 @@ import android.widget.Toast;
 import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringChain;
+import com.hjq.toast.ToastUtils;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
@@ -119,45 +120,48 @@ public class Common {
     }
 
     public static <T> void showToast(T t) {
-        if (toast != null) {
-            toast.cancel();
-        }
-        toast = Toast.makeText(Shaft.getContext(), String.valueOf(t), Toast.LENGTH_SHORT);
+//        if (toast != null) {
+//            toast.cancel();
+//        }
+//        toast = Toast.makeText(Shaft.getContext(), String.valueOf(t), Toast.LENGTH_SHORT);
 //        View view = LayoutInflater.from(Shaft.getContext()).inflate(R.layout.toast_item, null);
 //        TextView textView = view.findViewById(R.id.toast_text);
 //        textView.setText(String.valueOf(t));
 //        toast.setView(view);
-        toast.show();
+//        toast.show();
+
+        ToastUtils.show(t);
     }
 
 
     //2成功， 3失败， 4info
     public static <T> void showToast(T t, int type) {
-        if (toast != null) {
-            toast.cancel();
-        }
-        if (type == 2) {
-            toast = Toast.makeText(Shaft.getContext(), String.valueOf(t), Toast.LENGTH_SHORT);
-//            View v = LayoutInflater.from(Shaft.getContext()).inflate(R.layout.toast_item_green, null);
-//            TextView textView = v.findViewById(R.id.toast_text);
-//            textView.setText(String.valueOf(t));
-//            toast.setView(v);
-            toast.show();
-        } else if (type == 3) {
-            toast = Toast.makeText(Shaft.getContext(), String.valueOf(t), Toast.LENGTH_SHORT);
-//            View v = LayoutInflater.from(Shaft.getContext()).inflate(R.layout.toast_item_green_red, null);
-//            TextView textView = v.findViewById(R.id.toast_text);
-//            textView.setText(String.valueOf(t));
-//            toast.setView(v);
-            toast.show();
-        } else if (type == 4) {
-            toast = Toast.makeText(Shaft.getContext(), String.valueOf(t), Toast.LENGTH_SHORT);
-//            View v = LayoutInflater.from(Shaft.getContext()).inflate(R.layout.toast_item_gray, null);
-//            TextView textView = v.findViewById(R.id.toast_text);
-//            textView.setText(String.valueOf(t));
-//            toast.setView(v);
-            toast.show();
-        }
+//        if (toast != null) {
+//            toast.cancel();
+//        }
+//        if (type == 2) {
+//            toast = Toast.makeText(Shaft.getContext(), String.valueOf(t), Toast.LENGTH_SHORT);
+////            View v = LayoutInflater.from(Shaft.getContext()).inflate(R.layout.toast_item_green, null);
+////            TextView textView = v.findViewById(R.id.toast_text);
+////            textView.setText(String.valueOf(t));
+////            toast.setView(v);
+//            toast.show();
+//        } else if (type == 3) {
+//            toast = Toast.makeText(Shaft.getContext(), String.valueOf(t), Toast.LENGTH_SHORT);
+////            View v = LayoutInflater.from(Shaft.getContext()).inflate(R.layout.toast_item_green_red, null);
+////            TextView textView = v.findViewById(R.id.toast_text);
+////            textView.setText(String.valueOf(t));
+////            toast.setView(v);
+//            toast.show();
+//        } else if (type == 4) {
+//            toast = Toast.makeText(Shaft.getContext(), String.valueOf(t), Toast.LENGTH_SHORT);
+////            View v = LayoutInflater.from(Shaft.getContext()).inflate(R.layout.toast_item_gray, null);
+////            TextView textView = v.findViewById(R.id.toast_text);
+////            textView.setText(String.valueOf(t));
+////            toast.setView(v);
+//            toast.show();
+//        }
+        ToastUtils.show(t);
     }
 
     public static String getAppVersionCode(Context context) {
@@ -189,15 +193,16 @@ public class Common {
     }
 
     public static <T> void showToast(T t, boolean isLong) {
-        if (toast != null) {
-            toast.cancel();
-        }
-        toast = Toast.makeText(Shaft.getContext(), String.valueOf(t), isLong ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT);
-//        View view = LayoutInflater.from(Shaft.getContext()).inflate(R.layout.toast_item, null);
-//        TextView textView = view.findViewById(R.id.toast_text);
-//        textView.setText(String.valueOf(t));
-//        toast.setView(view);
-        toast.show();
+//        if (toast != null) {
+//            toast.cancel();
+//        }
+//        toast = Toast.makeText(Shaft.getContext(), String.valueOf(t), isLong ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT);
+////        View view = LayoutInflater.from(Shaft.getContext()).inflate(R.layout.toast_item, null);
+////        TextView textView = view.findViewById(R.id.toast_text);
+////        textView.setText(String.valueOf(t));
+////        toast.setView(view);
+//        toast.show();
+        ToastUtils.show(t);
     }
 
     public static void copy(Context context, String s) {

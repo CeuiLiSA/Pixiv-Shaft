@@ -6,14 +6,21 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
+import android.view.Gravity;
 
 import com.google.gson.Gson;
+import com.hjq.toast.ToastUtils;
+import com.hjq.toast.style.ToastAliPayStyle;
+import com.hjq.toast.style.ToastBlackStyle;
+import com.hjq.toast.style.ToastQQStyle;
+import com.hjq.toast.style.ToastWhiteStyle;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 import com.scwang.smartrefresh.layout.header.ClassicsHeader;
 import com.tencent.mmkv.MMKV;
 
 import ceui.lisa.R;
+import ceui.lisa.feature.ToastStyle;
 import ceui.lisa.helper.ThemeHelper;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.notification.NetWorkStateReceiver;
@@ -96,6 +103,10 @@ public class Shaft extends Application {
         if (netWorkStateReceiver == null) {
             netWorkStateReceiver = new NetWorkStateReceiver();
         }
+
+        ToastUtils.init(this);
+        ToastUtils.setGravity(Gravity.BOTTOM, 0, 0);
+        ToastUtils.initStyle(new ToastStyle(this));
 
 
         IntentFilter filter = new IntentFilter();
