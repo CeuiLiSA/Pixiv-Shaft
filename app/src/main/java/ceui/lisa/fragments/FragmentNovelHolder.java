@@ -26,6 +26,7 @@ import java.util.Collections;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
+import ceui.lisa.activities.NovelActivity;
 import ceui.lisa.activities.SearchActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
@@ -43,6 +44,7 @@ import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.NovelDetail;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
@@ -213,6 +215,13 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
     }
 
     private void refreshDetail(NovelDetail novelDetail) {
+        if (Dev.isDev) {
+            Intent intent = new Intent(mContext, NovelActivity.class);
+            intent.putExtra(Params.NOVEL_DETAIL, novelDetail);
+            startActivity(intent);
+            finish();
+            return;
+        }
         mNovelDetail = novelDetail;
         baseBind.viewPager.setVisibility(View.VISIBLE);
         baseBind.viewPager.setOnTouchListener(new View.OnTouchListener() {

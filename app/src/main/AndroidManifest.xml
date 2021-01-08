@@ -132,6 +132,7 @@
 
         </activity>
         <activity android:name=".activities.VPActivity" />
+        <activity android:name=".activities.NovelActivity" />
 
     </application>
 

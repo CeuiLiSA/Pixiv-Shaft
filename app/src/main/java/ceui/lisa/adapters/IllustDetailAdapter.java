@@ -1,6 +1,7 @@
 package ceui.lisa.adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
@@ -32,6 +33,7 @@ import java.util.concurrent.ExecutionException;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
+import ceui.lisa.activities.ImageDetailActivity;
 import ceui.lisa.core.UrlFactory;
 import ceui.lisa.database.IllustTask;
 import ceui.lisa.download.FileCreator;
@@ -56,13 +58,7 @@ import static com.bumptech.glide.load.resource.bitmap.BitmapTransitionOptions.wi
 /**
  * 作品详情页竖向多P列表
  */
-public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-
-    private Context mContext;
-    private OnItemClickListener mOnItemClickListener;
-    private IllustsBean allIllust;
-    private int imageSize;
-    private boolean isForceOriginal = false;
+public class IllustDetailAdapter extends AbstractIllustAdapter<RecyclerView.ViewHolder> {
 
     public IllustDetailAdapter(IllustsBean list, Context context, boolean isForceOriginal) {
         mContext = context;
@@ -87,8 +83,8 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+        super.onBindViewHolder(holder, position);
         final TagHolder currentOne = (TagHolder) holder;
-
         Common.showLog("IllustDetailAdapter onBindViewHolder 000");
         if (position == 0) {
             ViewGroup.LayoutParams params = currentOne.illust.getLayoutParams();
@@ -125,21 +121,6 @@ public class IllustDetailAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                         }
                     });
         }
-
-        if (mOnItemClickListener != null) {
-            currentOne.itemView.setOnClickListener(v -> {
-                mOnItemClickListener.onItemClick(currentOne.illust, position, 0);
-            });
-        }
-    }
-
-    @Override
-    public int getItemCount() {
-        return allIllust.getPage_count();
-    }
-
-    public void setOnItemClickListener(OnItemClickListener itemClickListener) {
-        mOnItemClickListener = itemClickListener;
     }
 
     public static class TagHolder extends RecyclerView.ViewHolder {

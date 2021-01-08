@@ -74,5 +74,32 @@
     <color name="button_stroke">#e8e8f2</color>
 
 
+    <color name="nb.read.bg_1">#FFFFFF</color>
+    <color name="nb.read.bg_2">#F1E2CD</color>
+    <color name="nb.read.bg_3">#CBDEEF</color>
+    <color name="nb.read.bg_4">#D6EAD5</color>
+    <color name="nb.read.bg_5">#000000</color>
+
+    <color name="nb.read.font_1">#999999</color>
+    <color name="nb.read.font_2">#2F332D</color>
+    <color name="nb.read.font_3">#92918C</color>
+    <color name="nb.read.font_4">#383429</color>
+    <color name="nb.read.font_5">#627176</color>
+
+
+
+    <color name="nb.read.bg.night">#000000</color>
+    <color name="nb.read.font_night">#99ffffff</color>
+
+    <color name="nb.read.menu.bg">#191919</color>
+    <color name="nb.read.menu.text">#CBCBCB</color>
+    <color name="nb.read.bar.translucent">#88000000</color>
+
+    <!--read-->
+    <color name="bg1">#FFFFFF</color>
+    <color name="bg2">#F1E2CD</color>
+    <color name="bg3">#CBDEEF</color>
+    <color name="bg4">#D6EAD5</color>
+    <color name="bg5">#000000</color>
 </resources>
 

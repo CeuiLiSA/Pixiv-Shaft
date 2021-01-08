@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+
+    </data>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:animateLayoutChanges="true"
+        android:layout_height="match_parent">
+
+        <ceui.lisa.page.PageView
+            android:layout_width="match_parent"
+            android:layout_above="@+id/operate_ll"
+            android:paddingStart="@dimen/twelve_dp"
+            android:paddingTop="@dimen/two_dp"
+            android:paddingEnd="@dimen/twelve_dp"
+            android:paddingBottom="30dp"
+            android:id="@+id/page_view"
+            android:layout_height="match_parent">
+
+        </ceui.lisa.page.PageView>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:visibility="gone"
+            android:background="@color/black"
+            android:id="@+id/operate_ll"
+            android:layout_alignParentBottom="true"
+            android:layout_height="50dp">
+
+        </RelativeLayout>
+
+    </RelativeLayout>
+</layout>

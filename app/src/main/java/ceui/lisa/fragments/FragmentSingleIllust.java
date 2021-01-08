@@ -100,20 +100,6 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
 
 
         mDetailAdapter = new IllustDetailAdapter(illust, mActivity);
-        mDetailAdapter.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(View v, int position, int viewType) {
-                if (viewType == 0) {
-                    Intent intent = new Intent(mContext, ImageDetailActivity.class);
-                    intent.putExtra("illust", illust);
-                    intent.putExtra("dataType", "二级详情");
-                    intent.putExtra("index", position);
-                    mActivity.startActivity(intent);
-                } else if (viewType == 1) {
-
-                }
-            }
-        });
         baseBind.recyclerView.setAdapter(mDetailAdapter);
     }
 

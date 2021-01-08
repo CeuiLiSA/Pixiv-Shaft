@@ -38,13 +38,9 @@ import me.jessyan.progressmanager.ProgressListener;
 import me.jessyan.progressmanager.ProgressManager;
 import me.jessyan.progressmanager.body.ProgressInfo;
 
-public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDetailBinding>> {
+public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDetailBinding>> {
 
-    private Context mContext;
-    private IllustsBean allIllust;
-    private int imageSize;
     private int maxHeight;
-    private boolean isForceOriginal;
 
     public IllustAdapter(Context context, IllustsBean illustsBean, int maxHeight) {
         this(context, illustsBean, maxHeight, false);
@@ -69,6 +65,7 @@ public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDet
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder<RecyIllustDetailBinding> holder, int position) {
+        super.onBindViewHolder(holder, position);
         if (position == 0) {
             if (allIllust.getPage_count() == 1) {
                 //获取屏幕imageview的宽高比率
@@ -108,15 +105,6 @@ public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDet
             holder.baseBind.illust.setScaleType(ImageView.ScaleType.CENTER_CROP);
             loadIllust(holder, position, true);
         }
-
-
-        holder.itemView.setOnClickListener(v -> {
-            Intent intent = new Intent(mContext, ImageDetailActivity.class);
-            intent.putExtra("illust", allIllust);
-            intent.putExtra("dataType", "二级详情");
-            intent.putExtra("index", position);
-            mContext.startActivity(intent);
-        });
     }
 
     /**
@@ -160,14 +148,11 @@ public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDet
                     @Override
                     public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
                         holder.baseBind.progressLayout.donutProgress.setVisibility(View.INVISIBLE);
+                        Shaft.getMMKV().encode("", "");
                         return false;
                     }
                 })
                 .into(new UniformScaleTransformation(holder.baseBind.illust, changeSize));
     }
 
-    @Override
-    public int getItemCount() {
-        return allIllust.getPage_count();
-    }
 }
