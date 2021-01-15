@@ -164,7 +164,10 @@
     <string name="woman_like">女性向</string>
     <string name="self_done">原创</string>
     <string name="new_fish">新人</string>
-    <string name="r_eighteen">R</string>
+    <string name="r_eighteen">今日R</string>
+    <string name="r_eighteen_weekly_rank">本周R</string>
+    <string name="r_eighteen_male_rank">男性R</string>
+    <string name="r_eighteen_female_rank">女性R</string>
     <string name="ranking_list">排行榜</string>
     <string name="recmd_for_you">为你推荐</string>
     <string name="email_address">邮箱地址</string>
