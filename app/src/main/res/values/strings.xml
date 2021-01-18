@@ -525,5 +525,7 @@
     <string name="string_338">R18作品下载至另一目录</string>
     <string name="string_339">下载这个作品</string>
     <string name="string_0">当前作品加载原图</string>
+    <string name="string_340">请退出重新登录</string>
+    <string name="string_341">网址智能跳转</string>
 
 </resources>

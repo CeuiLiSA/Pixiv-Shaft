@@ -57,9 +57,7 @@ public class Retro {
         try {
             builder.addInterceptor(chain ->
                     chain.proceed(addHeader(chain.request().newBuilder()).build()));
-            if (!baseUrl.equals(ACCOUNT_BASE_URL)) {
-                builder.addInterceptor(new TokenInterceptor());
-            }
+            builder.addInterceptor(new TokenInterceptor());
         } catch (Exception e) {
             e.printStackTrace();
         }

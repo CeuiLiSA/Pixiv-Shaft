@@ -1,12 +1,15 @@
 package ceui.lisa.http;
 
+import android.content.Intent;
 import android.text.TextUtils;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
+import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.fragments.FragmentLogin;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.utils.Common;
@@ -21,7 +24,8 @@ import retrofit2.Call;
  */
 public class TokenInterceptor implements Interceptor {
 
-    private static final String TOKEN_ERROR = "Error occurred at the OAuth process";
+    private static final String TOKEN_ERROR_1 = "Error occurred at the OAuth process";
+    private static final String TOKEN_ERROR_2 = "Invalid refresh token";
     private static final int TOKEN_LENGTH = 50;
 
     @NotNull
@@ -51,8 +55,27 @@ public class TokenInterceptor implements Interceptor {
      * @return
      */
     private boolean isTokenExpired(Response response) {
-        return response.code() == 400 &&
-                Common.getResponseBody(response).contains(TOKEN_ERROR);
+        final String body = Common.getResponseBody(response);
+        Common.showLog("isTokenExpired body " + body);
+        if (response.code() == 400) {
+            if (body.contains(TOKEN_ERROR_1)) {
+                Common.showLog("isTokenExpired 000");
+                return true;
+            } else if(body.contains(TOKEN_ERROR_2)){
+                Shaft.sUserModel.getResponse().getUser().setIs_login(false);
+                Local.saveUser(Shaft.sUserModel);
+                Common.showToast(R.string.string_340);
+                Common.restart();
+                Common.showLog("isTokenExpired 111");
+                return false;
+            } else {
+                Common.showLog("isTokenExpired 222");
+                return false;
+            }
+        } else {
+            Common.showLog("isTokenExpired 333");
+            return false;
+        }
     }
 
     /**

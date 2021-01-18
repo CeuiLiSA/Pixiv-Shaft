@@ -61,13 +61,7 @@ public class ColorAdapter extends BaseAdapter<ColorItem, RecyColorBinding> {
 
                 Shaft.sSettings.setThemeIndex(position);
                 Local.setSettings(Shaft.sSettings);
-
-                Intent intent = new Intent();
-                String realActivityClassName = MainActivity.class.getName();
-                intent.setComponent(new ComponentName(Utils.getApp(), realActivityClassName));
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                Utils.getApp().startActivity(intent);
-
+                Common.restart();
                 Common.showToast("设置成功", 2);
             }
         });

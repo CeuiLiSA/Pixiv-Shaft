@@ -3,6 +3,7 @@ package ceui.lisa.utils;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -24,6 +25,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.blankj.utilcode.util.Utils;
 import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringChain;
@@ -39,6 +41,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UserActivity;
@@ -121,6 +124,10 @@ public class Common {
 
     public static <T> void showToast(T t) {
         ToastUtils.show(t);
+    }
+
+    public static void showToast(int id) {
+        ToastUtils.show(id);
     }
 
     //2成功， 3失败， 4info
@@ -286,5 +293,13 @@ public class Common {
 
     public static boolean isAndroidQ() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q;
+    }
+
+    public static void restart() {
+        Intent intent = new Intent();
+        String realActivityClassName = MainActivity.class.getName();
+        intent.setComponent(new ComponentName(Utils.getApp(), realActivityClassName));
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        Utils.getApp().startActivity(intent);
     }
 }

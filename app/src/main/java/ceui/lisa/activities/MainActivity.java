@@ -159,17 +159,6 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 return baseFragments.length;
             }
         });
-
-//        if (Shaft.getMMKV().decodeBool(Params.IS_MIGRATE, false)) {
-//            Common.showLog("已经迁移到MMKV");
-//        } else {
-//            Shaft.getMMKV().importFromSharedPreferences(getSharedPreferences(LOCAL_DATA, Context.MODE_PRIVATE));
-//            Shaft.getMMKV().encode(Params.IS_MIGRATE, true);
-//            Common.showLog("未迁移到MMKV");
-//        }
-
-
-
         Manager.get().restore(mContext);
     }
 

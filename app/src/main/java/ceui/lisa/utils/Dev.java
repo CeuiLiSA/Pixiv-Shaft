@@ -9,8 +9,8 @@ public class Dev {
     /**
      * 测试账号：
      */
-    public static final String USER_ACCOUNT = "user_pluto";
-    public static final String USER_PWD = "Mercis09bv";
+    public static final String USER_ACCOUNT = "user_wgzt2244";
+    public static final String USER_PWD = "Lu9Zdnt3Ivb6LpWghB3rQgszHjbjw5qq";
 
 
 }

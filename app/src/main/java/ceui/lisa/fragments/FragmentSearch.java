@@ -2,6 +2,7 @@ package ceui.lisa.fragments;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.OutWakeActivity;
 import ceui.lisa.activities.SearchActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
@@ -68,7 +70,8 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                 getString(R.string.string_150),
                 getString(R.string.string_151),
                 getString(R.string.string_152),
-                getString(R.string.string_153)
+                getString(R.string.string_153),
+                getString(R.string.string_341)
         };
 
         ViewGroup.LayoutParams headParams = baseBind.head.getLayoutParams();
@@ -223,6 +226,18 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                 PixivOperate.getNovelByID(sUserModel, Integer.valueOf(keyWord), mContext, null);
             } else {
                 Common.showToast(getString(R.string.string_154));
+            }
+        } else if (searchType == 5) {
+            final String input = baseBind.inputBox.getText().toString();
+            if (!TextUtils.isEmpty(input)) {
+                try {
+                    Intent intent = new Intent(mContext, OutWakeActivity.class);
+                    intent.setData(Uri.parse(input));
+                    startActivity(intent);
+                } catch (Exception e) {
+                    Common.showToast(e.toString());
+                    e.printStackTrace();
+                }
             }
         }
     }
