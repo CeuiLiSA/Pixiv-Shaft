@@ -115,7 +115,6 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     ReverseResult result = intent.getParcelableExtra("result");
                     return FragmentWebView.newInstance(result.getTitle(), result.getUrl(), result.getResponseBody(), result.getMime(), result.getEncoding(), result.getHistory_url());
                 case "相关评论": {
-                    BarUtils.setStatusBarColor(mActivity, android.R.attr.colorPrimary);
                     int id = intent.getIntExtra(Params.ILLUST_ID, 0);
                     String title = intent.getStringExtra(Params.ILLUST_TITLE);
                     return FragmentComment.newInstance(id, title);
