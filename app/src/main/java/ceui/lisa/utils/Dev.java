@@ -6,6 +6,14 @@ public class Dev {
     public static boolean isDev = true;
     public static boolean refreshUser = false;
 
+    public static String GLOABLE_HOST;
+    public static boolean is_new_host;
+
+    static {
+        GLOABLE_HOST = Params.HOST_NAME;
+        is_new_host = false;
+    }
+
     /**
      * 测试账号：
      */

@@ -4,6 +4,7 @@ import okhttp3.Dns
 import java.net.InetAddress
 
 class CloudFlareDns(private val service: CloudFlareDNSService) : Dns {
+
     override fun lookup(hostname: String): List<InetAddress> {
         val addresses = mutableListOf<InetAddress>()
 

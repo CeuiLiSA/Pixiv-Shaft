@@ -104,6 +104,8 @@ public class Shaft extends Application {
             netWorkStateReceiver = new NetWorkStateReceiver();
         }
 
+        Common.updateDns();
+
         ToastUtils.init(this);
         ToastUtils.setGravity(Gravity.BOTTOM, 0, 0);
         ToastUtils.initStyle(new ToastStyle(this));

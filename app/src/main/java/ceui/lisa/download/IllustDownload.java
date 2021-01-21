@@ -135,7 +135,7 @@ public class IllustDownload {
 
     public static void downloadGif(GifResponse response, IllustsBean illust, BaseActivity<?> activity) {
         DownloadItem item = new DownloadItem(illust, 0);
-        item.setUrl(response.getUgoira_metadata().getZip_urls().getMedium());
+        item.setUrl(UrlFactory.invoke(response.getUgoira_metadata().getZip_urls().getMedium()));
         item.setShowUrl(UrlFactory.invoke(illust.getImage_urls().getMedium()));
         Manager.get().addTask(item, activity);
     }

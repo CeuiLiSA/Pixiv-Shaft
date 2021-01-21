@@ -12,11 +12,9 @@ interface CloudFlareDNSService {
 
     @GET("/dns-query")
     fun query(
-            @Query("name") name: String,
-            @Query("ct") ct: String? = "application/dns-json",
-            @Query("type") type: String = "A",
-            @Query("do") `do`: Boolean? = null,
-            @Query("cd") cd: Boolean? = null
+            @Query("name") name: String?,
+            @Query("ct") ct: String = "application/dns-json",
+            @Query("type") type: String = "A"
     ): Call<CloudFlareDNSResponse>
 
     companion object {

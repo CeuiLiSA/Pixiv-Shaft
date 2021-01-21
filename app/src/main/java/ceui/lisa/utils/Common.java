@@ -46,12 +46,16 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UserActivity;
 import ceui.lisa.activities.BaseActivity;
+import ceui.lisa.http.CloudFlareDNSResponse;
+import ceui.lisa.http.CloudFlareDNSService;
 import ceui.lisa.models.UserContainer;
 import okhttp3.MediaType;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import okio.Buffer;
 import okio.BufferedSource;
+import retrofit2.Call;
+import retrofit2.Callback;
 
 public class Common {
 
@@ -301,5 +305,46 @@ public class Common {
         intent.setComponent(new ComponentName(Utils.getApp(), realActivityClassName));
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         Utils.getApp().startActivity(intent);
+    }
+
+    public static void updateDns() {
+        String host;
+        if (Shaft.sSettings.isUsePixivCat()) {
+            host = "i.pximg.net";
+        } else {
+            host = "i.pximg.net";
+        }
+        CloudFlareDNSService.Companion.invoke().query(host, "application/dns-json", "A")
+                .enqueue(new Callback<CloudFlareDNSResponse>() {
+                    @Override
+                    public void onResponse(Call<CloudFlareDNSResponse> call, retrofit2.Response<CloudFlareDNSResponse> response) {
+                        try {
+                            CloudFlareDNSResponse cloudFlareDNSResponse = response.body();
+                            if (cloudFlareDNSResponse != null) {
+                                if (!Common.isEmpty(cloudFlareDNSResponse.getAnswer())) {
+                                    Dev.GLOABLE_HOST = cloudFlareDNSResponse.getAnswer().get(0).getData();
+                                    Dev.is_new_host = true;
+                                } else {
+                                    Dev.GLOABLE_HOST = Params.HOST_NAME;
+                                    Dev.is_new_host = false;
+                                }
+                            } else {
+                                Dev.GLOABLE_HOST = Params.HOST_NAME;
+                                Dev.is_new_host = false;
+                            }
+                        } catch (Exception e) {
+                            Dev.GLOABLE_HOST = Params.HOST_NAME;
+                            Dev.is_new_host = false;
+                            e.printStackTrace();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<CloudFlareDNSResponse> call, Throwable t) {
+                        Common.showLog("CloudFlareDNSService onFailure ");
+                        Dev.GLOABLE_HOST = Params.HOST_NAME;
+                        Dev.is_new_host = false;
+                    }
+                });
     }
 }
