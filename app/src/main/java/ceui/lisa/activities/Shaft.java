@@ -20,6 +20,7 @@ import com.scwang.smartrefresh.layout.header.ClassicsHeader;
 import com.tencent.mmkv.MMKV;
 
 import ceui.lisa.R;
+import ceui.lisa.feature.HostManager;
 import ceui.lisa.feature.ToastStyle;
 import ceui.lisa.helper.ThemeHelper;
 import ceui.lisa.models.UserModel;
@@ -104,7 +105,7 @@ public class Shaft extends Application {
             netWorkStateReceiver = new NetWorkStateReceiver();
         }
 
-        Common.updateDns();
+        HostManager.get().init();
 
         ToastUtils.init(this);
         ToastUtils.setGravity(Gravity.BOTTOM, 0, 0);

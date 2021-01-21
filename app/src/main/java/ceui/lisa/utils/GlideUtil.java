@@ -24,6 +24,8 @@ public class GlideUtil {
         return new GlideUrlChild(invoke(illustsBean.getImage_urls().getLarge()));
     }
 
+    public static final String DEFAULT_HEAD_IMAGE = "https://s.pximg.net/common/images/no_profile.png";
+
     public static GlideUrl getHead(UserBean userBean) {
         if (userBean == null) {
             return null;
@@ -33,11 +35,13 @@ public class GlideUtil {
             return null;
         }
 
-        if (!TextUtils.isEmpty(userBean.getProfile_image_urls().getMaxImage())) {
+        String image = userBean.getProfile_image_urls().getMaxImage();
+
+        if (TextUtils.equals(image, DEFAULT_HEAD_IMAGE)) {
+            return new GlideUrlChild(image);
+        } else {
             return new GlideUrlChild(invoke(userBean.getProfile_image_urls().getMaxImage()));
         }
-
-        return null;
     }
 
 

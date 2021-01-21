@@ -33,12 +33,14 @@ import com.hjq.toast.ToastUtils;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
+import com.tencent.mmkv.MMKV;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.MainActivity;
@@ -307,44 +309,22 @@ public class Common {
         Utils.getApp().startActivity(intent);
     }
 
-    public static void updateDns() {
-        String host;
-        if (Shaft.sSettings.isUsePixivCat()) {
-            host = "i.pximg.net";
-        } else {
-            host = "i.pximg.net";
-        }
-        CloudFlareDNSService.Companion.invoke().query(host, "application/dns-json", "A")
-                .enqueue(new Callback<CloudFlareDNSResponse>() {
-                    @Override
-                    public void onResponse(Call<CloudFlareDNSResponse> call, retrofit2.Response<CloudFlareDNSResponse> response) {
-                        try {
-                            CloudFlareDNSResponse cloudFlareDNSResponse = response.body();
-                            if (cloudFlareDNSResponse != null) {
-                                if (!Common.isEmpty(cloudFlareDNSResponse.getAnswer())) {
-                                    Dev.GLOABLE_HOST = cloudFlareDNSResponse.getAnswer().get(0).getData();
-                                    Dev.is_new_host = true;
-                                } else {
-                                    Dev.GLOABLE_HOST = Params.HOST_NAME;
-                                    Dev.is_new_host = false;
-                                }
-                            } else {
-                                Dev.GLOABLE_HOST = Params.HOST_NAME;
-                                Dev.is_new_host = false;
-                            }
-                        } catch (Exception e) {
-                            Dev.GLOABLE_HOST = Params.HOST_NAME;
-                            Dev.is_new_host = false;
-                            e.printStackTrace();
-                        }
-                    }
+    /**
+     * left 0, right 5
+     *
+     * 结果只有 0 1 2 3 4
+     *
+     *
+     * @param left
+     * @param right
+     * @return
+     */
+    public static int flatRandom(int left, int right) {
+        Random r = new Random();
+        return r.nextInt(right - left) + left;
+    }
 
-                    @Override
-                    public void onFailure(Call<CloudFlareDNSResponse> call, Throwable t) {
-                        Common.showLog("CloudFlareDNSService onFailure ");
-                        Dev.GLOABLE_HOST = Params.HOST_NAME;
-                        Dev.is_new_host = false;
-                    }
-                });
+    public static int flatRandom(int right) {
+        return flatRandom(0, right);
     }
 }

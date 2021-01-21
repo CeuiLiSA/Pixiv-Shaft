@@ -57,6 +57,7 @@ public class Params {
     public static final String USER_AGENT = "User-Agent";
     public static final String PHONE_MODEL = "PixivIOSApp/5.8.0";
     public static final String HOST = "Host";
+    public static final String CLOUD_DNS = "cloud dns";
     public static final String HOST_NAME = "i.pximg.net";
     public static final int    DOWNLOAD_FAILED = -86;
     public static final int    DOWNLOAD_SUCCESS = -87;
