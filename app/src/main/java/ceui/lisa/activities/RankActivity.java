@@ -140,7 +140,7 @@ public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> im
                         RankActivity.this,
                         Integer.parseInt(t[0]), // Initial year selection
                         Integer.parseInt(t[1]) - 1, // Initial month selection
-                        Integer.parseInt(t[2]) - 1 // Inital day selection
+                        Integer.parseInt(t[2]) // Inital day selection
                 );
             } else {
                 dpd = DatePickerDialog.newInstance(
