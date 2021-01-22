@@ -4,7 +4,7 @@
     <color name="colorAccent">#009688</color>
 
 
-    <color name="background">#f2f2f2</color>
+    <color name="background">#8E8E8E</color>
     <color name="dark_bg">#999999</color>
 
     <color name="light_bg">#1B1B1B</color>
@@ -53,14 +53,14 @@
     <color name="about_user_white">#434343</color>
     <color name="rank_title">#A9A9A9</color>
     <color name="fragment_right_divider">#141414</color>
-    <color name="recmd_user_horizontal">#333333</color>
+    <color name="recmd_user_horizontal">#141414</color>
     <color name="settings_divider">#222222</color>
     <color name="black_to_grey">#DEDEDE</color>
 <!--    <color name="primary_to_grey">#DEDEDE</color>-->
     <color name="f5_to_deep_dark">#040404</color>
 <!--    <color name="primary_to_huise">#646464</color>-->
     <color name="white_to_1414">#141414</color>
-    <color name="user_name_horizontal">#040404</color>
+    <color name="user_name_horizontal">#A9A9A9</color>
     <color name="white_to_black">#000000</color>
     <color name="fragment_center">#2A2A2A</color>
     <color name="fragment_illust_divider">#e3e3e3</color>

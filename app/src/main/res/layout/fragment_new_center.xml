@@ -73,7 +73,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="@dimen/twelve_dp"
                             android:text="@string/string_76"
-                            android:textColor="@color/black"
+                            android:textColor="@color/rank_text_color"
                             android:textSize="18sp"
                             android:textStyle="bold">
 

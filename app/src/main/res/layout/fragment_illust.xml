@@ -79,7 +79,7 @@
                         android:ellipsize="end"
                         android:maxLines="2"
                         android:text="@string/string_66"
-                        android:textColor="#121212"
+                        android:textColor="@color/rank_text_color"
                         android:textSize="20sp"
                         android:textStyle="bold">
 

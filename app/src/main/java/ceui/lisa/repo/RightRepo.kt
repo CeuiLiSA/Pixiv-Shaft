@@ -11,7 +11,6 @@ import com.scwang.smartrefresh.header.DeliveryHeader
 import com.scwang.smartrefresh.layout.api.RefreshFooter
 import com.scwang.smartrefresh.layout.api.RefreshHeader
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter
-import com.scwang.smartrefresh.layout.header.ClassicsHeader
 import io.reactivex.Observable
 import io.reactivex.functions.Function
 
@@ -30,7 +29,9 @@ class RightRepo(var restrict: String?) : RemoteRepo<ListIllust>() {
     }
 
     override fun getHeader(context: Context): RefreshHeader {
-        return DeliveryHeader(context)
+        val header = DeliveryHeader(context)
+        header.setBackgroundColor(context.resources.getColor(R.color.fragment_center))
+        return header
     }
 
     override fun mapper(): Function<ListIllust, ListIllust> {

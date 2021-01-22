@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
+    android:background="@color/fragment_center"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
@@ -28,7 +29,7 @@
 
         <TextView
             android:layout_width="wrap_content"
-            android:textColor="@color/black"
+            android:textColor="@color/rank_text_color"
             android:text="@string/string_111"
             android:textSize="15sp"
             android:id="@+id/follow"
@@ -66,7 +67,7 @@
 
         <TextView
             android:layout_width="wrap_content"
-            android:textColor="@color/black"
+            android:textColor="@color/rank_text_color"
             android:text="@string/string_112"
             android:textSize="15sp"
             android:layout_toEndOf="@+id/s1"
@@ -103,7 +104,7 @@
 
         <TextView
             android:layout_width="wrap_content"
-            android:textColor="@color/black"
+            android:textColor="@color/rank_text_color"
             android:text="@string/string_113"
             android:textSize="15sp"
             android:layout_toEndOf="@+id/s2"
@@ -140,7 +141,7 @@
 
         <TextView
             android:layout_width="wrap_content"
-            android:textColor="@color/black"
+            android:textColor="@color/rank_text_color"
             android:text="@string/string_339"
             android:textSize="15sp"
             android:layout_toEndOf="@+id/s4"
