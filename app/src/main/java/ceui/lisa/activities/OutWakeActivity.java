@@ -7,8 +7,8 @@ import android.text.TextUtils;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.core.UrlFactory;
 import ceui.lisa.databinding.ActivityOutWakeBinding;
+import ceui.lisa.feature.HostManager;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
@@ -75,7 +75,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                     if (scheme.contains("http")) {
                         try {
                             String uriString = uri.toString();
-                            if (uriString.contains(UrlFactory.HOST_OLD)) {
+                            if (uriString.contains(HostManager.HOST_OLD)) {
                                 int index = uriString.lastIndexOf("/");
                                 String end = uriString.substring(index + 1);
                                 String idString = end.split("_")[0];

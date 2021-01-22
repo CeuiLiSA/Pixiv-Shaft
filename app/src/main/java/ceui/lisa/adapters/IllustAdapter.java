@@ -1,7 +1,6 @@
 package ceui.lisa.adapters;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,7 +10,6 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.databinding.DataBindingUtil;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource;
@@ -20,20 +18,15 @@ import com.bumptech.glide.load.resource.bitmap.BitmapTransitionOptions;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import ceui.lisa.R;
-import ceui.lisa.activities.ImageDetailActivity;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.core.UrlFactory;
 import ceui.lisa.databinding.RecyIllustDetailBinding;
 import ceui.lisa.download.IllustDownload;
+import ceui.lisa.feature.HostManager;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.transformer.UniformScaleTransformation;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUrlChild;
-import ceui.lisa.utils.GlideUtil;
 import me.jessyan.progressmanager.ProgressListener;
 import me.jessyan.progressmanager.ProgressManager;
 import me.jessyan.progressmanager.body.ProgressInfo;
@@ -118,9 +111,9 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
             imageUrl = IllustDownload.getUrl(allIllust, position);
         } else {
             if (allIllust.getPage_count() == 1) {
-                imageUrl = UrlFactory.invoke(allIllust.getImage_urls().getLarge());
+                imageUrl = HostManager.get().replaceUrl(allIllust.getImage_urls().getLarge());
             } else {
-                imageUrl = UrlFactory.invoke(allIllust.getMeta_pages().get(position).getImage_urls().getLarge());
+                imageUrl = HostManager.get().replaceUrl(allIllust.getMeta_pages().get(position).getImage_urls().getLarge());
             }
         }
         ProgressManager.getInstance().addResponseListener(imageUrl, new ProgressListener() {

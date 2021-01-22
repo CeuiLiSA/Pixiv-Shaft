@@ -22,7 +22,7 @@ import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.core.DownloadItem;
 import ceui.lisa.core.Manager;
-import ceui.lisa.core.UrlFactory;
+import ceui.lisa.feature.HostManager;
 import ceui.lisa.file.LegacyFile;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.interfaces.FeedBack;
@@ -135,8 +135,8 @@ public class IllustDownload {
 
     public static void downloadGif(GifResponse response, IllustsBean illust, BaseActivity<?> activity) {
         DownloadItem item = new DownloadItem(illust, 0);
-        item.setUrl(UrlFactory.invoke(response.getUgoira_metadata().getZip_urls().getMedium()));
-        item.setShowUrl(UrlFactory.invoke(illust.getImage_urls().getMedium()));
+        item.setUrl(HostManager.get().replaceUrl(response.getUgoira_metadata().getZip_urls().getMedium()));
+        item.setShowUrl(HostManager.get().replaceUrl(illust.getImage_urls().getMedium()));
         Manager.get().addTask(item, activity);
     }
 
@@ -163,9 +163,9 @@ public class IllustDownload {
 
     public static String getUrl(IllustsBean illust, int index) {
         if (illust.getPage_count() == 1) {
-            return UrlFactory.invoke(illust.getMeta_single_page().getOriginal_image_url());
+            return HostManager.get().replaceUrl(illust.getMeta_single_page().getOriginal_image_url());
         } else {
-            return UrlFactory.invoke(illust.getMeta_pages().get(index).getImage_urls().getOriginal());
+            return HostManager.get().replaceUrl(illust.getMeta_pages().get(index).getImage_urls().getOriginal());
         }
     }
 

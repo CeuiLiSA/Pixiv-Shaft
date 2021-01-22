@@ -19,9 +19,9 @@ import java.io.File;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.core.GlideApp;
-import ceui.lisa.core.UrlFactory;
 import ceui.lisa.databinding.FragmentImageDetailBinding;
 import ceui.lisa.download.IllustDownload;
+import ceui.lisa.feature.HostManager;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUrlChild;
@@ -80,9 +80,9 @@ public class FragmentImageDetail extends BaseFragment<FragmentImageDetailBinding
                 imageUrl = IllustDownload.getUrl(mIllustsBean, index);
             } else {
                 if (mIllustsBean.getPage_count() == 1) {
-                    imageUrl = UrlFactory.invoke(mIllustsBean.getImage_urls().getLarge());
+                    imageUrl = HostManager.get().replaceUrl(mIllustsBean.getImage_urls().getLarge());
                 } else {
-                    imageUrl = UrlFactory.invoke(mIllustsBean.getMeta_pages().get(index).getImage_urls().getLarge());
+                    imageUrl = HostManager.get().replaceUrl(mIllustsBean.getMeta_pages().get(index).getImage_urls().getLarge());
                 }
             }
         }

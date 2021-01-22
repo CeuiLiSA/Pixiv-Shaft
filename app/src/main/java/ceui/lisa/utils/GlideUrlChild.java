@@ -10,15 +10,14 @@ import ceui.lisa.http.PixivHeaders;
 public class GlideUrlChild extends GlideUrl {
 
     public GlideUrlChild(String url) {
-        this(url, getHeaders(url));
-        Common.showLog("GlideUrlChild " + url);
+        this(url, formatHeader());
     }
 
     public GlideUrlChild(String url, Headers headers) {
         super(url, headers);
     }
 
-    private static Headers getHeaders(String url) {
+    private static Headers formatHeader() {
         PixivHeaders pixivHeaders = new PixivHeaders();
         HashMap<String, String> hashMap = new HashMap<>();
         hashMap.put(Params.MAP_KEY_SMALL, Params.IMAGE_REFERER);
