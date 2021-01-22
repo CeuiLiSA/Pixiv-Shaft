@@ -527,5 +527,12 @@
     <string name="string_0">当前作品加载原图</string>
     <string name="string_340">请退出重新登录</string>
     <string name="string_341">网址智能跳转</string>
+    <string name="string_342">APP底部TAB顺序</string>
+    <string name="string_343">推荐 - 发现 - 动态</string>
+    <string name="string_344">推荐 - 动态 - 发现</string>
+    <string name="string_345">发现 - 推荐 - 动态</string>
+    <string name="string_346">发现 - 动态 - 推荐</string>
+    <string name="string_347">动态 - 推荐 - 发现</string>
+    <string name="string_348">动态 - 发现 - 推荐</string>
 
 </resources>

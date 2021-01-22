@@ -201,23 +201,42 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             }
         });
 
-        baseBind.relatedNoLimit.setChecked(Shaft.sSettings.isRelatedIllustNoLimit());
-        baseBind.relatedNoLimit.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    Shaft.sSettings.setRelatedIllustNoLimit(true);
-                } else {
-                    Shaft.sSettings.setRelatedIllustNoLimit(false);
-                }
-                Common.showToast("设置成功", 2);
-                Local.setSettings(Shaft.sSettings);
-            }
-        });
-        baseBind.relatedNoLimitRela.setOnClickListener(new View.OnClickListener() {
+        setOrderName();
+        baseBind.orderSelect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                baseBind.relatedNoLimit.performClick();
+                final int index = Shaft.sSettings.getBottomBarOrder();
+                String[] ORDER_NAME = new String[]{
+                        getString(R.string.string_343),
+                        getString(R.string.string_344),
+                        getString(R.string.string_345),
+                        getString(R.string.string_346),
+                        getString(R.string.string_347),
+                        getString(R.string.string_348),
+                };
+                new QMUIDialog.CheckableDialogBuilder(mActivity)
+                        .setCheckedIndex(index)
+                        .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                        .addItems(ORDER_NAME, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                if (which == index) {
+                                    Common.showLog("什么也不做");
+                                } else {
+                                    Shaft.sSettings.setBottomBarOrder(which);
+                                    baseBind.orderSelect.setText(ORDER_NAME[which]);
+                                    Local.setSettings(Shaft.sSettings);
+                                }
+                                dialog.dismiss();
+                            }
+                        })
+                        .show();
+            }
+        });
+        baseBind.bottomBarOrderRela.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                baseBind.orderSelect.performClick();
             }
         });
 
@@ -490,5 +509,18 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
     @Override
     public SmartRefreshLayout getSmartRefreshLayout() {
         return baseBind.refreshLayout;
+    }
+
+    private void setOrderName() {
+        final int index = Shaft.sSettings.getBottomBarOrder();
+        String[] ORDER_NAME = new String[]{
+                getString(R.string.string_343),
+                getString(R.string.string_344),
+                getString(R.string.string_345),
+                getString(R.string.string_346),
+                getString(R.string.string_347),
+                getString(R.string.string_348),
+        };
+        baseBind.orderSelect.setText(ORDER_NAME[index]);
     }
 }

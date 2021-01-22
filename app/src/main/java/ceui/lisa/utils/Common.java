@@ -205,7 +205,6 @@ public class Common {
         for (int i = 0; i < childCount; i++) {
             final View view = linearLayout.getChildAt(i);
 
-            final int position = i;
             springChain.addSpring(new SimpleSpringListener() {
                 @Override
                 public void onSpringUpdate(Spring spring) {

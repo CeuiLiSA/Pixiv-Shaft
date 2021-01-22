@@ -125,6 +125,8 @@ public class Settings {
 
     private int novelHolderColor = 0;
 
+    private int bottomBarOrder = 0;
+
     private boolean reverseDialogNeverShowAgain = false;
 
     private String appLanguage = "";
@@ -389,6 +391,14 @@ public class Settings {
 
     public void setNovelHolderColor(int novelHolderColor) {
         this.novelHolderColor = novelHolderColor;
+    }
+
+    public int getBottomBarOrder() {
+        return bottomBarOrder;
+    }
+
+    public void setBottomBarOrder(int bottomBarOrder) {
+        this.bottomBarOrder = bottomBarOrder;
     }
 
     public boolean isUseNewUserPage() {

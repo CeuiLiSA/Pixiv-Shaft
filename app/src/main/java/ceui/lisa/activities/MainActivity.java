@@ -82,20 +82,26 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 if (item.getItemId() == R.id.action_1) {
-                    if (baseBind.viewPager.getCurrentItem() != 0) {
-                        baseBind.viewPager.setCurrentItem(0);
+                    for (int i = 0; i < baseFragments.length; i++) {
+                        if (baseFragments[i] instanceof FragmentLeft) {
+                            baseBind.viewPager.setCurrentItem(i);
+                            return true;
+                        }
                     }
-                    return true;
                 } else if (item.getItemId() == R.id.action_2) {
-                    if (baseBind.viewPager.getCurrentItem() != 1) {
-                        baseBind.viewPager.setCurrentItem(1);
+                    for (int i = 0; i < baseFragments.length; i++) {
+                        if (baseFragments[i] instanceof FragmentCenter) {
+                            baseBind.viewPager.setCurrentItem(i);
+                            return true;
+                        }
                     }
-                    return true;
                 } else if (item.getItemId() == R.id.action_3) {
-                    if (baseBind.viewPager.getCurrentItem() != 2) {
-                        baseBind.viewPager.setCurrentItem(2);
+                    for (int i = 0; i < baseFragments.length; i++) {
+                        if (baseFragments[i] instanceof FragmentRight) {
+                            baseBind.viewPager.setCurrentItem(i);
+                            return true;
+                        }
                     }
-                    return true;
                 }
                 return false;
             }
@@ -104,16 +110,22 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             @Override
             public void onNavigationItemReselected(@NonNull MenuItem item) {
                 if (item.getItemId() == R.id.action_1) {
-                    if (baseFragments[0] instanceof FragmentLeft) {
-                        ((FragmentLeft) baseFragments[0]).scrollToTop();
+                    for (Fragment baseFragment : baseFragments) {
+                        if (baseFragment instanceof FragmentLeft) {
+                            ((FragmentLeft) baseFragment).scrollToTop();
+                        }
                     }
                 } else if (item.getItemId() == R.id.action_2) {
-                    if (baseFragments[1] instanceof FragmentCenter) {
-                        ((FragmentCenter) baseFragments[1]).lazyData();
+                    for (Fragment baseFragment : baseFragments) {
+                        if (baseFragment instanceof FragmentCenter) {
+                            ((FragmentCenter) baseFragment).lazyData();
+                        }
                     }
                 } else if (item.getItemId() == R.id.action_3) {
-                    if (baseFragments[2] instanceof FragmentRight) {
-                        ((FragmentRight) baseFragments[2]).scrollToTop();
+                    for (Fragment baseFragment : baseFragments) {
+                        if (baseFragment instanceof FragmentRight) {
+                            ((FragmentRight) baseFragment).scrollToTop();
+                        }
                     }
                 }
             }
@@ -126,11 +138,11 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
             @Override
             public void onPageSelected(int position) {
-                if (position == 0) {
+                if (baseFragments[position] instanceof FragmentLeft) {
                     baseBind.navigationView.setSelectedItemId(R.id.action_1);
-                } else if (position == 1) {
+                } else if (baseFragments[position] instanceof FragmentCenter) {
                     baseBind.navigationView.setSelectedItemId(R.id.action_2);
-                } else {
+                } else if (baseFragments[position] instanceof FragmentRight) {
                     baseBind.navigationView.setSelectedItemId(R.id.action_3);
                 }
             }
@@ -143,11 +155,57 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     }
 
     private void initFragment() {
-        baseFragments = new Fragment[]{
-                new FragmentLeft(),
-                new FragmentCenter(),
-                new FragmentRight()
-        };
+        int order = Shaft.sSettings.getBottomBarOrder();
+        switch (order) {
+            case 0:
+                baseBind.navigationView.inflateMenu(R.menu.main_activity0);
+                baseFragments = new Fragment[]{
+                        new FragmentLeft(),
+                        new FragmentCenter(),
+                        new FragmentRight()
+                };
+                break;
+            case 1:
+                baseBind.navigationView.inflateMenu(R.menu.main_activity1);
+                baseFragments = new Fragment[]{
+                        new FragmentLeft(),
+                        new FragmentRight(),
+                        new FragmentCenter()
+                };
+                break;
+            case 2:
+                baseBind.navigationView.inflateMenu(R.menu.main_activity2);
+                baseFragments = new Fragment[]{
+                        new FragmentCenter(),
+                        new FragmentLeft(),
+                        new FragmentRight()
+                };
+                break;
+            case 3:
+                baseBind.navigationView.inflateMenu(R.menu.main_activity3);
+                baseFragments = new Fragment[]{
+                        new FragmentCenter(),
+                        new FragmentRight(),
+                        new FragmentLeft()
+                };
+                break;
+            case 4:
+                baseBind.navigationView.inflateMenu(R.menu.main_activity4);
+                baseFragments = new Fragment[]{
+                        new FragmentRight(),
+                        new FragmentLeft(),
+                        new FragmentCenter(),
+                };
+                break;
+            case 5:
+                baseBind.navigationView.inflateMenu(R.menu.main_activity5);
+                baseFragments = new Fragment[]{
+                        new FragmentRight(),
+                        new FragmentCenter(),
+                        new FragmentLeft(),
+                };
+                break;
+        }
         baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override
             public Fragment getItem(int i) {
@@ -159,7 +217,6 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 return baseFragments.length;
             }
         });
-        Manager.get().restore(mContext);
     }
 
     @Override
@@ -181,6 +238,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                             }
                         });
             }
+            Manager.get().restore(mContext);
         } else {
             Intent intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "登录注册");
