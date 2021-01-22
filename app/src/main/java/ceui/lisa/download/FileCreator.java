@@ -19,32 +19,6 @@ import static ceui.lisa.utils.Settings.FILE_PATH_SINGLE_R18;
 
 public class FileCreator {
 
-    public static File createGifZipFile(IllustsBean illustsBean) {
-        return new File(Shaft.sSettings.getGifZipPath(), deleteSpecialWords(
-                illustsBean.getTitle() + DASH + illustsBean.getId() + ".zip")
-        );
-    }
-
-    public static File createGifUnZipFolder(IllustsBean illustsBean) {
-        return new File(Shaft.sSettings.getGifZipPath(), deleteSpecialWords(
-                illustsBean.getTitle() + "_" + illustsBean.getId() + "_unzip")
-        );
-    }
-
-
-    public static File createGifFile(IllustsBean illustsBean) {
-        return new File(Shaft.sSettings.getGifResultPath(), deleteSpecialWords(
-                illustsBean.getTitle() + DASH + illustsBean.getId() + ".gif")
-        );
-    }
-
-
-    public static File createGifParentFile(IllustsBean illustsBean) {
-        return new File(Shaft.sSettings.getGifUnzipPath() + deleteSpecialWords(
-                illustsBean.getTitle() + DASH + illustsBean.getId())
-        );
-    }
-
     private static final String DASH = "_";
 
     public static boolean isExist(IllustsBean illust, int index) {

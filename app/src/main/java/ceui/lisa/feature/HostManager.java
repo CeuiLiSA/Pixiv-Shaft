@@ -104,6 +104,9 @@ public class HostManager {
     }
 
     private String resizeUrl(String url) {
+        if (TextUtils.isEmpty(host)) {
+            setDefaultHost();
+        }
         try {
             Uri uri = Uri.parse(url);
             return HTTP_HEAD + host + uri.getPath();

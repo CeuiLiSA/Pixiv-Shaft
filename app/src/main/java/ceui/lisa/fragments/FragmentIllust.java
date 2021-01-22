@@ -4,9 +4,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.database.Cursor;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextPaint;
@@ -26,7 +24,6 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.blankj.utilcode.util.PathUtils;
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
@@ -35,8 +32,6 @@ import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.zhy.view.flowlayout.FlowLayout;
 import com.zhy.view.flowlayout.TagAdapter;
 import com.zhy.view.flowlayout.TagFlowLayout;
-
-import java.io.File;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
@@ -48,7 +43,6 @@ import ceui.lisa.adapters.IllustAdapter;
 import ceui.lisa.databinding.FragmentIllustBinding;
 import ceui.lisa.dialogs.MuteDialog;
 import ceui.lisa.download.FileCreator;
-import ceui.lisa.download.GifCreate;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.TagsBean;
