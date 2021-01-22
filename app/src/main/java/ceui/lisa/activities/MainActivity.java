@@ -1,8 +1,10 @@
 package ceui.lisa.activities;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -18,6 +20,8 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.fragment.app.FragmentStatePagerAdapter;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.viewpager.widget.ViewPager;
 
 import com.blankj.utilcode.util.UriUtils;
@@ -32,6 +36,8 @@ import ceui.lisa.databinding.ActivityCoverBinding;
 import ceui.lisa.fragments.FragmentCenter;
 import ceui.lisa.fragments.FragmentLeft;
 import ceui.lisa.fragments.FragmentRight;
+import ceui.lisa.notification.BaseReceiver;
+import ceui.lisa.notification.CallBackReceiver;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
@@ -156,6 +162,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
     private void initFragment() {
         int order = Shaft.sSettings.getBottomBarOrder();
+        baseBind.navigationView.getMenu().clear();
         switch (order) {
             case 0:
                 baseBind.navigationView.inflateMenu(R.menu.main_activity0);

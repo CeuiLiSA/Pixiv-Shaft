@@ -50,6 +50,7 @@ public class Params {
     public static final String LIKED_NOVEL         = "ceui.lisa.fragments.NetListFragment LIKED_NOVEL";
     public static final String DOWNLOAD_FINISH         = "ceui.lisa.fragments.NetListFragment DOWNLOAD_FINISH";
     public static final String DOWNLOAD_ING         = "ceui.lisa.fragments.NetListFragment DOWNLOAD_ING";
+    public static final String REFRESH_MAIN_ACTIVITY         = "ceui.lisa.REFRESH_MAIN_ACTIVITY";
 
     public static final String MAP_KEY = "Referer";
     public static final String MAP_KEY_SMALL = "referer";

@@ -22,7 +22,6 @@ import kotlin.TypeCastException;
 import kotlin.jvm.internal.Intrinsics;
 
 public final class RubySSLSocketFactory extends SSLSocketFactory {
-    private HttpsURLConnection conn;
 
     private HostnameVerifier hostnameVerifier = HttpsURLConnection.getDefaultHostnameVerifier();
 
@@ -48,11 +47,12 @@ public final class RubySSLSocketFactory extends SSLSocketFactory {
 
     @NotNull
     public Socket createSocket(@Nullable Socket paramSocket, @Nullable String paramString, int paramInt, boolean paramBoolean) throws IOException {
-        if (paramSocket == null)
+        if (paramSocket == null) {
             Intrinsics.throwNpe();
+        }
         InetAddress inetAddress = paramSocket.getInetAddress();
         Intrinsics.checkExpressionValueIsNotNull(inetAddress, "address");
-        Log.d("address", inetAddress.getHostAddress());
+        Log.d("createSocket address1", inetAddress.getHostAddress());
         if (paramBoolean)
             paramSocket.close();
         SocketFactory socketFactory = SSLCertificateSocketFactory.getDefault(0);
@@ -81,14 +81,6 @@ public final class RubySSLSocketFactory extends SSLSocketFactory {
     @NotNull
     public String[] getDefaultCipherSuites() {
         return new String[0];
-    }
-
-    public final HostnameVerifier getHostnameVerifier() {
-        return this.hostnameVerifier;
-    }
-
-    public final void setHostnameVerifier(HostnameVerifier paramHostnameVerifier) {
-        this.hostnameVerifier = paramHostnameVerifier;
     }
 
     @NotNull

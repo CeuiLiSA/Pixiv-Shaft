@@ -14,20 +14,17 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.ActivityOptionsCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.bumptech.glide.Glide;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
-import ceui.lisa.activities.ImageDetailActivity;
 import ceui.lisa.activities.SearchActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
@@ -37,10 +34,9 @@ import ceui.lisa.databinding.FragmentSingleIllustBinding;
 import ceui.lisa.dialogs.MuteDialog;
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.download.IllustDownload;
-import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.notification.BaseReceiver;
-import ceui.lisa.notification.StarReceiver;
+import ceui.lisa.notification.CallBackReceiver;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.GlideUtil;
@@ -62,7 +58,7 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
 
     private IllustsBean illust;
     private IllustDetailAdapter mDetailAdapter;
-    private StarReceiver mReceiver;
+    private CallBackReceiver mReceiver;
 
     public static FragmentSingleIllust newInstance(IllustsBean illust) {
         Bundle args = new Bundle();
@@ -110,7 +106,7 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
         }
 
         IntentFilter intentFilter = new IntentFilter();
-        mReceiver = new StarReceiver(new BaseReceiver.CallBack() {
+        mReceiver = new CallBackReceiver(new BaseReceiver.CallBack() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 Bundle bundle = intent.getExtras();

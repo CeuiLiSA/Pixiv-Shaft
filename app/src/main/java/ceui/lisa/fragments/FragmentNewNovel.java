@@ -28,6 +28,7 @@ public class FragmentNewNovel extends BaseFragment<ViewpagerWithTablayoutBinding
                 Shaft.getContext().getString(R.string.recommend_illust),
                 Shaft.getContext().getString(R.string.hot_tag)
         };
+        baseBind.toolbarTitle.setText(R.string.type_novel);
         baseBind.toolbar.setNavigationOnClickListener(v -> finish());
         baseBind.toolbar.inflateMenu(R.menu.fragment_left);
         baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {

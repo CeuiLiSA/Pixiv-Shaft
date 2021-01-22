@@ -47,7 +47,7 @@ import ceui.lisa.download.IllustDownload;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.notification.BaseReceiver;
-import ceui.lisa.notification.StarReceiver;
+import ceui.lisa.notification.CallBackReceiver;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.GlideUtil;
@@ -368,7 +368,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 .into(baseBind.userHead);
     }
 
-    private StarReceiver mReceiver;
+    private CallBackReceiver mReceiver;
 
     @Override
     public void onResume() {
@@ -392,7 +392,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         IntentFilter intentFilter = new IntentFilter();
-        mReceiver = new StarReceiver(new BaseReceiver.CallBack() {
+        mReceiver = new CallBackReceiver(new BaseReceiver.CallBack() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 Bundle bundle = intent.getExtras();

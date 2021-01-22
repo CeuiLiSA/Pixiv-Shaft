@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.CompoundButton;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.blankj.utilcode.util.FileUtils;
 import com.blankj.utilcode.util.LanguageUtils;
@@ -226,6 +227,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                                     Shaft.sSettings.setBottomBarOrder(which);
                                     baseBind.orderSelect.setText(ORDER_NAME[which]);
                                     Local.setSettings(Shaft.sSettings);
+                                    Common.showToast(getString(R.string.please_restart_app));
                                 }
                                 dialog.dismiss();
                             }

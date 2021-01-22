@@ -20,18 +20,13 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.DataSource;
-import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
-import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.SimpleTarget;
-import com.bumptech.glide.request.target.Target;
 import com.bumptech.glide.request.transition.Transition;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
 
 import java.io.File;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,7 +40,6 @@ import ceui.lisa.cache.Cache;
 import ceui.lisa.core.Manager;
 import ceui.lisa.databinding.FragmentUgoraBinding;
 import ceui.lisa.dialogs.MuteDialog;
-import ceui.lisa.download.FileCreator;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.file.LegacyFile;
 import ceui.lisa.file.OutPut;
@@ -55,8 +49,7 @@ import ceui.lisa.interfaces.Callback;
 import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.notification.BaseReceiver;
-import ceui.lisa.notification.PlayReceiver;
-import ceui.lisa.notification.StarReceiver;
+import ceui.lisa.notification.CallBackReceiver;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
@@ -75,8 +68,7 @@ import static com.bumptech.glide.request.RequestOptions.bitmapTransform;
 public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
 
     private IllustsBean illust;
-    private StarReceiver mReceiver;
-    private PlayReceiver mPlayReceiver;
+    private CallBackReceiver mReceiver, mPlayReceiver;
 
     public static FragmentSingleUgora newInstance(IllustsBean illust) {
         Bundle args = new Bundle();
@@ -139,7 +131,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
 
         {
             IntentFilter intentFilter = new IntentFilter();
-            mReceiver = new StarReceiver(new BaseReceiver.CallBack() {
+            mReceiver = new CallBackReceiver(new BaseReceiver.CallBack() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
                     Bundle bundle = intent.getExtras();
@@ -164,7 +156,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
 
         {
             IntentFilter intentFilter = new IntentFilter();
-            mPlayReceiver = new PlayReceiver(new BaseReceiver.CallBack() {
+            mPlayReceiver = new CallBackReceiver(new BaseReceiver.CallBack() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
                     baseBind.progressLayout.donutProgress.setVisibility(View.GONE);

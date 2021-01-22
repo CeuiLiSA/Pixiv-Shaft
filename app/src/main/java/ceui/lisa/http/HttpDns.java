@@ -31,8 +31,7 @@ public class HttpDns implements Dns {
             "210.140.131.188",
             "210.140.131.218",
             "210.140.131.187",
-            "210.140.92.143",
-            "210.140.92.145"
+            "210.140.131.189"
     };
     public static List<InetAddress> newDns = new ArrayList<>();
     private static HttpDns sHttpDns = null;
