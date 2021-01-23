@@ -22,6 +22,7 @@
             <TextView
                 android:textSize="15sp"
                 android:textStyle="bold"
+                android:textColor="@color/rank_text_color"
                 android:layout_margin="@dimen/sixteen_dp"
                 android:layout_width="match_parent"
                 android:id="@+id/star_size"
