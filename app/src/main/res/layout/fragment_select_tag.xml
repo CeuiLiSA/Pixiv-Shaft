@@ -19,13 +19,12 @@
             android:id="@+id/refreshLayout"
             android:layout_below="@+id/toolbar"
             android:layout_above="@+id/bottom_rela"
-            android:background="@color/white"
+            android:background="@color/fragment_center"
             android:layout_height="match_parent">
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerView"
                 android:layout_width="match_parent"
-                android:background="@color/white"
                 android:layout_height="match_parent"
                 android:fadeScrollbars="false">
 
@@ -50,6 +49,7 @@
                 android:layout_width="wrap_content"
                 android:text="@string/string_89"
                 android:textSize="15sp"
+                android:textColor="@color/rank_text_color"
                 android:id="@+id/private_star_s"
                 android:layout_centerVertical="true"
                 android:layout_marginStart="@dimen/sixteen_dp"

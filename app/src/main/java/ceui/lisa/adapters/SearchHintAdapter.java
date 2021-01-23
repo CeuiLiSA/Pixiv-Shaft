@@ -1,10 +1,12 @@
 package ceui.lisa.adapters;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
+import android.util.TypedValue;
 import android.view.View;
 
 import java.util.List;
@@ -31,7 +33,9 @@ public class SearchHintAdapter extends BaseAdapter<ListTrendingtag.TrendTagsBean
 
     @Override
     public void bindData(ListTrendingtag.TrendTagsBean target, ViewHolder<RecySearchHintBinding> bindView, int position) {
-        SpannableString string = matcherSearchText(mContext.getResources().getColor(R.color.design_default_color_primary),
+        TypedValue colorValue = new TypedValue();
+        mContext.getTheme().resolveAttribute(R.attr.colorPrimary, colorValue, true);
+        SpannableString string = matcherSearchText(colorValue.data,
                 target.getName(), mKeyword);
         bindView.baseBind.titleText.setText(string);
         if (!TextUtils.isEmpty(target.getTranslated_name()) && !target.getTranslated_name().equals(target.getName())) {

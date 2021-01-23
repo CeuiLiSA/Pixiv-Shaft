@@ -79,7 +79,7 @@
             android:clipToPadding="false"
             app:edPosition="2"
             app:edMenuSize="280dp"
-            app:edMenuBackground="@color/white">
+            app:edMenuBackground="@color/fragment_center">
 
             <androidx.viewpager.widget.ViewPager
                 android:layout_width="match_parent"

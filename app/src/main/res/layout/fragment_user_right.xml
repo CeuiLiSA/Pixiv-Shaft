@@ -82,6 +82,7 @@
                         android:layout_width="wrap_content"
                         android:id="@+id/real_twitter"
                         android:autoLink="all"
+                        android:textColor="@color/rank_text_color"
                         android:textColorLink="?attr/colorPrimary"
                         android:layout_centerVertical="true"
                         android:layout_marginEnd="@dimen/sixteen_dp"
@@ -112,6 +113,7 @@
                         android:layout_width="wrap_content"
                         android:layout_centerVertical="true"
                         android:autoLink="all"
+                        android:textColor="@color/rank_text_color"
                         android:textColorLink="?attr/colorPrimary"
                         android:layout_marginEnd="@dimen/sixteen_dp"
                         android:layout_toEndOf="@+id/address"
@@ -142,6 +144,7 @@
                         android:layout_width="wrap_content"
                         android:layout_centerVertical="true"
                         android:autoLink="all"
+                        android:textColor="@color/rank_text_color"
                         android:textColorLink="?attr/colorPrimary"
                         android:layout_marginEnd="@dimen/sixteen_dp"
                         android:layout_toEndOf="@+id/job"
@@ -202,7 +205,7 @@
                     android:autoLink="all"
                     android:textIsSelectable="true"
                     android:textColorLink="?attr/colorPrimary"
-                    android:textColor="@color/black"
+                    android:textColor="@color/rank_text_color"
                     android:textSize="14sp">
 
                 </TextView>

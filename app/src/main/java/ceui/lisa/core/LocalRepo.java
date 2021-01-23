@@ -26,6 +26,7 @@ public abstract class LocalRepo<T> extends BaseRepo {
     public RefreshHeader getHeader(Context context) {
         DeliveryHeader header = new DeliveryHeader(context);
 //        header.setPrimaryColors(context.getResources().getColor(R.color.black));
+        header.setBackgroundColor(context.getResources().getColor(R.color.fragment_center));
         return header;
     }
 }

@@ -174,15 +174,16 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
 
     private void handleLongClick(View v, IllustsBean illust) {
         View popView = LayoutInflater.from(mContext).inflate(R.layout.pop_window_2, null);
-        QMUIPopup mNormalPopup = QMUIPopups.popup(mContext, QMUIDisplayHelper.dp2px(mContext, 250))
+        QMUIPopup mNormalPopup = QMUIPopups.popup(mContext)
                 .preferredDirection(QMUIPopup.DIRECTION_BOTTOM)
                 .view(popView)
                 .dimAmount(0.5f)
                 .edgeProtection(QMUIDisplayHelper.dp2px(mContext, 20))
-                .offsetX(QMUIDisplayHelper.dp2px(mContext, 80))
+                .offsetX(QMUIDisplayHelper.dp2px(mContext, 20))
                 .offsetYIfBottom(QMUIDisplayHelper.dp2px(mContext, 5))
                 .shadow(true)
                 .arrow(true)
+                .bgColor(mContext.getResources().getColor(R.color.fragment_center))
                 .animStyle(QMUIPopup.ANIM_GROW_FROM_RIGHT)
                 .onDismiss(new PopupWindow.OnDismissListener() {
                     @Override

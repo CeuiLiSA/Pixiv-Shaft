@@ -191,7 +191,7 @@
                 android:layout_width="match_parent"
                 android:id="@+id/hint_list"
                 android:visibility="gone"
-                android:background="@color/white"
+                android:background="@color/fragment_center"
                 android:layout_height="wrap_content">
 
             </androidx.recyclerview.widget.RecyclerView>
