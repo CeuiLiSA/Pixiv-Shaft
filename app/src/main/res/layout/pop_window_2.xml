@@ -2,8 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
-    android:background="@color/fragment_center"
-    android:layout_width="match_parent"
+    android:layout_width="wrap_content"
     android:layout_height="wrap_content">
 
     <RelativeLayout
@@ -11,6 +10,7 @@
         android:background="?android:attr/selectableItemBackground"
         android:clickable="true"
         android:paddingStart="@dimen/tweenty_four_dp"
+        android:paddingEnd="24dp"
         android:paddingTop="@dimen/twelve_dp"
         android:paddingBottom="@dimen/six_dp"
         android:id="@+id/not_interested"
@@ -49,6 +49,7 @@
         android:background="?android:attr/selectableItemBackground"
         android:clickable="true"
         android:paddingStart="@dimen/tweenty_four_dp"
+        android:paddingEnd="24dp"
         android:paddingTop="@dimen/twelve_dp"
         android:paddingBottom="@dimen/six_dp"
         android:id="@+id/show_comment"
@@ -86,6 +87,7 @@
         android:background="?android:attr/selectableItemBackground"
         android:clickable="true"
         android:paddingStart="@dimen/tweenty_four_dp"
+        android:paddingEnd="24dp"
         android:paddingTop="@dimen/six_dp"
         android:paddingBottom="@dimen/twelve_dp"
         android:id="@+id/share"
@@ -123,6 +125,7 @@
         android:background="?android:attr/selectableItemBackground"
         android:clickable="true"
         android:paddingStart="@dimen/tweenty_four_dp"
+        android:paddingEnd="24dp"
         android:paddingTop="@dimen/six_dp"
         android:paddingBottom="@dimen/twelve_dp"
         android:id="@+id/download_this_one"

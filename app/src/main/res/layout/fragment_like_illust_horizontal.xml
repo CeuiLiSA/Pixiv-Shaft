@@ -14,7 +14,7 @@
             android:id="@+id/root_parent_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/white"
+            android:background="@color/fragment_center"
             android:orientation="vertical">
 
             <View
