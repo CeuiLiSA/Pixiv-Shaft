@@ -87,7 +87,9 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
         mRecyclerView.setItemAnimator(animation());
 
         mRefreshLayout = rootView.findViewById(R.id.refreshLayout);
-        mRefreshLayout.setPrimaryColorsId(R.color.white);
+        mRefreshLayout.setDragRate(0.8f); // 阻尼效果太小，会导致滑动距离增大，动画不跟手
+        mRefreshLayout.setHeaderTriggerRate(1.0f); // 触发刷新位置，默认为 1.0*header高度
+        mRefreshLayout.setHeaderMaxDragRate(1.5f); // 最大下拉位置
         noData = rootView.findViewById(R.id.no_data);
         emptyRela = rootView.findViewById(R.id.no_data_rela);
         emptyRela.setOnClickListener(v -> {
