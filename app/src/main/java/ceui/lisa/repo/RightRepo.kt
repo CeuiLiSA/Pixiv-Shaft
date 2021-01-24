@@ -7,7 +7,7 @@ import ceui.lisa.core.RemoteRepo
 import ceui.lisa.http.Retro
 import ceui.lisa.model.ListIllust
 import ceui.lisa.utils.Dev
-import com.scwang.smartrefresh.header.DeliveryHeader
+import ceui.lisa.view.MyDeliveryHeader
 import com.scwang.smartrefresh.layout.api.RefreshFooter
 import com.scwang.smartrefresh.layout.api.RefreshHeader
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter
@@ -29,7 +29,7 @@ class RightRepo(var restrict: String?) : RemoteRepo<ListIllust>() {
     }
 
     override fun getHeader(context: Context): RefreshHeader {
-        return DeliveryHeader(context)
+        return MyDeliveryHeader.getNewInstance(context)
     }
 
     override fun mapper(): Function<ListIllust, ListIllust> {

@@ -68,5 +68,6 @@
 
     <color name="pixivision_logo_1">#A9A9A9</color>
     <color name="pixivision_logo_2">#AAAAAA</color>
+    <color name="delivery_header_cloud">#465B70</color>
 
 </resources>
