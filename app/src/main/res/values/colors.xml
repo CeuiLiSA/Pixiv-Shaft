@@ -101,5 +101,8 @@
     <color name="bg3">#CBDEEF</color>
     <color name="bg4">#D6EAD5</color>
     <color name="bg5">#000000</color>
+
+    <color name="pixivision_logo_1">#231815</color>
+    <color name="pixivision_logo_2">#221714</color>
 </resources>
 

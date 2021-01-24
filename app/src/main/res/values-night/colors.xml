@@ -66,4 +66,7 @@
     <color name="fragment_illust_divider">#e3e3e3</color>
     <color name="button_stroke">#434343</color>
 
+    <color name="pixivision_logo_1">#A9A9A9</color>
+    <color name="pixivision_logo_2">#AAAAAA</color>
+
 </resources>
