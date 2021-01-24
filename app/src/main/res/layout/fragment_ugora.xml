@@ -151,6 +151,7 @@
 
                             <org.sufficientlysecure.htmltextview.HtmlTextView
                                 android:id="@+id/description"
+                                android:textColorLink="?attr/colorPrimary"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="@dimen/twelve_dp"
