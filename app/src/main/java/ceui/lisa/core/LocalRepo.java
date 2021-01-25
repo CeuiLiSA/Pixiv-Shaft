@@ -21,6 +21,6 @@ public abstract class LocalRepo<T> extends BaseRepo {
 
     @Override
     public RefreshHeader getHeader(Context context) {
-        return new MyDeliveryHeader(context).getNewInstance(context);
+        return new MyDeliveryHeader(context);
     }
 }

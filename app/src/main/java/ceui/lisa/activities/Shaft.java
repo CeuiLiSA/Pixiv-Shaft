@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.view.Gravity;
 
@@ -19,6 +20,7 @@ import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 import com.scwang.smartrefresh.layout.header.ClassicsHeader;
 import com.tencent.mmkv.MMKV;
 
+import androidx.annotation.NonNull;
 import ceui.lisa.R;
 import ceui.lisa.feature.HostManager;
 import ceui.lisa.feature.ToastStyle;
@@ -31,6 +33,7 @@ import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.Settings;
+import ceui.lisa.view.MyDeliveryHeader;
 import me.jessyan.progressmanager.ProgressManager;
 import okhttp3.OkHttpClient;
 
@@ -174,5 +177,17 @@ public class Shaft extends Application {
             mmkv = MMKV.defaultMMKV();
         }
         return mmkv;
+    }
+
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        int currentNightMode = newConfig.uiMode & Configuration.UI_MODE_NIGHT_MASK;
+        switch (currentNightMode) {
+            case Configuration.UI_MODE_NIGHT_NO:
+            case Configuration.UI_MODE_NIGHT_YES:
+                MyDeliveryHeader.getNewInstance(getContext());
+                break;
+        }
     }
 }

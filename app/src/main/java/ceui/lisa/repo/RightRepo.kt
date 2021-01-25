@@ -29,7 +29,7 @@ class RightRepo(var restrict: String?) : RemoteRepo<ListIllust>() {
     }
 
     override fun getHeader(context: Context): RefreshHeader {
-        return MyDeliveryHeader.getNewInstance(context)
+        return MyDeliveryHeader(context)
     }
 
     override fun mapper(): Function<ListIllust, ListIllust> {

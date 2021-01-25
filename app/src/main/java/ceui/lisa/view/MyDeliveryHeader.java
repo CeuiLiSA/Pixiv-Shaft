@@ -8,9 +8,14 @@ import ceui.lisa.activities.Shaft;
 public class MyDeliveryHeader extends DeliveryHeader{
 
     // protected static is guilty
-    public static MyDeliveryHeader getNewInstance(Context context){
+    // run one time to change default color
+    static{
         cloudColors[0] = Shaft.getContext().getResources().getColor(R.color.delivery_header_cloud);
-        return new MyDeliveryHeader(context);
+    }
+
+    // invoked when App Level Configuration Changed
+    public static void getNewInstance(Context context){
+        cloudColors[0] = context.getResources().getColor(R.color.delivery_header_cloud);
     }
 
     public MyDeliveryHeader(Context context) {
