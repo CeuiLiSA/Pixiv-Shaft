@@ -11,6 +11,9 @@
         <item name="android:windowAllowEnterTransitionOverlap">true</item>
         <item name="android:windowAllowReturnTransitionOverlap">true</item>
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimary</item>
+        <item name="qmui_skin_support_dialog_bg">@color/fragment_center</item>
+        <item name="qmui_skin_support_dialog_title_text_color">@color/rank_text_color</item>
+        <item name="qmui_skin_support_dialog_menu_item_text_color">@color/rank_text_color</item>
     </style>
 
     <style name="AppTheme.Default" parent="AppTheme">
@@ -87,8 +90,9 @@
 
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
-    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
-
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.DayNight">
+        <item name="android:background">@color/fragment_center</item>
+    </style>
 
     <style name="shadowText">
         <item name="android:shadowColor">#FF666666</item>

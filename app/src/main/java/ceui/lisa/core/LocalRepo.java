@@ -1,11 +1,8 @@
 package ceui.lisa.core;
 
 import android.content.Context;
-
-import com.scwang.smartrefresh.header.DeliveryHeader;
 import com.scwang.smartrefresh.layout.api.RefreshHeader;
-
-import ceui.lisa.R;
+import ceui.lisa.view.MyDeliveryHeader;
 
 public abstract class LocalRepo<T> extends BaseRepo {
 
@@ -24,9 +21,6 @@ public abstract class LocalRepo<T> extends BaseRepo {
 
     @Override
     public RefreshHeader getHeader(Context context) {
-        DeliveryHeader header = new DeliveryHeader(context);
-//        header.setPrimaryColors(context.getResources().getColor(R.color.black));
-        header.setBackgroundColor(context.getResources().getColor(R.color.fragment_center));
-        return header;
+        return new MyDeliveryHeader(context);
     }
 }

@@ -50,7 +50,6 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerView"
                 android:layout_width="match_parent"
-                android:background="@color/fragment_center"
                 android:layout_height="match_parent"
                 android:fadeScrollbars="false">
 
