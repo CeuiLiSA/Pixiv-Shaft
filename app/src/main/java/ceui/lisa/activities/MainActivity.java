@@ -36,6 +36,7 @@ import ceui.lisa.databinding.ActivityCoverBinding;
 import ceui.lisa.fragments.FragmentCenter;
 import ceui.lisa.fragments.FragmentLeft;
 import ceui.lisa.fragments.FragmentRight;
+import ceui.lisa.http.Retro;
 import ceui.lisa.notification.BaseReceiver;
 import ceui.lisa.notification.CallBackReceiver;
 import ceui.lisa.utils.Common;
@@ -44,6 +45,9 @@ import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseImage;
 import ceui.lisa.utils.ReverseWebviewCallback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
@@ -424,5 +428,27 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             initDrawerHeader();
             Dev.refreshUser = false;
         }
+        getUrl();
+    }
+
+    private void getUrl() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                OkHttpClient client = Retro.getLogClient().build();
+
+                Request request = new Request.Builder()
+                        .url("http://www.pixiv.me/psyg2")
+                        .build();
+
+                try {
+                    Response response = client.newCall(request).execute();
+                    String result = response.body().string();
+                    Common.showLog("getUrl " + result);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 }

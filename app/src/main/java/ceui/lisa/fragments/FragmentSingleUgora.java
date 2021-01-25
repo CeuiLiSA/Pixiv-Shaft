@@ -328,7 +328,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
         baseBind.download.setOnClickListener(v -> {
             File gifFile = new LegacyFile().gifResultFile(mContext, illust);
             if (gifFile.exists() && gifFile.length() > 1024) {
-                OutPut.outPutGif(mContext, gifFile);
+                OutPut.outPutGif(mContext, gifFile, illust);
             } else {
                 Common.showToast("请先播放后下载");
             }

@@ -2,10 +2,14 @@ package ceui.lisa.file
 
 import android.content.ContentValues
 import android.content.Context
+import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
+import ceui.lisa.activities.Shaft
 import ceui.lisa.download.ImageSaver
+import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Common
+import ceui.lisa.utils.Settings
 import com.blankj.utilcode.util.FileUtils
 import com.blankj.utilcode.util.PathUtils
 import rxhttp.wrapper.utils.query
@@ -16,7 +20,7 @@ object OutPut {
     private val relativePath: String = Environment.DIRECTORY_PICTURES + "/ShaftImages"
 
     @JvmStatic
-    fun outPutGif(context: Context, from: File) {
+    fun outPutGif(context: Context, from: File, illust: IllustsBean) {
         if (Common.isAndroidQ()) {
             var uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI.query(context, from.name, relativePath)
             if (uri != null) {
@@ -55,11 +59,17 @@ object OutPut {
                 e.printStackTrace()
             }
         } else {
-            val parent = File(PathUtils.getExternalPicturesPath() + "/ShaftImages")
-            if (!parent.exists()) {
-                parent.mkdir()
+            val parentFile: File
+            if (illust.isR18File && Shaft.sSettings.isR18DivideSave) {
+                parentFile = File(Settings.FILE_PATH_SINGLE_R18)
+            } else {
+                parentFile = File(Settings.FILE_PATH_SINGLE)
             }
-            val gifResult = File(parent, from.name)
+            if (!parentFile.exists()) {
+                parentFile.mkdir()
+            }
+
+            val gifResult = File(parentFile, from.name)
             FileUtils.copy(from, gifResult)
             object : ImageSaver() {
                 override fun whichFile(): File {
