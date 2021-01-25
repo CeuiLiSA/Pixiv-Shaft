@@ -14,7 +14,7 @@ public class MyDeliveryHeader extends DeliveryHeader{
     }
 
     // invoked when App Level Configuration Changed
-    public static void getNewInstance(Context context){
+    public static void changeCloudColor(Context context){
         cloudColors[0] = context.getResources().getColor(R.color.delivery_header_cloud);
     }
 
