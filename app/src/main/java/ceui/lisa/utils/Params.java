@@ -69,6 +69,7 @@ public class Params {
 
     public static final String TYPE_PUBLUC = "public";
     public static final String TYPE_PRIVATE = "private";
+    public static final String TYPE_ALL = "all";
 
     public static final String SHOW_LONG_DIALOG = "show long dialog";
     public static final String IS_MIGRATE = "IS_MIGRATE";

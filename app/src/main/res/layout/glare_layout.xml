@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+
+    </data>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:background="@drawable/glare_bg"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:text="全部"
+            android:background="@drawable/glare_selected"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:textSize="13sp"
+            android:id="@+id/left"
+            android:paddingTop="@dimen/six_dp"
+            android:paddingBottom="@dimen/six_dp"
+            android:textColor="?attr/colorPrimary"
+            android:layout_height="wrap_content">
+
+        </TextView>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:text="公开"
+            android:paddingStart="10dp"
+            android:id="@+id/center"
+            android:textSize="13sp"
+            android:paddingEnd="10dp"
+            android:paddingTop="@dimen/six_dp"
+            android:paddingBottom="@dimen/six_dp"
+            android:textColor="@color/glare_unselected_text"
+            android:layout_height="wrap_content">
+
+        </TextView>
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:text="私人"
+            android:paddingStart="10dp"
+            android:textSize="13sp"
+            android:id="@+id/right"
+            android:paddingEnd="10dp"
+            android:paddingTop="@dimen/six_dp"
+            android:paddingBottom="@dimen/six_dp"
+            android:textColor="#7b7b7b"
+            android:layout_height="wrap_content">
+
+        </TextView>
+
+
+
+    </LinearLayout>
+</layout>

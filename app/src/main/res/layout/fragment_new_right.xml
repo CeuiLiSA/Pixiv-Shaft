@@ -145,18 +145,16 @@
 
                     </TextView>
 
-                    <Switch
+
+                    <ceui.lisa.view.GlareLayout
                         android:layout_width="wrap_content"
-                        android:text="@string/string_81"
-                        android:id="@+id/show_private"
-                        android:textSize="12sp"
-                        android:textColor="?attr/colorPrimary"
-                        android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
+                        android:layout_alignParentEnd="true"
                         android:layout_marginEnd="@dimen/sixteen_dp"
+                        android:id="@+id/glare_layout"
                         android:layout_height="wrap_content">
 
-                    </Switch>
+                    </ceui.lisa.view.GlareLayout>
 
                 </RelativeLayout>
 

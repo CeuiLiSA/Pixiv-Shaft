@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <stroke android:color="?attr/colorPrimary"
+        android:width="0.8dp"
+        />
+    <corners android:topLeftRadius="@dimen/six_dp"
+        android:topRightRadius="@dimen/six_dp"
+        android:bottomRightRadius="@dimen/six_dp"
+        android:bottomLeftRadius="@dimen/six_dp" />
+    <!--圆角矩形白色背景-->
+</shape>

@@ -31,7 +31,9 @@ import ceui.lisa.http.NullCtrl;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.repo.RightRepo;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
+import ceui.lisa.view.OnCheckChangeListener;
 import io.reactivex.Observable;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -83,15 +85,24 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "推荐用户");
             startActivity(intent);
         });
-        baseBind.showPrivate.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        baseBind.glareLayout.setListener(new OnCheckChangeListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    restrict = Params.TYPE_PRIVATE;
-                } else {
+            public void onSelect(int index, View view) {
+                Common.showLog("glareLayout onSelect " + index);
+                if (index == 0) {
+                    restrict = Params.TYPE_ALL;
+                } else if (index == 1) {
                     restrict = Params.TYPE_PUBLUC;
+                } else if (index == 2) {
+                    restrict = Params.TYPE_PRIVATE;
                 }
                 ((RightRepo) mRemoteRepo).setRestrict(restrict);
+                clearAndRefresh();
+            }
+
+            @Override
+            public void onReselect(int index, View view) {
+                Common.showLog("glareLayout onReselect " + index);
                 clearAndRefresh();
             }
         });
