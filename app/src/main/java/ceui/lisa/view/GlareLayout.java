@@ -10,6 +10,7 @@ import androidx.databinding.DataBindingUtil;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.GlareLayoutBinding;
+import ceui.lisa.utils.Common;
 
 public class GlareLayout extends RelativeLayout {
 
@@ -95,18 +96,19 @@ public class GlareLayout extends RelativeLayout {
     }
 
     private void check(int index) {
+        int currentColor = Common.resolveThemeAttribute(mContext,R.attr.colorPrimary);
         if (index == 0) {
-            baseBind.left.setTextColor(R.attr.colorPrimary);
+            baseBind.left.setTextColor(currentColor);
             baseBind.left.setBackgroundResource(R.drawable.glare_selected);
             unCheck(1);
             unCheck(2);
         } else if (index == 1) {
-            baseBind.center.setTextColor(R.attr.colorPrimary);
+            baseBind.center.setTextColor(currentColor);
             baseBind.center.setBackgroundResource(R.drawable.glare_selected);
             unCheck(0);
             unCheck(2);
         } else if (index == 2) {
-            baseBind.right.setTextColor(R.attr.colorPrimary);
+            baseBind.right.setTextColor(currentColor);
             baseBind.right.setBackgroundResource(R.drawable.glare_selected);
             unCheck(0);
             unCheck(1);

@@ -49,7 +49,7 @@
             android:paddingEnd="10dp"
             android:paddingTop="@dimen/six_dp"
             android:paddingBottom="@dimen/six_dp"
-            android:textColor="#7b7b7b"
+            android:textColor="@color/glare_unselected_text"
             android:layout_height="wrap_content">
 
         </TextView>

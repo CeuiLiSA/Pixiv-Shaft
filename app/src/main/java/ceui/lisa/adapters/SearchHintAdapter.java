@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 import ceui.lisa.R;
 import ceui.lisa.databinding.RecySearchHintBinding;
 import ceui.lisa.model.ListTrendingtag;
+import ceui.lisa.utils.Common;
 
 public class SearchHintAdapter extends BaseAdapter<ListTrendingtag.TrendTagsBean, RecySearchHintBinding> {
 
@@ -33,9 +34,7 @@ public class SearchHintAdapter extends BaseAdapter<ListTrendingtag.TrendTagsBean
 
     @Override
     public void bindData(ListTrendingtag.TrendTagsBean target, ViewHolder<RecySearchHintBinding> bindView, int position) {
-        TypedValue colorValue = new TypedValue();
-        mContext.getTheme().resolveAttribute(R.attr.colorPrimary, colorValue, true);
-        SpannableString string = matcherSearchText(colorValue.data,
+        SpannableString string = matcherSearchText(Common.resolveThemeAttribute(mContext, R.attr.colorPrimary),
                 target.getName(), mKeyword);
         bindView.baseBind.titleText.setText(string);
         if (!TextUtils.isEmpty(target.getTranslated_name()) && !target.getTranslated_name().equals(target.getName())) {
