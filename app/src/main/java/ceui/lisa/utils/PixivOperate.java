@@ -3,6 +3,7 @@ package ceui.lisa.utils;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.view.View;
 import android.widget.Button;
@@ -42,6 +43,7 @@ import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.Back;
 import ceui.lisa.model.ListIllust;
+import ceui.lisa.models.FramesBean;
 import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.IllustSearchResponse;
 import ceui.lisa.models.NovelBean;
@@ -409,7 +411,6 @@ public class PixivOperate {
 
     public static void encodeGif(Context context, File parentFile, IllustsBean illustsBean) {
         try {
-            long startTime = System.nanoTime();
             Common.showLog("encodeGif 开始");
             Observable.create(new ObservableOnSubscribe<String>() {
                 @Override
@@ -493,7 +494,6 @@ public class PixivOperate {
                     gifEncoder.close();
 
                     Common.showLog("gifFile gifFile " + FileUtils.getSize(gifFile));
-                    System.out.println("gif v1 time:" + (System.nanoTime()-startTime));
 
                     Intent intent = new Intent(Params.PLAY_GIF);
                     intent.putExtra(Params.ID, illustsBean.getId());
@@ -509,7 +509,6 @@ public class PixivOperate {
 
     public static void encodeGifV2(Context context, File parentFile, IllustsBean illustsBean){
         try {
-            long startTime = System.nanoTime();
             Common.showLog("encodeGif 开始");
             Observable.create(new ObservableOnSubscribe<String>() {
                 @Override
@@ -536,21 +535,29 @@ public class PixivOperate {
                     AnimatedGifEncoder animatedGifEncoder = new AnimatedGifEncoder();
                     ByteArrayOutputStream bos = new ByteArrayOutputStream();
                     animatedGifEncoder.start(bos);
-                    animatedGifEncoder.setRepeat(0);
+                    animatedGifEncoder.setRepeat(0); // 无限循环
+
+                    List<Bitmap> allBitmaps = new ArrayList<>();
+                    int frameCount = allFiles.size();
+                    for(int i = 0; i < frameCount; i++){
+                        allBitmaps.add(BitmapFactory.decodeFile(allFiles.get(i).getPath()));
+                    }
 
                     GifResponse gifResponse = Cache.get().getModel(Params.ILLUST_ID + "_" + illustsBean.getId(), GifResponse.class);
                     int delayMs = 60;
                     if (gifResponse != null) {
-                        if (allFiles.size() == gifResponse.getUgoira_metadata().getFrames().size()) {
+                        List<FramesBean> framesBeans = gifResponse.getUgoira_metadata().getFrames();
+                        if (frameCount == framesBeans.size()) {
                             Common.showLog("使用返回的delay 00");
-                            for (int i = 0; i < allFiles.size(); i++) {
-                                Common.showLog("编码中 00 " + allFiles.size() + " " + (i + 1));
-                                animatedGifEncoder.addFrame(BitmapFactory.decodeFile(allFiles.get(i).getPath()));
-                                animatedGifEncoder.setDelay(gifResponse.getUgoira_metadata().getFrames().get(i).getDelay());
+
+                            for (int i = 0; i < frameCount; i++) {
+                                Common.showLog("编码中 00 " + frameCount + " " + (i + 1));
+                                animatedGifEncoder.setDelay(framesBeans.get(i).getDelay());
+                                animatedGifEncoder.addFrame(allBitmaps.get(i));
 
                                 try {
                                     if (sBack != null) {
-                                        float proc = i / (float) (allFiles.size() - 1);
+                                        float proc = i / (float) (frameCount - 1);
                                         sBack.invoke(proc);
                                     }
                                 } catch (Exception e) {
@@ -560,24 +567,22 @@ public class PixivOperate {
                         } else {
                             delayMs = gifResponse.getDelay();
                             Common.showLog("使用返回的delay 11");
-                            for (int i = 0; i < allFiles.size(); i++) {
-                                Common.showLog("编码中 00 " + allFiles.size());
-                                animatedGifEncoder.addFrame(BitmapFactory.decodeFile(allFiles.get(i).getPath()));
+                            for (int i = 0; i < frameCount; i++) {
+                                Common.showLog("编码中 00 " + frameCount);
                                 animatedGifEncoder.setDelay(delayMs);
-
+                                animatedGifEncoder.addFrame(allBitmaps.get(i));
                             }
                         }
-
                     } else {
                         Common.showLog("使用返回的delay 22");
-                        for (int i = 0; i < allFiles.size(); i++) {
-                            Common.showLog("编码中 00 " + allFiles.size());
-                            animatedGifEncoder.addFrame(BitmapFactory.decodeFile(allFiles.get(i).getPath()));
+                        for (int i = 0; i < frameCount; i++) {
+                            Common.showLog("编码中 00 " + frameCount);
                             animatedGifEncoder.setDelay(delayMs);
+                            animatedGifEncoder.addFrame(allBitmaps.get(i));
                         }
                     }
 
-                    Common.showLog("allFiles size " + allFiles.size());
+                    Common.showLog("allFiles size " + frameCount);
 
                     animatedGifEncoder.finish();
 
@@ -590,7 +595,6 @@ public class PixivOperate {
                     }
 
                     Common.showLog("gifFile gifFile " + FileUtils.getSize(gifFile));
-                    System.out.println("gif v2 time:" + (System.nanoTime()-startTime));
 
                     Intent intent = new Intent(Params.PLAY_GIF);
                     intent.putExtra(Params.ID, illustsBean.getId());
@@ -611,7 +615,7 @@ public class PixivOperate {
             File toFolder = legacyFile.gifUnzipFolder(context, illustsBean);
             justUnzipFile(fromZip, toFolder);
             // encodeGif(context, toFolder, illustsBean);
-            // 虽然快，但是对小范围的快速动画采样有缺陷
+            // 速度快一点，效果待观察
             encodeGifV2(context, toFolder, illustsBean);
         } catch (Exception e) {
             e.printStackTrace();
