@@ -3,6 +3,7 @@ package ceui.lisa.utils;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.view.View;
 import android.widget.Button;
@@ -14,7 +15,9 @@ import com.blankj.utilcode.util.ZipUtils;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 import com.waynejo.androidndkgif.GifEncoder;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -40,6 +43,7 @@ import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.Back;
 import ceui.lisa.model.ListIllust;
+import ceui.lisa.models.FramesBean;
 import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.IllustSearchResponse;
 import ceui.lisa.models.NovelBean;
@@ -503,13 +507,116 @@ public class PixivOperate {
         }
     }
 
+    public static void encodeGifV2(Context context, File parentFile, IllustsBean illustsBean){
+        try {
+            Common.showLog("encodeGif 开始");
+            Observable.create(new ObservableOnSubscribe<String>() {
+                @Override
+                public void subscribe(ObservableEmitter<String> emitter) throws Exception {
+                    Common.showLog("encodeGif 开始生成gif图");
+                    final File[] listfile = parentFile.listFiles();
+
+                    List<File> allFiles = Arrays.asList(listfile);
+                    Collections.sort(allFiles, new Comparator<File>() {
+                        @Override
+                        public int compare(File o1, File o2) {
+                            if (Integer.valueOf(o1.getName().substring(0, o1.getName().length() - 4)) >
+                                    Integer.valueOf(o2.getName().substring(0, o2.getName().length() - 4))) {
+                                return 1;
+                            } else {
+                                return -1;
+                            }
+                        }
+                    });
+
+                    File gifFile = new LegacyFile().gifResultFile(context, illustsBean);
+                    Common.showLog("gifFile " + gifFile.getPath());
+
+                    AnimatedGifEncoder animatedGifEncoder = new AnimatedGifEncoder();
+                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                    animatedGifEncoder.start(bos);
+                    animatedGifEncoder.setRepeat(0); // 无限循环
+
+                    List<Bitmap> allBitmaps = new ArrayList<>();
+                    int frameCount = allFiles.size();
+                    for(int i = 0; i < frameCount; i++){
+                        allBitmaps.add(BitmapFactory.decodeFile(allFiles.get(i).getPath()));
+                    }
+
+                    GifResponse gifResponse = Cache.get().getModel(Params.ILLUST_ID + "_" + illustsBean.getId(), GifResponse.class);
+                    int delayMs = 60;
+                    if (gifResponse != null) {
+                        List<FramesBean> framesBeans = gifResponse.getUgoira_metadata().getFrames();
+                        if (frameCount == framesBeans.size()) {
+                            Common.showLog("使用返回的delay 00");
+
+                            for (int i = 0; i < frameCount; i++) {
+                                Common.showLog("编码中 00 " + frameCount + " " + (i + 1));
+                                animatedGifEncoder.setDelay(framesBeans.get(i).getDelay());
+                                animatedGifEncoder.addFrame(allBitmaps.get(i));
+
+                                try {
+                                    if (sBack != null) {
+                                        float proc = i / (float) (frameCount - 1);
+                                        sBack.invoke(proc);
+                                    }
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        } else {
+                            delayMs = gifResponse.getDelay();
+                            Common.showLog("使用返回的delay 11");
+                            for (int i = 0; i < frameCount; i++) {
+                                Common.showLog("编码中 00 " + frameCount);
+                                animatedGifEncoder.setDelay(delayMs);
+                                animatedGifEncoder.addFrame(allBitmaps.get(i));
+                            }
+                        }
+                    } else {
+                        Common.showLog("使用返回的delay 22");
+                        for (int i = 0; i < frameCount; i++) {
+                            Common.showLog("编码中 00 " + frameCount);
+                            animatedGifEncoder.setDelay(delayMs);
+                            animatedGifEncoder.addFrame(allBitmaps.get(i));
+                        }
+                    }
+
+                    Common.showLog("allFiles size " + frameCount);
+
+                    animatedGifEncoder.finish();
+
+                    try {
+                        FileOutputStream outStream = new FileOutputStream(gifFile.getPath());
+                        outStream.write(bos.toByteArray());
+                        outStream.close();
+                    } catch(Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    Common.showLog("gifFile gifFile " + FileUtils.getSize(gifFile));
+
+                    Intent intent = new Intent(Params.PLAY_GIF);
+                    intent.putExtra(Params.ID, illustsBean.getId());
+                    LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
+                }
+            }).subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new TryCatchObserverImpl<>());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void unzipAndePlay(Context context, IllustsBean illustsBean) {
         try {
             LegacyFile legacyFile = new LegacyFile();
             File fromZip = legacyFile.gifZipFile(context, illustsBean);
             File toFolder = legacyFile.gifUnzipFolder(context, illustsBean);
             justUnzipFile(fromZip, toFolder);
-            encodeGif(context, toFolder, illustsBean);
+            // encodeGif(context, toFolder, illustsBean);
+            // 速度快一点，效果待观察
+            encodeGifV2(context, toFolder, illustsBean);
         } catch (Exception e) {
             e.printStackTrace();
         }
