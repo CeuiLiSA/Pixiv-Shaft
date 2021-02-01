@@ -24,7 +24,7 @@
   <string name="double_click_finish">한 번 더 누 르 고 빠 져 ~</string>  
   <string name="delete_all">모두 삭제</string>  
   <string name="illust_filter">선별 하 다.</string>  
-  <string name="share_illust">% 1 $s.% 2 $s \ Pixiv% 3 $s</string>  
+  <string name="share_illust">%1$s | %2$s #Pixiv %3$s</string>
   <string name="share">함께 나누다</string>  
   <string name="webview_handler_open_in_browser">브 라 우 저 에서 열기</string>  
   <string name="webview_handler_copy_link_addr">링크 주소 복사</string>  
@@ -353,7 +353,7 @@
   <string name="string_181">저장 완료</string>  
   <string name="string_182">제목:</string>  
   <string name="string_183">계열:</string>  
-  <string name="string_184">계열:% s</string>  
+  <string name="string_184">계열: %s</string>
   <string name="string_185">탈퇴 후 계좌번호 정 보 를 삭제 하 시 겠 습 니까?</string>  
   <string name="string_186">계 정 정보 삭제</string>  
   <string name="string_187">취소 하 다.</string>  

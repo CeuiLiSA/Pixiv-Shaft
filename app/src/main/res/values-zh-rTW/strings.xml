@@ -54,8 +54,7 @@
   <string name="walkthrough">畫廊</string>  
   <string name="latest_work">最新</string>  
   <string name="search">搜索</string>  
-  <string name="hito">單個字</string>  
-  <string name="hello_blank_fragment">你好空白片段</string>  
+  <string name="hello_blank_fragment">你好空白片段</string>
   <string name="cannot_download">你下你🐴呢？</string>  
   <string name="image_alredy_exist">圖片已存在</string>  
   <string name="has_been_added">個項目已加入下載隊列</string>  

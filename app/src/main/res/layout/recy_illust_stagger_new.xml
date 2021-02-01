@@ -85,10 +85,10 @@
                 android:id="@+id/like_button"
                 android:scaleType="fitCenter"
                 android:layout_alignParentEnd="true"
-                android:tint="#a4afb3"
                 android:layout_alignParentBottom="true"
                 android:src="@drawable/ic_like_illust_6"
-                android:layout_height="36dp">
+                android:layout_height="36dp"
+                app:tint="#a4afb3">
 
             </ImageButton>
 
