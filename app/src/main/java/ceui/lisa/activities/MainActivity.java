@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
@@ -29,6 +30,11 @@ import com.bumptech.glide.Glide;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 import com.tbruyelle.rxpermissions3.RxPermissions;
+
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import ceui.lisa.R;
 import ceui.lisa.core.Manager;
@@ -428,27 +434,5 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             initDrawerHeader();
             Dev.refreshUser = false;
         }
-        getUrl();
-    }
-
-    private void getUrl() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                OkHttpClient client = Retro.getLogClient().build();
-
-                Request request = new Request.Builder()
-                        .url("http://www.pixiv.me/psyg2")
-                        .build();
-
-                try {
-                    Response response = client.newCall(request).execute();
-                    String result = response.body().string();
-                    Common.showLog("getUrl " + result);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
     }
 }

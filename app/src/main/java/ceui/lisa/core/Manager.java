@@ -197,8 +197,8 @@ public class Manager {
                         PixivOperate.unzipAndePlay(context, bean.getIllust());
                     }
 
+                    //通知 DOWNLOAD_ING 下载完成
                     {
-                        //通知 DOWNLOAD_ING 下载完成
                         Intent intent = new Intent(Params.DOWNLOAD_ING);
                         Holder holder = new Holder();
                         holder.setCode(Params.DOWNLOAD_SUCCESS);
@@ -208,8 +208,8 @@ public class Manager {
                         LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
                     }
 
+                    //通知 DOWNLOAD_FINISH 下载完成
                     {
-                        //通知 DOWNLOAD_FINISH 下载完成
                         DownloadEntity downloadEntity = new DownloadEntity();
                         downloadEntity.setIllustGson(Shaft.sGson.toJson(bean.getIllust()));
                         downloadEntity.setFileName(bean.getName());

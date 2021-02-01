@@ -73,12 +73,6 @@ public class Params {
 
     public static final String SHOW_LONG_DIALOG = "show long dialog";
     public static final String IS_MIGRATE = "IS_MIGRATE";
-    public static final String LONG_DIALOG_MESSAGE = "1.首先对前段时间自己生产的BUG跟各位说声抱歉。\n" +
-            "2.android 11会全面启用SAF存储访问框架，所以我把曾经用的很舒服但是即将被废弃的传统存储文件方式换成了SAF的访问模式。为了软件后续的持久发展，这是必经之路。\n" +
-            "3.自己在简单适配了原生安卓，三星，一加，索尼之后就发布新版本Shaft了，但是没有预料到有的国产厂商把手机系统魔改的这么狠。导致即便我严格遵守SAF框架细则来操作文件，仍然有的手机无法正常下载。这是我没适配好的问题，至今也是站在十字路口不知道改怎么解决，到底该返回舒适区，用即将被弃用的老版本文件系统，还是走一步看一步，用新的版本SAF框架呢？\n" +
-            "4.关于下载速度，加载速度，我也尽力找所有能加速的方案，Pixivcat在我所在的上海地区真的是速度提升明显，所以自己就擅自更新了，导致部分地区的人加载速度反而变慢，这也是我草率做决策的问题\n" +
-            "5.种种原因导致最近app问题偏多。但是请相信我，我愿意花时间花精力来让APP变好。即便自己能力比较菜，即便上班的闲暇时间也不多，但是请给我一点时间来做好。谢谢各位";
-
 
     public static final int REQUEST_CODE_CHOOSE = 10086;
     public static final String EXAMPLE_ILLUST = "{\n" +

@@ -17,6 +17,7 @@ import com.just.agentweb.AgentWeb;
 import com.just.agentweb.WebViewClient;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.OutWakeActivity;
 import ceui.lisa.activities.UserActivity;
 import ceui.lisa.databinding.FragmentWebviewBinding;
 import ceui.lisa.utils.ClipBoardUtils;
@@ -32,6 +33,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
     //private static final String ILLUST_HEAD = "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=";
     private static final String USER_HEAD = "https://www.pixiv.net/member.php?id=";
     private static final String WORKS_HEAD = "https://www.pixiv.net/artworks/";
+    private static final String PIXIV_HEAD = "https://www.pixiv.net/";
     private String title;
     private String url;
     private String response = null;
@@ -97,17 +99,17 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                     public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
 
                         String destiny = request.getUrl().toString();
-                        Common.showLog(className + destiny);
-                        if (destiny.contains(WORKS_HEAD)) {
-                            PixivOperate.getIllustByID(sUserModel,
-                                    Integer.valueOf(destiny.substring(WORKS_HEAD.length())), mContext);
-                            return true;
-                        }
-
-                        if (destiny.contains(USER_HEAD)) {
-                            Intent intent = new Intent(mContext, UserActivity.class);
-                            intent.putExtra(Params.USER_ID, Integer.valueOf(destiny.substring(USER_HEAD.length())));
-                            startActivity(intent);
+                        Common.showLog(className + "destiny " + destiny);
+                        if (destiny.contains(PIXIV_HEAD)) {
+                            try {
+                                Intent intent = new Intent(mContext, OutWakeActivity.class);
+                                intent.setData(Uri.parse(destiny));
+                                startActivity(intent);
+                                finish();
+                            } catch (Exception e) {
+                                Common.showToast(e.toString());
+                                e.printStackTrace();
+                            }
                             return true;
                         }
 
