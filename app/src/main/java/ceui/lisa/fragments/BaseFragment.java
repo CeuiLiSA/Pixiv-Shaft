@@ -155,12 +155,4 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
     public void initModel() {
 
     }
-
-    public View getRootView() {
-        return rootView;
-    }
-
-    public void setRootView(View rootView) {
-        this.rootView = rootView;
-    }
 }

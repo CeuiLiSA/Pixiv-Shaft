@@ -371,7 +371,6 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             @Override
             public void onClick(View v) {
                 new QMUIDialog.CheckableDialogBuilder(getActivity())
-                        .setSkinManager(QMUISkinManager.defaultInstance(getContext()))
                         .addItems(ALL_LANGUAGE, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
