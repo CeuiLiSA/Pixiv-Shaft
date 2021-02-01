@@ -12,8 +12,8 @@ import ceui.lisa.models.IllustsBean
 import ceui.lisa.repo.MangaSeriesDetailRepo
 import ceui.lisa.utils.Params
 
-class FragmentMangaSeriesDetail: NetListFragment<FragmentBaseListBinding,
-        ListMangaOfSeries, IllustsBean>() {
+class FragmentMangaSeriesDetail :
+    NetListFragment<FragmentBaseListBinding, ListMangaOfSeries, IllustsBean>() {
 
     private var seriesId: Int = 0
 

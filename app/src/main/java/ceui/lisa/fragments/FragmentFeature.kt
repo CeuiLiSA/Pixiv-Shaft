@@ -24,7 +24,7 @@ import com.qmuiteam.qmui.skin.QMUISkinManager
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog.MessageDialogBuilder
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
 
-class FragmentFeature: LocalListFragment<FragmentBaseListBinding, FeatureEntity>() {
+class FragmentFeature : LocalListFragment<FragmentBaseListBinding, FeatureEntity>() {
 
     override fun adapter(): BaseAdapter<*, out ViewDataBinding> {
         return FratureAdapter(allItems, mContext).setOnItemClickListener { v, position, viewType ->
@@ -37,19 +37,24 @@ class FragmentFeature: LocalListFragment<FragmentBaseListBinding, FeatureEntity>
                 startActivity(intent)
             } else if (viewType == 1) {
                 MessageDialogBuilder(activity)
-                        .setTitle(getString(R.string.string_143))
-                        .setMessage(getString(R.string.string_252))
-                        .setSkinManager(QMUISkinManager.defaultInstance(context))
-                        .addAction(getString(R.string.string_142)) { dialog, index -> dialog.dismiss() }
-                        .addAction(0, getString(R.string.string_141), QMUIDialogAction.ACTION_PROP_NEGATIVE) { dialog, index ->
-                            AppDatabase.getAppDatabase(mContext).downloadDao().deleteFeature(allItems[position])
-                            Common.showToast<String>(getString(R.string.string_220))
-                            dialog.dismiss()
-                            allItems.removeAt(position)
-                            mAdapter.notifyItemRemoved(position)
-                            mAdapter.notifyItemRangeChanged(position, allItems.size - position)
-                        }
-                        .show()
+                    .setTitle(getString(R.string.string_143))
+                    .setMessage(getString(R.string.string_252))
+                    .setSkinManager(QMUISkinManager.defaultInstance(context))
+                    .addAction(getString(R.string.string_142)) { dialog, index -> dialog.dismiss() }
+                    .addAction(
+                        0,
+                        getString(R.string.string_141),
+                        QMUIDialogAction.ACTION_PROP_NEGATIVE
+                    ) { dialog, index ->
+                        AppDatabase.getAppDatabase(mContext).downloadDao()
+                            .deleteFeature(allItems[position])
+                        Common.showToast<String>(getString(R.string.string_220))
+                        dialog.dismiss()
+                        allItems.removeAt(position)
+                        mAdapter.notifyItemRemoved(position)
+                        mAdapter.notifyItemRangeChanged(position, allItems.size - position)
+                    }
+                    .show()
             }
         }
     }
@@ -57,26 +62,30 @@ class FragmentFeature: LocalListFragment<FragmentBaseListBinding, FeatureEntity>
     override fun initView() {
         super.initView()
         baseBind.toolbar.inflateMenu(R.menu.delete_all)
-        baseBind.toolbar.setOnMenuItemClickListener(object :Toolbar.OnMenuItemClickListener {
+        baseBind.toolbar.setOnMenuItemClickListener(object : Toolbar.OnMenuItemClickListener {
             override fun onMenuItemClick(item: MenuItem?): Boolean {
                 if (item?.itemId == R.id.action_delete) {
-                    if(Common.isEmpty(allItems)){
+                    if (Common.isEmpty(allItems)) {
                         Common.showToast(getString(R.string.string_254))
                         return true
                     }
                     MessageDialogBuilder(activity)
-                            .setTitle(getString(R.string.string_143))
-                            .setMessage(getString(R.string.string_253))
-                            .setSkinManager(QMUISkinManager.defaultInstance(context))
-                            .addAction(getString(R.string.string_142)) { dialog, index -> dialog.dismiss() }
-                            .addAction(0, getString(R.string.string_141), QMUIDialogAction.ACTION_PROP_NEGATIVE) { dialog, index ->
-                                AppDatabase.getAppDatabase(mContext).downloadDao().deleteAllFeature()
-                                Common.showToast<String>(getString(R.string.string_220))
-                                dialog.dismiss()
-                                mAdapter.clear()
-                                emptyRela.visibility = View.VISIBLE
-                            }
-                            .show()
+                        .setTitle(getString(R.string.string_143))
+                        .setMessage(getString(R.string.string_253))
+                        .setSkinManager(QMUISkinManager.defaultInstance(context))
+                        .addAction(getString(R.string.string_142)) { dialog, index -> dialog.dismiss() }
+                        .addAction(
+                            0,
+                            getString(R.string.string_141),
+                            QMUIDialogAction.ACTION_PROP_NEGATIVE
+                        ) { dialog, index ->
+                            AppDatabase.getAppDatabase(mContext).downloadDao().deleteAllFeature()
+                            Common.showToast<String>(getString(R.string.string_220))
+                            dialog.dismiss()
+                            mAdapter.clear()
+                            emptyRela.visibility = View.VISIBLE
+                        }
+                        .show()
                     return true
                 }
                 return false
@@ -85,17 +94,17 @@ class FragmentFeature: LocalListFragment<FragmentBaseListBinding, FeatureEntity>
     }
 
     override fun repository(): BaseRepo {
-        return object :LocalRepo<List<FeatureEntity>>(){
+        return object : LocalRepo<List<FeatureEntity>>() {
             override fun first(): List<FeatureEntity> {
                 return AppDatabase.getAppDatabase(mContext)
-                        .downloadDao()
-                        .getFeatureList(PAGE_SIZE, 0)
+                    .downloadDao()
+                    .getFeatureList(PAGE_SIZE, 0)
             }
 
             override fun next(): List<FeatureEntity>? {
                 return AppDatabase.getAppDatabase(mContext)
-                        .downloadDao()
-                        .getFeatureList(PAGE_SIZE, allItems.size)
+                    .downloadDao()
+                    .getFeatureList(PAGE_SIZE, allItems.size)
             }
         }
     }
@@ -104,8 +113,10 @@ class FragmentFeature: LocalListFragment<FragmentBaseListBinding, FeatureEntity>
         super.onFirstLoaded(items)
         for (item in items) {
             if (!TextUtils.isEmpty(item.illustJson)) {
-                item.allIllust = Shaft.sGson.fromJson<List<IllustsBean>>(item.illustJson,
-                        object : TypeToken<List<IllustsBean>>() {}.type)
+                item.allIllust = Shaft.sGson.fromJson<List<IllustsBean>>(
+                    item.illustJson,
+                    object : TypeToken<List<IllustsBean>>() {}.type
+                )
             }
         }
     }

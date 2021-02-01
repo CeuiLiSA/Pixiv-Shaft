@@ -7,8 +7,8 @@ import ceui.lisa.utils.Dev
 import io.reactivex.Observable
 
 open class PivisionRepo(
-        private val dataType: String?,
-        private val isHorizontal: Boolean
+    private val dataType: String?,
+    private val isHorizontal: Boolean
 ) : RemoteRepo<ListArticle>() {
 
     override fun initApi(): Observable<ListArticle> {

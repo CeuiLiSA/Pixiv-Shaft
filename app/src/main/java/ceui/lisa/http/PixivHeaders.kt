@@ -3,8 +3,8 @@ package ceui.lisa.http
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.text.SimpleDateFormat
-import java.util.*
-
+import java.util.Date
+import java.util.Locale
 
 /**
  * @author Aragaki
@@ -41,19 +41,13 @@ class PixivHeaders {
                     buf.append("0")
                 buf.append(Integer.toHexString(i))
             }
-            //32位加密
+            // 32位加密
             return buf.toString()
             // 16位的加密
-            //return buf.toString().substring(8, 24);
+            // return buf.toString().substring(8, 24);
         } catch (e: NoSuchAlgorithmException) {
             e.printStackTrace()
             return ""
         }
     }
 }
-
-
-
-
-
-

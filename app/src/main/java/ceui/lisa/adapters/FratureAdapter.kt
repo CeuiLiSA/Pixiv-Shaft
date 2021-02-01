@@ -10,9 +10,9 @@ import com.bumptech.glide.Glide
 import java.text.SimpleDateFormat
 
 class FratureAdapter(
-        targetList: MutableList<FeatureEntity>,
-        context: Context
-): BaseAdapter<FeatureEntity, RecyFeatureBinding>(targetList, context) {
+    targetList: MutableList<FeatureEntity>,
+    context: Context
+) : BaseAdapter<FeatureEntity, RecyFeatureBinding>(targetList, context) {
 
     val sdr = SimpleDateFormat("yyyy年MM月dd日 HH:mm添加")
 
@@ -20,56 +20,84 @@ class FratureAdapter(
         mLayoutID = R.layout.recy_feature
     }
 
-    override fun bindData(target: FeatureEntity, bindView: ViewHolder<RecyFeatureBinding>, position: Int) {
+    override fun bindData(
+        target: FeatureEntity,
+        bindView: ViewHolder<RecyFeatureBinding>,
+        position: Int
+    ) {
         val times: String = sdr.format(target.dateTime)
         bindView.baseBind.starSize.text = times
 
         if (!Common.isEmpty(target.allIllust)) {
             when {
                 target.allIllust.size >= 3 -> {
-                    Glide.with(mContext).load(GlideUtil.getMediumImg(target
-                            .allIllust[0]))
-                            .placeholder(R.color.light_bg)
-                            .into(bindView.baseBind.userShowOne)
-                    Glide.with(mContext).load(GlideUtil.getMediumImg(target
-                            .allIllust[1]))
-                            .placeholder(R.color.light_bg)
-                            .into(bindView.baseBind.userShowTwo)
-                    Glide.with(mContext).load(GlideUtil.getMediumImg(target
-                            .allIllust[2]))
-                            .placeholder(R.color.light_bg)
-                            .into(bindView.baseBind.userShowThree)
+                    Glide.with(mContext).load(
+                        GlideUtil.getMediumImg(
+                            target
+                                .allIllust[0]
+                        )
+                    )
+                        .placeholder(R.color.light_bg)
+                        .into(bindView.baseBind.userShowOne)
+                    Glide.with(mContext).load(
+                        GlideUtil.getMediumImg(
+                            target
+                                .allIllust[1]
+                        )
+                    )
+                        .placeholder(R.color.light_bg)
+                        .into(bindView.baseBind.userShowTwo)
+                    Glide.with(mContext).load(
+                        GlideUtil.getMediumImg(
+                            target
+                                .allIllust[2]
+                        )
+                    )
+                        .placeholder(R.color.light_bg)
+                        .into(bindView.baseBind.userShowThree)
                 }
                 target.allIllust.size == 2 -> {
-                    Glide.with(mContext).load(GlideUtil.getMediumImg(target
-                            .allIllust[0]))
-                            .placeholder(R.color.light_bg)
-                            .into(bindView.baseBind.userShowOne)
-                    Glide.with(mContext).load(GlideUtil.getMediumImg(target
-                            .allIllust[1]))
-                            .placeholder(R.color.light_bg)
-                            .into(bindView.baseBind.userShowTwo)
+                    Glide.with(mContext).load(
+                        GlideUtil.getMediumImg(
+                            target
+                                .allIllust[0]
+                        )
+                    )
+                        .placeholder(R.color.light_bg)
+                        .into(bindView.baseBind.userShowOne)
+                    Glide.with(mContext).load(
+                        GlideUtil.getMediumImg(
+                            target
+                                .allIllust[1]
+                        )
+                    )
+                        .placeholder(R.color.light_bg)
+                        .into(bindView.baseBind.userShowTwo)
                     Glide.with(mContext).load(R.color.light_bg)
-                            .into(bindView.baseBind.userShowThree)
+                        .into(bindView.baseBind.userShowThree)
                 }
                 target.allIllust.size == 1 -> {
-                    Glide.with(mContext).load(GlideUtil.getMediumImg(target
-                            .allIllust[0]))
-                            .placeholder(R.color.light_bg)
-                            .into(bindView.baseBind.userShowOne)
+                    Glide.with(mContext).load(
+                        GlideUtil.getMediumImg(
+                            target
+                                .allIllust[0]
+                        )
+                    )
+                        .placeholder(R.color.light_bg)
+                        .into(bindView.baseBind.userShowOne)
                     Glide.with(mContext).load(R.color.light_bg)
-                            .into(bindView.baseBind.userShowTwo)
+                        .into(bindView.baseBind.userShowTwo)
                     Glide.with(mContext).load(R.color.light_bg)
-                            .into(bindView.baseBind.userShowThree)
+                        .into(bindView.baseBind.userShowThree)
                 }
             }
         } else {
             Glide.with(mContext).load(R.color.light_bg)
-                    .into(bindView.baseBind.userShowOne)
+                .into(bindView.baseBind.userShowOne)
             Glide.with(mContext).load(R.color.light_bg)
-                    .into(bindView.baseBind.userShowTwo)
+                .into(bindView.baseBind.userShowTwo)
             Glide.with(mContext).load(R.color.light_bg)
-                    .into(bindView.baseBind.userShowThree)
+                .into(bindView.baseBind.userShowThree)
         }
         bindView.baseBind.illustCount.text = target.dataType
         bindView.baseBind.deleteItem.setOnClickListener {

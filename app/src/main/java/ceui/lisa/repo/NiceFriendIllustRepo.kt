@@ -5,7 +5,7 @@ import ceui.lisa.http.Retro
 import ceui.lisa.model.ListIllust
 import io.reactivex.Observable
 
-class NiceFriendIllustRepo: RemoteRepo<ListIllust>() {
+class NiceFriendIllustRepo : RemoteRepo<ListIllust>() {
 
     override fun initApi(): Observable<ListIllust> {
         return Retro.getAppApi().getNiceFriendIllust(token())

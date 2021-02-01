@@ -6,7 +6,7 @@ import ceui.lisa.model.ListIllust
 import io.reactivex.Observable
 
 open class RecmdIllustRepo(
-        private val dataType: String?
+    private val dataType: String?
 ) : RemoteRepo<ListIllust>() {
 
     override fun initApi(): Observable<ListIllust> {

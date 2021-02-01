@@ -22,11 +22,11 @@ class FragmentPopularNovel : NetListFragment<FragmentBaseListBinding, ListNovel,
     companion object {
         @JvmStatic
         fun newInstance(word: String): FragmentPopularNovel =
-                FragmentPopularNovel().apply {
-                    arguments = Bundle().apply {
-                        putString(Params.KEY_WORD, word)
-                    }
+            FragmentPopularNovel().apply {
+                arguments = Bundle().apply {
+                    putString(Params.KEY_WORD, word)
                 }
+            }
     }
 
     override fun adapter(): BaseAdapter<*, out ViewDataBinding> {

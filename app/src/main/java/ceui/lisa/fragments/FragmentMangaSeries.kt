@@ -21,7 +21,8 @@ import ceui.lisa.utils.DensityUtil
 import ceui.lisa.utils.Params
 import ceui.lisa.view.LinearItemDecorationNoLRTB
 
-class FragmentMangaSeries : NetListFragment<FragmentBaseListBinding, ListMangaSeries, MangaSeriesItem>() {
+class FragmentMangaSeries :
+    NetListFragment<FragmentBaseListBinding, ListMangaSeries, MangaSeriesItem>() {
 
     private var userID: Int = 0
 
@@ -41,7 +42,10 @@ class FragmentMangaSeries : NetListFragment<FragmentBaseListBinding, ListMangaSe
     }
 
     override fun adapter(): BaseAdapter<*, out ViewDataBinding> {
-        return MangaSeriesAdapter(allItems, mContext).setOnItemClickListener { v, position, viewType ->
+        return MangaSeriesAdapter(
+            allItems,
+            mContext
+        ).setOnItemClickListener { v, position, viewType ->
             val intent = Intent(mContext, TemplateActivity::class.java)
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "漫画系列详情")
             intent.putExtra(Params.ID, allItems[position].id)
@@ -65,18 +69,20 @@ class FragmentMangaSeries : NetListFragment<FragmentBaseListBinding, ListMangaSe
     override fun initView() {
         super.initView()
         baseBind.toolbar.inflateMenu(R.menu.local_save)
-        baseBind.toolbar.setOnMenuItemClickListener(Toolbar.OnMenuItemClickListener { item ->
-            if (item.itemId == R.id.action_bookmark) {
-                val entity = FeatureEntity()
-                entity.uuid = userID.toString() + "漫画系列作品"
-                entity.dataType = "漫画系列作品"
-                entity.userID = userID
-                entity.dateTime = System.currentTimeMillis()
-                AppDatabase.getAppDatabase(mContext).downloadDao().insertFeature(entity)
-                Common.showToast("已收藏到精华")
-                return@OnMenuItemClickListener true
+        baseBind.toolbar.setOnMenuItemClickListener(
+            Toolbar.OnMenuItemClickListener { item ->
+                if (item.itemId == R.id.action_bookmark) {
+                    val entity = FeatureEntity()
+                    entity.uuid = userID.toString() + "漫画系列作品"
+                    entity.dataType = "漫画系列作品"
+                    entity.userID = userID
+                    entity.dateTime = System.currentTimeMillis()
+                    AppDatabase.getAppDatabase(mContext).downloadDao().insertFeature(entity)
+                    Common.showToast("已收藏到精华")
+                    return@OnMenuItemClickListener true
+                }
+                false
             }
-            false
-        })
+        )
     }
 }

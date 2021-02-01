@@ -11,10 +11,10 @@ import io.reactivex.Observable
 import io.reactivex.functions.Function
 
 class SearchIllustRepo(
-        var keyword: String?,
-        var sortType: String?,
-        var searchType: String?,
-        var isPopular: Boolean
+    var keyword: String?,
+    var sortType: String?,
+    var searchType: String?,
+    var isPopular: Boolean
 ) : RemoteRepo<ListIllust>() {
 
     override fun initApi(): Observable<ListIllust> {
@@ -22,13 +22,12 @@ class SearchIllustRepo(
             Retro.getAppApi().popularPreview(token(), keyword)
         } else {
             PixivOperate.insertSearchHistory(keyword, 0)
-            Retro.getAppApi().searchIllust(token(), keyword +
-                    if (Shaft.sSettings.searchFilter.contains("无限制"))
-                        ""
-                    else
-                        " " + Shaft.sSettings.searchFilter,
-                    sortType,
-                    searchType)
+            Retro.getAppApi().searchIllust(
+                token(),
+                keyword + if (Shaft.sSettings.searchFilter.contains("无限制")) "" else " " + Shaft.sSettings.searchFilter,
+                sortType,
+                searchType
+            )
         }
     }
 
