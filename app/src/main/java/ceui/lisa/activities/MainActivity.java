@@ -7,7 +7,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
@@ -24,11 +26,19 @@ import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.viewpager.widget.ViewPager;
 
+import com.blankj.utilcode.util.LanguageUtils;
 import com.blankj.utilcode.util.UriUtils;
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.tbruyelle.rxpermissions3.RxPermissions;
+
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Locale;
 
 import ceui.lisa.R;
 import ceui.lisa.core.Manager;
@@ -42,6 +52,7 @@ import ceui.lisa.notification.CallBackReceiver;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
+import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseImage;
 import ceui.lisa.utils.ReverseWebviewCallback;
@@ -50,6 +61,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
+import static ceui.lisa.utils.Settings.ALL_LANGUAGE;
 
 /**
  * 主页
@@ -307,12 +319,8 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "精华列");
                 break;
             case R.id.nav_fans:
-                if (Dev.isDev) {
-                    intent = new Intent(mContext, NovelActivity.class);
-                } else {
-                    intent = new Intent(mContext, TemplateActivity.class);
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "粉丝");
-                }
+                intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "粉丝");
                 break;
             case R.id.illust_star:
                 intent = new Intent(mContext, TemplateActivity.class);
@@ -345,11 +353,27 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         //super.onSaveInstanceState(outState);
     }
 
+    public static final String[] ALL_SELECT_WAY = new String[]{"图库选图", "文件管理器选图"};
+
     private void selectPhoto() {
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);//必须
-        intent.setType("image/*");//必须
-        startActivityForResult(intent, Params.REQUEST_CODE_CHOOSE);
+        new QMUIDialog.CheckableDialogBuilder(mActivity)
+                .addItems(ALL_SELECT_WAY, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (which == 0) {
+                            Intent intentToPickPic = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                            intentToPickPic.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*");
+                            startActivityForResult(intentToPickPic, Params.REQUEST_CODE_CHOOSE);
+                        } else {
+                            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                            intent.addCategory(Intent.CATEGORY_OPENABLE);//必须
+                            intent.setType("image/*");//必须
+                            startActivityForResult(intent, Params.REQUEST_CODE_CHOOSE);
+                        }
+                        dialog.dismiss();
+                    }
+                })
+                .show();
     }
 
     private void initDrawerHeader() {
@@ -428,27 +452,5 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             initDrawerHeader();
             Dev.refreshUser = false;
         }
-        getUrl();
-    }
-
-    private void getUrl() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                OkHttpClient client = Retro.getLogClient().build();
-
-                Request request = new Request.Builder()
-                        .url("http://www.pixiv.me/psyg2")
-                        .build();
-
-                try {
-                    Response response = client.newCall(request).execute();
-                    String result = response.body().string();
-                    Common.showLog("getUrl " + result);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
     }
 }

@@ -18,6 +18,8 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
 
+    public static final String HOST_ME = "pixiv.me";
+
     @Override
     protected int initLayout() {
         return R.layout.activity_out_wake;
@@ -54,6 +56,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                                         finish();
                                     }
                                 });
+                                finish();
                                 return;
                             }
                         }
@@ -65,6 +68,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                                 Intent userIntent = new Intent(mContext, UserActivity.class);
                                 userIntent.putExtra(Params.USER_ID, Integer.valueOf(userID));
                                 startActivity(userIntent);
+                                finish();
                                 return;
                             }
                         }
@@ -87,6 +91,14 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                                         finish();
                                     }
                                 });
+                                return;
+                            } else if (uriString.contains(HOST_ME)) {
+                                Intent i = new Intent(mContext, TemplateActivity.class);
+                                i.putExtra(Params.URL, uriString);
+                                i.putExtra(Params.TITLE, HOST_ME);
+                                i.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
+                                startActivity(i);
+                                finish();
                                 return;
                             }
                         } catch (Exception e) {
