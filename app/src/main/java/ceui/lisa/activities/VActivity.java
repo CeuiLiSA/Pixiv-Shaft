@@ -61,33 +61,34 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                     return pageSize;
                 }
             });
-            if (pageSize == 1) {
-                if (Shaft.sSettings.isSaveViewHistory()) {
-                    PixivOperate.insertIllustViewHistory(idWithList.getList().get(0));
+
+            ViewPager.OnPageChangeListener listener = new ViewPager.OnPageChangeListener() {
+                @Override
+                public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
                 }
-            } else {
-                baseBind.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-                    @Override
-                    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
 
+                @Override
+                public void onPageSelected(int position) {
+                    Common.showLog("VActivity onPageSelected " + position);
+                    if (Shaft.sSettings.isSaveViewHistory()) {
+                        PixivOperate.insertIllustViewHistory(idWithList.getList().get(position));
                     }
+                }
 
-                    @Override
-                    public void onPageSelected(int position) {
-                        Common.showLog("VActivity onPageSelected " + position);
-                        if (Shaft.sSettings.isSaveViewHistory()) {
-                            PixivOperate.insertIllustViewHistory(idWithList.getList().get(position));
-                        }
-                    }
+                @Override
+                public void onPageScrollStateChanged(int state) {
 
-                    @Override
-                    public void onPageScrollStateChanged(int state) {
+                }
+            };
+            baseBind.viewPager.addOnPageChangeListener(listener);
 
-                    }
-                });
-            }
-            if (index < pageSize) {
+            if(index < pageSize){
                 baseBind.viewPager.setCurrentItem(index);
+            }
+
+            if(index == 0){
+                baseBind.viewPager.post(() -> listener.onPageSelected(baseBind.viewPager.getCurrentItem()));
             }
         } else {
             finish();
