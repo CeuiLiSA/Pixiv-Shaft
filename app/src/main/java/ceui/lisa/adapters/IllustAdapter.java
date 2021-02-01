@@ -141,7 +141,9 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                     @Override
                     public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
                         holder.baseBind.progressLayout.donutProgress.setVisibility(View.INVISIBLE);
-                        Shaft.getMMKV().encode("", "");
+                        if (isForceOriginal) {
+                            Shaft.getMMKV().encode(imageUrl, true);
+                        }
                         return false;
                     }
                 })
