@@ -5,7 +5,7 @@ import ceui.lisa.http.Retro
 import ceui.lisa.model.ListNovel
 import io.reactivex.Observable
 
-class PopularNovelRepo(private val word: String): RemoteRepo<ListNovel>() {
+class PopularNovelRepo(private val word: String) : RemoteRepo<ListNovel>() {
 
     override fun initApi(): Observable<ListNovel> {
         return Retro.getAppApi().popularNovelPreview(token(), word)

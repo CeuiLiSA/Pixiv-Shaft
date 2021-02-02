@@ -10,7 +10,8 @@ import ceui.lisa.model.ListIllust
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.repo.NiceFriendIllustRepo
 
-class FragmentNiceFriendIllust: NetListFragment<FragmentBaseListBinding, ListIllust, IllustsBean>() {
+class FragmentNiceFriendIllust :
+    NetListFragment<FragmentBaseListBinding, ListIllust, IllustsBean>() {
 
     override fun adapter(): BaseAdapter<*, out ViewDataBinding> {
         return IAdapter(allItems, mContext)

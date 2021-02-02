@@ -7,9 +7,9 @@ import ceui.lisa.viewmodel.SearchModel
 import io.reactivex.Observable
 
 class SearchNovelRepo(
-        var keyword: String?,
-        var sortType: String?,
-        var searchType: String?
+    var keyword: String?,
+    var sortType: String?,
+    var searchType: String?
 ) : RemoteRepo<ListNovel>() {
 
     override fun initApi(): Observable<ListNovel> {

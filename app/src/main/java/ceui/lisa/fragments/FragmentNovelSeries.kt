@@ -11,7 +11,8 @@ import ceui.lisa.models.NovelSeriesItem
 import ceui.lisa.repo.NovelSeriesRepo
 import ceui.lisa.utils.Params
 
-class FragmentNovelSeries: NetListFragment<FragmentBaseListBinding, ListNovelSeries, NovelSeriesItem>() {
+class FragmentNovelSeries :
+    NetListFragment<FragmentBaseListBinding, ListNovelSeries, NovelSeriesItem>() {
 
     override fun adapter(): BaseAdapter<*, out ViewDataBinding>? {
         return NovelSeriesAdapter(allItems, mContext)

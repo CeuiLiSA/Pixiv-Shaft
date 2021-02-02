@@ -11,7 +11,6 @@ import ceui.lisa.utils.PackageUtils
 import ceui.lisa.utils.Params
 import com.scwang.smartrefresh.layout.SmartRefreshLayout
 
-
 class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
 
     override fun initLayout() {
@@ -41,7 +40,10 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
         baseBind.pixivPrivacy.setOnClickListener {
             val intent = Intent(mContext, TemplateActivity::class.java)
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接")
-            intent.putExtra(Params.URL, "https://www.pixiv.net/terms/?page=privacy&appname=pixiv_ios")
+            intent.putExtra(
+                Params.URL,
+                "https://www.pixiv.net/terms/?page=privacy&appname=pixiv_ios"
+            )
             intent.putExtra(Params.TITLE, "隐私政策")
             startActivity(intent)
         }
@@ -79,15 +81,16 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
         baseBind.goQq.setOnClickListener {
             val intent = Intent()
             intent.data = Uri.parse(
-                    "mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + "_RMaPSgL-eB-JZPMFdXGJTSqIqtgCn5G");
+                "mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + "_RMaPSgL-eB-JZPMFdXGJTSqIqtgCn5G"
+            )
             try {
                 startActivity(intent)
             } catch (e: Exception) {
                 Common.showToast(getString(R.string.string_227))
             }
-
         }
-        baseBind.appVersion.text = Common.getAppVersionName(mContext) + " (" + Common.getAppVersionCode(mContext) + ") "
+        baseBind.appVersion.text =
+            Common.getAppVersionName(mContext) + " (" + Common.getAppVersionCode(mContext) + ") "
         baseBind.rateThisApp.setOnClickListener {
             val uri = Uri.parse("market://details?id=" + mContext.packageName)
             val myAppLinkToMarket = Intent(Intent.ACTION_VIEW, uri)

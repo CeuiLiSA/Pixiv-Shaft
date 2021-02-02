@@ -5,20 +5,23 @@ import android.content.Intent
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.RecyNovelSeriesOfUserBinding
-import ceui.lisa.models.NovelBean
 import ceui.lisa.models.NovelSeriesItem
 import ceui.lisa.utils.Params
 
 class NovelSeriesAdapter(
-        list: MutableList<NovelSeriesItem>,
-        context: Context
-): BaseAdapter<NovelSeriesItem, RecyNovelSeriesOfUserBinding>(list, context) {
+    list: MutableList<NovelSeriesItem>,
+    context: Context
+) : BaseAdapter<NovelSeriesItem, RecyNovelSeriesOfUserBinding>(list, context) {
 
     override fun initLayout() {
         mLayoutID = R.layout.recy_novel_series_of_user
     }
 
-    override fun bindData(target: NovelSeriesItem, bindView: ViewHolder<RecyNovelSeriesOfUserBinding>, position: Int) {
+    override fun bindData(
+        target: NovelSeriesItem,
+        bindView: ViewHolder<RecyNovelSeriesOfUserBinding>,
+        position: Int
+    ) {
         bindView.baseBind.title.text = target.title
         bindView.baseBind.title2.text = target.display_text
         bindView.itemView.setOnClickListener {

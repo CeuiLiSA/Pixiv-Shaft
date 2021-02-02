@@ -10,7 +10,7 @@ import ceui.lisa.model.ListNovel
 import ceui.lisa.models.NovelBean
 import ceui.lisa.repo.NiceFriendNovelRepo
 
-class FragmentNiceFriendNovel: NetListFragment<FragmentBaseListBinding, ListNovel, NovelBean>() {
+class FragmentNiceFriendNovel : NetListFragment<FragmentBaseListBinding, ListNovel, NovelBean>() {
 
     override fun adapter(): BaseAdapter<*, out ViewDataBinding> {
         return NAdapter(allItems, mContext)

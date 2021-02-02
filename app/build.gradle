@@ -4,6 +4,7 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
+apply plugin: 'org.jmailen.kotlinter'
 
 android {
     compileSdkVersion 30
@@ -20,9 +21,9 @@ android {
             annotationProcessorOptions {
                 arguments = [
                         //必须，告知RxHttp你依赖的okhttp版本，目前已适配 v3.12.0 - v4.9.0版本  (v4.3.0除外)
-                        rxhttp_okhttp: '4.4.0',
+                        rxhttp_okhttp : '4.4.0',
                         //使用asXxx方法时必须，告知RxHttp你依赖的rxjava版本，可传入rxjava2、rxjava3
-                        rxhttp_rxjava: 'rxjava3',
+                        rxhttp_rxjava : 'rxjava3',
                         rxhttp_package: 'rxhttp'   //非必须，指定RxHttp类包名
                 ]
             }
@@ -58,12 +59,20 @@ android {
         exclude 'META-INF/MANIFEST.MF'
     }
 
-
     lintOptions {
         checkReleaseBuilds false
         // Or, if you prefer, you can continue to check for errors in release builds,
         // but continue the build even when errors are found:
-        abortOnError false
+        abortOnError true
+        disable "ClickableViewAccessibility",
+                "IidCompatibilityCheckFailure"
+    }
+
+    applicationVariants.all { variant ->
+        variant.outputs.each { output ->
+            def lintTask = tasks["lint${variant.name.capitalize()}"]
+            output.assemble.dependsOn lintTask
+        }
     }
 }
 
@@ -150,7 +159,6 @@ dependencies {
 
     implementation 'com.hjq:toast:8.8'
 
-    
 
     testImplementation 'junit:junit:4.13'
     androidTestImplementation 'androidx.test:runner:1.2.0'
@@ -161,3 +169,6 @@ dependencies {
         all*.exclude group: 'com.android.support', module: 'support-v13'
     }
 }
+
+preBuild.dependsOn(lintKotlin)
+//lintKotlin.dependsOn(formatKotlin)

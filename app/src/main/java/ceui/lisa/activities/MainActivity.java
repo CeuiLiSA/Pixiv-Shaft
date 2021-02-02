@@ -350,7 +350,8 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
-        //super.onSaveInstanceState(outState);
+        super.onSaveInstanceState(outState);
+        outState.clear();
     }
 
     public static final String[] ALL_SELECT_WAY = new String[]{"图库选图", "文件管理器选图"};

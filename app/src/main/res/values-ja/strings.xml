@@ -100,7 +100,7 @@
   <string name="recomment_user">推奨ユーザー</string>  
   <string name="you_mother_fucker_want_to_read_novel">何？</string>  
   <string name="user_info">詳細については、</string>  
-  <string name="how_many_illust_works">％dの作品</string>  
+  <string name="how_many_illust_works">%dの作品</string>
   <string name="user_main_page">個人ホームページ</string>  
   <string name="user_collections">お気に入り</string>  
   <string name="download_manager">ダウンロード管理</string>  

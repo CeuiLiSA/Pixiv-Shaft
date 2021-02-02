@@ -19,10 +19,10 @@
         <ImageView
             android:layout_width="wrap_content"
             android:src="@drawable/ic_not_interested_black_24dp"
-            android:tint="#999999"
             android:id="@+id/s3"
             android:layout_centerVertical="true"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            app:tint="#999999">
 
         </ImageView>
 
@@ -58,10 +58,10 @@
         <ImageView
             android:layout_width="wrap_content"
             android:src="@drawable/ic_chat_black_24dp"
-            android:tint="#999999"
             android:id="@+id/s1"
             android:layout_centerVertical="true"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            app:tint="#999999">
 
         </ImageView>
 

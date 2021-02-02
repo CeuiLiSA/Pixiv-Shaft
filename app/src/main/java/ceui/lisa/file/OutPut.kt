@@ -2,7 +2,6 @@ package ceui.lisa.file
 
 import android.content.ContentValues
 import android.content.Context
-import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
 import ceui.lisa.activities.Shaft
@@ -11,9 +10,12 @@ import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Settings
 import com.blankj.utilcode.util.FileUtils
-import com.blankj.utilcode.util.PathUtils
 import rxhttp.wrapper.utils.query
-import java.io.*
+import java.io.BufferedInputStream
+import java.io.BufferedOutputStream
+import java.io.File
+import java.io.FileInputStream
+import java.io.OutputStream
 
 object OutPut {
 
@@ -30,12 +32,12 @@ object OutPut {
                 outputStream.close()
             } else {
                 uri = ContentValues().run {
-                    put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath) //下载到指定目录
-                    put(MediaStore.MediaColumns.DISPLAY_NAME, from.name)   //文件名
-                    //取contentType响应头作为文件类型
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath) // 下载到指定目录
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, from.name) // 文件名
+                    // 取contentType响应头作为文件类型
                     put(MediaStore.MediaColumns.MIME_TYPE, "image/gif")
                     context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, this)
-                    //当相同路径下的文件，在文件管理器中被手动删除时，就会插入失败
+                    // 当相同路径下的文件，在文件管理器中被手动删除时，就会插入失败
                 }
             }
 

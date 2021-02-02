@@ -6,8 +6,8 @@ import ceui.lisa.model.ListIllust
 import io.reactivex.Observable
 
 class RankIllustRepo(
-        private val mode: String?,
-        private val date: String?
+    private val mode: String?,
+    private val date: String?
 ) : RemoteRepo<ListIllust>() {
 
     override fun initApi(): Observable<ListIllust> {

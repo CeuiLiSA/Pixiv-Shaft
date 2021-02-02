@@ -8,7 +8,7 @@ import ceui.lisa.models.IllustsBean
 import java.io.Serializable
 
 @Entity(tableName = "feature_table")
-class FeatureEntity: Serializable {
+class FeatureEntity : Serializable {
 
     @PrimaryKey
     @NonNull
@@ -28,5 +28,4 @@ class FeatureEntity: Serializable {
     override fun toString(): String {
         return "FeatureEntity(uuid='$uuid', dateTime=$dateTime, starType='$starType', userID=$userID, illustID=$illustID, illustTitle='$illustTitle', isShowToolbar=$isShowToolbar, name='$name', dataType='$dataType', illustJson='$illustJson', allIllust=$allIllust)"
     }
-
 }

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
@@ -17,10 +18,10 @@
         <ImageView
             android:layout_width="wrap_content"
             android:src="@drawable/ic_supervisor_account_black_24dp"
-            android:tint="#999999"
             android:id="@+id/s3"
             android:layout_centerVertical="true"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            app:tint="#999999">
 
         </ImageView>
 
@@ -55,10 +56,10 @@
         <ImageView
             android:layout_width="wrap_content"
             android:src="@drawable/ic_chat_black_24dp"
-            android:tint="#999999"
             android:id="@+id/s1"
             android:layout_centerVertical="true"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            app:tint="#999999">
 
         </ImageView>
 
@@ -92,10 +93,10 @@
         <ImageView
             android:layout_width="wrap_content"
             android:src="@drawable/ic_share_black_24dp"
-            android:tint="#999999"
             android:id="@+id/s2"
             android:layout_centerVertical="true"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            app:tint="#999999">
 
         </ImageView>
 

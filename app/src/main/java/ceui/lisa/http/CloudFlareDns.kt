@@ -9,8 +9,20 @@ class CloudFlareDns(private val service: CloudFlareDNSService) : Dns {
         val addresses = mutableListOf<InetAddress>()
 
         when (hostname) {
-            "oauth.secure.pixiv.net" -> addresses.addAll(listOf("210.140.131.209").map { InetAddress.getByName(it) })
-            "app-api.pixiv.net" -> addresses.addAll(listOf("210.140.131.208").map { InetAddress.getByName(it) })
+            "oauth.secure.pixiv.net" -> addresses.addAll(
+                listOf("210.140.131.209").map {
+                    InetAddress.getByName(
+                        it
+                    )
+                }
+            )
+            "app-api.pixiv.net" -> addresses.addAll(
+                listOf("210.140.131.208").map {
+                    InetAddress.getByName(
+                        it
+                    )
+                }
+            )
         }
 
         val response = service.query(name = hostname).execute().body()

@@ -15,7 +15,6 @@ import ceui.lisa.viewmodel.UserViewModel
 import com.scwang.smartrefresh.layout.SmartRefreshLayout
 import com.zhy.view.flowlayout.FlowLayout
 import com.zhy.view.flowlayout.TagAdapter
-import java.util.*
 
 class FragmentUserRight : SwipeFragment<FragmentUserRightBinding>() {
 
@@ -58,7 +57,8 @@ class FragmentUserRight : SwipeFragment<FragmentUserRightBinding>() {
         baseBind.tagLayout.adapter = object : TagAdapter<String>(content) {
             override fun getView(parent: FlowLayout, position: Int, s: String?): View {
                 val binding: TagItemBinding = DataBindingUtil.inflate(
-                        LayoutInflater.from(mContext), R.layout.tag_item, null, false)
+                    LayoutInflater.from(mContext), R.layout.tag_item, null, false
+                )
                 binding.tagName.text = s
                 return binding.root
             }

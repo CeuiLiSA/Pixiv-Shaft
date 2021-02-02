@@ -9,7 +9,7 @@ import ceui.lisa.databinding.FragmentHolderBinding
 import ceui.lisa.utils.Params
 import ceui.lisa.viewmodel.UserViewModel
 
-class FragmentHolder: BaseFragment<FragmentHolderBinding>() {
+class FragmentHolder : BaseFragment<FragmentHolderBinding>() {
 
     private lateinit var mUserViewModel: UserViewModel
 
@@ -31,7 +31,6 @@ class FragmentHolder: BaseFragment<FragmentHolderBinding>() {
     override fun initView() {
         val data = mUserViewModel.user.value ?: return
 
-
         var TITLES: Array<String>
 
         if (data.userId == Shaft.sUserModel.response.user.id) {
@@ -41,12 +40,12 @@ class FragmentHolder: BaseFragment<FragmentHolderBinding>() {
         }
 
         val items = arrayOf<Fragment>(
-                if (data.userId == Shaft.sUserModel.response.user.id) {
-                    FragmentLikeIllust.newInstance(data.userId, Params.TYPE_PUBLUC)
-                } else {
-                    FragmentUserIllust.newInstance(data.userId, false)
-                } ,
-                FragmentUserRight()
+            if (data.userId == Shaft.sUserModel.response.user.id) {
+                FragmentLikeIllust.newInstance(data.userId, Params.TYPE_PUBLUC)
+            } else {
+                FragmentUserIllust.newInstance(data.userId, false)
+            },
+            FragmentUserRight()
         )
         baseBind.viewPager.adapter = object : FragmentPagerAdapter(childFragmentManager) {
 
