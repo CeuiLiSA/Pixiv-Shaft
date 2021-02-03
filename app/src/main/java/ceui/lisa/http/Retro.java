@@ -48,7 +48,6 @@ public class Retro {
                 .addHeader(":authority", "app-api.pixiv.net")
                 .addHeader("x-client-time", pixivHeaders.getXClientTime())
                 .addHeader("x-client-hash", pixivHeaders.getXClientHash());
-
         return before;
     }
 

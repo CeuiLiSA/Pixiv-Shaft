@@ -32,7 +32,9 @@
                 android:layout_marginEnd="@dimen/tweenty_four_dp"
                 android:hint="@string/email_address"
                 app:met_floatingLabel="highlight"
+                app:met_baseColor="@color/rank_text_color"
                 app:met_primaryColor="?attr/colorPrimary"
+                app:met_textColor="@color/dark_text"
                 app:met_singleLineEllipsis="true" />
 
 
@@ -45,7 +47,9 @@
                 android:layout_marginEnd="@dimen/tweenty_four_dp"
                 android:hint="@string/string_51"
                 app:met_floatingLabel="highlight"
+                app:met_baseColor="@color/rank_text_color"
                 app:met_primaryColor="?attr/colorPrimary"
+                app:met_textColor="@color/dark_text"
                 app:met_singleLineEllipsis="true" />
 
 
@@ -58,7 +62,9 @@
                 android:layout_marginEnd="@dimen/tweenty_four_dp"
                 android:hint="@string/string_52"
                 app:met_floatingLabel="highlight"
+                app:met_baseColor="@color/rank_text_color"
                 app:met_primaryColor="?attr/colorPrimary"
+                app:met_textColor="@color/dark_text"
                 app:met_singleLineEllipsis="true" />
 
         </LinearLayout>
