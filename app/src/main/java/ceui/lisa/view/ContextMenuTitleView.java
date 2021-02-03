@@ -47,6 +47,19 @@ public class ContextMenuTitleView extends ScrollView {
         addView(titleView);
     }
 
+    public ContextMenuTitleView(Context context, String title, int colorId) {
+        super(context);
+
+        int padding = dpToPx(PADDING_DP);
+        setPadding(padding, padding, padding, 0);
+
+        TextView titleView = new TextView(context);
+        titleView.setText(title);
+        titleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        titleView.setTextColor(colorId);
+        addView(titleView);
+    }
+
     public static int dpToPx(int dp) {
         return (int) (dp * Resources.getSystem().getDisplayMetrics().density);
     }

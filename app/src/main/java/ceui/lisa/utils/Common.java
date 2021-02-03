@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
@@ -328,10 +329,20 @@ public class Common {
         return flatRandom(0, right);
     }
 
-
+    /**
+     * 解析主题相关的 attribute 的当前值
+     */
     public static int resolveThemeAttribute(Context context, int resId){
         TypedValue typedValue = new TypedValue();
         context.getTheme().resolveAttribute(resId, typedValue, true);
         return typedValue.data;
+    }
+
+    /**
+     * 当前主题是否是 Dark Mode
+     */
+    public static boolean isUIModeNight(Context context){
+        return (context.getResources().getConfiguration().uiMode
+                & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
     }
 }
