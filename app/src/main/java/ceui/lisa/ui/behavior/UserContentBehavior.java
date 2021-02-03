@@ -10,14 +10,12 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.view.ViewCompat;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.Shaft;
-import ceui.lisa.utils.Common;
 
 public class UserContentBehavior extends CoordinatorLayout.Behavior<View> {
 
     private float headerHeight;
     private View contentView;
-    private View centerView, toolbarView;
+    private View centerView, toolbarTitleView;
     private OverScroller scroller;
     private int toolbarHeight;
     private Runnable scrollRunnable = new Runnable() {
@@ -87,10 +85,11 @@ public class UserContentBehavior extends CoordinatorLayout.Behavior<View> {
         // 首先让父布局按照标准方式解析
         parent.onLayoutChild(child, layoutDirection);
         // 获取到 HeaderView 的高度
-        toolbarHeight = parent.findViewById(R.id.toolbar).getMeasuredHeight();
+        View toolbar = parent.findViewById(R.id.toolbar);
+        toolbarHeight = toolbar.getMeasuredHeight();
         headerHeight = parent.findViewById(R.id.imagesTitleBlockLayout).getMeasuredHeight() - toolbarHeight;
         parent.findViewById(R.id.content_item).setPadding(0, 0, 0, toolbarHeight);
-        toolbarView = parent.findViewById(R.id.toolbar).findViewById(R.id.toolbar_title);
+        toolbarTitleView = toolbar.findViewById(R.id.toolbar_title);
         centerView = parent.findViewById(R.id.center_header);
         contentView = child;
         // 设置 top 从而排在 HeaderView的下面
@@ -125,12 +124,12 @@ public class UserContentBehavior extends CoordinatorLayout.Behavior<View> {
     @Override
     public void onNestedScroll(@NonNull CoordinatorLayout coordinatorLayout, @NonNull View child, @NonNull View target, int dxConsumed, int dyConsumed, int dxUnconsumed, int dyUnconsumed, int type, @NonNull int[] consumed) {
         if (Math.abs(child.getTranslationY()) == headerHeight) {
-            toolbarView.setAlpha(1.0f);
+            toolbarTitleView.setAlpha(1.0f);
             centerView.setAlpha(0.0f);
         }
 
         if (Math.abs(child.getTranslationY()) <= 10) {
-            toolbarView.setAlpha(0.0f);
+            toolbarTitleView.setAlpha(0.0f);
             centerView.setAlpha(1.0f);
         }
 

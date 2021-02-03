@@ -1,5 +1,6 @@
 package ceui.lisa.page;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.res.Resources;
 import android.util.DisplayMetrics;
@@ -103,6 +104,7 @@ public class ScreenUtils {
             hasNavigationBar = rs.getBoolean(id);
         }
         try {
+            @SuppressLint("PrivateApi") // 忽略反射 Warning
             Class systemPropertiesClass = Class.forName("android.os.SystemProperties");
             Method m = systemPropertiesClass.getMethod("get", String.class);
             String navBarOverride = (String) m.invoke(systemPropertiesClass, "qemu.hw.mainkeys");

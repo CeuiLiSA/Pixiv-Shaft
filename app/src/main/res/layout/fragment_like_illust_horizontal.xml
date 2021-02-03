@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
 
@@ -61,8 +62,8 @@
                     android:layout_marginTop="@dimen/eight_dp"
                     android:layout_marginEnd="@dimen/sixteen_dp"
                     android:layout_marginBottom="@dimen/eight_dp"
-                    android:drawableTint="?attr/colorPrimary"
-                    android:drawableEnd="@drawable/ic_chevron_right_black_24dp"
+                    app:drawableTint="?attr/colorPrimary"
+                    app:drawableEndCompat ="@drawable/ic_chevron_right_black_24dp"
                     android:gravity="center_vertical"
                     android:textColor="?attr/colorPrimary"
                     android:textSize="15sp"

@@ -58,7 +58,7 @@
                 android:layout_marginEnd="@dimen/eight_dp"
                 android:layout_height="wrap_content" />
 
-            <Switch
+            <androidx.appcompat.widget.SwitchCompat
                 android:layout_width="wrap_content"
                 android:layout_toEndOf="@+id/private_star_s"
                 android:layout_marginTop="@dimen/sixteen_dp"

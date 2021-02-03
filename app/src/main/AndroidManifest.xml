@@ -152,4 +152,8 @@
 
     </application>
 
+    <queries>
+        <package android:name="com.sina.weibo" />
+    </queries>
+
 </manifest>

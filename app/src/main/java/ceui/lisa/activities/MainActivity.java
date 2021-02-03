@@ -1,6 +1,7 @@
 package ceui.lisa.activities;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -274,6 +275,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         return baseBind.drawerLayout;
     }
 
+    @SuppressLint("NonConstantResourceId")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.

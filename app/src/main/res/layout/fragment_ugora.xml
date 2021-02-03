@@ -217,9 +217,9 @@
                                     android:layout_height="wrap_content"
                                     android:layout_marginStart="@dimen/sixteen_dp"
                                     android:layout_marginBottom="10dp"
-                                    android:drawableEnd="@drawable/ic_edit_black_24dp"
+                                    app:drawableEndCompat="@drawable/ic_edit_black_24dp"
                                     android:drawablePadding="2dp"
-                                    android:drawableTint="?attr/colorPrimary"
+                                    app:drawableTint="?attr/colorPrimary"
                                     android:textSize="12sp" />
 
                                 <TextView
@@ -228,9 +228,9 @@
                                     android:layout_height="wrap_content"
                                     android:layout_marginStart="@dimen/eight_dp"
                                     android:layout_marginBottom="10dp"
-                                    android:drawableEnd="@drawable/ic_remove_red_eye_black_24dp"
+                                    app:drawableEndCompat="@drawable/ic_remove_red_eye_black_24dp"
                                     android:drawablePadding="2dp"
-                                    android:drawableTint="?attr/colorPrimary"
+                                    app:drawableTint="?attr/colorPrimary"
                                     android:gravity="center"
                                     android:textSize="12sp"
                                     android:textStyle="bold" />
@@ -243,9 +243,9 @@
                                     android:layout_marginStart="@dimen/eight_dp"
                                     android:layout_marginEnd="@dimen/sixteen_dp"
                                     android:layout_marginBottom="10dp"
-                                    android:drawableEnd="@drawable/ic_favorite_black_24dp"
+                                    app:drawableEndCompat="@drawable/ic_favorite_black_24dp"
                                     android:drawablePadding="2dp"
-                                    android:drawableTint="?attr/colorPrimary"
+                                    app:drawableTint="?attr/colorPrimary"
                                     android:gravity="center"
                                     android:textSize="12sp"
                                     android:textStyle="bold" />
@@ -277,8 +277,6 @@
                                 android:id="@+id/download"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:layout_alignParentEnd="true"
-                                android:layout_alignParentBottom="true"
                                 android:layout_marginStart="@dimen/twelve_dp"
                                 android:layout_marginTop="@dimen/eight_dp"
                                 android:layout_marginEnd="@dimen/twelve_dp"

@@ -513,4 +513,7 @@
   <string name="string_346">発見-ダイナミック-おすすめ</string>
   <string name="string_347">ダイナミック-推奨-発見</string>
   <string name="string_348">ダイナミック-発見-おすすめ</string>
+  <string name="string_349">%d列</string>
+  <string name="string_350">MM-dd HH:mm</string>
+  <string name="string_351">yyyy-MM-dd HH:mm 追加</string>
 </resources>

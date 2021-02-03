@@ -10,7 +10,7 @@ import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.adapters.BaseAdapter
-import ceui.lisa.adapters.FratureAdapter
+import ceui.lisa.adapters.FeatureAdapter
 import ceui.lisa.core.BaseRepo
 import ceui.lisa.core.LocalRepo
 import ceui.lisa.database.AppDatabase
@@ -27,7 +27,7 @@ import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
 class FragmentFeature : LocalListFragment<FragmentBaseListBinding, FeatureEntity>() {
 
     override fun adapter(): BaseAdapter<*, out ViewDataBinding> {
-        return FratureAdapter(allItems, mContext).setOnItemClickListener { v, position, viewType ->
+        return FeatureAdapter(allItems, mContext).setOnItemClickListener { v, position, viewType ->
             if (viewType == 0) {
                 val intent = Intent(mContext, TemplateActivity::class.java)
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, allItems[position].dataType)

@@ -18,7 +18,7 @@
             android:layout_marginStart="10dp"
             android:layout_marginTop="@dimen/twelve_dip"
             android:layout_marginBottom="@dimen/four_dp"
-            android:drawableStart="@drawable/ic_huangguan"
+            app:drawableStartCompat="@drawable/ic_huangguan"
             android:drawablePadding="@dimen/eight_dp"
             android:text="@string/ranking_illust"
             android:gravity="center"
@@ -37,9 +37,9 @@
             android:layout_marginEnd="@dimen/sixteen_dp"
             android:layout_marginBottom="@dimen/four_dp"
             android:text="@string/see_more"
-            android:drawableEnd="@drawable/ic_chevron_right_black_24dp"
+            app:drawableEndCompat="@drawable/ic_chevron_right_black_24dp"
             android:gravity="center"
-            android:drawableTint="?attr/colorPrimary"
+            app:drawableTint="?attr/colorPrimary"
             android:textColor="?attr/colorPrimary"
             android:textSize="13sp" />
 

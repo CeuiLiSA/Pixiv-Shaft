@@ -12,6 +12,7 @@ import com.bumptech.glide.Glide;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Locale;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
@@ -28,7 +29,9 @@ import ceui.lisa.utils.Params;
 public class HistoryAdapter extends BaseAdapter<IllustHistoryEntity, RecyViewHistoryBinding> {
 
     private int illustImageSize = 0, novelImageSize = 0;
-    private SimpleDateFormat mTime = new SimpleDateFormat("MM月dd日 HH: mm");
+    private SimpleDateFormat mTime = new SimpleDateFormat(
+            mContext.getResources().getString(R.string.string_350),
+            Locale.getDefault());
 
     public HistoryAdapter(List<IllustHistoryEntity> targetList, Context context) {
         super(targetList, context);

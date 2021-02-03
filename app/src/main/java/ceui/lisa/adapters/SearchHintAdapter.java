@@ -10,6 +10,7 @@ import android.util.TypedValue;
 import android.view.View;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -53,7 +54,7 @@ public class SearchHintAdapter extends BaseAdapter<ListTrendingtag.TrendTagsBean
     private SpannableString matcherSearchText(int color, String text, String keyword) {
         SpannableString spannableString = new SpannableString(text);
         Pattern pattern = Pattern.compile(keyword);
-        Matcher matcher = pattern.matcher(new SpannableString(text.toLowerCase()));
+        Matcher matcher = pattern.matcher(new SpannableString(text.toLowerCase(Locale.getDefault())));
         while (matcher.find()) {
             int start = matcher.start();
             int end = matcher.end();

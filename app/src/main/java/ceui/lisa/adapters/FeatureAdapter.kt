@@ -8,13 +8,14 @@ import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUtil
 import com.bumptech.glide.Glide
 import java.text.SimpleDateFormat
+import java.util.Locale
 
-class FratureAdapter(
+class FeatureAdapter(
     targetList: MutableList<FeatureEntity>,
     context: Context
 ) : BaseAdapter<FeatureEntity, RecyFeatureBinding>(targetList, context) {
 
-    val sdr = SimpleDateFormat("yyyy年MM月dd日 HH:mm添加")
+    val sdr = SimpleDateFormat(context.resources.getString(R.string.string_351), Locale.getDefault())
 
     override fun initLayout() {
         mLayoutID = R.layout.recy_feature

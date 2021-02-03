@@ -37,7 +37,6 @@
                 android:layout_marginEnd="@dimen/sixteen_dp"
                 android:layout_marginBottom="@dimen/eight_dp"
                 android:id="@+id/content"
-                android:layout_below="@+id/uuid"
                 android:layout_height="100dp">
 
             </TextView>

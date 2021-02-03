@@ -1,5 +1,6 @@
 package ceui.lisa.activities;
 
+import android.annotation.SuppressLint;
 import android.app.Application;
 import android.content.Context;
 import android.content.IntentFilter;
@@ -49,6 +50,7 @@ public class Shaft extends Application {
     /**
      * 全局context
      */
+    @SuppressLint("StaticFieldLeak")
     private static Context sContext = null;
 
     static {

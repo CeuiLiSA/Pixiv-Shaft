@@ -81,7 +81,6 @@
                                 android:id="@+id/password"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_below="@+id/user_name"
                                 android:layout_marginStart="@dimen/tweenty_four_dp"
                                 android:layout_marginEnd="@dimen/tweenty_four_dp"
                                 android:hint="@string/string_10"

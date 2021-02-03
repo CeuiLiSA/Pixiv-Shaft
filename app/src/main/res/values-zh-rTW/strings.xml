@@ -513,4 +513,7 @@
   <string name="string_346">發現-動態-推薦</string>
   <string name="string_347">動態-推薦-發現</string>
   <string name="string_348">動態-發現-推薦</string>
+  <string name="string_349">%d列</string>
+  <string name="string_350">MM月dd日 HH:mm</string>
+  <string name="string_351">yyyy年MM月dd日 HH:mm 添加</string>
 </resources>

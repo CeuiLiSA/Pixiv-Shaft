@@ -47,7 +47,7 @@ public class MuteDialog extends BaseDialog<DialogMuteTagBinding> {
         TagAdapter<TagsBean> adapter = new TagAdapter<TagsBean>(mIllust.getTags()) {
             @Override
             public View getView(FlowLayout parent, int position, TagsBean o) {
-                View view = LayoutInflater.from(mContext).inflate(R.layout.recy_single_tag_text, null);
+                View view = View.inflate(mContext, R.layout.recy_single_tag_text, null);
                 TextView tag = view.findViewById(R.id.tag_title);
                 tag.setText(o.getName());
                 return view;

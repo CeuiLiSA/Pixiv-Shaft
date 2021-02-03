@@ -9,14 +9,13 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.view.ViewCompat;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.Shaft;
 import ceui.lisa.utils.Common;
 
 public class UserHeaderBehavior extends CoordinatorLayout.Behavior<View> {
 
     private float headerHeight;
     private int toolbarHeight;
-    private View centerView, toolbarView;
+    private View centerView, toolbarTitleView;
 
     public UserHeaderBehavior() {
     }
@@ -27,9 +26,10 @@ public class UserHeaderBehavior extends CoordinatorLayout.Behavior<View> {
 
     @Override
     public boolean onLayoutChild(@NonNull CoordinatorLayout parent, @NonNull View child, int layoutDirection) {
-        toolbarHeight = parent.findViewById(R.id.toolbar).getMeasuredHeight();
+        View toolbar = parent.findViewById(R.id.toolbar);
+        toolbarHeight = toolbar.getMeasuredHeight();
         headerHeight = parent.findViewById(R.id.imagesTitleBlockLayout).getMeasuredHeight() - toolbarHeight;
-        toolbarView = parent.findViewById(R.id.toolbar).findViewById(R.id.toolbar_title);
+        toolbarTitleView = toolbar.findViewById(R.id.toolbar_title);
         centerView = parent.findViewById(R.id.center_header);
         return super.onLayoutChild(parent, child, layoutDirection);
     }
@@ -42,11 +42,11 @@ public class UserHeaderBehavior extends CoordinatorLayout.Behavior<View> {
     @Override
     public boolean onDependentViewChanged(@NonNull CoordinatorLayout parent, @NonNull View child, @NonNull View dependency) {
         Common.showLog("onDependentViewChanged " + child.getTranslationY());
-        toolbarView.setAlpha(- (child.getTranslationY() /headerHeight));
+        toolbarTitleView.setAlpha(- (child.getTranslationY() /headerHeight));
         centerView.setAlpha(1 - child.getTranslationY() / - headerHeight);
 
         if (Math.abs(child.getTranslationY()) < 10) {
-            toolbarView.setAlpha(0.0f);
+            toolbarTitleView.setAlpha(0.0f);
             centerView.setAlpha(1.0f);
         }
 

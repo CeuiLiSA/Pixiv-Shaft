@@ -15,6 +15,7 @@ import com.bumptech.glide.Glide;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Locale;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
@@ -32,7 +33,9 @@ public class DownloadedAdapter extends BaseAdapter<DownloadEntity, RecyDownloade
 
     private int imageSize;
     private int novelImageSize;
-    private SimpleDateFormat mTime = new SimpleDateFormat("MM月dd日 HH: mm");
+    private SimpleDateFormat mTime = new SimpleDateFormat(
+            mContext.getResources().getString(R.string.string_350),
+            Locale.getDefault());
 
     public DownloadedAdapter(List<DownloadEntity> targetList, Context context) {
         super(targetList, context);

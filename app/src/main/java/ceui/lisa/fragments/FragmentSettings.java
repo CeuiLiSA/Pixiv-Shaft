@@ -463,7 +463,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                                 } else {
                                     int lineCount = which + 2;
                                     Shaft.sSettings.setLineCount(lineCount);
-                                    baseBind.lineCount.setText(String.format("%d列", lineCount));
+                                    baseBind.lineCount.setText(String.format(getString(R.string.string_349), lineCount));
                                     Local.setSettings(Shaft.sSettings);
                                     Common.showToast("重启APP生效", 2);
                                 }

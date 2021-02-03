@@ -26,14 +26,14 @@
     <string name="illust_filter">筛选</string>
     <string name="share_illust">%1$s | %2$s #Pixiv %3$s</string>
     <string name="share">分享</string>
-    <string name="webview_handler_open_in_browser">Open in browser</string>
-    <string name="webview_handler_copy_link_addr">Copy link address</string>
-    <string name="webview_handler_copy_link_text">Copy link text</string>
-    <string name="webview_handler_download_link">Download link</string>
-    <string name="webview_handler_share">Share link</string>
-    <string name="webview_handler_open_image">Open image</string>
-    <string name="webview_handler_search_with_ggl">Search Google for this image</string>
-    <string name="copy_to_clipboard">copyed</string>
+    <string name="webview_handler_open_in_browser">在浏览器中打开</string>
+    <string name="webview_handler_copy_link_addr">复制链接地址</string>
+    <string name="webview_handler_copy_link_text">复制链接文本</string>
+    <string name="webview_handler_download_link">下载链接</string>
+    <string name="webview_handler_share">分享链接</string>
+    <string name="webview_handler_open_image">打开图片</string>
+    <string name="webview_handler_search_with_ggl">在 Google 中搜索此图片</string>
+    <string name="copy_to_clipboard">已复制</string>
     <string name="now_login">登录</string>
     <string name="has_no_account">没有账号?</string>
     <string name="go_to_login">我要登录</string>
@@ -534,5 +534,8 @@
     <string name="string_346">发现 - 动态 - 推荐</string>
     <string name="string_347">动态 - 推荐 - 发现</string>
     <string name="string_348">动态 - 发现 - 推荐</string>
+    <string name="string_349">%d列</string>
+    <string name="string_350">MM月dd日 HH:mm</string>
+    <string name="string_351">yyyy年MM月dd日 HH:mm 添加</string>
 
 </resources>

@@ -154,16 +154,13 @@
                 android:layout_height="wrap_content" />
 
 
-            <Switch
+            <androidx.appcompat.widget.SwitchCompat
                 android:layout_width="wrap_content"
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
                 android:id="@+id/pop_switch"
                 android:layout_marginEnd="@dimen/sixteen_dp"
-                android:layout_height="wrap_content">
-
-
-            </Switch>
+                android:layout_height="wrap_content" />
 
         </RelativeLayout>
 

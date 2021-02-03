@@ -83,13 +83,13 @@
                         android:layout_alignParentEnd="true"
                         android:layout_marginTop="@dimen/twelve_dp"
                         android:id="@+id/see_more"
-                        android:drawableTint="?attr/colorPrimary"
+                        app:drawableTint="?attr/colorPrimary"
                         android:textColor="?attr/colorPrimary"
                         android:layout_marginEnd="@dimen/twelve_dp"
                         android:gravity="center_vertical"
                         android:text="@string/string_79"
                         android:textSize="13sp"
-                        android:drawableEnd="@drawable/ic_chevron_right_black_20dp">
+                        app:drawableEndCompat="@drawable/ic_chevron_right_black_20dp">
 
                     </TextView>
 
@@ -135,7 +135,7 @@
                         android:layout_marginTop="@dimen/twelve_dp"
                         android:layout_marginBottom="@dimen/twelve_dp"
                         android:drawablePadding="@dimen/four_dp"
-                        android:drawableTint="#75d2f0"
+                        app:drawableTint="#75d2f0"
                         android:gravity="center_vertical"
                         android:text="@string/string_80"
                         android:textColor="@color/rank_title"

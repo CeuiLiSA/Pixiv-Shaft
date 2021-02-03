@@ -1,11 +1,13 @@
 package ceui.lisa.utils;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 
 import java.util.List;
 
+@SuppressLint("QueryPermissionsNeeded")
 public class PackageUtils {
 
     private PackageUtils(){}
