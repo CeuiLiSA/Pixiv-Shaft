@@ -325,7 +325,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                     new QMUIDialog.MessageDialogBuilder(getActivity())
                             .setTitle(getString(R.string.string_143))
                             .setMessage(getString(R.string.string_144))
-                            .setSkinManager(QMUISkinManager.defaultInstance(getContext()))
+                            .setSkinManager(QMUISkinManager.defaultInstance(mContext))
                             .addAction(getString(R.string.string_142), new QMUIDialogAction.ActionListener() {
                                 @Override
                                 public void onClick(QMUIDialog dialog, int index) {

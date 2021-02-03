@@ -32,7 +32,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintWidth_percent="0.7">
+                app:layout_constraintWidth_percent="0.8">
 
 
                 <RelativeLayout
@@ -69,6 +69,8 @@
                                 android:id="@+id/user_name"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:singleLine="true"
+                                android:ellipsize="end"
                                 android:layout_marginStart="@dimen/tweenty_four_dp"
                                 android:layout_marginEnd="@dimen/tweenty_four_dp"
                                 android:hint="@string/string_9"
@@ -81,7 +83,10 @@
                                 android:id="@+id/password"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_below="@+id/user_name"
+                                android:singleLine="true"
+                                android:ellipsize="end"
+                                android:textSize="12sp"
+                                android:maxLines="1"
                                 android:layout_marginStart="@dimen/tweenty_four_dp"
                                 android:layout_marginEnd="@dimen/tweenty_four_dp"
                                 android:hint="@string/string_10"
@@ -89,6 +94,14 @@
                                 app:met_floatingLabel="highlight"
                                 app:met_primaryColor="?attr/colorPrimary"
                                 app:met_singleLineEllipsis="true" />
+
+                            <CheckBox
+                                android:layout_width="wrap_content"
+                                android:text="显示密码"
+                                android:layout_marginStart="20dp"
+                                android:layout_height="wrap_content">
+
+                            </CheckBox>
 
 
                             <androidx.cardview.widget.CardView

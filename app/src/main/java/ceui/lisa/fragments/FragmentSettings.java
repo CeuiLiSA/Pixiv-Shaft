@@ -54,7 +54,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                         .setTitle(getString(R.string.string_185))
                         .setMessage(getString(R.string.string_186))
                         .setChecked(true)
-                        .setSkinManager(QMUISkinManager.defaultInstance(getContext()))
+                        .setSkinManager(QMUISkinManager.defaultInstance(mContext))
                         .addAction(getString(R.string.string_187), new QMUIDialogAction.ActionListener() {
                             @Override
                             public void onClick(QMUIDialog dialog, int index) {
@@ -475,6 +475,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
         });
 
 
+        setThemeName();
         baseBind.colorSelectRela.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -523,5 +524,10 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 getString(R.string.string_348),
         };
         baseBind.orderSelect.setText(ORDER_NAME[index]);
+    }
+
+    private void setThemeName() {
+        final int index = Shaft.sSettings.getThemeIndex();
+        baseBind.colorSelect.setText(FragmentColors.COLOR_NAMES[index]);
     }
 }
