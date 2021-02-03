@@ -88,7 +88,7 @@ public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
                     public void success(List<UserModel> userModels) {
                         if (userModels.size() != 0) {
                             for (int i = 0; i < userModels.size(); i++) {
-                                View v = LayoutInflater.from(mContext).inflate(R.layout.recy_loal_user, null);
+                                View v = LayoutInflater.from(mContext).inflate(R.layout.recy_local_user, null);
                                 bindData(v, userModels.get(i));
                                 baseBind.userList.addView(v);
                             }
