@@ -40,7 +40,7 @@
                                 android:layout_centerHorizontal="true"
                                 android:layout_marginTop="40dp"
                                 android:scaleType="centerCrop"
-                                android:src="@mipmap/avatar" />
+                                android:src="@drawable/avatar" />
 
                             <Button
                                 android:id="@+id/change_head"

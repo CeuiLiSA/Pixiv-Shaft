@@ -325,7 +325,7 @@
   <string name="string_153">IDの小説検索</string>  
   <string name="string_154">IDは全数字でなければなりません</string>  
   <string name="string_155">同前</string>  
-  <string name="string_156">この作品</string>  
+  <string name="string_156">%d作品</string>
   <string name="string_157">シールドを解除</string>  
   <string name="string_158">コメントを投稿するには先にメールボックスをバインドする必要があります。</string>  
   <string name="string_159">すぐにバインド</string>  
@@ -362,9 +362,9 @@
   <string name="string_190">を選択します</string>  
   <string name="string_191">特集</string>  
   <string name="string_192">小説コレクション</string>  
-  <string name="string_193">作品のサイズ:</string>  
-  <string name="string_194">作品ID：</string>  
-  <string name="string_195">アーティストID:</string>  
+  <string name="string_193">作品のサイズ: %dpx * %dpx</string>
+  <string name="string_194">作品ID：%d</string>
+  <string name="string_195">アーティストID: %d</string>
   <string name="string_196">注目者の小説</string>  
   <string name="string_197">注目者の最新小説</string>  
   <string name="string_198">このソフトウェアの評価</string>  

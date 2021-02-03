@@ -325,7 +325,7 @@
   <string name="string_153">ID搜小說</string>  
   <string name="string_154">ID必須為全數位</string>  
   <string name="string_155">#全部</string>  
-  <string name="string_156">個作品</string>  
+  <string name="string_156">%d個作品</string>
   <string name="string_157">取消遮罩</string>  
   <string name="string_158">發佈評論需要先綁定郵箱</string>  
   <string name="string_159">立即綁定</string>  
@@ -362,9 +362,9 @@
   <string name="string_190">確定</string>  
   <string name="string_191">特輯</string>  
   <string name="string_192">小說收藏</string>  
-  <string name="string_193">作品尺寸：</string>  
-  <string name="string_194">作品ID：</string>  
-  <string name="string_195">畫師ID：</string>  
+  <string name="string_193">作品尺寸：%dpx * %dpx</string>
+  <string name="string_194">作品ID：%d</string>
+  <string name="string_195">畫師ID：%d</string>
   <string name="string_196">關注者的小說</string>  
   <string name="string_197">關注者的最新小說</string>  
   <string name="string_198">為此軟件評分</string>  

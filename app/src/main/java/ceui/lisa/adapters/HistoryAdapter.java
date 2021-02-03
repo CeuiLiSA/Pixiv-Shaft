@@ -59,7 +59,7 @@ public class HistoryAdapter extends BaseAdapter<IllustHistoryEntity, RecyViewHis
                     .placeholder(R.color.light_bg)
                     .into(bindView.baseBind.illustImage);
             bindView.baseBind.title.setText(current.getTitle());
-            bindView.baseBind.author.setText("by: " + current.getUser().getName());
+            bindView.baseBind.author.setText(String.format("by: %s", current.getUser().getName()));
             bindView.baseBind.time.setText(mTime.format(allIllust.get(position).getTime()));
 
             if (current.isGif()) {
@@ -70,7 +70,7 @@ public class HistoryAdapter extends BaseAdapter<IllustHistoryEntity, RecyViewHis
                     bindView.baseBind.pSize.setVisibility(View.GONE);
                 } else {
                     bindView.baseBind.pSize.setVisibility(View.VISIBLE);
-                    bindView.baseBind.pSize.setText(current.getPage_count() + "P");
+                    bindView.baseBind.pSize.setText(String.format("%dP", current.getPage_count()));
                 }
             }
 
@@ -93,7 +93,7 @@ public class HistoryAdapter extends BaseAdapter<IllustHistoryEntity, RecyViewHis
                     .placeholder(R.color.light_bg)
                     .into(bindView.baseBind.illustImage);
             bindView.baseBind.title.setText(current.getTitle());
-            bindView.baseBind.author.setText("by: " + current.getUser().getName());
+            bindView.baseBind.author.setText(String.format("by: %s", current.getUser().getName()));
             bindView.baseBind.time.setText(mTime.format(allIllust.get(position).getTime()));
 
             bindView.baseBind.pSize.setVisibility(View.VISIBLE);

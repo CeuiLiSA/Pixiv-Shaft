@@ -22,8 +22,8 @@ class MangaSeriesAdapter(
         bindView: ViewHolder<RecyMangaSeriesBinding>,
         position: Int
     ) {
-        bindView.baseBind.seriesTitle.text = "#" + target.title
-        bindView.baseBind.seriesSize.text = "共" + target.series_work_count + "话"
+        bindView.baseBind.seriesTitle.text = "#%s".format(target.title)
+        bindView.baseBind.seriesSize.text = "共%d话".format(target.series_work_count)
         if (!TextUtils.isEmpty(target.cover_image_urls.medium)) {
             Glide.with(mContext)
                 .load(GlideUtil.getUrl(target.cover_image_urls.medium))

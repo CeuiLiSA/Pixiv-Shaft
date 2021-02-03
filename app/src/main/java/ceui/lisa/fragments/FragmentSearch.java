@@ -282,7 +282,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                                 TextView tv = (TextView) LayoutInflater.from(mContext).inflate(R.layout.recy_single_line_text,
                                         parent, false);
                                 if (!TextUtils.isEmpty(trendTagsBean.getTranslated_name())) {
-                                    tv.setText(trendTagsBean.getTag() + "/" + trendTagsBean.getTranslated_name());
+                                    tv.setText(String.format("%s/%s", trendTagsBean.getTag(), trendTagsBean.getTranslated_name()));
                                 } else {
                                     tv.setText(trendTagsBean.getTag());
                                 }

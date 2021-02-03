@@ -38,7 +38,7 @@ public class ColorAdapter extends BaseAdapter<ColorItem, RecyColorBinding> {
     public void bindData(ColorItem target, ViewHolder<RecyColorBinding> bindView, int position) {
         bindView.baseBind.card.setCardBackgroundColor(Color.parseColor(target.getColor()));
         if (target.isSelect()) {
-            bindView.baseBind.name.setText(target.getName() + "（正在使用）");
+            bindView.baseBind.name.setText(String.format("%s（正在使用）", target.getName()));
         } else {
             bindView.baseBind.name.setText(target.getName());
         }

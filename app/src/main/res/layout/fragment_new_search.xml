@@ -47,7 +47,8 @@
                     android:paddingEnd="@dimen/sixteen_dp"
                     android:paddingTop="@dimen/eight_dp"
                     android:paddingBottom="@dimen/eight_dp"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:inputType="text">
 
 
                 </EditText>

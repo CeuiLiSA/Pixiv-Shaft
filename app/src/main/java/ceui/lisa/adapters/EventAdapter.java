@@ -46,7 +46,7 @@ public class EventAdapter extends BaseAdapter<IllustsBean, RecyUserEventBinding>
             bindView.baseBind.description.setVisibility(View.GONE);
         }
         if (!TextUtils.isEmpty(allIllust.get(position).getCreate_date())) {
-            bindView.baseBind.postTime.setText(allIllust.get(position).getCreate_date().substring(0, 16) + "发布");
+            bindView.baseBind.postTime.setText(String.format("%s发布", allIllust.get(position).getCreate_date().substring(0, 16)));
         }
 
         Glide.with(mContext).load(GlideUtil.getUrl(allIllust.get(position)

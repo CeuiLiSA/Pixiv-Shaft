@@ -81,7 +81,7 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
 
                 @Override
                 public void onPageSelected(int i) {
-                    currentPage.setText("第" + (i + 1) + "P / 共" + mIllustsBean.getPage_count() + "P");
+                    currentPage.setText(String.format("第%dP / 共%dP", i + 1, mIllustsBean.getPage_count()));
                 }
 
                 @Override
@@ -89,7 +89,7 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
 
                 }
             });
-            currentPage.setText("第" + (index + 1) + "P / 共" + mIllustsBean.getPage_count() + "P");
+            currentPage.setText(String.format("第%dP / 共%dP", index + 1, mIllustsBean.getPage_count()));
 
         } else if ("下载详情".equals(dataType)) {
             currentPage = findViewById(R.id.current_page);

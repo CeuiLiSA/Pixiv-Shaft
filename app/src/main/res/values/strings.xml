@@ -347,7 +347,7 @@
     <string name="string_153">ID搜小说</string>
     <string name="string_154">ID必须为全数字</string>
     <string name="string_155">#全部</string>
-    <string name="string_156">个作品</string>
+    <string name="string_156">%d个作品</string>
     <string name="string_157">取消屏蔽</string>
     <string name="string_158">发布评论需要先绑定邮箱</string>
     <string name="string_159">立即绑定</string>
@@ -384,9 +384,9 @@
     <string name="string_190">确定</string>
     <string name="string_191">特辑</string>
     <string name="string_192">小说收藏</string>
-    <string name="string_193">作品尺寸：</string>
-    <string name="string_194">作品ID：</string>
-    <string name="string_195">画师ID：</string>
+    <string name="string_193">作品尺寸：%dpx * %dpx</string>
+    <string name="string_194">作品ID：%d</string>
+    <string name="string_195">画师ID：%d</string>
     <string name="string_196">关注者的小说</string>
     <string name="string_197">关注者的最新小说</string>
     <string name="string_198">为此软件评分</string>

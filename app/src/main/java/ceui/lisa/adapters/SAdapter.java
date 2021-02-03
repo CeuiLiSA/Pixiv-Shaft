@@ -24,8 +24,8 @@ public class SAdapter extends BaseAdapter<TagsBean, RecySelectTagBinding> {
     @Override
     public void bindData(TagsBean target, ViewHolder<RecySelectTagBinding> bindView, int position) {
         if (!TextUtils.isEmpty(allIllust.get(position).getTranslated_name())) {
-            bindView.baseBind.starSize.setText(allIllust.get(position).getName() + "/" +
-                    allIllust.get(position).getTranslated_name());
+            bindView.baseBind.starSize.setText(String.format("%s/%s",
+                    allIllust.get(position).getName(), allIllust.get(position).getTranslated_name()));
         } else {
             bindView.baseBind.starSize.setText(allIllust.get(position).getName());
         }

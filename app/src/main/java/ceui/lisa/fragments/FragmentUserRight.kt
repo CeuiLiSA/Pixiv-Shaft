@@ -108,7 +108,7 @@ class FragmentUserRight : SwipeFragment<FragmentUserRightBinding>() {
         if (!TextUtils.isEmpty(data.profile.webpage)) {
             baseBind.realHome.text = data.profile.webpage
         } else {
-            baseBind.realHome.text = "https://www.pixiv.net/users/" + data.user.id
+            baseBind.realHome.text = "https://www.pixiv.net/users/%d".format(data.user.id)
         }
         if (!TextUtils.isEmpty(data.profile.twitter_url)) {
             baseBind.realTwitter.text = data.profile.twitter_url

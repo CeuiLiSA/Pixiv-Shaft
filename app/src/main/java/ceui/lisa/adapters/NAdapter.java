@@ -64,12 +64,12 @@ public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
             bindView.baseBind.series.setVisibility(View.GONE);
         }
         if (showShop) {
-            bindView.baseBind.title.setText("#" + (position + 1) + " " + target.getTitle());
+            bindView.baseBind.title.setText(String.format("#%d %s", position + 1, target.getTitle()));
         } else {
             bindView.baseBind.title.setText(target.getTitle());
         }
         bindView.baseBind.author.setText(target.getUser().getName());
-        bindView.baseBind.howManyWord.setText(target.getText_length() + "字");
+        bindView.baseBind.howManyWord.setText(String.format("%d字", target.getText_length()));
         Glide.with(mContext).load(GlideUtil.getUrl(target.getImage_urls().getMaxImage())).into(bindView.baseBind.cover);
         Glide.with(mContext).load(GlideUtil.getHead(target.getUser())).into(bindView.baseBind.userHead);
         if (target.isIs_bookmarked()) {

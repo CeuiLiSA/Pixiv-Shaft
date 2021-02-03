@@ -325,7 +325,7 @@
   <string name="string_153">ID 검색 소설</string>  
   <string name="string_154">ID 는 전부 숫자 여야 합 니 다.</string>  
   <string name="string_155"># 전부</string>  
-  <string name="string_156">개 작품</string>  
+  <string name="string_156">%d 개 작품</string>
   <string name="string_157">차단 해제</string>  
   <string name="string_158">댓 글 을 올 리 려 면 먼저 메 일 을 연결 해 야 합 니 다.</string>  
   <string name="string_159">즉시 귀속</string>  
@@ -362,9 +362,9 @@
   <string name="string_190">확정 하 다.</string>  
   <string name="string_191">특집</string>  
   <string name="string_192">소설 을 수집 하 다.</string>  
-  <string name="string_193">작품 사이즈:</string>  
-  <string name="string_194">작품 ID:</string>  
-  <string name="string_195">화가 ID:</string>  
+  <string name="string_193">작품 사이즈: %dpx * %dpx</string>
+  <string name="string_194">작품 ID: %d</string>
+  <string name="string_195">화가 ID: %d</string>
   <string name="string_196">주목 하 는 사람의 소설</string>  
   <string name="string_197">관심 가 의 최신 소설</string>  
   <string name="string_198">이 를 위해 소프트웨어 평 점</string>  

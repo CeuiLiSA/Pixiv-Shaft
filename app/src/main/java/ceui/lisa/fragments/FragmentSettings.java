@@ -436,7 +436,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
         });
 
 
-        baseBind.lineCount.setText(Shaft.sSettings.getLineCount() + "列");
+        baseBind.lineCount.setText(getString(R.string.string_349, Shaft.sSettings.getLineCount()));
         baseBind.lineCountRela.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -463,7 +463,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                                 } else {
                                     int lineCount = which + 2;
                                     Shaft.sSettings.setLineCount(lineCount);
-                                    baseBind.lineCount.setText(String.format(getString(R.string.string_349), lineCount));
+                                    baseBind.lineCount.setText(getString(R.string.string_349, lineCount));
                                     Local.setSettings(Shaft.sSettings);
                                     Common.showToast("重启APP生效", 2);
                                 }

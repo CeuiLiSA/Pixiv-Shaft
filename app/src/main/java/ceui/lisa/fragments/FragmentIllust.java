@@ -190,9 +190,9 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 return true;
             }
         });
-        baseBind.illustSize.setText(getString(R.string.string_193) + illust.getWidth() + "px * " + illust.getHeight() + "px");
-        baseBind.illustId.setText(getString(R.string.string_194) + illust.getId());
-        baseBind.userId.setText(getString(R.string.string_195) + illust.getUser().getId());
+        baseBind.illustSize.setText(getString(R.string.string_193, illust.getWidth(), illust.getHeight()));
+        baseBind.illustId.setText(getString(R.string.string_194, illust.getId()));
+        baseBind.userId.setText(getString(R.string.string_195, illust.getUser().getId()));
 
         final BottomSheetBehavior<?> sheetBehavior = BottomSheetBehavior.from(baseBind.coreLinear);
 
@@ -314,7 +314,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
             }
         });
         baseBind.userName.setText(illust.getUser().getName());
-        baseBind.postTime.setText(illust.getCreate_date().substring(0, 16) + "投递");
+        baseBind.postTime.setText(String.format("%s投递", illust.getCreate_date().substring(0, 16)));
         baseBind.totalView.setText(String.valueOf(illust.getTotal_view()));
         baseBind.totalLike.setText(String.valueOf(illust.getTotal_bookmarks()));
         baseBind.download.setOnClickListener(v -> {

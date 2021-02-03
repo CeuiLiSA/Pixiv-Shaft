@@ -58,7 +58,7 @@
 
                         <ImageView
                             android:layout_width="match_parent"
-                            android:src="@mipmap/avatar"
+                            android:src="@drawable/avatar"
                             android:padding="@dimen/sixteen_dp"
                             android:scaleType="centerInside"
                             android:layout_height="match_parent">

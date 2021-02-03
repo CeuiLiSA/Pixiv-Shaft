@@ -325,7 +325,7 @@
   <string name="string_153">роман с идентификатором</string>  
   <string name="string_154">идентификатор должен быть полным числом</string>  
   <string name="string_155">полоть все</string>  
-  <string name="string_156">произведение</string>  
+  <string name="string_156">%d произведение</string>
   <string name="string_157">снять экран</string>  
   <string name="string_158">Комментарий нужно сначала привязать почтовый ящик</string>  
   <string name="string_159">немедленная привязка</string>  
@@ -362,9 +362,9 @@
   <string name="string_190">определение</string>  
   <string name="string_191">специальный сборник</string>  
   <string name="string_192">коллекция романов</string>  
-  <string name="string_193">размер работы:</string>  
-  <string name="string_194">идентификатор работы:</string>  
-  <string name="string_195">ID рисователя:</string>  
+  <string name="string_193">размер работы: %dpx * %dpx</string>
+  <string name="string_194">идентификатор работы: %d</string>
+  <string name="string_195">ID рисователя: %d</string>
   <string name="string_196">Романы подмандатных лиц</string>  
   <string name="string_197">Последние романы подмандатных лиц</string>  
   <string name="string_198">Это софтвер</string>  

@@ -65,7 +65,7 @@ public class DownloadedAdapter extends BaseAdapter<DownloadEntity, RecyDownloade
                     .placeholder(R.color.light_bg)
                     .into(bindView.baseBind.illustImage);
             bindView.baseBind.title.setText(current.getTitle());
-            bindView.baseBind.author.setText("by: " + current.getUser().getName());
+            bindView.baseBind.author.setText(String.format("by: %s", current.getUser().getName()));
             bindView.baseBind.time.setText(mTime.format(allIllust.get(position).getDownloadTime()));
 
             bindView.baseBind.pSize.setText(R.string.string_171);
@@ -109,14 +109,14 @@ public class DownloadedAdapter extends BaseAdapter<DownloadEntity, RecyDownloade
                 }
             }
             bindView.baseBind.title.setText(allIllust.get(position).getFileName());
-            bindView.baseBind.author.setText("by: " + currentIllust.getUser().getName());
+            bindView.baseBind.author.setText(String.format("by: %s", currentIllust.getUser().getName()));
             bindView.baseBind.time.setText(mTime.format(allIllust.get(position).getDownloadTime()));
 
             if (currentIllust.getPage_count() == 1) {
                 bindView.baseBind.pSize.setVisibility(View.GONE);
             } else {
                 bindView.baseBind.pSize.setVisibility(View.VISIBLE);
-                bindView.baseBind.pSize.setText(currentIllust.getPage_count() + "P");
+                bindView.baseBind.pSize.setText(String.format("%dP", currentIllust.getPage_count()));
             }
 
             if (mOnItemClickListener != null) {

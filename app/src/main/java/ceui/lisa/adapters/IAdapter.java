@@ -121,7 +121,7 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
             bindView.baseBind.pSize.setVisibility(View.GONE);
         } else {
             bindView.baseBind.pSize.setVisibility(View.VISIBLE);
-            bindView.baseBind.pSize.setText(target.getPage_count() + "P");
+            bindView.baseBind.pSize.setText(String.format("%dP", target.getPage_count()));
         }
         bindView.baseBind.pGif.setVisibility(target.isGif() ? View.VISIBLE : View.GONE);
         bindView.itemView.setOnClickListener(view -> {

@@ -48,7 +48,7 @@ public class VAdapter extends BaseAdapter<String, FragmentSingleNovelBinding> {
             bindView.baseBind.partIndex.setVisibility(View.GONE);
         } else {
             bindView.baseBind.partIndex.setVisibility(View.VISIBLE);
-            bindView.baseBind.partIndex.setText(" --- Part " + (position + 1) + " --- ");
+            bindView.baseBind.partIndex.setText(String.format(" --- Part %d --- ", position + 1));
         }
         bindView.baseBind.novelDetail.setText(target);
     }

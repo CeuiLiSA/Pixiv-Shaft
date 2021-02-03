@@ -51,7 +51,8 @@
                     android:layout_marginTop="@dimen/twelve_dp"
                     android:layout_marginBottom="@dimen/twelve_dp"
                     android:background="@drawable/search_et_bg"
-                    android:layout_height="36dp">
+                    android:layout_height="36dp"
+                    android:inputType="text">
 
 
                 </EditText>

@@ -90,8 +90,8 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
                 Common.showToast(getString(R.string.string_227))
             }
         }
-        baseBind.appVersion.text =
-            Common.getAppVersionName(mContext) + " (" + Common.getAppVersionCode(mContext) + ") "
+        baseBind.appVersion.text = "%s (%s) "
+            .format(Common.getAppVersionName(mContext), Common.getAppVersionCode(mContext))
         baseBind.rateThisApp.setOnClickListener {
             val uri = Uri.parse("market://details?id=" + mContext.packageName)
             val myAppLinkToMarket = Intent(Intent.ACTION_VIEW, uri)

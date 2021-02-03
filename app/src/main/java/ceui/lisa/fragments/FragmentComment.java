@@ -306,7 +306,7 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
                     String left = show.substring(0, selection);
                     String right = show.substring(selection);
 
-                    baseBind.inputBox.setText(left + name + right);
+                    baseBind.inputBox.setText(String.format("%s%s%s", left, name, right));
                     baseBind.inputBox.setSelection(selection + name.length());
                 } else {
                     String result = show + name;
