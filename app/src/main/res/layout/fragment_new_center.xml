@@ -82,7 +82,8 @@
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="140dp"
-                            android:orientation="horizontal">
+                            android:orientation="horizontal"
+                            android:baselineAligned="false">
 
 
                             <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
@@ -176,7 +177,8 @@
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="128dp"
-                            android:orientation="horizontal">
+                            android:orientation="horizontal"
+                            android:baselineAligned="false">
 
 
                             <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
