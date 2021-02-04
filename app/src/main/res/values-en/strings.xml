@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources xmlns:tools="http://schemas.android.com/tools">  
   <string name="app_name">PixShaft</string>  
   <string name="navigation_drawer_open">Open navigation drawer</string>  
   <string name="navigation_drawer_close">Close navigation drawer</string>  
@@ -84,7 +84,7 @@
   <string name="shaft_hint">Shaft Tips</string>  
   <string name="you_have_download_plan">You have not downloaded task, determined to quit?</string>  
   <string name="sure">determine</string>  
-  <string name="cancel">Cancel</string>
+  <string name="cancel">Cancel</string>  
   <string name="now_downloading">downloading</string>  
   <string name="has_download">completed</string>  
   <string name="has_copyed">Copied to clipboard</string>  
@@ -100,7 +100,7 @@
   <string name="recomment_user">Recommended Users</string>  
   <string name="you_mother_fucker_want_to_read_novel">What?</string>  
   <string name="user_info">details</string>  
-  <string name="how_many_illust_works" tools:ignore="PluralsCandidate">%d works</string>
+  <string name="how_many_illust_works" tools:ignore="PluralsCandidate">%d works</string>  
   <string name="user_main_page">Homepage</string>  
   <string name="user_collections">Favorites</string>  
   <string name="download_manager">Download Manager</string>  
@@ -162,7 +162,7 @@
   <string name="never_show_again">never show again</string>  
   <string name="add">Add to</string>  
   <string name="fullscreen_layout">fullscreen layout</string>  
-  <string name="how_many_novels" tools:ignore="PluralsCandidate">A work %d, %d characters, reading requires: %d hours %d minute</string>
+  <string name="how_many_novels" tools:ignore="PluralsCandidate">A work %d, %d characters, reading requires: %d hours %d minute</string>  
   <string name="scroll_behavior">ceui.lisa.pixiv.ScrollBehavior</string>  
   <string name="head_behavior">ceui.lisa.pixiv.HeadBehavior</string>  
   <string name="title_activity_splash">SplashActivity</string>  
@@ -188,7 +188,7 @@
   <string name="string_14">Add to</string>  
   <string name="string_15">Modify the background color</string>  
   <string name="string_16">Shield label</string>  
-  <string name="string_18">Cancel</string>
+  <string name="string_18">Cancel</string>  
   <string name="string_19">Adding shield</string>  
   <string name="string_20">all choices</string>  
   <string name="string_21">Uncheck All</string>  
@@ -311,7 +311,7 @@
   <string name="string_139">Enter search content</string>  
   <string name="string_140">Search History deleted successfully</string>  
   <string name="string_141">delete</string>  
-  <string name="string_142">Cancel</string>
+  <string name="string_142">Cancel</string>  
   <string name="string_143">prompt</string>  
   <string name="string_144">This will delete all local search history</string>  
   <string name="string_147">P Good Friends:</string>  
@@ -325,11 +325,11 @@
   <string name="string_153">ID search fiction</string>  
   <string name="string_154">ID must be fully digital</string>  
   <string name="string_155"># All</string>  
-  <string name="string_156">%d works</string>
+  <string name="string_156">%d works</string>  
   <string name="string_157">Unblock</string>  
   <string name="string_158">Post a comment you need to bind the mailbox</string>  
   <string name="string_159">Binding immediately</string>  
-  <string name="string_160">Cancel</string>
+  <string name="string_160">Cancel</string>  
   <string name="string_161">Write your review</string>  
   <string name="string_162">Write your review</string>  
   <string name="string_163">Leave your comment now</string>  
@@ -356,15 +356,15 @@
   <string name="string_184">Series: %s</string>  
   <string name="string_185">Delete account information after exit?</string>  
   <string name="string_186">Delete account information</string>  
-  <string name="string_187">Cancel</string>
+  <string name="string_187">Cancel</string>  
   <string name="string_188">welcome!</string>  
   <string name="string_189">Determine and no longer prompt</string>  
   <string name="string_190">determine</string>  
   <string name="string_191">Special edition</string>  
   <string name="string_192">Fiction Collection</string>  
-  <string name="string_193">Work Res: %dpx * %dpx</string>
-  <string name="string_194">Work ID: %d</string>
-  <string name="string_195">Artist ID: %d</string>
+  <string name="string_193">Work Res: %dpx * %dpx</string>  
+  <string name="string_194">Work ID: %d</string>  
+  <string name="string_195">Artist ID: %d</string>  
   <string name="string_196">Followers of fiction</string>  
   <string name="string_197">Followers of the latest novel</string>  
   <string name="string_198">Rate this software</string>  
@@ -380,13 +380,13 @@
   <string name="string_209">Already exists in the block list</string>  
   <string name="string_210">Adding shield label</string>  
   <string name="string_211">Please enter the label name</string>  
-  <string name="string_212">Cancel</string>
+  <string name="string_212">Cancel</string>  
   <string name="string_213">Add to</string>  
   <string name="string_214">Please fill in the label</string>  
   <string name="string_215">There are currently no shield label removed</string>  
   <string name="string_216">Shaft Tips</string>  
   <string name="string_217">This will delete all the shielding label</string>  
-  <string name="string_218">Cancel</string>
+  <string name="string_218">Cancel</string>  
   <string name="string_219">delete</string>  
   <string name="string_220">successfully deleted</string>  
   <string name="string_221">Calculation</string>  
@@ -490,30 +490,31 @@
   <string name="string_328">Clear task</string>  
   <string name="string_329">The system version is lower than Android 10, unable to customize the folder</string>  
   <string name="string_330">Not set yet</string>  
-  <string name="r_eighteen_weekly_rank">This week R</string>
-  <string name="r_eighteen_male_rank">Male r</string>
-  <string name="r_eighteen_female_rank">Female r</string>
-  <string name="string_331">Using pixivcat agent</string>
-  <string name="string_332">The details / secondary details page displays the original picture</string>
-  <string name="string_333">Speed up the loading of pictures. If you think the loading is slow, you can close it</string>
-  <string name="string_334">The image quality of the original image is good. If you think that the loading of the original image is too slow, you can close it</string>
-  <string name="about_network">network</string>
-  <string name="string_335">Add collection default private collection</string>
-  <string name="string_336">Number of vertical display columns</string>
-  <string name="string_337">Downloaded</string>
-  <string name="string_338">R18 works download to another directory</string>
-  <string name="string_339">Download this work</string>
-  <string name="string_0">Loading the original image of the current work</string>
-  <string name="string_340">Please log out and log in again</string>
-  <string name="string_341">Web site intelligent jump</string>
-  <string name="string_342">Tab order at the bottom of app</string>
-  <string name="string_343">Recommendation - Discovery - Dynamic</string>
-  <string name="string_344">Recommendation - Dynamic - Discovery</string>
-  <string name="string_345">Discovery - Recommendation - Dynamic</string>
-  <string name="string_346">Discovery - Dynamic - Recommendation</string>
-  <string name="string_347">Dynamic - Recommendation - Discovery</string>
-  <string name="string_348">Dynamic - Discovery - Recommendation</string>
-  <string name="string_349" tools:ignore="PluralsCandidate">%d columns</string>
-  <string name="string_350">MM-dd HH:mm</string>
-  <string name="string_351">yyyy-MM-dd HH:mm Added</string>
+  <string name="r_eighteen_weekly_rank">This week R</string>  
+  <string name="r_eighteen_male_rank">Male r</string>  
+  <string name="r_eighteen_female_rank">Female r</string>  
+  <string name="string_331">Using pixivcat agent</string>  
+  <string name="string_332">The details / secondary details page displays the original picture</string>  
+  <string name="string_333">Speed up the loading of pictures. If you think the loading is slow, you can close it</string>  
+  <string name="string_334">The image quality of the original image is good. If you think that the loading of the original image is too slow, you can close it</string>  
+  <string name="about_network">network</string>  
+  <string name="string_335">Add collection default private collection</string>  
+  <string name="string_336">Number of vertical display columns</string>  
+  <string name="string_337">Downloaded</string>  
+  <string name="string_338">R18 works download to another directory</string>  
+  <string name="string_339">Download this work</string>  
+  <string name="string_0">Loading the original image of the current work</string>  
+  <string name="string_340">Please log out and log in again</string>  
+  <string name="string_341">Web site intelligent jump</string>  
+  <string name="string_342">Tab order at the bottom of app</string>  
+  <string name="string_343">Recommendation - Discovery - Dynamic</string>  
+  <string name="string_344">Recommendation - Dynamic - Discovery</string>  
+  <string name="string_345">Discovery - Recommendation - Dynamic</string>  
+  <string name="string_346">Discovery - Dynamic - Recommendation</string>  
+  <string name="string_347">Dynamic - Recommendation - Discovery</string>  
+  <string name="string_348">Dynamic - Discovery - Recommendation</string>  
+  <string name="string_349" tools:ignore="PluralsCandidate">%d columns</string>  
+  <string name="string_350">MM-dd HH:mm</string>  
+  <string name="string_351">yyyy-MM-dd HH:mm Added</string>  
+  <string name="string_352">Are you sure you want to delete this record</string>
 </resources>

@@ -60,7 +60,6 @@ public class HistoryAdapter extends BaseAdapter<IllustHistoryEntity, RecyViewHis
                     .into(bindView.baseBind.illustImage);
             bindView.baseBind.title.setText(current.getTitle());
             bindView.baseBind.author.setText(String.format("by: %s", current.getUser().getName()));
-            bindView.baseBind.time.setText(mTime.format(allIllust.get(position).getTime()));
 
             if (current.isGif()) {
                 bindView.baseBind.pSize.setVisibility(View.VISIBLE);
@@ -94,7 +93,6 @@ public class HistoryAdapter extends BaseAdapter<IllustHistoryEntity, RecyViewHis
                     .into(bindView.baseBind.illustImage);
             bindView.baseBind.title.setText(current.getTitle());
             bindView.baseBind.author.setText(String.format("by: %s", current.getUser().getName()));
-            bindView.baseBind.time.setText(mTime.format(allIllust.get(position).getTime()));
 
             bindView.baseBind.pSize.setVisibility(View.VISIBLE);
             bindView.baseBind.pSize.setText("小说");
@@ -110,9 +108,13 @@ public class HistoryAdapter extends BaseAdapter<IllustHistoryEntity, RecyViewHis
             }
         }
 
-
-
-
+        bindView.baseBind.time.setText(mTime.format(allIllust.get(position).getTime()));
+        bindView.baseBind.deleteItem.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mOnItemClickListener.onItemClick(v, position, 2);
+            }
+        });
         //从-400 丝滑滑动到0
         ((SpringHolder) bindView).spring.setCurrentValue(-400);
         ((SpringHolder) bindView).spring.setEndValue(0);

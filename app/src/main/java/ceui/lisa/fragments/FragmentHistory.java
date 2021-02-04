@@ -67,6 +67,34 @@ public class FragmentHistory extends LocalListFragment<FragmentBaseListBinding,
                     Intent intent = new Intent(mContext, UserActivity.class);
                     intent.putExtra(Params.USER_ID, (int) v.getTag());
                     mContext.startActivity(intent);
+                } else if (viewType == 2) {
+                    new QMUIDialog.MessageDialogBuilder(mActivity)
+                            .setTitle(getString(R.string.string_143))
+                            .setMessage(getString(R.string.string_352))
+                            .setSkinManager(QMUISkinManager.defaultInstance(mActivity))
+                            .addAction(getString(R.string.string_142), new QMUIDialogAction.ActionListener() {
+                                @Override
+                                public void onClick(QMUIDialog dialog, int index) {
+                                    dialog.dismiss();
+                                }
+                            })
+                            .addAction(0, getString(R.string.string_141), QMUIDialogAction.ACTION_PROP_NEGATIVE,
+                                    new QMUIDialogAction.ActionListener() {
+                                        @Override
+                                        public void onClick(QMUIDialog dialog, int index) {
+                                            AppDatabase.getAppDatabase(mContext).downloadDao().delete(allItems.get(position));
+                                            allItems.remove(position);
+                                            mAdapter.notifyItemRemoved(position);
+                                            mAdapter.notifyItemRangeChanged(position, allItems.size() - position);
+                                            if (allItems.size() == 0) {
+                                                mRecyclerView.setVisibility(View.INVISIBLE);
+                                                emptyRela.setVisibility(View.VISIBLE);
+                                            }
+                                            Common.showToast(getString(R.string.string_220));
+                                            dialog.dismiss();
+                                        }
+                                    })
+                            .show();
                 }
             }
         });
