@@ -14,6 +14,8 @@ public interface SearchDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insert(SearchEntity searchEntity);
 
+    @Delete
+    void deleteSearchEntity(SearchEntity searchEntity);
 
     @Query("DELETE FROM search_table")
     void deleteAll();

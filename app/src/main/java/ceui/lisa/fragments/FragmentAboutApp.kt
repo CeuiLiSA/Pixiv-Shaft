@@ -23,11 +23,6 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
 
     override fun initData() {
         baseBind.toolbar.setNavigationOnClickListener { mActivity.finish() }
-
-
-
-
-
         baseBind.pixivProblem.setOnClickListener {
             val intent = Intent(mContext, TemplateActivity::class.java)
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接")

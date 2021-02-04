@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.qmuiteam.qmui.skin.QMUISkinManager;
@@ -35,6 +36,7 @@ import ceui.lisa.adapters.SearchHintAdapter;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.SearchEntity;
 import ceui.lisa.databinding.FragmentSearchBinding;
+import ceui.lisa.databinding.RecySingleLineTextWithDeleteBinding;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
@@ -307,14 +309,27 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
     @Override
     public void onResume() {
         super.onResume();
+        loadHistory();
+    }
+
+    private void loadHistory() {
         List<SearchEntity> history = AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().getAll(15);
         baseBind.searchHistory.setAdapter(new TagAdapter<SearchEntity>(history) {
             @Override
             public View getView(FlowLayout parent, int position, SearchEntity searchEntity) {
-                TextView tv = (TextView) LayoutInflater.from(mContext).inflate(R.layout.recy_single_line_text,
+                RecySingleLineTextWithDeleteBinding binding = DataBindingUtil.inflate(
+                        LayoutInflater.from(mContext), R.layout.recy_single_line_text_with_delete,
                         parent, false);
-                tv.setText(searchEntity.getKeyword());
-                return tv;
+                binding.tagTitle.setText(searchEntity.getKeyword());
+                binding.deleteItem.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        AppDatabase.getAppDatabase(mContext).searchDao().deleteSearchEntity(searchEntity);
+                        Common.showToast("删除成功");
+                        loadHistory();
+                    }
+                });
+                return binding.getRoot();
             }
         });
         if (history != null && history.size() != 0) {
