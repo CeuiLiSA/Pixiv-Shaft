@@ -267,7 +267,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
             baseBind.showNext.setVisibility(View.INVISIBLE);
         }
         baseBind.toolbar.getMenu().clear();
-        baseBind.toolbar.inflateMenu(R.menu.change_color);
+        baseBind.toolbar.inflateMenu(R.menu.novel_read_menu);
         baseBind.saveNovelTxt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -284,7 +284,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
         baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
-                if (item.getItemId() == R.id.action_add) {
+                if (item.getItemId() == R.id.action_change_color) {
                     if (Shaft.sSettings.getNovelHolderColor() != 0) {
                         ColorPickerDialog.newBuilder()
                                 .setColor(Shaft.sSettings.getNovelHolderColor())

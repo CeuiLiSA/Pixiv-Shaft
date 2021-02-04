@@ -28,7 +28,7 @@
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             app:cardCornerRadius="@dimen/four_dp"
-            app:cardBackgroundColor="#7323c3"
+            app:cardBackgroundColor="?attr/colorPrimary"
             app:cardElevation="@dimen/four_dp"
             android:layout_marginBottom="160dp"
             android:layout_alignParentBottom="true"
@@ -278,7 +278,7 @@
             android:background="@color/trans"
             android:fitsSystemWindows="true"
             android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar"
-            app:popupTheme="@style/Theme.AppCompat.Light.DarkActionBar">
+            app:popupTheme="@style/AppTheme.PopupOverlay">
 
         </androidx.appcompat.widget.Toolbar>
 
