@@ -27,17 +27,29 @@ public interface SearchDao {
 
     //添加一个屏蔽标签
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insertMuteTag(TagMuteEntity muteEntity);
+    void insertMuteTag(MuteEntity muteEntity);
 
     //删除所有屏蔽的标签
-    @Query("DELETE FROM tag_mute_table")
+    @Query("DELETE FROM tag_mute_table WHERE type = 0")
     void deleteAllMutedTags();
 
-    @Query("SELECT * FROM tag_mute_table ORDER BY searchTime DESC ")
-    List<TagMuteEntity> getAllMutedTags();
+    @Query("DELETE FROM tag_mute_table WHERE type = 1 OR type = 2")
+    void deleteMutedWorks();
+
+    @Query("DELETE FROM tag_mute_table WHERE type = 3")
+    void deleteMutedUser();
+
+    @Query("SELECT * FROM tag_mute_table WHERE type = 0 ORDER BY searchTime DESC ")
+    List<MuteEntity> getAllMutedTags();
+
+    @Query("SELECT * FROM tag_mute_table WHERE type = 1 OR type = 2 ORDER BY searchTime DESC ")
+    List<MuteEntity> getMutedWorks();
+
+    @Query("SELECT * FROM tag_mute_table WHERE type = 3 ORDER BY searchTime DESC ")
+    List<MuteEntity> getMutedUser();
 
     @Delete
-    void unMuteTag(TagMuteEntity userEntity);
+    void unMuteTag(MuteEntity userEntity);
 
 
     /**

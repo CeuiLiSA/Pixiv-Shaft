@@ -132,6 +132,8 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 } else if (menuItem.getItemId() == R.id.action_show_original) {
                     baseBind.recyclerView.setAdapter(new IllustAdapter(mContext, illust,
                             recyHeight, true));
+                } else if (menuItem.getItemId() == R.id.action_mute_illust) {
+                    PixivOperate.muteIllust(illust);
                 }
                 return false;
             }

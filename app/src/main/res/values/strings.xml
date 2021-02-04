@@ -538,5 +538,8 @@
     <string name="string_350">MM月dd日 HH:mm</string>
     <string name="string_351">yyyy年MM月dd日 HH:mm 添加</string>
     <string name="string_352">确定删除这条记录吗</string>
+    <string name="string_353">屏蔽标签</string>
+    <string name="string_354">屏蔽作品</string>
+    <string name="string_355">屏蔽这个作品</string>
 
 </resources>

@@ -516,5 +516,8 @@
   <string name="string_349">%d 열</string>  
   <string name="string_350">MM-dd HH:mm</string>  
   <string name="string_351">yyyy-MM-dd HH:mm 추가됨</string>  
-  <string name="string_352">이 기록 을 삭제 하 시 겠 습 니까?</string>
+  <string name="string_352">이 기록 을 삭제 하 시 겠 습 니까?</string>  
+  <string name="string_353">마스크 라벨</string>  
+  <string name="string_354">차폐 작품</string>  
+  <string name="string_355">이 작품 을 가리다</string>
 </resources>

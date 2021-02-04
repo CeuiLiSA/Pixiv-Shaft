@@ -34,8 +34,8 @@ import ceui.lisa.core.PageData;
 import ceui.lisa.core.TryCatchObserverImpl;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustHistoryEntity;
+import ceui.lisa.database.MuteEntity;
 import ceui.lisa.database.SearchEntity;
-import ceui.lisa.database.TagMuteEntity;
 import ceui.lisa.file.LegacyFile;
 import ceui.lisa.fragments.FragmentLogin;
 import ceui.lisa.http.ErrorCtrl;
@@ -50,6 +50,7 @@ import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.NovelSearchResponse;
 import ceui.lisa.models.NullResponse;
 import ceui.lisa.models.TagsBean;
+import ceui.lisa.models.UserBean;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.models.IllustsBean;
 import io.reactivex.Observable;
@@ -310,12 +311,43 @@ public class PixivOperate {
     }
 
     public static void muteTag(TagsBean tagsBean) {
-        TagMuteEntity tagMuteEntity = new TagMuteEntity();
+        MuteEntity muteEntity = new MuteEntity();
         String tagName = tagsBean.getName();
-        tagMuteEntity.setId(tagName.hashCode());
-        tagMuteEntity.setTagJson(Shaft.sGson.toJson(tagsBean));
-        tagMuteEntity.setSearchTime(System.currentTimeMillis());
-        AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().insertMuteTag(tagMuteEntity);
+        muteEntity.setType(Params.MUTE_TAG);
+        muteEntity.setId(tagName.hashCode());
+        muteEntity.setTagJson(Shaft.sGson.toJson(tagsBean));
+        muteEntity.setSearchTime(System.currentTimeMillis());
+        AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().insertMuteTag(muteEntity);
+    }
+
+    public static void muteUser(UserBean userBean) {
+        MuteEntity muteEntity = new MuteEntity();
+        muteEntity.setType(Params.MUTE_USER);
+        muteEntity.setId(userBean.getId());
+        muteEntity.setTagJson(Shaft.sGson.toJson(userBean));
+        muteEntity.setSearchTime(System.currentTimeMillis());
+        AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().insertMuteTag(muteEntity);
+        Common.showToast("操作成功");
+    }
+
+    public static void muteIllust(IllustsBean illust) {
+        MuteEntity muteEntity = new MuteEntity();
+        muteEntity.setType(Params.MUTE_ILLUST);
+        muteEntity.setId(illust.getId());
+        muteEntity.setTagJson(Shaft.sGson.toJson(illust));
+        muteEntity.setSearchTime(System.currentTimeMillis());
+        AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().insertMuteTag(muteEntity);
+        Common.showToast("操作成功");
+    }
+
+    public static void muteNovel(NovelBean novelBean) {
+        MuteEntity muteEntity = new MuteEntity();
+        muteEntity.setType(Params.MUTE_NOVEL);
+        muteEntity.setId(novelBean.getId());
+        muteEntity.setTagJson(Shaft.sGson.toJson(novelBean));
+        muteEntity.setSearchTime(System.currentTimeMillis());
+        AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().insertMuteTag(muteEntity);
+        Common.showToast("操作成功");
     }
 
     public static void muteTags(List<TagsBean> tagsBeans) {
@@ -329,12 +361,13 @@ public class PixivOperate {
     }
 
     public static void unMuteTag(TagsBean tagsBean) {
-        TagMuteEntity tagMuteEntity = new TagMuteEntity();
+        MuteEntity muteEntity = new MuteEntity();
         String tagName = tagsBean.getName();
-        tagMuteEntity.setId(tagName.hashCode());
-        tagMuteEntity.setTagJson(Shaft.sGson.toJson(tagsBean));
-        tagMuteEntity.setSearchTime(System.currentTimeMillis());
-        AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().unMuteTag(tagMuteEntity);
+        muteEntity.setType(Params.MUTE_TAG);
+        muteEntity.setId(tagName.hashCode());
+        muteEntity.setTagJson(Shaft.sGson.toJson(tagsBean));
+        muteEntity.setSearchTime(System.currentTimeMillis());
+        AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().unMuteTag(muteEntity);
         Common.showToast(Shaft.getContext().getString(R.string.string_135));
     }
 

@@ -26,7 +26,8 @@ import ceui.lisa.models.TagsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.PixivOperate;
 
-public class FragmentMutedTags extends LocalListFragment<FragmentBaseListBinding, TagsBean> {
+public class FragmentMutedTags extends LocalListFragment<FragmentBaseListBinding,
+        TagsBean> implements Toolbar.OnMenuItemClickListener {
 
     @Override
     public LocalRepo<List<TagsBean>> repository() {
@@ -63,71 +64,6 @@ public class FragmentMutedTags extends LocalListFragment<FragmentBaseListBinding
         });
     }
 
-    @Override
-    public void initToolbar(Toolbar toolbar) {
-        super.initToolbar(toolbar);
-        baseBind.toolbar.inflateMenu(R.menu.delete_and_add);
-        baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                if (item.getItemId() == R.id.action_delete) {
-                    if (allItems.size() == 0) {
-                        Common.showToast(getString(R.string.string_215));
-                    } else {
-                        new QMUIDialog.MessageDialogBuilder(mActivity)
-                                .setTitle(getString(R.string.string_216))
-                                .setMessage(getString(R.string.string_217))
-                                .setSkinManager(QMUISkinManager.defaultInstance(mContext))
-                                .addAction(getString(R.string.string_218), new QMUIDialogAction.ActionListener() {
-                                    @Override
-                                    public void onClick(QMUIDialog dialog, int index) {
-                                        dialog.dismiss();
-                                    }
-                                })
-                                .addAction(0, getString(R.string.string_219), QMUIDialogAction.ACTION_PROP_NEGATIVE, new QMUIDialogAction.ActionListener() {
-                                    @Override
-                                    public void onClick(QMUIDialog dialog, int index) {
-                                        AppDatabase.getAppDatabase(mContext).searchDao().deleteAllMutedTags();
-                                        Common.showToast(getString(R.string.string_220));
-                                        mAdapter.clear();
-                                        emptyRela.setVisibility(View.VISIBLE);
-                                        dialog.dismiss();
-                                    }
-                                })
-                                .create()
-                                .show();
-                    }
-                } else if (item.getItemId() == R.id.action_add) {
-                    final QMUIDialog.EditTextDialogBuilder builder = new QMUIDialog.EditTextDialogBuilder(mActivity);
-                    builder.setTitle(getString(R.string.string_210))
-                            .setSkinManager(QMUISkinManager.defaultInstance(mContext))
-                            .setPlaceholder(getString(R.string.string_211))
-                            .setInputType(InputType.TYPE_CLASS_TEXT)
-                            .addAction(getString(R.string.string_212), new QMUIDialogAction.ActionListener() {
-                                @Override
-                                public void onClick(QMUIDialog dialog, int index) {
-                                    dialog.dismiss();
-                                }
-                            })
-                            .addAction(getString(R.string.string_213), new QMUIDialogAction.ActionListener() {
-                                @Override
-                                public void onClick(QMUIDialog dialog, int index) {
-                                    CharSequence text = builder.getEditText().getText();
-                                    if (text != null && text.length() > 0) {
-                                        addMutedTag(text.toString());
-                                        dialog.dismiss();
-                                    } else {
-                                        Toast.makeText(getActivity(), R.string.string_214, Toast.LENGTH_SHORT).show();
-                                    }
-                                }
-                            })
-                            .show();
-                }
-                return true;
-            }
-        });
-    }
-
     public void addMutedTag(String tagName) {
         boolean isExist = false;
         for (TagsBean allItem : allItems) {
@@ -156,7 +92,65 @@ public class FragmentMutedTags extends LocalListFragment<FragmentBaseListBinding
     }
 
     @Override
-    public String getToolbarTitle() {
-        return getString(R.string.muted_history);
+    public boolean showToolbar() {
+        return false;
+    }
+
+    @Override
+    public boolean onMenuItemClick(MenuItem item) {
+        if (item.getItemId() == R.id.action_delete) {
+            if (allItems.size() == 0) {
+                Common.showToast(getString(R.string.string_215));
+            } else {
+                new QMUIDialog.MessageDialogBuilder(mActivity)
+                        .setTitle(getString(R.string.string_216))
+                        .setMessage(getString(R.string.string_217))
+                        .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                        .addAction(getString(R.string.string_218), new QMUIDialogAction.ActionListener() {
+                            @Override
+                            public void onClick(QMUIDialog dialog, int index) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .addAction(0, getString(R.string.string_219), QMUIDialogAction.ACTION_PROP_NEGATIVE, new QMUIDialogAction.ActionListener() {
+                            @Override
+                            public void onClick(QMUIDialog dialog, int index) {
+                                AppDatabase.getAppDatabase(mContext).searchDao().deleteAllMutedTags();
+                                Common.showToast(getString(R.string.string_220));
+                                mAdapter.clear();
+                                emptyRela.setVisibility(View.VISIBLE);
+                                dialog.dismiss();
+                            }
+                        })
+                        .create()
+                        .show();
+            }
+        } else if (item.getItemId() == R.id.action_add) {
+            final QMUIDialog.EditTextDialogBuilder builder = new QMUIDialog.EditTextDialogBuilder(mActivity);
+            builder.setTitle(getString(R.string.string_210))
+                    .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                    .setPlaceholder(getString(R.string.string_211))
+                    .setInputType(InputType.TYPE_CLASS_TEXT)
+                    .addAction(getString(R.string.string_212), new QMUIDialogAction.ActionListener() {
+                        @Override
+                        public void onClick(QMUIDialog dialog, int index) {
+                            dialog.dismiss();
+                        }
+                    })
+                    .addAction(getString(R.string.string_213), new QMUIDialogAction.ActionListener() {
+                        @Override
+                        public void onClick(QMUIDialog dialog, int index) {
+                            CharSequence text = builder.getEditText().getText();
+                            if (text != null && text.length() > 0) {
+                                addMutedTag(text.toString());
+                                dialog.dismiss();
+                            } else {
+                                Toast.makeText(getActivity(), R.string.string_214, Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    })
+                    .show();
+        }
+        return true;
     }
 }

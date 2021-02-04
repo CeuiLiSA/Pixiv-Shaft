@@ -60,6 +60,7 @@ import ceui.lisa.fragments.FragmentUserIllust;
 import ceui.lisa.fragments.FragmentUserInfo;
 import ceui.lisa.fragments.FragmentUserManga;
 import ceui.lisa.fragments.FragmentUserNovel;
+import ceui.lisa.fragments.FragmentViewPager;
 import ceui.lisa.fragments.FragmentWalkThrough;
 import ceui.lisa.fragments.FragmentWebView;
 import ceui.lisa.fragments.FragmentWhoFollowThisUser;
@@ -185,7 +186,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "热门直播":
                     return new FragmentLive();
                 case "标签屏蔽记录":
-                    return new FragmentMutedTags();
+                    return new FragmentViewPager();
                 case "修改命名方式":
                     return FragmentFileName.newInstance();
                 case "捐赠":

@@ -516,5 +516,8 @@
   <string name="string_349">%d колонки</string>  
   <string name="string_350">MM-dd HH:mm</string>  
   <string name="string_351">yyyy-MM-dd HH:mm Добавлено</string>  
-  <string name="string_352">Удалить запись</string>
+  <string name="string_352">Удалить запись</string>  
+  <string name="string_353">экранированный ярлык</string>  
+  <string name="string_354">экранирование</string>  
+  <string name="string_355">экранировать это произведение</string>
 </resources>

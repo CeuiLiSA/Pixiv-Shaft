@@ -516,5 +516,8 @@
   <string name="string_349">%d列</string>  
   <string name="string_350">MM-dd HH:mm</string>  
   <string name="string_351">yyyy-MM-dd HH:mm 追加</string>  
-  <string name="string_352">このレコードを削除しますか？</string>
+  <string name="string_352">このレコードを削除しますか？</string>  
+  <string name="string_353">シールドラベル</string>  
+  <string name="string_354">映画</string>  
+  <string name="string_355">この作品を遮る</string>
 </resources>

@@ -16,12 +16,12 @@ import ceui.lisa.feature.FeatureEntity;
                 UserEntity.class, //多用户保存信息
                 SearchEntity.class, //搜索历史
                 ImageEntity.class, //用不到
-                TagMuteEntity.class, //记录用户屏蔽的标签
+                MuteEntity.class, //记录用户屏蔽的标签
                 UUIDEntity.class, //记录用户屏蔽的标签
                 FeatureEntity.class, //记录用户收藏的精华列表
                 DownloadingEntity.class //记录用户正在下载中的列表
         },
-        version = 22,
+        version = 23,
         exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {

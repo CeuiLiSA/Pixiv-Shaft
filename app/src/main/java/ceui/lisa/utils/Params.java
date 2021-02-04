@@ -63,6 +63,11 @@ public class Params {
     public static final int    DOWNLOAD_FAILED = -86;
     public static final int    DOWNLOAD_SUCCESS = -87;
 
+    public static final int    MUTE_TAG = 0;
+    public static final int    MUTE_ILLUST = 1;
+    public static final int    MUTE_NOVEL = 2;
+    public static final int    MUTE_USER = 3;
+
 
     public static final String IMAGE_UNKNOWN = "https://s.pximg.net/common/images/limit_unknown_360.png";
     public static final String HEAD_UNKNOWN  = "https://s.pximg.net/common/images/no_profile.png";

@@ -7,7 +7,7 @@ import java.util.List;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.AppDatabase;
-import ceui.lisa.database.TagMuteEntity;
+import ceui.lisa.database.MuteEntity;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.TagsBean;
 
@@ -32,14 +32,18 @@ public class TagFilter {
 
     public static List<TagsBean> getMutedTags() {
         List<TagsBean> result = new ArrayList<>();
-        List<TagMuteEntity> muteEntities = AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().getAllMutedTags();
+        List<MuteEntity> muteEntities = AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().getAllMutedTags();
         if (muteEntities == null || muteEntities.size() == 0) {
             return result;
         }
-        for (TagMuteEntity muteEntity : muteEntities) {
+        for (MuteEntity muteEntity : muteEntities) {
             TagsBean bean = Shaft.sGson.fromJson(muteEntity.getTagJson(), TagsBean.class);
             result.add(bean);
         }
         return result;
+    }
+
+    public static List<MuteEntity> getMutedWorks() {
+        return AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().getMutedWorks();
     }
 }

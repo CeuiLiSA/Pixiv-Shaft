@@ -516,5 +516,8 @@
   <string name="string_349" tools:ignore="PluralsCandidate">%d columns</string>  
   <string name="string_350">MM-dd HH:mm</string>  
   <string name="string_351">yyyy-MM-dd HH:mm Added</string>  
-  <string name="string_352">Are you sure you want to delete this record</string>
+  <string name="string_352">Are you sure you want to delete this record</string>  
+  <string name="string_353">Shielding label</string>  
+  <string name="string_354">Screening works</string>  
+  <string name="string_355">Block this work</string>
 </resources>

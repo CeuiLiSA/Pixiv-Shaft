@@ -516,5 +516,8 @@
   <string name="string_349">%d列</string>  
   <string name="string_350">MM月dd日 HH:mm</string>  
   <string name="string_351">yyyy年MM月dd日 HH:mm 添加</string>  
-  <string name="string_352">確定删除這條記錄嗎</string>
+  <string name="string_352">確定删除這條記錄嗎</string>  
+  <string name="string_353">遮罩標籤</string>  
+  <string name="string_354">遮罩作品</string>  
+  <string name="string_355">遮罩這個作品</string>
 </resources>
