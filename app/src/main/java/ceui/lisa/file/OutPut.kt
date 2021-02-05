@@ -5,7 +5,6 @@ import android.content.Context
 import android.os.Environment
 import android.provider.MediaStore
 import ceui.lisa.activities.Shaft
-import ceui.lisa.download.ImageSaver
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Settings
@@ -73,11 +72,6 @@ object OutPut {
 
             val gifResult = File(parentFile, from.name)
             FileUtils.copy(from, gifResult)
-            object : ImageSaver() {
-                override fun whichFile(): File {
-                    return gifResult
-                }
-            }.execute(context)
             Common.showToast("GIF保存成功")
         }
     }
