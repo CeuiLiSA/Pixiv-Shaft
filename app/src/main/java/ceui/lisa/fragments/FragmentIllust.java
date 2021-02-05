@@ -80,6 +80,12 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
 
     @Override
     protected void initView() {
+        if (illust.getId() == 0 || !illust.isVisible()) {
+            Common.showToast(R.string.string_206);
+            finish();
+            return;
+        }
+
         if (illust.getSeries() != null && !TextUtils.isEmpty(illust.getSeries().getTitle())) {
             ClickableSpan clickableSpan = new ClickableSpan() {
                 @Override

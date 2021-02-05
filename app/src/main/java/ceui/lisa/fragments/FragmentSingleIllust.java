@@ -145,9 +145,10 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
 
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
 
-        if (illust.getId() == 0) {
-            baseBind.toolbar.setTitle(R.string.string_206);
+        if (illust.getId() == 0 || !illust.isVisible()) {
+            Common.showToast(R.string.string_206);
             baseBind.refreshLayout.setVisibility(View.INVISIBLE);
+            finish();
             return;
         }
 
