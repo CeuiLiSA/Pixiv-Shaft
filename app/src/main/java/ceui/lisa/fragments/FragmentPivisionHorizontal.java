@@ -91,7 +91,7 @@ public class FragmentPivisionHorizontal extends NetListFragment<FragmentPivision
 
     @Override
     public void onFirstLoaded(List<SpotlightArticlesBean> spotlightArticlesBeans) {
-        mRefreshLayout.setEnableRefresh(false);
+        mRefreshLayout.setEnableRefresh(true);
         mRefreshLayout.setEnableLoadMore(false);
     }
 
