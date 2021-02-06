@@ -20,11 +20,10 @@
         android:title="@string/string_0"
         app:showAsAction="never" />
 
-
     <item
         android:id="@+id/action_share"
         android:orderInCategory="100"
-        android:icon="@drawable/ic_share_black_24dp"
+        android:icon="@drawable/ic_share_white_with_shadow"
         android:title="@string/string_3"
         app:showAsAction="always" />
 </menu>
