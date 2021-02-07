@@ -18,7 +18,7 @@ class SearchIllustRepo(
     var isPopular: Boolean
 ) : RemoteRepo<ListIllust>() {
 
-    private lateinit var filterMapper: FilterMapper
+    private var filterMapper: FilterMapper? = null
 
     override fun initApi(): Observable<ListIllust> {
         return if (isPopular) {
@@ -39,8 +39,10 @@ class SearchIllustRepo(
     }
 
     override fun mapper(): Function<in ListIllust, ListIllust> {
-        this.filterMapper = FilterMapper().enableFilterFakeStarSize()
-        return this.filterMapper
+        if (this.filterMapper == null) {
+            this.filterMapper = FilterMapper().enableFilterStarSize()
+        }
+        return this.filterMapper!!
     }
 
     fun update(searchModel: SearchModel, pop: Boolean) {
@@ -50,7 +52,7 @@ class SearchIllustRepo(
         starSize = searchModel.starSize.value
         isPopular = pop
 
-        this.filterMapper.updateStarSizeLimit(this.getStarSizeLimit())
+        this.filterMapper?.updateStarSizeLimit(this.getStarSizeLimit())
     }
 
     fun getStarSizeLimit(): Int {

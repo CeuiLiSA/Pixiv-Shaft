@@ -80,12 +80,6 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
         ArrayAdapter<String> starAdapter = new ArrayAdapter<>(mContext,
                 R.layout.spinner_item, ALL_SIZE);
         baseBind.starSizeSpinner.setAdapter(starAdapter);
-        for (int i = 0; i < ALL_SIZE_VALUE.length; i++) {
-            if (ALL_SIZE_VALUE[i].equals(Shaft.sSettings.getSearchFilter())) {
-                baseBind.starSizeSpinner.setSelection(i);
-                break;
-            }
-        }
         baseBind.starSizeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -99,6 +93,12 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
 
             }
         });
+        for (int i = 0; i < ALL_SIZE_VALUE.length; i++) {
+            if (ALL_SIZE_VALUE[i].equals(Shaft.sSettings.getSearchFilter())) {
+                baseBind.starSizeSpinner.setSelection(i);
+                break;
+            }
+        }
 
         String[] DATE_SORT = new String[]{
                 getString(R.string.string_287),
