@@ -106,7 +106,7 @@ public class MuteDialog extends BaseDialog<DialogMuteTagBinding> {
             final TagsBean tagsBean = illustTags.get(i);
             boolean isMuted = false;
             for (TagsBean bean : muted) {
-                if (tagsBean.getName().equals(bean.getName())) {
+                if (bean.isEffective() && tagsBean.getName().equals(bean.getName())) {
                     isMuted = true;
                     break;
                 }

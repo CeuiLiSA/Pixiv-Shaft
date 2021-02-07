@@ -228,16 +228,24 @@ public class PixivOperate {
                 .subscribe(new NullCtrl<IllustSearchResponse>() {
                     @Override
                     public void success(IllustSearchResponse illustSearchResponse) {
-                        if (illustSearchResponse.getIllust() != null) {
-                            final PageData pageData = new PageData(
-                                    Collections.singletonList(illustSearchResponse.getIllust()));
-                            Container.get().addPageToMap(pageData);
-
-                            Intent intent = new Intent(context, VActivity.class);
-                            intent.putExtra(Params.POSITION, 0);
-                            intent.putExtra(Params.PAGE_UUID, pageData.getUUID());
-                            context.startActivity(intent);
+                        IllustsBean illust = illustSearchResponse.getIllust();
+                        if (illust == null) {
+                            return;
                         }
+
+                        if (illust.getId() == 0 || !illust.isVisible()) {
+                            Common.showToast(R.string.string_206);
+                            return;
+                        }
+
+                        final PageData pageData = new PageData(
+                                Collections.singletonList(illustSearchResponse.getIllust()));
+                        Container.get().addPageToMap(pageData);
+
+                        Intent intent = new Intent(context, VActivity.class);
+                        intent.putExtra(Params.POSITION, 0);
+                        intent.putExtra(Params.PAGE_UUID, pageData.getUUID());
+                        context.startActivity(intent);
                     }
 
                     @Override
@@ -318,6 +326,21 @@ public class PixivOperate {
         muteEntity.setTagJson(Shaft.sGson.toJson(tagsBean));
         muteEntity.setSearchTime(System.currentTimeMillis());
         AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().insertMuteTag(muteEntity);
+    }
+
+    public static void updateTag(TagsBean tagsBean) {
+        MuteEntity muteEntity = new MuteEntity();
+        String tagName = tagsBean.getName();
+        muteEntity.setType(Params.MUTE_TAG);
+        muteEntity.setId(tagName.hashCode());
+        muteEntity.setTagJson(Shaft.sGson.toJson(tagsBean));
+        muteEntity.setSearchTime(System.currentTimeMillis());
+        if (tagsBean.isEffective()) {
+            Shaft.getContext().getResources().getString(R.string.string_356);
+        } else {
+            Shaft.getContext().getResources().getString(R.string.string_357);
+        }
+        AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().updateMuteTag(muteEntity);
     }
 
     public static void muteUser(UserBean userBean) {

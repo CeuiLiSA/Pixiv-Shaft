@@ -519,5 +519,7 @@
   <string name="string_352">이 기록 을 삭제 하 시 겠 습 니까?</string>  
   <string name="string_353">마스크 라벨</string>  
   <string name="string_354">차폐 작품</string>  
-  <string name="string_355">이 작품 을 가리다</string>
+  <string name="string_355">이 작품 을 가리다</string>  
+  <string name="string_356">설정 이 유효 합 니 다</string>
+  <string name="string_357">무효 로 설정</string>
 </resources>

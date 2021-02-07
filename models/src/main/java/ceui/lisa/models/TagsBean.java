@@ -11,6 +11,7 @@ public class TagsBean implements Serializable {
 
     private String name;
     private String translated_name;
+    private boolean effective = true; //屏蔽是否生效，
     private boolean added_by_uploaded_user;
 
     private int count;
@@ -54,5 +55,13 @@ public class TagsBean implements Serializable {
 
     public void setAdded_by_uploaded_user(boolean added_by_uploaded_user) {
         this.added_by_uploaded_user = added_by_uploaded_user;
+    }
+
+    public boolean isEffective() {
+        return effective;
+    }
+
+    public void setEffective(boolean effective) {
+        this.effective = effective;
     }
 }

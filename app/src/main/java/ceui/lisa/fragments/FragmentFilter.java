@@ -110,7 +110,6 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
         baseBind.dateSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                searchModel.getStarSize().setValue(DATE_SORT_VALUE[position]);
                 searchModel.getSortType().setValue(DATE_SORT_VALUE[position]);
             }
 

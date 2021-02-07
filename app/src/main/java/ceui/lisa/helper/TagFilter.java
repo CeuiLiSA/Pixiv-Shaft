@@ -21,10 +21,12 @@ public class TagFilter {
 
         List<TagsBean> temp = getMutedTags();
         for (TagsBean bean : temp) {
-            String name = "*#" + bean.getName() + ",";
-            if (tagString.contains(name)) {
-                illustsBean.setShield(true);
-                return true;
+            if (bean.isEffective()) {
+                String name = "*#" + bean.getName() + ",";
+                if (tagString.contains(name)) {
+                    illustsBean.setShield(true);
+                    return true;
+                }
             }
         }
         return false;

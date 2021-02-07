@@ -5,6 +5,7 @@ import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.Update;
 
 import java.util.List;
 
@@ -28,6 +29,9 @@ public interface SearchDao {
     //添加一个屏蔽标签
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertMuteTag(MuteEntity muteEntity);
+
+    @Update
+    void updateMuteTag(MuteEntity muteEntity);
 
     //删除所有屏蔽的标签
     @Query("DELETE FROM tag_mute_table WHERE type = 0")

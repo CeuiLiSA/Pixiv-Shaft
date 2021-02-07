@@ -43,6 +43,7 @@ public class FragmentViewPager extends BaseFragment<ViewpagerWithTablayoutBindin
         };
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
         baseBind.toolbar.inflateMenu(R.menu.delete_and_add);
+        baseBind.toolbar.setOnMenuItemClickListener(mFragments[0]);
         baseBind.toolbarTitle.setText(R.string.muted_history);
         baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
             @NonNull
