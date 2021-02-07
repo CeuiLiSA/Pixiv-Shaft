@@ -25,6 +25,9 @@ import ceui.lisa.models.NovelBean;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
+import jp.wasabeef.glide.transformations.BlurTransformation;
+
+import static com.bumptech.glide.request.RequestOptions.bitmapTransform;
 
 //屏蔽作品历史
 public class MuteWorksAdapter extends BaseAdapter<MuteEntity, RecyViewHistoryBinding> {
@@ -57,6 +60,7 @@ public class MuteWorksAdapter extends BaseAdapter<MuteEntity, RecyViewHistoryBin
             IllustsBean current = Shaft.sGson.fromJson(allIllust.get(position).getTagJson(), IllustsBean.class);
             Glide.with(mContext)
                     .load(GlideUtil.getMediumImg(current))
+                    .apply(bitmapTransform(new BlurTransformation(25, 3)))
                     .placeholder(R.color.light_bg)
                     .into(bindView.baseBind.illustImage);
             bindView.baseBind.title.setText(current.getTitle());

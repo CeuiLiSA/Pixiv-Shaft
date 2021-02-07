@@ -18,6 +18,7 @@ import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustRecmdEntity;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
+import ceui.lisa.helper.IllustFilter;
 import ceui.lisa.helper.TagFilter;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.model.ListIllust;
@@ -151,7 +152,7 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
                     for (int i = 0; i < entities.size(); i++) {
                         IllustsBean illustsBean = Shaft.sGson.fromJson(
                                 entities.get(i).getIllustJson(), IllustsBean.class);
-                        if (!TagFilter.judge(illustsBean)) {
+                        if (!IllustFilter.judge(illustsBean)) {
                             temp.add(illustsBean);
                         }
                     }

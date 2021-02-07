@@ -519,5 +519,7 @@
   <string name="string_352">Are you sure you want to delete this record</string>  
   <string name="string_353">Shielding label</string>  
   <string name="string_354">Screening works</string>  
-  <string name="string_355">Block this work</string>
+  <string name="string_355">Block this work</string>  
+  <string name="string_356">The settings are in effect</string>
+  <string name="string_357">Set to inactive</string>
 </resources>

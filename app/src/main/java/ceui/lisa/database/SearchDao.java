@@ -5,6 +5,7 @@ import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
+import androidx.room.Update;
 
 import java.util.List;
 
@@ -29,6 +30,9 @@ public interface SearchDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertMuteTag(MuteEntity muteEntity);
 
+    @Update
+    void updateMuteTag(MuteEntity muteEntity);
+
     //删除所有屏蔽的标签
     @Query("DELETE FROM tag_mute_table WHERE type = 0")
     void deleteAllMutedTags();
@@ -44,6 +48,9 @@ public interface SearchDao {
 
     @Query("SELECT * FROM tag_mute_table WHERE type = 1 OR type = 2 ORDER BY searchTime DESC ")
     List<MuteEntity> getMutedWorks();
+
+    @Query("SELECT * FROM tag_mute_table WHERE type = 1 ORDER BY searchTime DESC ")
+    List<MuteEntity> getMutedIllusts();
 
     @Query("SELECT * FROM tag_mute_table WHERE type = 3 ORDER BY searchTime DESC ")
     List<MuteEntity> getMutedUser();

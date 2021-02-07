@@ -519,5 +519,7 @@
   <string name="string_352">Удалить запись</string>  
   <string name="string_353">экранированный ярлык</string>  
   <string name="string_354">экранирование</string>  
-  <string name="string_355">экранировать это произведение</string>
+  <string name="string_355">экранировать это произведение</string>  
+  <string name="string_356">Настройка выполнена</string>
+  <string name="string_357">Настройки не действуют</string>
 </resources>

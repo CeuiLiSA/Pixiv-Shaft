@@ -15,11 +15,12 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
-import ceui.lisa.adapters.BookedTagAdapter;
+import ceui.lisa.adapters.MutedTagAdapter;
 import ceui.lisa.core.LocalRepo;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyBookTagBinding;
+import ceui.lisa.helper.IllustFilter;
 import ceui.lisa.helper.TagFilter;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.TagsBean;
@@ -34,7 +35,7 @@ public class FragmentMutedTags extends LocalListFragment<FragmentBaseListBinding
         return new LocalRepo<List<TagsBean>>() {
             @Override
             public List<TagsBean> first() {
-                return TagFilter.getMutedTags();
+                return IllustFilter.getMutedTags();
             }
 
             @Override
@@ -45,8 +46,8 @@ public class FragmentMutedTags extends LocalListFragment<FragmentBaseListBinding
     }
 
     @Override
-    public BaseAdapter<TagsBean, RecyBookTagBinding> adapter() {
-        return new BookedTagAdapter(allItems, mContext, true).setOnItemClickListener(new OnItemClickListener() {
+    public BaseAdapter<?, ?> adapter() {
+        return new MutedTagAdapter(allItems, mContext).setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
                 if (viewType == 1) {

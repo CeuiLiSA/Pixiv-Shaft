@@ -519,5 +519,7 @@
   <string name="string_352">確定删除這條記錄嗎</string>  
   <string name="string_353">遮罩標籤</string>  
   <string name="string_354">遮罩作品</string>  
-  <string name="string_355">遮罩這個作品</string>
+  <string name="string_355">遮罩這個作品</string>  
+  <string name="string_356">設定已生效</string>
+  <string name="string_357">已設定為不生效</string>
 </resources>

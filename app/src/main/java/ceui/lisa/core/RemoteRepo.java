@@ -7,7 +7,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 
-public abstract class RemoteRepo<Response extends ListShow<?>> extends BaseRepo{
+public abstract class RemoteRepo<Response extends ListShow<?>> extends BaseRepo {
 
     private Observable<Response> mApi;
     private Function<? super Response, Response> mFunction;
