@@ -67,6 +67,7 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
                 searchModel.getKeyword().getValue(),
                 searchModel.getSortType().getValue(),
                 searchModel.getSearchType().getValue(),
+                searchModel.getStarSize().getValue(),
                 isPopular
         );
     }

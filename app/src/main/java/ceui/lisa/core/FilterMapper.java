@@ -12,6 +12,9 @@ import ceui.lisa.utils.PixivOperate;
  */
 public class FilterMapper extends Mapper<ListIllust> {
 
+    private boolean filterFakeStarSize = false;
+    private int starSizeLimit = 0;
+
     @Override
     public ListIllust apply(ListIllust listIllust) {
         super.apply(listIllust);
@@ -20,6 +23,22 @@ public class FilterMapper extends Mapper<ListIllust> {
             List<IllustsBean> tempList = PixivOperate.getListWithoutBooked(listIllust);
             listIllust.setIllusts(tempList);
         }
+
+        if (filterFakeStarSize && starSizeLimit > 0) {
+            //筛选作品，只留下收藏数符合筛选条件的作品
+            List<IllustsBean> tempList = PixivOperate.getListWithStarSize(listIllust, starSizeLimit);
+            listIllust.setIllusts(tempList);
+        }
+
         return listIllust;
+    }
+
+    public FilterMapper enableFilterFakeStarSize(){
+        this.filterFakeStarSize = true;
+        return this;
+    }
+
+    public void updateStarSizeLimit(int starSizeLimit){
+        this.starSizeLimit = starSizeLimit;
     }
 }

@@ -1,6 +1,6 @@
 package ceui.lisa.repo
 
-import ceui.lisa.activities.Shaft
+import android.text.TextUtils
 import ceui.lisa.core.FilterMapper
 import ceui.lisa.core.RemoteRepo
 import ceui.lisa.http.Retro
@@ -14,8 +14,11 @@ class SearchIllustRepo(
     var keyword: String?,
     var sortType: String?,
     var searchType: String?,
+    var starSize: String?,
     var isPopular: Boolean
 ) : RemoteRepo<ListIllust>() {
+
+    private lateinit var filterMapper: FilterMapper
 
     override fun initApi(): Observable<ListIllust> {
         return if (isPopular) {
@@ -24,7 +27,7 @@ class SearchIllustRepo(
             PixivOperate.insertSearchHistory(keyword, 0)
             Retro.getAppApi().searchIllust(
                 token(),
-                keyword + if (Shaft.sSettings.searchFilter.contains("无限制")) "" else " " + Shaft.sSettings.searchFilter,
+                keyword + if (TextUtils.isEmpty(starSize)) "" else " $starSize",
                 sortType,
                 searchType
             )
@@ -36,13 +39,28 @@ class SearchIllustRepo(
     }
 
     override fun mapper(): Function<in ListIllust, ListIllust> {
-        return FilterMapper()
+        this.filterMapper = FilterMapper().enableFilterFakeStarSize()
+        return this.filterMapper
     }
 
     fun update(searchModel: SearchModel, pop: Boolean) {
         keyword = searchModel.keyword.value
         sortType = searchModel.sortType.value
         searchType = searchModel.searchType.value
+        starSize = searchModel.starSize.value
         isPopular = pop
+
+        this.filterMapper.updateStarSizeLimit(this.getStarSizeLimit())
+    }
+
+    fun getStarSizeLimit(): Int {
+        if (TextUtils.isEmpty(this.starSize)) {
+            return 0
+        }
+        val match = Regex("""\d+""").find(starSize!!)
+        if (match != null) {
+            return match.value.toInt()
+        }
+        return 0
     }
 }

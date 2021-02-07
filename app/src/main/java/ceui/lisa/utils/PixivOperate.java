@@ -433,6 +433,22 @@ public class PixivOperate {
         return result;
     }
 
+    //筛选作品，只留下收藏数达到标准的作品
+    public static List<IllustsBean> getListWithStarSize(ListIllust response, int starSize) {
+        List<IllustsBean> result = new ArrayList<>();
+        if (response == null || response.getList() == null || response.getList().size() == 0) {
+            return result;
+        }
+
+        for (IllustsBean illustsBean : response.getList()) {
+            if (illustsBean.getTotal_bookmarks() >= starSize) {
+                result.add(illustsBean);
+            }
+        }
+
+        return result;
+    }
+
     public static void justUnzipFile(File fromZipFile, File toFolder) {
         try {
             ZipUtils.unzipFile(fromZipFile, toFolder);

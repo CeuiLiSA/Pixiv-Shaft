@@ -89,7 +89,7 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
         baseBind.starSizeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                Shaft.sSettings.setSearchFilter(ALL_SIZE_VALUE[position]);
+                // Shaft.sSettings.setSearchFilter(ALL_SIZE_VALUE[position]);
                 Local.setSettings(Shaft.sSettings);
                 searchModel.getStarSize().setValue(ALL_SIZE_VALUE[position]);
             }
@@ -110,7 +110,6 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
         baseBind.dateSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                searchModel.getStarSize().setValue(DATE_SORT_VALUE[position]);
                 searchModel.getSortType().setValue(DATE_SORT_VALUE[position]);
             }
 
