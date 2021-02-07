@@ -19,6 +19,8 @@ import ceui.lisa.databinding.FragmentNewCenterBinding;
 
 public class FragmentCenter extends SwipeFragment<FragmentNewCenterBinding> {
 
+    private FragmentPivisionHorizontal pivisionFragment = null;
+    
     @Override
     public void initLayout() {
         mLayoutID = R.layout.fragment_new_center;
@@ -92,7 +94,7 @@ public class FragmentCenter extends SwipeFragment<FragmentNewCenterBinding> {
     public void lazyData() {
         FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
 
-        FragmentPivisionHorizontal pivisionFragment = new FragmentPivisionHorizontal();
+        pivisionFragment = new FragmentPivisionHorizontal();
         transaction.add(R.id.fragment_pivision, pivisionFragment, "FragmentPivisionHorizontal");
         transaction.commitNow();
     }
@@ -100,5 +102,11 @@ public class FragmentCenter extends SwipeFragment<FragmentNewCenterBinding> {
     @Override
     public SmartRefreshLayout getSmartRefreshLayout() {
         return baseBind.refreshLayout;
+    }
+
+    public void forceRefresh(){
+        if(pivisionFragment != null){
+            pivisionFragment.forceRefresh();
+        }
     }
 }

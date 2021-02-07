@@ -141,13 +141,13 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 } else if (item.getItemId() == R.id.action_2) {
                     for (Fragment baseFragment : baseFragments) {
                         if (baseFragment instanceof FragmentCenter) {
-                            ((FragmentCenter) baseFragment).lazyData();
+                            ((FragmentCenter) baseFragment).forceRefresh();
                         }
                     }
                 } else if (item.getItemId() == R.id.action_3) {
                     for (Fragment baseFragment : baseFragments) {
                         if (baseFragment instanceof FragmentRight) {
-                            ((FragmentRight) baseFragment).scrollToTop();
+                            ((FragmentRight) baseFragment).forceRefresh();
                         }
                     }
                 }
