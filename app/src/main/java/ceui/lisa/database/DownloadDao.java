@@ -36,6 +36,9 @@ public interface DownloadDao {
     @Delete
     void delete(DownloadEntity userEntity);
 
+    @Delete
+    void deleteMuteEntity(MuteEntity muteEntity);
+
     /**
      * 获取全部下载记录
      *

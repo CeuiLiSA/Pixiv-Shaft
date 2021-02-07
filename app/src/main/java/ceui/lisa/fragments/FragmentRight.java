@@ -152,9 +152,7 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
                     for (int i = 0; i < entities.size(); i++) {
                         IllustsBean illustsBean = Shaft.sGson.fromJson(
                                 entities.get(i).getIllustJson(), IllustsBean.class);
-                        if (!TagFilter.judge(illustsBean)) {
-                            temp.add(illustsBean);
-                        }
+                        temp.add(illustsBean);
                     }
                     return temp;
                 })

@@ -49,6 +49,9 @@ public interface SearchDao {
     @Query("SELECT * FROM tag_mute_table WHERE type = 1 OR type = 2 ORDER BY searchTime DESC ")
     List<MuteEntity> getMutedWorks();
 
+    @Query("SELECT * FROM tag_mute_table WHERE type = 1 ORDER BY searchTime DESC ")
+    List<MuteEntity> getMutedIllusts();
+
     @Query("SELECT * FROM tag_mute_table WHERE type = 3 ORDER BY searchTime DESC ")
     List<MuteEntity> getMutedUser();
 
