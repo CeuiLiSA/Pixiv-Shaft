@@ -49,6 +49,13 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
                 mRefreshLayout.autoRefresh();
             }
         });
+        // 监测侧滑过滤器中的收藏数选项变化
+        searchModel.getStarSize().observe(getViewLifecycleOwner(), new Observer<String>() {
+            @Override
+            public void onChanged(String s) {
+                ((SearchIllustRepo) mRemoteRepo).update(searchModel, isPopular);
+            }
+        });
     }
 
     @Override
@@ -67,6 +74,7 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
                 searchModel.getKeyword().getValue(),
                 searchModel.getSortType().getValue(),
                 searchModel.getSearchType().getValue(),
+                searchModel.getStarSize().getValue(),
                 isPopular
         );
     }

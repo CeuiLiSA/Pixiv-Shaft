@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 
@@ -427,6 +428,9 @@ public class PixivOperate {
     }
 
     public static void insertSearchHistory(String key, int searchType) {
+        if(TextUtils.isEmpty(key)){
+            return;
+        }
         SearchEntity searchEntity = new SearchEntity();
         searchEntity.setKeyword(key);
         searchEntity.setSearchType(searchType);
@@ -449,6 +453,22 @@ public class PixivOperate {
 
         for (IllustsBean illustsBean : response.getList()) {
             if (!illustsBean.isIs_bookmarked()) {
+                result.add(illustsBean);
+            }
+        }
+
+        return result;
+    }
+
+    //筛选作品，只留下收藏数达到标准的作品
+    public static List<IllustsBean> getListWithStarSize(ListIllust response, int starSize) {
+        List<IllustsBean> result = new ArrayList<>();
+        if (response == null || response.getList() == null || response.getList().size() == 0) {
+            return result;
+        }
+
+        for (IllustsBean illustsBean : response.getList()) {
+            if (illustsBean.getTotal_bookmarks() >= starSize) {
                 result.add(illustsBean);
             }
         }
