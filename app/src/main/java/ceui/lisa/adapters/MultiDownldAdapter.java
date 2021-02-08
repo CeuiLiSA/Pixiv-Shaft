@@ -61,8 +61,7 @@ public class MultiDownldAdapter extends BaseAdapter<IllustsBean, RecyMultiDownlo
             bindView.baseBind.checkbox.setChecked(false);
         }
 
-        bindView.itemView.setOnClickListener(v ->
-                mOnItemClickListener.onItemClick(bindView.itemView, position, 0));
+        bindView.itemView.setOnClickListener(v -> bindView.baseBind.checkbox.performClick());
     }
 
     @Override
