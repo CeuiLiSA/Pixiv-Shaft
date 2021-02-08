@@ -100,7 +100,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "网页链接": {
                     String url = intent.getStringExtra(Params.URL);
                     String title = intent.getStringExtra(Params.TITLE);
-                    return FragmentWebView.newInstance(title, url);
+                    Boolean preferPreserve = intent.getBooleanExtra(Params.PREFER_PRESERVE, false);
+                    return FragmentWebView.newInstance(title, url, preferPreserve);
                 }
                 case "设置":
                     return new FragmentSettings();

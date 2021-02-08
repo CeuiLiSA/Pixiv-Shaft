@@ -40,10 +40,22 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
     private String mime = null;
     private String encoding = null;
     private String historyUrl = null;
+    private boolean preferPreserve = false;
     private AgentWeb mAgentWeb;
     private WebView mWebView;
     private String mIntentUrl;
     private WebViewClickHandler handler = new WebViewClickHandler();
+
+    @Override
+    public void initBundle(Bundle bundle) {
+        title = bundle.getString(Params.TITLE);
+        url = bundle.getString(Params.URL);
+        response = bundle.getString(Params.RESPONSE);
+        mime = bundle.getString(Params.MIME);
+        encoding = bundle.getString(Params.ENCODING);
+        historyUrl = bundle.getString(Params.HISTORY_URL);
+        preferPreserve = bundle.getBoolean(Params.PREFER_PRESERVE);
+    }
 
     public static FragmentWebView newInstance(String title, String url) {
         Bundle args = new Bundle();
@@ -54,14 +66,14 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
         return fragment;
     }
 
-    @Override
-    public void initBundle(Bundle bundle) {
-        title = bundle.getString(Params.TITLE);
-        url = bundle.getString(Params.URL);
-        response = bundle.getString(Params.RESPONSE);
-        mime = bundle.getString(Params.MIME);
-        encoding = bundle.getString(Params.ENCODING);
-        historyUrl = bundle.getString(Params.HISTORY_URL);
+    public static FragmentWebView newInstance(String title, String url, boolean preferPreserve) {
+        Bundle args = new Bundle();
+        args.putString(Params.TITLE, title);
+        args.putString(Params.URL, url);
+        args.putBoolean(Params.PREFER_PRESERVE, preferPreserve);
+        FragmentWebView fragment = new FragmentWebView();
+        fragment.setArguments(args);
+        return fragment;
     }
 
     public static FragmentWebView newInstance(String title, String url, String response,
@@ -105,7 +117,9 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                                 Intent intent = new Intent(mContext, OutWakeActivity.class);
                                 intent.setData(Uri.parse(destiny));
                                 startActivity(intent);
-                                finish();
+                                if(!preferPreserve){
+                                    finish();
+                                }
                             } catch (Exception e) {
                                 Common.showToast(e.toString());
                                 e.printStackTrace();
