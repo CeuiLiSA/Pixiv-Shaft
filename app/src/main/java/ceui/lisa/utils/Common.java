@@ -4,28 +4,20 @@ import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ComponentName;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.Build;
-import android.os.Looper;
-import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.blankj.utilcode.util.Utils;
 import com.facebook.rebound.SimpleSpringListener;
@@ -35,7 +27,6 @@ import com.hjq.toast.ToastUtils;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
-import com.tencent.mmkv.MMKV;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -49,19 +40,17 @@ import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UserActivity;
-import ceui.lisa.activities.BaseActivity;
-import ceui.lisa.http.CloudFlareDNSResponse;
-import ceui.lisa.http.CloudFlareDNSService;
 import ceui.lisa.models.UserContainer;
 import okhttp3.MediaType;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import okio.Buffer;
 import okio.BufferedSource;
-import retrofit2.Call;
-import retrofit2.Callback;
 
 public class Common {
+
+    private static final String[][] safeReplacer = new String[][]{{"|", "%7c"}, {"\\", "%5c"}, {"?", "%3f"},
+            {"*", "\u22c6"}, {"<", "%3c"}, {"\"", "%22"}, {":", "%3a"}, {">", "%3e"}, {"/", "%2f"}};
 
     public static boolean isNumeric(String str) {
         for (int i = str.length(); --i >= 0; ) {
@@ -314,5 +303,15 @@ public class Common {
     public static boolean isUIModeNight(Context context){
         return (context.getResources().getConfiguration().uiMode
                 & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
+    }
+
+    /**
+     * 移除文件系统保留字符
+     */
+    public static String removeFSReservedChars(String s){
+        for (int i = 0; i < safeReplacer.length; i++){
+            s = s.replace(safeReplacer[i][0], safeReplacer[i][1]);
+        }
+        return s;
     }
 }
