@@ -76,7 +76,7 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
     private void submitStar() {
         List<String> tempList = new ArrayList<>();
         for (int i = 0; i < allItems.size(); i++) {
-            if (allItems.get(i).isSelected()) {
+            if (allItems.get(i).isSelectedLocalOrRemote()) {
                 tempList.add(allItems.get(i).getName());
             }
         }
