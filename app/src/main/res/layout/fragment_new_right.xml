@@ -124,40 +124,41 @@
                 android:id="@+id/content_item"
                 android:layout_height="match_parent">
 
-                <RelativeLayout
+                <androidx.core.widget.NestedScrollView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="14dp"
-                        android:layout_marginTop="@dimen/twelve_dp"
-                        android:layout_marginBottom="@dimen/twelve_dp"
-                        android:drawablePadding="@dimen/four_dp"
-                        app:drawableTint="#75d2f0"
-                        android:gravity="center_vertical"
-                        android:text="@string/string_80"
-                        android:textColor="@color/rank_title"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        app:drawableStartCompat="@drawable/ic_toys_black_24dp">
-
-                    </TextView>
-
-
-                    <ceui.lisa.view.GlareLayout
-                        android:layout_width="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:layout_alignParentEnd="true"
-                        android:layout_marginEnd="@dimen/sixteen_dp"
-                        android:id="@+id/glare_layout"
+                    <RelativeLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content">
 
-                    </ceui.lisa.view.GlareLayout>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="14dp"
+                            android:layout_marginTop="@dimen/twelve_dp"
+                            android:layout_marginBottom="@dimen/twelve_dp"
+                            android:drawablePadding="@dimen/four_dp"
+                            app:drawableTint="#75d2f0"
+                            android:gravity="center_vertical"
+                            android:text="@string/string_80"
+                            android:textColor="@color/rank_title"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            app:drawableStartCompat="@drawable/ic_toys_black_24dp">
+                        </TextView>
 
-                </RelativeLayout>
+                        <ceui.lisa.view.GlareLayout
+                            android:layout_width="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_alignParentEnd="true"
+                            android:layout_marginEnd="@dimen/sixteen_dp"
+                            android:id="@+id/glare_layout"
+                            android:layout_height="wrap_content" />
 
+                    </RelativeLayout>
+
+                </androidx.core.widget.NestedScrollView>
 
                 <com.scwang.smartrefresh.layout.SmartRefreshLayout
                     android:layout_width="match_parent"
@@ -170,7 +171,6 @@
                         android:layout_height="match_parent" />
 
                 </com.scwang.smartrefresh.layout.SmartRefreshLayout>
-
 
 
             </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundLinearLayout>
