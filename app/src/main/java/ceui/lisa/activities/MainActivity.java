@@ -284,9 +284,17 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         Intent intent = null;
         switch (id) {
             case R.id.nav_gallery:
-                intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载管理");
-                intent.putExtra("hideStatusBar", false);
+                if (Dev.isDev) {
+                    intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
+                    intent.putExtra(Params.URL, "https://accounts.pixiv.net/login?prompt=select_account&return_to=https://app-api.pixiv.net/web/v1/users/auth/pixiv/start?code_challenge=dZPnUtensO4mtLsot5VOBKEzQnKcA1BwJVoXlRrTNwk&code_challenge_method=S256&client=pixiv-android&source=pixiv-android&ref=");
+                    intent.putExtra(Params.TITLE, getString(R.string.now_login));
+                    intent.putExtra(Params.PREFER_PRESERVE, true);
+                } else {
+                    intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载管理");
+                    intent.putExtra("hideStatusBar", false);
+                }
                 break;
             case R.id.nav_slideshow:
                 intent = new Intent(mContext, TemplateActivity.class);

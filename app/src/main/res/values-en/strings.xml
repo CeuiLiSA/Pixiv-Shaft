@@ -520,6 +520,7 @@
   <string name="string_353">Shielding label</string>  
   <string name="string_354">Screening works</string>  
   <string name="string_355">Block this work</string>  
-  <string name="string_356">The settings are in effect</string>
-  <string name="string_357">Set to inactive</string>
+  <string name="string_356">The settings are in effect</string>  
+  <string name="string_357">Set to inactive</string>  
+  <string name="string_358">Display password</string>
 </resources>

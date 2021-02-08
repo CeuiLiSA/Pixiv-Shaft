@@ -10,7 +10,7 @@ import ceui.lisa.models.IllustsBean;
 
 public class IAdapterWithStar extends IAdapter {
 
-    private boolean showStarIcon;
+    private boolean hideStarIcon;
 
     public IAdapterWithStar(List<IllustsBean> targetList, Context context) {
         super(targetList, context);
@@ -19,11 +19,11 @@ public class IAdapterWithStar extends IAdapter {
     @Override
     public void bindData(IllustsBean target, ViewHolder<RecyIllustStaggerBinding> bindView, int position) {
         super.bindData(target, bindView, position);
-        bindView.baseBind.likeButton.setVisibility(showStarIcon ? View.VISIBLE : View.GONE);
+        bindView.baseBind.likeButton.setVisibility(hideStarIcon ? View.GONE : View.VISIBLE);
     }
 
-    public IAdapterWithStar setShowStarIcon(boolean showStarIcon) {
-        this.showStarIcon = showStarIcon;
+    public IAdapterWithStar setHideStarIcon(boolean hideStarIcon) {
+        this.hideStarIcon = hideStarIcon;
         return this;
     }
 }

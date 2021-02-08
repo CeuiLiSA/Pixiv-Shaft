@@ -38,6 +38,8 @@ public abstract class ErrorCtrl<T> extends TryCatchObserver<T> {
                             if (response != null && response.getBody() != null) {
                                 if (!TextUtils.isEmpty(response.getBody().getValidation_errors().getMail_address())) {
                                     Common.showToast(response.getBody().getValidation_errors().getMail_address());
+                                } else if (!TextUtils.isEmpty(response.getBody().getValidation_errors().getPixiv_id())) {
+                                    Common.showToast(response.getBody().getValidation_errors().getPixiv_id());
                                 }
                             } else {
                                 Common.showToast(e.toString());
@@ -65,9 +67,12 @@ public abstract class ErrorCtrl<T> extends TryCatchObserver<T> {
                         ErrorResponse response = Shaft.sGson.fromJson(responseString, ErrorResponse.class);
                         if (response != null) {
                             if (response.getBody() != null &&
-                                    response.getBody().getValidation_errors() != null &&
-                                    !TextUtils.isEmpty(response.getBody().getValidation_errors().getMail_address())) {
-                                Common.showToast(response.getBody().getValidation_errors().getMail_address(), true);
+                                    response.getBody().getValidation_errors() != null) {
+                                if (!TextUtils.isEmpty(response.getBody().getValidation_errors().getMail_address())) {
+                                    Common.showToast(response.getBody().getValidation_errors().getMail_address(), true);
+                                } else if (!TextUtils.isEmpty(response.getBody().getValidation_errors().getPixiv_id())) {
+                                    Common.showToast(response.getBody().getValidation_errors().getPixiv_id());
+                                }
                             } else {
                                 if (response.getErrors() != null) {
                                     Common.showToast(response.getErrors().getSystem().getMessage(), true);

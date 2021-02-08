@@ -9,6 +9,9 @@ import android.view.View;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.GridLayoutManager;
 
+import com.afollestad.dragselectrecyclerview.DragSelectReceiver;
+import com.afollestad.dragselectrecyclerview.DragSelectTouchListener;
+
 import java.util.List;
 
 import ceui.lisa.R;
@@ -122,6 +125,34 @@ public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownload
                 IllustDownload.downloadAllIllust(allItems, (BaseActivity<?>) mContext);
             }
         });
+        MyReceiver receiver = new MyReceiver();
+        DragSelectTouchListener listener = DragSelectTouchListener.Companion.create(
+                mContext, receiver, null);
+        baseBind.recyclerView.addOnItemTouchListener(listener);
+        listener.setIsActive(true, 0);
+    }
+
+    private class MyReceiver implements DragSelectReceiver {
+
+        @Override
+        public int getItemCount() {
+            return allItems.size();
+        }
+
+        @Override
+        public boolean isIndexSelectable(int i) {
+            return false;
+        }
+
+        @Override
+        public boolean isSelected(int i) {
+            return false;
+        }
+
+        @Override
+        public void setSelected(int i, boolean b) {
+            Common.showLog("MyReceiver setSelected " + i);
+        }
     }
 
     @Override

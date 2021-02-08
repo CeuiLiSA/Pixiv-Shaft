@@ -97,8 +97,10 @@
 
                             <CheckBox
                                 android:layout_width="wrap_content"
-                                android:text="显示密码"
-                                android:layout_marginStart="20dp"
+                                android:text="@string/string_358"
+                                android:id="@+id/show_pwd"
+                                android:layout_marginBottom="@dimen/sixteen_dp"
+                                android:layout_marginStart="18dp"
                                 android:layout_height="wrap_content">
 
                             </CheckBox>

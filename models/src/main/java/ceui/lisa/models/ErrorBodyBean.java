@@ -32,6 +32,15 @@ public class ErrorBodyBean {
          */
 
         private String mail_address;
+        private String pixiv_id;
+
+        public String getPixiv_id() {
+            return pixiv_id;
+        }
+
+        public void setPixiv_id(String pixiv_id) {
+            this.pixiv_id = pixiv_id;
+        }
 
         public String getMail_address() {
             return mail_address;

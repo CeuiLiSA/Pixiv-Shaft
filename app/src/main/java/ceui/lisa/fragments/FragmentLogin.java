@@ -3,10 +3,13 @@ package ceui.lisa.fragments;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.text.TextUtils;
+import android.text.method.HideReturnsTransformationMethod;
+import android.text.method.PasswordTransformationMethod;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.widget.CompoundButton;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
@@ -137,6 +140,17 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
             baseBind.password.setText(Dev.USER_PWD);
             baseBind.password.setSelection(Dev.USER_PWD.length());
         }
+        baseBind.showPwd.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    baseBind.password.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+                } else {
+                    baseBind.password.setTransformationMethod(PasswordTransformationMethod.getInstance());
+                }
+                baseBind.password.setSelection(baseBind.password.getText().toString().length());
+            }
+        });
         baseBind.login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

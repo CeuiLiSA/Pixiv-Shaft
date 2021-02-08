@@ -520,6 +520,7 @@
   <string name="string_353">シールドラベル</string>  
   <string name="string_354">映画</string>  
   <string name="string_355">この作品を遮る</string>  
-  <string name="string_356">設定が有効になりました</string>
-  <string name="string_357">無効に設定されています。</string>
+  <string name="string_356">設定が有効になりました</string>  
+  <string name="string_357">無効に設定されています。</string>  
+  <string name="string_358">パスワードを表示</string>
 </resources>

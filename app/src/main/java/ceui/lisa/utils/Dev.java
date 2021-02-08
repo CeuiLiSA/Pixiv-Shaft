@@ -7,10 +7,12 @@ public class Dev {
     public static boolean refreshUser = false;
 
     /**
-     * 测试账号：
+     * 测试账号：哪位大佬，希望自己去注册账号，别改我密码，别改我密码，别改我密码
+     *
+     * 申请了N个测试账号了，好不容易造的数据，会被改密码，被改邮箱，然后登不上
      */
-    public static final String USER_ACCOUNT = "user_wgzt2244";
-    public static final String USER_PWD = "Lu9Zdnt3Ivb6LpWghB3rQgszHjbjw5qq";
+    public static final String USER_ACCOUNT = "user_shaft2";
+    public static final String USER_PWD = "Mercis09bv";
 
 
 }
