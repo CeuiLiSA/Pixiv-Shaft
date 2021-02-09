@@ -8,44 +8,44 @@
 
     <androidx.cardview.widget.CardView
         android:layout_width="85dp"
-        android:layout_height="120dp"
+        android:layout_height="wrap_content"
         android:clickable="true"
         android:foreground="?attr/selectableItemBackground"
         app:cardCornerRadius="@dimen/twelve_dp"
-        app:cardBackgroundColor="@color/recmd_user_horizontal"
+        app:cardBackgroundColor="@color/f0_and_black"
         app:cardElevation="2dp">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical">
 
 
             <de.hdodenhof.circleimageview.CircleImageView
                 android:layout_width="56dp"
+                android:layout_height="56dp"
                 android:id="@+id/user_head"
                 android:scaleType="centerCrop"
                 android:layout_marginTop="@dimen/twelve_dp"
-                android:layout_marginBottom="@dimen/eight_dp"
-                app:civ_border_color="#b3b4f4"
+                app:civ_border_color="?attr/colorPrimary"
                 app:civ_border_width="1dp"
-                android:layout_gravity="center_horizontal"
-                android:layout_height="56dp" />
+                android:layout_gravity="center_horizontal" />
 
             <TextView
                 android:layout_width="wrap_content"
-                android:textColor="@color/user_name_horizontal"
-                android:maxLines="1"
+                android:layout_height="match_parent"
+                android:textColor="?attr/colorPrimary"
+                android:singleLine="true"
                 android:textStyle="bold"
                 android:id="@+id/user_name"
                 android:ellipsize="end"
-                android:gravity="bottom"
                 android:textSize="13sp"
+                android:includeFontPadding="false"
+                android:layout_marginTop="@dimen/eight_dp"
                 android:layout_marginBottom="@dimen/eight_dp"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginStart="@dimen/eight_dp"
-                android:layout_marginEnd="@dimen/eight_dp"
-                android:layout_height="match_parent">
+                android:layout_marginStart="@dimen/six_dp"
+                android:layout_marginEnd="@dimen/six_dp">
 
             </TextView>
 

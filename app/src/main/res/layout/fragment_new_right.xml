@@ -98,7 +98,7 @@
                 <FrameLayout
                     android:id="@+id/user_recmd_fragment"
                     android:layout_width="match_parent"
-                    android:layout_height="144dp"
+                    android:layout_height="124dp"
                     android:background="@color/fragment_center">
 
                 </FrameLayout>
