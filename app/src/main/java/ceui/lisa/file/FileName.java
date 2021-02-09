@@ -1,6 +1,7 @@
 package ceui.lisa.file;
 
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.utils.Common;
 
 public class FileName implements FileNameProxy {
 
@@ -8,18 +9,16 @@ public class FileName implements FileNameProxy {
 
     @Override
     public String zipName(IllustsBean illust) {
-        return illust.getTitle() + DASH + illust.getId() + ".zip";
+        return Common.removeFSReservedChars(illust.getTitle()) + DASH + illust.getId() + ".zip";
     }
 
     @Override
     public String unzipName(IllustsBean illust) {
-        return illust.getTitle() + DASH + illust.getId() + DASH + "unzip";
+        return Common.removeFSReservedChars(illust.getTitle()) + DASH + illust.getId() + DASH + "unzip";
     }
 
     @Override
     public String gifName(IllustsBean illust) {
-        return illust.getTitle() + DASH + illust.getId() + ".gif";
+        return Common.removeFSReservedChars(illust.getTitle()) + DASH + illust.getId() + ".gif";
     }
-
-
 }
