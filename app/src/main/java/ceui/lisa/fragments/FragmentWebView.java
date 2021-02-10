@@ -117,7 +117,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                                 Intent intent = new Intent(mContext, OutWakeActivity.class);
                                 intent.setData(Uri.parse(destiny));
                                 startActivity(intent);
-                                if(!preferPreserve){
+                                if (!preferPreserve) {
                                     finish();
                                 }
                             } catch (Exception e) {

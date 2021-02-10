@@ -3,16 +3,30 @@ package ceui.lisa.activities;
 import android.content.Intent;
 import android.net.Uri;
 import android.text.TextUtils;
+import android.view.View;
 
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.database.AppDatabase;
+import ceui.lisa.database.UserEntity;
 import ceui.lisa.databinding.ActivityOutWakeBinding;
 import ceui.lisa.feature.HostManager;
+import ceui.lisa.fragments.FragmentLogin;
+import ceui.lisa.http.AccountApi;
+import ceui.lisa.http.NullCtrl;
+import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.Callback;
+import ceui.lisa.models.UserModel;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
+import io.reactivex.Scheduler;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
+import retrofit2.Call;
+import retrofit2.Response;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
@@ -128,10 +142,57 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
 
                     }
 
-                    //pixiv内部链接，如 pixiv://illusts/73190863
+                    //pixiv内部链接，如
+                    //pixiv://illusts/73190863
+                    //pixiv://account/login?code=BsQND5vc6uIWKIwLiDsh0S3h1yno6eVHDVMrX3fONgM&via=login
                     if (scheme.contains("pixiv")) {
                         String host = uri.getHost();
+
+
                         if (!TextUtils.isEmpty(host)) {
+
+                            if (host.equals("account")) {
+                                Common.showToast("尝试登陆");
+                                String code = uri.getQueryParameter("code");
+                                Retro.getAccountApi().newLogin(
+                                        FragmentLogin.CLIENT_ID,
+                                        FragmentLogin.CLIENT_SECRET,
+                                        FragmentLogin.AUTH_CODE,
+                                        code,
+                                        HostManager.get().getPkceItem().getVerify(),
+                                        FragmentLogin.CALL_BACK,
+                                        true
+                                ).subscribeOn(Schedulers.newThread())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new NullCtrl<UserModel>() {
+                                    @Override
+                                    public void success(UserModel userModel) {
+
+                                        Common.showLog(userModel.toString());
+
+                                        userModel.getResponse().getUser().setIs_login(true);
+                                        Local.saveUser(userModel);
+
+                                        UserEntity userEntity = new UserEntity();
+                                        userEntity.setLoginTime(System.currentTimeMillis());
+                                        userEntity.setUserID(userModel.getResponse().getUser().getId());
+                                        userEntity.setUserGson(Shaft.sGson.toJson(Local.getUser()));
+
+
+                                        AppDatabase.getAppDatabase(mContext).downloadDao().insertUser(userEntity);
+                                        Intent intent = new Intent(mContext, MainActivity.class);
+                                        mActivity.startActivity(intent);
+                                    }
+
+                                    @Override
+                                    public void must() {
+                                        super.must();
+                                        mActivity.finish();
+                                    }
+                                });
+                                return;
+                            }
+
                             if (host.contains("users")) {
                                 String path = uri.getPath();
                                 Intent userIntent = new Intent(mContext, UserActivity.class);

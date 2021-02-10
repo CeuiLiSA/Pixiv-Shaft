@@ -287,7 +287,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 if (Dev.isDev) {
                     intent = new Intent(mContext, TemplateActivity.class);
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
-                    intent.putExtra(Params.URL, "https://accounts.pixiv.net/login?prompt=select_account&return_to=https://app-api.pixiv.net/web/v1/users/auth/pixiv/start?code_challenge=dZPnUtensO4mtLsot5VOBKEzQnKcA1BwJVoXlRrTNwk&code_challenge_method=S256&client=pixiv-android&source=pixiv-android&ref=");
+                    intent.putExtra(Params.URL, "https://app-api.pixiv.net/web/v1/login?code_challenge=vMBcNztwMPd312YCAZNjat4Tf1xmqdZKV1eZJug24Nc&code_challenge_method=S256&client=pixiv-android");
+//                    intent.putExtra(Params.URL, "https://accounts.pixiv.net/login?prompt=select_account&return_to=https://app-api.pixiv.net/web/v1/users/auth/pixiv/start?code_challenge=Fqvio7cBvKtdLYeK-bNz8Cl7PvEcwI-OzkwBwxvC--k&code_challenge_method=S256&client=pixiv-ios&source=pixiv-ios&ref=");
+//                    intent.putExtra(Params.URL, "https://accounts.pixiv.net/login?prompt=select_account&return_to=https://app-api.pixiv.net/web/v1/users/auth/pixiv/start?code_challenge=GwlGmGStY2GdW6UogqEGnUkKtPFIFZfAx6Fb4w9u2KE&code_challenge_method=S256&client=pixiv-android&source=pixiv-android&ref=");
                     intent.putExtra(Params.TITLE, getString(R.string.now_login));
                     intent.putExtra(Params.PREFER_PRESERVE, true);
                 } else {

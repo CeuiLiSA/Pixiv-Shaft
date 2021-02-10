@@ -2,9 +2,11 @@ package ceui.lisa.fragments;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.Build;
 import android.text.TextUtils;
 import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
+import android.util.Base64;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,14 +14,19 @@ import android.view.ViewTreeObserver;
 import android.widget.CompoundButton;
 import android.widget.Toast;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 
+import com.blankj.utilcode.util.EncodeUtils;
+import com.blankj.utilcode.util.EncryptUtils;
 import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringConfig;
 import com.facebook.rebound.SpringSystem;
 
+import java.io.UnsupportedEncodingException;
+import java.security.SecureRandom;
 import java.util.Locale;
 
 import ceui.lisa.R;
@@ -29,6 +36,8 @@ import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
 import ceui.lisa.databinding.ActivityLoginBinding;
+import ceui.lisa.feature.HostManager;
+import ceui.lisa.feature.PkceUtil;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.models.SignResponse;
@@ -42,6 +51,10 @@ import ceui.lisa.utils.Params;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
+import static android.util.Base64.NO_PADDING;
+import static android.util.Base64.NO_WRAP;
+import static android.util.Base64.URL_SAFE;
+
 public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
 
     public static final String CLIENT_ID = "MOBrBDS8blbauoSck0ZfDbtuzpyT";
@@ -49,6 +62,8 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
     public static final String DEVICE_TOKEN = "pixiv";
     public static final String TYPE_PASSWORD = "password";
     public static final String REFRESH_TOKEN = "refresh_token";
+    public static final String AUTH_CODE = "authorization_code";
+    public static final String CALL_BACK = "https://app-api.pixiv.net/web/v1/users/auth/pixiv/callback";
     private static final String SIGN_TOKEN = "Bearer l-f9qZ0ZyqSwRyZs8-MymbtWBbSxmCu1pmbOlyisou8";
     private static final String SIGN_REF = "pixiv_android_app_provisional_account";
     private static final int TAPS_TO_BE_A_DEVELOPER = 7;
@@ -154,15 +169,14 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
         baseBind.login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (baseBind.userName.getText().toString().length() != 0) {
-                    if (baseBind.password.getText().toString().length() != 0) {
-                        login(baseBind.userName.getText().toString(), baseBind.password.getText().toString());
-                    } else {
-                        Common.showToast("请输入密码", 3);
-                    }
-                } else {
-                    Common.showToast("请输入用户名", 3);
-                }
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
+                intent.putExtra(Params.URL, "https://app-api.pixiv.net/web/v1/login?code_challenge=" +
+                                HostManager.get().getPkceItem().getChallenge() +
+                        "&code_challenge_method=S256&client=pixiv-ios");
+                intent.putExtra(Params.TITLE, getString(R.string.now_login));
+                intent.putExtra(Params.PREFER_PRESERVE, true);
+                startActivity(intent);
             }
         });
         baseBind.sign.setOnClickListener(new View.OnClickListener() {

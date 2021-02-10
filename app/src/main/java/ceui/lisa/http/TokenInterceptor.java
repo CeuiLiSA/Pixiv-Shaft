@@ -34,16 +34,16 @@ public class TokenInterceptor implements Interceptor {
         Request request = chain.request();
         Response response = chain.proceed(request);
 
-        if (isTokenExpired(response)) {
-            Common.showLog("getNewToken 检测到是过期Token ");
-            response.close();
-            String newToken = getNewToken(request.header("Authorization"));
-            Request newRequest = chain.request()
-                    .newBuilder()
-                    .header("Authorization", newToken)
-                    .build();
-            return chain.proceed(newRequest);
-        }
+//        if (isTokenExpired(response)) {
+//            Common.showLog("getNewToken 检测到是过期Token ");
+//            response.close();
+//            String newToken = getNewToken(request.header("Authorization"));
+//            Request newRequest = chain.request()
+//                    .newBuilder()
+//                    .header("Authorization", newToken)
+//                    .build();
+//            return chain.proceed(newRequest);
+//        }
         return response;
     }
 

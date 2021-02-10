@@ -54,7 +54,7 @@ public abstract class ErrorCtrl<T> extends TryCatchObserver<T> {
                                 Common.showToast(e.toString());
                             }
                         }
-                    } else if(responseString.contains("invalid_grant")) {
+                    } else if(responseString.contains("invalid_grant") || responseString.contains("invalid_request")) {
                         ErrorResponse2 response = Shaft.sGson.fromJson(responseString, ErrorResponse2.class);
                         if (response != null) {
                             if (response.getErrors() != null && response.getErrors().getSystem() != null) {

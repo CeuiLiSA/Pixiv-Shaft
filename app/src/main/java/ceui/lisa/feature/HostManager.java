@@ -2,7 +2,10 @@ package ceui.lisa.feature;
 
 
 import android.net.Uri;
+import android.os.Build;
 import android.text.TextUtils;
+
+import androidx.annotation.RequiresApi;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.http.CloudFlareDNSResponse;
@@ -18,6 +21,7 @@ public class HostManager {
 //    public static final String HOST_OLD = "app-api.pixiv.net";
     public static final String HOST_NEW = "i.pixiv.cat";
     private static final String HTTP_HEAD = "http://";
+    private PKCEItem pkceItem;
 
     private String host;
 
@@ -115,5 +119,21 @@ public class HostManager {
             e.printStackTrace();
             return HTTP_HEAD + host + url.substring(19);
         }
+    }
+
+    public PKCEItem getPkceItem() {
+        if (pkceItem == null) {
+            try {
+                final String verify = PkceUtil.generateCodeVerifier();
+                final String challenge = PkceUtil.generateCodeChallange(verify);
+                pkceItem = new PKCEItem(verify, challenge);
+            } catch (Exception e) {
+                e.printStackTrace();
+                pkceItem = new PKCEItem(
+                        "-29P7XEuFCNdG-1aiYZ9tTeYrABWRHxS9ZVNr6yrdcI",
+                        "usItTkssolVsmIbxrf0o-O_FsdvZFANVPCf9jP4jP_0");
+            }
+        }
+        return pkceItem;
     }
 }

@@ -59,24 +59,24 @@ android {
         exclude 'META-INF/MANIFEST.MF'
     }
 
-    lintOptions {
-        checkReleaseBuilds false
-        // Or, if you prefer, you can continue to check for errors in release builds,
-        // but continue the build even when errors are found:
-        abortOnError true
-        disable "ClickableViewAccessibility", "ContentDescription", // 无障碍相关
-                "IidCompatibilityCheckFailure", // firebase相关
-                "UnsafeExperimentalUsageError", "UnsafeExperimentalUsageWarning", // firebase内部lint相关
-                "InsecureBaseConfiguration", // 使用明文流量
-                "KeyboardInaccessibleWidget" // 键盘导航
-    }
-
-    applicationVariants.all { variant ->
-        variant.outputs.each { output ->
-            def lintTask = tasks["lint${variant.name.capitalize()}"]
-            output.assemble.dependsOn lintTask
-        }
-    }
+//    lintOptions {
+//        checkReleaseBuilds false
+//        // Or, if you prefer, you can continue to check for errors in release builds,
+//        // but continue the build even when errors are found:
+//        abortOnError true
+//        disable "ClickableViewAccessibility", "ContentDescription", // 无障碍相关
+//                "IidCompatibilityCheckFailure", // firebase相关
+//                "UnsafeExperimentalUsageError", "UnsafeExperimentalUsageWarning", // firebase内部lint相关
+//                "InsecureBaseConfiguration", // 使用明文流量
+//                "KeyboardInaccessibleWidget" // 键盘导航
+//    }
+//
+//    applicationVariants.all { variant ->
+//        variant.outputs.each { output ->
+//            def lintTask = tasks["lint${variant.name.capitalize()}"]
+//            output.assemble.dependsOn lintTask
+//        }
+//    }
 }
 
 dependencies {
@@ -165,6 +165,7 @@ dependencies {
 
     implementation 'com.hjq:toast:8.8'
 
+    implementation 'com.github.franmontiel:PersistentCookieJar:v1.0.1'
 
     testImplementation 'junit:junit:4.13'
     androidTestImplementation 'androidx.test:runner:1.2.0'

@@ -9,7 +9,6 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
-import com.blankj.utilcode.util.BarUtils;
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener;
 
 import ceui.lisa.R;
@@ -38,7 +37,6 @@ import ceui.lisa.fragments.FragmentLogin;
 import ceui.lisa.fragments.FragmentMangaSeries;
 import ceui.lisa.fragments.FragmentMangaSeriesDetail;
 import ceui.lisa.fragments.FragmentMultiDownld;
-import ceui.lisa.fragments.FragmentMutedTags;
 import ceui.lisa.fragments.FragmentNew;
 import ceui.lisa.fragments.FragmentNewNovel;
 import ceui.lisa.fragments.FragmentNewNovels;

@@ -3,6 +3,10 @@ package ceui.lisa.http;
 import android.util.Log;
 
 import com.blankj.utilcode.util.DeviceUtils;
+import com.franmontiel.persistentcookiejar.ClearableCookieJar;
+import com.franmontiel.persistentcookiejar.PersistentCookieJar;
+import com.franmontiel.persistentcookiejar.cache.SetCookieCache;
+import com.franmontiel.persistentcookiejar.persistence.SharedPrefsCookiePersistor;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.safframework.http.interceptor.LoggingInterceptor;
@@ -43,10 +47,11 @@ public class Retro {
         PixivHeaders pixivHeaders = new PixivHeaders();
         String osVersion = DeviceUtils.getSDKVersionName();
         String phoneName = DeviceUtils.getModel();
-        before.addHeader("User-Agent", "PixivAndroidApp/5.0.175 (Android " + osVersion + "; " + phoneName + ")")
+        before.addHeader("User-Agent", "PixivIOSApp/7.10.10 (iOS 14.4; iPhone12,3)")
                 .addHeader("accept-language", "zh-cn")
-                .addHeader(":authority", "app-api.pixiv.net")
                 .addHeader("x-client-time", pixivHeaders.getXClientTime())
+                .addHeader("app-version", "7.10.10")
+                .addHeader("app-os", "ios")
                 .addHeader("x-client-hash", pixivHeaders.getXClientHash());
         return before;
     }
@@ -121,6 +126,11 @@ public class Retro {
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
         return new OkHttpClient.Builder()
                 .addInterceptor(loggingInterceptor)
+                .cookieJar(cookieJar)
                 .protocols(Collections.singletonList(Protocol.HTTP_1_1));
     }
+
+    public static ClearableCookieJar cookieJar = new PersistentCookieJar(new SetCookieCache(),
+            new SharedPrefsCookiePersistor(Shaft.getContext()));
+
 }
