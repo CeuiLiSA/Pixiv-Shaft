@@ -22,7 +22,7 @@
             android:orientation="vertical">
 
 
-            <ImageView
+            <ceui.lisa.view.DynamicHeightImageView
                 android:id="@+id/illust_image"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
