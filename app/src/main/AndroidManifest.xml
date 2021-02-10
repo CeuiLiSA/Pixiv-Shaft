@@ -37,7 +37,8 @@
         </provider>
 
         <activity
-            android:name=".activities.MainActivity">
+            android:name=".activities.MainActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

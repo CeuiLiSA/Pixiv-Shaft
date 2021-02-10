@@ -4,9 +4,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.drawable.Drawable;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.PopupWindow;
 
 import androidx.core.content.ContextCompat;
@@ -40,18 +40,12 @@ import ceui.lisa.utils.PixivOperate;
 
 public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding> implements MultiDownload {
 
-    private static final int MIN_HEIGHT = 350;
-    private static final int MAX_HEIGHT = 600;
-    private int imageSize;
+    private static final float MIN_HEIGHT_RATIO = 0.4f;
+    private static final float MAX_HEIGHT_RATIO = 3.0f;
 
     public IAdapter(List<IllustsBean> targetList, Context context) {
         super(targetList, context);
-        initImageSize();
         handleClick();
-    }
-
-    private void initImageSize() {
-        imageSize = (mContext.getResources().getDisplayMetrics().widthPixels) / Shaft.sSettings.getLineCount();
     }
 
     @Override
@@ -59,21 +53,20 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
         mLayoutID = R.layout.recy_illust_stagger;
     }
 
-
     @Override
     public void bindData(IllustsBean target, ViewHolder<RecyIllustStaggerBinding> bindView, int position) {
-        ViewGroup.LayoutParams params = bindView.baseBind.illustImage.getLayoutParams();
-        params.width = imageSize;
-        params.height = target.getHeight() * imageSize / target.getWidth();
 
-        if (Shaft.sSettings.getLineCount() == 2) {
-            if (params.height < MIN_HEIGHT) {
-                params.height = MIN_HEIGHT;
-            } else if (params.height > MAX_HEIGHT) {
-                params.height = MAX_HEIGHT;
-            }
+        float ratio = 1.0f * target.getHeight() / target.getWidth();
+        if (ratio > MAX_HEIGHT_RATIO) {
+            ratio = MAX_HEIGHT_RATIO;
+            bindView.baseBind.illustImage.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        } else if (ratio < MIN_HEIGHT_RATIO) {
+            ratio = MIN_HEIGHT_RATIO;
+            bindView.baseBind.illustImage.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        } else {
+            bindView.baseBind.illustImage.setScaleType(ImageView.ScaleType.FIT_CENTER);
         }
-        bindView.baseBind.illustImage.setLayoutParams(params);
+        bindView.baseBind.illustImage.setHeightRatio(ratio);
 
         if (target.isIs_bookmarked()) {
             bindView.baseBind.likeButton.setImageTintList(
