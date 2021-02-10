@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,12 +22,15 @@ import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.helper.IllustFilter;
 import ceui.lisa.helper.TagFilter;
 import ceui.lisa.http.NullCtrl;
+import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.models.UserModel;
 import ceui.lisa.repo.RecmdIllustRepo;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Dev;
+import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.SpacesItemWithHeadDecoration;
 import ceui.lisa.viewmodel.BaseModel;
@@ -35,6 +39,7 @@ import io.reactivex.Observable;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
+import retrofit2.Call;
 
 public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding,
         ListIllust, IllustsBean> {
@@ -77,6 +82,24 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
 
     @Override
     public BaseAdapter<IllustsBean, RecyIllustStaggerBinding> adapter() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                UserModel userModel = Local.getUser();
+                Call<UserModel> call = Retro.getAccountApi().newRefreshToken(
+                        FragmentLogin.CLIENT_ID,
+                        FragmentLogin.CLIENT_SECRET,
+                        FragmentLogin.REFRESH_TOKEN,
+                        userModel.getResponse().getRefresh_token(),
+                        Boolean.TRUE);
+                try {
+                    UserModel newUser = call.execute().body();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
         return new IAdapterWithHeadView(allItems, mContext, dataType);
     }
 
