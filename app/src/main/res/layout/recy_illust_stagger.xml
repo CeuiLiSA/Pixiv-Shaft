@@ -24,9 +24,10 @@
 
             <ImageView
                 android:id="@+id/illust_image"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:scaleType="centerCrop" />
+                android:adjustViewBounds="true"
+                android:scaleType="fitCenter" />
 
 
             <LinearLayout
@@ -41,7 +42,7 @@
                     android:layout_height="wrap_content"
                     android:background="@drawable/tag_stroke"
                     android:paddingStart="@dimen/four_dp"
-                    android:paddingTop="2dp"
+                    android:paddingTop="@dimen/two_dp"
                     android:paddingEnd="@dimen/four_dp"
                     android:layout_marginEnd="@dimen/six_dp"
                     android:paddingBottom="2dp"
@@ -55,7 +56,7 @@
                     android:layout_height="wrap_content"
                     android:background="@drawable/tag_stroke"
                     android:paddingStart="@dimen/four_dp"
-                    android:paddingTop="2dp"
+                    android:paddingTop="@dimen/two_dp"
                     android:text="GIF"
                     android:paddingEnd="@dimen/four_dp"
                     android:paddingBottom="2dp"
