@@ -57,6 +57,9 @@ import static android.util.Base64.URL_SAFE;
 
 public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
 
+    public static final String IOS_CLIENT_ID = "KzEZED7aC0vird8jWyHM38mXjNTY";
+    public static final String IOS_CLIENT_SECRET = "W9JZoJe00qPvJsiyCGT3CCtC6ZUtdpKpzMbNlUGP";
+
     public static final String CLIENT_ID = "MOBrBDS8blbauoSck0ZfDbtuzpyT";
     public static final String CLIENT_SECRET = "lsACyCD94FhDUtGTXi3QzcFE2uU1hqtDaKeqrdwj";
     public static final String DEVICE_TOKEN = "pixiv";

@@ -34,16 +34,16 @@ public class TokenInterceptor implements Interceptor {
         Request request = chain.request();
         Response response = chain.proceed(request);
 
-//        if (isTokenExpired(response)) {
-//            Common.showLog("getNewToken 检测到是过期Token ");
-//            response.close();
-//            String newToken = getNewToken(request.header("Authorization"));
-//            Request newRequest = chain.request()
-//                    .newBuilder()
-//                    .header("Authorization", newToken)
-//                    .build();
-//            return chain.proceed(newRequest);
-//        }
+        if (isTokenExpired(response)) {
+            Common.showLog("getNewToken 检测到是过期Token ");
+            response.close();
+            String newToken = getNewToken(request.header("Authorization"));
+            Request newRequest = chain.request()
+                    .newBuilder()
+                    .header("Authorization", newToken)
+                    .build();
+            return chain.proceed(newRequest);
+        }
         return response;
     }
 
@@ -89,13 +89,11 @@ public class TokenInterceptor implements Interceptor {
                 Shaft.sUserModel.getResponse().getAccess_token().length() != TOKEN_LENGTH) {
             Common.showLog("getNewToken 主动获取最新的token old:" + tokenForThisRequest + " new:" + Shaft.sUserModel.getResponse().getAccess_token());
             UserModel userModel = Local.getUser();
-            Call<UserModel> call = Retro.getAccountApi().refreshToken(
-                    FragmentLogin.CLIENT_ID,
-                    FragmentLogin.CLIENT_SECRET,
+            Call<UserModel> call = Retro.getAccountApi().newRefreshToken(
+                    FragmentLogin.IOS_CLIENT_ID,
+                    FragmentLogin.IOS_CLIENT_SECRET,
                     FragmentLogin.REFRESH_TOKEN,
                     userModel.getResponse().getRefresh_token(),
-                    userModel.getResponse().getDevice_token(),
-                    Boolean.TRUE,
                     Boolean.TRUE);
             UserModel newUser = call.execute().body();
             if (newUser != null) {

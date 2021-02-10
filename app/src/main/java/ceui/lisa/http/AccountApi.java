@@ -72,5 +72,13 @@ public interface AccountApi {
                                  @Field("include_policy") boolean include_policy);
 
 
+    @FormUrlEncoded
+    @POST("/auth/token")
+    Call<UserModel> newRefreshToken(@Field("client_id") String client_id,
+                                 @Field("client_secret") String client_secret,
+                                 @Field("grant_type") String grant_type,
+                                 @Field("refresh_token") String refresh_token,
+                                 @Field("include_policy") boolean include_policy);
+
 
 }
