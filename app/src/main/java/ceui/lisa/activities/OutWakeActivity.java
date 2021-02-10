@@ -180,8 +180,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
 
 
                                         AppDatabase.getAppDatabase(mContext).downloadDao().insertUser(userEntity);
-                                        Intent intent = new Intent(mContext, MainActivity.class);
-                                        mActivity.startActivity(intent);
+                                        Common.restart();
                                     }
 
                                     @Override
