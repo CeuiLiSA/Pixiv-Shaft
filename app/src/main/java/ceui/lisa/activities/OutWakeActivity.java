@@ -155,8 +155,8 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                                 Common.showToast("尝试登陆");
                                 String code = uri.getQueryParameter("code");
                                 Retro.getAccountApi().newLogin(
-                                        FragmentLogin.IOS_CLIENT_ID,
-                                        FragmentLogin.IOS_CLIENT_SECRET,
+                                        FragmentLogin.CLIENT_ID,
+                                        FragmentLogin.CLIENT_SECRET,
                                         FragmentLogin.AUTH_CODE,
                                         code,
                                         HostManager.get().getPkceItem().getVerify(),

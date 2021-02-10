@@ -71,6 +71,7 @@
                                 android:layout_height="wrap_content"
                                 android:singleLine="true"
                                 android:ellipsize="end"
+                                android:visibility="invisible"
                                 android:layout_marginStart="@dimen/tweenty_four_dp"
                                 android:layout_marginEnd="@dimen/tweenty_four_dp"
                                 android:hint="@string/string_9"
@@ -86,6 +87,7 @@
                                 android:singleLine="true"
                                 android:ellipsize="end"
                                 android:textSize="12sp"
+                                android:visibility="invisible"
                                 android:maxLines="1"
                                 android:layout_marginStart="@dimen/tweenty_four_dp"
                                 android:layout_marginEnd="@dimen/tweenty_four_dp"
@@ -101,6 +103,7 @@
                                 android:id="@+id/show_pwd"
                                 android:layout_marginBottom="@dimen/sixteen_dp"
                                 android:layout_marginStart="18dp"
+                                android:visibility="invisible"
                                 android:layout_height="wrap_content">
 
                             </CheckBox>
@@ -211,6 +214,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="@dimen/tweenty_four_dp"
                             android:layout_marginTop="@dimen/sixteen_dp"
+                            android:visibility="invisible"
                             android:layout_marginEnd="@dimen/tweenty_four_dp"
                             android:hint="@string/string_12"
                             app:met_floatingLabel="highlight"

@@ -3,10 +3,6 @@ package ceui.lisa.http;
 import android.util.Log;
 
 import com.blankj.utilcode.util.DeviceUtils;
-import com.franmontiel.persistentcookiejar.ClearableCookieJar;
-import com.franmontiel.persistentcookiejar.PersistentCookieJar;
-import com.franmontiel.persistentcookiejar.cache.SetCookieCache;
-import com.franmontiel.persistentcookiejar.persistence.SharedPrefsCookiePersistor;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.safframework.http.interceptor.LoggingInterceptor;
@@ -126,11 +122,6 @@ public class Retro {
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
         return new OkHttpClient.Builder()
                 .addInterceptor(loggingInterceptor)
-                .cookieJar(cookieJar)
                 .protocols(Collections.singletonList(Protocol.HTTP_1_1));
     }
-
-    public static ClearableCookieJar cookieJar = new PersistentCookieJar(new SetCookieCache(),
-            new SharedPrefsCookiePersistor(Shaft.getContext()));
-
 }

@@ -34,10 +34,10 @@
     <string name="webview_handler_open_image">打开图片</string>
     <string name="webview_handler_search_with_ggl">在 Google 中搜索此图片</string>
     <string name="copy_to_clipboard">已复制</string>
-    <string name="now_login">登录</string>
+    <string name="now_login">登录（需要开代理）</string>
     <string name="has_no_account">没有账号?</string>
     <string name="go_to_login">我要登录</string>
-    <string name="now_sign">注册账号</string>
+    <string name="now_sign">注册（需要开代理）</string>
 
 
     <string name="website_users">users</string>

@@ -13,8 +13,8 @@ android {
         applicationId "ceui.lisa.pixiv"
         minSdkVersion 21
         targetSdkVersion 30
-        versionCode 162
-        versionName "2.7.0"
+        versionCode 163
+        versionName "3.0.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         javaCompileOptions {
@@ -164,8 +164,6 @@ dependencies {
 
 
     implementation 'com.hjq:toast:8.8'
-
-    implementation 'com.github.franmontiel:PersistentCookieJar:v1.0.1'
 
     testImplementation 'junit:junit:4.13'
     androidTestImplementation 'androidx.test:runner:1.2.0'

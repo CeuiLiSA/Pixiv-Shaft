@@ -176,20 +176,24 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
                 intent.putExtra(Params.URL, "https://app-api.pixiv.net/web/v1/login?code_challenge=" +
                                 HostManager.get().getPkceItem().getChallenge() +
-                        "&code_challenge_method=S256&client=pixiv-ios");
+                        "&code_challenge_method=S256&client=pixiv-android");
                 intent.putExtra(Params.TITLE, getString(R.string.now_login));
                 intent.putExtra(Params.PREFER_PRESERVE, true);
                 startActivity(intent);
             }
         });
+
         baseBind.sign.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (baseBind.signUserName.getText().toString().length() != 0) {
-                    sign();
-                } else {
-                    Common.showToast("请输入用户名", 3);
-                }
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
+                intent.putExtra(Params.URL, "https://app-api.pixiv.net/web/v1/provisional-accounts/create?code_challenge=" +
+                        HostManager.get().getPkceItem().getChallenge() +
+                        "&code_challenge_method=S256&client=pixiv-android");
+                intent.putExtra(Params.TITLE, getString(R.string.now_sign));
+                intent.putExtra(Params.PREFER_PRESERVE, true);
+                startActivity(intent);
             }
         });
         baseBind.hasNoAccount.setOnClickListener(new View.OnClickListener() {
