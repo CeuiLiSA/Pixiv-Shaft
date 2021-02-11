@@ -5,8 +5,9 @@
     package="ceui.lisa">
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="28"/>
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
@@ -46,6 +47,7 @@
             </intent-filter>
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
@@ -63,10 +65,12 @@
             android:name=".activities.TemplateActivity"
             android:windowSoftInputMode="adjustPan" />
         <activity android:name=".activities.RankActivity" />
-        <activity android:name=".activities.ImageDetailActivity" />
         <activity
-            android:label="@string/string_310"
-            android:name=".activities.OutWakeActivity">
+            android:name=".activities.ImageDetailActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation" />
+        <activity
+            android:name=".activities.OutWakeActivity"
+            android:label="@string/string_310">
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
 
@@ -138,8 +142,8 @@
         <activity android:name=".activities.VActivity" />
         <activity android:name=".activities.UActivity" />
         <activity
-            android:label="@string/string_311"
-            android:name=".activities.OutReversActivity" >
+            android:name=".activities.OutReversActivity"
+            android:label="@string/string_311">
 
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
