@@ -24,6 +24,7 @@ import ceui.lisa.databinding.RecyIllustDetailBinding;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.feature.HostManager;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.transformer.LargeBitmapScaleTransformer;
 import ceui.lisa.transformer.UniformScaleTransformation;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUrlChild;
@@ -130,6 +131,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         Glide.with(mContext)
                 .asBitmap()
                 .load(new GlideUrlChild(imageUrl))
+                .transform(new LargeBitmapScaleTransformer())
                 .transition(BitmapTransitionOptions.withCrossFade())
                 .listener(new RequestListener<Bitmap>() {
                     @Override
