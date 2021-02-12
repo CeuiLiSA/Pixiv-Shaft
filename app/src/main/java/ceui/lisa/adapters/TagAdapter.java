@@ -19,12 +19,11 @@ import ceui.lisa.utils.GlideUtil;
 
 public class TagAdapter extends BaseAdapter<ListTrendingtag.TrendTagsBean, RecyTagGridBinding> implements MultiDownload {
 
-    private int imageSize;
+    private static final float HEADER_RATIO = 0.66f;
+    private static final float CONTENT_RATIO = 1.0f;
 
     public TagAdapter(List<ListTrendingtag.TrendTagsBean> targetList, Context context) {
         super(targetList, context);
-        imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
-                mContext.getResources().getDimensionPixelSize(R.dimen.two_dp)) / 3;
     }
 
     @Override
@@ -35,25 +34,22 @@ public class TagAdapter extends BaseAdapter<ListTrendingtag.TrendTagsBean, RecyT
     @Override
     public void bindData(ListTrendingtag.TrendTagsBean target, ViewHolder<RecyTagGridBinding> bindView, int position) {
         if (position == 0) {
-            ViewGroup.LayoutParams params = bindView.baseBind.illustImage.getLayoutParams();
-            params.height = imageSize * 2;
-            params.width = mContext.getResources().getDisplayMetrics().widthPixels;
-            bindView.baseBind.illustImage.setLayoutParams(params);
+            bindView.baseBind.illustImage.setHeightRatio(HEADER_RATIO);
             Glide.with(mContext)
                     .load(GlideUtil.getLargeImage(allIllust.get(position).getIllust()))
                     .placeholder(R.color.light_bg)
                     .into(bindView.baseBind.illustImage);
         } else {
-            ViewGroup.LayoutParams params = bindView.baseBind.illustImage.getLayoutParams();
-            params.height = imageSize;
-            params.width = imageSize;
-            bindView.baseBind.illustImage.setLayoutParams(params);
+            bindView.baseBind.illustImage.setHeightRatio(CONTENT_RATIO);
             Glide.with(mContext)
                     .load(GlideUtil.getMediumImg(allIllust.get(position).getIllust()))
                     .placeholder(R.color.light_bg)
                     .into(bindView.baseBind.illustImage);
         }
-        if (!TextUtils.isEmpty(allIllust.get(position).getTranslated_name())) {
+
+        if (TextUtils.isEmpty(allIllust.get(position).getTranslated_name())) {
+            bindView.baseBind.chineseTitle.setText("");
+        } else {
             bindView.baseBind.chineseTitle.setText(String.format("#%s", allIllust.get(position).getTranslated_name()));
         }
         bindView.baseBind.title.setText(String.format("#%s", allIllust.get(position).getTag()));
