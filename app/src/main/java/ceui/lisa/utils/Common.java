@@ -77,7 +77,7 @@ public class Common {
 
     public static void logOut(Context context) {
         if (Shaft.sUserModel != null) {
-            Shaft.sUserModel.getResponse().getUser().setIs_login(false);
+            Shaft.sUserModel.getUser().setIs_login(false);
             Local.saveUser(Shaft.sUserModel);
             Intent intent = new Intent(context, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "登录注册");

@@ -90,7 +90,7 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
                         FragmentLogin.CLIENT_ID,
                         FragmentLogin.CLIENT_SECRET,
                         FragmentLogin.REFRESH_TOKEN,
-                        userModel.getResponse().getRefresh_token(),
+                        userModel.getRefresh_token(),
                         Boolean.TRUE);
                 try {
                     UserModel newUser = call.execute().body();

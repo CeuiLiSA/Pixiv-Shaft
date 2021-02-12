@@ -197,7 +197,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
             refreshDetail(mNovelDetail);
         } else {
             baseBind.progressRela.setVisibility(View.VISIBLE);
-            Retro.getAppApi().getNovelDetail(Shaft.sUserModel.getResponse().getAccess_token(), novelBean.getId())
+            Retro.getAppApi().getNovelDetail(Shaft.sUserModel.getAccess_token(), novelBean.getId())
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new NullCtrl<NovelDetail>() {

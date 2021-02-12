@@ -208,7 +208,7 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
                 getString(R.string.string_174)
         };
         baseBind.post.setOnClickListener(v -> {
-            if (!sUserModel.getResponse().getUser().isIs_mail_authorized()) {
+            if (!sUserModel.getUser().isIs_mail_authorized()) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
                 builder.setMessage(R.string.string_158);
                 builder.setPositiveButton(R.string.string_159, (dialog, which) -> {
@@ -267,13 +267,13 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
                 }
             };
             if (parentCommentID != 0) {
-                Retro.getAppApi().postComment(sUserModel.getResponse().getAccess_token(), illustID,
+                Retro.getAppApi().postComment(sUserModel.getAccess_token(), illustID,
                         baseBind.inputBox.getText().toString(), parentCommentID)
                         .subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(nullCtrl);
             } else {
-                Retro.getAppApi().postComment(sUserModel.getResponse().getAccess_token(), illustID,
+                Retro.getAppApi().postComment(sUserModel.getAccess_token(), illustID,
                         baseBind.inputBox.getText().toString())
                         .subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())

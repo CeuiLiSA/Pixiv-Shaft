@@ -33,7 +33,7 @@ public class BatchFollowTask extends AbstractTask {
     public void run(IEnd end) {
         if (starType == 0) {
             Retro.getAppApi().postFollow(
-                    sUserModel.getResponse().getAccess_token(), userID, Params.TYPE_PUBLUC)
+                    sUserModel.getAccess_token(), userID, Params.TYPE_PUBLUC)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {
@@ -52,7 +52,7 @@ public class BatchFollowTask extends AbstractTask {
                     });
         } else {
             Retro.getAppApi().postUnFollow(
-                    sUserModel.getResponse().getAccess_token(), userID)
+                    sUserModel.getAccess_token(), userID)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {

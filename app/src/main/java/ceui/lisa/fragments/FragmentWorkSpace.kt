@@ -28,7 +28,7 @@ class FragmentWorkSpace : SwipeFragment<FragmentWorkSpaceBinding>(), Display<Use
 
     public override fun initData() {
         Retro.getAppApi()
-            .getUserDetail(Shaft.sUserModel.response.access_token, Shaft.sUserModel.userId)
+            .getUserDetail(Shaft.sUserModel.access_token, Shaft.sUserModel.userId)
             .subscribeOn(Schedulers.newThread())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(object : NullCtrl<UserDetailResponse>() {
@@ -104,7 +104,7 @@ class FragmentWorkSpace : SwipeFragment<FragmentWorkSpaceBinding>(), Display<Use
             map["chair"] = Common.checkEmpty(baseBind.chair)
             map["comment"] = Common.checkEmpty(baseBind.otherText)
 
-            Retro.getAppApi().editWorkSpace(Shaft.sUserModel.response.access_token, map)
+            Retro.getAppApi().editWorkSpace(Shaft.sUserModel.access_token, map)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(object : NullCtrl<NullResponse>() {

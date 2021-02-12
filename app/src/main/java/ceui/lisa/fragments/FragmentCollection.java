@@ -51,9 +51,9 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
     public void initView() {
         if (type == 0) {
             allPages = new Fragment[]{
-                    FragmentLikeIllust.newInstance(sUserModel.getResponse().getUser().getId(),
+                    FragmentLikeIllust.newInstance(sUserModel.getUser().getId(),
                             Params.TYPE_PUBLUC),
-                    FragmentLikeIllust.newInstance(sUserModel.getResponse().getUser().getId(),
+                    FragmentLikeIllust.newInstance(sUserModel.getUser().getId(),
                             Params.TYPE_PRIVATE)
             };
             CHINESE_TITLES = new String[]{
@@ -62,9 +62,9 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
             };
         } else if (type == 1) {
             allPages = new Fragment[]{
-                    FragmentLikeNovel.newInstance(sUserModel.getResponse().getUser().getId(),
+                    FragmentLikeNovel.newInstance(sUserModel.getUser().getId(),
                             Params.TYPE_PUBLUC, false),
-                    FragmentLikeNovel.newInstance(sUserModel.getResponse().getUser().getId(),
+                    FragmentLikeNovel.newInstance(sUserModel.getUser().getId(),
                             Params.TYPE_PRIVATE, false)
             };
             CHINESE_TITLES = new String[]{
@@ -73,9 +73,9 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
             };
         } else if (type == 2) {
             allPages = new Fragment[]{
-                    FragmentFollowUser.newInstance(sUserModel.getResponse().getUser().getId(),
+                    FragmentFollowUser.newInstance(sUserModel.getUser().getId(),
                             Params.TYPE_PUBLUC, false),
-                    FragmentFollowUser.newInstance(sUserModel.getResponse().getUser().getId(),
+                    FragmentFollowUser.newInstance(sUserModel.getUser().getId(),
                             Params.TYPE_PRIVATE, false)
             };
             CHINESE_TITLES = new String[]{

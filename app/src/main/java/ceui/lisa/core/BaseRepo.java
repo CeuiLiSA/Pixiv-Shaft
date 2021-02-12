@@ -45,7 +45,7 @@ public class BaseRepo implements DataView{
     public String token() {
         try {
             if (Shaft.sUserModel != null) {
-                return Shaft.sUserModel.getResponse().getAccess_token();
+                return Shaft.sUserModel.getAccess_token();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -56,7 +56,7 @@ public class BaseRepo implements DataView{
     public int currentUserID() {
         try {
             if (Shaft.sUserModel != null) {
-                return Shaft.sUserModel.getResponse().getUser().getId();
+                return Shaft.sUserModel.getUser().getId();
             }
         } catch (Exception e) {
             e.printStackTrace();

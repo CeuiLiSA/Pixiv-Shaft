@@ -106,13 +106,13 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
                         Common.showToast("导入成功", 2);
                         UserModel exportUser = Shaft.sGson.fromJson(userJson, UserModel.class);
 
-                        String pwd = exportUser.getResponse().getUser().getPassword();
+                        String pwd = exportUser.getUser().getPassword();
                         //如果是新版本加密过的,解密一下
                         if (!TextUtils.isEmpty(pwd) && pwd.startsWith(Params.SECRET_PWD_KEY)) {
                             String secret = pwd.substring(Params.SECRET_PWD_KEY.length());
                             String realPwd = Base64Util.decode(secret);
                             Common.showLog(className + "real password: " + realPwd);
-                            exportUser.getResponse().getUser().setPassword(realPwd);
+                            exportUser.getUser().setPassword(realPwd);
                         }
                         Local.saveUser(exportUser);
                         Dev.refreshUser = true;
@@ -150,7 +150,7 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
             }
         });
         if (Shaft.sUserModel != null) {
-            baseBind.userName.setText(Shaft.sUserModel.getResponse().getUser().getAccount());
+            baseBind.userName.setText(Shaft.sUserModel.getUser().getAccount());
             baseBind.password.requestFocus();
         }
         if (Dev.isDev) {
@@ -342,14 +342,14 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
                 .subscribe(new NullCtrl<UserModel>() {
                     @Override
                     public void success(UserModel userModel) {
-                        userModel.getResponse().getUser().setPassword(pwd);
-                        userModel.getResponse().getUser().setIs_login(true);
+                        userModel.getUser().setPassword(pwd);
+                        userModel.getUser().setIs_login(true);
                         Local.saveUser(userModel);
 
 
                         UserEntity userEntity = new UserEntity();
                         userEntity.setLoginTime(System.currentTimeMillis());
-                        userEntity.setUserID(userModel.getResponse().getUser().getId());
+                        userEntity.setUserID(userModel.getUser().getId());
                         userEntity.setUserGson(Shaft.sGson.toJson(Local.getUser()));
 
 

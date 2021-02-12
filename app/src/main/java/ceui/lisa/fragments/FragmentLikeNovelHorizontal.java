@@ -123,10 +123,10 @@ public class FragmentLikeNovelHorizontal extends BaseFragment<FragmentLikeIllust
     protected void initData() {
         Observable<ListNovel> mApi;
         if (type == 0) {
-            mApi = Retro.getAppApi().getUserLikeNovel(sUserModel.getResponse().getAccess_token(),
+            mApi = Retro.getAppApi().getUserLikeNovel(sUserModel.getAccess_token(),
                     userID, Params.TYPE_PUBLUC);
         } else {
-            mApi = Retro.getAppApi().getUserSubmitNovel(sUserModel.getResponse().getAccess_token(),
+            mApi = Retro.getAppApi().getUserSubmitNovel(sUserModel.getAccess_token(),
                     userID);
         }
         mApi.subscribeOn(Schedulers.newThread())

@@ -74,7 +74,7 @@ public class UserActivity extends BaseActivity<ActicityUserBinding> implements D
                 invoke(userDetailResponse);
             }
         });
-        Retro.getAppApi().getUserDetail(sUserModel.getResponse().getAccess_token(), userID)
+        Retro.getAppApi().getUserDetail(sUserModel.getAccess_token(), userID)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ErrorCtrl<UserDetailResponse>() {
@@ -155,7 +155,7 @@ public class UserActivity extends BaseActivity<ActicityUserBinding> implements D
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
 
-        if (currentUser.getUser().getId() != sUserModel.getResponse().getUser().getId()) {
+        if (currentUser.getUser().getId() != sUserModel.getUser().getId()) {
             //如果看的是自己的主页，先展示收藏
             //如果看的是别人的主页，先展示作品
             if (currentUser.getProfile().getTotal_illusts() > 0) {

@@ -62,7 +62,7 @@ public class TokenInterceptor implements Interceptor {
                 Common.showLog("isTokenExpired 000");
                 return true;
             } else if(body.contains(TOKEN_ERROR_2)){
-                Shaft.sUserModel.getResponse().getUser().setIs_login(false);
+                Shaft.sUserModel.getUser().setIs_login(false);
                 Local.saveUser(Shaft.sUserModel);
                 Common.showToast(R.string.string_340);
                 Common.restart();
@@ -84,30 +84,30 @@ public class TokenInterceptor implements Interceptor {
      * @return
      */
     private synchronized String getNewToken(String tokenForThisRequest) throws IOException {
-        if (Shaft.sUserModel.getResponse().getAccess_token().equals(tokenForThisRequest) ||
+        if (Shaft.sUserModel.getAccess_token().equals(tokenForThisRequest) ||
                 tokenForThisRequest.length() != TOKEN_LENGTH ||
-                Shaft.sUserModel.getResponse().getAccess_token().length() != TOKEN_LENGTH) {
-            Common.showLog("getNewToken 主动获取最新的token old:" + tokenForThisRequest + " new:" + Shaft.sUserModel.getResponse().getAccess_token());
+                Shaft.sUserModel.getAccess_token().length() != TOKEN_LENGTH) {
+            Common.showLog("getNewToken 主动获取最新的token old:" + tokenForThisRequest + " new:" + Shaft.sUserModel.getAccess_token());
             UserModel userModel = Local.getUser();
             Call<UserModel> call = Retro.getAccountApi().newRefreshToken(
                     FragmentLogin.CLIENT_ID,
                     FragmentLogin.CLIENT_SECRET,
                     FragmentLogin.REFRESH_TOKEN,
-                    userModel.getResponse().getRefresh_token(),
+                    userModel.getRefresh_token(),
                     Boolean.TRUE);
             UserModel newUser = call.execute().body();
             if (newUser != null) {
-                newUser.getResponse().getUser().setPassword(
-                        Shaft.sUserModel.getResponse().getUser().getPassword()
+                newUser.getUser().setPassword(
+                        Shaft.sUserModel.getUser().getPassword()
                 );
-                newUser.getResponse().getUser().setIs_login(true);
+                newUser.getUser().setIs_login(true);
             }
             Local.saveUser(newUser);
-            Common.showLog("getNewToken 获取到了最新的 token:" + newUser.getResponse().getAccess_token());
-            return newUser.getResponse().getAccess_token();
+            Common.showLog("getNewToken 获取到了最新的 token:" + newUser.getAccess_token());
+            return newUser.getAccess_token();
         } else {
-            Common.showLog("getNewToken 使用最新的token old:" + tokenForThisRequest + " new:" + Shaft.sUserModel.getResponse().getAccess_token());
-            return Shaft.sUserModel.getResponse().getAccess_token();
+            Common.showLog("getNewToken 使用最新的token old:" + tokenForThisRequest + " new:" + Shaft.sUserModel.getAccess_token());
+            return Shaft.sUserModel.getAccess_token();
         }
     }
 }

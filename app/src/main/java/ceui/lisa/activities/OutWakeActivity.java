@@ -170,12 +170,12 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
 
                                         Common.showLog(userModel.toString());
 
-                                        userModel.getResponse().getUser().setIs_login(true);
+                                        userModel.getUser().setIs_login(true);
                                         Local.saveUser(userModel);
 
                                         UserEntity userEntity = new UserEntity();
                                         userEntity.setLoginTime(System.currentTimeMillis());
-                                        userEntity.setUserID(userModel.getResponse().getUser().getId());
+                                        userEntity.setUserID(userModel.getUser().getId());
                                         userEntity.setUserGson(Shaft.sGson.toJson(Local.getUser()));
 
 
@@ -220,7 +220,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
             }
         }
 
-        if (sUserModel != null && sUserModel.getResponse().getUser().isIs_login()) {
+        if (sUserModel != null && sUserModel.getUser().isIs_login()) {
             Intent i = new Intent(mContext, MainActivity.class);
             mActivity.startActivity(i);
             mActivity.finish();
