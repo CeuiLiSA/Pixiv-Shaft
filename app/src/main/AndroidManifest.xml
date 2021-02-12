@@ -136,7 +136,8 @@
         <activity android:name=".activities.UserActivity" />
         <activity android:name=".activities.SearchActivity" />
         <activity android:name=".activities.VActivity" />
-        <activity android:name=".activities.UActivity" />
+        <activity android:name=".activities.UActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation" />
         <activity
             android:label="@string/string_311"
             android:name=".activities.OutReversActivity" >

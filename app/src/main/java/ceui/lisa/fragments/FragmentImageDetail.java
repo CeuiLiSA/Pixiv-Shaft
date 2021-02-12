@@ -4,6 +4,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
+import android.view.ViewTreeObserver;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -65,9 +66,36 @@ public class FragmentImageDetail extends BaseFragment<FragmentImageDetailBinding
         mLayoutID = R.layout.fragment_image_detail;
     }
 
+
+    @Override
+    protected void initView() {
+        BarUtils.setNavBarVisibility(mActivity, false);
+        int imageWidth = mIllustsBean.getWidth();
+        int imageHeight = mIllustsBean.getHeight();
+
+        baseBind.realIllustImage.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                int viewWidth = baseBind.realIllustImage.getWidth();
+                int viewHeight = baseBind.realIllustImage.getHeight();
+
+                float scale1 = (float) imageWidth / viewWidth;
+                float scale2 = (float) imageHeight / viewHeight;
+
+                if (!(scale1 < 1.0f) || !(scale2 < 1.0f)) {
+                    float scale_src = Math.max(scale1, scale2); // 初始scale 此时吸附scale较大的一边
+                    float scale_dst = scale_src*scale_src/Math.min(scale1, scale2); // 目标scale，吸附另一边
+
+                    baseBind.realIllustImage.setMaxScale(scale_dst);
+                    baseBind.realIllustImage.setDoubleTapZoomScale(scale_dst);
+                }
+                baseBind.realIllustImage.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+            }
+        });
+    }
+
     @Override
     protected void initData() {
-        BarUtils.setNavBarVisibility(mActivity, false);
         loadImage();
     }
 
