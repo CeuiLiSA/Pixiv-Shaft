@@ -84,17 +84,15 @@ public class FragmentImageDetail extends BaseFragment<FragmentImageDetailBinding
                 int viewWidth = baseBind.realIllustImage.getWidth();
                 int viewHeight = baseBind.realIllustImage.getHeight();
 
-                float scale1 = (float) width / viewWidth;
-                float scale2 = (float) height / viewHeight;
-
-                Common.showLog("HDImage\niw,ih=" + imageWidth + "," + imageHeight + ";\nvw,vh=" + viewWidth + "," + viewHeight + ";\nscale1,scale2=" + scale1 + "," + scale2);
+                float scale_w = (float) width / viewWidth;
+                float scale_h = (float) height / viewHeight;
 
                 float scale_init_inner = Math.min(viewWidth / (float) width, viewHeight / (float) height); // 内部处理后的初始Scale，minScale()
-                float scale_init_side = Math.max(scale1, scale2); // 初始scale 此时吸附scale较大的一边
+                float scale_init_side = Math.max(scale_w, scale_h); // 初始scale 此时吸附scale较大的一边
                 float scale_max = scale_init_inner * scale_init_side; // 最大scale，显示原图级别
-                float scale_other_side = scale_max / Math.min(scale1, scale2); // 目标scale，吸附另一边
+                float scale_other_side = scale_max / Math.min(scale_w, scale_h); // 目标scale，吸附另一边
 
-                if (scale1 > 1.0f && scale2 > 1.0f) {
+                if (scale_w > 1.0f && scale_h > 1.0f) {
                     baseBind.realIllustImage.setMaxScale(scale_max);
                 } else {
                     baseBind.realIllustImage.setMaxScale(scale_other_side);
