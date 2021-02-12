@@ -245,7 +245,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
     }
 
     private void completeWord(String key) {
-        Retro.getAppApi().searchCompleteWord(sUserModel.getResponse().getAccess_token(), key)
+        Retro.getAppApi().searchCompleteWord(sUserModel.getAccess_token(), key)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new NullCtrl<ListTrendingtag>() {
@@ -271,7 +271,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
     }
 
     private void getHotTags() {
-        Retro.getAppApi().getHotTags(sUserModel.getResponse().getAccess_token(), Params.TYPE_ILLUST)
+        Retro.getAppApi().getHotTags(sUserModel.getAccess_token(), Params.TYPE_ILLUST)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new NullCtrl<ListTrendingtag>() {

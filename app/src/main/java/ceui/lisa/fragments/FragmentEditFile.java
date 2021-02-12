@@ -68,7 +68,7 @@ public class FragmentEditFile extends SwipeFragment<FragmentEditFileBinding> imp
             return;
         }
         Glide.with(mContext)
-                .load(GlideUtil.getHead(sUserModel.getResponse().getUser()))
+                .load(GlideUtil.getHead(sUserModel.getUser()))
                 .into(baseBind.userHead);
         baseBind.submit.setOnClickListener(v -> submit());
         baseBind.changeHead.setOnClickListener(new View.OnClickListener() {
@@ -90,7 +90,7 @@ public class FragmentEditFile extends SwipeFragment<FragmentEditFileBinding> imp
         baseBind.toolbar.toolbarTitle.setText(R.string.string_92);
         baseBind.toolbar.toolbar.setNavigationOnClickListener(v -> finish());
 
-        Retro.getAppApi().getPresets(sUserModel.getResponse().getAccess_token())
+        Retro.getAppApi().getPresets(sUserModel.getAccess_token())
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new NullCtrl<Preset>() {
@@ -136,7 +136,7 @@ public class FragmentEditFile extends SwipeFragment<FragmentEditFileBinding> imp
         parts.add(twitter);
         parts.add(comment);
 
-        Retro.getAppApi().updateUserProfile(sUserModel.getResponse().getAccess_token(), parts)
+        Retro.getAppApi().updateUserProfile(sUserModel.getAccess_token(), parts)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new NullCtrl<NullResponse>() {
@@ -150,8 +150,8 @@ public class FragmentEditFile extends SwipeFragment<FragmentEditFileBinding> imp
                                 if (response != null) {
                                     UserModel newUser = response.body();
                                     if (newUser != null) {
-                                        newUser.getResponse().getUser().setPassword(sUserModel.getResponse().getUser().getPassword());
-                                        newUser.getResponse().getUser().setIs_login(true);
+                                        newUser.getUser().setPassword(sUserModel.getUser().getPassword());
+                                        newUser.getUser().setIs_login(true);
                                         Local.saveUser(newUser);
                                         Dev.refreshUser = true;
                                         mActivity.finish();
@@ -268,7 +268,7 @@ public class FragmentEditFile extends SwipeFragment<FragmentEditFileBinding> imp
 
 
         //加载预设信息
-        Retro.getAppApi().getUserDetail(sUserModel.getResponse().getAccess_token(), sUserModel.getUserId())
+        Retro.getAppApi().getUserDetail(sUserModel.getAccess_token(), sUserModel.getUserId())
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new NullCtrl<UserDetailResponse>() {

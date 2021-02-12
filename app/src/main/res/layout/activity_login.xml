@@ -32,7 +32,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintWidth_percent="0.8">
+                app:layout_constraintWidth_percent="0.7">
 
 
                 <RelativeLayout
@@ -57,81 +57,30 @@
                         android:layout_marginTop="@dimen/sixteen_dp"
                         android:id="@+id/center_rela"
                         android:gravity="center"
-                        android:layout_height="wrap_content">
+                        android:layout_height="300dp">
 
-                        <LinearLayout
+                        <androidx.cardview.widget.CardView
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical">
+                            android:layout_height="40dp"
+                            android:layout_centerInParent="true"
+                            android:id="@+id/login"
+                            android:clickable="true"
+                            android:foreground="?attr/selectableItemBackground"
+                            android:layout_marginStart="@dimen/tweenty_four_dp"
+                            android:layout_marginEnd="@dimen/tweenty_four_dp"
+                            android:layout_marginBottom="@dimen/sixteen_dp"
+                            app:cardBackgroundColor="?attr/colorPrimary">
 
 
-                            <com.rengwuxian.materialedittext.MaterialEditText
-                                android:id="@+id/user_name"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:singleLine="true"
-                                android:ellipsize="end"
-                                android:visibility="invisible"
-                                android:layout_marginStart="@dimen/tweenty_four_dp"
-                                android:layout_marginEnd="@dimen/tweenty_four_dp"
-                                android:hint="@string/string_9"
-                                app:met_floatingLabel="highlight"
-                                app:met_primaryColor="?attr/colorPrimary"
-                                app:met_singleLineEllipsis="true" />
-
-
-                            <com.rengwuxian.materialedittext.MaterialEditText
-                                android:id="@+id/password"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:singleLine="true"
-                                android:ellipsize="end"
-                                android:textSize="12sp"
-                                android:visibility="invisible"
-                                android:maxLines="1"
-                                android:layout_marginStart="@dimen/tweenty_four_dp"
-                                android:layout_marginEnd="@dimen/tweenty_four_dp"
-                                android:hint="@string/string_10"
-                                android:inputType="textPassword"
-                                app:met_floatingLabel="highlight"
-                                app:met_primaryColor="?attr/colorPrimary"
-                                app:met_singleLineEllipsis="true" />
-
-                            <CheckBox
+                            <TextView
                                 android:layout_width="wrap_content"
-                                android:text="@string/string_358"
-                                android:id="@+id/show_pwd"
-                                android:layout_marginBottom="@dimen/sixteen_dp"
-                                android:layout_marginStart="18dp"
-                                android:visibility="invisible"
-                                android:layout_height="wrap_content">
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:text="@string/now_login"
+                                android:textColor="@android:color/white"
+                                android:textSize="13sp" />
 
-                            </CheckBox>
-
-
-                            <androidx.cardview.widget.CardView
-                                android:layout_width="match_parent"
-                                android:layout_height="40dp"
-                                android:id="@+id/login"
-                                android:clickable="true"
-                                android:foreground="?attr/selectableItemBackground"
-                                android:layout_marginStart="@dimen/tweenty_four_dp"
-                                android:layout_marginEnd="@dimen/tweenty_four_dp"
-                                android:layout_marginBottom="@dimen/sixteen_dp"
-                                app:cardBackgroundColor="?attr/colorPrimary">
-
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_gravity="center"
-                                    android:text="@string/now_login"
-                                    android:textColor="@android:color/white"
-                                    android:textSize="13sp" />
-
-                            </androidx.cardview.widget.CardView>
-
-                        </LinearLayout>
+                        </androidx.cardview.widget.CardView>
 
                     </RelativeLayout>
 
@@ -199,37 +148,11 @@
                         android:textStyle="bold" />
 
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_above="@+id/sign"
-                        android:gravity="center_vertical"
-                        android:layout_below="@+id/sign_title"
-                        android:orientation="vertical">
-
-
-                        <com.rengwuxian.materialedittext.MaterialEditText
-                            android:id="@+id/sign_user_name"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/tweenty_four_dp"
-                            android:layout_marginTop="@dimen/sixteen_dp"
-                            android:visibility="invisible"
-                            android:layout_marginEnd="@dimen/tweenty_four_dp"
-                            android:hint="@string/string_12"
-                            app:met_floatingLabel="highlight"
-                            app:met_primaryColor="?attr/colorPrimary"
-                            app:met_singleLineEllipsis="true" />
-
-
-                    </LinearLayout>
-
-
                     <androidx.cardview.widget.CardView
                         android:layout_width="match_parent"
                         android:layout_height="40dp"
                         android:id="@+id/sign"
-                        android:layout_above="@+id/go_to_login"
+                        android:layout_centerInParent="true"
                         android:clickable="true"
                         android:foreground="?attr/selectableItemBackground"
                         android:layout_marginStart="@dimen/tweenty_four_dp"
@@ -258,7 +181,6 @@
                         android:text="@string/go_to_login"
                         android:textColor="?attr/colorPrimary"
                         android:textSize="12sp" />
-
 
                 </RelativeLayout>
             </androidx.cardview.widget.CardView>

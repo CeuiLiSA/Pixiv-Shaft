@@ -89,7 +89,7 @@ public class UActivity extends BaseActivity<ActivityNewUserBinding> implements D
     @Override
     protected void initData() {
         baseBind.progress.setVisibility(View.VISIBLE);
-        Retro.getAppApi().getUserDetail(Shaft.sUserModel.getResponse().getAccess_token(), userID)
+        Retro.getAppApi().getUserDetail(Shaft.sUserModel.getAccess_token(), userID)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new NullCtrl<UserDetailResponse>() {

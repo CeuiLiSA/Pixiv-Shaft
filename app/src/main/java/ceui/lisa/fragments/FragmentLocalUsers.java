@@ -106,15 +106,15 @@ public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
         ImageView current = v.findViewById(R.id.current_user);
         ImageView exp = v.findViewById(R.id.export_user);
         TextView showPwd = v.findViewById(R.id.show_pwd);
-        userName.setText(String.format("%s (%s)", userModel.getResponse().getUser().getName(),
-                userModel.getResponse().getUser().getAccount()));
-//        loginTime.setText(TextUtils.isEmpty(userModel.getResponse().getUser().getMail_address()) ?
-//                "未绑定邮箱" : userModel.getResponse().getUser().getMail_address());
-        loginTime.setText(userModel.getResponse().getUser().getPassword());
+        userName.setText(String.format("%s (%s)", userModel.getUser().getName(),
+                userModel.getUser().getAccount()));
+//        loginTime.setText(TextUtils.isEmpty(userModel.getUser().getMail_address()) ?
+//                "未绑定邮箱" : userModel.getUser().getMail_address());
+        loginTime.setText(userModel.getUser().getPassword());
         doublePwd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Common.copy(mContext, userModel.getResponse().getUser().getPassword());
+                Common.copy(mContext, userModel.getUser().getPassword());
             }
         });
         showPwd.setOnClickListener(new View.OnClickListener() {
@@ -129,18 +129,18 @@ public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
                 }
             }
         });
-        Glide.with(mContext).load(GlideUtil.getHead(userModel.getResponse().getUser())).into(userHead);
-        current.setVisibility(userModel.getResponse().getUser().getId() ==
-                sUserModel.getResponse().getUser().getId() ? View.VISIBLE : View.GONE);
+        Glide.with(mContext).load(GlideUtil.getHead(userModel.getUser())).into(userHead);
+        current.setVisibility(userModel.getUser().getId() ==
+                sUserModel.getUser().getId() ? View.VISIBLE : View.GONE);
         exp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                userModel.getResponse().setLocal_user(Params.USER_KEY);
+                userModel.setLocal_user(Params.USER_KEY);
                 //生成加密后的密码
-                String secretPassword = Base64Util.encode(userModel.getResponse().getUser().getPassword());
+                String secretPassword = Base64Util.encode(userModel.getUser().getPassword());
                 //添加一个标识，是已加密的密码
                 String passwordWithSign = Params.SECRET_PWD_KEY + secretPassword;
-                userModel.getResponse().getUser().setPassword(passwordWithSign);
+                userModel.getUser().setPassword(passwordWithSign);
                 String userJson = Shaft.sGson.toJson(userModel);
                 Common.copy(mContext, userJson, false);
                 Common.showToast("已导出到剪切板", 2);

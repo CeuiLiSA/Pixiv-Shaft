@@ -120,7 +120,7 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
         });
 
 
-        if (Shaft.sUserModel.getResponse().getUser().isIs_premium()) {
+        if (Shaft.sUserModel.getUser().isIs_premium()) {
             baseBind.popSwitch.setEnabled(true);
         } else {
             baseBind.popSwitch.setEnabled(false);

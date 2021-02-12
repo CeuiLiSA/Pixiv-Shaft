@@ -82,7 +82,7 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
         }
 
         if (tempList.size() == 0) {
-            Retro.getAppApi().postLike(Shaft.sUserModel.getResponse().getAccess_token(), illustID,
+            Retro.getAppApi().postLike(Shaft.sUserModel.getAccess_token(), illustID,
                     baseBind.isPrivate.isChecked() ? Params.TYPE_PRIVATE : Params.TYPE_PUBLUC)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
@@ -98,7 +98,7 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
             String[] strings = new String[tempList.size()];
             tempList.toArray(strings);
 
-            Retro.getAppApi().postLike(Shaft.sUserModel.getResponse().getAccess_token(), illustID,
+            Retro.getAppApi().postLike(Shaft.sUserModel.getAccess_token(), illustID,
                     baseBind.isPrivate.isChecked() ? Params.TYPE_PRIVATE : Params.TYPE_PUBLUC, strings)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())

@@ -245,7 +245,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
     @Override
     protected void initData() {
-        if (sUserModel != null && sUserModel.getResponse().getUser().isIs_login()) {
+        if (sUserModel != null && sUserModel.getUser().isIs_login()) {
             if (Common.isAndroidQ()) {
                 initFragment();
             } else {
@@ -310,7 +310,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 break;
             case R.id.main_page:
                 intent = new Intent(mContext, UserActivity.class);
-                intent.putExtra(Params.USER_ID, sUserModel.getResponse().getUser().getId());
+                intent.putExtra(Params.USER_ID, sUserModel.getUser().getId());
                 break;
             case R.id.nav_reverse:
                 selectPhoto();
@@ -388,13 +388,13 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     }
 
     private void initDrawerHeader() {
-        if (sUserModel != null && sUserModel.getResponse() != null) {
+        if (sUserModel != null && sUserModel.getUser() != null) {
             Glide.with(mContext)
-                    .load(GlideUtil.getHead(sUserModel.getResponse().getUser()))
+                    .load(GlideUtil.getHead(sUserModel.getUser()))
                     .into(userHead);
-            username.setText(sUserModel.getResponse().getUser().getName());
-            user_email.setText(TextUtils.isEmpty(sUserModel.getResponse().getUser().getMail_address()) ?
-                    mContext.getString(R.string.no_mail_address) : sUserModel.getResponse().getUser().getMail_address());
+            username.setText(sUserModel.getUser().getName());
+            user_email.setText(TextUtils.isEmpty(sUserModel.getUser().getMail_address()) ?
+                    mContext.getString(R.string.no_mail_address) : sUserModel.getUser().getMail_address());
         }
     }
 

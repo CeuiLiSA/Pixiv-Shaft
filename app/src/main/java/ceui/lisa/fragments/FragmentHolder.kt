@@ -33,14 +33,14 @@ class FragmentHolder : BaseFragment<FragmentHolderBinding>() {
 
         var TITLES: Array<String>
 
-        if (data.userId == Shaft.sUserModel.response.user.id) {
+        if (data.userId == Shaft.sUserModel.user.id) {
             TITLES = arrayOf("收藏", "其他")
         } else {
             TITLES = arrayOf("插画", "其他")
         }
 
         val items = arrayOf<Fragment>(
-            if (data.userId == Shaft.sUserModel.response.user.id) {
+            if (data.userId == Shaft.sUserModel.user.id) {
                 FragmentLikeIllust.newInstance(data.userId, Params.TYPE_PUBLUC)
             } else {
                 FragmentUserIllust.newInstance(data.userId, false)

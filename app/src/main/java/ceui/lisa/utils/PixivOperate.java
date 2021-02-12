@@ -73,8 +73,8 @@ public class PixivOperate {
                 FragmentLogin.CLIENT_ID,
                 FragmentLogin.CLIENT_SECRET,
                 FragmentLogin.REFRESH_TOKEN,
-                userModel.getResponse().getRefresh_token(),
-                userModel.getResponse().getDevice_token(),
+                userModel.getRefresh_token(),
+                userModel.getDevice_token(),
                 Boolean.TRUE,
                 Boolean.TRUE);
         call.enqueue(callback);
@@ -82,7 +82,7 @@ public class PixivOperate {
 
     public static void postFollowUser(int userID, String followType) {
         Retro.getAppApi().postFollow(
-                sUserModel.getResponse().getAccess_token(), userID, followType)
+                sUserModel.getAccess_token(), userID, followType)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ErrorCtrl<NullResponse>() {
@@ -105,7 +105,7 @@ public class PixivOperate {
 
     public static void postUnFollowUser(int userID) {
         Retro.getAppApi().postUnFollow(
-                sUserModel.getResponse().getAccess_token(), userID)
+                sUserModel.getAccess_token(), userID)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ErrorCtrl<NullResponse>() {
@@ -128,7 +128,7 @@ public class PixivOperate {
 
         if (illustsBean.isIs_bookmarked()) { //已收藏
             illustsBean.setIs_bookmarked(false);
-            Retro.getAppApi().postDislike(sUserModel.getResponse().getAccess_token(), illustsBean.getId())
+            Retro.getAppApi().postDislike(sUserModel.getAccess_token(), illustsBean.getId())
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {
@@ -144,7 +144,7 @@ public class PixivOperate {
                     });
         } else { //没有收藏
             illustsBean.setIs_bookmarked(true);
-            Retro.getAppApi().postLike(sUserModel.getResponse().getAccess_token(), illustsBean.getId(), starType)
+            Retro.getAppApi().postLike(sUserModel.getAccess_token(), illustsBean.getId(), starType)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {
@@ -173,7 +173,7 @@ public class PixivOperate {
 
         if (novelBean.isIs_bookmarked()) { //已收藏
             novelBean.setIs_bookmarked(false);
-            Retro.getAppApi().postDislikeNovel(userModel.getResponse().getAccess_token(), novelBean.getId())
+            Retro.getAppApi().postDislikeNovel(userModel.getAccess_token(), novelBean.getId())
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {
@@ -193,7 +193,7 @@ public class PixivOperate {
                     });
         } else { //没有收藏
             novelBean.setIs_bookmarked(true);
-            Retro.getAppApi().postLikeNovel(userModel.getResponse().getAccess_token(), novelBean.getId(), starType)
+            Retro.getAppApi().postLikeNovel(userModel.getAccess_token(), novelBean.getId(), starType)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {
@@ -223,7 +223,7 @@ public class PixivOperate {
                 .setTipWord("正在加载")
                 .create();
         tipDialog.show();
-        Retro.getAppApi().getIllustByID(userModel.getResponse().getAccess_token(), illustID)
+        Retro.getAppApi().getIllustByID(userModel.getAccess_token(), illustID)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new NullCtrl<IllustSearchResponse>() {
@@ -263,7 +263,7 @@ public class PixivOperate {
 
     public static void getIllustByID(UserModel userModel, int illustID, Context context,
                                      ceui.lisa.interfaces.Callback<Void> callback) {
-        Retro.getAppApi().getIllustByID(userModel.getResponse().getAccess_token(), illustID)
+        Retro.getAppApi().getIllustByID(userModel.getAccess_token(), illustID)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new NullCtrl<IllustSearchResponse>() {
@@ -289,7 +289,7 @@ public class PixivOperate {
 
     public static void getNovelByID(UserModel userModel, int novel, Context context,
                                      ceui.lisa.interfaces.Callback<Void> callback) {
-        Retro.getAppApi().getNovelByID(userModel.getResponse().getAccess_token(), novel)
+        Retro.getAppApi().getNovelByID(userModel.getAccess_token(), novel)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new NullCtrl<NovelSearchResponse>() {
@@ -313,7 +313,7 @@ public class PixivOperate {
     }
 
     public static void getGifInfo(IllustsBean illust, ErrorCtrl<GifResponse> errorCtrl) {
-        Retro.getAppApi().getGifPackage(sUserModel.getResponse().getAccess_token(), illust.getId())
+        Retro.getAppApi().getGifPackage(sUserModel.getAccess_token(), illust.getId())
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(errorCtrl);
