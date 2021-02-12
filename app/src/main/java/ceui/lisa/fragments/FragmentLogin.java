@@ -149,26 +149,6 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
                 }
             }
         });
-        if (Shaft.sUserModel != null) {
-            baseBind.userName.setText(Shaft.sUserModel.getUser().getAccount());
-            baseBind.password.requestFocus();
-        }
-        if (Dev.isDev) {
-            baseBind.userName.setText(Dev.USER_ACCOUNT);
-            baseBind.password.setText(Dev.USER_PWD);
-            baseBind.password.setSelection(Dev.USER_PWD.length());
-        }
-        baseBind.showPwd.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    baseBind.password.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
-                } else {
-                    baseBind.password.setTransformationMethod(PasswordTransformationMethod.getInstance());
-                }
-                baseBind.password.setSelection(baseBind.password.getText().toString().length());
-            }
-        });
         baseBind.login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -213,9 +193,6 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
     private void setTitle() {
         if (Shaft.getMMKV().decodeBool(Params.USE_DEBUG, false)) {
             baseBind.title.setText("Shaft(测试版)");
-            baseBind.userName.setText(Dev.USER_ACCOUNT);
-            baseBind.password.setText(Dev.USER_PWD);
-            baseBind.password.setSelection(Dev.USER_PWD.length());
         } else {
             baseBind.title.setText("Shaft");
         }
@@ -301,73 +278,5 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
             }
         });
         rotate.setEndValue(360.0f);
-    }
-
-    private void sign() {
-        Common.hideKeyboard(mActivity);
-        baseBind.progress.setVisibility(View.VISIBLE);
-        Retro.getSignApi().pixivSign(SIGN_TOKEN, baseBind.signUserName.getText().toString(), SIGN_REF)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new NullCtrl<SignResponse>() {
-                    @Override
-                    public void success(SignResponse signResponse) {
-                        if (signResponse.isError()) {
-                            if (!TextUtils.isEmpty(signResponse.getMessage())) {
-                                Common.showToast(signResponse.getMessage());
-                            } else {
-                                Common.showToast("未知错误");
-                            }
-                            baseBind.progress.setVisibility(View.INVISIBLE);
-                        } else {
-                            login(signResponse.getBody().getUser_account(), signResponse.getBody().getPassword());
-                        }
-                    }
-                });
-    }
-
-    private void login(String username, String pwd) {
-        Common.hideKeyboard(mActivity);
-        baseBind.progress.setVisibility(View.VISIBLE);
-        Retro.getAccountApi().login(
-                CLIENT_ID,
-                CLIENT_SECRET,
-                DEVICE_TOKEN,
-                Boolean.TRUE,
-                TYPE_PASSWORD,
-                Boolean.TRUE,
-                pwd,
-                username).subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new NullCtrl<UserModel>() {
-                    @Override
-                    public void success(UserModel userModel) {
-                        userModel.getUser().setPassword(pwd);
-                        userModel.getUser().setIs_login(true);
-                        Local.saveUser(userModel);
-
-
-                        UserEntity userEntity = new UserEntity();
-                        userEntity.setLoginTime(System.currentTimeMillis());
-                        userEntity.setUserID(userModel.getUser().getId());
-                        userEntity.setUserGson(Shaft.sGson.toJson(Local.getUser()));
-
-
-
-                        AppDatabase.getAppDatabase(mContext).downloadDao().insertUser(userEntity);
-                        baseBind.progress.setVisibility(View.INVISIBLE);
-                        if (isAdded()) {
-                            Intent intent = new Intent(mContext, MainActivity.class);
-                            mActivity.startActivity(intent);
-                            mActivity.finish();
-                        }
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        super.onError(e);
-                        baseBind.progress.setVisibility(View.INVISIBLE);
-                    }
-                });
     }
 }
