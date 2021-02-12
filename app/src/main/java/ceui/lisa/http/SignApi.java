@@ -1,7 +1,6 @@
 package ceui.lisa.http;
 
 import ceui.lisa.models.AccountEditResponse;
-import ceui.lisa.models.SignResponse;
 import io.reactivex.Observable;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;

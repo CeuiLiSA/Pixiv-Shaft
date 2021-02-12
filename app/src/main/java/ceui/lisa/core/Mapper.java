@@ -16,10 +16,9 @@ import io.reactivex.functions.Function;
  */
 public class Mapper<T extends ListShow<?>> implements Function<T, T> {
 
-    private List<IllustsBean> dash = new ArrayList<>();
-
     @Override
     public T apply(T t) {
+        List<IllustsBean> dash = new ArrayList<>();
         for (Object o : t.getList()) {
             if (o instanceof IllustsBean) {
                 boolean isTagBanned = IllustFilter.judgeTag((IllustsBean) o);
@@ -34,9 +33,5 @@ public class Mapper<T extends ListShow<?>> implements Function<T, T> {
             t.getList().removeAll(dash);
         }
         return t;
-    }
-
-    public List<IllustsBean> getDash() {
-        return dash;
     }
 }

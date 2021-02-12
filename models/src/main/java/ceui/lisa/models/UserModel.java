@@ -2,11 +2,11 @@ package ceui.lisa.models;
 
 import java.io.Serializable;
 
-public class UserModel implements Serializable, UserContainer {
+public class UserModel extends UserHolder implements Serializable, UserContainer {
 
     @Override
     public int getUserId() {
-        return user.getId();
+        return getUser().getId();
     }
 
     private String access_token;
@@ -14,7 +14,6 @@ public class UserModel implements Serializable, UserContainer {
     private String token_type;
     private String scope;
     private String refresh_token;
-    private UserBean user;
     private String device_token;
     private String local_user;
 
@@ -56,14 +55,6 @@ public class UserModel implements Serializable, UserContainer {
 
     public void setRefresh_token(String refresh_token) {
         this.refresh_token = refresh_token;
-    }
-
-    public UserBean getUser() {
-        return user;
-    }
-
-    public void setUser(UserBean user) {
-        this.user = user;
     }
 
     public String getDevice_token() {

@@ -8,8 +8,8 @@ import ceui.lisa.models.IllustsBean;
 
 public class PageData implements IDWithList<IllustsBean>{
 
-    private String uuid;
-    private List<IllustsBean> illustList;
+    private final String uuid;
+    private final List<IllustsBean> illustList;
 
     public PageData(List<IllustsBean> illustList) {
         this.uuid = UUID.randomUUID().toString();

@@ -40,7 +40,6 @@ import ceui.lisa.feature.HostManager;
 import ceui.lisa.feature.PkceUtil;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
-import ceui.lisa.models.SignResponse;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.utils.Base64Util;
 import ceui.lisa.utils.ClipBoardUtils;
