@@ -2,12 +2,10 @@ package ceui.lisa.fragments;
 
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.view.View;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.FragmentImageDetailLocalBinding;
 import ceui.lisa.utils.Params;
-import xyz.zpayh.hdimage.OnBitmapLoadListener;
 import xyz.zpayh.hdimage.state.ScaleType;
 
 public class FragmentLocalImageDetail extends BaseFragment<FragmentImageDetailLocalBinding> {

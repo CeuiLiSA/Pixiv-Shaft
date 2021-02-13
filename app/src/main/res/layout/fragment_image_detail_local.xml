@@ -11,14 +11,11 @@
         android:background="@color/black"
         android:layout_height="match_parent">
 
-
         <xyz.zpayh.hdimage.HDImageView
             android:layout_width="match_parent"
             android:scaleType="fitCenter"
             android:id="@+id/illust_image"
-            android:layout_height="match_parent">
-
-        </xyz.zpayh.hdimage.HDImageView>
+            android:layout_height="match_parent" />
 
     </RelativeLayout>
 </layout>

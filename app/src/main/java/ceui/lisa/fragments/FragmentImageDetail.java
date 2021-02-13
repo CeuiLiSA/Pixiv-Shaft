@@ -29,12 +29,15 @@ import ceui.lisa.utils.Params;
 import me.jessyan.progressmanager.ProgressListener;
 import me.jessyan.progressmanager.ProgressManager;
 import me.jessyan.progressmanager.body.ProgressInfo;
+import xyz.zpayh.hdimage.OnBitmapLoadListener;
 
 public class FragmentImageDetail extends BaseFragment<FragmentImageDetailBinding> {
 
     private IllustsBean mIllustsBean;
     private int index;
     private String url;
+    private int imageWidth = 0;
+    private int imageHeight = 0;
 
     public static FragmentImageDetail newInstance(IllustsBean illustsBean, int index) {
         Bundle args = new Bundle();
@@ -66,8 +69,37 @@ public class FragmentImageDetail extends BaseFragment<FragmentImageDetailBinding
     }
 
     @Override
-    protected void initData() {
+    protected void initView() {
         BarUtils.setNavBarVisibility(mActivity, false);
+
+        baseBind.realIllustImage.setOnBitmapLoadListener(new OnBitmapLoadListener() {
+            @Override
+            public void onBitmapLoadReady() {
+
+            }
+
+            @Override
+            public void onBitmapLoaded(int width, int height) {
+                imageWidth = width;
+                imageHeight = height;
+            }
+
+            @Override
+            public void onBitmapLoadError(Exception e) {
+
+            }
+        });
+
+        baseBind.realIllustImage.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                adjustAutoScale();
+            }
+        });
+    }
+
+    @Override
+    protected void initData() {
         loadImage();
     }
 
@@ -128,5 +160,29 @@ public class FragmentImageDetail extends BaseFragment<FragmentImageDetailBinding
         super.onSaveInstanceState(outState);
         outState.putSerializable("mIllustsBean", mIllustsBean);
         outState.putInt("index", index);
+    }
+
+    public void adjustAutoScale() {
+        if (imageWidth <=0 || imageHeight <= 0){
+            return;
+        }
+
+        int viewWidth = baseBind.realIllustImage.getWidth();
+        int viewHeight = baseBind.realIllustImage.getHeight();
+
+        float scale_w = (float) imageWidth / viewWidth;
+        float scale_h = (float) imageHeight / viewHeight;
+
+        float scale_init_inner = Math.min(viewWidth / (float) imageWidth, viewHeight / (float) imageHeight); // 内部处理后的初始Scale，minScale()
+        float scale_init_side = Math.max(scale_w, scale_h); // 初始scale 此时吸附scale较大的一边
+        float scale_max = scale_init_inner * scale_init_side; // 最大scale，显示原图级别
+        float scale_other_side = scale_max / Math.min(scale_w, scale_h); // 目标scale，吸附另一边
+
+        if (scale_w > 1.0f && scale_h > 1.0f) {
+            baseBind.realIllustImage.setMaxScale(scale_max);
+        } else {
+            baseBind.realIllustImage.setMaxScale(scale_other_side);
+        }
+        baseBind.realIllustImage.setDoubleTapZoomScale(scale_other_side);
     }
 }
