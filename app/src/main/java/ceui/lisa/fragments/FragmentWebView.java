@@ -47,6 +47,7 @@ import ceui.lisa.R;
 import ceui.lisa.activities.OutWakeActivity;
 import ceui.lisa.activities.UserActivity;
 import ceui.lisa.databinding.FragmentWebviewBinding;
+import ceui.lisa.feature.WeissUtil;
 import ceui.lisa.http.HttpDns;
 import ceui.lisa.http.RubySSLSocketFactory;
 import ceui.lisa.utils.ClipBoardUtils;
@@ -140,8 +141,11 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                 .setWebViewClient(new WebViewClient() {
                     @Override
                     public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
-                        super.onReceivedSslError(view, handler, error);
+//                        super.onReceivedSslError(view, handler, error);
                         Common.showLog(className + "onReceivedSslError " + error.toString());
+                        if (handler != null) {
+                            handler.proceed();
+                        }
                     }
 
                     @Override
@@ -196,6 +200,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
     @Override
     public void onDestroy() {
         mAgentWeb.getWebLifeCycle().onDestroy();
+        WeissUtil.end();
         super.onDestroy();
     }
 

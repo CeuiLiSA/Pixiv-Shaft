@@ -17,6 +17,9 @@ import android.widget.Toast;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
+import androidx.webkit.ProxyConfig;
+import androidx.webkit.ProxyController;
+import androidx.webkit.WebViewFeature;
 
 import com.blankj.utilcode.util.EncodeUtils;
 import com.blankj.utilcode.util.EncryptUtils;
@@ -28,6 +31,7 @@ import com.facebook.rebound.SpringSystem;
 import java.io.UnsupportedEncodingException;
 import java.security.SecureRandom;
 import java.util.Locale;
+import java.util.concurrent.Executor;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.MainActivity;
@@ -38,6 +42,7 @@ import ceui.lisa.database.UserEntity;
 import ceui.lisa.databinding.ActivityLoginBinding;
 import ceui.lisa.feature.HostManager;
 import ceui.lisa.feature.PkceUtil;
+import ceui.lisa.feature.WeissUtil;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.models.UserModel;
@@ -49,10 +54,6 @@ import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
-
-import static android.util.Base64.NO_PADDING;
-import static android.util.Base64.NO_WRAP;
-import static android.util.Base64.URL_SAFE;
 
 public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
 
@@ -151,6 +152,8 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
         baseBind.login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                WeissUtil.start();
+                WeissUtil.proxy();
                 Intent intent = new Intent(mContext, TemplateActivity.class);
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
                 intent.putExtra(Params.URL, "https://app-api.pixiv.net/web/v1/login?code_challenge=" +
@@ -187,18 +190,6 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
                 showLoginCard();
             }
         });
-
-        if (Dev.isDev) {
-            Retro.getAccountApi().tryLogin("https://app-api.pixiv.net/web/v1/users/auth/pixiv/start?code_challenge=6F0geuAIKpnPuJr11hwgj8Zdq0LlABvkiMtirkfTkoE")
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new NullCtrl<String>() {
-                        @Override
-                        public void success(String s) {
-
-                        }
-                    });
-        }
     }
 
     private void setTitle() {
