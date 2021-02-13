@@ -3,6 +3,7 @@ package ceui.lisa.fragments;
 import android.content.Intent;
 import android.net.SSLCertificateSocketFactory;
 import android.net.Uri;
+import android.net.http.SslError;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -11,6 +12,7 @@ import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.SslErrorHandler;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
@@ -136,66 +138,11 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                 .setAgentWebParent(baseBind.webViewParent, new RelativeLayout.LayoutParams(-1, -1))
                 .useDefaultIndicator()
                 .setWebViewClient(new WebViewClient() {
-//                    @Override
-//                    public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-//                        String scheme = request.getUrl().getScheme().trim();
-//                        String method = request.getMethod();
-//                        Map<String, String> headerFields = request.getRequestHeaders();
-//                        String url = request.getUrl().toString();
-//                        Log.e(TAG, "url:" + url);
-//                        // 无法拦截body，拦截方案只能正常处理不带body的请求；
-//                        if ((scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https"))
-//                                && method.equalsIgnoreCase("get")) {
-//                            try {
-//                                URLConnection connection = recursiveRequest(url, headerFields, null);
-//
-//                                if (connection == null) {
-//                                    Log.e(TAG, "connection null");
-//                                    return super.shouldInterceptRequest(view, request);
-//                                }
-//
-//                                // 注*：对于POST请求的Body数据，WebResourceRequest接口中并没有提供，这里无法处理
-//                                String contentType = connection.getContentType();
-//                                String mime = getMime(contentType);
-//                                String charset = getCharset(contentType);
-//                                HttpURLConnection httpURLConnection = (HttpURLConnection)connection;
-//                                int statusCode = httpURLConnection.getResponseCode();
-//                                String response = httpURLConnection.getResponseMessage();
-//                                Map<String, List<String>> headers = httpURLConnection.getHeaderFields();
-//                                Set<String> headerKeySet = headers.keySet();
-//                                Log.e(TAG, "code:" + httpURLConnection.getResponseCode());
-//                                Log.e(TAG, "mime:" + mime + "; charset:" + charset);
-//
-//
-//                                // 无mime类型的请求不拦截
-//                                if (TextUtils.isEmpty(mime)) {
-//                                    Log.e(TAG, "no MIME");
-//                                    return super.shouldInterceptRequest(view, request);
-//                                } else {
-//                                    // 二进制资源无需编码信息
-//                                    if (!TextUtils.isEmpty(charset) || (isBinaryRes(mime))) {
-//                                        WebResourceResponse resourceResponse = new WebResourceResponse(mime, charset, httpURLConnection.getInputStream());
-//                                        resourceResponse.setStatusCodeAndReasonPhrase(statusCode, response);
-//                                        Map<String, String> responseHeader = new HashMap<String, String>();
-//                                        for (String key: headerKeySet) {
-//                                            // HttpUrlConnection可能包含key为null的报头，指向该http请求状态码
-//                                            responseHeader.put(key, httpURLConnection.getHeaderField(key));
-//                                        }
-//                                        resourceResponse.setResponseHeaders(responseHeader);
-//                                        return resourceResponse;
-//                                    } else {
-//                                        Log.e(TAG, "non binary resource for " + mime);
-//                                        return super.shouldInterceptRequest(view, request);
-//                                    }
-//                                }
-//                            } catch (MalformedURLException e) {
-//                                e.printStackTrace();
-//                            } catch (IOException e) {
-//                                e.printStackTrace();
-//                            }
-//                        }
-//                        return super.shouldInterceptRequest(view, request);
-//                    }
+                    @Override
+                    public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
+                        super.onReceivedSslError(view, handler, error);
+                        Common.showLog(className + "onReceivedSslError " + error.toString());
+                    }
 
                     @Override
                     public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
@@ -206,7 +153,6 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                                 return false;
                             } else {
                                 try {
-
                                     Intent intent = new Intent(mContext, OutWakeActivity.class);
                                     intent.setData(Uri.parse(destiny));
                                     startActivity(intent);
@@ -220,7 +166,6 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                                 return true;
                             }
                         }
-
                         return super.shouldOverrideUrlLoading(view, request);
                     }
                 })
@@ -233,7 +178,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
             mAgentWeb = ready.get();
             mAgentWeb.getUrlLoader().loadDataWithBaseURL(url, response, mime, encoding, historyUrl);
         }
-
+        Common.showLog(className + url);
         mWebView = mAgentWeb.getWebCreator().getWebView();
         WebSettings settings = mWebView.getSettings();
         settings.setBuiltInZoomControls(true);

@@ -5,8 +5,10 @@ import io.reactivex.Observable;
 import retrofit2.Call;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
+import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.POST;
+import retrofit2.http.Query;
 
 public interface AccountApi {
 
@@ -31,4 +33,7 @@ public interface AccountApi {
                                  @Field("refresh_token") String refresh_token,
                                  @Field("include_policy") boolean include_policy);
 
+
+    @GET("login?prompt=select_account&source=pixiv-android&ref=&client=pixiv-android")
+    Observable<String> tryLogin(@Query("return_to") String return_to);
 }

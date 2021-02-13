@@ -187,6 +187,18 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
                 showLoginCard();
             }
         });
+
+        if (Dev.isDev) {
+            Retro.getAccountApi().tryLogin("https://app-api.pixiv.net/web/v1/users/auth/pixiv/start?code_challenge=6F0geuAIKpnPuJr11hwgj8Zdq0LlABvkiMtirkfTkoE")
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new NullCtrl<String>() {
+                        @Override
+                        public void success(String s) {
+
+                        }
+                    });
+        }
     }
 
     private void setTitle() {
