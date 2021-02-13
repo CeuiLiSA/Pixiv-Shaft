@@ -26,7 +26,6 @@ public class HostManager {
     private String host;
 
     private HostManager() {
-
     }
 
     public static HostManager get() {
@@ -38,7 +37,7 @@ public class HostManager {
     }
 
     public void init() {
-        setDefaultHost();
+        host = randomHost();
         updateHost();
     }
 
@@ -58,11 +57,6 @@ public class HostManager {
         return already[Common.flatRandom(already.length)];
     }
 
-    private void setDefaultHost() {
-        host = randomHost();
-        Shaft.getMMKV().encode(Params.CLOUD_DNS, host);
-    }
-
     private void updateHost() {
         CloudFlareDNSService.Companion.invoke().query(HOST_OLD, "application/dns-json", "A")
                 .enqueue(new Callback<CloudFlareDNSResponse>() {
@@ -74,15 +68,9 @@ public class HostManager {
                                 if (!Common.isEmpty(cloudFlareDNSResponse.getAnswer())) {
                                     int position = Common.flatRandom(cloudFlareDNSResponse.getAnswer().size());
                                     host = cloudFlareDNSResponse.getAnswer().get(position).getData();
-                                    Shaft.getMMKV().encode(Params.CLOUD_DNS, host);
-                                } else {
-                                    setDefaultHost();
                                 }
-                            } else {
-                                setDefaultHost();
                             }
                         } catch (Exception e) {
-                            setDefaultHost();
                             e.printStackTrace();
                         }
                     }
@@ -90,7 +78,6 @@ public class HostManager {
                     @Override
                     public void onFailure(Call<CloudFlareDNSResponse> call, Throwable t) {
                         Common.showLog("CloudFlareDNSService onFailure " + t.toString());
-                        setDefaultHost();
                     }
                 });
     }
@@ -110,7 +97,7 @@ public class HostManager {
 
     private String resizeUrl(String url) {
         if (TextUtils.isEmpty(host)) {
-            setDefaultHost();
+            host = randomHost();
         }
         try {
             Uri uri = Uri.parse(url);

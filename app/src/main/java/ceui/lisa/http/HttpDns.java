@@ -18,15 +18,6 @@ public class HttpDns implements Dns {
      * 210.129.120.55 www.pixiv.net
      */
 
-    //private static final String[] addresses = {"123.207.56.160", "8.8.8.8", "134.175.87.79", "123.207.137.88"};
-//    private static final String[] addresses = {
-//            "210.140.131.208",
-//            "210.140.131.206",
-//            "210.140.131.203",
-//            "210.140.131.209",
-//            "111.230.37.44"
-//    };
-
     private static final String[] addresses = {
             "210.140.131.188",
             "210.140.131.218",

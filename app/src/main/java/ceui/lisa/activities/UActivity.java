@@ -99,8 +99,7 @@ public class UActivity extends BaseActivity<ActivityNewUserBinding> implements D
                     }
 
                     @Override
-                    public void must(boolean isSuccess) {
-                        super.must(isSuccess);
+                    public void must() {
                         baseBind.progress.setVisibility(View.INVISIBLE);
                     }
                 });

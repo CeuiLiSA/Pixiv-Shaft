@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CompoundButton;
 
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
@@ -26,7 +25,6 @@ import ceui.lisa.core.BaseRepo;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustRecmdEntity;
 import ceui.lisa.databinding.FragmentNewRightBinding;
-import ceui.lisa.helper.TagFilter;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;

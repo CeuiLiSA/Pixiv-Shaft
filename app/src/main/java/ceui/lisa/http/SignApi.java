@@ -15,15 +15,6 @@ public interface SignApi {
     //用作注册账号
     String SIGN_API = "https://accounts.pixiv.net/";
 
-    @FormUrlEncoded
-    @POST("api/provisional-accounts/create")
-    Observable<SignResponse> pixivSign(@Header("Authorization") String token,
-                                       @Field("user_name") String userName,
-                                       @Field("ref") String ref);
-
-
-    //为啥分成这么多方法？ 因为多提交一个参数就报错，蛋疼
-
     /**
      * 改密码，改邮箱，改pixiv id
      *

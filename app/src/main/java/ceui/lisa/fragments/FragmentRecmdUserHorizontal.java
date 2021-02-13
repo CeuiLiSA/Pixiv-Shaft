@@ -18,7 +18,6 @@ import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustRecmdEntity;
 import ceui.lisa.databinding.FragmentUserHorizontalBinding;
 import ceui.lisa.databinding.RecyUserPreviewHorizontalBinding;
-import ceui.lisa.helper.TagFilter;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListUser;

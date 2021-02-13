@@ -2,7 +2,6 @@ package ceui.lisa.dialogs;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 
@@ -18,7 +17,6 @@ import ceui.lisa.R;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.DialogMuteTagBinding;
 import ceui.lisa.helper.IllustFilter;
-import ceui.lisa.helper.TagFilter;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.utils.Common;

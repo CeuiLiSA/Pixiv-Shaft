@@ -4,10 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.helper.IllustFilter;
-import ceui.lisa.helper.TagFilter;
 import ceui.lisa.interfaces.ListShow;
 import ceui.lisa.models.IllustsBean;
-import ceui.lisa.utils.Common;
 import io.reactivex.functions.Function;
 
 /**

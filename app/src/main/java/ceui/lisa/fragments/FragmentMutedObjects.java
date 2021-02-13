@@ -20,9 +20,7 @@ import ceui.lisa.database.MuteEntity;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyViewHistoryBinding;
 import ceui.lisa.helper.IllustFilter;
-import ceui.lisa.helper.TagFilter;
 import ceui.lisa.interfaces.OnItemClickListener;
-import ceui.lisa.models.TagsBean;
 import ceui.lisa.utils.Common;
 
 public class FragmentMutedObjects extends LocalListFragment<FragmentBaseListBinding, MuteEntity>
