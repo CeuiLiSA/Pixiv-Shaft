@@ -23,6 +23,7 @@ import ceui.lisa.helper.IllustFilter;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListIllust;
+import ceui.lisa.model.RecmdIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.repo.RecmdIllustRepo;
@@ -81,24 +82,6 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
 
     @Override
     public BaseAdapter<IllustsBean, RecyIllustStaggerBinding> adapter() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                UserModel userModel = Local.getUser();
-                Call<UserModel> call = Retro.getAccountApi().newRefreshToken(
-                        FragmentLogin.CLIENT_ID,
-                        FragmentLogin.CLIENT_SECRET,
-                        FragmentLogin.REFRESH_TOKEN,
-                        userModel.getRefresh_token(),
-                        Boolean.TRUE);
-                try {
-                    UserModel newUser = call.execute().body();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
-
         return new IAdapterWithHeadView(allItems, mContext, dataType);
     }
 
@@ -145,7 +128,7 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
 
                     }
                 });
-        ((RecmdModel) mModel).getRankList().addAll(mResponse.getRanking_illusts());
+        ((RecmdModel) mModel).getRankList().addAll(((RecmdIllust) mResponse).getRanking_illusts());
         ((IAdapterWithHeadView) mAdapter).setHeadData(((RecmdModel) mModel).getRankList());
     }
 

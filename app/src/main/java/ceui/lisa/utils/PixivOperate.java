@@ -69,13 +69,11 @@ import static com.blankj.utilcode.util.StringUtils.getString;
 public class PixivOperate {
 
     public static void refreshUserData(UserModel userModel, Callback<UserModel> callback) {
-        Call<UserModel> call = Retro.getAccountApi().refreshToken(
+        Call<UserModel> call = Retro.getAccountApi().newRefreshToken(
                 FragmentLogin.CLIENT_ID,
                 FragmentLogin.CLIENT_SECRET,
                 FragmentLogin.REFRESH_TOKEN,
                 userModel.getRefresh_token(),
-                userModel.getDevice_token(),
-                Boolean.TRUE,
                 Boolean.TRUE);
         call.enqueue(callback);
     }

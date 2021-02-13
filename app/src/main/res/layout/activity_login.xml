@@ -21,7 +21,7 @@
 
             <androidx.cardview.widget.CardView
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
                 android:id="@+id/card_login"
                 android:clickable="true"
                 android:foreground="?attr/selectableItemBackground"
@@ -32,6 +32,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintHeight_percent="0.4"
                 app:layout_constraintWidth_percent="0.7">
 
 
@@ -54,10 +55,10 @@
                     <RelativeLayout
                         android:layout_width="match_parent"
                         android:layout_below="@+id/title"
-                        android:layout_marginTop="@dimen/sixteen_dp"
+                        android:layout_centerInParent="true"
                         android:id="@+id/center_rela"
                         android:gravity="center"
-                        android:layout_height="300dp">
+                        android:layout_height="wrap_content">
 
                         <androidx.cardview.widget.CardView
                             android:layout_width="match_parent"
@@ -89,10 +90,10 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="40dp"
+                        android:layout_alignParentBottom="true"
                         android:background="#f6f6f6"
                         android:layout_marginTop="@dimen/sixteen_dp"
                         android:gravity="center"
-                        android:layout_below="@+id/center_rela"
                         android:id="@+id/has_no_account"
                         android:text="@string/has_no_account"
                         android:textColor="?attr/colorPrimary"
@@ -125,7 +126,7 @@
                 app:cardElevation="@dimen/twelve_dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHeight_percent="0.5"
+                app:layout_constraintHeight_percent="0.4"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintWidth_percent="0.7">

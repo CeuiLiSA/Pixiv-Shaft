@@ -52,7 +52,7 @@ public class FragmentColors extends LocalListFragment<FragmentBaseListBinding, C
     }
 
     public static String[] COLOR_NAMES = new String[]{
-            "矢尹紫",
+            "矢尹紫", //纪念尹子烨（尹桂祥）
             "经典蓝",
             "官方蓝",
             "浅葱绿",

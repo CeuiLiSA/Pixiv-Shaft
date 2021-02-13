@@ -14,7 +14,6 @@ public class ListIllust implements ListShow<IllustsBean>, Serializable {
      */
 
     private String next_url;
-    private List<IllustsBean> ranking_illusts;
     private List<IllustsBean> illusts;
 
     public String getNext_url() {
@@ -31,14 +30,6 @@ public class ListIllust implements ListShow<IllustsBean>, Serializable {
 
     public void setIllusts(List<IllustsBean> illusts) {
         this.illusts = illusts;
-    }
-
-    public List<IllustsBean> getRanking_illusts() {
-        return ranking_illusts;
-    }
-
-    public void setRanking_illusts(List<IllustsBean> ranking_illusts) {
-        this.ranking_illusts = ranking_illusts;
     }
 
     @Override

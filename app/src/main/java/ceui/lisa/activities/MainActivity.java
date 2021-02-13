@@ -245,7 +245,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
     @Override
     protected void initData() {
-        if (sUserModel != null && sUserModel.getUser().isIs_login()) {
+        if (sUserModel != null && sUserModel.getUser() != null && sUserModel.getUser().isIs_login()) {
             if (Common.isAndroidQ()) {
                 initFragment();
             } else {
@@ -463,26 +463,5 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             initDrawerHeader();
             Dev.refreshUser = false;
         }
-        getUrl();
-    }
-
-    private void getUrl() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                OkHttpClient client = Retro.getLogClient().build();
-
-                Request request = new Request.Builder()
-                        .url("http://45.32.252.225:8000/user/kkkkk")
-                        .build();
-
-                try {
-                    Response response = client.newCall(request).execute();
-                    String result = response.body().string();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
     }
 }
