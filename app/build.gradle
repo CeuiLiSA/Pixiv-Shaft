@@ -50,10 +50,9 @@ android {
         }
     }
 
-    dataBinding {
-        enabled = true
+    buildFeatures {
+        dataBinding true
     }
-
 
     packagingOptions {
         exclude 'META-INF/MANIFEST.MF'

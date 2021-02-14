@@ -32,7 +32,6 @@ allprojects {
         maven { url "http://dl.bintray.com/waynejo/maven" }
         mavenCentral()
     }
-
 }
 
 task clean(type: Delete) {

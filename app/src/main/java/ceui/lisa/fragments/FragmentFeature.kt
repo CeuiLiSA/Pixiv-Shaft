@@ -27,7 +27,7 @@ import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction
 class FragmentFeature : LocalListFragment<FragmentBaseListBinding, FeatureEntity>() {
 
     override fun adapter(): BaseAdapter<*, out ViewDataBinding> {
-        return FeatureAdapter(allItems, mContext).setOnItemClickListener { v, position, viewType ->
+        return FeatureAdapter(allItems, mContext).setOnItemClickListener { _, position, viewType ->
             if (viewType == 0) {
                 val intent = Intent(mContext, TemplateActivity::class.java)
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, allItems[position].dataType)
@@ -40,12 +40,12 @@ class FragmentFeature : LocalListFragment<FragmentBaseListBinding, FeatureEntity
                     .setTitle(getString(R.string.string_143))
                     .setMessage(getString(R.string.string_252))
                     .setSkinManager(QMUISkinManager.defaultInstance(context))
-                    .addAction(getString(R.string.string_142)) { dialog, index -> dialog.dismiss() }
+                    .addAction(getString(R.string.string_142)) { dialog, _ -> dialog.dismiss() }
                     .addAction(
                         0,
                         getString(R.string.string_141),
                         QMUIDialogAction.ACTION_PROP_NEGATIVE
-                    ) { dialog, index ->
+                    ) { dialog, _ ->
                         AppDatabase.getAppDatabase(mContext).downloadDao()
                             .deleteFeature(allItems[position])
                         Common.showToast<String>(getString(R.string.string_220))
@@ -73,12 +73,12 @@ class FragmentFeature : LocalListFragment<FragmentBaseListBinding, FeatureEntity
                         .setTitle(getString(R.string.string_143))
                         .setMessage(getString(R.string.string_253))
                         .setSkinManager(QMUISkinManager.defaultInstance(context))
-                        .addAction(getString(R.string.string_142)) { dialog, index -> dialog.dismiss() }
+                        .addAction(getString(R.string.string_142)) { dialog, _ -> dialog.dismiss() }
                         .addAction(
                             0,
                             getString(R.string.string_141),
                             QMUIDialogAction.ACTION_PROP_NEGATIVE
-                        ) { dialog, index ->
+                        ) { dialog, _ ->
                             AppDatabase.getAppDatabase(mContext).downloadDao().deleteAllFeature()
                             Common.showToast<String>(getString(R.string.string_220))
                             dialog.dismiss()

@@ -63,7 +63,7 @@ class FragmentUserRight : SwipeFragment<FragmentUserRightBinding>() {
                 return binding.root
             }
         }
-        baseBind.tagLayout.setOnTagClickListener { view, position, parent ->
+        baseBind.tagLayout.setOnTagClickListener { _, position, _ ->
             val intent = Intent(mContext, TemplateActivity::class.java)
             intent.putExtra(Params.USER_ID, data.user.userId)
             when {
