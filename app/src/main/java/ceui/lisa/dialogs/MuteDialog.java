@@ -27,7 +27,7 @@ public class MuteDialog extends BaseDialog<DialogMuteTagBinding> {
 
     private IllustsBean mIllust;
     private List<TagsBean> selected = new ArrayList<>();
-    private List<TagsBean> muted = new ArrayList<>();
+    private List<Boolean> muteNotEffect = new ArrayList<>();
 
     public static MuteDialog newInstance(IllustsBean illustsBean) {
         Bundle args = new Bundle();
@@ -44,14 +44,32 @@ public class MuteDialog extends BaseDialog<DialogMuteTagBinding> {
 
     @Override
     void initView(View v) {
-        muted = IllustFilter.getMutedTags();
+        // 计算 tag 状态
+        List<TagsBean> muted = IllustFilter.getMutedTags();
+        List<TagsBean> illustTags = mIllust.getTags();
+        Set<Integer> selectedIndex = new HashSet<>();
+        for (int i = 0; i < illustTags.size(); i++) {
+            TagsBean tagsBean = illustTags.get(i);
+            muteNotEffect.add(i,false);
+            for (TagsBean mutedBean : muted) {
+                if (tagsBean.getName().equals(mutedBean.getName())) {
+                    if(mutedBean.isEffective()){
+                        selectedIndex.add(i);
+                    }else{
+                        muteNotEffect.set(i,true);
+                    }
+                    break;
+                }
+            }
+        }
+
         TagAdapter<TagsBean> adapter = new TagAdapter<TagsBean>(mIllust.getTags()) {
             @Override
             public View getView(FlowLayout parent, int position, TagsBean o) {
                 View view = View.inflate(mContext, R.layout.recy_single_tag_text, null);
                 TextView tag = view.findViewById(R.id.tag_title);
                 tag.setText(o.getName());
-                if (isTagMutedNotEffective(o)) {
+                if (muteNotEffect.get(position)) {
                     tag.setBackgroundResource(R.drawable.tag_stroke_checked_not_enable_bg);
                 }
                 return view;
@@ -68,7 +86,7 @@ public class MuteDialog extends BaseDialog<DialogMuteTagBinding> {
             @Override
             public void unSelected(int position, View view) {
                 super.unSelected(position, view);
-                if (isTagMutedNotEffective(mIllust.getTags().get(position))) {
+                if (muteNotEffect.get(position)) {
                     view.setBackgroundResource(R.drawable.tag_stroke_checked_not_enable_bg);
                 }else{
                     view.setBackgroundResource(R.drawable.tag_stroke_bg);
@@ -107,15 +125,8 @@ public class MuteDialog extends BaseDialog<DialogMuteTagBinding> {
         });
 
         //默认选中已屏蔽的标签
-        List<TagsBean> illustTags = mIllust.getTags();
-        Set<Integer> selected = new HashSet<>();
-        for (int i = 0; i < illustTags.size(); i++) {
-            if (isTagMutedAndEffective(illustTags.get(i))) {
-                selected.add(i);
-            }
-        }
-        if (selected.size() != 0) {
-            adapter.setSelectedList(selected);
+        if (selectedIndex.size() != 0) {
+            adapter.setSelectedList(selectedIndex);
         }
     }
 
@@ -127,27 +138,5 @@ public class MuteDialog extends BaseDialog<DialogMuteTagBinding> {
     @Override
     public void initBundle(Bundle bundle) {
         mIllust = ((IllustsBean) bundle.getSerializable(Params.CONTENT));
-    }
-
-    private boolean isTagMutedAndEffective(TagsBean tagsBean){
-        boolean isMuted = false;
-        for (TagsBean bean : muted) {
-            if (bean.isEffective() && tagsBean.getName().equals(bean.getName())) {
-                isMuted = true;
-                break;
-            }
-        }
-        return isMuted;
-    }
-
-    private boolean isTagMutedNotEffective(TagsBean tagsBean){
-        boolean isMuted = false;
-        for (TagsBean bean : muted) {
-            if (!bean.isEffective() && tagsBean.getName().equals(bean.getName())) {
-                isMuted = true;
-                break;
-            }
-        }
-        return isMuted;
     }
 }
