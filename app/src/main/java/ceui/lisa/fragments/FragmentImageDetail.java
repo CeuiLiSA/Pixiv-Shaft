@@ -1,5 +1,6 @@
 package ceui.lisa.fragments;
 
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -12,7 +13,9 @@ import com.blankj.utilcode.util.BarUtils;
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.CustomViewTarget;
 import com.bumptech.glide.request.target.Target;
+import com.bumptech.glide.request.transition.Transition;
 
 import java.io.File;
 
@@ -29,6 +32,7 @@ import ceui.lisa.utils.Params;
 import me.jessyan.progressmanager.ProgressListener;
 import me.jessyan.progressmanager.ProgressManager;
 import me.jessyan.progressmanager.body.ProgressInfo;
+import xyz.zpayh.hdimage.HDImageView;
 import xyz.zpayh.hdimage.OnBitmapLoadListener;
 
 public class FragmentImageDetail extends BaseFragment<FragmentImageDetailBinding> {
@@ -147,12 +151,24 @@ public class FragmentImageDetail extends BaseFragment<FragmentImageDetailBinding
                     @Override
                     public boolean onResourceReady(File resource, Object model, Target<File> target, DataSource dataSource, boolean isFirstResource) {
                         baseBind.progressLayout.donutProgress.setVisibility(View.INVISIBLE);
-                        baseBind.realIllustImage.setImageURI(Uri.fromFile(resource));
                         Common.showLog("onResourceReady " + resource.getPath());
                         return false;
                     }
                 })
-                .submit();
+                .into(new CustomViewTarget<HDImageView, File>(baseBind.realIllustImage) {
+                    @Override
+                    public void onLoadFailed(@Nullable Drawable errorDrawable) {
+                    }
+
+                    @Override
+                    public void onResourceReady(@NonNull File resource, @Nullable Transition<? super File> transition) {
+                        view.setImageURI(Uri.fromFile(resource));
+                    }
+
+                    @Override
+                    protected void onResourceCleared(@Nullable Drawable placeholder) {
+                    }
+                });
     }
 
     @Override
