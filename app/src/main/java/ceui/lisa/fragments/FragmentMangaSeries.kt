@@ -45,7 +45,7 @@ class FragmentMangaSeries :
         return MangaSeriesAdapter(
             allItems,
             mContext
-        ).setOnItemClickListener { v, position, viewType ->
+        ).setOnItemClickListener { _, position, _ ->
             val intent = Intent(mContext, TemplateActivity::class.java)
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "漫画系列详情")
             intent.putExtra(Params.ID, allItems[position].id)

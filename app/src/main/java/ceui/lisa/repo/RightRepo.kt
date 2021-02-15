@@ -25,6 +25,7 @@ class RightRepo(var restrict: String?) : RemoteRepo<ListIllust>() {
     }
 
     override fun getFooter(context: Context): RefreshFooter {
+        @Suppress("DEPRECATION")
         return ClassicsFooter(context).setPrimaryColor(context.resources.getColor(R.color.fragment_center))
     }
 

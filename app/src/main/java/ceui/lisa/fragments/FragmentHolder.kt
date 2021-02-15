@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package ceui.lisa.fragments
 
 import androidx.fragment.app.Fragment
@@ -47,6 +49,7 @@ class FragmentHolder : BaseFragment<FragmentHolderBinding>() {
             },
             FragmentUserRight()
         )
+        @Suppress("DEPRECATION")
         baseBind.viewPager.adapter = object : FragmentPagerAdapter(childFragmentManager) {
 
             override fun getItem(position: Int): Fragment {
