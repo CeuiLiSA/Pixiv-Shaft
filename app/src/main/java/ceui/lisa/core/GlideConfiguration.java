@@ -5,6 +5,7 @@ import android.content.Context;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.GlideBuilder;
 import com.bumptech.glide.Registry;
+import com.bumptech.glide.annotation.Excludes;
 import com.bumptech.glide.annotation.GlideModule;
 import com.bumptech.glide.integration.okhttp3.OkHttpUrlLoader;
 import com.bumptech.glide.load.model.GlideUrl;
@@ -15,6 +16,7 @@ import java.io.InputStream;
 import ceui.lisa.activities.Shaft;
 
 @GlideModule
+@Excludes(com.bumptech.glide.integration.okhttp3.OkHttpLibraryGlideModule.class)
 public class GlideConfiguration extends AppGlideModule {
 
     @Override
