@@ -11,6 +11,7 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.http.CloudFlareDNSResponse;
 import ceui.lisa.http.CloudFlareDNSService;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -37,8 +38,12 @@ public class HostManager {
     }
 
     public void init() {
-        host = randomHost();
-        updateHost();
+        if (Dev.isDev) {
+            host = "210.140.92.139";
+        } else {
+            host = randomHost();
+            updateHost();
+        }
     }
 
     private String randomHost() {

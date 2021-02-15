@@ -152,8 +152,10 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
         baseBind.login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                WeissUtil.start();
-                WeissUtil.proxy();
+                if (Shaft.sSettings.isAutoFuckChina()) {
+                    WeissUtil.start();
+                    WeissUtil.proxy();
+                }
                 Intent intent = new Intent(mContext, TemplateActivity.class);
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
                 intent.putExtra(Params.URL, "https://app-api.pixiv.net/web/v1/login?code_challenge=" +
@@ -168,6 +170,10 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
         baseBind.sign.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (Shaft.sSettings.isAutoFuckChina()) {
+                    WeissUtil.start();
+                    WeissUtil.proxy();
+                }
                 Intent intent = new Intent(mContext, TemplateActivity.class);
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
                 intent.putExtra(Params.URL, "https://app-api.pixiv.net/web/v1/provisional-accounts/create?code_challenge=" +

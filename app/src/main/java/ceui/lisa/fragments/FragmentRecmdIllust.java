@@ -42,7 +42,7 @@ import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
 
 public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding,
-        ListIllust, IllustsBean> {
+        RecmdIllust, IllustsBean> {
 
     private String dataType;
     private List<IllustRecmdEntity> localData;

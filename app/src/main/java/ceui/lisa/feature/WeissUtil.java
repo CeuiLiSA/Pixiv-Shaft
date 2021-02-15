@@ -7,6 +7,7 @@ import androidx.webkit.WebViewFeature;
 import java.util.concurrent.Executor;
 
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Dev;
 import weiss.Weiss;
 
 /**
@@ -17,16 +18,27 @@ import weiss.Weiss;
  */
 public class WeissUtil {
 
+    private static Server server = new Server();
+    public static final int PORT = 9801;
+
     public static void start() {
+        if (!Dev.use_weiss) {
+            return;
+        }
         try {
-            Weiss.start("9801");
+            server.start();
+//            Weiss.start(String.valueOf(PORT));
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     public static void end() {
+        if (!Dev.use_weiss) {
+            return;
+        }
         try {
+            server.interrupt();
             Weiss.close();
         } catch (Exception e) {
             e.printStackTrace();
@@ -34,9 +46,12 @@ public class WeissUtil {
     }
 
     public static void proxy() {
+        if (!Dev.use_weiss) {
+            return;
+        }
         try {
             if (WebViewFeature.isFeatureSupported(WebViewFeature.PROXY_OVERRIDE)) {
-                String proxyUrl = "127.0.0.1:9801";
+                String proxyUrl = "127.0.0.1:" + PORT;
                 ProxyConfig proxyConfig = new ProxyConfig.Builder()
                         .addProxyRule(proxyUrl)
                         .addDirect()

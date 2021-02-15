@@ -17,6 +17,7 @@ import ceui.lisa.model.ListSimpleUser;
 import ceui.lisa.model.ListTag;
 import ceui.lisa.model.ListTrendingtag;
 import ceui.lisa.model.ListUser;
+import ceui.lisa.model.RecmdIllust;
 import ceui.lisa.models.CommentHolder;
 import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.IllustSearchResponse;
@@ -69,11 +70,11 @@ public interface AppApi {
      * @return
      */
     @GET("v1/illust/recommended?include_privacy_policy=true&filter=for_android&include_ranking_illusts=true")
-    Observable<ListIllust> getRecmdIllust(@Header("Authorization") String token);
+    Observable<RecmdIllust> getRecmdIllust(@Header("Authorization") String token);
 
 
     @GET("v1/manga/recommended?include_privacy_policy=true&filter=for_android&include_ranking_illusts=true")
-    Observable<ListIllust> getRecmdManga(@Header("Authorization") String token);
+    Observable<RecmdIllust> getRecmdManga(@Header("Authorization") String token);
 
     @GET("v1/novel/recommended?include_privacy_policy=true&filter=for_android&include_ranking_novels=true")
     Observable<ListNovel> getRecmdNovel(@Header("Authorization") String token);

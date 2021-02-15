@@ -77,8 +77,10 @@ public class Common {
 
     public static void logOut(Context context) {
         if (Shaft.sUserModel != null) {
-            Shaft.sUserModel.getUser().setIs_login(false);
-            Local.saveUser(Shaft.sUserModel);
+            if (!Dev.isDev) { //测试状态，不要真的退出登录，只是跳转到登录页面
+                Shaft.sUserModel.getUser().setIs_login(false);
+                Local.saveUser(Shaft.sUserModel);
+            }
             Intent intent = new Intent(context, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "登录注册");
             context.startActivity(intent);
