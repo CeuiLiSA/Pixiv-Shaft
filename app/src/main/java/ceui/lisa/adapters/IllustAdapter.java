@@ -35,6 +35,7 @@ import me.jessyan.progressmanager.body.ProgressInfo;
 public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDetailBinding>> {
 
     private int maxHeight;
+    private String loadImageUrl = null;
 
     public IllustAdapter(Context context, IllustsBean illustsBean, int maxHeight) {
         this(context, illustsBean, maxHeight, false);
@@ -117,7 +118,8 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                 imageUrl = HostManager.get().replaceUrl(allIllust.getMeta_pages().get(position).getImage_urls().getLarge());
             }
         }
-        ProgressManager.getInstance().addResponseListener(imageUrl, new ProgressListener() {
+        loadImageUrl = new String(imageUrl);
+        ProgressManager.getInstance().addResponseListener(loadImageUrl, new ProgressListener() {
             @Override
             public void onProgress(ProgressInfo progressInfo) {
                 holder.baseBind.progressLayout.donutProgress.setProgress(progressInfo.getPercent());
@@ -152,4 +154,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                 .into(new UniformScaleTransformation(holder.baseBind.illust, changeSize));
     }
 
+    public void clearProgressManagerRef(){
+        this.loadImageUrl = null;
+    }
 }
