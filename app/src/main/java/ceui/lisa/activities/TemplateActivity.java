@@ -64,6 +64,7 @@ import ceui.lisa.fragments.FragmentWebView;
 import ceui.lisa.fragments.FragmentWhoFollowThisUser;
 import ceui.lisa.fragments.FragmentWorkSpace;
 import ceui.lisa.fragments.TestFragment;
+import ceui.lisa.helper.BackHandlerHelper;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.utils.Local;
@@ -287,5 +288,12 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
     @Override
     public void onDialogDismissed(int dialogId) {
 
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (!BackHandlerHelper.handleBackPress(this)) {
+            super.onBackPressed();
+        }
     }
 }
