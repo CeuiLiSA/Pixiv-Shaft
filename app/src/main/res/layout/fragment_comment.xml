@@ -102,7 +102,7 @@
                             android:textColor="@color/rank_text_color"
                             android:layout_marginEnd="@dimen/eight_dp"
                             android:layout_marginStart="@dimen/sixteen_dp"
-                            android:layout_toStartOf="@+id/post"
+                            android:layout_toStartOf="@+id/show_emoji"
                             android:background="@color/white_to_1414"
                             android:layout_height="match_parent">
 

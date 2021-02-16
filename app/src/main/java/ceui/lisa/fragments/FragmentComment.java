@@ -25,8 +25,10 @@ import ceui.lisa.adapters.EmojiAdapter;
 import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentCommentBinding;
 import ceui.lisa.databinding.RecyCommentListBinding;
+import ceui.lisa.helper.BackHandlerHelper;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
+import ceui.lisa.interfaces.FragmentBackHandler;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.EmojiItem;
 import ceui.lisa.model.ListComment;
@@ -44,7 +46,7 @@ import io.reactivex.schedulers.Schedulers;
 import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class FragmentComment extends NetListFragment<FragmentCommentBinding,
-        ListComment, CommentsBean> {
+        ListComment, CommentsBean> implements FragmentBackHandler {
 
     private String[] OPTIONS;
     private int illustID;
@@ -327,5 +329,11 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
                 }
             }
         });
+    }
+
+    @Override
+    public boolean onBackPressed() {
+        boolean childResult = BackHandlerHelper.handleBackPress(this);
+        return childResult || mHelper.hookSystemBackByPanelSwitcher();
     }
 }

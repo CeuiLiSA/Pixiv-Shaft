@@ -119,6 +119,7 @@
                             android:layout_alignTop="@+id/user_head"
                             android:layout_marginTop="@dimen/four_dp"
                             android:layout_toEndOf="@+id/user_head"
+                            android:layout_toStartOf="@+id/follow"
                             android:ellipsize="end"
                             android:maxLines="1"
                             android:text="@string/string_67"
