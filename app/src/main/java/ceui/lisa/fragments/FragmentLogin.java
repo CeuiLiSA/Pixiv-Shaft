@@ -2,6 +2,7 @@ package ceui.lisa.fragments;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.text.TextUtils;
 import android.text.method.HideReturnsTransformationMethod;
@@ -21,6 +22,7 @@ import androidx.webkit.ProxyConfig;
 import androidx.webkit.ProxyController;
 import androidx.webkit.WebViewFeature;
 
+import com.blankj.utilcode.util.DeviceUtils;
 import com.blankj.utilcode.util.EncodeUtils;
 import com.blankj.utilcode.util.EncryptUtils;
 import com.facebook.rebound.SimpleSpringListener;
@@ -152,36 +154,54 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
         baseBind.login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (Shaft.sSettings.isAutoFuckChina()) {
-                    WeissUtil.start();
-                    WeissUtil.proxy();
+                String url = "https://app-api.pixiv.net/web/v1/login?code_challenge=" +
+                        HostManager.get().getPkceItem().getChallenge() +
+                        "&code_challenge_method=S256&client=pixiv-android";
+                if (DeviceUtils.isTablet()) {
+                    Uri uri = Uri.parse(url);
+                    Intent intent = new Intent();
+                    intent.setAction(Intent.ACTION_VIEW);
+                    intent.setData(uri);
+                    startActivity(intent);
+                } else {
+                    if (Shaft.sSettings.isAutoFuckChina()) {
+                        WeissUtil.start();
+                        WeissUtil.proxy();
+                    }
+                    Intent intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
+                    intent.putExtra(Params.URL, url);
+                    intent.putExtra(Params.TITLE, getString(R.string.now_login));
+                    intent.putExtra(Params.PREFER_PRESERVE, true);
+                    startActivity(intent);
                 }
-                Intent intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
-                intent.putExtra(Params.URL, "https://app-api.pixiv.net/web/v1/login?code_challenge=" +
-                                HostManager.get().getPkceItem().getChallenge() +
-                        "&code_challenge_method=S256&client=pixiv-android");
-                intent.putExtra(Params.TITLE, getString(R.string.now_login));
-                intent.putExtra(Params.PREFER_PRESERVE, true);
-                startActivity(intent);
             }
         });
 
         baseBind.sign.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (Shaft.sSettings.isAutoFuckChina()) {
-                    WeissUtil.start();
-                    WeissUtil.proxy();
-                }
-                Intent intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
-                intent.putExtra(Params.URL, "https://app-api.pixiv.net/web/v1/provisional-accounts/create?code_challenge=" +
+                String url = "https://app-api.pixiv.net/web/v1/provisional-accounts/create?code_challenge=" +
                         HostManager.get().getPkceItem().getChallenge() +
-                        "&code_challenge_method=S256&client=pixiv-android");
-                intent.putExtra(Params.TITLE, getString(R.string.now_sign));
-                intent.putExtra(Params.PREFER_PRESERVE, true);
-                startActivity(intent);
+                        "&code_challenge_method=S256&client=pixiv-android";
+                if (DeviceUtils.isTablet()) {
+                    Uri uri = Uri.parse(url);
+                    Intent intent = new Intent();
+                    intent.setAction(Intent.ACTION_VIEW);
+                    intent.setData(uri);
+                    startActivity(intent);
+                } else {
+                    if (Shaft.sSettings.isAutoFuckChina()) {
+                        WeissUtil.start();
+                        WeissUtil.proxy();
+                    }
+                    Intent intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
+                    intent.putExtra(Params.URL, url);
+                    intent.putExtra(Params.TITLE, getString(R.string.now_sign));
+                    intent.putExtra(Params.PREFER_PRESERVE, true);
+                    startActivity(intent);
+                }
             }
         });
         baseBind.hasNoAccount.setOnClickListener(new View.OnClickListener() {

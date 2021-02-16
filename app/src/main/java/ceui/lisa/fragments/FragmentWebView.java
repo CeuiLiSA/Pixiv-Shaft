@@ -19,6 +19,8 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.RelativeLayout;
 
+import com.blankj.utilcode.util.DeviceUtils;
+import com.blankj.utilcode.util.RomUtils;
 import com.google.android.material.snackbar.Snackbar;
 import com.just.agentweb.AgentWeb;
 import com.just.agentweb.WebViewClient;
@@ -139,36 +141,45 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                 .setAgentWebParent(baseBind.webViewParent, new RelativeLayout.LayoutParams(-1, -1))
                 .useDefaultIndicator()
                 .setWebViewClient(new WebViewClient() {
-                    @Override
-                    public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
-//                        super.onReceivedSslError(view, handler, error);
-                        Common.showLog(className + "onReceivedSslError " + error.toString());
-                        if (handler != null) {
-                            handler.proceed();
-                        }
-                    }
+//                    @Override
+//                    public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
+////                        super.onReceivedSslError(view, handler, error);
+//                        Common.showLog(className + "onReceivedSslError " + error.toString());
+//                        if (handler != null) {
+//                            handler.proceed();
+//                        }
+//                    }
 
                     @Override
                     public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                        String destiny = request.getUrl().toString();
-                        Common.showLog(className + "destiny " + destiny);
-                        if (destiny.contains(PIXIV_HEAD)) {
-                            if (destiny.contains("logout.php")) {
-                                return false;
+                        try {
+                            if (DeviceUtils.isTablet()) {
+
                             } else {
-                                try {
-                                    Intent intent = new Intent(mContext, OutWakeActivity.class);
-                                    intent.setData(Uri.parse(destiny));
-                                    startActivity(intent);
-                                    if (!preferPreserve) {
-                                        finish();
+                                String destiny = request.getUrl().toString();
+                                Common.showLog(className + "destiny " + destiny);
+                                if (destiny.contains(PIXIV_HEAD)) {
+                                    if (destiny.contains("logout.php")) {
+                                        return false;
+                                    } else {
+                                        try {
+                                            Intent intent = new Intent(mContext, OutWakeActivity.class);
+                                            intent.setData(Uri.parse(destiny));
+                                            startActivity(intent);
+                                            if (!preferPreserve) {
+                                                finish();
+                                            }
+                                        } catch (Exception e) {
+                                            Common.showToast(e.toString());
+                                            e.printStackTrace();
+                                        }
+                                        return true;
                                     }
-                                } catch (Exception e) {
-                                    Common.showToast(e.toString());
-                                    e.printStackTrace();
                                 }
-                                return true;
                             }
+                        } catch (Exception e) {
+                            Common.showToast(e.toString());
+                            e.printStackTrace();
                         }
                         return super.shouldOverrideUrlLoading(view, request);
                     }
