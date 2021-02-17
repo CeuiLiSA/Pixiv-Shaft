@@ -12,35 +12,43 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/horizontal_titles">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:id="@+id/title_text"
-            android:layout_marginStart="@dimen/sixteen_dp"
-            android:layout_marginTop="@dimen/twelve_dp"
-            android:textColor="@color/deep_dark"
-            android:layout_marginBottom="@dimen/twelve_dp"
-            android:layout_height="wrap_content">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:id="@+id/title_text"
+                android:layout_marginStart="@dimen/sixteen_dp"
+                android:layout_marginTop="@dimen/twelve_dp"
+                android:layout_marginBottom="@dimen/twelve_dp"
+                android:textColor="@color/deep_dark"
+                android:gravity="center_vertical|start">
 
-        </TextView>
+            </TextView>
 
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:id="@+id/translated_text"
+                android:layout_marginEnd="@dimen/sixteen_dp"
+                android:layout_marginTop="@dimen/twelve_dp"
+                android:layout_marginBottom="@dimen/twelve_dp"
+                android:textColor="@color/deep_dark"
+                android:gravity="center_vertical|end">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:id="@+id/translated_text"
-            android:layout_marginEnd="@dimen/sixteen_dp"
-            android:textColor="@color/deep_dark"
-            android:layout_marginTop="@dimen/twelve_dp"
-            android:layout_alignParentEnd="true"
-            android:layout_marginBottom="@dimen/twelve_dp"
-            android:layout_height="wrap_content">
+            </TextView>
 
-        </TextView>
+        </LinearLayout>
 
         <View
             android:layout_width="match_parent"
             android:background="@color/background"
-            android:layout_below="@+id/title_text"
+            android:layout_below="@+id/horizontal_titles"
             android:layout_marginStart="@dimen/twelve_dp"
             android:layout_marginEnd="@dimen/twelve_dp"
             android:layout_height="1dp">
