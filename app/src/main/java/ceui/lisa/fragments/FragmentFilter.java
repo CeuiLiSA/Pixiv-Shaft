@@ -16,14 +16,9 @@ import ceui.lisa.databinding.FragmentFilterBinding;
 import ceui.lisa.utils.Local;
 import ceui.lisa.viewmodel.SearchModel;
 
+import ceui.lisa.utils.PixivSearchParamUtil;
 
 public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
-
-    public static final String[] TAG_MATCH_VALUE = new String[]{"partial_match_for_tags",
-            "exact_match_for_tags", "title_and_caption"};
-    public static final String[] ALL_SIZE_VALUE = new String[]{"", "500users入り", "1000users入り", "2000users入り",
-            "5000users入り", "7500users入り", "10000users入り", "20000users入り", "50000users入り"};
-    public static final String[] DATE_SORT_VALUE = new String[]{"date_desc", "date_asc"};
 
     private SearchModel searchModel;
 
@@ -46,18 +41,14 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
                 searchModel.getNowGo().setValue("search_now");
             }
         });
-        String[] TAG_MATCH = new String[]{
-                getString(R.string.string_284),
-                getString(R.string.string_285),
-                getString(R.string.string_286)
-        };
+
         ArrayAdapter<String> tagAdapter = new ArrayAdapter<>(mContext,
-                R.layout.spinner_item, TAG_MATCH);
+                R.layout.spinner_item, PixivSearchParamUtil.TAG_MATCH_NAME);
         baseBind.tagSpinner.setAdapter(tagAdapter);
         baseBind.tagSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                searchModel.getSearchType().setValue(TAG_MATCH_VALUE[position]);
+                searchModel.getSearchType().setValue(PixivSearchParamUtil.TAG_MATCH_VALUE[position]);
             }
 
             @Override
@@ -66,26 +57,15 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
             }
         });
 
-        String[] ALL_SIZE = new String[]{
-                getString(R.string.string_289),
-                getString(R.string.string_290),
-                getString(R.string.string_291),
-                getString(R.string.string_292),
-                getString(R.string.string_293),
-                getString(R.string.string_294),
-                getString(R.string.string_295),
-                getString(R.string.string_296),
-                getString(R.string.string_297)
-        };
         ArrayAdapter<String> starAdapter = new ArrayAdapter<>(mContext,
-                R.layout.spinner_item, ALL_SIZE);
+                R.layout.spinner_item, PixivSearchParamUtil.ALL_SIZE_NAME);
         baseBind.starSizeSpinner.setAdapter(starAdapter);
         baseBind.starSizeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 // Shaft.sSettings.setSearchFilter(ALL_SIZE_VALUE[position]);
                 Local.setSettings(Shaft.sSettings);
-                searchModel.getStarSize().setValue(ALL_SIZE_VALUE[position]);
+                searchModel.getStarSize().setValue(PixivSearchParamUtil.ALL_SIZE_VALUE[position]);
             }
 
             @Override
@@ -93,24 +73,20 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
 
             }
         });
-        for (int i = 0; i < ALL_SIZE_VALUE.length; i++) {
-            if (ALL_SIZE_VALUE[i].equals(Shaft.sSettings.getSearchFilter())) {
+        for (int i = 0; i < PixivSearchParamUtil.ALL_SIZE_VALUE.length; i++) {
+            if (PixivSearchParamUtil.ALL_SIZE_VALUE[i].equals(Shaft.sSettings.getSearchFilter())) {
                 baseBind.starSizeSpinner.setSelection(i);
                 break;
             }
         }
 
-        String[] DATE_SORT = new String[]{
-                getString(R.string.string_287),
-                getString(R.string.string_288)
-        };
         ArrayAdapter<String> dateAdapter = new ArrayAdapter<>(mContext,
-                R.layout.spinner_item, DATE_SORT);
+                R.layout.spinner_item, PixivSearchParamUtil.DATE_SORT_NAME);
         baseBind.dateSpinner.setAdapter(dateAdapter);
         baseBind.dateSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                searchModel.getSortType().setValue(DATE_SORT_VALUE[position]);
+                searchModel.getSortType().setValue(PixivSearchParamUtil.DATE_SORT_VALUE[position]);
             }
 
             @Override

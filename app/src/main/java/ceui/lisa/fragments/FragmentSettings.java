@@ -30,8 +30,8 @@ import ceui.lisa.helper.ThemeHelper;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
+import ceui.lisa.utils.PixivSearchParamUtil;
 
-import static ceui.lisa.fragments.FragmentFilter.ALL_SIZE_VALUE;
 import static ceui.lisa.utils.Settings.ALL_LANGUAGE;
 
 
@@ -335,30 +335,21 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             }
         });
 
-        baseBind.searchFilter.setText(Shaft.sSettings.getSearchFilter());
+        final String searchFilter = Shaft.sSettings.getSearchFilter();
+        baseBind.searchFilter.setText(PixivSearchParamUtil.getSizeName(searchFilter));
         baseBind.searchFilterRela.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String[] ALL_SIZE = new String[]{
-                        getString(R.string.string_289),
-                        getString(R.string.string_290),
-                        getString(R.string.string_291),
-                        getString(R.string.string_292),
-                        getString(R.string.string_293),
-                        getString(R.string.string_294),
-                        getString(R.string.string_295),
-                        getString(R.string.string_296),
-                        getString(R.string.string_297)
-                };
                 new QMUIDialog.CheckableDialogBuilder(mContext)
+                        .setCheckedIndex(PixivSearchParamUtil.getSizeIndex(searchFilter))
                         .setSkinManager(QMUISkinManager.defaultInstance(mContext))
-                        .addItems(ALL_SIZE, new DialogInterface.OnClickListener() {
+                        .addItems(PixivSearchParamUtil.ALL_SIZE_NAME, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                Shaft.sSettings.setSearchFilter(ALL_SIZE_VALUE[which]);
+                                Shaft.sSettings.setSearchFilter(PixivSearchParamUtil.ALL_SIZE_VALUE[which]);
                                 Common.showToast("设置成功", 2);
                                 Local.setSettings(Shaft.sSettings);
-                                baseBind.searchFilter.setText(ALL_SIZE[which]);
+                                baseBind.searchFilter.setText(PixivSearchParamUtil.ALL_SIZE_NAME[which]);
                                 dialog.dismiss();
                             }
                         })
@@ -447,9 +438,9 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                     index = 2;
                 }
                 String[] LINE_COUNT = new String[]{
-                        "2列",
-                        "3列",
-                        "4列"
+                        getString(R.string.string_349, 2),
+                        getString(R.string.string_349, 3),
+                        getString(R.string.string_349, 4)
                 };
                 final int selectIndex = index;
                 new QMUIDialog.CheckableDialogBuilder(mActivity)
