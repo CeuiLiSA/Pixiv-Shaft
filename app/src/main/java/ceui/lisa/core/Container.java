@@ -14,7 +14,7 @@ import ceui.lisa.utils.GlideUrlChild;
 public class Container {
 
     private HashMap<String, PageData> pages = new HashMap<>();
-    private HashMap<String, ListIllust> isLoaded = new HashMap<>();
+    private HashMap<String, Boolean> isLoaded = new HashMap<>();
     private boolean isNetworking = false;
 
     /**
@@ -63,12 +63,13 @@ public class Container {
         }
     }
 
-    public void addLoadingUrl(String url, ListIllust listIllust) {
-        isLoaded.put(url, listIllust);
+    public void addLoadingUrl(String url, boolean boo) {
+        isLoaded.put(url, boo);
     }
 
-    public ListIllust isUrlLoadFinished(String url) {
-        return isLoaded.get(url);
+    public boolean isUrlLoadFinished(String url) {
+        Boolean b = isLoaded.get(url);
+        return b != null ? b : false;
     }
 
     public boolean isNetworking() {

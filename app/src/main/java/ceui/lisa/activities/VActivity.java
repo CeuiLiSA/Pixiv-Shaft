@@ -50,7 +50,6 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
     protected void initView() {
         PageData pageData = Container.get().getPage(pageUUID);
         if (pageData != null) {
-            final int pageSize = pageData.getList() == null ? 0 : pageData.getList().size();
             baseBind.viewPager.setAdapter(new FragmentStatePagerAdapter(getSupportFragmentManager(), 0) {
                 @NonNull
                 @Override
@@ -85,12 +84,10 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                         PixivOperate.insertIllustViewHistory(pageData.getList().get(position));
                     }
 
-                    if (position == (pageSize - 1) || position == (pageSize - 2)) {
+                    if (position == (pageData.getList().size() - 1) || position == (pageData.getList().size() - 2)) {
                         final String nextUrl = pageData.getNextUrl();
                         if (!TextUtils.isEmpty(nextUrl)) {
-                            ListIllust listIllust = Container.get().isUrlLoadFinished(nextUrl);
-                            //只有listIllust 为空才去加载，不然在二级详情左右滑动会重复多次加载下一页
-                            if (listIllust == null && !Container.get().isNetworking()) {
+                            if (!Container.get().isUrlLoadFinished(nextUrl) && !Container.get().isNetworking()) {
                                 Common.showLog("Container 去请求下一页 ");
                                 Retro.getAppApi().getNextIllust(Shaft.sUserModel.getAccess_token(), nextUrl)
                                         .subscribeOn(Schedulers.newThread())
@@ -101,7 +98,7 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                                                 Intent intent = new Intent(Params.FRAGMENT_ADD_DATA);
                                                 intent.putExtra(Params.CONTENT, listIllust);
                                                 LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
-                                                Container.get().addLoadingUrl(nextUrl, listIllust);
+                                                Container.get().addLoadingUrl(nextUrl, true);
 
                                                 pageData.getList().addAll(listIllust.getList());
                                                 baseBind.viewPager.getAdapter().notifyDataSetChanged();
@@ -116,7 +113,7 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                                             @Override
                                             public void subscribe(Disposable d) {
                                                 super.subscribe(d);
-                                                Container.get().addLoadingUrl(nextUrl, null);
+                                                Container.get().addLoadingUrl(nextUrl, false);
                                                 Container.get().setNetworking(true);
                                             }
                                         });
@@ -134,7 +131,7 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
             };
             baseBind.viewPager.addOnPageChangeListener(listener);
 
-            if(index < pageSize){
+            if(index < pageData.getList().size()){
                 baseBind.viewPager.setCurrentItem(index);
             }
 
