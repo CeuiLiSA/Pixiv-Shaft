@@ -8,8 +8,8 @@ import ceui.lisa.models.IllustsBean;
 
 public class PageData implements IDWithList<IllustsBean>{
 
-    private final String uuid;
-    private final String nextUrl;
+    private String uuid;
+    private String nextUrl;
     private final List<IllustsBean> illustList;
 
     public PageData(List<IllustsBean> illustList) {
@@ -36,5 +36,9 @@ public class PageData implements IDWithList<IllustsBean>{
 
     public String getNextUrl() {
         return nextUrl;
+    }
+
+    public void setNextUrl(String nextUrl) {
+        this.nextUrl = nextUrl;
     }
 }

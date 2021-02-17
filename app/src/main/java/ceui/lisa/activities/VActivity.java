@@ -79,13 +79,13 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
 
                 @Override
                 public void onPageSelected(int position) {
-                    Common.showLog("VActivity onPageSelected " + position);
+                    Common.showLog("Container onPageSelected " + position);
                     if (Shaft.sSettings.isSaveViewHistory()) {
                         PixivOperate.insertIllustViewHistory(pageData.getList().get(position));
                     }
 
                     if (position == (pageData.getList().size() - 1) || position == (pageData.getList().size() - 2)) {
-                        final String nextUrl = pageData.getNextUrl();
+                        String nextUrl = pageData.getNextUrl();
                         if (!TextUtils.isEmpty(nextUrl)) {
                             if (!Container.get().isUrlLoadFinished(nextUrl) && !Container.get().isNetworking()) {
                                 Common.showLog("Container 去请求下一页 ");
@@ -101,6 +101,7 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                                                 Container.get().addLoadingUrl(nextUrl, true);
 
                                                 pageData.getList().addAll(listIllust.getList());
+                                                pageData.setNextUrl(listIllust.getNextUrl());
                                                 baseBind.viewPager.getAdapter().notifyDataSetChanged();
                                             }
 
