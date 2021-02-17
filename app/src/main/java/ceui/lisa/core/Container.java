@@ -8,10 +8,12 @@ import java.util.List;
 
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.GlideUrlChild;
 
 public class Container {
 
     private HashMap<String, IDWithList<IllustsBean>> pages = new HashMap<>();
+    private HashMap<String, GlideUrlChild> isLoad = new HashMap<>();
 
     /**
      * 用 HashMap 存储，app杀掉之后就没有了
@@ -69,6 +71,14 @@ public class Container {
         if (pages.size() != 0) {
             pages.clear();
         }
+    }
+
+    public void addLoadingUrl(String url, GlideUrlChild glideUrl) {
+        isLoad.put(url, glideUrl);
+    }
+
+    public GlideUrlChild getGlideUrl(String url) {
+        return isLoad.get(url);
     }
 
     private Container() {

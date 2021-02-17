@@ -9,7 +9,9 @@ import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
+import androidx.fragment.app.FragmentActivity;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource;
@@ -19,7 +21,9 @@ import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.core.Container;
 import ceui.lisa.databinding.RecyIllustDetailBinding;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.feature.HostManager;
@@ -37,16 +41,16 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
     private int maxHeight;
     private String loadImageUrl = null;
 
-    public IllustAdapter(Context context, IllustsBean illustsBean, int maxHeight) {
-        this(context, illustsBean, maxHeight, false);
+    public IllustAdapter(FragmentActivity activity, IllustsBean illustsBean, int maxHeight) {
+        this(activity, illustsBean, maxHeight, false);
     }
 
-    public IllustAdapter(Context context, IllustsBean illustsBean, int maxHeight, boolean isForceOriginal) {
+    public IllustAdapter(FragmentActivity activity, IllustsBean illustsBean, int maxHeight, boolean isForceOriginal) {
         Common.showLog("IllustAdapter maxHeight " + maxHeight);
-        mContext = context;
+        mActivity = activity;
         allIllust = illustsBean;
         this.maxHeight = maxHeight;
-        imageSize = mContext.getResources().getDisplayMetrics().widthPixels;
+        imageSize = mActivity.getResources().getDisplayMetrics().widthPixels;
         this.isForceOriginal = isForceOriginal;
     }
 
@@ -54,7 +58,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
     @Override
     public ViewHolder<RecyIllustDetailBinding> onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         return new ViewHolder<>(DataBindingUtil.inflate(
-                LayoutInflater.from(mContext), R.layout.recy_illust_detail, parent, false
+                LayoutInflater.from(mActivity), R.layout.recy_illust_detail, parent, false
         ));
     }
 
@@ -119,7 +123,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
             }
         }
         loadImageUrl = new String(imageUrl);
-        ProgressManager.getInstance().addResponseListener(loadImageUrl, new ProgressListener() {
+        ProgressManager.getInstance().addResponseListener(imageUrl, new ProgressListener() {
             @Override
             public void onProgress(ProgressInfo progressInfo) {
                 holder.baseBind.progressLayout.donutProgress.setProgress(progressInfo.getPercent());
@@ -130,7 +134,18 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
 
             }
         });
-        Glide.with(mContext)
+//
+//
+//        GlideUrlChild child = Container.get().getGlideUrl(imageUrl);
+//        if (child == null) {
+//            child = new GlideUrlChild(imageUrl);
+//            Container.get().addLoadingUrl(imageUrl, child);
+//            Common.showLog("用了新建的");
+//        } else {
+//            Common.showLog("用了已有的");
+//        }
+
+        Glide.with(mActivity)
                 .asBitmap()
                 .load(new GlideUrlChild(imageUrl))
                 .transform(new LargeBitmapScaleTransformer())

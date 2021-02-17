@@ -124,7 +124,7 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
 
         FragmentRecmdUserHorizontal recmdUser = new FragmentRecmdUserHorizontal();
         transaction.add(R.id.user_recmd_fragment, recmdUser, "FragmentRecmdUserHorizontal");
-        transaction.commitAllowingStateLoss();
+        transaction.commitNowAllowingStateLoss();
 
         baseBind.refreshLayout.autoRefresh();
     }

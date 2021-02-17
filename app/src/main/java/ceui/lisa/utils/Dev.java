@@ -14,6 +14,6 @@ public class Dev {
     public static final String USER_ACCOUNT = "user_shaft2";
     public static final String USER_PWD = "Mercis09bv";
 
-    public static boolean use_weiss = false;
+    public static boolean use_weiss = true;
 
 }

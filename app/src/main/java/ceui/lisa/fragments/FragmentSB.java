@@ -3,12 +3,14 @@ package ceui.lisa.fragments;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.view.MenuItem;
 import android.widget.Toast;
 
 import androidx.appcompat.widget.Toolbar;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import com.bumptech.glide.RequestManager;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
@@ -24,8 +26,10 @@ import ceui.lisa.core.BaseRepo;
 import ceui.lisa.databinding.FragmentSelectTagBinding;
 import ceui.lisa.databinding.RecySelectTagBinding;
 import ceui.lisa.http.ErrorCtrl;
+import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListBookmarkTag;
+import ceui.lisa.model.ListTag;
 import ceui.lisa.models.NullResponse;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.repo.SelectTagRepo;
@@ -192,7 +196,47 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
     }
 
     @Override
+    public void beforeFirstLoad(List<TagsBean> tagsBeans) {
+        super.beforeFirstLoad(tagsBeans);
+        for (TagsBean tagsBean : tagsBeans) {
+            tagsBean.setSelected(true);
+        }
+    }
+
+//    @Override
+//    public void onFirstLoaded(List<TagsBean> tagsBeans) {
+//        super.onFirstLoaded(tagsBeans);
+//        getLikedTags();
+//    }
+
+    @Override
     public String getToolbarTitle() {
         return getString(R.string.string_238);
     }
+
+//    private void getLikedTags() {
+//        if (true) {
+//            return;
+//        }
+//        Retro.getAppApi().getBookmarkTags(Shaft.sUserModel.getAccess_token(),
+//                Shaft.sUserModel.getUserId(), Params.TYPE_PUBLUC)
+//                .subscribeOn(Schedulers.newThread())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(new NullCtrl<ListTag>() {
+//                    @Override
+//                    public void success(ListTag listTag) {
+//                        if (!Common.isEmpty(listTag.getList()) && !Common.isEmpty(allItems)) {
+//                            for (TagsBean tagsBean : listTag.getList()) {
+//                                for (TagsBean allItem : allItems) {
+//                                    Common.showLog("left " + allItem.getName() + "right " + tagsBean.getName());
+//                                    allItem.setSelected(
+//                                            TextUtils.equals(allItem.getName(), tagsBean.getName())
+//                                    );
+//                                }
+//                            }
+//                            mAdapter.notifyDataSetChanged();
+//                        }
+//                    }
+//                });
+//    }
 }

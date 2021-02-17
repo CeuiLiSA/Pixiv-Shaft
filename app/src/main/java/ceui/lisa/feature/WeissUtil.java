@@ -18,7 +18,6 @@ import weiss.Weiss;
  */
 public class WeissUtil {
 
-    private static Server server = new Server();
     public static final int PORT = 9801;
 
     public static void start() {
@@ -26,8 +25,7 @@ public class WeissUtil {
             return;
         }
         try {
-            server.start();
-//            Weiss.start(String.valueOf(PORT));
+            Weiss.start(String.valueOf(PORT));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -38,7 +36,6 @@ public class WeissUtil {
             return;
         }
         try {
-            server.interrupt();
             Weiss.close();
         } catch (Exception e) {
             e.printStackTrace();

@@ -101,7 +101,7 @@ public class FragmentCenter extends SwipeFragment<FragmentNewCenterBinding> {
 
         pivisionFragment = new FragmentPivisionHorizontal();
         transaction.add(R.id.fragment_pivision, pivisionFragment, "FragmentPivisionHorizontal");
-        transaction.commitNow();
+        transaction.commitNowAllowingStateLoss();
     }
 
     @Override

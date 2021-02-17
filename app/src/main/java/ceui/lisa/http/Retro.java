@@ -43,11 +43,9 @@ public class Retro {
         PixivHeaders pixivHeaders = new PixivHeaders();
         String osVersion = DeviceUtils.getSDKVersionName();
         String phoneName = DeviceUtils.getModel();
-        before.addHeader("User-Agent", "PixivIOSApp/7.10.10 (iOS 14.4; iPhone12,3)")
+        before.addHeader("User-Agent", "PixivAndroidApp/5.0.234 (Android " + osVersion + "; " + phoneName + ")")
                 .addHeader("accept-language", "zh-cn")
                 .addHeader("x-client-time", pixivHeaders.getXClientTime())
-                .addHeader("app-version", "7.10.10")
-                .addHeader("app-os", "ios")
                 .addHeader("x-client-hash", pixivHeaders.getXClientHash());
         return before;
     }
