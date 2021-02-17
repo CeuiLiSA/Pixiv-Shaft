@@ -236,7 +236,7 @@ public class UserActivity extends BaseActivity<ActicityUserBinding> implements D
                 FragmentLikeNovelHorizontal.newInstance(0, currentUser.getUserId(),
                         currentUser.getProfile().getTotal_novels()));// 0收藏的小说， 1创作的小说
 
-        transaction.commit();
+        transaction.commitNowAllowingStateLoss();
 
         if (!TextUtils.isEmpty(currentUser.getWorkspace().getWorkspace_image_url())) {
             Glide.with(mContext)

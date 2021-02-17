@@ -154,7 +154,7 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
             public void onItemClick(View v, int position, int viewType) {
                 TimeRecord.start();
 
-                final PageData pageData = new PageData(allIllust);
+                final PageData pageData = new PageData(uuid, nextUrl, allIllust);
                 Container.get().addPageToMap(pageData);
 
                 Intent intent = new Intent(mContext, VActivity.class);

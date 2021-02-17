@@ -31,6 +31,7 @@ import ceui.lisa.models.IllustsBean;
 import ceui.lisa.transformer.LargeBitmapScaleTransformer;
 import ceui.lisa.transformer.UniformScaleTransformation;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUrlChild;
 import me.jessyan.progressmanager.ProgressListener;
 import me.jessyan.progressmanager.ProgressManager;
@@ -112,6 +113,9 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
      * @param changeSize 是否自动计算宽高
      */
     private void loadIllust(ViewHolder<RecyIllustDetailBinding> holder, int position, boolean changeSize) {
+        if (Dev.isDev) {
+            return;
+        }
         final String imageUrl;
         if (Shaft.sSettings.isShowOriginalImage() || isForceOriginal) {
             imageUrl = IllustDownload.getUrl(allIllust, position);

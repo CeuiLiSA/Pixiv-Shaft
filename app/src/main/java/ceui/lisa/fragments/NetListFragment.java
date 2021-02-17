@@ -1,16 +1,22 @@
 package ceui.lisa.fragments;
 
 import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 
 import androidx.annotation.CallSuper;
+import androidx.annotation.Nullable;
 import androidx.databinding.ViewDataBinding;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
+
+import java.util.UUID;
 
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.EventAdapter;
@@ -18,10 +24,15 @@ import ceui.lisa.adapters.IAdapter;
 import ceui.lisa.adapters.NAdapter;
 import ceui.lisa.adapters.SimpleUserAdapter;
 import ceui.lisa.adapters.UAdapter;
+import ceui.lisa.core.Container;
+import ceui.lisa.core.PageData;
 import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.interfaces.ListShow;
+import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.Starable;
+import ceui.lisa.notification.BaseReceiver;
+import ceui.lisa.notification.CallBackReceiver;
 import ceui.lisa.notification.CommonReceiver;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
@@ -38,7 +49,14 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
 
     protected RemoteRepo<Response> mRemoteRepo;
     protected Response mResponse;
-    protected BroadcastReceiver mReceiver = null;
+    protected BroadcastReceiver mReceiver = null, dataReceiver = null;
+    protected String uuid;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        uuid = UUID.randomUUID().toString();
+    }
 
     @Override
     public void fresh() {
@@ -71,6 +89,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                     }
                     Common.showLog("trace 444");
                     mRemoteRepo.setNextUrl(mResponse.getNextUrl());
+                    mAdapter.setNextUrl(mResponse.getNextUrl());
                     if (!TextUtils.isEmpty(mResponse.getNextUrl())) {
                         Common.showLog("trace 555");
                         mRefreshLayout.setRefreshFooter(new ClassicsFooter(mContext));
@@ -123,6 +142,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                         mAdapter.notifyItemRangeInserted(getStartSize(), mResponse.getList().size());
                     }
                     mRemoteRepo.setNextUrl(mResponse.getNextUrl());
+                    mAdapter.setNextUrl(mResponse.getNextUrl());
                     if (!TextUtils.isEmpty(mResponse.getNextUrl())) {
                         mRefreshLayout.setRefreshFooter(new ClassicsFooter(mContext));
                     } else {
@@ -162,12 +182,57 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
     @CallSuper
     @Override
     public void onAdapterPrepared() {
+        mAdapter.setUuid(uuid);
         //注册本地广播
         if (mAdapter instanceof IAdapter || mAdapter instanceof EventAdapter) {
-            IntentFilter intentFilter = new IntentFilter();
-            mReceiver = new CommonReceiver((BaseAdapter<Starable, ?>) mAdapter);
-            intentFilter.addAction(Params.LIKED_ILLUST);
-            LocalBroadcastManager.getInstance(mContext).registerReceiver(mReceiver, intentFilter);
+            {
+                IntentFilter intentFilter = new IntentFilter();
+                mReceiver = new CommonReceiver((BaseAdapter<Starable, ?>) mAdapter);
+                intentFilter.addAction(Params.LIKED_ILLUST);
+                LocalBroadcastManager.getInstance(mContext).registerReceiver(mReceiver, intentFilter);
+            }
+            if (mAdapter instanceof IAdapter) {
+                IntentFilter intentFilter = new IntentFilter();
+                dataReceiver = new CallBackReceiver(new BaseReceiver.CallBack() {
+                    @Override
+                    public void onReceive(Context context, Intent intent) {
+                        Bundle bundle = intent.getExtras();
+                        if (bundle != null) {
+                            //接受VActivity传过来的ListIllust 数据
+                            PageData pageData = Container.get().getPage(uuid);
+                            if (pageData != null) {
+                                if (TextUtils.equals(pageData.getUUID(), uuid)) {
+                                    ListIllust listIllust = (ListIllust) bundle.getSerializable(Params.CONTENT);
+                                    if (listIllust != null){
+                                        if (!Common.isEmpty(listIllust.getList())) {
+                                            if (!isAdded()) {
+                                                return;
+                                            }
+                                            mResponse = (Response) listIllust;
+                                            if (!Common.isEmpty(mResponse.getList())) {
+                                                beforeNextLoad(mResponse.getList());
+                                                mModel.load(mResponse.getList(), false);
+                                                allItems = mModel.getContent();
+                                                onNextLoaded(mResponse.getList());
+                                                mAdapter.notifyItemRangeInserted(getStartSize(), mResponse.getList().size());
+                                            }
+                                            mRemoteRepo.setNextUrl(mResponse.getNextUrl());
+                                            mAdapter.setNextUrl(mResponse.getNextUrl());
+                                            if (!TextUtils.isEmpty(mResponse.getNextUrl())) {
+                                                mRefreshLayout.setRefreshFooter(new ClassicsFooter(mContext));
+                                            } else {
+                                                mRefreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                intentFilter.addAction(Params.FRAGMENT_ADD_DATA);
+                LocalBroadcastManager.getInstance(mContext).registerReceiver(dataReceiver, intentFilter);
+            }
         } else if (mAdapter instanceof UAdapter || mAdapter instanceof SimpleUserAdapter) {
             IntentFilter intentFilter = new IntentFilter();
             mReceiver = new CommonReceiver((BaseAdapter<Starable, ?>) mAdapter);
@@ -186,6 +251,9 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
         super.onDestroy();
         if (mReceiver != null) {
             LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mReceiver);
+        }
+        if (dataReceiver != null) {
+            LocalBroadcastManager.getInstance(mContext).unregisterReceiver(dataReceiver);
         }
     }
 }

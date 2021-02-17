@@ -115,7 +115,7 @@ public class UActivity extends BaseActivity<ActivityNewUserBinding> implements D
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.fragment_container, FragmentHolder.newInstance())
-                .commitNow();
+                .commitNowAllowingStateLoss();
 
         if (userID == Shaft.sUserModel.getUserId()) {
             baseBind.starUser.setVisibility(View.INVISIBLE);

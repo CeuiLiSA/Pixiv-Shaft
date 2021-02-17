@@ -6,21 +6,23 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUrlChild;
 
 public class Container {
 
-    private HashMap<String, IDWithList<IllustsBean>> pages = new HashMap<>();
-    private HashMap<String, GlideUrlChild> isLoad = new HashMap<>();
+    private HashMap<String, PageData> pages = new HashMap<>();
+    private HashMap<String, ListIllust> isLoaded = new HashMap<>();
+    private boolean isNetworking = false;
 
     /**
      * 用 HashMap 存储，app杀掉之后就没有了
      *
      * @param pageData 一个插画列表
      */
-    public void addPageToMap(IDWithList<IllustsBean> pageData) {
+    public void addPageToMap(PageData pageData) {
         if (pageData == null) {
             return;
         }
@@ -37,7 +39,7 @@ public class Container {
         Common.showLog("Container addPage " + pageData.getUUID());
     }
 
-    public IDWithList<IllustsBean> getPage(String uuid) {
+    public PageData getPage(String uuid) {
         Common.showLog("Container getPage " + uuid);
         if (TextUtils.isEmpty(uuid)) {
             return null;
@@ -48,18 +50,6 @@ public class Container {
         }
 
         return pages.get(uuid);
-    }
-
-    public List<PageData> getAll() {
-        List<PageData> result = new ArrayList<>();
-        if (pages == null || pages.size() == 0) {
-            return result;
-        }
-
-        for (IDWithList<IllustsBean> value : pages.values()) {
-            result.add((PageData) value);
-        }
-        return result;
     }
 
     public void clear() {
@@ -73,12 +63,20 @@ public class Container {
         }
     }
 
-    public void addLoadingUrl(String url, GlideUrlChild glideUrl) {
-        isLoad.put(url, glideUrl);
+    public void addLoadingUrl(String url, ListIllust listIllust) {
+        isLoaded.put(url, listIllust);
     }
 
-    public GlideUrlChild getGlideUrl(String url) {
-        return isLoad.get(url);
+    public ListIllust isUrlLoadFinished(String url) {
+        return isLoaded.get(url);
+    }
+
+    public boolean isNetworking() {
+        return isNetworking;
+    }
+
+    public void setNetworking(boolean networking) {
+        isNetworking = networking;
     }
 
     private Container() {

@@ -157,11 +157,11 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
         if (!fragmentFilter.isAdded()) {
             fragmentManager.beginTransaction()
                     .add(R.id.id_container_menu, fragmentFilter)
-                    .commit();
+                    .commitNowAllowingStateLoss();
         } else {
             fragmentManager.beginTransaction()
                     .show(fragmentFilter)
-                    .commit();
+                    .commitNowAllowingStateLoss();
         }
     }
 }
