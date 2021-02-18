@@ -98,7 +98,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
 
                 @Override
                 public void updateDrawState(TextPaint ds) {
-                    ds.setColor(R.attr.colorPrimary);
+                    ds.setColor(Common.resolveThemeAttribute(mContext, R.attr.colorPrimary));
                 }
             };
             SpannableString spannableString;
