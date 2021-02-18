@@ -217,7 +217,7 @@ public class Settings {
     }
 
     public String getSearchFilter() {
-        return TextUtils.isEmpty(searchFilter) ? " 无限制" : searchFilter;
+        return TextUtils.isEmpty(searchFilter) ? "" : searchFilter;
     }
 
     public boolean isUsePixivCat() {
