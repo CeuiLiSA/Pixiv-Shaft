@@ -172,8 +172,4 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                 })
                 .into(new UniformScaleTransformation(holder.baseBind.illust, changeSize));
     }
-
-    public void clearProgressManagerRef(){
-        this.loadImageUrl = null;
-    }
 }
