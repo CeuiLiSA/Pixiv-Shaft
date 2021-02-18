@@ -92,9 +92,6 @@ dependencies {
     api 'com.squareup.retrofit2:converter-gson:2.9.0'
     api 'com.squareup.retrofit2:adapter-rxjava2:2.9.0'
 
-
-    implementation 'me.jessyan:progressmanager:1.5.0'
-
     api "io.reactivex.rxjava2:rxjava:2.2.20"
     api 'io.reactivex.rxjava2:rxandroid:2.1.1'
 
@@ -159,6 +156,7 @@ dependencies {
     implementation 'xyz.zpayh:hdimageview:3.0.1'
 
     implementation project(path: ':models')
+    implementation project(path: ':progress')
     implementation 'com.waynejo:androidndkgif:0.3.3'
     implementation 'com.tencent:mmkv-static:1.2.6'
     implementation 'com.github.tbruyelle:rxpermissions:0.12'

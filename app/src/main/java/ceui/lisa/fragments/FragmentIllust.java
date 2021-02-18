@@ -59,7 +59,6 @@ import ceui.lisa.utils.ShareIllust;
 public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
 
     private IllustsBean illust;
-    private IllustAdapter illustAdapter;
 
     public static FragmentIllust newInstance(IllustsBean illustsBean) {
         Bundle args = new Bundle();
@@ -99,7 +98,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
 
                 @Override
                 public void updateDrawState(TextPaint ds) {
-                    ds.setColor(R.attr.colorPrimary);
+                    ds.setColor(Common.resolveThemeAttribute(mContext, R.attr.colorPrimary));
                 }
             };
             SpannableString spannableString;
@@ -137,9 +136,8 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                     MuteDialog muteDialog = MuteDialog.newInstance(illust);
                     muteDialog.show(getChildFragmentManager(), "MuteDialog");
                 } else if (menuItem.getItemId() == R.id.action_show_original) {
-                    illustAdapter = new IllustAdapter(mActivity, illust,
-                            recyHeight, true);
-                    baseBind.recyclerView.setAdapter(illustAdapter);
+                    baseBind.recyclerView.setAdapter(new IllustAdapter(mContext, illust,
+                            recyHeight, true));
                 } else if (menuItem.getItemId() == R.id.action_mute_illust) {
                     PixivOperate.muteIllust(illust);
                 }
@@ -236,8 +234,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 baseBind.recyclerView.setLayoutManager(new LinearLayoutManager(mContext));
 
                 recyHeight = baseBind.recyclerView.getHeight() - bottomCardHeight + DensityUtil.dp2px(16.0f);
-                illustAdapter = new IllustAdapter(mActivity, illust, recyHeight);
-                baseBind.recyclerView.setAdapter(illustAdapter);
+                baseBind.recyclerView.setAdapter(new IllustAdapter(mContext, illust, recyHeight));
 
                 baseBind.coreLinear.getViewTreeObserver().removeOnGlobalLayoutListener(this);
             }
@@ -385,9 +382,9 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
     public void onResume() {
         super.onResume();
         checkDownload();
-        if (Glide.with(mActivity).isPaused()) {
-            Glide.with(mActivity).resumeRequests();
-        }
+//        if (Glide.with(mActivity).isPaused()) {
+//            Glide.with(mActivity).resumeRequests();
+//        }
     }
 
     private int recyHeight = 0;
@@ -443,7 +440,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
             LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mReceiver);
         }
         super.onDestroy();
-        illustAdapter.clearProgressManagerRef();
+        baseBind.recyclerView.setAdapter(null);
     }
 
     @Override
@@ -460,6 +457,6 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
     @Override
     public void onPause() {
         super.onPause();
-        Glide.with(mActivity).pauseRequests();
+//        Glide.with(mActivity).pauseRequests();
     }
 }
