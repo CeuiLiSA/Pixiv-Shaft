@@ -136,7 +136,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                     MuteDialog muteDialog = MuteDialog.newInstance(illust);
                     muteDialog.show(getChildFragmentManager(), "MuteDialog");
                 } else if (menuItem.getItemId() == R.id.action_show_original) {
-                    baseBind.recyclerView.setAdapter(new IllustAdapter(mActivity, illust,
+                    baseBind.recyclerView.setAdapter(new IllustAdapter(mContext, illust,
                             recyHeight, true));
                 } else if (menuItem.getItemId() == R.id.action_mute_illust) {
                     PixivOperate.muteIllust(illust);
@@ -234,7 +234,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 baseBind.recyclerView.setLayoutManager(new LinearLayoutManager(mContext));
 
                 recyHeight = baseBind.recyclerView.getHeight() - bottomCardHeight + DensityUtil.dp2px(16.0f);
-                baseBind.recyclerView.setAdapter(new IllustAdapter(mActivity, illust, recyHeight));
+                baseBind.recyclerView.setAdapter(new IllustAdapter(mContext, illust, recyHeight));
 
                 baseBind.coreLinear.getViewTreeObserver().removeOnGlobalLayoutListener(this);
             }
@@ -382,9 +382,9 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
     public void onResume() {
         super.onResume();
         checkDownload();
-        if (Glide.with(mActivity).isPaused()) {
-            Glide.with(mActivity).resumeRequests();
-        }
+//        if (Glide.with(mActivity).isPaused()) {
+//            Glide.with(mActivity).resumeRequests();
+//        }
     }
 
     private int recyHeight = 0;
@@ -457,6 +457,6 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
     @Override
     public void onPause() {
         super.onPause();
-        Glide.with(mActivity).pauseRequests();
+//        Glide.with(mActivity).pauseRequests();
     }
 }

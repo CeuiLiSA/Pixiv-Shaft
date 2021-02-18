@@ -31,23 +31,23 @@ import static com.bumptech.glide.load.resource.bitmap.BitmapTransitionOptions.wi
  */
 public class IllustDetailAdapter extends AbstractIllustAdapter<RecyclerView.ViewHolder> {
 
-    public IllustDetailAdapter(IllustsBean list, FragmentActivity activity, boolean isForceOriginal) {
-        mActivity = activity;
+    public IllustDetailAdapter(IllustsBean list, Context context, boolean isForceOriginal) {
+        mContext = context;
         allIllust = list;
         this.isForceOriginal = isForceOriginal;
-        imageSize = (mActivity.getResources().getDisplayMetrics().widthPixels -
-                2 * mActivity.getResources().getDimensionPixelSize(R.dimen.twelve_dp));
+        imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
+                2 * mContext.getResources().getDimensionPixelSize(R.dimen.twelve_dp));
     }
 
-    public IllustDetailAdapter(IllustsBean list, FragmentActivity activity) {
-        this(list, activity, false);
+    public IllustDetailAdapter(IllustsBean list, Context context) {
+        this(list, context, false);
     }
 
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         return new TagHolder(
-                LayoutInflater.from(mActivity).inflate(
+                LayoutInflater.from(mContext).inflate(
                         R.layout.recy_illust_grid, parent, false)
         );
     }
@@ -62,7 +62,7 @@ public class IllustDetailAdapter extends AbstractIllustAdapter<RecyclerView.View
             params.height = imageSize * allIllust.getHeight() / allIllust.getWidth();
             params.width = imageSize;
             currentOne.illust.setLayoutParams(params);
-            Glide.with(mActivity)
+            Glide.with(mContext)
                     .asDrawable()
                     .load(isForceOriginal ?
                             GlideUtil.getOriginalImage(allIllust, position) :
@@ -75,7 +75,7 @@ public class IllustDetailAdapter extends AbstractIllustAdapter<RecyclerView.View
                         }
                     });
         } else {
-            Glide.with(mActivity)
+            Glide.with(mContext)
                     .asBitmap()
                     .load(isForceOriginal ?
                             GlideUtil.getOriginalImage(allIllust, position) :
