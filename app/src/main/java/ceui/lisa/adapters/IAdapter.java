@@ -86,9 +86,9 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
                             ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.has_bookmarked)));
                 }
                 if (Shaft.sSettings.isPrivateStar()) {
-                    PixivOperate.postLike(target, Params.TYPE_PRIVATE);
+                    PixivOperate.postLike(target, Params.TYPE_PRIVATE, showRelated, (position + 2));
                 } else {
-                    PixivOperate.postLike(target, Params.TYPE_PUBLUC);
+                    PixivOperate.postLike(target, Params.TYPE_PUBLUC, showRelated, (position + 2));
                 }
             }
         });
@@ -129,6 +129,11 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
                 return true;
             }
         });
+        if (target.isRelated()) {
+            bindView.baseBind.pRelated.setVisibility(View.VISIBLE);
+        } else {
+            bindView.baseBind.pRelated.setVisibility(View.GONE);
+        }
     }
 
     public RequestBuilder<Drawable> getBuilder(IllustsBean illust) {
@@ -218,5 +223,16 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
                 mNormalPopup.dismiss();
             }
         });
+    }
+
+    private boolean showRelated = false;
+
+    public boolean isShowRelated() {
+        return showRelated;
+    }
+
+    public IAdapter setShowRelated(boolean showRelated) {
+        this.showRelated = showRelated;
+        return this;
     }
 }

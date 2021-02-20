@@ -87,14 +87,15 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                     if (position == (pageData.getList().size() - 1) || position == (pageData.getList().size() - 2)) {
                         String nextUrl = pageData.getNextUrl();
                         if (!TextUtils.isEmpty(nextUrl)) {
-                            if (!Container.get().isUrlLoadFinished(nextUrl) && !Container.get().isNetworking()) {
-                                Common.showLog("Container 去请求下一页 ");
+                            if (!Container.get().isNetworking()) {
+                                Common.showLog("Container 去请求下一页 " + nextUrl);
                                 Retro.getAppApi().getNextIllust(Shaft.sUserModel.getAccess_token(), nextUrl)
                                         .subscribeOn(Schedulers.newThread())
                                         .observeOn(AndroidSchedulers.mainThread())
                                         .subscribe(new NullCtrl<ListIllust>() {
                                             @Override
                                             public void success(ListIllust listIllust) {
+                                                Common.showLog("Container 下一页请求成功 ");
                                                 Intent intent = new Intent(Params.FRAGMENT_ADD_DATA);
                                                 intent.putExtra(Params.CONTENT, listIllust);
                                                 LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
@@ -119,8 +120,10 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                                             }
                                         });
                             } else {
-                                Common.showLog("Container 不去请求下一页 ");
+                                Common.showLog("Container 不去请求下一页 00");
                             }
+                        } else {
+                            Common.showLog("Container 不去请求下一页 11");
                         }
                     }
                 }

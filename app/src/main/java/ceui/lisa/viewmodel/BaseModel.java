@@ -39,6 +39,10 @@ public class BaseModel<T> extends ViewModel{
         isLoaded = true;
     }
 
+    public void load(List<T> list, int index) {
+        content.addAll(index, list);
+    }
+
     public boolean isLoaded() {
         return isLoaded;
     }

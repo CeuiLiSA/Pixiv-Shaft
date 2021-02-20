@@ -17,6 +17,7 @@ package me.jessyan.progressmanager.body;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 /**
  * ================================================

@@ -120,6 +120,10 @@ public class PixivOperate {
     }
 
     public static void postLike(IllustsBean illustsBean, String starType) {
+        postLike(illustsBean, starType, false, 0);
+    }
+
+    public static void postLike(IllustsBean illustsBean, String starType, boolean showRelated, int index) {
         if (illustsBean == null) {
             return;
         }
@@ -160,6 +164,22 @@ public class PixivOperate {
                             }
                         }
                     });
+
+            //收藏的时候，顺便请求这个作品的相关作品
+            if (showRelated) {
+                Retro.getAppApi().relatedIllust(sUserModel.getAccess_token(), illustsBean.getId())
+                        .subscribeOn(Schedulers.newThread())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new NullCtrl<ListIllust>() {
+                            @Override
+                            public void success(ListIllust listIllust) {
+                                Intent intent = new Intent(Params.FRAGMENT_ADD_RELATED_DATA);
+                                intent.putExtra(Params.CONTENT, listIllust);
+                                intent.putExtra(Params.INDEX, index);
+                                LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
+                            }
+                        });
+            }
         }
         PixivOperate.insertIllustViewHistory(illustsBean);
     }

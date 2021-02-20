@@ -17,6 +17,7 @@ package me.jessyan.progressmanager.body;
 
 import android.os.Handler;
 import android.os.SystemClock;
+import android.util.Log;
 
 import java.io.IOException;
 import java.util.List;

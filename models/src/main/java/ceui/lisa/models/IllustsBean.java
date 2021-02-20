@@ -37,6 +37,7 @@ public class IllustsBean implements Serializable, Starable {
     private String caption;
     private int restrict;
     private boolean isChecked = false;
+    private boolean isRelated = false;
     private UserBean user;
     private String create_date;
     private int page_count;
@@ -328,5 +329,13 @@ public class IllustsBean implements Serializable, Starable {
 
     public boolean isR18File() {
         return x_restrict == 1 || sanity_level >= 4;
+    }
+
+    public boolean isRelated() {
+        return isRelated;
+    }
+
+    public void setRelated(boolean related) {
+        isRelated = related;
     }
 }

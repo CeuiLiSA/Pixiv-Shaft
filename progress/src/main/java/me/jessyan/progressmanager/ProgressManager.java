@@ -21,6 +21,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.text.TextUtils;
+import android.util.Log;
 
 import java.io.IOException;
 import java.lang.ref.ReferenceQueue;
@@ -249,6 +250,7 @@ public final class ProgressManager {
             return response;
 
         String key = response.request().url().toString();
+        Log.d("ProgressInfo", key);
         if (!TextUtils.isEmpty(response.request().header(IDENTIFICATION_HEADER))) { //从 header 中拿出有标识符的 url
             key = response.request().header(IDENTIFICATION_HEADER);
         }
