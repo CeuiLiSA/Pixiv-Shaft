@@ -4,9 +4,7 @@ import android.content.Intent;
 import android.net.SSLCertificateSocketFactory;
 import android.net.Uri;
 import android.net.http.SslError;
-import android.os.Build;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
@@ -14,13 +12,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebResourceRequest;
-import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.RelativeLayout;
 
 import com.blankj.utilcode.util.DeviceUtils;
-import com.blankj.utilcode.util.RomUtils;
 import com.google.android.material.snackbar.Snackbar;
 import com.just.agentweb.AgentWeb;
 import com.just.agentweb.WebViewClient;
@@ -33,10 +29,7 @@ import java.net.Socket;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -47,19 +40,14 @@ import javax.net.ssl.SSLSocketFactory;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.OutWakeActivity;
-import ceui.lisa.activities.UserActivity;
 import ceui.lisa.databinding.FragmentWebviewBinding;
 import ceui.lisa.feature.WeissUtil;
 import ceui.lisa.http.HttpDns;
-import ceui.lisa.http.RubySSLSocketFactory;
 import ceui.lisa.utils.ClipBoardUtils;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
-import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.view.ContextMenuTitleView;
-
-import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
 
@@ -134,6 +122,9 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
     public void initView() {
         baseBind.toolbarTitle.setText(title);
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
+        baseBind.ibMenu.setOnClickListener(v -> {
+            mActivity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(mWebView.getUrl())));
+        });
     }
 
     @Override
