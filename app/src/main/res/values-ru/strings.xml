@@ -522,5 +522,8 @@
   <string name="string_355">экранировать это произведение</string>  
   <string name="string_356">Настройка выполнена</string>  
   <string name="string_357">Настройки не действуют</string>  
-  <string name="string_358">Показать пароль</string>
+  <string name="string_358">Показать пароль</string>  
+  <string name="string_355_2">Копирование ссылок</string>  
+  <string name="string_r">справа</string>  
+  <string name="string_359">начальная страница APP показывает страницу R</string>
 </resources>

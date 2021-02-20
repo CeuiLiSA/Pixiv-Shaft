@@ -6,6 +6,8 @@ public class Dev {
     public static boolean isDev = true;
     public static boolean refreshUser = false;
 
+    public static boolean hideMainActivityStatus = true;
+
     /**
      * 测试账号：哪位大佬，希望自己去注册账号，别改我密码，别改我密码，别改我密码
      *

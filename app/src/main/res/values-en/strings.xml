@@ -344,7 +344,7 @@
   <string name="string_172">Reply to comment</string>  
   <string name="string_173">Copy Reviews</string>  
   <string name="string_174">View user</string>  
-  <string name="string_175"> comments</string>
+  <string name="string_175">comments</string>  
   <string name="string_176">Reply</string>  
   <string name="string_177">Unsubscribe</string>  
   <string name="string_178">+ Watch</string>  
@@ -522,5 +522,8 @@
   <string name="string_355">Block this work</string>  
   <string name="string_356">The settings are in effect</string>  
   <string name="string_357">Set to inactive</string>  
-  <string name="string_358">Display password</string>
+  <string name="string_358">Display password</string>  
+  <string name="string_355_2">Copy link</string>  
+  <string name="string_r">R</string>  
+  <string name="string_359">home page displays the R page</string>
 </resources>

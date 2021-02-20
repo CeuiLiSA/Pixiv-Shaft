@@ -3,6 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/action_copy_link"
+        android:orderInCategory="100"
+        android:title="@string/string_355_2"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_dislike"
         android:orderInCategory="100"
         android:title="@string/string_1"

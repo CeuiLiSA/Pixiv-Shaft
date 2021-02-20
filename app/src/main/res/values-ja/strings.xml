@@ -522,5 +522,8 @@
   <string name="string_355">この作品を遮る</string>  
   <string name="string_356">設定が有効になりました</string>  
   <string name="string_357">無効に設定されています。</string>  
-  <string name="string_358">パスワードを表示</string>
+  <string name="string_358">パスワードを表示</string>  
+  <string name="string_355_2">作品のリンクをコピー</string>  
+  <string name="string_r">R</string>  
+  <string name="string_359">APPホームページ表示Rページ</string>
 </resources>

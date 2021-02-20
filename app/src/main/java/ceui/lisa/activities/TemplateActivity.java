@@ -186,7 +186,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "热门直播":
                     return new FragmentLive();
                 case "标签屏蔽记录":
-                    return new FragmentViewPager();
+                    return FragmentViewPager.newInstance(Params.VIEW_PAGER_MUTED);
                 case "修改命名方式":
                     return FragmentFileName.newInstance();
                 case "捐赠":

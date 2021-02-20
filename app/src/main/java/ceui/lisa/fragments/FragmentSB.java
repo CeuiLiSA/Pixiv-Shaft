@@ -195,14 +195,6 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
         baseBind.submitArea.setOnClickListener(v -> submitStar());
     }
 
-    @Override
-    public void beforeFirstLoad(List<TagsBean> tagsBeans) {
-        super.beforeFirstLoad(tagsBeans);
-        for (TagsBean tagsBean : tagsBeans) {
-            tagsBean.setSelected(true);
-        }
-    }
-
 //    @Override
 //    public void onFirstLoaded(List<TagsBean> tagsBeans) {
 //        super.onFirstLoaded(tagsBeans);

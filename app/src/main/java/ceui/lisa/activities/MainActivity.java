@@ -2,15 +2,12 @@ package ceui.lisa.activities;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
@@ -23,12 +20,8 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
-import androidx.fragment.app.FragmentStatePagerAdapter;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.viewpager.widget.ViewPager;
 
-import com.blankj.utilcode.util.DeviceUtils;
-import com.blankj.utilcode.util.LanguageUtils;
 import com.blankj.utilcode.util.UriUtils;
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -36,38 +29,21 @@ import com.google.android.material.navigation.NavigationView;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.tbruyelle.rxpermissions3.RxPermissions;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Locale;
-
 import ceui.lisa.R;
 import ceui.lisa.core.Manager;
 import ceui.lisa.databinding.ActivityCoverBinding;
-import ceui.lisa.feature.HostManager;
 import ceui.lisa.fragments.FragmentCenter;
 import ceui.lisa.fragments.FragmentLeft;
 import ceui.lisa.fragments.FragmentRight;
-import ceui.lisa.http.NullCtrl;
-import ceui.lisa.http.Retro;
-import ceui.lisa.notification.BaseReceiver;
-import ceui.lisa.notification.CallBackReceiver;
+import ceui.lisa.fragments.FragmentViewPager;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
-import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseImage;
 import ceui.lisa.utils.ReverseWebviewCallback;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
-import static ceui.lisa.utils.Settings.ALL_LANGUAGE;
 
 /**
  * 主页
@@ -88,7 +64,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
     @Override
     public boolean hideStatusBar() {
-        return true;
+        return Dev.hideMainActivityStatus;
     }
 
     @Override
@@ -110,26 +86,17 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 if (item.getItemId() == R.id.action_1) {
-                    for (int i = 0; i < baseFragments.length; i++) {
-                        if (baseFragments[i] instanceof FragmentLeft) {
-                            baseBind.viewPager.setCurrentItem(i);
-                            return true;
-                        }
-                    }
+                    baseBind.viewPager.setCurrentItem(0);
+                    return true;
                 } else if (item.getItemId() == R.id.action_2) {
-                    for (int i = 0; i < baseFragments.length; i++) {
-                        if (baseFragments[i] instanceof FragmentCenter) {
-                            baseBind.viewPager.setCurrentItem(i);
-                            return true;
-                        }
-                    }
+                    baseBind.viewPager.setCurrentItem(1);
+                    return true;
                 } else if (item.getItemId() == R.id.action_3) {
-                    for (int i = 0; i < baseFragments.length; i++) {
-                        if (baseFragments[i] instanceof FragmentRight) {
-                            baseBind.viewPager.setCurrentItem(i);
-                            return true;
-                        }
-                    }
+                    baseBind.viewPager.setCurrentItem(2);
+                    return true;
+                } else if (item.getItemId() == R.id.action_4) {
+                    baseBind.viewPager.setCurrentItem(3);
+                    return true;
                 }
                 return false;
             }
@@ -166,12 +133,14 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
             @Override
             public void onPageSelected(int position) {
-                if (baseFragments[position] instanceof FragmentLeft) {
+                if (position == 0) {
                     baseBind.navigationView.setSelectedItemId(R.id.action_1);
-                } else if (baseFragments[position] instanceof FragmentCenter) {
+                } else if (position == 1) {
                     baseBind.navigationView.setSelectedItemId(R.id.action_2);
-                } else if (baseFragments[position] instanceof FragmentRight) {
+                } else if (position == 2) {
                     baseBind.navigationView.setSelectedItemId(R.id.action_3);
+                } else if (position == 3) {
+                    baseBind.navigationView.setSelectedItemId(R.id.action_4);
                 }
             }
 
@@ -183,57 +152,21 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     }
 
     private void initFragment() {
-        int order = Shaft.sSettings.getBottomBarOrder();
-        baseBind.navigationView.getMenu().clear();
-        switch (order) {
-            case 0:
-                baseBind.navigationView.inflateMenu(R.menu.main_activity0);
-                baseFragments = new Fragment[]{
-                        new FragmentLeft(),
-                        new FragmentCenter(),
-                        new FragmentRight()
-                };
-                break;
-            case 1:
-                baseBind.navigationView.inflateMenu(R.menu.main_activity1);
-                baseFragments = new Fragment[]{
-                        new FragmentLeft(),
-                        new FragmentRight(),
-                        new FragmentCenter()
-                };
-                break;
-            case 2:
-                baseBind.navigationView.inflateMenu(R.menu.main_activity2);
-                baseFragments = new Fragment[]{
-                        new FragmentCenter(),
-                        new FragmentLeft(),
-                        new FragmentRight()
-                };
-                break;
-            case 3:
-                baseBind.navigationView.inflateMenu(R.menu.main_activity3);
-                baseFragments = new Fragment[]{
-                        new FragmentCenter(),
-                        new FragmentRight(),
-                        new FragmentLeft()
-                };
-                break;
-            case 4:
-                baseBind.navigationView.inflateMenu(R.menu.main_activity4);
-                baseFragments = new Fragment[]{
-                        new FragmentRight(),
-                        new FragmentLeft(),
-                        new FragmentCenter(),
-                };
-                break;
-            case 5:
-                baseBind.navigationView.inflateMenu(R.menu.main_activity5);
-                baseFragments = new Fragment[]{
-                        new FragmentRight(),
-                        new FragmentCenter(),
-                        new FragmentLeft(),
-                };
-                break;
+        if (Shaft.sSettings.isMainViewR18()) {
+            baseBind.navigationView.inflateMenu(R.menu.main_activity0_with_r18);
+            baseFragments = new Fragment[]{
+                    new FragmentLeft(),
+                    new FragmentCenter(),
+                    new FragmentRight(),
+                    FragmentViewPager.newInstance(Params.VIEW_PAGER_R18),
+            };
+        } else {
+            baseBind.navigationView.inflateMenu(R.menu.main_activity0);
+            baseFragments = new Fragment[]{
+                    new FragmentLeft(),
+                    new FragmentCenter(),
+                    new FragmentRight()
+            };
         }
         baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override
@@ -246,6 +179,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 return baseFragments.length;
             }
         });
+        Manager.get().restore(mContext);
     }
 
     @Override
@@ -267,7 +201,6 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                             }
                         });
             }
-            Manager.get().restore(mContext);
         } else {
             Intent intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "登录注册");

@@ -541,8 +541,11 @@
     <string name="string_353">屏蔽标签</string>
     <string name="string_354">屏蔽作品</string>
     <string name="string_355">屏蔽这个作品</string>
+    <string name="string_355_2">复制作品链接</string>
     <string name="string_356">设置已生效</string>
     <string name="string_357">已设置为不生效</string>
     <string name="string_358">显示密码</string>
+    <string name="string_r">R</string>
+    <string name="string_359">APP主页显示R页面</string>
 
 </resources>

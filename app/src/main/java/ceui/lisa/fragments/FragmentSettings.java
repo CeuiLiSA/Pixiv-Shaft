@@ -146,6 +146,22 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             }
         });
 
+        baseBind.mainViewR18.setChecked(Shaft.sSettings.isMainViewR18());
+        baseBind.mainViewR18.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setMainViewR18(isChecked);
+                Common.showToast(getString(R.string.please_restart_app), 2);
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.mainViewR18Rela.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                baseBind.mainViewR18.performClick();
+            }
+        });
+
         baseBind.illustDetailUserNew.setChecked(Shaft.sSettings.isUseFragmentIllust());
         baseBind.illustDetailUserNew.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -456,7 +472,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                                     Shaft.sSettings.setLineCount(lineCount);
                                     baseBind.lineCount.setText(getString(R.string.string_349, lineCount));
                                     Local.setSettings(Shaft.sSettings);
-                                    Common.showToast("重启APP生效", 2);
+                                    Common.showToast(getString(R.string.please_restart_app), 2);
                                 }
                                 dialog.dismiss();
                             }

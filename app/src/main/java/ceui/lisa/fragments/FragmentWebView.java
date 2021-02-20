@@ -54,6 +54,7 @@ import ceui.lisa.http.HttpDns;
 import ceui.lisa.http.RubySSLSocketFactory;
 import ceui.lisa.utils.ClipBoardUtils;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.view.ContextMenuTitleView;
@@ -141,14 +142,17 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                 .setAgentWebParent(baseBind.webViewParent, new RelativeLayout.LayoutParams(-1, -1))
                 .useDefaultIndicator()
                 .setWebViewClient(new WebViewClient() {
-//                    @Override
-//                    public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
-////                        super.onReceivedSslError(view, handler, error);
-//                        Common.showLog(className + "onReceivedSslError " + error.toString());
-//                        if (handler != null) {
-//                            handler.proceed();
-//                        }
-//                    }
+                    @Override
+                    public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
+                        if (Dev.use_weiss) {
+                            if (handler != null) {
+                                handler.proceed();
+                            }
+                        } else {
+                            super.onReceivedSslError(view, handler, error);
+                        }
+                        Common.showLog(className + "onReceivedSslError " + error.toString());
+                    }
 
                     @Override
                     public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {

@@ -51,8 +51,8 @@ public class Settings {
         this.themeIndex = themeIndex;
     }
 
-    //瀑布流List点击动画
-    private boolean mainListAnimate = true;
+    //主页显示R18
+    private boolean mainViewR18 = false;
 
     private long currentProgress = 0L;
 
@@ -248,13 +248,12 @@ public class Settings {
         this.autoFuckChina = autoFuckChina;
     }
 
-
-    public boolean isMainListAnimate() {
-        return mainListAnimate;
+    public boolean isMainViewR18() {
+        return mainViewR18;
     }
 
-    public void setMainListAnimate(boolean mainListAnimate) {
-        this.mainListAnimate = mainListAnimate;
+    public void setMainViewR18(boolean mainViewR18) {
+        this.mainViewR18 = mainViewR18;
     }
 
     public boolean isUseFragmentIllust() {

@@ -334,7 +334,24 @@
                         <View style="@style/half_divider" />
 
                         <RelativeLayout
+                            android:id="@+id/main_view_r18_rela"
+                            style="@style/ripple_rela">
+
+                            <TextView
+                                style="@style/setting_text_left"
+                                android:text="@string/string_359" />
+
+                            <androidx.appcompat.widget.SwitchCompat
+                                android:id="@+id/main_view_r18"
+                                style="@style/setting_right_switch"/>
+
+                        </RelativeLayout>
+
+                        <View style="@style/half_divider" />
+
+                        <RelativeLayout
                             android:id="@+id/bottom_bar_order_rela"
+                            android:visibility="gone"
                             style="@style/ripple_rela">
 
                             <TextView
@@ -357,7 +374,9 @@
 
                         </RelativeLayout>
 
-                        <View style="@style/half_divider" />
+                        <View
+                            android:visibility="gone"
+                            style="@style/half_divider" />
 
                         <RelativeLayout
                             android:id="@+id/file_name_rela"

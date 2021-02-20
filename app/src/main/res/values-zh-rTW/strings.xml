@@ -522,5 +522,8 @@
   <string name="string_355">遮罩這個作品</string>  
   <string name="string_356">設定已生效</string>  
   <string name="string_357">已設定為不生效</string>  
-  <string name="string_358">顯示密碼</string>
+  <string name="string_358">顯示密碼</string>  
+  <string name="string_355_2">複製作品連結</string>  
+  <string name="string_r">右</string>  
+  <string name="string_359">APP主頁顯示R頁面</string>
 </resources>
