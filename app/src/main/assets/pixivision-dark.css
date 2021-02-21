@@ -1,0 +1,56 @@
+._global-header {
+    background: #555;
+}
+
+._global-nav {
+    background-color: #555;
+}
+
+._article-main .amsp__inner {
+    background-color: #2a2a2a;
+    color: #aaa;
+}
+
+._article-main .amsp__title {
+    color: #aaa;
+}
+
+._article-illust-work .aiwsp__title a {
+    color: #aaa;
+}
+
+._article-illust-work .aiwsp__user-name {
+    color: #aaa;
+}
+
+._article-illust-work .aiwsp__user-name a {
+    color: #aaa;
+}
+
+.body-container {
+    background-color: #2a2a2a;
+}
+
+._article-card {
+    background-color: #000;
+}
+
+._article-card .arcsp__title-container {
+    color: #aaa;
+}
+
+._articles-list-card {
+    background-color: #000;
+}
+
+._floated-bottom-bar.white {
+    background: rgba(42,42,42,0.89);
+}
+
+body:not(.android-browser) ._modal-menu .mdmsp__header {
+    background-color: #555;
+}
+
+._modal-menu-layer {
+    background-color: #aaa;
+}
