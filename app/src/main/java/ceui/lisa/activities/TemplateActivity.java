@@ -67,6 +67,7 @@ import ceui.lisa.fragments.TestFragment;
 import ceui.lisa.helper.BackHandlerHelper;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.NovelBean;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseResult;
@@ -216,7 +217,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "主题颜色":
                     return new FragmentColors();
                 case "测试测试":
-                    return new TestFragment();
+                    return TestFragment.newInstance(0);
                 default:
                     return new Fragment();
             }

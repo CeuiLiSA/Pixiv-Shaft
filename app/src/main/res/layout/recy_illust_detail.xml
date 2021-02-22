@@ -22,6 +22,18 @@
             android:id="@+id/progress_layout"
             layout="@layout/item_progress" />
 
+        <Button
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"
+            android:visibility="gone"
+            android:id="@+id/reload"
+            android:layout_centerInParent="true"
+            android:text="@string/string_73">
+
+        </Button>
+
     </RelativeLayout>
 
 

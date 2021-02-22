@@ -401,5 +401,11 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             initDrawerHeader();
             Dev.refreshUser = false;
         }
+
+        if (Dev.isDev) {
+            Intent intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "测试测试");
+            startActivity(intent);
+        }
     }
 }

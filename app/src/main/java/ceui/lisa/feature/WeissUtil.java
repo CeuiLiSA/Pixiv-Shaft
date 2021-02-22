@@ -6,9 +6,8 @@ import androidx.webkit.WebViewFeature;
 
 import java.util.concurrent.Executor;
 
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
-import weiss.Weiss;
+//import weiss.Weiss;
 
 /**
  *
@@ -25,7 +24,7 @@ public class WeissUtil {
             return;
         }
         try {
-            Weiss.start(String.valueOf(PORT));
+//            Weiss.start(String.valueOf(PORT));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -36,7 +35,7 @@ public class WeissUtil {
             return;
         }
         try {
-            Weiss.close();
+//            Weiss.close();
         } catch (Exception e) {
             e.printStackTrace();
         }

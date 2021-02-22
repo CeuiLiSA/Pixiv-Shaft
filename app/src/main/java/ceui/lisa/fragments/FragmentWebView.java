@@ -21,6 +21,7 @@ import com.blankj.utilcode.util.DeviceUtils;
 import com.google.android.material.snackbar.Snackbar;
 import com.just.agentweb.AgentWeb;
 import com.just.agentweb.WebViewClient;
+import android.util.Base64;
 
 import java.io.IOException;
 import java.io.InputStream;

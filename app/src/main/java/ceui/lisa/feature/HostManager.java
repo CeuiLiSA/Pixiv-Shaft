@@ -88,15 +88,23 @@ public class HostManager {
     }
 
     public String replaceUrl(String before) {
-        Common.showLog("HostManager before " + before);
-        if (Shaft.sSettings.isUsePixivCat() && !TextUtils.isEmpty(before) && before.contains(HOST_OLD)) {
-            String finalUrl = before.replace(HOST_OLD, HOST_NEW);
-            Common.showLog("HostManager after0 " + finalUrl);
-            return finalUrl;
+        if (Dev.show_url_detail) {
+            Common.showLog("HostManager before " + before);
+            if (Shaft.sSettings.isUsePixivCat() && !TextUtils.isEmpty(before) && before.contains(HOST_OLD)) {
+                String finalUrl = before.replace(HOST_OLD, HOST_NEW);
+                Common.showLog("HostManager after0 " + finalUrl);
+                return finalUrl;
+            } else {
+                String result = resizeUrl(before);
+                Common.showLog("HostManager after1 " + result);
+                return result;
+            }
         } else {
-            String result = resizeUrl(before);
-            Common.showLog("HostManager after1 " + result);
-            return result;
+            if (Shaft.sSettings.isUsePixivCat() && !TextUtils.isEmpty(before) && before.contains(HOST_OLD)) {
+                return before.replace(HOST_OLD, HOST_NEW);
+            } else {
+                return resizeUrl(before);
+            }
         }
     }
 

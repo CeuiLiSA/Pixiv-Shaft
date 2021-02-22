@@ -108,6 +108,13 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
      * @param changeSize 是否自动计算宽高
      */
     private void loadIllust(ViewHolder<RecyIllustDetailBinding> holder, int position, boolean changeSize) {
+        holder.baseBind.reload.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                holder.baseBind.reload.setVisibility(View.GONE);
+                loadIllust(holder, position, changeSize);
+            }
+        });
         final String imageUrl;
         if (Shaft.sSettings.isShowOriginalImage() || isForceOriginal) {
             imageUrl = IllustDownload.getUrl(allIllust, position);
@@ -132,16 +139,6 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
 
             }
         });
-//
-//
-//        GlideUrlChild child = Container.get().getGlideUrl(imageUrl);
-//        if (child == null) {
-//            child = new GlideUrlChild(imageUrl);
-//            Container.get().addLoadingUrl(imageUrl, child);
-//            Common.showLog("用了新建的");
-//        } else {
-//            Common.showLog("用了已有的");
-//        }
 
         Glide.with(mContext)
                 .asBitmap()
@@ -151,12 +148,14 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                 .listener(new RequestListener<Bitmap>() {
                     @Override
                     public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {
+                        holder.baseBind.reload.setVisibility(View.VISIBLE);
                         holder.baseBind.progressLayout.donutProgress.setVisibility(View.INVISIBLE);
                         return false;
                     }
 
                     @Override
                     public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
+                        holder.baseBind.reload.setVisibility(View.GONE);
                         holder.baseBind.progressLayout.donutProgress.setVisibility(View.INVISIBLE);
                         if (isForceOriginal) {
                             Shaft.getMMKV().encode(imageUrl, true);
