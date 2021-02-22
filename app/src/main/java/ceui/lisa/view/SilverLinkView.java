@@ -3,6 +3,7 @@ package ceui.lisa.view;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.os.Handler;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -16,11 +17,12 @@ import ceui.lisa.utils.Common;
 
 public class SilverLinkView extends View implements GestureDetector.OnGestureListener {
 
-    private int radius;
+    private float radius;
     private int circles;
     private Context mContext;
     private Canvas mCanvas;
     private float centerX, centerY;
+    private Handler mHandler = new Handler();
     private HashMap<Integer, Integer> mHashMap = new HashMap<>();
     private GestureDetector mGestureDetector;
     private Paint mPaint;
@@ -99,7 +101,12 @@ public class SilverLinkView extends View implements GestureDetector.OnGestureLis
     public boolean onTouchEvent(MotionEvent event) {
         centerX = event.getX();
         centerY = event.getY();
-        return mGestureDetector.onTouchEvent(event);
+        if (event.getAction() == MotionEvent.ACTION_UP) {
+            end();
+            return true;
+        } else {
+            return mGestureDetector.onTouchEvent(event);
+        }
     }
 
     @Override
@@ -115,11 +122,11 @@ public class SilverLinkView extends View implements GestureDetector.OnGestureLis
         for (int i = 0; i < circles; i++) {
 
             //设置半径
-            int r;
+            float r;
             if (circles == 1) {
                 r = radius;
             } else {
-                r = radius - i * 100;
+                r = radius - i * size;
             }
 
             //如果半径小于屏幕对角线，绘制
@@ -153,6 +160,7 @@ public class SilverLinkView extends View implements GestureDetector.OnGestureLis
 
     @Override
     public void onShowPress(MotionEvent e) {
+        start();
         Common.showLog("SilverLinkView onShowPress ");
     }
 
@@ -165,14 +173,6 @@ public class SilverLinkView extends View implements GestureDetector.OnGestureLis
     @Override
     public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
         Common.showLog("SilverLinkView onScroll ");
-        radius = radius + 8;
-        float ratio = radius / 100.0f;
-        if (ratio < 1) {
-            circles = 1;
-        } else {
-            circles = (int) ratio;
-        }
-        invalidate();
         return false;
     }
 
@@ -187,4 +187,35 @@ public class SilverLinkView extends View implements GestureDetector.OnGestureLis
         Common.showLog("SilverLinkView onFling ");
         return false;
     }
+
+
+    private void start() {
+        mRunnable.run();
+    }
+
+    private void end() {
+        mHandler.removeCallbacks(mRunnable);
+    }
+
+
+    private Runnable mRunnable = new Runnable() {
+        @Override
+        public void run() {
+            Common.showLog("SilverLinkView Runnable");
+            radius = radius + step;
+            step = step + 0.1f;
+            float ratio = radius / size;
+            if (ratio < 1) {
+                circles = 1;
+            } else {
+                circles = (int) ratio;
+            }
+            invalidate();
+            mHandler.postDelayed(mRunnable, 16);
+        }
+    };
+
+    private static final int size = 200;
+
+    private float step = 2.0f;
 }
