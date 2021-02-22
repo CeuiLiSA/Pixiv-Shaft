@@ -5,6 +5,7 @@ import android.net.SSLCertificateSocketFactory;
 import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Bundle;
+
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
@@ -22,6 +23,7 @@ import com.just.agentweb.AgentWeb;
 import com.just.agentweb.WebViewClient;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
@@ -55,6 +57,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
     private static final String USER_HEAD = "https://www.pixiv.net/member.php?id=";
     private static final String WORKS_HEAD = "https://www.pixiv.net/artworks/";
     private static final String PIXIV_HEAD = "https://www.pixiv.net/";
+    private static final String PIXIVISION_HEAD = "https://www.pixivision.net/";
     private static final String TAG = "FragmentWebView";
     private String title;
     private String url;
@@ -178,6 +181,15 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                         }
                         return super.shouldOverrideUrlLoading(view, request);
                     }
+
+                    @Override
+                    public void onPageFinished(WebView view, String url) {
+                        boolean shouldInjectCSS = mContext.getResources().getBoolean(R.bool.is_night_mode) && url.startsWith(PIXIVISION_HEAD);
+                        if(shouldInjectCSS){
+                            injectCSS();
+                        }
+                        super.onPageFinished(view, url);
+                    }
                 })
                 .createAgentWeb()
                 .ready();
@@ -300,9 +312,6 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
             return true;
         }
     }
-
-
-
 
 
     /**
@@ -535,6 +544,26 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                     " using " + session.getCipherSuite());
 
             return ssl;
+        }
+    }
+
+    private void injectCSS() {
+        try {
+            InputStream inputStream = mContext.getAssets().open("pixivision-dark.css");
+            byte[] buffer = new byte[inputStream.available()];
+            inputStream.read(buffer);
+            inputStream.close();
+            String encoded = Base64.encodeToString(buffer, Base64.NO_WRAP);
+            mWebView.loadUrl("javascript:(function() {" +
+                    "var parent = document.getElementsByTagName('head').item(0);" +
+                    "var style = document.createElement('style');" +
+                    "style.type = 'text/css';" +
+                    // Tell the browser to BASE64-decode the string into your script !!!
+                    "style.innerHTML = window.atob('" + encoded + "');" +
+                    "parent.appendChild(style)" +
+                    "})()");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
