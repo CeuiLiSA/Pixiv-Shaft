@@ -33,6 +33,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
 
     public static final String HOST_ME = "pixiv.me";
+    public static boolean isNetWorking = false;
 
     @Override
     protected int initLayout() {
@@ -61,6 +62,10 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
 
                     if (uri.getPath() != null) {
                         if (uri.getPath().contains("artworks")) {
+                            if (isNetWorking) {
+                                return;
+                            }
+                            isNetWorking = true;
                             List<String> pathArray = uri.getPathSegments();
                             String illustID = pathArray.get(pathArray.size() - 1);
                             if (!TextUtils.isEmpty(illustID)) {

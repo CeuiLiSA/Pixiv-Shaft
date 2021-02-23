@@ -152,28 +152,24 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                     @Override
                     public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                         try {
-                            if (DeviceUtils.isTablet()) {
-
-                            } else {
-                                String destiny = request.getUrl().toString();
-                                Common.showLog(className + "destiny " + destiny);
-                                if (destiny.contains(PIXIV_HEAD)) {
-                                    if (destiny.contains("logout.php")) {
-                                        return false;
-                                    } else {
-                                        try {
-                                            Intent intent = new Intent(mContext, OutWakeActivity.class);
-                                            intent.setData(Uri.parse(destiny));
-                                            startActivity(intent);
-                                            if (!preferPreserve) {
-                                                finish();
-                                            }
-                                        } catch (Exception e) {
-                                            Common.showToast(e.toString());
-                                            e.printStackTrace();
+                            String destiny = request.getUrl().toString();
+                            Common.showLog(className + "destiny " + destiny);
+                            if (destiny.contains(PIXIV_HEAD)) {
+                                if (destiny.contains("logout.php")) {
+                                    return false;
+                                } else {
+                                    try {
+                                        Intent intent = new Intent(mContext, OutWakeActivity.class);
+                                        intent.setData(Uri.parse(destiny));
+                                        startActivity(intent);
+                                        if (!preferPreserve) {
+                                            finish();
                                         }
-                                        return true;
+                                    } catch (Exception e) {
+                                        Common.showToast(e.toString());
+                                        e.printStackTrace();
                                     }
+                                    return true;
                                 }
                             }
                         } catch (Exception e) {

@@ -26,6 +26,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.OutWakeActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.VActivity;
@@ -301,6 +302,12 @@ public class PixivOperate {
                                 callback.doSomething(null);
                             }
                         }
+                    }
+
+                    @Override
+                    public void must() {
+                        super.must();
+                        OutWakeActivity.isNetWorking = false;
                     }
                 });
     }

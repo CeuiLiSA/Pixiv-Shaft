@@ -225,7 +225,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 if (Dev.isDev) {
                     intent = new Intent(mContext, TemplateActivity.class);
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
-                    intent.putExtra(Params.URL, "https://app-api.pixiv.net/web/v1/login?code_challenge=vMBcNztwMPd312YCAZNjat4Tf1xmqdZKV1eZJug24Nc&code_challenge_method=S256&client=pixiv-android");
+                    intent.putExtra(Params.URL, "https://www.pixivision.net/zh/a/6211");
                     intent.putExtra(Params.TITLE, getString(R.string.now_login));
                     intent.putExtra(Params.PREFER_PRESERVE, true);
                 } else {
@@ -402,10 +402,10 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             Dev.refreshUser = false;
         }
 
-        if (Dev.isDev) {
-            Intent intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "测试测试");
-            startActivity(intent);
-        }
+//        if (Dev.isDev) {
+//            Intent intent = new Intent(mContext, TemplateActivity.class);
+//            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "测试测试");
+//            startActivity(intent);
+//        }
     }
 }
