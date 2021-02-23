@@ -525,5 +525,7 @@
   <string name="string_358">顯示密碼</string>  
   <string name="string_355_2">複製作品連結</string>  
   <string name="string_r">右</string>  
-  <string name="string_359">APP主頁顯示R頁面</string>
+  <string name="string_359">APP主頁顯示R頁面</string>  
+  <string name="string_360">由於科技限制，中國大陸地區用戶進行登入/注册操作需要自行開啟代理（即梯子，非APP內寘代理）</string>
+  <string name="string_361">我開了</string>
 </resources>

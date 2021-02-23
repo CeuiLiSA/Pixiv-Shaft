@@ -547,5 +547,7 @@
     <string name="string_358">显示密码</string>
     <string name="string_r">R</string>
     <string name="string_359">APP主页显示R页面</string>
+    <string name="string_360">由于技术限制，中国大陆地区用户进行登录/注册操作需要自行开启代理（即梯子，非APP内置代理）</string>
+    <string name="string_361">我开了</string>
 
 </resources>

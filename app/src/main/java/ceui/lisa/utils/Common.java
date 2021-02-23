@@ -212,6 +212,10 @@ public class Common {
         qmuiDialog.show();
     }
 
+    public static void createLoginHintDialog(Context context){
+
+    }
+
     public static String getResponseBody(Response response) {
 
         Charset UTF8 = Charset.forName("UTF-8");

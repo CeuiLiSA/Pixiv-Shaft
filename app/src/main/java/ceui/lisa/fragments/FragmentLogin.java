@@ -3,59 +3,40 @@ package ceui.lisa.fragments;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
 import android.text.TextUtils;
-import android.text.method.HideReturnsTransformationMethod;
-import android.text.method.PasswordTransformationMethod;
-import android.util.Base64;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
-import android.widget.CompoundButton;
+import android.view.Window;
 import android.widget.Toast;
 
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
-import androidx.webkit.ProxyConfig;
-import androidx.webkit.ProxyController;
-import androidx.webkit.WebViewFeature;
 
 import com.blankj.utilcode.util.DeviceUtils;
-import com.blankj.utilcode.util.EncodeUtils;
-import com.blankj.utilcode.util.EncryptUtils;
 import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringConfig;
 import com.facebook.rebound.SpringSystem;
+import com.qmuiteam.qmui.skin.QMUISkinManager;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 
-import java.io.UnsupportedEncodingException;
-import java.security.SecureRandom;
 import java.util.Locale;
-import java.util.concurrent.Executor;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
-import ceui.lisa.database.AppDatabase;
-import ceui.lisa.database.UserEntity;
 import ceui.lisa.databinding.ActivityLoginBinding;
 import ceui.lisa.feature.HostManager;
-import ceui.lisa.feature.PkceUtil;
 import ceui.lisa.feature.WeissUtil;
-import ceui.lisa.http.NullCtrl;
-import ceui.lisa.http.Retro;
+import ceui.lisa.interfaces.FeedBack;
 import ceui.lisa.models.UserModel;
-import ceui.lisa.utils.Base64Util;
 import ceui.lisa.utils.ClipBoardUtils;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
 
 public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
 
@@ -71,6 +52,12 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
     public static final String CALL_BACK = "https://app-api.pixiv.net/web/v1/users/auth/pixiv/callback";
     private static final String SIGN_TOKEN = "Bearer l-f9qZ0ZyqSwRyZs8-MymbtWBbSxmCu1pmbOlyisou8";
     private static final String SIGN_REF = "pixiv_android_app_provisional_account";
+
+    private static final String LOGIN_HEAD = "https://app-api.pixiv.net/web/v1/login?code_challenge=";
+    private static final String LOGIN_END = "&code_challenge_method=S256&client=pixiv-android";
+
+    private static final String SIGN_HEAD = "https://app-api.pixiv.net/web/v1/provisional-accounts/create?code_challenge=";
+    private static final String SIGN_END = "&code_challenge_method=S256&client=pixiv-android";
     private static final int TAPS_TO_BE_A_DEVELOPER = 7;
     private SpringSystem springSystem = SpringSystem.create();
     private Spring rotate;
@@ -145,54 +132,54 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
         baseBind.login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String url = "https://app-api.pixiv.net/web/v1/login?code_challenge=" +
-                        HostManager.get().getPkceItem().getChallenge() +
-                        "&code_challenge_method=S256&client=pixiv-android";
-                if (DeviceUtils.isTablet()) {
-                    Uri uri = Uri.parse(url);
-                    Intent intent = new Intent();
-                    intent.setAction(Intent.ACTION_VIEW);
-                    intent.setData(uri);
-                    startActivity(intent);
-                } else {
-                    if (Shaft.sSettings.isAutoFuckChina()) {
-                        WeissUtil.start();
-                        WeissUtil.proxy();
+                openProxyHint(() -> {
+                    String url = LOGIN_HEAD + HostManager.get().getPkce().getChallenge() + LOGIN_END;
+                    if (DeviceUtils.isTablet()) {
+                        Uri uri = Uri.parse(url);
+                        Intent intent = new Intent();
+                        intent.setAction(Intent.ACTION_VIEW);
+                        intent.setData(uri);
+                        startActivity(intent);
+                    } else {
+                        if (Shaft.sSettings.isAutoFuckChina()) {
+                            WeissUtil.start();
+                            WeissUtil.proxy();
+                        }
+                        Intent intent = new Intent(mContext, TemplateActivity.class);
+                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
+                        intent.putExtra(Params.URL, url);
+                        intent.putExtra(Params.TITLE, getString(R.string.now_login));
+                        intent.putExtra(Params.PREFER_PRESERVE, true);
+                        startActivity(intent);
                     }
-                    Intent intent = new Intent(mContext, TemplateActivity.class);
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
-                    intent.putExtra(Params.URL, url);
-                    intent.putExtra(Params.TITLE, getString(R.string.now_login));
-                    intent.putExtra(Params.PREFER_PRESERVE, true);
-                    startActivity(intent);
-                }
+                });
             }
         });
 
         baseBind.sign.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String url = "https://app-api.pixiv.net/web/v1/provisional-accounts/create?code_challenge=" +
-                        HostManager.get().getPkceItem().getChallenge() +
-                        "&code_challenge_method=S256&client=pixiv-android";
-                if (DeviceUtils.isTablet()) {
-                    Uri uri = Uri.parse(url);
-                    Intent intent = new Intent();
-                    intent.setAction(Intent.ACTION_VIEW);
-                    intent.setData(uri);
-                    startActivity(intent);
-                } else {
-                    if (Shaft.sSettings.isAutoFuckChina()) {
-                        WeissUtil.start();
-                        WeissUtil.proxy();
+                openProxyHint(() -> {
+                    String url = SIGN_HEAD + HostManager.get().getPkce().getChallenge() + SIGN_END;
+                    if (DeviceUtils.isTablet()) {
+                        Uri uri = Uri.parse(url);
+                        Intent intent = new Intent();
+                        intent.setAction(Intent.ACTION_VIEW);
+                        intent.setData(uri);
+                        startActivity(intent);
+                    } else {
+                        if (Shaft.sSettings.isAutoFuckChina()) {
+                            WeissUtil.start();
+                            WeissUtil.proxy();
+                        }
+                        Intent intent = new Intent(mContext, TemplateActivity.class);
+                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
+                        intent.putExtra(Params.URL, url);
+                        intent.putExtra(Params.TITLE, getString(R.string.now_sign));
+                        intent.putExtra(Params.PREFER_PRESERVE, true);
+                        startActivity(intent);
                     }
-                    Intent intent = new Intent(mContext, TemplateActivity.class);
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
-                    intent.putExtra(Params.URL, url);
-                    intent.putExtra(Params.TITLE, getString(R.string.now_sign));
-                    intent.putExtra(Params.PREFER_PRESERVE, true);
-                    startActivity(intent);
-                }
+                });
             }
         });
         baseBind.hasNoAccount.setOnClickListener(new View.OnClickListener() {
@@ -207,6 +194,32 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
                 showLoginCard();
             }
         });
+    }
+
+    private void openProxyHint(FeedBack feedBack) {
+        QMUIDialog qmuiDialog = new QMUIDialog.MessageDialogBuilder(mContext)
+                .setTitle(mContext.getString(R.string.string_143))
+                .setMessage(mContext.getString(R.string.string_360))
+                .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                .addAction(mContext.getString(R.string.cancel), new QMUIDialogAction.ActionListener() {
+                    @Override
+                    public void onClick(QMUIDialog dialog, int index) {
+                        dialog.dismiss();
+                    }
+                })
+                .addAction(mContext.getString(R.string.string_361), new QMUIDialogAction.ActionListener() {
+                    @Override
+                    public void onClick(QMUIDialog dialog, int index) {
+                        feedBack.doSomething();
+                        dialog.dismiss();
+                    }
+                })
+                .create();
+        Window window = qmuiDialog.getWindow();
+        if (window != null) {
+            window.setWindowAnimations(R.style.dialog_animation_scale);
+        }
+        qmuiDialog.show();
     }
 
     private void setTitle() {

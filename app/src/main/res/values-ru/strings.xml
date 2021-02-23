@@ -525,5 +525,7 @@
   <string name="string_358">Показать пароль</string>  
   <string name="string_355_2">Копирование ссылок</string>  
   <string name="string_r">справа</string>  
-  <string name="string_359">начальная страница APP показывает страницу R</string>
+  <string name="string_359">начальная страница APP показывает страницу R</string>  
+  <string name="string_360">из - за технических ограничений пользователь в континентальной части Китая для регистрации / регистрации должен открыть собственный агент (т.е. лестница, не встроенный агент APP)</string>
+  <string name="string_361">я открыл</string>
 </resources>

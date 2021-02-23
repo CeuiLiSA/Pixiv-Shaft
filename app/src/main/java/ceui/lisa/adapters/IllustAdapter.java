@@ -112,6 +112,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
             @Override
             public void onClick(View v) {
                 holder.baseBind.reload.setVisibility(View.GONE);
+                holder.baseBind.progressLayout.donutProgress.setVisibility(View.VISIBLE);
                 loadIllust(holder, position, changeSize);
             }
         });

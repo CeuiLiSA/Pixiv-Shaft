@@ -74,6 +74,11 @@ public class Params {
     public static final int    MUTE_NOVEL = 2;
     public static final int    MUTE_USER = 3;
 
+    //hint
+    public static final String HINT_MULTI_DOWNLOAD = "HINT_MULTI_DOWNLOAD";
+    public static final String HINT_MULTI_DOWNLOAD_LONG_PRESS = "HINT_MULTI_DOWNLOAD_LONG_PRESS";
+    public static final String HINT_DOWNLOAD_LONG_PRESS = "HINT_DOWNLOAD";
+
 
     public static final String IMAGE_UNKNOWN = "https://s.pximg.net/common/images/limit_unknown_360.png";
     public static final String HEAD_UNKNOWN  = "https://s.pximg.net/common/images/no_profile.png";

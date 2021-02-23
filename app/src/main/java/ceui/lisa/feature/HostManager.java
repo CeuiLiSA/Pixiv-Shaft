@@ -121,7 +121,7 @@ public class HostManager {
         }
     }
 
-    public PKCEItem getPkceItem() {
+    public PKCEItem getPkce() {
         if (pkceItem == null) {
             try {
                 final String verify = PkceUtil.generateCodeVerifier();

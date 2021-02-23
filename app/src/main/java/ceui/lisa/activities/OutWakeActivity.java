@@ -3,7 +3,6 @@ package ceui.lisa.activities;
 import android.content.Intent;
 import android.net.Uri;
 import android.text.TextUtils;
-import android.view.View;
 
 import java.util.List;
 
@@ -13,7 +12,6 @@ import ceui.lisa.database.UserEntity;
 import ceui.lisa.databinding.ActivityOutWakeBinding;
 import ceui.lisa.feature.HostManager;
 import ceui.lisa.fragments.FragmentLogin;
-import ceui.lisa.http.AccountApi;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.Callback;
@@ -22,11 +20,8 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
-import io.reactivex.Scheduler;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
-import retrofit2.Call;
-import retrofit2.Response;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
@@ -164,7 +159,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                                         FragmentLogin.CLIENT_SECRET,
                                         FragmentLogin.AUTH_CODE,
                                         code,
-                                        HostManager.get().getPkceItem().getVerify(),
+                                        HostManager.get().getPkce().getVerify(),
                                         FragmentLogin.CALL_BACK,
                                         true
                                 ).subscribeOn(Schedulers.newThread())

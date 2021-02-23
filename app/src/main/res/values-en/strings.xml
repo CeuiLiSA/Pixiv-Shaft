@@ -525,5 +525,7 @@
   <string name="string_358">Display password</string>  
   <string name="string_355_2">Copy link</string>  
   <string name="string_r">R</string>  
-  <string name="string_359">home page displays the R page</string>
+  <string name="string_359">home page displays the R page</string>  
+  <string name="string_360">Due to technical constraints, Chinese mainland users need to open their own agents (i.e. ladder, non APP built-in agents) for login / registration operations.</string>
+  <string name="string_361">I did</string>
 </resources>

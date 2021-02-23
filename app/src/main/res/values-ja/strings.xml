@@ -525,5 +525,7 @@
   <string name="string_358">パスワードを表示</string>  
   <string name="string_355_2">作品のリンクをコピー</string>  
   <string name="string_r">R</string>  
-  <string name="string_359">APPホームページ表示Rページ</string>
+  <string name="string_359">APPホームページ表示Rページ</string>  
+  <string name="string_360">技術制限のため、中国大陸地区のユーザーが登録・登録操作を行うには、自ら代理店を開く必要がある（すなわち梯子、非APP内蔵代理）。</string>
+  <string name="string_361">運転します</string>
 </resources>
