@@ -330,6 +330,9 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
         baseBind.postTime.setText(String.format("%s投递", illust.getCreate_date().substring(0, 16)));
         baseBind.totalView.setText(String.valueOf(illust.getTotal_view()));
         baseBind.totalLike.setText(String.valueOf(illust.getTotal_bookmarks()));
+        baseBind.download.setChangeAlphaWhenPress(true);
+        baseBind.related.setChangeAlphaWhenPress(true);
+        baseBind.comment.setChangeAlphaWhenPress(true);
         baseBind.download.setOnClickListener(v -> {
             if (illust.getPage_count() == 1) {
                 IllustDownload.downloadIllust(illust, (BaseActivity<?>) mContext);

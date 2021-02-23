@@ -107,15 +107,6 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
                             && userJson.contains(Params.USER_KEY)) {
                         Common.showToast("导入成功", 2);
                         UserModel exportUser = Shaft.sGson.fromJson(userJson, UserModel.class);
-
-                        String pwd = exportUser.getUser().getPassword();
-                        //如果是新版本加密过的,解密一下
-                        if (!TextUtils.isEmpty(pwd) && pwd.startsWith(Params.SECRET_PWD_KEY)) {
-                            String secret = pwd.substring(Params.SECRET_PWD_KEY.length());
-                            String realPwd = Base64Util.decode(secret);
-                            Common.showLog(className + "real password: " + realPwd);
-                            exportUser.getUser().setPassword(realPwd);
-                        }
                         Local.saveUser(exportUser);
                         Dev.refreshUser = true;
                         Shaft.sUserModel = exportUser;
@@ -254,20 +245,6 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
         }
         rotate = springSystem.createSpring();
         rotate.setSpringConfig(SpringConfig.fromOrigamiTensionAndFriction(15, 8));
-
-        //使两个cardview高度，大小保持一致
-        baseBind.cardLogin.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                final int height = baseBind.cardLogin.getHeight();
-
-                ViewGroup.LayoutParams paramsSign = baseBind.cardSign.getLayoutParams();
-                paramsSign.height = height;
-                baseBind.cardSign.setLayoutParams(paramsSign);
-
-                baseBind.cardLogin.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-            }
-        });
     }
 
     public void showSignCard() {

@@ -441,7 +441,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <ImageButton
+                <com.qmuiteam.qmui.alpha.QMUIAlphaImageButton
                     android:id="@+id/comment"
                     android:layout_width="0dp"
                     android:layout_height="45dp"
@@ -451,11 +451,9 @@
                     android:layout_weight="1"
                     android:background="@drawable/button_stroke_new"
                     android:src="@drawable/ic_chat_black_24dp"
-                    app:tint="?attr/colorPrimary">
+                    app:tint="?attr/colorPrimary"/>
 
-                </ImageButton>
-
-                <ImageButton
+                <com.qmuiteam.qmui.alpha.QMUIAlphaImageButton
                     android:id="@+id/related"
                     android:layout_width="0dp"
                     android:layout_height="45dp"
@@ -466,9 +464,7 @@
                     android:background="@drawable/button_stroke_new"
                     android:src="@drawable/ic_equalizer_black_24dp"
                     android:textColor="#9f9fb4"
-                    app:tint="?attr/colorPrimary">
-
-                </ImageButton>
+                    app:tint="?attr/colorPrimary" />
 
                 <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
                     android:id="@+id/download"
@@ -483,9 +479,7 @@
                     app:qmui_backgroundColor="?attr/colorPrimary"
                     app:qmui_borderColor="#eaebf9"
                     app:qmui_borderWidth="0dp"
-                    app:qmui_radius="@dimen/eight_dp">
-
-                </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton>
+                    app:qmui_radius="@dimen/eight_dp" />
 
             </LinearLayout>
 

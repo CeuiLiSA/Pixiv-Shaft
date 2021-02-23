@@ -1,6 +1,7 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
+import android.text.TextUtils;
 import android.text.method.HideReturnsTransformationMethod;
 import android.text.method.PasswordTransformationMethod;
 import android.view.LayoutInflater;
@@ -8,7 +9,11 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.databinding.DataBindingUtil;
+
 import com.bumptech.glide.Glide;
+import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
+import com.scwang.smartrefresh.layout.header.FalsifyHeader;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +25,7 @@ import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
 import ceui.lisa.databinding.FragmentLocalUserBinding;
+import ceui.lisa.databinding.RecyLocalUserBinding;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.utils.Base64Util;
@@ -63,6 +69,8 @@ public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
                 startActivity(intent);
             }
         });
+        baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
+        baseBind.refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));
     }
 
     @Override
@@ -88,9 +96,7 @@ public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
                     public void success(List<UserModel> userModels) {
                         if (userModels.size() != 0) {
                             for (int i = 0; i < userModels.size(); i++) {
-                                View v = View.inflate(mContext, R.layout.recy_local_user, null);
-                                bindData(v, userModels.get(i));
-                                baseBind.userList.addView(v);
+                                bindData(userModels.get(i));
                             }
                         }
                     }
@@ -98,56 +104,28 @@ public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
     }
 
 
-    private void bindData(View v, UserModel userModel) {
-        TextView userName = v.findViewById(R.id.user_name);
-        TextView loginTime = v.findViewById(R.id.login_time);
-        TextView doublePwd = v.findViewById(R.id.double_pwd);
-        CircleImageView userHead = v.findViewById(R.id.user_head);
-        ImageView current = v.findViewById(R.id.current_user);
-        ImageView exp = v.findViewById(R.id.export_user);
-        TextView showPwd = v.findViewById(R.id.show_pwd);
-        userName.setText(String.format("%s (%s)", userModel.getUser().getName(),
+    private void bindData(UserModel userModel) {
+        RecyLocalUserBinding binding = DataBindingUtil.inflate(
+                LayoutInflater.from(mContext),
+                R.layout.recy_local_user, null, false);
+        binding.userName.setText(String.format("%s (%s)", userModel.getUser().getName(),
                 userModel.getUser().getAccount()));
-//        loginTime.setText(TextUtils.isEmpty(userModel.getUser().getMail_address()) ?
-//                "未绑定邮箱" : userModel.getUser().getMail_address());
-        loginTime.setText(userModel.getUser().getPassword());
-        doublePwd.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Common.copy(mContext, userModel.getUser().getPassword());
-            }
-        });
-        showPwd.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (showPwd.getText().toString().equals("显示")) {
-                    showPwd.setText("隐藏");
-                    loginTime.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
-                } else {
-                    showPwd.setText("显示");
-                    loginTime.setTransformationMethod(PasswordTransformationMethod.getInstance());
-                }
-            }
-        });
-        Glide.with(mContext).load(GlideUtil.getHead(userModel.getUser())).into(userHead);
-        current.setVisibility(userModel.getUser().getId() ==
+        binding.loginTime.setText(TextUtils.isEmpty(userModel.getUser().getMail_address()) ?
+                "未绑定邮箱" : userModel.getUser().getMail_address());
+        Glide.with(mContext).load(GlideUtil.getHead(userModel.getUser())).into(binding.userHead);
+        binding.currentUser.setVisibility(userModel.getUser().getId() ==
                 sUserModel.getUser().getId() ? View.VISIBLE : View.GONE);
-        exp.setOnClickListener(new View.OnClickListener() {
+        binding.exportUser.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 userModel.setLocal_user(Params.USER_KEY);
-                //生成加密后的密码
-                String secretPassword = Base64Util.encode(userModel.getUser().getPassword());
-                //添加一个标识，是已加密的密码
-                String passwordWithSign = Params.SECRET_PWD_KEY + secretPassword;
-                userModel.getUser().setPassword(passwordWithSign);
                 String userJson = Shaft.sGson.toJson(userModel);
                 Common.copy(mContext, userJson, false);
                 Common.showToast("已导出到剪切板", 2);
             }
         });
 
-        v.setOnClickListener(new View.OnClickListener() {
+        binding.getRoot().setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Local.saveUser(userModel);
@@ -158,5 +136,6 @@ public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
                 mActivity.finish();
             }
         });
+        baseBind.userList.addView(binding.getRoot());
     }
 }
