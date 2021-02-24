@@ -2,6 +2,9 @@ package ceui.lisa.fragments;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
+import android.os.Build;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.CompoundButton;
 
@@ -17,9 +20,13 @@ import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.Locale;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.core.Manager;
@@ -32,6 +39,7 @@ import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivSearchParamUtil;
 
+import static android.provider.DocumentsContract.EXTRA_INITIAL_URI;
 import static ceui.lisa.utils.Settings.ALL_LANGUAGE;
 
 
@@ -332,11 +340,29 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
         });
 
 
-        baseBind.illustPath.setText(Shaft.sSettings.getIllustPath());
+        if (Shaft.sSettings.getDownloadWay() == 1) {
+            try {
+                baseBind.illustPath.setText(URLDecoder.decode(Shaft.sSettings.getRootPathUri(), "utf-8"));
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        } else {
+            baseBind.illustPath.setText(Shaft.sSettings.getIllustPath());
+        }
         baseBind.singleIllustPath.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Common.showToast(getString(R.string.string_329), true);
+                if (Shaft.sSettings.getDownloadWay() == 0) {
+                    Common.showToast(getString(R.string.string_329), true);
+                } else {
+                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+                    if (!TextUtils.isEmpty(Shaft.sSettings.getRootPathUri()) &&
+                            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        Uri start = Uri.parse(Shaft.sSettings.getRootPathUri());
+                        intent.putExtra(EXTRA_INITIAL_URI, start);
+                    }
+                    mActivity.startActivityForResult(intent, BaseActivity.ASK_URI);
+                }
             }
         });
 
