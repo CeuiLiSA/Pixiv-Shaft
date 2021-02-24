@@ -526,6 +526,11 @@
   <string name="string_355_2">작품 링크 복사</string>  
   <string name="string_r">오른쪽.</string>  
   <string name="string_359">APP 홈 페이지 에 R 페이지 를 표시 합 니 다.</string>  
-  <string name="string_360">기술 제한 으로 인해 중국 대륙 지역 의 사용자 들 이 로그 인 / 등록 작업 을 할 때 스스로 대리 (즉, 사다리, APP 내장 대리) 를 열 어야 한다.</string>
-  <string name="string_361">켰 어 요.</string>
+  <string name="string_360">기술 제한 으로 인해 중국 대륙 지역 의 사용자 들 이 로그 인 / 등록 작업 을 할 때 스스로 대리 (즉, 사다리, APP 내장 대리) 를 열 어야 한다.</string>  
+  <string name="string_361">켰 어 요.</string>  
+  <string name="string_362">파일 다운로드 모드</string>  
+  <string name="string_363">전통 적 인 양식</string>
+  <string name="string_364">SAF 모드</string>
+  <string name="string_365">파일 을 만 드 는 데 실 패 했 습 니 다. 권한 을 수 여 받 은 다운로드 디 렉 터 리 가 존재 하지 않 습 니 다.</string>
+  <string name="string_366">다시 권한 을 부여 한다</string>
 </resources>

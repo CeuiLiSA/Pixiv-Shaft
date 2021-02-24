@@ -55,18 +55,4 @@ public class FragmentStorage extends BaseFragment<FragmentStorageBinding> {
             }
         });
     }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode != RESULT_OK || data == null) {
-            return;
-        }
-        Uri treeUri = data.getData();
-        Shaft.sSettings.setRootPathUri(treeUri.toString());
-        mContext.getContentResolver().takePersistableUriPermission(treeUri,
-                Intent.FLAG_GRANT_READ_URI_PERMISSION |
-                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-        Local.setSettings(Shaft.sSettings);
-    }
 }

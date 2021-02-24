@@ -526,6 +526,11 @@
   <string name="string_355_2">複製作品連結</string>  
   <string name="string_r">右</string>  
   <string name="string_359">APP主頁顯示R頁面</string>  
-  <string name="string_360">由於科技限制，中國大陸地區用戶進行登入/注册操作需要自行開啟代理（即梯子，非APP內寘代理）</string>
-  <string name="string_361">我開了</string>
+  <string name="string_360">由於科技限制，中國大陸地區用戶進行登入/注册操作需要自行開啟代理（即梯子，非APP內寘代理）</string>  
+  <string name="string_361">我開了</string>  
+  <string name="string_362">文件下載模式</string>  
+  <string name="string_363">傳統模式</string>
+  <string name="string_364">SAF模式</string>
+  <string name="string_365">創建檔案失敗，已授權的下載目錄不存在</string>
+  <string name="string_366">重新授權</string>
 </resources>

@@ -110,18 +110,21 @@ public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCo
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == ASK_URI) {
-            Common.showLog(className + "onActivityResult ");
             if (resultCode != RESULT_OK || data == null) {
                 return;
             }
             Uri treeUri = data.getData();
-            Shaft.sSettings.setRootPathUri(treeUri.toString());
-            final int takeFlags = data.getFlags()
-                    & (Intent.FLAG_GRANT_READ_URI_PERMISSION
-                    | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-            mContext.getContentResolver().takePersistableUriPermission(treeUri,takeFlags);
-            Local.setSettings(Shaft.sSettings);
-            doAfterGranted();
+            if (treeUri != null) {
+                Common.showLog(className + "onActivityResult " + treeUri.toString());
+                Shaft.sSettings.setRootPathUri(treeUri.toString());
+                final int takeFlags = data.getFlags()
+                        & (Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                mContext.getContentResolver().takePersistableUriPermission(treeUri,takeFlags);
+                Common.showToast("授权成功！");
+                Local.setSettings(Shaft.sSettings);
+                doAfterGranted();
+            }
         }
     }
 

@@ -3,9 +3,11 @@ package ceui.lisa.download;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.text.TextUtils;
 
 import androidx.core.content.FileProvider;
+import androidx.documentfile.provider.DocumentFile;
 
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
@@ -24,6 +26,8 @@ import ceui.lisa.core.DownloadItem;
 import ceui.lisa.core.Manager;
 import ceui.lisa.feature.HostManager;
 import ceui.lisa.file.LegacyFile;
+import ceui.lisa.file.SAFile;
+import ceui.lisa.helper.SAFactory;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.interfaces.FeedBack;
 import ceui.lisa.models.GifResponse;
@@ -178,42 +182,88 @@ public class IllustDownload {
     }
 
     public static void check(BaseActivity<?> activity, FeedBack feedBack) {
-        if (Common.isAndroidQ() && TextUtils.isEmpty(Shaft.sSettings.getRootPathUri()) && false) {
-            activity.setFeedBack(feedBack);
-            new QMUIDialog.MessageDialogBuilder(activity)
-                    .setTitle(activity.getResources().getString(R.string.string_143))
-                    .setMessage(activity.getResources().getString(R.string.string_313))
-                    .setSkinManager(QMUISkinManager.defaultInstance(activity))
-                    .addAction(0, activity.getResources().getString(R.string.string_142),
-                            QMUIDialogAction.ACTION_PROP_NEGATIVE,
-                            (dialog, index) -> dialog.dismiss())
-                    .addAction(0, activity.getResources().getString(R.string.string_312),
-                            (dialog, index) -> {
-                                try {
-                                    new Thread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-                                            Uri start;
-                                            if (!TextUtils.isEmpty(Shaft.sSettings.getRootPathUri())) {
-                                                start = Uri.parse(Shaft.sSettings.getRootPathUri());
-                                            } else {
-                                                start = Uri.parse("content://com.android.externalstorage.documents/document/primary:Download");
+        if (Shaft.sSettings.getDownloadWay() == 1) {
+            if (TextUtils.isEmpty(Shaft.sSettings.getRootPathUri())) {
+                activity.setFeedBack(feedBack);
+                new QMUIDialog.MessageDialogBuilder(activity)
+                        .setTitle(activity.getResources().getString(R.string.string_143))
+                        .setMessage(activity.getResources().getString(R.string.string_313))
+                        .setSkinManager(QMUISkinManager.defaultInstance(activity))
+                        .addAction(0, activity.getResources().getString(R.string.string_142),
+                                QMUIDialogAction.ACTION_PROP_NEGATIVE,
+                                (dialog, index) -> dialog.dismiss())
+                        .addAction(0, activity.getResources().getString(R.string.string_312),
+                                (dialog, index) -> {
+                                    try {
+                                        new Thread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+                                                if (!TextUtils.isEmpty(Shaft.sSettings.getRootPathUri()) &&
+                                                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                                    Uri start = Uri.parse(Shaft.sSettings.getRootPathUri());
+                                                    intent.putExtra(EXTRA_INITIAL_URI, start);
+                                                }
+                                                activity.startActivityForResult(intent, BaseActivity.ASK_URI);
                                             }
-                                            intent.putExtra(EXTRA_INITIAL_URI, start);
-                                            activity.startActivityForResult(intent, BaseActivity.ASK_URI);
+                                        }).start();
+                                    } catch (Exception e) {
+                                        Common.showToast(e.toString());
+                                        e.printStackTrace();
+                                    }
+                                    dialog.dismiss();
+                                })
+                        .show();
+            } else {
+                DocumentFile root = SAFile.rootFolder(activity);
+                if (root == null || !root.exists() || !root.isDirectory()) {
+                    activity.setFeedBack(feedBack);
+                    new QMUIDialog.MessageDialogBuilder(activity)
+                            .setTitle(activity.getResources().getString(R.string.string_143))
+                            .setMessage(activity.getResources().getString(R.string.string_365))
+                            .setSkinManager(QMUISkinManager.defaultInstance(activity))
+                            .addAction(0, activity.getResources().getString(R.string.string_142),
+                                    QMUIDialogAction.ACTION_PROP_NEGATIVE,
+                                    (dialog, index) -> dialog.dismiss())
+                            .addAction(0, activity.getResources().getString(R.string.string_366),
+                                    (dialog, index) -> {
+                                        try {
+                                            new Thread(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+                                                    if (!TextUtils.isEmpty(Shaft.sSettings.getRootPathUri()) &&
+                                                            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                                        Uri start = Uri.parse(Shaft.sSettings.getRootPathUri());
+                                                        intent.putExtra(EXTRA_INITIAL_URI, start);
+                                                    }
+                                                    activity.startActivityForResult(intent, BaseActivity.ASK_URI);
+                                                }
+                                            }).start();
+                                        } catch (Exception e) {
+                                            Common.showToast(e.toString());
+                                            e.printStackTrace();
                                         }
-                                    }).start();
-                                } catch (Exception e) {
-                                    Common.showToast(e.toString());
-                                    e.printStackTrace();
-                                }
-                                dialog.dismiss();
-                            })
-                    .show();
+                                        dialog.dismiss();
+                                    })
+                            .show();
+                } else {
+                    if (feedBack != null) {
+                        try {
+                            feedBack.doSomething();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
         } else {
             if (feedBack != null) {
-                feedBack.doSomething();
+                try {
+                    feedBack.doSomething();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
     }

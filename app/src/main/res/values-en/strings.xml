@@ -143,7 +143,7 @@
   <string name="gif_result_path">GIF path generation</string>  
   <string name="please_restart_app">Restart the software to take effect</string>  
   <string name="finding_datas">Resolution of resources</string>  
-  <string name="dont_catch_me">1. This application is a Japanese illustrator exchange website Pixiv Android client third-party heavy plate. \ N         </string>  
+  <string name="dont_catch_me">1. This app is a third-party remake of the Android client of the Japanese illustration exchange website Pixiv.\n 2. The project has been open source and is only used for communication and learning, and may not be used for any commercial purposes. \n 3. The copyrights of all illustrations, comics, and novels in the APP belong to their authors or Pixiv\n 4. It is recommended to use the original Pixiv.</string>  
   <string name="clear">Clear</string>  
   <string name="daily_rank">Daily</string>  
   <string name="weekly_rank">Weekly</string>  
@@ -526,6 +526,11 @@
   <string name="string_355_2">Copy link</string>  
   <string name="string_r">R</string>  
   <string name="string_359">home page displays the R page</string>  
-  <string name="string_360">Due to technical constraints, Chinese mainland users need to open their own agents (i.e. ladder, non APP built-in agents) for login / registration operations.</string>
-  <string name="string_361">I did</string>
+  <string name="string_360">Due to technical constraints, Chinese mainland users need to open their own agents (i.e. ladder, non APP built-in agents) for login / registration operations.</string>  
+  <string name="string_361">I did</string>  
+  <string name="string_362">File download mode</string>  
+  <string name="string_363">Traditional model</string>
+  <string name="string_364">Saf mode</string>
+  <string name="string_365">Failed to create file. The authorized download directory does not exist</string>
+  <string name="string_366">Reauthorization</string>
 </resources>

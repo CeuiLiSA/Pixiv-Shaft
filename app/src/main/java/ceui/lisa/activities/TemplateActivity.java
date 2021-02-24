@@ -49,6 +49,7 @@ import ceui.lisa.fragments.FragmentPv;
 import ceui.lisa.fragments.FragmentRecmdIllust;
 import ceui.lisa.fragments.FragmentRecmdUser;
 import ceui.lisa.fragments.FragmentRelatedIllust;
+import ceui.lisa.fragments.FragmentSAF;
 import ceui.lisa.fragments.FragmentSB;
 import ceui.lisa.fragments.FragmentSearch;
 import ceui.lisa.fragments.FragmentSearchUser;
@@ -217,7 +218,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "主题颜色":
                     return new FragmentColors();
                 case "测试测试":
-                    return TestFragment.newInstance(0);
+                    return new FragmentSAF();
                 default:
                     return new Fragment();
             }

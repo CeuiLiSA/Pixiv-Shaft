@@ -443,6 +443,35 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
         });
 
 
+        String[] downloadWays = new String[]{
+                getString(R.string.string_363),
+                getString(R.string.string_364)
+        };
+        baseBind.downloadWay.setText(downloadWays[Shaft.sSettings.getDownloadWay()]);
+        baseBind.downloadWayRela.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new QMUIDialog.CheckableDialogBuilder(mActivity)
+                        .setCheckedIndex(Shaft.sSettings.getDownloadWay())
+                        .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                        .addItems(downloadWays, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                if (which == Shaft.sSettings.getDownloadWay()) {
+                                    Common.showLog("什么也不做");
+                                } else {
+                                    Shaft.sSettings.setDownloadWay(which);
+                                    baseBind.downloadWay.setText(downloadWays[which]);
+                                    Local.setSettings(Shaft.sSettings);
+                                }
+                                dialog.dismiss();
+                            }
+                        })
+                        .show();
+            }
+        });
+
+
         baseBind.lineCount.setText(getString(R.string.string_349, Shaft.sSettings.getLineCount()));
         baseBind.lineCountRela.setOnClickListener(new View.OnClickListener() {
             @Override

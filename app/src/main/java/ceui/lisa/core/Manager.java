@@ -14,6 +14,7 @@ import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.database.DownloadingEntity;
 import ceui.lisa.helper.Android10DownloadFactory22;
+import ceui.lisa.helper.SAFactory;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.model.Holder;
 import ceui.lisa.utils.Common;
@@ -26,6 +27,7 @@ import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.functions.Action;
 import io.reactivex.rxjava3.functions.Consumer;
 import rxhttp.RxHttp;
+import rxhttp.wrapper.callback.UriFactory;
 import rxhttp.wrapper.entity.Progress;
 
 public class Manager {
@@ -156,7 +158,12 @@ public class Manager {
     }
 
     private void downloadOne(Context context, DownloadItem bean) {
-        Android10DownloadFactory22 factory = new Android10DownloadFactory22(context, bean);
+        UriFactory factory;
+        if (Shaft.sSettings.getDownloadWay() == 1) {
+            factory = new SAFactory(context, bean);
+        } else {
+            factory = new Android10DownloadFactory22(context, bean);
+        }
         currentIllustID = bean.getIllust().getId();
         Common.showLog("Manager 下载单个 当前进度" + nonius);
         uuid = bean.getUuid();
@@ -214,7 +221,11 @@ public class Manager {
                         downloadEntity.setIllustGson(Shaft.sGson.toJson(bean.getIllust()));
                         downloadEntity.setFileName(bean.getName());
                         downloadEntity.setDownloadTime(System.currentTimeMillis());
-                        downloadEntity.setFilePath(factory.getFileUri().toString());
+                        if (factory instanceof SAFactory) {
+                            downloadEntity.setFilePath(((SAFactory) factory).getUri().toString());
+                        } else {
+                            downloadEntity.setFilePath(((Android10DownloadFactory22) factory).getFileUri().toString());
+                        }
                         AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(downloadEntity);
                         //通知FragmentDownloadFinish 添加这一项
                         Intent intent = new Intent(Params.DOWNLOAD_FINISH);

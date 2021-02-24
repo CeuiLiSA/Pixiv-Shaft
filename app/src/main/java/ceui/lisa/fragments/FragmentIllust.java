@@ -21,6 +21,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
+import androidx.documentfile.provider.DocumentFile;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -44,12 +45,14 @@ import ceui.lisa.databinding.FragmentIllustBinding;
 import ceui.lisa.dialogs.MuteDialog;
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.download.IllustDownload;
+import ceui.lisa.file.SAFile;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.notification.BaseReceiver;
 import ceui.lisa.notification.CallBackReceiver;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
@@ -339,6 +342,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
             } else {
                 IllustDownload.downloadAllIllust(illust, (BaseActivity<?>) mContext);
             }
+            checkDownload();
         });
 
 
@@ -395,11 +399,21 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
     private int recyHeight = 0;
 
     private void checkDownload() {
+        //只有1P的作品才检查是否下载过
         if (illust.getPage_count() == 1) {
-            if (FileCreator.isExist(illust, 0)) {
-                baseBind.download.setText(R.string.string_337);
+            if (Shaft.sSettings.getDownloadWay() == 1) {
+                String displayName = FileCreator.customFileName(illust, 0);
+                if (SAFile.isFileExists(mContext, displayName)) {
+                    baseBind.download.setText(R.string.string_337);
+                } else {
+                    baseBind.download.setText(R.string.string_72);
+                }
             } else {
-                baseBind.download.setText(R.string.string_72);
+                if (FileCreator.isExist(illust, 0)) {
+                    baseBind.download.setText(R.string.string_337);
+                } else {
+                    baseBind.download.setText(R.string.string_72);
+                }
             }
         }
     }

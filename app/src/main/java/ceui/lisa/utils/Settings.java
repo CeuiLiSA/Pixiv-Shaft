@@ -135,12 +135,22 @@ public class Settings {
 
     private String rootPathUri = "";
 
+    private int downloadWay = 0; //0传统模式，保存到Pictures目录下。    1 SAF模式保存到自选目录下
+
     public String getAppLanguage() {
         if(!TextUtils.isEmpty(appLanguage)){
             return appLanguage;
         } else {
             return ALL_LANGUAGE[0];
         }
+    }
+
+    public int getDownloadWay() {
+        return downloadWay;
+    }
+
+    public void setDownloadWay(int downloadWay) {
+        this.downloadWay = downloadWay;
     }
 
     public boolean isR18DivideSave() {

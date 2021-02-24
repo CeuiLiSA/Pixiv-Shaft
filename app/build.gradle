@@ -170,6 +170,10 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 
+    implementation "androidx.documentfile:documentfile:1.0.1"
+
+
+
     configurations {
         all*.exclude group: 'com.android.support', module: 'support-v13'
     }
