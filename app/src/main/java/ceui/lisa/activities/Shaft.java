@@ -10,6 +10,7 @@ import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.view.Gravity;
 
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.gson.Gson;
 import com.hjq.toast.ToastUtils;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
@@ -110,6 +111,9 @@ public class Shaft extends Application {
         ToastUtils.setGravity(Gravity.BOTTOM, 0, 0);
         ToastUtils.initStyle(new ToastStyle(this));
 
+        FirebaseAnalytics.getInstance(this).setAnalyticsCollectionEnabled(
+                sSettings.isFirebaseEnable()
+        );
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);

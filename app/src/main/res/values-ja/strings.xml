@@ -529,8 +529,9 @@
   <string name="string_360">技術制限のため、中国大陸地区のユーザーが登録・登録操作を行うには、自ら代理店を開く必要がある（すなわち梯子、非APP内蔵代理）。</string>  
   <string name="string_361">運転します</string>  
   <string name="string_362">ファイルのダウンロードモード</string>  
-  <string name="string_363">従来のモード</string>
-  <string name="string_364">SAFモード</string>
-  <string name="string_365">ファイルの作成に失敗しました。許可されたダウンロードディレクトリは存在しませんでした。</string>
-  <string name="string_366">再認証</string>
+  <string name="string_363">従来のモード</string>  
+  <string name="string_364">SAFモード</string>  
+  <string name="string_365">ファイルの作成に失敗しました。許可されたダウンロードディレクトリは存在しませんでした。</string>  
+  <string name="string_366">再認証</string>  
+  <string name="string_367">Firebase情報収集を有効にする</string>
 </resources>

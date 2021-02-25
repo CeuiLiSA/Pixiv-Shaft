@@ -554,5 +554,6 @@
     <string name="string_364">SAF模式</string>
     <string name="string_365">创建文件失败，已授权的下载目录不存在</string>
     <string name="string_366">重新授权</string>
+    <string name="string_367">启用Firebase信息搜集</string>
 
 </resources>

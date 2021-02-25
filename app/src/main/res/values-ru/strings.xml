@@ -529,8 +529,9 @@
   <string name="string_360">из - за технических ограничений пользователь в континентальной части Китая для регистрации / регистрации должен открыть собственный агент (т.е. лестница, не встроенный агент APP)</string>  
   <string name="string_361">я открыл</string>  
   <string name="string_362">режим загрузки файлов</string>  
-  <string name="string_363">традиционный режим</string>
-  <string name="string_364">SAF - режим</string>
-  <string name="string_365">Ошибка создания файла, папка с разрешением на загрузку не существует</string>
-  <string name="string_366">повторное Делегирование полномочий</string>
+  <string name="string_363">традиционный режим</string>  
+  <string name="string_364">SAF - режим</string>  
+  <string name="string_365">Ошибка создания файла, папка с разрешением на загрузку не существует</string>  
+  <string name="string_366">повторное Делегирование полномочий</string>  
+  <string name="string_367">Включить коллекцию информации Firebase</string>
 </resources>

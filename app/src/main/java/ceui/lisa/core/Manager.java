@@ -67,19 +67,21 @@ public class Manager {
     }
 
     public void addTask(DownloadItem bean, Context context) {
-        if (content == null) {
-            content = new ArrayList<>();
-        }
-        boolean isTaskExist = false;
-        for (DownloadItem item : content) {
-            if (item.isSame(bean)) {
-                isTaskExist = true;
+        synchronized (this) {
+            if (content == null) {
+                content = new ArrayList<>();
             }
+            boolean isTaskExist = false;
+            for (DownloadItem item : content) {
+                if (item.isSame(bean)) {
+                    isTaskExist = true;
+                }
+            }
+            if (!isTaskExist) {
+                safeAdd(bean);
+            }
+            start(context);
         }
-        if (!isTaskExist) {
-            safeAdd(bean);
-        }
-        start(context);
     }
 
     private void safeAdd(DownloadItem item) {

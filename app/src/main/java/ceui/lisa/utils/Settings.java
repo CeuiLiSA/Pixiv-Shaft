@@ -54,6 +54,9 @@ public class Settings {
     //主页显示R18
     private boolean mainViewR18 = false;
 
+    //是否启用 FIREBASE_ANALYTICS_COLLECTION
+    private boolean isFirebaseEnable = true;
+
     private long currentProgress = 0L;
 
     public long getCurrentProgress() {
@@ -194,6 +197,14 @@ public class Settings {
             return ThemeHelper.DEFAULT_MODE;
         }
         return themeType;
+    }
+
+    public boolean isFirebaseEnable() {
+        return isFirebaseEnable;
+    }
+
+    public void setFirebaseEnable(boolean firebaseEnable) {
+        isFirebaseEnable = firebaseEnable;
     }
 
     public void setThemeType(AppCompatActivity activity, String themeType) {

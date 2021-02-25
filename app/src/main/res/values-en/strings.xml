@@ -529,8 +529,9 @@
   <string name="string_360">Due to technical constraints, Chinese mainland users need to open their own agents (i.e. ladder, non APP built-in agents) for login / registration operations.</string>  
   <string name="string_361">I did</string>  
   <string name="string_362">File download mode</string>  
-  <string name="string_363">Traditional model</string>
-  <string name="string_364">Saf mode</string>
-  <string name="string_365">Failed to create file. The authorized download directory does not exist</string>
-  <string name="string_366">Reauthorization</string>
+  <string name="string_363">Traditional model</string>  
+  <string name="string_364">Saf mode</string>  
+  <string name="string_365">Failed to create file. The authorized download directory does not exist</string>  
+  <string name="string_366">Reauthorization</string>  
+  <string name="string_367">Enable firebase information gathering</string>
 </resources>

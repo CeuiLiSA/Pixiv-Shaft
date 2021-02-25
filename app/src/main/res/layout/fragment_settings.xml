@@ -584,6 +584,22 @@
 
                         </RelativeLayout>
 
+                        <View style="@style/half_divider" />
+
+                        <RelativeLayout
+                            android:id="@+id/is_firebase_enable_rela"
+                            style="@style/ripple_rela">
+
+                            <TextView
+                                style="@style/setting_text_left"
+                                android:text="@string/string_367" />
+
+                            <androidx.appcompat.widget.SwitchCompat
+                                android:id="@+id/is_firebase_enable"
+                                style="@style/setting_right_switch"/>
+
+                        </RelativeLayout>
+
                         <View style="@style/full_divider" />
 
                     </LinearLayout>

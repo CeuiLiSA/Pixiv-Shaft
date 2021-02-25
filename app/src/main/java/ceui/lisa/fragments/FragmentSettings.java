@@ -13,6 +13,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.blankj.utilcode.util.FileUtils;
 import com.blankj.utilcode.util.LanguageUtils;
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
@@ -497,6 +498,16 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             }
         });
 
+        baseBind.isFirebaseEnable.setChecked(Shaft.sSettings.isFirebaseEnable());
+        baseBind.isFirebaseEnable.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setFirebaseEnable(isChecked);
+                Local.setSettings(Shaft.sSettings);
+                Common.showToast("设置成功", 2);
+                FirebaseAnalytics.getInstance(mContext).setAnalyticsCollectionEnabled(isChecked);
+            }
+        });
 
         baseBind.lineCount.setText(getString(R.string.string_349, Shaft.sSettings.getLineCount()));
         baseBind.lineCountRela.setOnClickListener(new View.OnClickListener() {
