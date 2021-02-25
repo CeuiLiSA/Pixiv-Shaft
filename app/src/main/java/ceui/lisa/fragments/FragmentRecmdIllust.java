@@ -167,6 +167,7 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
 
     @Override
     public void onFirstLoaded(List<IllustsBean> illustsBeans) {
+        ((RecmdModel) mModel).getRankList().clear();
         Observable.create((ObservableOnSubscribe<String>) emitter -> {
             emitter.onNext("开始写入数据库");
             if (allItems != null) {

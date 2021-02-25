@@ -38,6 +38,7 @@ public class FragmentRecmdNovel extends NetListFragment<FragmentBaseListBinding,
 
     @Override
     public void onFirstLoaded(List<NovelBean> novelBeans) {
+        ranking.clear();
         ranking.addAll(mResponse.getRanking_novels());
         ((NAdapterWithHeadView) mAdapter).setHeadData(ranking);
     }
