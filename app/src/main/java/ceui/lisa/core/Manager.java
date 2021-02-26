@@ -161,10 +161,10 @@ public class Manager {
 
     private void downloadOne(Context context, DownloadItem bean) {
         UriFactory factory;
-        if (Shaft.sSettings.getDownloadWay() == 1) {
-            factory = new SAFactory(context, bean);
-        } else {
+        if (Shaft.sSettings.getDownloadWay() == 0 || bean.getIllust().isGif()) {
             factory = new Android10DownloadFactory22(context, bean);
+        } else {
+            factory = new SAFactory(context, bean);
         }
         currentIllustID = bean.getIllust().getId();
         Common.showLog("Manager 下载单个 当前进度" + nonius);

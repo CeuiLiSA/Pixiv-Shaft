@@ -220,6 +220,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
             Glide.with(mContext)
                     .asGif()
                     .load(gifFile)
+                    .placeholder(baseBind.illustImage.getDrawable())
                     .into(baseBind.illustImage);
         } else {
             boolean hasDownload = Shaft.getMMKV().decodeBool(Params.ILLUST_ID + "_" + illust.getId());

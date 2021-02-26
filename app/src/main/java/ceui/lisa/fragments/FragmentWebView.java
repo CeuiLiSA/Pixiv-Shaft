@@ -155,7 +155,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                             String destiny = request.getUrl().toString();
                             Common.showLog(className + "destiny " + destiny);
                             if (destiny.contains(PIXIV_HEAD)) {
-                                if (destiny.contains("logout.php")) {
+                                if (destiny.contains("logout.php") || destiny.contains("settings.php")) {
                                     return false;
                                 } else {
                                     try {

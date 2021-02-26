@@ -459,7 +459,9 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
         if (mReceiver != null) {
             LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mReceiver);
         }
-        baseBind.recyclerView.setAdapter(null);
+        if (baseBind.recyclerView != null) {
+            baseBind.recyclerView.setAdapter(null);
+        }
         super.onDestroy();
     }
 
