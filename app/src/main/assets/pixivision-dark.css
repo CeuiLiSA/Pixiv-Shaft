@@ -1,56 +1,56 @@
 ._global-header {
-    background: #555;
+    background: #555 !important;
 }
 
 ._global-nav {
-    background-color: #555;
+    background-color: #555 !important;
 }
 
 ._article-main .amsp__inner {
-    background-color: #2a2a2a;
-    color: #aaa;
+    background-color: #2a2a2a !important;
+    color: #aaa !important;
 }
 
 ._article-main .amsp__title {
-    color: #aaa;
+    color: #aaa !important;
 }
 
 ._article-illust-work .aiwsp__title a {
-    color: #aaa;
+    color: #aaa !important;
 }
 
 ._article-illust-work .aiwsp__user-name {
-    color: #aaa;
+    color: #aaa !important;
 }
 
 ._article-illust-work .aiwsp__user-name a {
-    color: #aaa;
+    color: #aaa !important;
 }
 
 .body-container {
-    background-color: #2a2a2a;
+    background-color: #2a2a2a !important;
 }
 
 ._article-card {
-    background-color: #000;
+    background-color: #000 !important;
 }
 
 ._article-card .arcsp__title-container {
-    color: #aaa;
+    color: #aaa !important;
 }
 
 ._articles-list-card {
-    background-color: #000;
+    background-color: #000 !important;
 }
 
 ._floated-bottom-bar.white {
-    background: rgba(42,42,42,0.89);
+    background: rgba(42,42,42,0.89) !important;
 }
 
 body:not(.android-browser) ._modal-menu .mdmsp__header {
-    background-color: #555;
+    background-color: #555 !important;
 }
 
 ._modal-menu-layer {
-    background-color: #aaa;
+    background-color: #aaa !important;
 }

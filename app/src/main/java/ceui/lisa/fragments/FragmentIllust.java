@@ -220,11 +220,12 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                         baseBind.secondLinear.getHeight();
                 final int maxHeight = getResources().getDisplayMetrics().heightPixels * 3 / 4;
                 ViewGroup.LayoutParams params = baseBind.coreLinear.getLayoutParams();
-                params.height = Math.min(realHeight, maxHeight);
+                int slideMaxHeight = Math.min(realHeight, maxHeight);
+                params.height = slideMaxHeight;
                 baseBind.coreLinear.setLayoutParams(params);
 
                 final int bottomCardHeight = baseBind.bottomBar.getHeight();
-                final int deltaY = realHeight - baseBind.bottomBar.getHeight();
+                final int deltaY = slideMaxHeight - baseBind.bottomBar.getHeight();
                 sheetBehavior.setPeekHeight(bottomCardHeight, true);
                 baseBind.refreshLayout.setPadding(0, 0, 0, bottomCardHeight - DensityUtil.dp2px(16.0f));
                 sheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
@@ -458,8 +459,8 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
         if (mReceiver != null) {
             LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mReceiver);
         }
-        super.onDestroy();
         baseBind.recyclerView.setAdapter(null);
+        super.onDestroy();
     }
 
     @Override
