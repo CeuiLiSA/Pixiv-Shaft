@@ -45,6 +45,9 @@ public class UAdapter extends BaseAdapter<UserPreviewsBean, RecyUserPreviewBindi
         bindView.baseBind.userShowTwo.setLayoutParams(params);
         bindView.baseBind.userShowThree.setLayoutParams(params);
         bindView.baseBind.userName.setText(target.getUser().getName());
+        bindView.baseBind.userShowOne.setImageResource(android.R.color.transparent);
+        bindView.baseBind.userShowTwo.setImageResource(android.R.color.transparent);
+        bindView.baseBind.userShowThree.setImageResource(android.R.color.transparent);
         if (target.getIllusts() != null && target.getIllusts().size() >= 3) {
             Glide.with(mContext).load(GlideUtil.getMediumImg(target
                     .getIllusts().get(0)))
