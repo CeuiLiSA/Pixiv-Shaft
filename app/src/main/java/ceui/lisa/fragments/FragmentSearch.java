@@ -42,9 +42,11 @@ import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListTrendingtag;
+import ceui.lisa.utils.ClipBoardUtils;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
+import ceui.lisa.utils.SearchTypeUtil;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
@@ -58,7 +60,7 @@ import static ceui.lisa.utils.PixivOperate.insertSearchHistory;
 public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
 
     private ObservableEmitter<String> fuck = null;
-    private int searchType = 0;
+    private int searchType = SearchTypeUtil.defaultSearchType;
 
     @Override
     public void initLayout() {
@@ -67,14 +69,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
 
     @Override
     protected void initData() {
-        final String[] SEARCH_TYPE = new String[]{
-                getString(R.string.string_149),
-                getString(R.string.string_150),
-                getString(R.string.string_151),
-                getString(R.string.string_152),
-                getString(R.string.string_153),
-                getString(R.string.string_341)
-        };
+        final String[] SEARCH_TYPE = SearchTypeUtil.SEARCH_TYPE_NAME;
 
         ViewGroup.LayoutParams headParams = baseBind.head.getLayoutParams();
         headParams.height = Shaft.statusHeight;
@@ -230,11 +225,10 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                 Common.showToast(getString(R.string.string_154));
             }
         } else if (searchType == 5) {
-            final String input = baseBind.inputBox.getText().toString();
-            if (!TextUtils.isEmpty(input)) {
+            if (!TextUtils.isEmpty(keyWord)) {
                 try {
                     Intent intent = new Intent(mContext, OutWakeActivity.class);
-                    intent.setData(Uri.parse(input));
+                    intent.setData(Uri.parse(keyWord));
                     startActivity(intent);
                 } catch (Exception e) {
                     Common.showToast(e.toString());
@@ -310,6 +304,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
     public void onResume() {
         super.onResume();
         loadHistory();
+        predictSearchType();
     }
 
     private void loadHistory() {
@@ -395,6 +390,18 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                     PixivOperate.getNovelByID(sUserModel, Integer.parseInt(history.get(position).getKeyword()), mContext, null);
                 }
                 return false;
+            }
+        });
+    }
+
+    private void predictSearchType(){
+        mActivity.getWindow().getDecorView().post(new Runnable() {
+            @Override
+            public void run() {
+                String content = ClipBoardUtils.getClipboardContent(mContext);
+                int suggestSearchType = SearchTypeUtil.getSuggestSearchType(content);
+                searchType = suggestSearchType;
+                baseBind.inputBox.setHint(SearchTypeUtil.SEARCH_TYPE_NAME[searchType]);
             }
         });
     }
