@@ -16,6 +16,7 @@ import ceui.lisa.interfaces.FullClickListener;
 import ceui.lisa.models.UserPreviewsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
+import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 
 public class UAdapter extends BaseAdapter<UserPreviewsBean, RecyUserPreviewBinding> {
@@ -58,21 +59,21 @@ public class UAdapter extends BaseAdapter<UserPreviewsBean, RecyUserPreviewBindi
                     .placeholder(R.color.light_bg)
                     .into(bindView.baseBind.userShowThree);
         } else if (target.getNovels() != null && target.getNovels().size() >= 3) {
-            Glide.with(mContext).load(GlideUtil.getMediumImg(target
+            Glide.with(mContext).load(GlideUtil.getUrl(target
                     .getNovels().get(0).getImage_urls().getMedium()))
                     .placeholder(R.color.light_bg)
                     .into(bindView.baseBind.userShowOne);
-            Glide.with(mContext).load(GlideUtil.getMediumImg(target
+            Glide.with(mContext).load(GlideUtil.getUrl(target
                     .getNovels().get(1).getImage_urls().getMedium()))
                     .placeholder(R.color.light_bg)
                     .into(bindView.baseBind.userShowTwo);
-            Glide.with(mContext).load(GlideUtil.getMediumImg(target
+            Glide.with(mContext).load(GlideUtil.getUrl(target
                     .getNovels().get(2).getImage_urls().getMedium()))
                     .placeholder(R.color.light_bg)
                     .into(bindView.baseBind.userShowThree);
         }
 
-        Glide.with(mContext).load(GlideUtil.getMediumImg(allIllust.get(position)
+        Glide.with(mContext).load(GlideUtil.getUrl(allIllust.get(position)
                 .getUser().getProfile_image_urls().getMedium())).into(bindView.baseBind.userHead);
         bindView.baseBind.postLikeUser.setText(allIllust.get(position).getUser().isIs_followed() ?
                 mContext.getString(R.string.post_unfollow) : mContext.getString(R.string.post_follow));
@@ -112,7 +113,7 @@ public class UAdapter extends BaseAdapter<UserPreviewsBean, RecyUserPreviewBindi
                         allIllust.get(position).getUser().setIs_followed(false);
                         postFollow.setText(mContext.getString(R.string.post_follow));
                     } else {
-                        PixivOperate.postFollowUser(allIllust.get(position).getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC);
+                        PixivOperate.postFollowUser(allIllust.get(position).getUser().getId(), Params.TYPE_PUBLUC);
                         allIllust.get(position).getUser().setIs_followed(true);
                         Button postFollow = ((Button) v);
                         postFollow.setText(mContext.getString(R.string.post_unfollow));
@@ -123,7 +124,7 @@ public class UAdapter extends BaseAdapter<UserPreviewsBean, RecyUserPreviewBindi
             @Override
             public void onItemLongClick(View v, int position, int viewType) {
                 if (!allIllust.get(position).getUser().isIs_followed()) {
-                    PixivOperate.postFollowUser(allIllust.get(position).getUser().getId(), FragmentLikeIllust.TYPE_PRIVATE);
+                    PixivOperate.postFollowUser(allIllust.get(position).getUser().getId(), Params.TYPE_PRIVATE);
                     Button postFollow = ((Button) v);
                     postFollow.setText(mContext.getString(R.string.post_unfollow));
                 }

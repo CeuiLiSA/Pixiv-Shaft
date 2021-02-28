@@ -1,6 +1,7 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -20,21 +21,22 @@ import com.zhy.view.flowlayout.FlowLayout;
 import com.zhy.view.flowlayout.TagAdapter;
 import com.zhy.view.flowlayout.TagFlowLayout;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.BaseActivity;
+import ceui.lisa.activities.NovelActivity;
 import ceui.lisa.activities.SearchActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.adapters.VAdapter;
-import ceui.lisa.base.BaseFragment;
 import ceui.lisa.cache.Cache;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.databinding.FragmentNovelHolderBinding;
-import ceui.lisa.helper.TextWriter;
+import ceui.lisa.download.FileCreator;
+import ceui.lisa.download.IllustDownload;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.Callback;
@@ -42,11 +44,11 @@ import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.NovelDetail;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.view.ScrollChange;
-import gdut.bsx.share2.FileUtil;
 import gdut.bsx.share2.Share2;
 import gdut.bsx.share2.ShareContentType;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -79,24 +81,6 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
     @Override
     public void initView() {
         BarUtils.setNavBarColor(mActivity, getResources().getColor(R.color.hito_bg));
-        baseBind.toolbar.inflateMenu(R.menu.change_color);
-        baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                if (item.getItemId() == R.id.action_add) {
-                    if (Shaft.sSettings.getNovelHolderColor() != 0) {
-                        ColorPickerDialog.newBuilder()
-                                .setColor(Shaft.sSettings.getNovelHolderColor())
-                                .show(mActivity);
-                    } else {
-                        ColorPickerDialog.newBuilder()
-                                .setColor(getResources().getColor(R.color.novel_holder))
-                                .show(mActivity);
-                    }
-                }
-                return false;
-            }
-        });
         if (Shaft.sSettings.getNovelHolderColor() != 0) {
             setColor(Shaft.sSettings.getNovelHolderColor());
         }
@@ -113,46 +97,46 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                 isOpen = isTransformed;
             }
         };
-        baseBind.saveNovel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mNovelBean.setLocalSaved(true);
-                String fileName = Params.NOVEL_KEY + mNovelBean.getId();
-                Cache.get().saveModel(fileName, mNovelDetail);
-                DownloadEntity downloadEntity = new DownloadEntity();
-                downloadEntity.setFileName(fileName);
-                downloadEntity.setDownloadTime(System.currentTimeMillis());
-                downloadEntity.setFilePath(PathUtils.getInternalAppCachePath());
-                downloadEntity.setIllustGson(Shaft.sGson.toJson(mNovelBean));
-                AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(downloadEntity);
-                Common.showToast(getString(R.string.string_181), baseBind.saveNovel);
-                baseBind.transformationLayout.finishTransform();
-            }
-        });
+    }
+
+    @Override
+    protected void initData() {
+        getNovel(mNovelBean);
+    }
+
+    public void setColor(int color) {
+        Common.showLog(className + color);
+        baseBind.relaRoot.setBackgroundColor(color);
+    }
+
+    private void getNovel(NovelBean novelBean) {
+        mNovelBean = novelBean;
         if (mNovelBean.isIs_bookmarked()) {
             baseBind.like.setText(mContext.getString(R.string.string_179));
         } else {
             baseBind.like.setText(mContext.getString(R.string.string_180));
         }
+        Common.showLog(className + "getNovel 000");
         baseBind.like.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Common.showLog(className + "getNovel 111");
                 PixivOperate.postLikeNovel(mNovelBean, Shaft.sUserModel,
-                        FragmentLikeIllust.TYPE_PUBLUC, baseBind.like);
+                        Params.TYPE_PUBLUC, baseBind.like);
             }
         });
+
         baseBind.like.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                if (mNovelBean.isIs_bookmarked()) {
-
-                } else {
+                if (!mNovelBean.isIs_bookmarked()) {
                     PixivOperate.postLikeNovel(mNovelBean, Shaft.sUserModel,
-                            FragmentLikeIllust.TYPE_PRIVATE, baseBind.like);
+                            Params.TYPE_PRIVATE, baseBind.like);
                 }
                 return true;
             }
         });
+
         View.OnClickListener seeUser = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -166,23 +150,27 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
         baseBind.viewPager.setHasFixedSize(false);
         baseBind.novelTitle.setText(String.format("%s%s", getString(R.string.string_182), mNovelBean.getTitle()));
         if (mNovelBean.getSeries() != null && !TextUtils.isEmpty(mNovelBean.getSeries().getTitle())) {
+            baseBind.novelSeries.setVisibility(View.VISIBLE);
             baseBind.novelSeries.setText(String.format("%s%s", getString(R.string.string_183), mNovelBean.getSeries().getTitle()));
             baseBind.novelSeries.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     Intent intent = new Intent(mContext, TemplateActivity.class);
-                    intent.putExtra(Params.CONTENT, mNovelBean);
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说系列作品");
+                    intent.putExtra(Params.ID, mNovelBean.getSeries().getId());
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说系列详情");
                     startActivity(intent);
                 }
             });
+        } else {
+            baseBind.novelSeries.setVisibility(View.GONE);
         }
         if (mNovelBean.getTags() != null && mNovelBean.getTags().size() != 0) {
             baseBind.hotTags.setAdapter(new TagAdapter<TagsBean>(
                     mNovelBean.getTags()) {
                 @Override
                 public View getView(FlowLayout parent, int position, TagsBean trendTagsBean) {
-                    TextView tv = (TextView) LayoutInflater.from(mContext).inflate(R.layout.recy_single_novel_tag_text,
+                    TextView tv = (TextView) LayoutInflater.from(mContext).inflate(
+                            R.layout.recy_single_novel_tag_text_small,
                             parent, false);
                     tv.setText(trendTagsBean.getName());
                     return tv;
@@ -200,19 +188,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
             });
         }
         Glide.with(mContext).load(GlideUtil.getHead(mNovelBean.getUser())).into(baseBind.userHead);
-    }
 
-    @Override
-    protected void initData() {
-        getNovel(mNovelBean);
-    }
-
-    public void setColor(int color) {
-        Common.showLog(className + color);
-        baseBind.relaRoot.setBackgroundColor(color);
-    }
-
-    private void getNovel(NovelBean novelBean) {
         PixivOperate.insertNovelViewHistory(novelBean);
         baseBind.viewPager.setVisibility(View.INVISIBLE);
         if (novelBean.isLocalSaved()) {
@@ -221,7 +197,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
             refreshDetail(mNovelDetail);
         } else {
             baseBind.progressRela.setVisibility(View.VISIBLE);
-            Retro.getAppApi().getNovelDetail(Shaft.sUserModel.getResponse().getAccess_token(), novelBean.getId())
+            Retro.getAppApi().getNovelDetail(Shaft.sUserModel.getAccess_token(), novelBean.getId())
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new NullCtrl<NovelDetail>() {
@@ -239,6 +215,13 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
     }
 
     private void refreshDetail(NovelDetail novelDetail) {
+        if (Dev.isDev) {
+            Intent intent = new Intent(mContext, NovelActivity.class);
+            intent.putExtra(Params.NOVEL_DETAIL, novelDetail);
+            startActivity(intent);
+            finish();
+            return;
+        }
         mNovelDetail = novelDetail;
         baseBind.viewPager.setVisibility(View.VISIBLE);
         baseBind.viewPager.setOnTouchListener(new View.OnTouchListener() {
@@ -283,21 +266,77 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
         } else {
             baseBind.showNext.setVisibility(View.INVISIBLE);
         }
-        baseBind.exportTxt.setOnClickListener(new View.OnClickListener() {
+        baseBind.toolbar.getMenu().clear();
+        baseBind.toolbar.inflateMenu(R.menu.novel_read_menu);
+        baseBind.saveNovelTxt.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                TextWriter.writeToTxt(System.currentTimeMillis() + "_novel_tasks.txt",
-                        novelDetail.getNovel_text(), new Callback<File>() {
-                            @Override
-                            public void doSomething(File t) {
-                                new Share2.Builder(mActivity)
-                                        .setContentType(ShareContentType.FILE)
-                                        .setShareFileUri(FileUtil.getFileUri(mContext, ShareContentType.FILE, t))
-                                        .setTitle("Share File")
-                                        .build()
-                                        .shareBySystem();
-                            }
-                        });
+            public void onClick(View view) {
+                IllustDownload.downloadNovel((BaseActivity<?>) mContext, FileCreator.deleteSpecialWords(
+                        mNovelBean.getTitle() + "_" + mNovelBean.getId() + "_novel_tasks.txt"
+                ), novelDetail.getNovel_text(), new Callback<Uri>() {
+                    @Override
+                    public void doSomething(Uri t) {
+                        Common.showToast(getString(R.string.string_279), 2);
+                    }
+                });
+            }
+        });
+        baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                if (item.getItemId() == R.id.action_change_color) {
+                    if (Shaft.sSettings.getNovelHolderColor() != 0) {
+                        ColorPickerDialog.newBuilder()
+                                .setColor(Shaft.sSettings.getNovelHolderColor())
+                                .show(mActivity);
+                    } else {
+                        ColorPickerDialog.newBuilder()
+                                .setColor(getResources().getColor(R.color.novel_holder))
+                                .show(mActivity);
+                    }
+                    return true;
+                } else if (item.getItemId() == R.id.action_save) {
+                    mNovelBean.setLocalSaved(true);
+                    String fileName = Params.NOVEL_KEY + mNovelBean.getId();
+                    Cache.get().saveModel(fileName, mNovelDetail);
+                    DownloadEntity downloadEntity = new DownloadEntity();
+                    downloadEntity.setFileName(fileName);
+                    downloadEntity.setDownloadTime(System.currentTimeMillis());
+                    downloadEntity.setFilePath(PathUtils.getInternalAppCachePath());
+                    downloadEntity.setIllustGson(Shaft.sGson.toJson(mNovelBean));
+                    AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insert(downloadEntity);
+                    Common.showToast(getString(R.string.string_181), 2);
+                    baseBind.transformationLayout.finishTransform();
+                    return true;
+                } else if (item.getItemId() == R.id.action_txt) {
+                    IllustDownload.downloadNovel((BaseActivity<?>) mContext, FileCreator.deleteSpecialWords(
+                            mNovelBean.getTitle() + "_" + mNovelBean.getId() + "_novel_tasks.txt"
+                    ), novelDetail.getNovel_text(), new Callback<Uri>() {
+                        @Override
+                        public void doSomething(Uri t) {
+                            Common.showToast(getString(R.string.string_279), 2);
+                        }
+                    });
+                    return true;
+                } else if (item.getItemId() == R.id.action_txt_and_share) {
+                    IllustDownload.downloadNovel((BaseActivity<?>) mActivity,
+                            FileCreator.deleteSpecialWords(mNovelBean.getTitle() + "_" +
+                                    mNovelBean.getId() + "_novel_tasks.txt"),
+                            novelDetail.getNovel_text(), new Callback<Uri>() {
+                        @Override
+                        public void doSomething(Uri uri) {
+                            new Share2.Builder(mActivity)
+                                    .setContentType(ShareContentType.FILE)
+                                    .setShareFileUri(uri)
+                                    .setTitle("Share File")
+                                    .build()
+                                    .shareBySystem();
+                        }
+                    });
+                    Common.showToast(getString(R.string.string_279), 2);
+                    return true;
+                }
+                return false;
             }
         });
     }

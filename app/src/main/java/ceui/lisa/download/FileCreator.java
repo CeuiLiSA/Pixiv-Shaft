@@ -12,99 +12,32 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.model.CustomFileNameCell;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.Settings;
+
+import static ceui.lisa.utils.Settings.FILE_PATH_SINGLE;
+import static ceui.lisa.utils.Settings.FILE_PATH_SINGLE_R18;
 
 
 public class FileCreator {
 
-    public static File createGifZipFile(IllustsBean illustsBean) {
-        if (illustsBean == null) {
-            return null;
-        }
-
-        return new File(Shaft.sSettings.getGifZipPath(), deleteSpecialWords(
-                illustsBean.getTitle() + DASH + illustsBean.getId() + ".zip")
-        );
-    }
-
-    public static File createGifFile(IllustsBean illustsBean) {
-        if (illustsBean == null) {
-            return null;
-        }
-
-        return new File(Shaft.sSettings.getGifResultPath(), deleteSpecialWords(
-                illustsBean.getTitle() + DASH + illustsBean.getId() + ".gif")
-        );
-    }
-
-
-    public static File createGifParentFile(IllustsBean illustsBean) {
-        if (illustsBean == null) {
-            return null;
-        }
-
-        return new File(Shaft.sSettings.getGifUnzipPath() + deleteSpecialWords(
-                illustsBean.getTitle() + DASH + illustsBean.getId())
-        );
-    }
-
-    /**
-     *
-     * index 0 "title_123456789_p0.png"
-     * index 1 "title_123456789_p0.jpg"
-     * index 2 "123456789_title_p0.png"
-     * index 3 "123456789_title_p0.jpg"
-     *
-     * @param illustsBean illustsBean
-     * @return file
-     */
-    public static File createIllustFile(IllustsBean illustsBean) {
-        return createIllustFile(illustsBean, 0);
-    }
-
-
     private static final String DASH = "_";
-    /**
-     *
-     * index 0 "title_123456789_p0.png"
-     * index 1 "title_123456789_p0.jpg"
-     * index 2 "123456789_title_p0.png"
-     * index 3 "123456789_title_p0.jpg"
-     *
-     */
-    public static File createIllustFile(IllustsBean illustsBean, int index) {
-        if (illustsBean == null) {
-            return null;
-        }
 
-        return new File(Shaft.sSettings.getIllustPath(), customFileName(illustsBean, index));
+    public static boolean isExist(IllustsBean illust, int index) {
+        File file = new File(FILE_PATH_SINGLE, customFileName(illust, index));
+        File fileR18 = new File(FILE_PATH_SINGLE_R18, customFileName(illust, index));
+        return file.exists() || fileR18.exists();
     }
 
-    private static String deleteSpecialWords(String before) {
+    public static String deleteSpecialWords(String before) {
         if (!TextUtils.isEmpty(before)) {
             String temp1 = before.replace("-", DASH);
             String temp2 = temp1.replace("/", DASH);
             String temp3 = temp2.replace(",", DASH);
-            return temp3;
+            String temp4 = temp3.replace(":", DASH);
+            String temp5 = temp4.replace("*", DASH);
+            return temp5;
         } else {
             return "untitle_" + System.currentTimeMillis() + ".png";
         }
-    }
-
-    public static File createWebFile(String name) {
-        File parent = new File(Shaft.sSettings.getIllustPath());
-        if (!parent.exists()) {
-            parent.mkdir();
-        }
-        return new File(parent, deleteSpecialWords(name));
-    }
-
-    public static File createLogFile(String name) {
-        File parent = new File(Settings.getLogPath());
-        if (!parent.exists()) {
-            parent.mkdir();
-        }
-        return new File(parent, deleteSpecialWords(name));
     }
 
     public static final int ILLUST_TITLE = 1;
@@ -120,8 +53,7 @@ public class FileCreator {
             result = defaultFileCells();
         } else {
             result = new ArrayList<>(Shaft.sGson.fromJson(Shaft.sSettings.getFileNameJson(),
-                    new TypeToken<List<CustomFileNameCell>>() {
-                    }.getType()));
+                    new TypeToken<List<CustomFileNameCell>>() {}.getType()));
         }
         String fileUrl;
         if (illustsBean.getPage_count() == 1) {
@@ -134,11 +66,9 @@ public class FileCreator {
     }
 
     public static String getMimeTypeFromUrl(String url) {
-        String result;
+        String result = "png";
         if (url.contains(".")) {
             result = url.substring(url.lastIndexOf(".") + 1);
-        } else {
-            result = "png";
         }
         Common.showLog("getMimeType fileUrl: " + url + ", fileType: " + result);
         return result;
@@ -178,11 +108,19 @@ public class FileCreator {
                         }
                         break;
                     case P_SIZE:
-                        if (illustsBean.getPage_count() != 1) {
+                        if (Shaft.sSettings.isHasP0()) {
                             if (!TextUtils.isEmpty(fileName)) {
-                                fileName = fileName + "_p" + (index + 1);
+                                fileName = fileName + "_p" + index;
                             } else {
-                                fileName = "p" + (index + 1);
+                                fileName = "p" + index;
+                            }
+                        } else {
+                            if (illustsBean.getPage_count() != 1) {
+                                if (!TextUtils.isEmpty(fileName)) {
+                                    fileName = fileName + "_p" + (index + 1);
+                                } else {
+                                    fileName = "p" + (index + 1);
+                                }
                             }
                         }
                         break;
@@ -219,7 +157,7 @@ public class FileCreator {
         List<CustomFileNameCell> cells = new ArrayList<>();
         cells.add(new CustomFileNameCell("作品标题", "作品标题，可选项", 1, true));
         cells.add(new CustomFileNameCell("作品ID", "不选的话可能两个文件名重复，导致下载失败，必选项", 2, true));
-        cells.add(new CustomFileNameCell("作品P数", "显示当前图片是作品的第几P，如果只有1P则隐藏，必选项", 3, true));
+        cells.add(new CustomFileNameCell("作品P数", "显示当前图片是作品的第几P，必选项", 3, true));
         cells.add(new CustomFileNameCell("画师ID", "画师ID，可选项", 4, false));
         cells.add(new CustomFileNameCell("画师昵称", "画师昵称，可选项", 5, false));
         cells.add(new CustomFileNameCell("作品尺寸", "显示当前图片的尺寸信息，可选项", 6, false));

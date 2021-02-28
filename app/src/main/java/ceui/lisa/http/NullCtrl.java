@@ -1,16 +1,7 @@
 package ceui.lisa.http;
 
-public abstract class NullCtrl<T> extends ErrorCtrl<T> {
 
-    @Override
-    public void onNext(T t) {
-        must(true);
-        if (t != null) {
-            success(t);
-        } else {
-            nullSuccess();
-        }
-    }
+public abstract class NullCtrl<T> extends ErrorCtrl<T> {
 
     public abstract void success(T t);
 
@@ -19,8 +10,18 @@ public abstract class NullCtrl<T> extends ErrorCtrl<T> {
     }
 
     @Override
-    public void onError(Throwable e) {
-        super.onError(e);
+    public void next(T t) {
+        if (t != null) {
+            success(t);
+        } else {
+            nullSuccess();
+        }
+        must(true);
+    }
+
+    @Override
+    public void error(Throwable e) {
+        super.error(e);
         must(false);
     }
 

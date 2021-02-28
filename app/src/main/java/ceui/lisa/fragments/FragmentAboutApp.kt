@@ -5,13 +5,11 @@ import android.content.Intent
 import android.net.Uri
 import ceui.lisa.R
 import ceui.lisa.activities.TemplateActivity
-import ceui.lisa.base.SwipeFragment
 import ceui.lisa.databinding.FragmentAboutBinding
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.PackageUtils
 import ceui.lisa.utils.Params
 import com.scwang.smartrefresh.layout.SmartRefreshLayout
-
 
 class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
 
@@ -42,15 +40,18 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
         baseBind.pixivPrivacy.setOnClickListener {
             val intent = Intent(mContext, TemplateActivity::class.java)
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接")
-            intent.putExtra(Params.URL, "https://www.pixiv.net/terms/?page=privacy&appname=pixiv_ios")
+            intent.putExtra(
+                Params.URL,
+                "https://www.pixiv.net/terms/?page=privacy&appname=pixiv_ios"
+            )
             intent.putExtra(Params.TITLE, "隐私政策")
             startActivity(intent)
         }
         baseBind.projectWebsite.setOnClickListener {
-            val intent = Intent(mContext, TemplateActivity::class.java)
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接")
-            intent.putExtra(Params.URL, "https://github.com/CeuiLiSA/Pixiv-Shaft")
-            intent.putExtra(Params.TITLE, "项目主页")
+            val intent = Intent(Intent.ACTION_VIEW)
+            intent.addCategory(Intent.CATEGORY_DEFAULT)
+            intent.addCategory(Intent.CATEGORY_BROWSABLE)
+            intent.data = Uri.parse("https://github.com/CeuiLiSA/Pixiv-Shaft")
             startActivity(intent)
         }
         baseBind.dontCatchMe.setOnClickListener {
@@ -69,20 +70,28 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
             startActivity(intent)
         }
         baseBind.goTelegram.setOnClickListener {
-            Common.showToast(getString(R.string.string_226))
+            val uri = Uri.parse("https://t.me/joinchat/QBTiWBvo-jda7SEl4VgK-Q")
+            val myAppLinkToMarket = Intent(Intent.ACTION_VIEW, uri)
+            try {
+                startActivity(myAppLinkToMarket)
+            } catch (e: ActivityNotFoundException) {
+                Common.showToast("unable to find market app")
+            }
         }
         baseBind.goQq.setOnClickListener {
             val intent = Intent()
             intent.data = Uri.parse(
-                    "mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + "_RMaPSgL-eB-JZPMFdXGJTSqIqtgCn5G");
+//                "mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + "_RMaPSgL-eB-JZPMFdXGJTSqIqtgCn5G"
+                "mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + "t4_EApMhD08yaYtdTQ40TmrjIx-uuWsk"
+            )
             try {
                 startActivity(intent)
             } catch (e: Exception) {
                 Common.showToast(getString(R.string.string_227))
             }
-
         }
-        baseBind.appVersion.text = Common.getAppVersionName(mContext) + " (" + Common.getAppVersionCode(mContext) + ") "
+        baseBind.appVersion.text = "%s (%s) "
+            .format(Common.getAppVersionName(mContext), Common.getAppVersionCode(mContext))
         baseBind.rateThisApp.setOnClickListener {
             val uri = Uri.parse("market://details?id=" + mContext.packageName)
             val myAppLinkToMarket = Intent(Intent.ACTION_VIEW, uri)

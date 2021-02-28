@@ -39,6 +39,7 @@ public class FragmentPivisionHorizontal extends NetListFragment<FragmentPivision
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
                 intent.putExtra(Params.URL, allItems.get(position).getArticle_url());
                 intent.putExtra(Params.TITLE, getString(R.string.pixiv_special));
+                intent.putExtra(Params.PREFER_PRESERVE, true);
                 startActivity(intent);
             }
         });
@@ -91,7 +92,13 @@ public class FragmentPivisionHorizontal extends NetListFragment<FragmentPivision
 
     @Override
     public void onFirstLoaded(List<SpotlightArticlesBean> spotlightArticlesBeans) {
-        mRefreshLayout.setEnableRefresh(false);
+        mRefreshLayout.setEnableRefresh(true);
         mRefreshLayout.setEnableLoadMore(false);
+    }
+
+    @Override
+    public void showDataBase() {
+        baseBind.refreshLayout.finishRefresh(true);
+        emptyRela.setVisibility(View.VISIBLE);
     }
 }

@@ -1,7 +1,6 @@
 package ceui.lisa.adapters;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,7 +10,6 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.databinding.DataBindingUtil;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource;
@@ -19,38 +17,37 @@ import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.load.resource.bitmap.BitmapTransitionOptions;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
-import com.github.ybq.android.spinkit.style.Wave;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.ImageDetailActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.RecyIllustDetailBinding;
+import ceui.lisa.download.IllustDownload;
+import ceui.lisa.feature.HostManager;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.transformer.LargeBitmapScaleTransformer;
 import ceui.lisa.transformer.UniformScaleTransformation;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.GlideUtil;
+import ceui.lisa.utils.Dev;
+import ceui.lisa.utils.GlideUrlChild;
+import me.jessyan.progressmanager.ProgressListener;
+import me.jessyan.progressmanager.ProgressManager;
+import me.jessyan.progressmanager.body.ProgressInfo;
 
-public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDetailBinding>> {
+public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDetailBinding>> {
 
-    private Context mContext;
-    private IllustsBean allIllust;
-    private int imageSize;
-    private Map<Integer, Boolean> hasLoad = new HashMap<>();
     private int maxHeight;
 
-    public IllustAdapter(Context context, IllustsBean illustsBean, int maxHeight){
-        Common.showLog("IllustAdapter maxHeight " + maxHeight );
+    public IllustAdapter(Context context, IllustsBean illustsBean, int maxHeight) {
+        this(context, illustsBean, maxHeight, false);
+    }
+
+    public IllustAdapter(Context context, IllustsBean illustsBean, int maxHeight, boolean isForceOriginal) {
+        Common.showLog("IllustAdapter maxHeight " + maxHeight);
         mContext = context;
         allIllust = illustsBean;
         this.maxHeight = maxHeight;
         imageSize = mContext.getResources().getDisplayMetrics().widthPixels;
-        hasLoad.clear();
-        for (int i = 0; i < allIllust.getPage_count(); i++) {
-            hasLoad.put(i, false);
-        }
+        this.isForceOriginal = isForceOriginal;
     }
 
     @NonNull
@@ -63,11 +60,9 @@ public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDet
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder<RecyIllustDetailBinding> holder, int position) {
-        Wave wave = new Wave();
-        holder.baseBind.progress.setIndeterminateDrawable(wave);
+        super.onBindViewHolder(holder, position);
         if (position == 0) {
             if (allIllust.getPage_count() == 1) {
-
                 //获取屏幕imageview的宽高比率
                 float screenRatio = (float) imageSize / maxHeight;
                 //获取作品的宽高比率
@@ -79,6 +74,7 @@ public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDet
                     ViewGroup.LayoutParams params = holder.baseBind.illust.getLayoutParams();
                     params.width = imageSize;
                     params.height = maxHeight;
+                    Common.showLog("onBindViewHolder " + maxHeight);
                     holder.baseBind.illust.setLayoutParams(params);
                     loadIllust(holder, position, false);
                 } else {
@@ -96,8 +92,6 @@ public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDet
                         loadIllust(holder, position, false);
                     }
                 }
-
-
             } else {
                 holder.baseBind.illust.setScaleType(ImageView.ScaleType.CENTER_CROP);
                 loadIllust(holder, position, true);
@@ -106,64 +100,70 @@ public class IllustAdapter extends RecyclerView.Adapter<ViewHolder<RecyIllustDet
             holder.baseBind.illust.setScaleType(ImageView.ScaleType.CENTER_CROP);
             loadIllust(holder, position, true);
         }
-
-        holder.baseBind.reload.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                hasLoad.put(position, false);
-                holder.baseBind.reload.setVisibility(View.INVISIBLE);
-                holder.baseBind.progress.setVisibility(View.VISIBLE);
-                loadIllust(holder, position, allIllust.getPage_count() != 0);
-            }
-        });
-
-        holder.itemView.setOnClickListener(v -> {
-            Intent intent = new Intent(mContext, ImageDetailActivity.class);
-            intent.putExtra("illust", allIllust);
-            intent.putExtra("dataType", "二级详情");
-            intent.putExtra("index", position);
-            mContext.startActivity(intent);
-        });
     }
 
     /**
-     *
      * @param holder
      * @param position
      * @param changeSize 是否自动计算宽高
      */
-    private void loadIllust(ViewHolder<RecyIllustDetailBinding> holder, int position, boolean changeSize){
-        holder.baseBind.progress.setVisibility(View.VISIBLE);
+    private void loadIllust(ViewHolder<RecyIllustDetailBinding> holder, int position, boolean changeSize) {
+        holder.baseBind.reload.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                holder.baseBind.reload.setVisibility(View.GONE);
+                holder.baseBind.progressLayout.donutProgress.setVisibility(View.VISIBLE);
+                loadIllust(holder, position, changeSize);
+            }
+        });
+        final String imageUrl;
+        if (Shaft.sSettings.isShowOriginalImage() || isForceOriginal) {
+            imageUrl = IllustDownload.getUrl(allIllust, position);
+        } else {
+            if (allIllust.getPage_count() == 1) {
+                imageUrl = HostManager.get().replaceUrl(allIllust.getImage_urls().getLarge());
+            } else {
+                imageUrl = HostManager.get().replaceUrl(allIllust.getMeta_pages().get(position).getImage_urls().getLarge());
+            }
+        }
+        ProgressManager.getInstance().addResponseListener(imageUrl, new ProgressListener() {
+            @Override
+            public void onProgress(ProgressInfo progressInfo) {
+                holder.baseBind.progressLayout.donutProgress.setProgress(progressInfo.getPercent());
+                if(progressInfo.isFinish()){
+                    ProgressManager.getInstance().removeResponseListener(imageUrl,this);
+                }
+            }
+
+            @Override
+            public void onError(long id, Exception e) {
+
+            }
+        });
+
         Glide.with(mContext)
                 .asBitmap()
-                .load(Shaft.sSettings.isFirstImageSize() ?
-                        GlideUtil.getOriginalWithInvertProxy(allIllust, position) :
-                        GlideUtil.getLargeImage(allIllust, position))
+                .load(new GlideUrlChild(imageUrl))
+                .transform(new LargeBitmapScaleTransformer())
                 .transition(BitmapTransitionOptions.withCrossFade())
                 .listener(new RequestListener<Bitmap>() {
                     @Override
                     public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {
                         holder.baseBind.reload.setVisibility(View.VISIBLE);
-                        holder.baseBind.progress.setVisibility(View.INVISIBLE);
-                        hasLoad.put(position, false);
-                        Common.showLog("IllustAdapter onLoadFailed " + position );
+                        holder.baseBind.progressLayout.donutProgress.setVisibility(View.INVISIBLE);
                         return false;
                     }
 
                     @Override
                     public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
-                        holder.baseBind.reload.setVisibility(View.INVISIBLE);
-                        holder.baseBind.progress.setVisibility(View.INVISIBLE);
-                        Common.showLog("IllustAdapter onResourceReady " + position );
-                        hasLoad.put(position, true);
+                        holder.baseBind.reload.setVisibility(View.GONE);
+                        holder.baseBind.progressLayout.donutProgress.setVisibility(View.INVISIBLE);
+                        if (isForceOriginal) {
+                            Shaft.getMMKV().encode(imageUrl, true);
+                        }
                         return false;
                     }
                 })
                 .into(new UniformScaleTransformation(holder.baseBind.illust, changeSize));
-    }
-
-    @Override
-    public int getItemCount() {
-        return allIllust.getPage_count();
     }
 }

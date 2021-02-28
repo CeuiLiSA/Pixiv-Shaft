@@ -24,7 +24,7 @@
         android:layout_width="match_parent"
         android:id="@+id/navigation_view"
         android:background="@android:color/white"
-        app:menu="@menu/main_activity"
+        app:menu="@menu/main_activity0"
         android:elevation="@dimen/four_dp"
         app:elevation="@dimen/four_dp"
         android:layout_alignParentBottom="true"

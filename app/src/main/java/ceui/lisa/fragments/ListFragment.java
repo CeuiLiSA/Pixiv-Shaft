@@ -1,7 +1,9 @@
 package ceui.lisa.fragments;
 
+import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -21,25 +23,26 @@ import com.scwang.smartrefresh.layout.listener.OnRefreshListener;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
-import ceui.lisa.base.BaseFragment;
 import ceui.lisa.core.BaseRepo;
+import ceui.lisa.interfaces.FeedBack;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
 import ceui.lisa.view.SpacesItemDecoration;
-import ceui.lisa.view.SpacesItemWithHeadDecoration;
 import ceui.lisa.viewmodel.BaseModel;
 import jp.wasabeef.recyclerview.animators.BaseItemAnimator;
 import jp.wasabeef.recyclerview.animators.LandingAnimator;
 
 public abstract class ListFragment<Layout extends ViewDataBinding, Item>
-        extends BaseFragment<Layout> {
+        extends BaseLazyFragment<Layout> {
 
     public static final long animateDuration = 400L;
     public static final int PAGE_SIZE = 20;
     protected RecyclerView mRecyclerView;
     protected RefreshLayout mRefreshLayout;
     protected ImageView noData;
+    protected RelativeLayout emptyRela;
     protected BaseAdapter<?, ? extends ViewDataBinding> mAdapter;
     protected List<Item> allItems = null;
     protected BaseModel<Item> mModel;
@@ -81,21 +84,16 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
 
         mRecyclerView = rootView.findViewById(R.id.recyclerView);
         initRecyclerView();
-
-
-        if (mRecyclerView.getLayoutManager() instanceof StaggeredGridLayoutManager) {
-            //do nothing
-        } else {
-            //设置item动画
-            mRecyclerView.setItemAnimator(animation());
-        }
-
+        mRecyclerView.setItemAnimator(animation());
 
         mRefreshLayout = rootView.findViewById(R.id.refreshLayout);
-        mRefreshLayout.setPrimaryColorsId(R.color.white);
+        mRefreshLayout.setDragRate(0.8f); // 阻尼效果太小，会导致滑动距离增大，动画不跟手
+        mRefreshLayout.setHeaderTriggerRate(1.0f); // 触发刷新位置，默认为 1.0*header高度
+        mRefreshLayout.setHeaderMaxDragRate(1.5f); // 最大下拉位置
         noData = rootView.findViewById(R.id.no_data);
-        noData.setOnClickListener(v -> {
-            noData.setVisibility(View.INVISIBLE);
+        emptyRela = rootView.findViewById(R.id.no_data_rela);
+        emptyRela.setOnClickListener(v -> {
+            emptyRela.setVisibility(View.INVISIBLE);
             mRefreshLayout.autoRefresh();
         });
         mRefreshLayout.setRefreshHeader(mModel.getBaseRepo().enableRefresh() ?
@@ -106,22 +104,39 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
         mRefreshLayout.setOnRefreshListener(new OnRefreshListener() {
             @Override
             public void onRefresh(@NonNull RefreshLayout refreshLayout) {
-                clear();
-                fresh();
+                try {
+                    if (mRecyclerView.getLayoutManager() instanceof StaggeredGridLayoutManager
+                            && mRecyclerView.getItemAnimator() == null) {
+                        mRecyclerView.setItemAnimator(animation());
+                    }
+                    clear();
+                    fresh();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
         mRefreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
             @Override
             public void onLoadMore(@NonNull RefreshLayout refreshLayout) {
-                if (mModel.getBaseRepo().hasNext()) {
-                    loadMore();
-                } else {
-                    mRefreshLayout.finishLoadMore();
-                    mRefreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
+                try {
+                    if (mRecyclerView.getLayoutManager() instanceof StaggeredGridLayoutManager
+                            && mRecyclerView.getItemAnimator() != null) {
+                        mRecyclerView.setItemAnimator(null);
+                    }
+                    if (mModel.getBaseRepo().hasNext()) {
+                        loadMore();
+                    } else {
+                        mRefreshLayout.finishLoadMore();
+                        mRefreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         });
 
+        allItems = mModel.getContent();
         mAdapter = adapter();
         if (mAdapter != null) {
             mRecyclerView.setAdapter(mAdapter);
@@ -129,10 +144,44 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
 
         onAdapterPrepared();
 
+        if (!isLazy()) {
+            //进页面主动刷新
+            if (autoRefresh() && !mModel.isLoaded()) {
+                mRefreshLayout.autoRefresh();
+            }
+        }
+    }
+
+    @Override
+    public void lazyData() {
         //进页面主动刷新
         if (autoRefresh() && !mModel.isLoaded()) {
             mRefreshLayout.autoRefresh();
         }
+    }
+
+    public void forceRefresh() {
+        scrollToTop(() -> mRefreshLayout.autoRefresh());
+    }
+
+    public void scrollToTop(FeedBack feedBack) {
+        try {
+            mRecyclerView.smoothScrollToPosition(0);
+            mRecyclerView.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (feedBack != null) {
+                        feedBack.doSomething();
+                    }
+                }
+            }, animateDuration);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void scrollToTop() {
+        scrollToTop(null);
     }
 
     public abstract void fresh();
@@ -169,7 +218,7 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
 
     protected void staggerRecyclerView() {
         StaggeredGridLayoutManager manager = new StaggeredGridLayoutManager(
-                2, StaggeredGridLayoutManager.VERTICAL);
+                Shaft.sSettings.getLineCount(), StaggeredGridLayoutManager.VERTICAL);
         mRecyclerView.setLayoutManager(manager);
         mRecyclerView.addItemDecoration(new SpacesItemDecoration(
                 DensityUtil.dp2px(8.0f)));
@@ -190,6 +239,8 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
             TextView title = toolbar.findViewById(R.id.toolbar_title);
             if (title != null) {
                 title.setText(getToolbarTitle());
+                title.setMovementMethod(ScrollingMovementMethod.getInstance());
+                title.setHorizontallyScrolling(true);
             } else {
                 toolbar.setTitle(getToolbarTitle());
             }

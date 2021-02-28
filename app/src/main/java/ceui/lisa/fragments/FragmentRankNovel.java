@@ -16,7 +16,7 @@ import ceui.lisa.utils.Params;
 public class FragmentRankNovel extends NetListFragment<FragmentBaseListBinding,
         ListNovel, NovelBean> {
 
-    private static final String[] API_TITLES = new String[]{"day", "week",
+    private static final String[] API_TITLES_VALUES = new String[]{"day", "week",
             "day_male", "day_female", "week_rookie", "day_r18"};
     private int mIndex = -1;
     private String queryDate = "";
@@ -43,7 +43,7 @@ public class FragmentRankNovel extends NetListFragment<FragmentBaseListBinding,
 
     @Override
     public RemoteRepo<ListNovel> repository() {
-        return new RankNovelRepo(API_TITLES[mIndex], queryDate);
+        return new RankNovelRepo(API_TITLES_VALUES[mIndex], queryDate);
     }
 
     @Override

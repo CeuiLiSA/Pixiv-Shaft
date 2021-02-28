@@ -10,29 +10,14 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/colorPrimary"
-            android:elevation="@dimen/six_dp"
-            android:fitsSystemWindows="true"
-            android:theme="@style/AppTheme.AppBarOverlay"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
-            app:popupTheme="@style/AppTheme.PopupOverlay"
-            app:title=" "
-            app:titleTextColor="@android:color/white">
-
-        </androidx.appcompat.widget.Toolbar>
+        <include layout="@layout/toolbar_layout" />
 
         <com.scwang.smartrefresh.layout.SmartRefreshLayout
             android:id="@+id/refreshLayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_below="@+id/toolbar"
-            android:background="@color/white">
+            android:background="@color/fragment_center">
 
             <androidx.coordinatorlayout.widget.CoordinatorLayout
                 android:layout_width="match_parent"
@@ -92,7 +77,7 @@
                                     android:layout_toStartOf="@+id/post_like_user"
                                     android:ellipsize="end"
                                     android:maxLines="1"
-                                    android:textColor="@color/colorPrimary"
+                                    android:textColor="?attr/colorPrimary"
                                     android:textSize="15sp"
                                     android:textStyle="bold" />
 
@@ -110,9 +95,9 @@
                                     android:paddingEnd="@dimen/sixteen_dp"
                                     android:paddingBottom="@dimen/four_dp"
                                     android:text="@string/string_85"
-                                    android:textColor="@color/colorPrimary"
+                                    android:textColor="?attr/colorPrimary"
                                     android:textSize="13sp"
-                                    app:qmui_borderColor="@color/colorPrimary" />
+                                    app:qmui_borderColor="?attr/colorPrimary" />
 
                             </RelativeLayout>
 
@@ -122,10 +107,10 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="@dimen/twelve_dp"
+                                android:layout_marginEnd="@dimen/twelve_dp"
                                 android:layout_marginTop="@dimen/eight_dp"
                                 android:layout_marginBottom="@dimen/eight_dp"
                                 android:gravity="center"
-                                android:text="@string/ranking_illust"
                                 android:textColor="@color/dark_text"
                                 android:textSize="15sp"
                                 android:textStyle="bold" />
@@ -136,10 +121,9 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="@dimen/twelve_dp"
+                                android:layout_marginEnd="@dimen/twelve_dp"
                                 android:layout_marginBottom="@dimen/eight_dp"
-                                android:gravity="center"
-                                android:text="@string/ranking_illust"
-                                android:textSize="15sp"/>
+                                android:textSize="13sp"/>
 
                         </LinearLayout>
 
@@ -154,27 +138,23 @@
                     android:id="@+id/recyclerView"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="@color/white"
                     android:fadeScrollbars="false"
                     app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
                 </androidx.recyclerview.widget.RecyclerView>
 
 
-                <ImageView
-                    android:id="@+id/no_data"
+                <include
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_centerInParent="true"
-                    android:scaleType="centerCrop"
-                    android:src="@mipmap/no_data_line"
-                    android:tint="@color/colorPrimary"
-                    android:visibility="invisible"
                     app:layout_anchor="@+id/recyclerView"
-                    app:layout_anchorGravity="center" />
+                    app:layout_anchorGravity="center"
+                    layout="@layout/empty_layout" />
 
 
             </androidx.coordinatorlayout.widget.CoordinatorLayout>
         </com.scwang.smartrefresh.layout.SmartRefreshLayout>
     </RelativeLayout>
 </layout>
+

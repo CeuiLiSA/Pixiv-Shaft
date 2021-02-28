@@ -2,6 +2,7 @@ package ceui.lisa.fragments;
 
 import android.os.Bundle;
 
+import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.UAdapter;
 import ceui.lisa.core.RemoteRepo;
@@ -38,5 +39,10 @@ public class FragmentWhoFollowThisUser extends NetListFragment<FragmentBaseListB
     @Override
     public BaseAdapter<UserPreviewsBean, RecyUserPreviewBinding> adapter() {
         return new UAdapter(allItems, mContext);
+    }
+
+    @Override
+    public String getToolbarTitle() {
+        return getString(R.string.string_264);
     }
 }

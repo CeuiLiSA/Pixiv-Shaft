@@ -21,9 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.base.BaseActivity;
 import ceui.lisa.databinding.ActicityUserBinding;
-import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.fragments.FragmentLikeIllustHorizontal;
 import ceui.lisa.fragments.FragmentLikeNovelHorizontal;
 import ceui.lisa.http.ErrorCtrl;
@@ -62,6 +60,13 @@ public class UserActivity extends BaseActivity<ActicityUserBinding> implements D
     @Override
     protected void initData() {
         int userID = getIntent().getIntExtra(Params.USER_ID, 0);
+        if (Shaft.sSettings.isUseNewUserPage()) {
+            Intent intent = new Intent(mContext, UActivity.class);
+            intent.putExtra(Params.USER_ID, userID);
+            startActivity(intent);
+            finish();
+            return;
+        }
         mUserViewModel = new ViewModelProvider(this).get(UserViewModel.class);
         mUserViewModel.getUser().observe(this, new Observer<UserDetailResponse>() {
             @Override
@@ -69,12 +74,12 @@ public class UserActivity extends BaseActivity<ActicityUserBinding> implements D
                 invoke(userDetailResponse);
             }
         });
-        Retro.getAppApi().getUserDetail(sUserModel.getResponse().getAccess_token(), userID)
+        Retro.getAppApi().getUserDetail(sUserModel.getAccess_token(), userID)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ErrorCtrl<UserDetailResponse>() {
                     @Override
-                    public void onNext(UserDetailResponse user) {
+                    public void next(UserDetailResponse user) {
                         mUserViewModel.getUser().setValue(user);
                     }
                 });
@@ -84,6 +89,8 @@ public class UserActivity extends BaseActivity<ActicityUserBinding> implements D
                 gray(isChecked);
             }
         });
+
+
     }
 
     @Override
@@ -93,7 +100,7 @@ public class UserActivity extends BaseActivity<ActicityUserBinding> implements D
 
     @Override
     public void invoke(UserDetailResponse currentUser) {
-        Glide.with(mContext).load(GlideUtil.getMediumImg(currentUser
+        Glide.with(mContext).load(GlideUtil.getUrl(currentUser
                 .getUser().getProfile_image_urls().getMaxImage()))
                 .placeholder(R.color.light_bg).into(baseBind.userHead);
         baseBind.userHead.setOnClickListener(new View.OnClickListener() {
@@ -148,7 +155,7 @@ public class UserActivity extends BaseActivity<ActicityUserBinding> implements D
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
 
-        if (currentUser.getUser().getId() != sUserModel.getResponse().getUser().getId()) {
+        if (currentUser.getUser().getId() != sUserModel.getUser().getId()) {
             //如果看的是自己的主页，先展示收藏
             //如果看的是别人的主页，先展示作品
             if (currentUser.getProfile().getTotal_illusts() > 0) {
@@ -183,7 +190,7 @@ public class UserActivity extends BaseActivity<ActicityUserBinding> implements D
                         baseBind.send.setImageResource(R.drawable.ic_favorite_accent_24dp);
                         currentUser.getUser().setIs_followed(true);
                         PixivOperate.postFollowUser(currentUser.getUser().getId(),
-                                FragmentLikeIllust.TYPE_PUBLUC);
+                                Params.TYPE_PUBLUC);
                     }
                 }
             });
@@ -194,7 +201,7 @@ public class UserActivity extends BaseActivity<ActicityUserBinding> implements D
                         baseBind.send.setImageResource(R.drawable.ic_favorite_accent_24dp);
                         currentUser.getUser().setIs_followed(true);
                         PixivOperate.postFollowUser(currentUser.getUser().getId(),
-                                FragmentLikeIllust.TYPE_PRIVATE);
+                                Params.TYPE_PRIVATE);
                     }
                     return true;
                 }
@@ -229,11 +236,11 @@ public class UserActivity extends BaseActivity<ActicityUserBinding> implements D
                 FragmentLikeNovelHorizontal.newInstance(0, currentUser.getUserId(),
                         currentUser.getProfile().getTotal_novels()));// 0收藏的小说， 1创作的小说
 
-        transaction.commit();
+        transaction.commitNowAllowingStateLoss();
 
         if (!TextUtils.isEmpty(currentUser.getWorkspace().getWorkspace_image_url())) {
             Glide.with(mContext)
-                    .load(GlideUtil.getMediumImg(currentUser.getWorkspace().getWorkspace_image_url()))
+                    .load(GlideUtil.getUrl(currentUser.getWorkspace().getWorkspace_image_url()))
                     .transition(withCrossFade())
                     .into(baseBind.userBackground);
 

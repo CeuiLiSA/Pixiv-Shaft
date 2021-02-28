@@ -14,12 +14,13 @@ public class Settings {
 
     //只包含1P图片的下载路径
     public static final String FILE_PATH_SINGLE = PathUtils.getExternalPicturesPath() + "/ShaftImages";
+    public static final String FILE_PATH_SINGLE_R18 = PathUtils.getExternalPicturesPath() + "/ShaftImages-R18";
 
     //下载的GIF 压缩包存放在这里
     public static final String FILE_GIF_PATH = PathUtils.getExternalDownloadsPath();
 
     //log日志，
-    public static final String FILE_LOG_PATH = PathUtils.getExternalDownloadsPath();
+    public static final String FILE_LOG_PATH = PathUtils.getExternalDownloadsPath() + "/ShaftFiles";
 
     //下载的GIF 压缩包解压之后的结果存放在这里
     public static final String FILE_GIF_CHILD_PATH = PathUtils.getExternalAppCachePath();
@@ -30,8 +31,41 @@ public class Settings {
     //WEB下载
     public static final String WEB_DOWNLOAD_PATH = PathUtils.getExternalPicturesPath() + "/ShaftWeb";
 
-    //瀑布流List点击动画
-    private boolean mainListAnimate = true;
+    private int themeIndex;
+
+    private int lineCount = 2;
+
+    public int getLineCount() {
+        return lineCount;
+    }
+
+    public void setLineCount(int lineCount) {
+        this.lineCount = lineCount;
+    }
+
+    public int getThemeIndex() {
+        return themeIndex;
+    }
+
+    public void setThemeIndex(int themeIndex) {
+        this.themeIndex = themeIndex;
+    }
+
+    //主页显示R18
+    private boolean mainViewR18 = false;
+
+    //是否启用 FIREBASE_ANALYTICS_COLLECTION
+    private boolean isFirebaseEnable = true;
+
+    private long currentProgress = 0L;
+
+    public long getCurrentProgress() {
+        return currentProgress;
+    }
+
+    public void setCurrentProgress(long currentProgress) {
+        this.currentProgress = currentProgress;
+    }
 
     private boolean trendsForPrivate = false;
 
@@ -41,22 +75,25 @@ public class Settings {
     //设置页面进场动画
     private boolean settingsAnimate = true;
 
+    //屏蔽，不显示已收藏的作品，默认不屏蔽
+    private boolean deleteStarIllust = false;
+
     //是否自动添加DNS，true开启直连  false自行代理
     private boolean autoFuckChina = true;
 
     private boolean relatedIllustNoLimit = true;
 
-    //一级详情FragmentSingleIllust 图片显示原图
-    private boolean useOriginalImage = false;
-
-    //屏蔽，不显示已收藏的作品，默认不屏蔽
-    private boolean deleteStarIllust = false;
+    //使用pixiv cat 代理 展示图片
+    private boolean usePixivCat = false;
 
     //二级详情FragmentImageDetail 图片显示原图
-    private boolean secondImageSize = true;
+    private boolean showOriginalImage = false;
 
     //是否显示开屏 dialog
     private boolean showPixivDialog = true;
+
+    //默认私人收藏
+    private boolean privateStar = false;
 
     //列表页面是否显示收藏按钮
     private boolean showLikeButton = true;
@@ -66,13 +103,20 @@ public class Settings {
 
     private boolean saveViewHistory = true;
 
-    //只允许一个任务处于下载中，用来保证下载顺序
-    private boolean singleDownloadTask = false;
+    private boolean r18DivideSave = false;
+
+    //单P作品的文件名是否带P0
+    private boolean hasP0 = false;
 
     //作品详情使用新页面
     private boolean useFragmentIllust = true;
 
+    //个人中心使用新页面
+    private boolean useNewUserPage = true;
+
     private String illustPath = "";
+
+    private String novelPath = "";
 
     private String gifResultPath = "";
 
@@ -84,11 +128,17 @@ public class Settings {
 
     private int novelHolderColor = 0;
 
+    private int bottomBarOrder = 0;
+
     private boolean reverseDialogNeverShowAgain = false;
 
     private String appLanguage = "";
 
     private String fileNameJson = "";
+
+    private String rootPathUri = "";
+
+    private int downloadWay = 0; //0传统模式，保存到Pictures目录下。    1 SAF模式保存到自选目录下
 
     public String getAppLanguage() {
         if(!TextUtils.isEmpty(appLanguage)){
@@ -96,6 +146,46 @@ public class Settings {
         } else {
             return ALL_LANGUAGE[0];
         }
+    }
+
+    public int getDownloadWay() {
+        return downloadWay;
+    }
+
+    public void setDownloadWay(int downloadWay) {
+        this.downloadWay = downloadWay;
+    }
+
+    public boolean isR18DivideSave() {
+        return r18DivideSave;
+    }
+
+    public void setR18DivideSave(boolean r18DivideSave) {
+        this.r18DivideSave = r18DivideSave;
+    }
+
+    public String getRootPathUri() {
+        return rootPathUri;
+    }
+
+    public void setRootPathUri(String rootPathUri) {
+        this.rootPathUri = rootPathUri;
+    }
+
+    public String getNovelPath() {
+        return TextUtils.isEmpty(novelPath) ? FILE_LOG_PATH : novelPath;
+    }
+
+    public boolean isPrivateStar() {
+        return privateStar;
+    }
+
+    public void setPrivateStar(boolean privateStar) {
+        this.privateStar = privateStar;
+    }
+
+    public void setNovelPath(String novelPath) {
+        this.novelPath = novelPath;
     }
 
     public void setAppLanguage(String appLanguage) {
@@ -109,17 +199,17 @@ public class Settings {
         return themeType;
     }
 
+    public boolean isFirebaseEnable() {
+        return isFirebaseEnable;
+    }
+
+    public void setFirebaseEnable(boolean firebaseEnable) {
+        isFirebaseEnable = firebaseEnable;
+    }
+
     public void setThemeType(AppCompatActivity activity, String themeType) {
         this.themeType = themeType;
         ThemeHelper.applyTheme(activity, themeType);
-    }
-
-    private String themeType = "";
-
-    //收藏量筛选搜索结果
-    private String searchFilter = "";
-
-    public Settings() {
     }
 
     public boolean isDeleteStarIllust() {
@@ -128,6 +218,15 @@ public class Settings {
 
     public void setDeleteStarIllust(boolean pDeleteStarIllust) {
         deleteStarIllust = pDeleteStarIllust;
+    }
+
+
+    private String themeType = "";
+
+    //收藏量筛选搜索结果
+    private String searchFilter = "";
+
+    public Settings() {
     }
 
     public boolean isSaveViewHistory() {
@@ -139,7 +238,15 @@ public class Settings {
     }
 
     public String getSearchFilter() {
-        return TextUtils.isEmpty(searchFilter) ? " 无限制" : searchFilter;
+        return TextUtils.isEmpty(searchFilter) ? "" : searchFilter;
+    }
+
+    public boolean isUsePixivCat() {
+        return usePixivCat;
+    }
+
+    public void setUsePixivCat(boolean usePixivCat) {
+        this.usePixivCat = usePixivCat;
     }
 
     public void setSearchFilter(String searchFilter) {
@@ -162,13 +269,12 @@ public class Settings {
         this.autoFuckChina = autoFuckChina;
     }
 
-
-    public boolean isMainListAnimate() {
-        return mainListAnimate;
+    public boolean isMainViewR18() {
+        return mainViewR18;
     }
 
-    public void setMainListAnimate(boolean mainListAnimate) {
-        this.mainListAnimate = mainListAnimate;
+    public void setMainViewR18(boolean mainViewR18) {
+        this.mainViewR18 = mainViewR18;
     }
 
     public boolean isUseFragmentIllust() {
@@ -195,20 +301,12 @@ public class Settings {
         this.settingsAnimate = settingsAnimate;
     }
 
-    public boolean isFirstImageSize() {
-        return useOriginalImage;
+    public boolean isShowOriginalImage() {
+        return showOriginalImage;
     }
 
-    public void setFirstImageSize(boolean firstImageSize) {
-        this.useOriginalImage = firstImageSize;
-    }
-
-    public boolean isSecondImageSize() {
-        return secondImageSize;
-    }
-
-    public void setSecondImageSize(boolean secondImageSize) {
-        this.secondImageSize = secondImageSize;
+    public void setShowOriginalImage(boolean showOriginalImage) {
+        this.showOriginalImage = showOriginalImage;
     }
 
     public boolean isDirectDownloadAllImage() {
@@ -267,10 +365,6 @@ public class Settings {
         this.trendsForPrivate = trendsForPrivate;
     }
 
-    public static String getLogPath(){
-        return FILE_LOG_PATH;
-    }
-
     public boolean isShowPixivDialog() {
         return showPixivDialog;
     }
@@ -303,12 +397,12 @@ public class Settings {
         this.fileNameJson = fileNameJson;
     }
 
-    public boolean isSingleDownloadTask() {
-        return singleDownloadTask;
+    public boolean isHasP0() {
+        return hasP0;
     }
 
-    public void setSingleDownloadTask(boolean singleDownloadTask) {
-        this.singleDownloadTask = singleDownloadTask;
+    public void setHasP0(boolean hasP0) {
+        this.hasP0 = hasP0;
     }
 
     public int getNovelHolderColor() {
@@ -317,5 +411,21 @@ public class Settings {
 
     public void setNovelHolderColor(int novelHolderColor) {
         this.novelHolderColor = novelHolderColor;
+    }
+
+    public int getBottomBarOrder() {
+        return bottomBarOrder;
+    }
+
+    public void setBottomBarOrder(int bottomBarOrder) {
+        this.bottomBarOrder = bottomBarOrder;
+    }
+
+    public boolean isUseNewUserPage() {
+        return useNewUserPage;
+    }
+
+    public void setUseNewUserPage(boolean useNewUserPage) {
+        this.useNewUserPage = useNewUserPage;
     }
 }

@@ -7,6 +7,7 @@ import android.view.View;
 import androidx.recyclerview.widget.GridLayoutManager;
 
 import ceui.lisa.activities.SearchActivity;
+import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.TagAdapter;
 import ceui.lisa.core.RemoteRepo;
@@ -16,6 +17,7 @@ import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListTrendingtag;
 import ceui.lisa.repo.HotTagRepo;
 import ceui.lisa.utils.DensityUtil;
+import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.TagItemDecoration;
 
@@ -23,7 +25,6 @@ import ceui.lisa.view.TagItemDecoration;
 public class FragmentHotTag extends NetListFragment<FragmentBaseListBinding,
         ListTrendingtag, ListTrendingtag.TrendTagsBean> {
 
-    private boolean isLoad = false;
     private String contentType = "";
 
     public static FragmentHotTag newInstance(String type) {
@@ -77,21 +78,6 @@ public class FragmentHotTag extends NetListFragment<FragmentBaseListBinding,
 
     @Override
     public boolean showToolbar() {
-        return false;
-    }
-
-    @Override
-    public void setUserVisibleHint(boolean isVisibleToUser) {
-        super.setUserVisibleHint(isVisibleToUser);
-
-        if (isVisibleToUser && !isLoad) {
-            baseBind.refreshLayout.autoRefresh();
-            isLoad = true;
-        }
-    }
-
-    @Override
-    public boolean autoRefresh() {
         return false;
     }
 }

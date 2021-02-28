@@ -7,7 +7,7 @@ import android.view.MenuItem;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentStatePagerAdapter;
+import androidx.fragment.app.FragmentPagerAdapter;
 
 import com.ToxicBakery.viewpager.transforms.DrawerTransformer;
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
@@ -15,17 +15,14 @@ import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 import java.util.Calendar;
 
 import ceui.lisa.R;
-import ceui.lisa.base.BaseActivity;
 import ceui.lisa.databinding.ActivityMultiViewPagerBinding;
 import ceui.lisa.fragments.FragmentRankIllust;
 import ceui.lisa.fragments.FragmentRankNovel;
-import ceui.lisa.fragments.NetListFragment;
 import ceui.lisa.utils.Common;
 
 public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> implements
         DatePickerDialog.OnDateSetListener {
 
-    private NetListFragment[] allPages = new NetListFragment[]{null, null, null, null, null, null, null, null};
     private String dataType = "";
     private String queryDate = "";
 
@@ -36,9 +33,9 @@ public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> im
 
     @Override
     protected void initView() {
-        getWindow().setStatusBarColor(getResources().getColor(R.color.new_color_primary));
         setSupportActionBar(baseBind.toolbar);
         baseBind.toolbar.setNavigationOnClickListener(v -> finish());
+        baseBind.toolbarTitle.setText("排行榜");
         dataType = getIntent().getStringExtra("dataType");
         queryDate = getIntent().getStringExtra("date");
         baseBind.viewPager.setPageTransformer(true, new DrawerTransformer());
@@ -51,7 +48,10 @@ public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> im
                 mContext.getString(R.string.woman_like),
                 mContext.getString(R.string.self_done),
                 mContext.getString(R.string.new_fish),
-                mContext.getString(R.string.r_eighteen)
+                mContext.getString(R.string.r_eighteen),
+                mContext.getString(R.string.r_eighteen_weekly_rank),
+                mContext.getString(R.string.r_eighteen_male_rank),
+                mContext.getString(R.string.r_eighteen_female_rank)
         };
 
         final String[] CHINESE_TITLES_MANGA = new String[]{
@@ -70,20 +70,18 @@ public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> im
                 getString(R.string.string_134)
         };
 
-
-        baseBind.viewPager.setAdapter(new FragmentStatePagerAdapter(getSupportFragmentManager(), 0) {
+        baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override
             public Fragment getItem(int i) {
-                if (allPages[i] == null) {
-                    if ("插画".equals(dataType)) {
-                        allPages[i] = FragmentRankIllust.newInstance(i, queryDate, false);
-                    } else if ("漫画".equals(dataType)) {
-                        allPages[i] = FragmentRankIllust.newInstance(i, queryDate, true);
-                    } else if ("小说".equals(dataType)) {
-                        allPages[i] = FragmentRankNovel.newInstance(i, queryDate);
-                    }
+                if ("插画".equals(dataType)) {
+                    return FragmentRankIllust.newInstance(i, queryDate, false);
+                } else if ("漫画".equals(dataType)) {
+                    return FragmentRankIllust.newInstance(i, queryDate, true);
+                } else if ("小说".equals(dataType)) {
+                    return FragmentRankNovel.newInstance(i, queryDate);
+                } else {
+                    return new Fragment();
                 }
-                return allPages[i];
             }
 
             @Override
@@ -122,7 +120,6 @@ public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> im
 
     @Override
     protected void initData() {
-
     }
 
     @Override
@@ -143,7 +140,7 @@ public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> im
                         RankActivity.this,
                         Integer.parseInt(t[0]), // Initial year selection
                         Integer.parseInt(t[1]) - 1, // Initial month selection
-                        Integer.parseInt(t[2]) - 1 // Inital day selection
+                        Integer.parseInt(t[2]) // Inital day selection
                 );
             } else {
                 dpd = DatePickerDialog.newInstance(
@@ -157,7 +154,8 @@ public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> im
             start.set(2008, 1, 1);
             dpd.setMinDate(start);
             dpd.setMaxDate(now);
-            dpd.setAccentColor(getResources().getColor(R.color.colorPrimary));
+            dpd.setAccentColor(Common.resolveThemeAttribute(mContext, R.attr.colorPrimary));
+            dpd.setThemeDark(mContext.getResources().getBoolean(R.bool.is_night_mode));
             dpd.show(getFragmentManager(), "DatePickerDialog");
             return true;
         }
@@ -174,5 +172,10 @@ public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> im
         intent.putExtra("index", baseBind.viewPager.getCurrentItem());
         startActivity(intent);
         finish();
+    }
+
+    @Override
+    public boolean hideStatusBar() {
+        return false;
     }
 }

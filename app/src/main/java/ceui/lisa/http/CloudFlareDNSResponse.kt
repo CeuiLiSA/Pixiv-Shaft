@@ -1,14 +1,14 @@
 package ceui.lisa.http
 
 data class CloudFlareDNSResponse(
-        val AD: Boolean,
-        val Answer: List<DNSAnswer>,
-        val CD: Boolean,
-        val Question: List<DNSQuestion>,
-        val RA: Boolean,
-        val RD: Boolean,
-        val Status: Int,
-        val TC: Boolean
+    val AD: Boolean,
+    val Answer: List<DNSAnswer>,
+    val CD: Boolean,
+    val Question: List<DNSQuestion>,
+    val RA: Boolean,
+    val RD: Boolean,
+    val Status: Int,
+    val TC: Boolean
 ) {
     data class DNSAnswer(
         val TTL: Int,

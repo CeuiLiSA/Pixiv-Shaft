@@ -18,7 +18,6 @@ import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustRecmdEntity;
 import ceui.lisa.databinding.FragmentUserHorizontalBinding;
 import ceui.lisa.databinding.RecyUserPreviewHorizontalBinding;
-import ceui.lisa.helper.TagFilter;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListUser;
@@ -103,9 +102,7 @@ public class FragmentRecmdUserHorizontal extends NetListFragment<FragmentUserHor
                     for (int i = 0; i < entities.size(); i++) {
                         IllustsBean illustsBean = Shaft.sGson.fromJson(
                                 entities.get(i).getIllustJson(), IllustsBean.class);
-                        if (!TagFilter.judge(illustsBean)) {
-                            temp.add(illustsBean);
-                        }
+                        temp.add(illustsBean);
                     }
                     return temp;
                 })

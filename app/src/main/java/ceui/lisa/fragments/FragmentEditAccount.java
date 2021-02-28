@@ -4,7 +4,6 @@ import android.text.TextUtils;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.base.BaseFragment;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
 import ceui.lisa.databinding.FragmentEditAccountBinding;
@@ -35,7 +34,9 @@ public class FragmentEditAccount extends BaseFragment<FragmentEditAccountBinding
             mActivity.finish();
             return;
         }
-        Retro.getAppApi().getAccountState(Shaft.sUserModel.getResponse().getAccess_token())
+        baseBind.toolbar.toolbarTitle.setText(R.string.string_250);
+        baseBind.toolbar.toolbar.setNavigationOnClickListener(v -> finish());
+        Retro.getAppApi().getAccountState(Shaft.sUserModel.getAccess_token())
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new NullCtrl<UserState>() {
@@ -47,14 +48,13 @@ public class FragmentEditAccount extends BaseFragment<FragmentEditAccountBinding
                         }
                     }
                 });
-        if (!TextUtils.isEmpty(Shaft.sUserModel.getResponse().getUser().getMail_address())) {
-            baseBind.emailAddress.setText(Shaft.sUserModel.getResponse().getUser().getMail_address());
+        if (!TextUtils.isEmpty(Shaft.sUserModel.getUser().getMail_address())) {
+            baseBind.emailAddress.setText(Shaft.sUserModel.getUser().getMail_address());
         }
-        baseBind.userPassword.setText(Shaft.sUserModel.getResponse().getUser().getPassword());
-        baseBind.pixivId.setText(Shaft.sUserModel.getResponse().getUser().getAccount());
+        baseBind.userPassword.setText(Shaft.sUserModel.getUser().getPassword());
+        baseBind.pixivId.setText(Shaft.sUserModel.getUser().getAccount());
         baseBind.pixivId.setEnabled(false);
         baseBind.submit.setOnClickListener(v -> submit());
-        baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
     }
 
     private void submit() {
@@ -72,57 +72,57 @@ public class FragmentEditAccount extends BaseFragment<FragmentEditAccountBinding
             }
             if (TextUtils.isEmpty(baseBind.emailAddress.getText().toString())) {
                 //邮箱地址为空
-                if (baseBind.pixivId.getText().toString().equals(sUserModel.getResponse().getUser().getAccount()) &&
-                        baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())) {
+                if (baseBind.pixivId.getText().toString().equals(sUserModel.getUser().getAccount()) &&
+                        baseBind.userPassword.getText().toString().equals(sUserModel.getUser().getPassword())) {
                     Common.showToast("你还没有做任何修改");
-                } else if (baseBind.pixivId.getText().toString().equals(sUserModel.getResponse().getUser().getAccount()) &&
-                        !baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())) {
+                } else if (baseBind.pixivId.getText().toString().equals(sUserModel.getUser().getAccount()) &&
+                        !baseBind.userPassword.getText().toString().equals(sUserModel.getUser().getPassword())) {
                     Common.showToast("正在修改密码");
-                    Retro.getSignApi().changePassword(sUserModel.getResponse().getAccess_token(),
-                            sUserModel.getResponse().getUser().getPassword(),
+                    Retro.getSignApi().changePassword(sUserModel.getAccess_token(),
+                            sUserModel.getUser().getPassword(),
                             baseBind.userPassword.getText().toString())
                             .subscribeOn(Schedulers.newThread())
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(new NullCtrl<AccountEditResponse>() {
                                 @Override
                                 public void success(AccountEditResponse accountEditResponse) {
-                                    sUserModel.getResponse().getUser().setPassword(baseBind.userPassword.getText().toString());
+                                    sUserModel.getUser().setPassword(baseBind.userPassword.getText().toString());
                                     saveUser();
                                     mActivity.finish();
                                     Common.showToast("密码修改成功");
                                 }
                             });
-                } else if (!baseBind.pixivId.getText().toString().equals(sUserModel.getResponse().getUser().getAccount()) &&
-                        baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())) {
+                } else if (!baseBind.pixivId.getText().toString().equals(sUserModel.getUser().getAccount()) &&
+                        baseBind.userPassword.getText().toString().equals(sUserModel.getUser().getPassword())) {
                     Common.showToast("正在修改PixivID");
-                    Retro.getSignApi().changePixivID(sUserModel.getResponse().getAccess_token(),
+                    Retro.getSignApi().changePixivID(sUserModel.getAccess_token(),
                             baseBind.pixivId.getText().toString(),
-                            sUserModel.getResponse().getUser().getPassword())
+                            sUserModel.getUser().getPassword())
                             .subscribeOn(Schedulers.newThread())
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(new NullCtrl<AccountEditResponse>() {
                                 @Override
                                 public void success(AccountEditResponse accountEditResponse) {
-                                    sUserModel.getResponse().getUser().setAccount(baseBind.pixivId.getText().toString());
+                                    sUserModel.getUser().setAccount(baseBind.pixivId.getText().toString());
                                     saveUser();
                                     mActivity.finish();
                                     Common.showToast("PixivID修改成功");
                                 }
                             });
-                } else if (!baseBind.pixivId.getText().toString().equals(sUserModel.getResponse().getUser().getAccount()) &&
-                        !baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())) {
+                } else if (!baseBind.pixivId.getText().toString().equals(sUserModel.getUser().getAccount()) &&
+                        !baseBind.userPassword.getText().toString().equals(sUserModel.getUser().getPassword())) {
                     Common.showToast("正在修改PixivID 和密码");
-                    Retro.getSignApi().changePasswordPixivID(sUserModel.getResponse().getAccess_token(),
+                    Retro.getSignApi().changePasswordPixivID(sUserModel.getAccess_token(),
                             baseBind.pixivId.getText().toString(),
-                            sUserModel.getResponse().getUser().getPassword(),
+                            sUserModel.getUser().getPassword(),
                             baseBind.userPassword.getText().toString())
                             .subscribeOn(Schedulers.newThread())
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(new NullCtrl<AccountEditResponse>() {
                                 @Override
                                 public void success(AccountEditResponse accountEditResponse) {
-                                    sUserModel.getResponse().getUser().setAccount(baseBind.pixivId.getText().toString());
-                                    sUserModel.getResponse().getUser().setPassword(baseBind.userPassword.getText().toString());
+                                    sUserModel.getUser().setAccount(baseBind.pixivId.getText().toString());
+                                    sUserModel.getUser().setPassword(baseBind.userPassword.getText().toString());
                                     saveUser();
                                     mActivity.finish();
                                     Common.showToast("PixivID 和密码修改成功");
@@ -141,11 +141,11 @@ public class FragmentEditAccount extends BaseFragment<FragmentEditAccountBinding
                     return;
                 }
 
-                if (baseBind.pixivId.getText().toString().equals(sUserModel.getResponse().getUser().getAccount()) &&
-                        baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())) {
-                    Retro.getSignApi().changeEmail(sUserModel.getResponse().getAccess_token(),
+                if (baseBind.pixivId.getText().toString().equals(sUserModel.getUser().getAccount()) &&
+                        baseBind.userPassword.getText().toString().equals(sUserModel.getUser().getPassword())) {
+                    Retro.getSignApi().changeEmail(sUserModel.getAccess_token(),
                             baseBind.emailAddress.getText().toString(),
-                            sUserModel.getResponse().getUser().getPassword())
+                            sUserModel.getUser().getPassword())
                             .subscribeOn(Schedulers.newThread())
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(new NullCtrl<AccountEditResponse>() {
@@ -155,55 +155,55 @@ public class FragmentEditAccount extends BaseFragment<FragmentEditAccountBinding
                                     Common.showToast("验证邮件发送成功！", true);
                                 }
                             });
-                } else if (!baseBind.pixivId.getText().toString().equals(sUserModel.getResponse().getUser().getAccount()) &&
-                        baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())) {
-                    Retro.getSignApi().changeEmailAndPixivID(sUserModel.getResponse().getAccess_token(),
+                } else if (!baseBind.pixivId.getText().toString().equals(sUserModel.getUser().getAccount()) &&
+                        baseBind.userPassword.getText().toString().equals(sUserModel.getUser().getPassword())) {
+                    Retro.getSignApi().changeEmailAndPixivID(sUserModel.getAccess_token(),
                             baseBind.emailAddress.getText().toString(),
                             baseBind.pixivId.getText().toString(),
-                            sUserModel.getResponse().getUser().getPassword())
+                            sUserModel.getUser().getPassword())
                             .subscribeOn(Schedulers.newThread())
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(new NullCtrl<AccountEditResponse>() {
                                 @Override
                                 public void success(AccountEditResponse accountEditResponse) {
-                                    sUserModel.getResponse().getUser().setAccount(baseBind.pixivId.getText().toString());
+                                    sUserModel.getUser().setAccount(baseBind.pixivId.getText().toString());
                                     saveUser();
                                     mActivity.finish();
                                     Common.showToast("验证邮件发送成功！", true);
                                 }
                             });
-                } else if (baseBind.pixivId.getText().toString().equals(sUserModel.getResponse().getUser().getAccount()) &&
-                        !baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())) {
-                    Retro.getSignApi().changeEmailAndPassword(sUserModel.getResponse().getAccess_token(),
+                } else if (baseBind.pixivId.getText().toString().equals(sUserModel.getUser().getAccount()) &&
+                        !baseBind.userPassword.getText().toString().equals(sUserModel.getUser().getPassword())) {
+                    Retro.getSignApi().changeEmailAndPassword(sUserModel.getAccess_token(),
                             baseBind.emailAddress.getText().toString(),
-                            sUserModel.getResponse().getUser().getPassword(),
+                            sUserModel.getUser().getPassword(),
                             baseBind.userPassword.getText().toString())
                             .subscribeOn(Schedulers.newThread())
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(new NullCtrl<AccountEditResponse>() {
                                 @Override
                                 public void success(AccountEditResponse accountEditResponse) {
-                                    sUserModel.getResponse().getUser().setPassword(baseBind.userPassword.getText().toString());
+                                    sUserModel.getUser().setPassword(baseBind.userPassword.getText().toString());
                                     saveUser();
                                     mActivity.finish();
                                     Common.showToast("验证邮件发送成功！", true);
                                 }
                             });
-                } else if (!baseBind.pixivId.getText().toString().equals(sUserModel.getResponse().getUser().getAccount()) &&
-                        !baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())) {
+                } else if (!baseBind.pixivId.getText().toString().equals(sUserModel.getUser().getAccount()) &&
+                        !baseBind.userPassword.getText().toString().equals(sUserModel.getUser().getPassword())) {
                     Retro.getSignApi().edit(
-                            sUserModel.getResponse().getAccess_token(),
+                            sUserModel.getAccess_token(),
                             baseBind.emailAddress.getText().toString(),
                             baseBind.pixivId.getText().toString(),
-                            sUserModel.getResponse().getUser().getPassword(),
+                            sUserModel.getUser().getPassword(),
                             baseBind.userPassword.getText().toString())
                             .subscribeOn(Schedulers.newThread())
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(new NullCtrl<AccountEditResponse>() {
                                 @Override
                                 public void success(AccountEditResponse accountEditResponse) {
-                                    sUserModel.getResponse().getUser().setPassword(baseBind.userPassword.getText().toString());
-                                    sUserModel.getResponse().getUser().setAccount(baseBind.pixivId.getText().toString());
+                                    sUserModel.getUser().setPassword(baseBind.userPassword.getText().toString());
+                                    sUserModel.getUser().setAccount(baseBind.pixivId.getText().toString());
                                     saveUser();
                                     mActivity.finish();
                                     Common.showToast("验证邮件发送成功！", true);
@@ -220,19 +220,19 @@ public class FragmentEditAccount extends BaseFragment<FragmentEditAccountBinding
             }
             if (TextUtils.isEmpty(baseBind.emailAddress.getText().toString())) {
                 //邮箱地址为空
-                if (baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())) {
+                if (baseBind.userPassword.getText().toString().equals(sUserModel.getUser().getPassword())) {
                     Common.showToast("你还没有做任何修改");
                 } else {
                     Common.showToast("正在修改密码");
-                    Retro.getSignApi().changePassword(sUserModel.getResponse().getAccess_token(),
-                            sUserModel.getResponse().getUser().getPassword(),
+                    Retro.getSignApi().changePassword(sUserModel.getAccess_token(),
+                            sUserModel.getUser().getPassword(),
                             baseBind.userPassword.getText().toString())
                             .subscribeOn(Schedulers.newThread())
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(new NullCtrl<AccountEditResponse>() {
                                 @Override
                                 public void success(AccountEditResponse accountEditResponse) {
-                                    sUserModel.getResponse().getUser().setPassword(baseBind.userPassword.getText().toString());
+                                    sUserModel.getUser().setPassword(baseBind.userPassword.getText().toString());
                                     saveUser();
                                     mActivity.finish();
                                     Common.showToast("密码修改成功");
@@ -241,20 +241,20 @@ public class FragmentEditAccount extends BaseFragment<FragmentEditAccountBinding
                 }
             } else {
                 //邮箱地址不为空
-                if (baseBind.emailAddress.getText().toString().equals(sUserModel.getResponse().getUser().getMail_address())) {
-                    if (baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())) {
+                if (baseBind.emailAddress.getText().toString().equals(sUserModel.getUser().getMail_address())) {
+                    if (baseBind.userPassword.getText().toString().equals(sUserModel.getUser().getPassword())) {
                         Common.showToast("你还没有做任何修改");
                     } else {
                         Common.showToast("正在修改密码");
-                        Retro.getSignApi().changePassword(sUserModel.getResponse().getAccess_token(),
-                                sUserModel.getResponse().getUser().getPassword(),
+                        Retro.getSignApi().changePassword(sUserModel.getAccess_token(),
+                                sUserModel.getUser().getPassword(),
                                 baseBind.userPassword.getText().toString())
                                 .subscribeOn(Schedulers.newThread())
                                 .observeOn(AndroidSchedulers.mainThread())
                                 .subscribe(new NullCtrl<AccountEditResponse>() {
                                     @Override
                                     public void success(AccountEditResponse accountEditResponse) {
-                                        sUserModel.getResponse().getUser().setPassword(baseBind.userPassword.getText().toString());
+                                        sUserModel.getUser().setPassword(baseBind.userPassword.getText().toString());
                                         saveUser();
                                         mActivity.finish();
                                         Common.showToast("密码修改成功");
@@ -262,10 +262,10 @@ public class FragmentEditAccount extends BaseFragment<FragmentEditAccountBinding
                                 });
                     }
                 } else {
-                    if (baseBind.userPassword.getText().toString().equals(sUserModel.getResponse().getUser().getPassword())) {
-                        Retro.getSignApi().changeEmail(sUserModel.getResponse().getAccess_token(),
+                    if (baseBind.userPassword.getText().toString().equals(sUserModel.getUser().getPassword())) {
+                        Retro.getSignApi().changeEmail(sUserModel.getAccess_token(),
                                 baseBind.emailAddress.getText().toString(),
-                                sUserModel.getResponse().getUser().getPassword())
+                                sUserModel.getUser().getPassword())
                                 .subscribeOn(Schedulers.newThread())
                                 .observeOn(AndroidSchedulers.mainThread())
                                 .subscribe(new NullCtrl<AccountEditResponse>() {
@@ -277,16 +277,16 @@ public class FragmentEditAccount extends BaseFragment<FragmentEditAccountBinding
                                 });
                     } else {
                         Retro.getSignApi().changeEmailAndPassword(
-                                sUserModel.getResponse().getAccess_token(),
+                                sUserModel.getAccess_token(),
                                 baseBind.emailAddress.getText().toString(),
-                                sUserModel.getResponse().getUser().getPassword(),
+                                sUserModel.getUser().getPassword(),
                                 baseBind.userPassword.getText().toString())
                                 .subscribeOn(Schedulers.newThread())
                                 .observeOn(AndroidSchedulers.mainThread())
                                 .subscribe(new NullCtrl<AccountEditResponse>() {
                                     @Override
                                     public void success(AccountEditResponse accountEditResponse) {
-                                        sUserModel.getResponse().getUser().setPassword(baseBind.userPassword.getText().toString());
+                                        sUserModel.getUser().setPassword(baseBind.userPassword.getText().toString());
                                         saveUser();
                                         mActivity.finish();
                                         Common.showToast("验证邮件发送成功！", true);
@@ -302,7 +302,7 @@ public class FragmentEditAccount extends BaseFragment<FragmentEditAccountBinding
         Local.saveUser(sUserModel);
         UserEntity userEntity = new UserEntity();
         userEntity.setLoginTime(System.currentTimeMillis());
-        userEntity.setUserID(sUserModel.getResponse().getUser().getId());
+        userEntity.setUserID(sUserModel.getUser().getId());
         userEntity.setUserGson(Shaft.sGson.toJson(sUserModel));
         AppDatabase.getAppDatabase(mContext).downloadDao().insertUser(userEntity);
     }

@@ -43,13 +43,10 @@ public class Retro {
         PixivHeaders pixivHeaders = new PixivHeaders();
         String osVersion = DeviceUtils.getSDKVersionName();
         String phoneName = DeviceUtils.getModel();
-        before.addHeader("User-Agent", "PixivAndroidApp/5.0.175 (Android " + osVersion + "; " + phoneName + ")")
-                .addHeader("Accept-Language", "zh_CN")
-                .addHeader("X-Client-Time", pixivHeaders.getXClientTime())
-                .addHeader("X-Client-Hash", pixivHeaders.getXClientHash());
-//        if (addAuth && Shaft.sUserModel != null) {
-//            before.addHeader("Authorization", Shaft.sUserModel.getResponse().getAccess_token());
-//        }
+        before.addHeader("User-Agent", "PixivAndroidApp/5.0.234 (Android " + osVersion + "; " + phoneName + ")")
+                .addHeader("accept-language", "zh-cn")
+                .addHeader("x-client-time", pixivHeaders.getXClientTime())
+                .addHeader("x-client-hash", pixivHeaders.getXClientHash());
         return before;
     }
 
@@ -58,15 +55,12 @@ public class Retro {
         try {
             builder.addInterceptor(chain ->
                     chain.proceed(addHeader(chain.request().newBuilder()).build()));
-            if (!baseUrl.equals(ACCOUNT_BASE_URL)) {
-                builder.addInterceptor(new TokenInterceptor());
-            }
+            builder.addInterceptor(new TokenInterceptor());
         } catch (Exception e) {
             e.printStackTrace();
         }
         if (Shaft.sSettings.isAutoFuckChina()) {
             builder.sslSocketFactory(new RubySSLSocketFactory(), new pixivOkHttpClient());
-            //builder.dns(new CloudFlareDns(CloudFlareDNSService.Companion.invoke()));
             builder.dns(HttpDns.getInstance());
         }
         OkHttpClient client = builder.build();
@@ -113,7 +107,7 @@ public class Retro {
 
 
     private static class Holder {
-        private static Retrofit appRetrofit = buildRetrofit(API_BASE_URL);
+        private static final Retrofit appRetrofit = buildRetrofit(API_BASE_URL);
     }
 
     private static Retrofit get() {
@@ -124,18 +118,8 @@ public class Retro {
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(
                 message -> Log.i("RetroLog", message));
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-        return new OkHttpClient
-                .Builder()
-                .addInterceptor(
-//                        new LoggingInterceptor.Builder()
-//                                .loggable(true)
-//                                .request()
-//                                .requestTag("Request")
-//                                .response()
-//                                .responseTag("Response")
-//                                .build()
-                        loggingInterceptor
-                )
+        return new OkHttpClient.Builder()
+                .addInterceptor(loggingInterceptor)
                 .protocols(Collections.singletonList(Protocol.HTTP_1_1));
     }
 }

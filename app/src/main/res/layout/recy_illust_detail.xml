@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
 
@@ -17,26 +18,21 @@
 
         </ImageView>
 
+        <include
+            android:id="@+id/progress_layout"
+            layout="@layout/item_progress" />
+
         <Button
-            android:id="@+id/reload"
             style="@style/Widget.AppCompat.Button.Borderless"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:text="@string/string_118"
             android:textColor="@color/white"
-            android:visibility="gone">
+            android:visibility="gone"
+            android:id="@+id/reload"
+            android:layout_centerInParent="true"
+            android:text="@string/string_73">
 
         </Button>
-
-        <ProgressBar
-            android:id="@+id/progress"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true">
-
-        </ProgressBar>
-
 
     </RelativeLayout>
 

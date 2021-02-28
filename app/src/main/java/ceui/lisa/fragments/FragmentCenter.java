@@ -15,12 +15,13 @@ import ceui.lisa.R;
 import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
-import ceui.lisa.base.SwipeFragment;
 import ceui.lisa.databinding.FragmentNewCenterBinding;
-import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Dev;
 
 public class FragmentCenter extends SwipeFragment<FragmentNewCenterBinding> {
 
+    private FragmentPivisionHorizontal pivisionFragment = null;
+    
     @Override
     public void initLayout() {
         mLayoutID = R.layout.fragment_new_center;
@@ -28,9 +29,11 @@ public class FragmentCenter extends SwipeFragment<FragmentNewCenterBinding> {
 
     @Override
     protected void initView() {
-        ViewGroup.LayoutParams headParams = baseBind.head.getLayoutParams();
-        headParams.height = Shaft.statusHeight;
-        baseBind.head.setLayoutParams(headParams);
+        if (Dev.hideMainActivityStatus) {
+            ViewGroup.LayoutParams headParams = baseBind.head.getLayoutParams();
+            headParams.height = Shaft.statusHeight;
+            baseBind.head.setLayoutParams(headParams);
+        }
 
         baseBind.toolbar.inflateMenu(R.menu.fragment_left);
         baseBind.toolbar.setNavigationOnClickListener(new View.OnClickListener() {
@@ -53,6 +56,11 @@ public class FragmentCenter extends SwipeFragment<FragmentNewCenterBinding> {
                 return false;
             }
         });
+
+        baseBind.manga.setClipToOutline(true);
+        baseBind.novel.setClipToOutline(true);
+        baseBind.walkThrough.setClipToOutline(true);
+        baseBind.followNovels.setClipToOutline(true);
 
         baseBind.manga.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -91,26 +99,22 @@ public class FragmentCenter extends SwipeFragment<FragmentNewCenterBinding> {
     }
 
     @Override
-    public void setUserVisibleHint(boolean isVisibleToUser) {
-        super.setUserVisibleHint(isVisibleToUser);
-        Common.showLog(className + "setUserVisibleHint " + isVisibleToUser);
+    public void lazyData() {
+        FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
 
-        if (isVisibleToUser && !isLoad && isAdded()) {
-            FragmentTransaction transaction = getChildFragmentManager().beginTransaction();
-
-            FragmentPivisionHorizontal pivisionFragment = new FragmentPivisionHorizontal();
-            transaction.add(R.id.fragment_pivision, pivisionFragment, "FragmentPivisionHorizontal");
-            transaction.commitNow();
-
-            isLoad = true;
-        }
-
+        pivisionFragment = new FragmentPivisionHorizontal();
+        transaction.add(R.id.fragment_pivision, pivisionFragment, "FragmentPivisionHorizontal");
+        transaction.commitNowAllowingStateLoss();
     }
-
-    private boolean isLoad = false;
 
     @Override
     public SmartRefreshLayout getSmartRefreshLayout() {
         return baseBind.refreshLayout;
+    }
+
+    public void forceRefresh(){
+        if(pivisionFragment != null){
+            pivisionFragment.forceRefresh();
+        }
     }
 }

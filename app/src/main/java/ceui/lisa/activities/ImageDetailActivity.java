@@ -11,11 +11,12 @@ import com.ToxicBakery.viewpager.transforms.CubeOutTransformer;
 import com.blankj.utilcode.util.BarUtils;
 import com.blankj.utilcode.util.ColorUtils;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.base.BaseActivity;
 import ceui.lisa.databinding.ActivityImageDetailBinding;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.fragments.FragmentImageDetail;
@@ -69,7 +70,7 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
             downloadSingle.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    IllustDownload.downloadIllust(mIllustsBean, baseBind.viewPager.getCurrentItem());
+                    IllustDownload.downloadIllust(mIllustsBean, baseBind.viewPager.getCurrentItem(), (BaseActivity<?>) mContext);
                 }
             });
             baseBind.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
@@ -80,7 +81,7 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
 
                 @Override
                 public void onPageSelected(int i) {
-                    currentPage.setText("第" + (i + 1) + "P / 共" + mIllustsBean.getPage_count() + "P");
+                    currentPage.setText(String.format("第%dP / 共%dP", i + 1, mIllustsBean.getPage_count()));
                 }
 
                 @Override
@@ -88,7 +89,7 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
 
                 }
             });
-            currentPage.setText("第" + (index + 1) + "P / 共" + mIllustsBean.getPage_count() + "P");
+            currentPage.setText(String.format("第%dP / 共%dP", index + 1, mIllustsBean.getPage_count()));
 
         } else if ("下载详情".equals(dataType)) {
             currentPage = findViewById(R.id.current_page);
@@ -117,7 +118,12 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
 
                 @Override
                 public void onPageSelected(int i) {
-                    downloadSingle.setText(String.format("%s%s", getString(R.string.file_path), localIllust.get(i)));
+                    try {
+                        downloadSingle.setText(String.format("%s%s", getString(R.string.file_path),
+                                URLDecoder.decode(localIllust.get(i), "utf-8")));
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
                 }
 
                 @Override
@@ -125,7 +131,12 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
 
                 }
             });
-            downloadSingle.setText(String.format("%s%s", getString(R.string.file_path), localIllust.get(index)));
+            try {
+                downloadSingle.setText(String.format("%s%s", getString(R.string.file_path),
+                        URLDecoder.decode(localIllust.get(index), "utf-8")));
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -137,10 +148,20 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
 
     @Override
     public void onBackPressed() {
-        if(index == baseBind.viewPager.getCurrentItem()){
+        if (index == baseBind.viewPager.getCurrentItem()) {
             super.onBackPressed();
-        }else {
+        } else {
             mActivity.finish();
         }
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+            getWindow().getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
     }
 }

@@ -52,7 +52,7 @@
                 android:layout_toEndOf="@+id/illust_image"
                 android:layout_marginStart="@dimen/eight_dp"
                 android:layout_marginEnd="@dimen/sixteen_dp"
-                android:textColor="@color/new_color_primary"
+                android:textColor="?attr/colorPrimary"
                 android:layout_height="wrap_content" />
 
 
@@ -62,7 +62,6 @@
                 android:layout_height="wrap_content"
                 android:layout_alignBottom="@+id/illust_image"
                 android:layout_marginStart="@dimen/eight_dp"
-                android:layout_toStartOf="@+id/p_size"
                 android:layout_marginTop="@dimen/eight_dp"
                 android:layout_marginEnd="@dimen/eight_dp"
                 android:layout_marginBottom="@dimen/eight_dp"
@@ -70,13 +69,25 @@
                 android:ellipsize="end"
                 android:maxLines="1" />
 
+            <ImageView
+                android:layout_width="28dp"
+                android:layout_alignParentEnd="true"
+                android:layout_alignBottom="@+id/illust_image"
+                android:padding="@dimen/four_dp"
+                android:id="@+id/delete_item"
+                android:layout_marginBottom="3dp"
+                android:src="@drawable/ic_delete_black_24dp"
+                android:layout_height="28dp"
+                app:tint="#999999">
+
+            </ImageView>
+
 
             <TextView
                 android:id="@+id/p_size"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignBottom="@+id/illust_image"
-                android:layout_alignParentEnd="true"
+                android:layout_margin="@dimen/four_dp"
                 android:layout_marginEnd="7dp"
                 android:layout_marginBottom="@dimen/eight_dp"
                 android:background="@drawable/btn_follow"
@@ -91,3 +102,4 @@
         </RelativeLayout>
     </androidx.cardview.widget.CardView>
 </layout>
+

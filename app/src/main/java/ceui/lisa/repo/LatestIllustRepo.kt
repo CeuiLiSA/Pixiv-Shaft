@@ -6,7 +6,7 @@ import ceui.lisa.model.ListIllust
 import io.reactivex.Observable
 
 class LatestIllustRepo(
-        private val workType: String
+    private val workType: String?
 ) : RemoteRepo<ListIllust>() {
 
     override fun initApi(): Observable<ListIllust> {

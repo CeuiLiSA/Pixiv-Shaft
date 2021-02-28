@@ -1,0 +1,451 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+    </data>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/colorPrimary"
+            android:elevation="@dimen/six_dp"
+            android:fitsSystemWindows="true"
+            android:theme="@style/AppTheme.AppBarOverlay"
+            app:popupTheme="@style/AppTheme.PopupOverlay"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:navigationIcon="@drawable/ic_baseline_arrow_back_ios_24"
+            app:title=" "
+            app:titleTextColor="@android:color/white">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/sixteen_dp"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:text="@string/user_info"
+                android:layout_gravity="center"
+                android:id="@+id/toolbar_title"
+                android:textColor="@color/white"
+                android:textSize="18sp">
+
+            </TextView>
+
+        </androidx.appcompat.widget.Toolbar>
+
+        <com.scwang.smartrefresh.layout.SmartRefreshLayout
+            android:layout_width="match_parent"
+            android:id="@+id/refreshLayout"
+            android:layout_below="@+id/toolbar"
+            android:layout_height="match_parent">
+
+
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:orientation="vertical"
+                android:layout_height="match_parent">
+
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_marginTop="40dp"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
+
+                <LinearLayout
+                    style="@style/LinearHorizon">
+
+                    <TextView
+                        android:text="@string/string_33"
+                        style="@style/AboutUserLeft"/>
+
+
+                    <org.sufficientlysecure.htmltextview.HtmlTextView
+                        android:id="@+id/description"
+                        style="@style/AboutUserRight"/>
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
+
+                <LinearLayout
+                    style="@style/LinearHorizon">
+
+                    <TextView
+                        android:text="@string/string_34"
+                        style="@style/AboutUserLeft"/>
+
+
+                    <org.sufficientlysecure.htmltextview.HtmlTextView
+                        android:id="@+id/main_page"
+                        style="@style/AboutUserRight"/>
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
+
+                <LinearLayout
+                    style="@style/LinearHorizon">
+
+                    <TextView
+                        android:text="@string/string_35"
+                        style="@style/AboutUserLeft"/>
+
+
+                    <org.sufficientlysecure.htmltextview.HtmlTextView
+                        android:id="@+id/twitter"
+                        style="@style/AboutUserRight"/>
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
+
+                <LinearLayout
+                    style="@style/LinearHorizon">
+
+                    <TextView
+                        android:text="@string/string_36"
+                        style="@style/AboutUserLeft"/>
+
+
+                    <org.sufficientlysecure.htmltextview.HtmlTextView
+                        android:id="@+id/pawoo"
+                        style="@style/AboutUserRight"/>
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
+
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_marginTop="@dimen/tweenty_four_dp"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
+
+
+                <LinearLayout
+                    style="@style/LinearHorizon">
+
+                    <TextView
+                        android:text="@string/string_37"
+                        style="@style/AboutUserLeft"/>
+
+
+                    <TextView
+                        android:id="@+id/computer"
+                        style="@style/AboutUserRight"/>
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
+
+                <LinearLayout
+                    style="@style/LinearHorizon">
+
+                    <TextView
+                        android:text="@string/string_38"
+                        style="@style/AboutUserLeft"/>
+
+
+                    <TextView
+                        android:id="@+id/monitor"
+                        style="@style/AboutUserRight"/>
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
+
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_marginTop="@dimen/tweenty_four_dp"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
+
+                <LinearLayout
+                    style="@style/LinearHorizon">
+
+                    <TextView
+                        android:text="@string/string_39"
+                        style="@style/AboutUserLeft"/>
+
+
+                    <TextView
+                        android:id="@+id/app"
+                        style="@style/AboutUserRight"/>
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
+
+                <LinearLayout
+                    style="@style/LinearHorizon">
+
+                    <TextView
+                        android:text="@string/string_40"
+                        style="@style/AboutUserLeft"/>
+
+
+                    <TextView
+                        android:id="@+id/scanner"
+                        style="@style/AboutUserRight"/>
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
+
+                <LinearLayout
+                    style="@style/LinearHorizon">
+
+                    <TextView
+                        android:text="@string/string_41"
+                        style="@style/AboutUserLeft"/>
+
+
+                    <TextView
+                        android:id="@+id/draw_board"
+                        style="@style/AboutUserRight"/>
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_marginTop="@dimen/tweenty_four_dp"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
+
+                <LinearLayout
+                    style="@style/LinearHorizon">
+
+                    <TextView
+                        android:text="@string/string_42"
+                        style="@style/AboutUserLeft"/>
+
+
+                    <TextView
+                        android:id="@+id/mouse"
+                        style="@style/AboutUserRight"/>
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
+
+                <LinearLayout
+                    style="@style/LinearHorizon">
+
+                    <TextView
+                        android:text="@string/string_43"
+                        style="@style/AboutUserLeft"/>
+
+
+                    <TextView
+                        android:id="@+id/printer"
+                        style="@style/AboutUserRight"/>
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
+
+                <LinearLayout
+                    style="@style/LinearHorizon">
+
+                    <TextView
+                        android:text="@string/string_44"
+                        style="@style/AboutUserLeft"/>
+
+
+                    <TextView
+                        android:id="@+id/table_objects"
+                        style="@style/AboutUserRight"/>
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
+
+                <LinearLayout
+                    style="@style/LinearHorizon">
+
+                    <TextView
+                        android:text="@string/string_45"
+                        style="@style/AboutUserLeft"/>
+
+
+                    <TextView
+                        android:id="@+id/like_music"
+                        style="@style/AboutUserRight"/>
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_marginTop="@dimen/tweenty_four_dp"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
+
+                <LinearLayout
+                    style="@style/LinearHorizon">
+
+                    <TextView
+                        android:text="@string/string_46"
+                        style="@style/AboutUserLeft"/>
+
+
+                    <TextView
+                        android:id="@+id/table"
+                        style="@style/AboutUserRight"/>
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
+
+                <LinearLayout
+                    style="@style/LinearHorizon">
+
+                    <TextView
+                        android:text="@string/string_47"
+                        style="@style/AboutUserLeft"/>
+
+
+                    <TextView
+                        android:id="@+id/chair"
+                        style="@style/AboutUserRight"/>
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:background="@color/about_user_divider"
+                    android:layout_height="1dp">
+
+                </View>
+
+                <LinearLayout
+                    style="@style/LinearHorizon">
+
+                    <TextView
+                        android:text="@string/string_263"
+                        style="@style/AboutUserLeft"/>
+
+
+                    <TextView
+                        android:id="@+id/other_text"
+                        style="@style/AboutUserRight"/>
+
+                </LinearLayout>
+
+
+                <View
+                    android:layout_width="match_parent"
+                    android:background="@color/about_user_divider"
+                    android:layout_marginBottom="48dp"
+                    android:layout_height="1dp">
+
+                </View>
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+        </com.scwang.smartrefresh.layout.SmartRefreshLayout>
+
+    </RelativeLayout>
+
+
+</layout>
+

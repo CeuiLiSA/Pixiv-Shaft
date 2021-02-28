@@ -8,6 +8,8 @@ import androidx.room.Query;
 
 import java.util.List;
 
+import ceui.lisa.feature.FeatureEntity;
+
 //保存下载历史记录
 @Dao
 public interface DownloadDao {
@@ -20,6 +22,11 @@ public interface DownloadDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insert(DownloadEntity illustTask);
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insertDownloading(DownloadingEntity entity);
+
+    @Delete
+    void deleteDownloading(DownloadingEntity entity);
 
     /**
      * 删除一条下载记录
@@ -28,6 +35,9 @@ public interface DownloadDao {
      */
     @Delete
     void delete(DownloadEntity userEntity);
+
+    @Delete
+    void deleteMuteEntity(MuteEntity muteEntity);
 
     /**
      * 获取全部下载记录
@@ -39,11 +49,17 @@ public interface DownloadDao {
     @Query("SELECT * FROM illust_download_table ORDER BY downloadTime DESC LIMIT :limit OFFSET :offset")
     List<DownloadEntity> getAll(int limit, int offset);
 
+    @Query("SELECT * FROM illust_downloading_table")
+    List<DownloadingEntity> getAllDownloading();
+
     /**
      *
      */
     @Query("DELETE FROM illust_download_table")
     void deleteAllDownload();
+
+    @Query("DELETE FROM illust_downloading_table")
+    void deleteAllDownloading();
 
 
     /**
@@ -105,10 +121,21 @@ public interface DownloadDao {
     @Query("SELECT * FROM user_table limit 1")
     UserEntity getCurrentUser();
 
-
     @Query("SELECT * FROM upload_image_table ORDER BY uploadTime DESC")
     List<ImageEntity> getUploadedImage();
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertUploadedImage(ImageEntity imageEntity);
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insertFeature(FeatureEntity holder);
+
+    @Query("SELECT * FROM feature_table ORDER BY dateTime DESC LIMIT :limit OFFSET :offset")
+    List<FeatureEntity> getFeatureList(int limit, int offset);
+
+    @Delete
+    void deleteFeature(FeatureEntity userEntity);
+
+    @Query("DELETE FROM feature_table")
+    void deleteAllFeature();
 }

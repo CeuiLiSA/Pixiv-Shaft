@@ -11,10 +11,12 @@ public class TagsBean implements Serializable {
 
     private String name;
     private String translated_name;
+    private boolean effective = true; //屏蔽是否生效，
     private boolean added_by_uploaded_user;
+    private boolean is_registered;
 
     private int count;
-    private boolean isSelected = false;
+    private boolean isSelected;
 
     public boolean isSelected() {
         return isSelected;
@@ -54,5 +56,30 @@ public class TagsBean implements Serializable {
 
     public void setAdded_by_uploaded_user(boolean added_by_uploaded_user) {
         this.added_by_uploaded_user = added_by_uploaded_user;
+    }
+
+    public boolean isEffective() {
+        return effective;
+    }
+
+    public void setEffective(boolean effective) {
+        this.effective = effective;
+    }
+
+    public boolean isIs_registered() {
+        return is_registered;
+    }
+
+    public void setIs_registered(boolean is_registered) {
+        this.is_registered = is_registered;
+    }
+
+    public boolean isSelectedLocalOrRemote() {
+        return isSelected || is_registered;
+    }
+
+    public void setSelectedLocalAndRemote(boolean selected) {
+        isSelected = selected;
+        is_registered = selected;
     }
 }

@@ -1,6 +1,7 @@
 package ceui.lisa.models;
 
 import android.text.TextUtils;
+import android.util.Log;
 
 import java.io.Serializable;
 
@@ -51,15 +52,25 @@ public class ImageUrlsBean implements Serializable {
 
     public String getMaxImage() {
         if (!TextUtils.isEmpty(original)) {
-            return original;
+            return getOriginal();
         } else if (!TextUtils.isEmpty(large)) {
-            return large;
+            return getLarge();
         } else if (!TextUtils.isEmpty(medium)) {
-            return medium;
+            return getMedium();
         } else if (!TextUtils.isEmpty(square_medium)) {
-            return square_medium;
+            return getSquare_medium();
         } else {
             return "";
         }
+    }
+
+    @Override
+    public String toString() {
+        return "ImageUrlsBean{" +
+                "square_medium='" + square_medium + '\'' +
+                ", medium='" + medium + '\'' +
+                ", large='" + large + '\'' +
+                ", original='" + original + '\'' +
+                '}';
     }
 }

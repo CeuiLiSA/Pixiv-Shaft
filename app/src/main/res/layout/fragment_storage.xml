@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+
+    </data>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <Button
+            android:layout_width="wrap_content"
+            android:text="请求"
+            android:layout_centerInParent="true"
+            android:id="@+id/store"
+            android:layout_height="wrap_content">
+
+        </Button>
+
+
+        <Button
+            android:layout_width="wrap_content"
+            android:text="下载"
+            android:layout_below="@+id/store"
+            android:layout_centerInParent="true"
+            android:id="@+id/save"
+            android:layout_height="wrap_content">
+
+        </Button>
+
+        <ProgressBar
+            android:id="@+id/progress"
+            style="@android:style/Widget.Material.Light.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginEnd="24dp"
+            android:layout_marginBottom="24dp"
+            android:progress="0">
+
+        </ProgressBar>
+
+    </RelativeLayout>
+</layout>

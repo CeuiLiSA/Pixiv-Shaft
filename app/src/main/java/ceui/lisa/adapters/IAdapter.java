@@ -3,60 +3,49 @@ package ceui.lisa.adapters;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.ColorStateList;
-import android.view.LayoutInflater;
+import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.PopupWindow;
 
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.RequestBuilder;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.qmuiteam.qmui.util.QMUIDisplayHelper;
 import com.qmuiteam.qmui.widget.popup.QMUIPopup;
 import com.qmuiteam.qmui.widget.popup.QMUIPopups;
 
 import java.util.List;
-import java.util.UUID;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.VActivity;
+import ceui.lisa.core.Container;
 import ceui.lisa.core.PageData;
 import ceui.lisa.core.TimeRecord;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.dialogs.MuteDialog;
-import ceui.lisa.fragments.FragmentLikeIllust;
+import ceui.lisa.download.IllustDownload;
 import ceui.lisa.interfaces.MultiDownload;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.IllustsBean;
-import ceui.lisa.utils.Common;
-import ceui.lisa.core.Container;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
-import jp.wasabeef.glide.transformations.BlurTransformation;
-
-import static com.bumptech.glide.request.RequestOptions.bitmapTransform;
 
 public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding> implements MultiDownload {
 
-    private static final int MIN_HEIGHT = 350;
-    private static final int MAX_HEIGHT = 600;
-    private int imageSize;
-    private boolean showLikeButton = false;
+    private static final float MIN_HEIGHT_RATIO = 0.4f;
+    private static final float MAX_HEIGHT_RATIO = 3.0f;
 
     public IAdapter(List<IllustsBean> targetList, Context context) {
         super(targetList, context);
-        initImageSize();
         handleClick();
-    }
-
-    private void initImageSize() {
-        imageSize = (mContext.getResources().getDisplayMetrics().widthPixels) / 2;
-        showLikeButton = Shaft.sSettings.isShowLikeButton();
     }
 
     @Override
@@ -64,105 +53,73 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
         mLayoutID = R.layout.recy_illust_stagger;
     }
 
-
     @Override
     public void bindData(IllustsBean target, ViewHolder<RecyIllustStaggerBinding> bindView, int position) {
-        ViewGroup.LayoutParams params = bindView.baseBind.illustImage.getLayoutParams();
-        params.width = imageSize;
-        params.height = target.getHeight() * imageSize / target.getWidth();
 
-        if (params.height < MIN_HEIGHT) {
-            params.height = MIN_HEIGHT;
-        } else if (params.height > MAX_HEIGHT) {
-            params.height = MAX_HEIGHT;
-        }
-        bindView.baseBind.illustImage.setLayoutParams(params);
-
-        if (target.isShield()) {
-            bindView.baseBind.likeButton.setVisibility(View.GONE);
-            bindView.baseBind.hide.setVisibility(View.VISIBLE);
-            Glide.with(mContext)
-                    .load(GlideUtil.getMediumImg(target))
-                    .apply(bitmapTransform(new BlurTransformation(5, 15)))
-                    .transition(DrawableTransitionOptions.withCrossFade())
-                    .into(bindView.baseBind.illustImage);
+        float ratio = 1.0f * target.getHeight() / target.getWidth();
+        if (ratio > MAX_HEIGHT_RATIO) {
+            ratio = MAX_HEIGHT_RATIO;
+            bindView.baseBind.illustImage.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        } else if (ratio < MIN_HEIGHT_RATIO) {
+            ratio = MIN_HEIGHT_RATIO;
+            bindView.baseBind.illustImage.setScaleType(ImageView.ScaleType.CENTER_CROP);
         } else {
-            if (showLikeButton) {
-                bindView.baseBind.likeButton.setVisibility(View.VISIBLE);
-                if (target.isIs_bookmarked()) {
-                    bindView.baseBind.likeButton.setImageTintList(
-                            ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.has_bookmarked)));
-                } else {
-                    bindView.baseBind.likeButton.setImageTintList(
-                            ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.not_bookmarked)));
-                }
-                bindView.baseBind.likeButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if (target.isIs_bookmarked()) {
-                            bindView.baseBind.likeButton.setImageTintList(
-                                    ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.not_bookmarked)));
-                        } else {
-                            bindView.baseBind.likeButton.setImageTintList(
-                                    ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.has_bookmarked)));
-                        }
-                        PixivOperate.postLike(target, FragmentLikeIllust.TYPE_PUBLUC);
-                    }
-                });
-                bindView.baseBind.likeButton.setOnLongClickListener(new View.OnLongClickListener() {
-                    @Override
-                    public boolean onLongClick(View v) {
-                        if (!target.isIs_bookmarked()) {
-                            Intent intent = new Intent(mContext, TemplateActivity.class);
-                            intent.putExtra(Params.ILLUST_ID, target.getId());
-                            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏");
-                            mContext.startActivity(intent);
-                        }
-                        return true;
-                    }
-                });
-
-            } else {
-                bindView.baseBind.likeButton.setVisibility(View.GONE);
-            }
-
-            bindView.baseBind.hide.setVisibility(View.INVISIBLE);
-            Glide.with(mContext)
-                    .load(GlideUtil.getMediumImg(target))
-                    .placeholder(R.color.second_light_bg)
-                    .transition(DrawableTransitionOptions.withCrossFade())
-                    .into(bindView.baseBind.illustImage);
+            bindView.baseBind.illustImage.setScaleType(ImageView.ScaleType.FIT_CENTER);
         }
-        bindView.baseBind.hide.setOnClickListener(new View.OnClickListener() {
+        bindView.baseBind.illustImage.setHeightRatio(ratio);
+
+        if (target.isIs_bookmarked()) {
+            bindView.baseBind.likeButton.setImageTintList(
+                    ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.has_bookmarked)));
+        } else {
+            bindView.baseBind.likeButton.setImageTintList(
+                    ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.not_bookmarked)));
+        }
+        bindView.baseBind.likeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (target.isShield()) {
-                    bindView.baseBind.hide.setVisibility(View.INVISIBLE);
-                    Glide.with(mContext)
-                            .load(GlideUtil.getMediumImg(target))
-                            .placeholder(bindView.baseBind.illustImage.getDrawable())
-                            .transition(DrawableTransitionOptions.withCrossFade(800))
-                            .into(bindView.baseBind.illustImage);
-                    target.setShield(false);
+                if (target.isIs_bookmarked()) {
+                    bindView.baseBind.likeButton.setImageTintList(
+                            ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.not_bookmarked)));
+                } else {
+                    bindView.baseBind.likeButton.setImageTintList(
+                            ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.has_bookmarked)));
+                }
+                if (Shaft.sSettings.isPrivateStar()) {
+                    PixivOperate.postLike(target, Params.TYPE_PRIVATE, showRelated, (position + 2));
+                } else {
+                    PixivOperate.postLike(target, Params.TYPE_PUBLUC, showRelated, (position + 2));
                 }
             }
         });
+        bindView.baseBind.likeButton.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(Params.ILLUST_ID, target.getId());
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏");
+                mContext.startActivity(intent);
+                return true;
+            }
+        });
 
+        Glide.with(mContext)
+                .load(GlideUtil.getMediumImg(target))
+                .placeholder(R.color.second_light_bg)
+                .transition(DrawableTransitionOptions.withCrossFade())
+                .error(getBuilder(target))
+                .into(bindView.baseBind.illustImage);
 
         if (target.getPage_count() == 1) {
             bindView.baseBind.pSize.setVisibility(View.GONE);
         } else {
             bindView.baseBind.pSize.setVisibility(View.VISIBLE);
-            bindView.baseBind.pSize.setText(target.getPage_count() + "P");
+            bindView.baseBind.pSize.setText(String.format("%dP", target.getPage_count()));
         }
         bindView.baseBind.pGif.setVisibility(target.isGif() ? View.VISIBLE : View.GONE);
         bindView.itemView.setOnClickListener(view -> {
             if (mOnItemClickListener != null) {
-                if (target.isShield()) {
-                    Common.showToast("屏蔽了还要看？");
-                } else {
-                    mOnItemClickListener.onItemClick(view, position, 0);
-                }
+                mOnItemClickListener.onItemClick(view, position, 0);
             }
         });
         bindView.itemView.setOnLongClickListener(new View.OnLongClickListener() {
@@ -172,6 +129,18 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
                 return true;
             }
         });
+        if (target.isRelated()) {
+            bindView.baseBind.pRelated.setVisibility(View.VISIBLE);
+        } else {
+            bindView.baseBind.pRelated.setVisibility(View.GONE);
+        }
+    }
+
+    public RequestBuilder<Drawable> getBuilder(IllustsBean illust) {
+        return Glide.with(mContext)
+                .load(GlideUtil.getMediumImg(illust))
+                .placeholder(R.color.second_light_bg)
+                .transition(DrawableTransitionOptions.withCrossFade());
     }
 
     @Override
@@ -190,29 +159,29 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
             public void onItemClick(View v, int position, int viewType) {
                 TimeRecord.start();
 
-                final String uuid = UUID.randomUUID().toString();
-                final PageData pageData = new PageData(uuid, allIllust);
+                final PageData pageData = new PageData(uuid, nextUrl, allIllust);
                 Container.get().addPageToMap(pageData);
 
                 Intent intent = new Intent(mContext, VActivity.class);
                 intent.putExtra(Params.POSITION, position);
-                intent.putExtra(Params.PAGE_UUID, uuid);
+                intent.putExtra(Params.PAGE_UUID, pageData.getUUID());
                 mContext.startActivity(intent);
             }
         });
     }
 
     private void handleLongClick(View v, IllustsBean illust) {
-        View popView = LayoutInflater.from(mContext).inflate(R.layout.pop_window_2, null);
-        QMUIPopup mNormalPopup = QMUIPopups.popup(mContext, QMUIDisplayHelper.dp2px(mContext, 250))
+        View popView = View.inflate(mContext, R.layout.pop_window_2, null);
+        QMUIPopup mNormalPopup = QMUIPopups.popup(mContext)
                 .preferredDirection(QMUIPopup.DIRECTION_BOTTOM)
                 .view(popView)
                 .dimAmount(0.5f)
                 .edgeProtection(QMUIDisplayHelper.dp2px(mContext, 20))
-                .offsetX(QMUIDisplayHelper.dp2px(mContext, 80))
+                .offsetX(QMUIDisplayHelper.dp2px(mContext, 20))
                 .offsetYIfBottom(QMUIDisplayHelper.dp2px(mContext, 5))
                 .shadow(true)
                 .arrow(true)
+                .bgColor(mContext.getResources().getColor(R.color.fragment_center))
                 .animStyle(QMUIPopup.ANIM_GROW_FROM_RIGHT)
                 .onDismiss(new PopupWindow.OnDismissListener() {
                     @Override
@@ -236,6 +205,13 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
                 mNormalPopup.dismiss();
             }
         });
+        popView.findViewById(R.id.download_this_one).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                IllustDownload.downloadAllIllust(illust, mContext);
+                mNormalPopup.dismiss();
+            }
+        });
         popView.findViewById(R.id.show_comment).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -247,5 +223,16 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
                 mNormalPopup.dismiss();
             }
         });
+    }
+
+    private boolean showRelated = false;
+
+    public boolean isShowRelated() {
+        return showRelated;
+    }
+
+    public IAdapter setShowRelated(boolean showRelated) {
+        this.showRelated = showRelated;
+        return this;
     }
 }

@@ -17,7 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fitsSystemWindows="true"
-            android:background="@color/new_color_primary"
+            android:background="?attr/colorPrimary"
             android:elevation="@dimen/four_dp"
             app:navigationIcon="@drawable/ic_baseline_arrow_back_ios_24"
             app:titleTextColor="@color/white">
@@ -26,6 +26,11 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:singleLine="true"
+                android:ellipsize="marquee"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:marqueeRepeatLimit="marquee_forever"
                 android:layout_gravity="center"
                 android:id="@+id/toolbar_title"
                 android:textColor="@color/white"
@@ -40,3 +45,4 @@
     </LinearLayout>
 
 </layout>
+

@@ -3,17 +3,33 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/action_copy_link"
+        android:orderInCategory="100"
+        android:title="@string/string_355_2"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_dislike"
         android:orderInCategory="100"
-        android:icon="@drawable/ic_not_interested_black_24dp"
         android:title="@string/string_1"
         app:showAsAction="never" />
 
+    <item
+        android:id="@+id/action_mute_illust"
+        android:orderInCategory="100"
+        android:title="@string/string_355"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_show_original"
+        android:orderInCategory="100"
+        android:title="@string/string_0"
+        app:showAsAction="never" />
 
     <item
         android:id="@+id/action_share"
         android:orderInCategory="100"
-        android:icon="@drawable/ic_share_black_24dp"
+        android:icon="@drawable/ic_share_white_with_shadow"
         android:title="@string/string_3"
         app:showAsAction="always" />
 </menu>

@@ -12,35 +12,19 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/colorPrimary"
-            android:elevation="@dimen/six_dp"
-            android:fitsSystemWindows="true"
-            android:theme="@style/AppTheme.AppBarOverlay"
-            app:popupTheme="@style/AppTheme.PopupOverlay"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
-            app:title=" "
-            app:titleTextColor="@android:color/white">
-
-        </androidx.appcompat.widget.Toolbar>
+        <include layout="@layout/toolbar_layout" />
 
         <com.scwang.smartrefresh.layout.SmartRefreshLayout
             android:layout_width="match_parent"
             android:id="@+id/refreshLayout"
             android:layout_below="@+id/toolbar"
             android:layout_above="@+id/bottom_rela"
-            android:background="@color/white"
+            android:background="@color/fragment_center"
             android:layout_height="match_parent">
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerView"
                 android:layout_width="match_parent"
-                android:background="@color/white"
                 android:layout_height="match_parent"
                 android:fadeScrollbars="false">
 
@@ -48,15 +32,11 @@
 
         </com.scwang.smartrefresh.layout.SmartRefreshLayout>
 
-        <ImageView
+        <include
             android:layout_width="wrap_content"
-            android:id="@+id/no_data"
-            android:visibility="invisible"
-            android:src="@mipmap/no_data_line"
-            android:tint="@color/colorPrimary"
+            android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:scaleType="centerCrop"
-            android:layout_height="wrap_content" />
+            layout="@layout/empty_layout" />
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -69,6 +49,7 @@
                 android:layout_width="wrap_content"
                 android:text="@string/string_89"
                 android:textSize="15sp"
+                android:textColor="@color/rank_text_color"
                 android:id="@+id/private_star_s"
                 android:layout_centerVertical="true"
                 android:layout_marginStart="@dimen/sixteen_dp"
@@ -77,7 +58,7 @@
                 android:layout_marginEnd="@dimen/eight_dp"
                 android:layout_height="wrap_content" />
 
-            <Switch
+            <androidx.appcompat.widget.SwitchCompat
                 android:layout_width="wrap_content"
                 android:layout_toEndOf="@+id/private_star_s"
                 android:layout_marginTop="@dimen/sixteen_dp"
@@ -94,7 +75,7 @@
                 android:layout_alignParentEnd="true"
                 android:textSize="15sp"
                 android:id="@+id/submit_area"
-                android:textColor="@color/colorPrimary"
+                android:textColor="?attr/colorPrimary"
                 android:textStyle="bold"
                 android:layout_centerVertical="true"
                 android:layout_marginEnd="@dimen/sixteen_dp"
@@ -104,3 +85,4 @@
 
     </RelativeLayout>
 </layout>
+

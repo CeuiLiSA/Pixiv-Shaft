@@ -13,10 +13,6 @@ public class Local {
 
     public static void saveUser(UserModel userModel) {
         if (userModel != null) {
-            String token = userModel.getResponse().getAccess_token();
-            if (!token.contains("Bearer ")) {
-                userModel.getResponse().setAccess_token("Bearer " + token);
-            }
             String userString = Shaft.sGson.toJson(userModel, UserModel.class);
             SharedPreferences.Editor editor = Shaft.sPreferences.edit();
             editor.putString(USER, userString);
@@ -45,15 +41,5 @@ public class Local {
         editor.putString(SETTINGS, settingsGson);
         editor.apply();
         Shaft.sSettings = settings;
-    }
-
-    public static boolean getBoolean(String key, boolean defValue) {
-        return Shaft.sPreferences.getBoolean(key, defValue);
-    }
-
-    public static void setBoolean(String key, boolean value) {
-        SharedPreferences.Editor editor = Shaft.sPreferences.edit();
-        editor.putBoolean(key, value);
-        editor.apply();
     }
 }

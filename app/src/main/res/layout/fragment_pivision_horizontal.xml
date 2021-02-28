@@ -7,12 +7,8 @@
 
     </data>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
 
-        <RelativeLayout
+    <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
@@ -44,10 +40,10 @@
                     android:layout_marginBottom="2dp"
                     android:layout_marginEnd="@dimen/sixteen_dp"
                     android:text="@string/see_more"
-                    android:drawableEnd="@drawable/ic_chevron_right_black_24dp"
+                    app:drawableEndCompat="@drawable/ic_chevron_right_black_24dp"
                     android:gravity="center"
-                    android:drawableTint="@color/new_color_primary"
-                    android:textColor="@color/new_color_primary"
+                    app:drawableTint="?attr/colorPrimary"
+                    android:textColor="?attr/colorPrimary"
                     android:textSize="13sp"
                     app:layout_constraintEnd_toEndOf="parent" />
 
@@ -70,18 +66,14 @@
             </com.scwang.smartrefresh.layout.SmartRefreshLayout>
 
 
-            <ImageView
+            <include
                 android:layout_width="wrap_content"
-                android:id="@+id/no_data"
-                android:visibility="invisible"
-                android:src="@mipmap/no_data_line"
-                android:layout_centerInParent="true"
-                android:scaleType="centerCrop"
                 android:layout_height="wrap_content"
-                app:tint="@color/colorPrimary" />
+                android:layout_centerInParent="true"
+                layout="@layout/empty_layout" />
 
         </RelativeLayout>
 
 
-    </LinearLayout>
 </layout>
+

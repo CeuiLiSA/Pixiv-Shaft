@@ -25,16 +25,11 @@
             </androidx.recyclerview.widget.RecyclerView>
             </com.scwang.smartrefresh.layout.SmartRefreshLayout>
 
-
-            <ImageView
+            <include
                 android:layout_width="wrap_content"
-                android:id="@+id/no_data"
-                android:visibility="invisible"
-                android:src="@mipmap/no_data_line"
-                android:layout_centerInParent="true"
-                android:scaleType="centerCrop"
                 android:layout_height="wrap_content"
-                app:tint="@color/colorPrimary" />
+                android:layout_centerInParent="true"
+                layout="@layout/empty_layout" />
 
         </RelativeLayout>
 

@@ -11,7 +11,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:riv_border_width="1dp"
-        app:riv_border_color="@color/new_color_primary"
+        app:riv_border_color="?attr/colorPrimary"
         app:riv_corner_radius="@dimen/four_dp"
         android:scaleType="centerCrop" />
 </layout>
+

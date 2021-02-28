@@ -3,12 +3,14 @@ package ceui.lisa.fragments;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
+import android.text.TextUtils;
 import android.view.MenuItem;
 import android.widget.Toast;
 
 import androidx.appcompat.widget.Toolbar;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import com.bumptech.glide.RequestManager;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
@@ -21,18 +23,18 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.SAdapter;
 import ceui.lisa.core.BaseRepo;
-import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentSelectTagBinding;
 import ceui.lisa.databinding.RecySelectTagBinding;
 import ceui.lisa.http.ErrorCtrl;
+import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListBookmarkTag;
+import ceui.lisa.model.ListTag;
 import ceui.lisa.models.NullResponse;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.repo.SelectTagRepo;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
-import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
@@ -78,19 +80,19 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
     private void submitStar() {
         List<String> tempList = new ArrayList<>();
         for (int i = 0; i < allItems.size(); i++) {
-            if (allItems.get(i).isSelected()) {
+            if (allItems.get(i).isSelectedLocalOrRemote()) {
                 tempList.add(allItems.get(i).getName());
             }
         }
 
         if (tempList.size() == 0) {
-            Retro.getAppApi().postLike(Shaft.sUserModel.getResponse().getAccess_token(), illustID,
-                    baseBind.isPrivate.isChecked() ? FragmentLikeIllust.TYPE_PRIVATE : FragmentLikeIllust.TYPE_PUBLUC)
+            Retro.getAppApi().postLike(Shaft.sUserModel.getAccess_token(), illustID,
+                    baseBind.isPrivate.isChecked() ? Params.TYPE_PRIVATE : Params.TYPE_PUBLUC)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {
                         @Override
-                        public void onNext(NullResponse nullResponse) {
+                        public void next(NullResponse nullResponse) {
                             Common.showToast("收藏成功");
                             setFollowed();
                         }
@@ -100,13 +102,13 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
             String[] strings = new String[tempList.size()];
             tempList.toArray(strings);
 
-            Retro.getAppApi().postLike(Shaft.sUserModel.getResponse().getAccess_token(), illustID,
-                    baseBind.isPrivate.isChecked() ? FragmentLikeIllust.TYPE_PRIVATE : FragmentLikeIllust.TYPE_PUBLUC, strings)
+            Retro.getAppApi().postLike(Shaft.sUserModel.getAccess_token(), illustID,
+                    baseBind.isPrivate.isChecked() ? Params.TYPE_PRIVATE : Params.TYPE_PUBLUC, strings)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {
                         @Override
-                        public void onNext(NullResponse nullResponse) {
+                        public void next(NullResponse nullResponse) {
                             Common.showToast("收藏成功");
                             setFollowed();
                         }
@@ -193,8 +195,40 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
         baseBind.submitArea.setOnClickListener(v -> submitStar());
     }
 
+//    @Override
+//    public void onFirstLoaded(List<TagsBean> tagsBeans) {
+//        super.onFirstLoaded(tagsBeans);
+//        getLikedTags();
+//    }
+
     @Override
     public String getToolbarTitle() {
         return getString(R.string.string_238);
     }
+
+//    private void getLikedTags() {
+//        if (true) {
+//            return;
+//        }
+//        Retro.getAppApi().getBookmarkTags(Shaft.sUserModel.getAccess_token(),
+//                Shaft.sUserModel.getUserId(), Params.TYPE_PUBLUC)
+//                .subscribeOn(Schedulers.newThread())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(new NullCtrl<ListTag>() {
+//                    @Override
+//                    public void success(ListTag listTag) {
+//                        if (!Common.isEmpty(listTag.getList()) && !Common.isEmpty(allItems)) {
+//                            for (TagsBean tagsBean : listTag.getList()) {
+//                                for (TagsBean allItem : allItems) {
+//                                    Common.showLog("left " + allItem.getName() + "right " + tagsBean.getName());
+//                                    allItem.setSelected(
+//                                            TextUtils.equals(allItem.getName(), tagsBean.getName())
+//                                    );
+//                                }
+//                            }
+//                            mAdapter.notifyDataSetChanged();
+//                        }
+//                    }
+//                });
+//    }
 }

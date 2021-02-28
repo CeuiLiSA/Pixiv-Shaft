@@ -19,4 +19,16 @@
         android:title="@string/string_22"
         app:showAsAction="never" />
 
+    <item
+        android:id="@+id/action_4"
+        android:orderInCategory="100"
+        android:title="@string/string_316"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_5"
+        android:orderInCategory="100"
+        android:title="@string/string_317"
+        app:showAsAction="never" />
+
 </menu>

@@ -9,19 +9,19 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/colorPrimary">
+        android:background="?attr/colorPrimary">
 
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:id="@+id/fragment_login"
             android:layout_height="match_parent"
-            android:background="@color/colorPrimary">
+            android:background="?attr/colorPrimary">
 
 
             <androidx.cardview.widget.CardView
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
                 android:id="@+id/card_login"
                 android:clickable="true"
                 android:foreground="?attr/selectableItemBackground"
@@ -32,6 +32,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintHeight_percent="0.4"
                 app:layout_constraintWidth_percent="0.7">
 
 
@@ -47,73 +48,40 @@
                         android:gravity="center"
                         android:padding="@dimen/sixteen_dp"
                         android:text="@string/string_8"
-                        android:textColor="@color/colorPrimary"
+                        android:textColor="?attr/colorPrimary"
                         android:textSize="17sp"
                         android:textStyle="bold" />
 
                     <RelativeLayout
                         android:layout_width="match_parent"
                         android:layout_below="@+id/title"
-                        android:layout_marginTop="@dimen/sixteen_dp"
+                        android:layout_centerInParent="true"
                         android:id="@+id/center_rela"
                         android:gravity="center"
                         android:layout_height="wrap_content">
 
-                        <LinearLayout
+                        <androidx.cardview.widget.CardView
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical">
+                            android:layout_height="40dp"
+                            android:layout_centerInParent="true"
+                            android:id="@+id/login"
+                            android:clickable="true"
+                            android:foreground="?attr/selectableItemBackground"
+                            android:layout_marginStart="@dimen/tweenty_four_dp"
+                            android:layout_marginEnd="@dimen/tweenty_four_dp"
+                            android:layout_marginBottom="@dimen/sixteen_dp"
+                            app:cardBackgroundColor="?attr/colorPrimary">
 
 
-                            <com.rengwuxian.materialedittext.MaterialEditText
-                                android:id="@+id/user_name"
-                                android:layout_width="match_parent"
+                            <TextView
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="@dimen/tweenty_four_dp"
-                                android:layout_marginEnd="@dimen/tweenty_four_dp"
-                                android:hint="@string/string_9"
-                                app:met_floatingLabel="highlight"
-                                app:met_primaryColor="@color/colorPrimary"
-                                app:met_singleLineEllipsis="true" />
+                                android:layout_gravity="center"
+                                android:text="@string/now_login"
+                                android:textColor="@android:color/white"
+                                android:textSize="13sp" />
 
-
-                            <com.rengwuxian.materialedittext.MaterialEditText
-                                android:id="@+id/password"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_below="@+id/user_name"
-                                android:layout_marginStart="@dimen/tweenty_four_dp"
-                                android:layout_marginEnd="@dimen/tweenty_four_dp"
-                                android:hint="@string/string_10"
-                                android:inputType="textPassword"
-                                app:met_floatingLabel="highlight"
-                                app:met_primaryColor="@color/colorPrimary"
-                                app:met_singleLineEllipsis="true" />
-
-
-                            <androidx.cardview.widget.CardView
-                                android:layout_width="match_parent"
-                                android:layout_height="40dp"
-                                android:id="@+id/login"
-                                android:clickable="true"
-                                android:foreground="?attr/selectableItemBackground"
-                                android:layout_marginStart="@dimen/tweenty_four_dp"
-                                android:layout_marginEnd="@dimen/tweenty_four_dp"
-                                android:layout_marginBottom="@dimen/sixteen_dp"
-                                app:cardBackgroundColor="@color/colorPrimary">
-
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_gravity="center"
-                                    android:text="@string/now_login"
-                                    android:textColor="@android:color/white"
-                                    android:textSize="13sp" />
-
-                            </androidx.cardview.widget.CardView>
-
-                        </LinearLayout>
+                        </androidx.cardview.widget.CardView>
 
                     </RelativeLayout>
 
@@ -122,13 +90,13 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="40dp"
+                        android:layout_alignParentBottom="true"
                         android:background="#f6f6f6"
                         android:layout_marginTop="@dimen/sixteen_dp"
                         android:gravity="center"
-                        android:layout_below="@+id/center_rela"
                         android:id="@+id/has_no_account"
                         android:text="@string/has_no_account"
-                        android:textColor="@color/colorPrimary"
+                        android:textColor="?attr/colorPrimary"
                         android:textSize="12sp" />
 
 
@@ -144,7 +112,7 @@
             android:id="@+id/fragment_sign"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/colorPrimary">
+            android:background="?attr/colorPrimary">
 
 
             <androidx.cardview.widget.CardView
@@ -158,7 +126,7 @@
                 app:cardElevation="@dimen/twelve_dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHeight_percent="0.5"
+                app:layout_constraintHeight_percent="0.4"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintWidth_percent="0.7">
@@ -176,47 +144,22 @@
                         android:gravity="center"
                         android:padding="@dimen/sixteen_dp"
                         android:text="@string/string_11"
-                        android:textColor="@color/colorPrimary"
+                        android:textColor="?attr/colorPrimary"
                         android:textSize="17sp"
                         android:textStyle="bold" />
-
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_above="@+id/sign"
-                        android:gravity="center_vertical"
-                        android:layout_below="@+id/sign_title"
-                        android:orientation="vertical">
-
-
-                        <com.rengwuxian.materialedittext.MaterialEditText
-                            android:id="@+id/sign_user_name"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/tweenty_four_dp"
-                            android:layout_marginTop="@dimen/sixteen_dp"
-                            android:layout_marginEnd="@dimen/tweenty_four_dp"
-                            android:hint="@string/string_12"
-                            app:met_floatingLabel="highlight"
-                            app:met_primaryColor="@color/colorPrimary"
-                            app:met_singleLineEllipsis="true" />
-
-
-                    </LinearLayout>
 
 
                     <androidx.cardview.widget.CardView
                         android:layout_width="match_parent"
                         android:layout_height="40dp"
                         android:id="@+id/sign"
-                        android:layout_above="@+id/go_to_login"
+                        android:layout_centerInParent="true"
                         android:clickable="true"
                         android:foreground="?attr/selectableItemBackground"
                         android:layout_marginStart="@dimen/tweenty_four_dp"
                         android:layout_marginEnd="@dimen/tweenty_four_dp"
                         android:layout_marginBottom="@dimen/sixteen_dp"
-                        app:cardBackgroundColor="@color/colorPrimary">
+                        app:cardBackgroundColor="?attr/colorPrimary">
 
 
                         <TextView
@@ -237,9 +180,8 @@
                         android:gravity="center"
                         android:id="@+id/go_to_login"
                         android:text="@string/go_to_login"
-                        android:textColor="@color/colorPrimary"
+                        android:textColor="?attr/colorPrimary"
                         android:textSize="12sp" />
-
 
                 </RelativeLayout>
             </androidx.cardview.widget.CardView>
@@ -253,6 +195,7 @@
             android:id="@+id/progress"
             android:visibility="invisible"
             android:layout_height="wrap_content"
+            android:indeterminateTint="@color/always_white"
             app:layout_constraintBottom_toBottomOf="parent"
             android:layout_marginBottom="48dp"
             app:layout_constraintEnd_toEndOf="parent"
@@ -266,7 +209,7 @@
             android:theme="@style/AppTheme.AppBarOverlay"
             app:popupTheme="@style/AppTheme.PopupOverlay"
             android:id="@+id/toolbar"
-            android:background="@color/colorPrimary"
+            android:background="?attr/colorPrimary"
             android:layout_height="wrap_content">
 
 
@@ -275,3 +218,4 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
+

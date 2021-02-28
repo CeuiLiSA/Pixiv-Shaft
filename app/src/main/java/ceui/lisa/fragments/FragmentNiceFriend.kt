@@ -11,8 +11,7 @@ import ceui.lisa.models.UserPreviewsBean
 import ceui.lisa.repo.NiceFriendRepo
 import ceui.lisa.utils.Params
 
-class FragmentNiceFriend : NetListFragment<FragmentBaseListBinding,
-        ListUser, UserPreviewsBean>() {
+class FragmentNiceFriend : NetListFragment<FragmentBaseListBinding, ListUser, UserPreviewsBean>() {
 
     override fun repository(): RemoteRepo<ListUser> {
         return NiceFriendRepo(mActivity.intent.getIntExtra(Params.USER_ID, 0))

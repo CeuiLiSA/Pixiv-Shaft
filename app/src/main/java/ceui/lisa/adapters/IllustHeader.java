@@ -37,13 +37,12 @@ public class IllustHeader extends ViewHolder<RecyRecmdHeaderBinding> {
         baseBind.topRela.startAnimation(animation);
         RAdapter adapter = new RAdapter(illustsBeans, context);
         adapter.setOnItemClickListener((v, position, viewType) -> {
-            final String uuid = UUID.randomUUID().toString();
-            final PageData pageData = new PageData(uuid, illustsBeans);
+            final PageData pageData = new PageData(illustsBeans);
             Container.get().addPageToMap(pageData);
 
             Intent intent = new Intent(context, VActivity.class);
             intent.putExtra(Params.POSITION, position);
-            intent.putExtra(Params.PAGE_UUID, uuid);
+            intent.putExtra(Params.PAGE_UUID, pageData.getUUID());
             context.startActivity(intent);
         });
         baseBind.ranking.setAdapter(adapter);

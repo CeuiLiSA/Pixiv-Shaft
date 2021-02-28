@@ -10,80 +10,77 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-
-        <androidx.appcompat.widget.Toolbar
+        <include
             android:id="@+id/toolbar"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:background="@color/colorPrimary"
-            android:elevation="@dimen/six_dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:fitsSystemWindows="true"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
-            app:title="账号管理"
-            app:titleTextColor="@android:color/white">
+            layout="@layout/toolbar_layout" />
 
-        </androidx.appcompat.widget.Toolbar>
-
-
-        <LinearLayout
+        <com.scwang.smartrefresh.layout.SmartRefreshLayout
             android:layout_width="match_parent"
-            android:orientation="vertical"
-            app:layout_constraintTop_toBottomOf="@+id/toolbar"
+            android:layout_height="0dp"
+            android:id="@+id/refreshLayout"
             app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_height="0dp">
+            app:layout_constraintTop_toBottomOf="@+id/toolbar">
 
-
-            <LinearLayout
+            <androidx.core.widget.NestedScrollView
                 android:layout_width="match_parent"
-                android:id="@+id/user_list"
-                android:orientation="vertical"
-                android:layout_height="wrap_content">
+                android:layout_height="match_parent">
 
-
-            </LinearLayout>
-
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:id="@+id/add_user"
-                android:clickable="true"
-                android:foreground="?attr/selectableItemBackground"
-                android:layout_height="wrap_content">
-
-                <TextView
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:text="@string/add_account"
-                    android:drawablePadding="@dimen/eight_dp"
-                    android:gravity="center_vertical"
-                    android:drawableStart="@drawable/ic_person_add_black_24dp"
-                    android:textColor="@color/dark_text"
-                    android:layout_margin="@dimen/sixteen_dp"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="0dp"
+                    android:orientation="vertical">
 
-            </RelativeLayout>
-
-
-            <View
-                android:layout_width="match_parent"
-                android:background="@color/light_bg"
-                android:layout_height="20dp" />
+                    <LinearLayout
+                        android:id="@+id/user_list"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
 
 
+                    </LinearLayout>
 
-        </LinearLayout>
+
+                    <RelativeLayout
+                        android:id="@+id/add_user"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:foreground="?attr/selectableItemBackground">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="@dimen/sixteen_dp"
+                            android:drawablePadding="@dimen/eight_dp"
+                            android:gravity="center_vertical"
+                            android:text="@string/add_account"
+                            android:textColor="@color/dark_text"
+                            app:drawableStartCompat="@drawable/ic_person_add_black_24dp" />
+
+                    </RelativeLayout>
+
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="20dp"
+                        android:background="@color/light_bg" />
+
+
+                </LinearLayout>
+
+            </androidx.core.widget.NestedScrollView>
+
+        </com.scwang.smartrefresh.layout.SmartRefreshLayout>
 
         <ProgressBar
-            android:layout_width="wrap_content"
             android:id="@+id/progress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:visibility="invisible"
-            app:layout_constraintTop_toBottomOf="@+id/toolbar"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            android:layout_height="wrap_content" />
+            app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

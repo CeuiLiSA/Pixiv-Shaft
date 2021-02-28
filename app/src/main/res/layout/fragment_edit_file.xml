@@ -9,80 +9,271 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="@color/fragment_center">
 
-
-
-        <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-
-            <androidx.appcompat.widget.Toolbar
+            <include
                 android:id="@+id/toolbar"
+                layout="@layout/toolbar_layout" />
+
+            <com.scwang.smartrefresh.layout.SmartRefreshLayout
+                android:id="@+id/refreshLayout"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:fitsSystemWindows="true"
-                android:background="@color/colorPrimary"
-                android:elevation="@dimen/six_dp"
-                app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
-                app:title="个人资料设置"
-                app:titleTextColor="@android:color/white">
+                android:layout_height="match_parent"
+                android:layout_above="@+id/submit"
+                android:layout_below="@+id/toolbar">
 
-            </androidx.appcompat.widget.Toolbar>
+                <androidx.core.widget.NestedScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
 
+                    <LinearLayout style="@style/LinearVertical">
 
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
 
-                <de.hdodenhof.circleimageview.CircleImageView
-                    android:id="@+id/user_head"
-                    android:src="@mipmap/avatar"
-                    android:scaleType="centerCrop"
-                    android:layout_marginTop="40dp"
-                    android:layout_centerHorizontal="true"
-                    android:layout_width="80dp"
-                    android:layout_height="80dp"/>
+                            <de.hdodenhof.circleimageview.CircleImageView
+                                android:id="@+id/user_head"
+                                android:layout_width="80dp"
+                                android:layout_height="80dp"
+                                android:layout_centerHorizontal="true"
+                                android:layout_marginTop="40dp"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/avatar" />
 
-                <Button
-                    android:id="@+id/change_head"
-                    style="@style/Widget.AppCompat.Button.Borderless"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/eight_dp"
-                    android:textColor="@color/colorPrimary"
-                    android:layout_below="@+id/user_head"
-                    android:layout_centerHorizontal="true"
-                    android:text="@string/string_54">
+                            <Button
+                                android:id="@+id/change_head"
+                                style="@style/Widget.AppCompat.Button.Borderless"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_below="@+id/user_head"
+                                android:layout_centerHorizontal="true"
+                                android:layout_marginTop="@dimen/eight_dp"
+                                android:text="@string/string_54"
+                                android:textColor="?attr/colorPrimary">
 
-                </Button>
-
-
-            </RelativeLayout>
+                            </Button>
 
 
-        </LinearLayout>
+                        </RelativeLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="@color/about_user_divider">
+
+                        </View>
+
+                        <LinearLayout style="@style/LinearHorizon">
+
+                            <TextView
+                                style="@style/AboutUserLeft"
+                                android:layout_width="60dp"
+                                android:text="@string/string_266">
+
+                            </TextView>
+
+                            <androidx.appcompat.widget.AppCompatSpinner
+                                android:id="@+id/sex"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
+                                android:popupBackground="@color/fragment_center">
+
+
+                            </androidx.appcompat.widget.AppCompatSpinner>
+
+                        </LinearLayout>
+
+                        <View style="@style/half_divider" />
+
+                        <LinearLayout style="@style/LinearHorizon">
+
+                            <TextView
+                                style="@style/AboutUserLeft"
+                                android:layout_width="60dp"
+                                android:text="@string/string_265">
+
+                            </TextView>
+
+                            <androidx.appcompat.widget.AppCompatSpinner
+                                android:id="@+id/address"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:layout_marginEnd="@dimen/sixteen_dp">
+
+
+                            </androidx.appcompat.widget.AppCompatSpinner>
+
+                        </LinearLayout>
+
+                        <View style="@style/half_divider" />
+
+                        <LinearLayout
+                            android:id="@+id/country_ll"
+                            style="@style/LinearHorizon"
+                            android:visibility="gone">
+
+                            <TextView
+                                style="@style/AboutUserLeft"
+                                android:layout_width="60dp"
+                                android:text="@string/string_269">
+
+                            </TextView>
+
+                            <androidx.appcompat.widget.AppCompatSpinner
+                                android:id="@+id/country"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:layout_marginEnd="@dimen/sixteen_dp">
+
+
+                            </androidx.appcompat.widget.AppCompatSpinner>
+
+                        </LinearLayout>
+
+                        <View style="@style/half_divider" />
+
+                        <LinearLayout style="@style/LinearHorizon">
+
+                            <TextView
+                                style="@style/AboutUserLeft"
+                                android:layout_width="60dp"
+                                android:text="@string/string_268">
+
+                            </TextView>
+
+                            <androidx.appcompat.widget.AppCompatSpinner
+                                android:id="@+id/job"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:layout_marginEnd="@dimen/sixteen_dp">
+
+
+                            </androidx.appcompat.widget.AppCompatSpinner>
+
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="@color/about_user_divider">
+
+                        </View>
+
+                        <LinearLayout style="@style/LinearVertical">
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="1dp"
+                                android:layout_marginTop="@dimen/tweenty_four_dp"
+                                android:background="@color/about_user_divider">
+
+                            </View>
+
+                            <LinearLayout style="@style/LinearHorizon">
+
+                                <TextView
+                                    style="@style/AboutUserLeft"
+                                    android:text="@string/string_270" />
+
+
+                                <EditText
+                                    android:id="@+id/user_name"
+                                    style="@style/AboutUserRightDarkText" />
+
+                            </LinearLayout>
+
+                            <View style="@style/half_divider" />
+
+                            <LinearLayout style="@style/LinearHorizon">
+
+                                <TextView
+                                    style="@style/AboutUserLeft"
+                                    android:text="@string/string_271" />
+
+
+                                <EditText
+                                    android:id="@+id/webpage"
+                                    style="@style/AboutUserRightDarkText" />
+
+                            </LinearLayout>
+
+                            <View style="@style/half_divider" />
+
+
+                            <LinearLayout style="@style/LinearHorizon">
+
+                                <TextView
+                                    style="@style/AboutUserLeft"
+                                    android:text="@string/string_272" />
+
+
+                                <EditText
+                                    android:id="@+id/twitter"
+                                    style="@style/AboutUserRightDarkText" />
+
+                            </LinearLayout>
+
+                            <View style="@style/half_divider" />
+
+
+                            <LinearLayout style="@style/LinearHorizon">
+
+                                <TextView
+                                    style="@style/AboutUserLeft"
+                                    android:text="@string/string_273" />
+
+
+                                <EditText
+                                    android:id="@+id/comment"
+                                    style="@style/AboutUserRightDarkText" />
+
+                            </LinearLayout>
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="1dp"
+                                android:layout_marginBottom="80dp"
+                                android:background="@color/about_user_divider">
+
+                            </View>
+
+                        </LinearLayout>
+
+
+                    </LinearLayout>
+
+                </androidx.core.widget.NestedScrollView>
+
+            </com.scwang.smartrefresh.layout.SmartRefreshLayout>
+
 
         <ProgressBar
-            android:layout_width="wrap_content"
             android:id="@+id/progress"
-            android:visibility="invisible"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:layout_height="wrap_content">
+            android:visibility="invisible">
 
         </ProgressBar>
 
         <Button
-            android:layout_width="match_parent"
-            android:layout_alignParentBottom="true"
-            android:text="@string/string_55"
-            android:layout_margin="@dimen/sixteen_dp"
             android:id="@+id/submit"
-            android:layout_height="wrap_content">
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_margin="@dimen/sixteen_dp"
+            android:background="@drawable/primary_round_bg"
+            android:text="@string/string_55"
+            android:textColor="@color/white" />
 
-        </Button>
     </RelativeLayout>
 
 </layout>
+

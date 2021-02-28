@@ -1,11 +1,19 @@
 package ceui.lisa.fragments;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.text.TextUtils;
 
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
+import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,18 +21,27 @@ import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapterWithHeadView;
+import ceui.lisa.core.Container;
+import ceui.lisa.core.PageData;
 import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustRecmdEntity;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
-import ceui.lisa.helper.TagFilter;
+import ceui.lisa.helper.IllustFilter;
 import ceui.lisa.http.NullCtrl;
+import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListIllust;
+import ceui.lisa.model.RecmdIllust;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.models.UserModel;
+import ceui.lisa.notification.BaseReceiver;
+import ceui.lisa.notification.CallBackReceiver;
 import ceui.lisa.repo.RecmdIllustRepo;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
+import ceui.lisa.utils.Dev;
+import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.SpacesItemWithHeadDecoration;
 import ceui.lisa.viewmodel.BaseModel;
@@ -33,11 +50,14 @@ import io.reactivex.Observable;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
+import retrofit2.Call;
 
 public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding,
-        ListIllust, IllustsBean> {
+        RecmdIllust, IllustsBean> {
 
     private String dataType;
+    private List<IllustRecmdEntity> localData;
+    private BroadcastReceiver relatedReceiver;
 
     public static FragmentRecmdIllust newInstance(String dataType) {
         Bundle args = new Bundle();
@@ -59,18 +79,77 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
 
     @Override
     public RemoteRepo<ListIllust> repository() {
-        return new RecmdIllustRepo(dataType);
+        if (Dev.isDev) {
+            localData = AppDatabase.getAppDatabase(mContext).recmdDao().getAll();
+            return new RecmdIllustRepo(dataType) {
+                @Override
+                public boolean localData() {
+                    return !Common.isEmpty(localData);
+                }
+            };
+        } else {
+            return new RecmdIllustRepo(dataType);
+        }
     }
 
     @Override
     public BaseAdapter<IllustsBean, RecyIllustStaggerBinding> adapter() {
-        return new IAdapterWithHeadView(allItems, mContext, dataType);
+        return new IAdapterWithHeadView(allItems, mContext, dataType).setShowRelated(true);
+    }
+
+    @Override
+    public void onAdapterPrepared() {
+        super.onAdapterPrepared();
+        IntentFilter intentFilter = new IntentFilter();
+        relatedReceiver = new CallBackReceiver(new BaseReceiver.CallBack() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Bundle bundle = intent.getExtras();
+                if (bundle != null) {
+                    int index = bundle.getInt(Params.INDEX);
+                    ListIllust listIllust = (ListIllust) bundle.getSerializable(Params.CONTENT);
+                    if (listIllust != null){
+                        if (!Common.isEmpty(listIllust.getList())) {
+                            if (!isAdded()) {
+                                return;
+                            }
+                            List<IllustsBean> temp = new ArrayList<>();
+                            for (int i = 0; i < listIllust.getList().size(); i++) {
+                                listIllust.getList().get(i).setRelated(true);
+                                if (i < 5) {
+                                    temp.add(listIllust.getList().get(i));
+                                } else {
+                                    break;
+                                }
+                            }
+
+                            if (!Common.isEmpty(temp)) {
+                                mModel.load(temp, index);
+                                Common.showToast(index);
+                                mAdapter.notifyItemRangeInserted(index + 1, temp.size());
+                                mAdapter.notifyItemRangeChanged(index + 1, allItems.size() - index - 1);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        intentFilter.addAction(Params.FRAGMENT_ADD_RELATED_DATA);
+        LocalBroadcastManager.getInstance(mContext).registerReceiver(relatedReceiver, intentFilter);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (relatedReceiver != null) {
+            LocalBroadcastManager.getInstance(mContext).unregisterReceiver(relatedReceiver);
+        }
     }
 
     @Override
     public void initRecyclerView() {
         StaggeredGridLayoutManager layoutManager =
-                new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
+                new StaggeredGridLayoutManager(Shaft.sSettings.getLineCount(), StaggeredGridLayoutManager.VERTICAL);
         layoutManager.setGapStrategy(StaggeredGridLayoutManager.GAP_HANDLING_NONE);
         baseBind.recyclerView.setLayoutManager(layoutManager);
         baseBind.recyclerView.addItemDecoration(new SpacesItemWithHeadDecoration(DensityUtil.dp2px(8.0f)));
@@ -88,6 +167,7 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
 
     @Override
     public void onFirstLoaded(List<IllustsBean> illustsBeans) {
+        ((RecmdModel) mModel).getRankList().clear();
         Observable.create((ObservableOnSubscribe<String>) emitter -> {
             emitter.onNext("开始写入数据库");
             if (allItems != null) {
@@ -110,7 +190,7 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
 
                     }
                 });
-        ((RecmdModel) mModel).getRankList().addAll(mResponse.getRanking_illusts());
+        ((RecmdModel) mModel).getRankList().addAll(((RecmdIllust) mResponse).getRanking_illusts());
         ((IAdapterWithHeadView) mAdapter).setHeadData(((RecmdModel) mModel).getRankList());
     }
 
@@ -124,10 +204,12 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
 
     @Override
     public void showDataBase() {
+        if (Common.isEmpty(localData)) {
+            return;
+        }
         Observable.create((ObservableOnSubscribe<List<IllustRecmdEntity>>) emitter -> {
-            List<IllustRecmdEntity> temp = AppDatabase.getAppDatabase(mContext).recmdDao().getAll();
             Thread.sleep(100);
-            emitter.onNext(temp);
+            emitter.onNext(localData);
             emitter.onComplete();
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -137,7 +219,7 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
                     for (int i = 0; i < entities.size(); i++) {
                         IllustsBean illustsBean = Shaft.sGson.fromJson(
                                 entities.get(i).getIllustJson(), IllustsBean.class);
-                        if (!TagFilter.judge(illustsBean)) {
+                        if (!IllustFilter.judge(illustsBean)) {
                             temp.add(illustsBean);
                         }
                     }

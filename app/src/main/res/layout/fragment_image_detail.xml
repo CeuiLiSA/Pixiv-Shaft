@@ -6,42 +6,21 @@
 
     </data>
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:background="@color/black"
         android:layout_height="match_parent">
 
-
-        <com.github.chrisbanes.photoview.PhotoView
+        <xyz.zpayh.hdimage.HDImageView
             android:layout_width="match_parent"
-            android:id="@+id/illust_image"
+            android:id="@+id/real_illust_image"
             android:transitionName="big_image"
             android:scaleType="fitCenter"
             android:layout_height="match_parent" />
 
-        <Button
-            android:id="@+id/reload"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/string_73"
-            android:visibility="invisible"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+        <include
+            android:id="@+id/progress_layout"
+            layout="@layout/item_progress" />
 
-        </Button>
-
-        <ProgressBar
-            android:layout_width="wrap_content"
-            android:id="@+id/progress"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            android:layout_height="wrap_content">
-
-        </ProgressBar>
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    </RelativeLayout>
 </layout>

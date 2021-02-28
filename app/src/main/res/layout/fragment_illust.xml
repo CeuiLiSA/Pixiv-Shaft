@@ -22,7 +22,7 @@
                 android:id="@+id/refreshLayout"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="#000">
+                android:background="@color/black">
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/recyclerView"
@@ -42,7 +42,7 @@
                 android:elevation="@dimen/six_dp"
                 app:behavior_peekHeight="180dp"
                 app:layout_behavior="@string/bottom_sheet_behavior"
-                app:qmui_backgroundColor="@color/white"
+                app:qmui_backgroundColor="@color/fragment_center"
                 app:qmui_borderWidth="0dp"
                 app:qmui_radiusTopLeft="20dp"
                 app:qmui_radiusTopRight="20dp">
@@ -79,7 +79,7 @@
                         android:ellipsize="end"
                         android:maxLines="2"
                         android:text="@string/string_66"
-                        android:textColor="#121212"
+                        android:textColor="@color/rank_text_color"
                         android:textSize="20sp"
                         android:textStyle="bold">
 
@@ -93,7 +93,7 @@
                         android:layout_marginEnd="@dimen/tweenty_four_dp"
                         android:layout_marginBottom="@dimen/eight_dp"
                         android:orientation="vertical"
-                        app:qmui_backgroundColor="#4749a0"
+                        app:qmui_backgroundColor="?attr/colorPrimaryDark"
                         app:qmui_borderWidth="0dp"
                         app:qmui_radius="20dp">
 
@@ -106,7 +106,7 @@
                             android:layout_marginEnd="@dimen/eight_dp"
                             android:layout_marginBottom="@dimen/twelve_dp"
                             android:scaleType="centerCrop"
-                            app:civ_border_color="#b3b4f4"
+                            app:civ_border_color="?attr/colorPrimary"
                             app:civ_border_width="1dp">
 
                         </de.hdodenhof.circleimageview.CircleImageView>
@@ -119,6 +119,7 @@
                             android:layout_alignTop="@+id/user_head"
                             android:layout_marginTop="@dimen/four_dp"
                             android:layout_toEndOf="@+id/user_head"
+                            android:layout_toStartOf="@+id/follow"
                             android:ellipsize="end"
                             android:maxLines="1"
                             android:text="@string/string_67"
@@ -156,7 +157,7 @@
                             android:paddingBottom="@dimen/four_dp"
                             android:text="@string/string_69"
                             android:textColor="@color/white"
-                            app:qmui_backgroundColor="#686bdd"
+                            app:qmui_backgroundColor="?attr/colorPrimary"
                             app:qmui_borderWidth="0dp"
                             app:qmui_radius="@dimen/six_dp">
 
@@ -168,11 +169,11 @@
 
                 <View
                     android:layout_width="match_parent"
-                    android:layout_height="1dp"
+                    android:layout_height="0.5dp"
                     android:id="@+id/view_divider"
                     android:layout_marginStart="@dimen/tweenty_four_dp"
                     android:layout_marginEnd="@dimen/tweenty_four_dp"
-                    android:background="#f3f4f5">
+                    android:background="@color/settings_divider">
 
                 </View>
 
@@ -188,7 +189,8 @@
 
                         <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
+                            android:layout_height="wrap_content"
+                            android:baselineAligned="false">
 
                             <RelativeLayout
                                 android:layout_width="0dp"
@@ -213,7 +215,7 @@
                                         android:layout_height="45dp"
                                         android:padding="@dimen/twelve_dp"
                                         android:src="@drawable/ic_remove_red_eye_black_24dp"
-                                        app:tint="#666af6">
+                                        app:tint="?attr/colorPrimary">
 
 
                                     </ImageView>
@@ -227,7 +229,7 @@
                                     android:layout_marginTop="@dimen/four_dp"
                                     android:layout_toEndOf="@+id/left_rela"
                                     android:text="@string/string_70"
-                                    android:textColor="#666af6"
+                                    android:textColor="?attr/colorPrimary"
                                     android:textSize="12sp"
                                     android:textStyle="bold">
 
@@ -241,7 +243,7 @@
                                     android:layout_marginStart="@dimen/eight_dp"
                                     android:layout_marginBottom="@dimen/four_dp"
                                     android:layout_toEndOf="@+id/left_rela"
-                                    android:textColor="#666af6"
+                                    android:textColor="?attr/colorPrimary"
                                     android:textSize="14sp"
                                     android:textStyle="bold">
 
@@ -273,7 +275,7 @@
                                         android:layout_height="45dp"
                                         android:padding="@dimen/twelve_dp"
                                         android:src="@drawable/ic_favorite_black_24dp"
-                                        app:tint="#666af6">
+                                        app:tint="?attr/colorPrimary">
 
 
                                     </ImageView>
@@ -287,7 +289,7 @@
                                     android:layout_marginTop="@dimen/four_dp"
                                     android:layout_toEndOf="@+id/right_rela"
                                     android:text="@string/string_71"
-                                    android:textColor="#666af6"
+                                    android:textColor="?attr/colorPrimary"
                                     android:textSize="12sp"
                                     android:textStyle="bold">
 
@@ -301,7 +303,7 @@
                                     android:layout_marginStart="@dimen/eight_dp"
                                     android:layout_marginBottom="@dimen/four_dp"
                                     android:layout_toEndOf="@+id/right_rela"
-                                    android:textColor="#666af6"
+                                    android:textColor="?attr/colorPrimary"
                                     android:textSize="14sp"
                                     android:textStyle="bold">
 
@@ -325,16 +327,16 @@
                             android:id="@+id/description"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:textColorLink="?attr/colorPrimary"
                             android:layout_marginStart="@dimen/tweenty_four_dp"
                             android:layout_marginTop="@dimen/six_dp"
                             android:layout_marginEnd="@dimen/tweenty_four_dp"
                             android:layout_marginBottom="@dimen/four_dp"
+                            android:textIsSelectable="true"
                             android:gravity="start"
                             android:textColor="#9b9bb1"
                             android:textSize="13sp"
-                            android:textStyle="bold">
-
-                        </org.sufficientlysecure.htmltextview.HtmlTextView>
+                            android:textStyle="bold" />
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -421,16 +423,17 @@
             android:id="@+id/bottom_linear"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@color/fragment_center"
             android:layout_alignParentBottom="true"
             android:orientation="vertical">
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
+                android:layout_height="0.5dp"
                 android:layout_marginStart="@dimen/tweenty_four_dp"
                 android:layout_marginEnd="@dimen/tweenty_four_dp"
                 android:layout_marginBottom="@dimen/eight_dp"
-                android:background="#f3f4f5">
+                android:background="@color/settings_divider">
 
             </View>
 
@@ -438,7 +441,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <ImageButton
+                <com.qmuiteam.qmui.alpha.QMUIAlphaImageButton
                     android:id="@+id/comment"
                     android:layout_width="0dp"
                     android:layout_height="45dp"
@@ -448,11 +451,9 @@
                     android:layout_weight="1"
                     android:background="@drawable/button_stroke_new"
                     android:src="@drawable/ic_chat_black_24dp"
-                    android:tint="#666af6">
+                    app:tint="?attr/colorPrimary"/>
 
-                </ImageButton>
-
-                <ImageButton
+                <com.qmuiteam.qmui.alpha.QMUIAlphaImageButton
                     android:id="@+id/related"
                     android:layout_width="0dp"
                     android:layout_height="45dp"
@@ -463,9 +464,7 @@
                     android:background="@drawable/button_stroke_new"
                     android:src="@drawable/ic_equalizer_black_24dp"
                     android:textColor="#9f9fb4"
-                    android:tint="#666af6">
-
-                </ImageButton>
+                    app:tint="?attr/colorPrimary" />
 
                 <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
                     android:id="@+id/download"
@@ -477,12 +476,10 @@
                     android:layout_weight="2"
                     android:text="@string/string_72"
                     android:textColor="@color/white"
-                    app:qmui_backgroundColor="#666af6"
+                    app:qmui_backgroundColor="?attr/colorPrimary"
                     app:qmui_borderColor="#eaebf9"
                     app:qmui_borderWidth="0dp"
-                    app:qmui_radius="@dimen/eight_dp">
-
-                </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton>
+                    app:qmui_radius="@dimen/eight_dp" />
 
             </LinearLayout>
 
@@ -495,7 +492,7 @@
             android:background="@android:color/transparent"
             android:elevation="@dimen/six_dp"
             android:theme="@style/AppTheme.AppBarOverlay"
-            app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
+            app:navigationIcon="@drawable/ic_baseline_arrow_back_ios_24"
             app:popupTheme="@style/AppTheme.PopupOverlay"
             app:title=" "
             app:titleTextColor="@android:color/white">
@@ -505,3 +502,4 @@
     </RelativeLayout>
 
 </layout>
+

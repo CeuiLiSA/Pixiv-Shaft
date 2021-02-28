@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
 
@@ -11,7 +12,7 @@
 
         <TextView
             android:layout_width="wrap_content"
-            android:drawableStart="@drawable/ic_pixivision_color_logo"
+            app:drawableStartCompat="@drawable/ic_pixivision_color_logo"
             android:layout_height="wrap_content" />
     </RelativeLayout>
 </layout>

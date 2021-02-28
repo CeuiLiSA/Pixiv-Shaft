@@ -7,15 +7,28 @@ import android.text.TextUtils;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.base.BaseActivity;
+import ceui.lisa.database.AppDatabase;
+import ceui.lisa.database.UserEntity;
 import ceui.lisa.databinding.ActivityOutWakeBinding;
+import ceui.lisa.feature.HostManager;
+import ceui.lisa.fragments.FragmentLogin;
+import ceui.lisa.http.NullCtrl;
+import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.Callback;
+import ceui.lisa.models.UserModel;
+import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
+
+    public static final String HOST_ME = "pixiv.me";
+    public static boolean isNetWorking = false;
 
     @Override
     protected int initLayout() {
@@ -44,6 +57,10 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
 
                     if (uri.getPath() != null) {
                         if (uri.getPath().contains("artworks")) {
+                            if (isNetWorking) {
+                                return;
+                            }
+                            isNetWorking = true;
                             List<String> pathArray = uri.getPathSegments();
                             String illustID = pathArray.get(pathArray.size() - 1);
                             if (!TextUtils.isEmpty(illustID)) {
@@ -53,6 +70,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                                         finish();
                                     }
                                 });
+                                finish();
                                 return;
                             }
                         }
@@ -64,6 +82,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                                 Intent userIntent = new Intent(mContext, UserActivity.class);
                                 userIntent.putExtra(Params.USER_ID, Integer.valueOf(userID));
                                 startActivity(userIntent);
+                                finish();
                                 return;
                             }
                         }
@@ -72,9 +91,38 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
 
                     //http网页跳转到这里
                     if (scheme.contains("http")) {
+                        try {
+                            String uriString = uri.toString();
+                            if (uriString.contains(HostManager.HOST_OLD)) {
+                                int index = uriString.lastIndexOf("/");
+                                String end = uriString.substring(index + 1);
+                                String idString = end.split("_")[0];
+
+                                Common.showLog("end " + end + " idString " + idString);
+                                PixivOperate.getIllustByID(Shaft.sUserModel, Integer.parseInt(idString), mContext, new Callback<Void>() {
+                                    @Override
+                                    public void doSomething(Void t) {
+                                        finish();
+                                    }
+                                });
+                                return;
+                            } else if (uriString.contains(HOST_ME)) {
+                                Intent i = new Intent(mContext, TemplateActivity.class);
+                                i.putExtra(Params.URL, uriString);
+                                i.putExtra(Params.TITLE, HOST_ME);
+                                i.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
+                                startActivity(i);
+                                finish();
+                                return;
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+
                         String illustID = uri.getQueryParameter("illust_id");
                         if (!TextUtils.isEmpty(illustID)) {
-                            PixivOperate.getIllustByID(Shaft.sUserModel, Integer.valueOf(illustID), mContext, new Callback<Void>() {
+                            PixivOperate.getIllustByID(Shaft.sUserModel, Integer.parseInt(illustID), mContext, new Callback<Void>() {
                                 @Override
                                 public void doSomething(Void t) {
                                     finish();
@@ -94,10 +142,56 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
 
                     }
 
-                    //pixiv内部链接，如 pixiv://illusts/73190863
+                    //pixiv内部链接，如
+                    //pixiv://illusts/73190863
+                    //pixiv://account/login?code=BsQND5vc6uIWKIwLiDsh0S3h1yno6eVHDVMrX3fONgM&via=login
                     if (scheme.contains("pixiv")) {
                         String host = uri.getHost();
+
+
                         if (!TextUtils.isEmpty(host)) {
+
+                            if (host.equals("account")) {
+                                Common.showToast("尝试登陆");
+                                String code = uri.getQueryParameter("code");
+                                Retro.getAccountApi().newLogin(
+                                        FragmentLogin.CLIENT_ID,
+                                        FragmentLogin.CLIENT_SECRET,
+                                        FragmentLogin.AUTH_CODE,
+                                        code,
+                                        HostManager.get().getPkce().getVerify(),
+                                        FragmentLogin.CALL_BACK,
+                                        true
+                                ).subscribeOn(Schedulers.newThread())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new NullCtrl<UserModel>() {
+                                    @Override
+                                    public void success(UserModel userModel) {
+
+                                        Common.showLog(userModel.toString());
+
+                                        userModel.getUser().setIs_login(true);
+                                        Local.saveUser(userModel);
+
+                                        UserEntity userEntity = new UserEntity();
+                                        userEntity.setLoginTime(System.currentTimeMillis());
+                                        userEntity.setUserID(userModel.getUser().getId());
+                                        userEntity.setUserGson(Shaft.sGson.toJson(Local.getUser()));
+
+
+                                        AppDatabase.getAppDatabase(mContext).downloadDao().insertUser(userEntity);
+                                        Common.restart();
+                                    }
+
+                                    @Override
+                                    public void must() {
+                                        super.must();
+                                        mActivity.finish();
+                                    }
+                                });
+                                return;
+                            }
+
                             if (host.contains("users")) {
                                 String path = uri.getPath();
                                 Intent userIntent = new Intent(mContext, UserActivity.class);
@@ -126,7 +220,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
             }
         }
 
-        if (sUserModel != null && sUserModel.getResponse().getUser().isIs_login()) {
+        if (sUserModel != null && sUserModel.getUser().isIs_login()) {
             Intent i = new Intent(mContext, MainActivity.class);
             mActivity.startActivity(i);
             mActivity.finish();

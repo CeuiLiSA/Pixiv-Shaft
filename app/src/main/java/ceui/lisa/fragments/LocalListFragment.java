@@ -17,34 +17,34 @@ public abstract class LocalListFragment<Layout extends ViewDataBinding, Item>
 
     @Override
     public void fresh() {
-        if (mLocalRepo.first() != null && mLocalRepo.first().size() != 0) {
-            List<Item> firstList = mLocalRepo.first();
+        emptyRela.setVisibility(View.INVISIBLE);
+        List<Item> firstList = mLocalRepo.first();
+        if (!Common.isEmpty(firstList)) {
             if (mModel != null) {
-                mModel.load(firstList);
+                mModel.load(firstList, true);
+                allItems = mModel.getContent();
             }
             onFirstLoaded(firstList);
             mRecyclerView.setVisibility(View.VISIBLE);
-            noData.setVisibility(View.INVISIBLE);
+            emptyRela.setVisibility(View.INVISIBLE);
             mAdapter.notifyItemRangeInserted(getStartSize(), firstList.size());
         } else {
             mRecyclerView.setVisibility(View.INVISIBLE);
-            noData.setVisibility(View.VISIBLE);
-            noData.setImageResource(R.mipmap.no_data_line);
+            emptyRela.setVisibility(View.VISIBLE);
         }
         mRefreshLayout.finishRefresh(true);
     }
 
     @Override
     public void loadMore() {
-        if (mLocalRepo.hasNext() &&
-                mLocalRepo.next() != null &&
-                mLocalRepo.next().size() != 0) {
-            List<Item> nextList = mLocalRepo.next();
+        List<Item> nextList = mLocalRepo.next();
+        if (mLocalRepo.hasNext() && !Common.isEmpty(nextList)) {
             if (mModel != null) {
-                mModel.load(nextList);
+                mModel.load(nextList, false);
+                allItems = mModel.getContent();
             }
             onNextLoaded(nextList);
-            mAdapter.notifyItemRangeInserted(getStartSize(), mLocalRepo.next().size());
+            mAdapter.notifyItemRangeInserted(getStartSize(), nextList.size());
         } else {
             if (mLocalRepo.showNoDataHint()) {
                 Common.showToast(getString(R.string.string_224));
@@ -56,5 +56,6 @@ public abstract class LocalListFragment<Layout extends ViewDataBinding, Item>
     @Override
     protected void initData() {
         mLocalRepo = (LocalRepo<List<Item>>) mModel.getBaseRepo();
+        super.initData();
     }
 }

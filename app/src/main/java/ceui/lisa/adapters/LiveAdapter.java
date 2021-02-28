@@ -39,7 +39,7 @@ public class LiveAdapter extends BaseAdapter<Live, RecyItemLiveBinding> {
         params.width = imageSize;
         bindView.baseBind.image.setLayoutParams(params);
         if (!TextUtils.isEmpty(target.getThumbnail_image_url())) {
-            Glide.with(mContext).load(GlideUtil.getArticle(target.getThumbnail_image_url())).into(bindView.baseBind.image);
+            Glide.with(mContext).load(GlideUtil.getUrl(target.getThumbnail_image_url())).into(bindView.baseBind.image);
         }
         bindView.baseBind.image.setOnClickListener(new View.OnClickListener() {
             @Override

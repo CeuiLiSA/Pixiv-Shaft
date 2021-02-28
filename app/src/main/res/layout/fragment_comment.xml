@@ -18,7 +18,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fitsSystemWindows="true"
-            android:background="@color/new_color_primary"
+            android:background="?attr/colorPrimary"
             android:elevation="@dimen/six_dp"
             android:theme="@style/AppTheme.AppBarOverlay"
             app:popupTheme="@style/AppTheme.PopupOverlay"
@@ -66,13 +66,13 @@
                 <com.scwang.smartrefresh.layout.SmartRefreshLayout
                     android:layout_width="match_parent"
                     android:id="@+id/refreshLayout"
-                    android:background="@color/white"
+                    android:background="@color/white_to_deep_dark"
                     android:layout_above="@+id/bottom_rela"
                     android:layout_height="match_parent">
 
                     <androidx.recyclerview.widget.RecyclerView
                         android:layout_width="match_parent"
-                        android:background="@color/white"
+                        android:background="@color/white_to_deep_dark"
                         android:id="@+id/recyclerView"
                         android:layout_height="match_parent">
 
@@ -85,7 +85,7 @@
                     android:layout_width="match_parent"
                     android:id="@+id/bottom_rela"
                     android:layout_alignParentBottom="true"
-                    app:cardBackgroundColor="@color/white"
+                    app:cardBackgroundColor="@color/white_to_1414"
                     app:cardElevation="@dimen/four_dp"
                     app:cardCornerRadius="0dp"
                     android:layout_height="50dp">
@@ -102,8 +102,8 @@
                             android:textColor="@color/rank_text_color"
                             android:layout_marginEnd="@dimen/eight_dp"
                             android:layout_marginStart="@dimen/sixteen_dp"
-                            android:layout_toStartOf="@+id/post"
-                            android:background="@color/white"
+                            android:layout_toStartOf="@+id/show_emoji"
+                            android:background="@color/white_to_1414"
                             android:layout_height="match_parent">
 
 
@@ -118,7 +118,7 @@
                             android:layout_alignParentEnd="true"
                             android:layout_marginEnd="@dimen/sixteen_dp"
                             android:layout_height="30dp"
-                            app:tint="@color/colorPrimary">
+                            app:tint="?attr/colorPrimary">
                         </ImageView>
 
                         <ImageView
@@ -159,15 +159,11 @@
 
                 </ProgressBar>
 
-                <ImageView
+                <include
                     android:layout_width="wrap_content"
-                    android:id="@+id/no_data"
-                    android:visibility="invisible"
-                    android:src="@mipmap/no_data_line"
-                    android:layout_centerInParent="true"
-                    android:scaleType="centerCrop"
                     android:layout_height="wrap_content"
-                    app:tint="@color/colorPrimary" />
+                    android:layout_centerInParent="true"
+                    layout="@layout/empty_layout" />
 
             </com.effective.android.panel.view.content.RelativeContentContainer>
 
@@ -196,3 +192,5 @@
 
     </LinearLayout>
 </layout>
+
+

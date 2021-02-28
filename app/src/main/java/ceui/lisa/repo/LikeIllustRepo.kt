@@ -7,10 +7,10 @@ import ceui.lisa.model.ListIllust
 import io.reactivex.Observable
 
 class LikeIllustRepo(
-        private val userID: Int,
-        private val starType: String,
-        private val tag: String
-): RemoteRepo<ListIllust>() {
+    private val userID: Int,
+    private val starType: String?,
+    var tag: String?
+) : RemoteRepo<ListIllust>() {
 
     override fun initApi(): Observable<ListIllust> {
         return if (TextUtils.isEmpty(tag)) {

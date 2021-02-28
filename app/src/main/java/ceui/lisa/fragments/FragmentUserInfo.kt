@@ -1,8 +1,7 @@
 package ceui.lisa.fragments
 
 import ceui.lisa.R
-import ceui.lisa.base.BaseFragment
-import ceui.lisa.databinding.FragmentAboutUserBinding
+import ceui.lisa.databinding.FragmentUserInfoBinding
 import ceui.lisa.interfaces.Display
 import ceui.lisa.models.UserDetailResponse
 import ceui.lisa.utils.Common
@@ -10,18 +9,17 @@ import ceui.lisa.utils.Params
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter
 import com.scwang.smartrefresh.layout.header.FalsifyHeader
 
-class FragmentUserInfo : BaseFragment<FragmentAboutUserBinding>(), Display<UserDetailResponse> {
+class FragmentUserInfo : BaseFragment<FragmentUserInfoBinding>(), Display<UserDetailResponse> {
 
     override fun initLayout() {
-        mLayoutID = R.layout.fragment_about_user
+        mLayoutID = R.layout.fragment_user_info
     }
 
     public override fun initData() {
         baseBind.toolbar.setNavigationOnClickListener {
             mActivity.finish()
         }
-        val user = mActivity.intent.getSerializableExtra(
-                Params.CONTENT) as UserDetailResponse
+        val user = mActivity.intent.getSerializableExtra(Params.CONTENT) as UserDetailResponse
         invoke(user)
     }
 
@@ -41,6 +39,7 @@ class FragmentUserInfo : BaseFragment<FragmentAboutUserBinding>(), Display<UserD
         baseBind.likeMusic.text = Common.checkEmpty(response.workspace.music)
         baseBind.table.text = Common.checkEmpty(response.workspace.desk)
         baseBind.chair.text = Common.checkEmpty(response.workspace.chair)
+        baseBind.otherText.text = Common.checkEmpty(response.workspace.comment)
     }
 
     override fun initView() {

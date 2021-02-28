@@ -89,14 +89,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/sixteen_dp"
+            android:textColorLink="?attr/colorPrimary"
             android:layout_marginEnd="@dimen/eight_dp"
             android:textColor="#333333"
             android:layout_marginBottom="@dimen/eight_dp"
             android:ellipsize="end"
             android:maxLines="2"
-            android:textSize="15sp">
-
-        </org.sufficientlysecure.htmltextview.HtmlTextView>
+            android:textSize="15sp" />
 
         <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
             android:layout_width="match_parent"
@@ -131,7 +130,7 @@
                 android:text="@string/string_6"
                 android:layout_toStartOf="@+id/download"
                 android:paddingTop="@dimen/six_dp"
-                android:drawableTint="@color/white"
+                app:drawableTint="@color/white"
                 android:gravity="center_vertical"
                 android:paddingStart="@dimen/twelve_dp"
                 app:drawableLeftCompat="@drawable/ic_baseline_star_24"        android:drawablePadding="@dimen/four_dp"
@@ -149,7 +148,7 @@
                 android:layout_alignParentEnd="true"
                 android:layout_marginEnd="@dimen/twelve_dp"
                 android:text="@string/string_5"
-                android:drawableTint="@color/white"
+                app:drawableTint="@color/white"
                 android:gravity="center_vertical"
                 android:drawablePadding="@dimen/four_dp"
                 android:paddingTop="@dimen/six_dp"
@@ -172,3 +171,4 @@
     </LinearLayout>
 
 </layout>
+

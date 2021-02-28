@@ -1,8 +1,9 @@
 package ceui.lisa.model;
 
 import java.util.List;
-import ceui.lisa.models.SpotlightArticlesBean;
+
 import ceui.lisa.interfaces.ListShow;
+import ceui.lisa.models.SpotlightArticlesBean;
 
 public class ListArticle implements ListShow<SpotlightArticlesBean> {
 

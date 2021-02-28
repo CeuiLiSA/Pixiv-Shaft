@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+    </data>
+
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:background="@drawable/primary_gradient_dark_corner"
+        android:layout_height="wrap_content">
+
+
+        <TextView
+            android:id="@+id/tag_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="@dimen/eight_dp"
+            android:layout_marginEnd="24dp"
+            android:layout_marginBottom="@dimen/eight_dp"
+            android:text="插画"
+            android:textColor="@color/white">
+
+        </TextView>
+
+    </FrameLayout>
+
+</layout>

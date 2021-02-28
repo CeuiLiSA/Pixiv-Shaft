@@ -9,7 +9,7 @@
     <ImageView
         android:layout_width="match_parent"
         android:id="@+id/pika_bg"
-        android:src="@mipmap/user_bg_main"
+        android:src="@drawable/user_bg_main"
         android:scaleType="centerCrop"
         android:layout_height="match_parent" />
 
@@ -28,7 +28,7 @@
             android:id="@+id/user_head"
             app:civ_border_width="1dp"
             app:civ_border_color="@color/always_white"
-            android:src="@mipmap/avatar"
+            android:src="@drawable/avatar"
             android:layout_width="64dp"
             android:layout_height="64dp"
             android:contentDescription="@string/nav_header_desc" />

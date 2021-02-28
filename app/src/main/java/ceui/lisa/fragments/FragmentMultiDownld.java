@@ -1,6 +1,7 @@
 package ceui.lisa.fragments;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
@@ -8,11 +9,13 @@ import android.view.View;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.GridLayoutManager;
 
-import java.io.File;
+import com.afollestad.dragselectrecyclerview.DragSelectReceiver;
+import com.afollestad.dragselectrecyclerview.DragSelectTouchListener;
+
 import java.util.List;
-import java.util.UUID;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.VActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.MultiDownldAdapter;
@@ -23,17 +26,16 @@ import ceui.lisa.core.PageData;
 import ceui.lisa.databinding.FragmentMultiDownloadBinding;
 import ceui.lisa.databinding.RecyMultiDownloadBinding;
 import ceui.lisa.download.IllustDownload;
-import ceui.lisa.helper.TextWriter;
+import ceui.lisa.feature.worker.BatchStarTask;
+import ceui.lisa.feature.worker.Worker;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.DensityUtil;
-import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.DownloadItemDecoration;
-import gdut.bsx.share2.FileUtil;
 import gdut.bsx.share2.Share2;
 import gdut.bsx.share2.ShareContentType;
 
@@ -70,20 +72,13 @@ public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownload
                     StringBuilder content = new StringBuilder();
                     for (IllustsBean illustsBean : allItems) {
                         if (illustsBean.isChecked()) {
-                            if (Dev.isDev) {
-                                if (illustsBean.getPage_count() == 1) {
-                                    content.append("https://pixiv.cat/" + illustsBean.getId() +".jpg");
-                                    content.append("\n");
-                                }
+                            if (illustsBean.getPage_count() == 1) {
+                                content.append(illustsBean.getMeta_single_page().getOriginal_image_url());
+                                content.append("\n");
                             } else {
-                                if (illustsBean.getPage_count() == 1) {
-                                    content.append(illustsBean.getMeta_single_page().getOriginal_image_url());
+                                for (int i = 0; i < illustsBean.getPage_count(); i++) {
+                                    content.append(illustsBean.getMeta_pages().get(i).getImage_urls().getOriginal());
                                     content.append("\n");
-                                } else {
-                                    for (int i = 0; i < illustsBean.getPage_count(); i++) {
-                                        content.append(illustsBean.getMeta_pages().get(i).getImage_urls().getMaxImage());
-                                        content.append("\n");
-                                    }
                                 }
                             }
                         }
@@ -92,19 +87,34 @@ public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownload
                     if (TextUtils.isEmpty(result)) {
                         Common.showToast("没有选择任何作品");
                     } else {
-                        TextWriter.writeToTxt(System.currentTimeMillis() + "_download_tasks.txt",
-                                result, new Callback<File>() {
+                        IllustDownload.downloadNovel((BaseActivity<?>) mContext,
+                                System.currentTimeMillis() + "_download_tasks.txt", result,
+                                new Callback<Uri>() {
                                     @Override
-                                    public void doSomething(File t) {
+                                    public void doSomething(Uri t) {
                                         new Share2.Builder(mActivity)
                                                 .setContentType(ShareContentType.FILE)
-                                                .setShareFileUri(FileUtil.getFileUri(mContext, ShareContentType.FILE, t))
+                                                .setShareFileUri(t)
                                                 .setTitle("Share File")
                                                 .build()
                                                 .shareBySystem();
                                     }
                                 });
                     }
+                } else if (item.getItemId() == R.id.action_4) {
+                    for (IllustsBean allItem : allItems) {
+                        BatchStarTask task = new BatchStarTask(allItem.getUser().getName(),
+                                allItem.getId(), 0);
+                        Worker.get().addTask(task);
+                    }
+                    Worker.get().start();
+                } else if (item.getItemId() == R.id.action_5) {
+                    for (IllustsBean allItem : allItems) {
+                        BatchStarTask task = new BatchStarTask(allItem.getUser().getName(),
+                                allItem.getId(), 1);
+                        Worker.get().addTask(task);
+                    }
+                    Worker.get().start();
                 }
                 return false;
             }
@@ -112,9 +122,37 @@ public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownload
         baseBind.startDownload.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                IllustDownload.downloadAllIllust(allItems);
+                IllustDownload.downloadAllIllust(allItems, (BaseActivity<?>) mContext);
             }
         });
+        MyReceiver receiver = new MyReceiver();
+        DragSelectTouchListener listener = DragSelectTouchListener.Companion.create(
+                mContext, receiver, null);
+        baseBind.recyclerView.addOnItemTouchListener(listener);
+        listener.setIsActive(true, 0);
+    }
+
+    private class MyReceiver implements DragSelectReceiver {
+
+        @Override
+        public int getItemCount() {
+            return allItems.size();
+        }
+
+        @Override
+        public boolean isIndexSelectable(int i) {
+            return false;
+        }
+
+        @Override
+        public boolean isSelected(int i) {
+            return false;
+        }
+
+        @Override
+        public void setSelected(int i, boolean b) {
+            Common.showLog("MyReceiver setSelected " + i);
+        }
     }
 
     @Override
@@ -123,13 +161,12 @@ public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownload
         adapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                final String uuid = UUID.randomUUID().toString();
-                final PageData pageData = new PageData(uuid, allItems);
+                final PageData pageData = new PageData(allItems);
                 Container.get().addPageToMap(pageData);
 
                 Intent intent = new Intent(mContext, VActivity.class);
                 intent.putExtra(Params.POSITION, position);
-                intent.putExtra(Params.PAGE_UUID, uuid);
+                intent.putExtra(Params.PAGE_UUID, pageData.getUUID());
                 mContext.startActivity(intent);
             }
         });

@@ -14,7 +14,7 @@
             android:layout_width="match_parent"
             app:title=" "
             android:id="@+id/toolbar"
-            android:background="@color/new_color_primary"
+            android:background="?attr/colorPrimary"
             app:titleTextColor="@android:color/white"
             android:fitsSystemWindows="true"
             app:navigationIcon="@drawable/ic_baseline_arrow_back_ios_24"
@@ -31,6 +31,15 @@
 
             </TextView>
 
+            <ImageButton
+                android:id="@+id/ib_menu"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginEnd="12dp"
+                android:contentDescription="@string/webview_handler_open_in_browser"
+                android:src="@drawable/ic_baseline_launch_24" />
+
         </androidx.appcompat.widget.Toolbar>
 
 
@@ -46,3 +55,4 @@
 
     </RelativeLayout>
 </layout>
+

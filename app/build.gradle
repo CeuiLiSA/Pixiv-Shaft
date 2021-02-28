@@ -4,17 +4,30 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
+apply plugin: 'org.jmailen.kotlinter'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 30
 
     defaultConfig {
         applicationId "ceui.lisa.pixiv"
         minSdkVersion 21
-        targetSdkVersion 28
-        versionCode 120
-        versionName "2.3.0"
+        targetSdkVersion 30
+        versionCode 175
+        versionName "3.0.9"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = [
+                        //必须，告知RxHttp你依赖的okhttp版本，目前已适配 v3.12.0 - v4.9.0版本  (v4.3.0除外)
+                        rxhttp_okhttp : '4.4.0',
+                        //使用asXxx方法时必须，告知RxHttp你依赖的rxjava版本，可传入rxjava2、rxjava3
+                        rxhttp_rxjava : 'rxjava3',
+                        rxhttp_package: 'rxhttp'   //非必须，指定RxHttp类包名
+                ]
+            }
+        }
     }
 
     buildTypes {
@@ -37,48 +50,77 @@ android {
         }
     }
 
-    dataBinding {
-        enabled = true
+    buildFeatures {
+        dataBinding true
     }
-
 
     packagingOptions {
         exclude 'META-INF/MANIFEST.MF'
     }
 
-
-    lintOptions {
-        checkReleaseBuilds false
-        // Or, if you prefer, you can continue to check for errors in release builds,
-        // but continue the build even when errors are found:
-        abortOnError false
-    }
+//    lintOptions {
+//        checkReleaseBuilds false
+//        // Or, if you prefer, you can continue to check for errors in release builds,
+//        // but continue the build even when errors are found:
+//        abortOnError true
+//        disable "ClickableViewAccessibility", "ContentDescription", // 无障碍相关
+//                "IidCompatibilityCheckFailure", // firebase相关
+//                "UnsafeExperimentalUsageError", "UnsafeExperimentalUsageWarning", // firebase内部lint相关
+//                "InsecureBaseConfiguration", // 使用明文流量
+//                "KeyboardInaccessibleWidget" // 键盘导航
+//    }
+//
+//    applicationVariants.all { variant ->
+//        variant.outputs.each { output ->
+//            def lintTask = tasks["lint${variant.name.capitalize()}"]
+//            output.assemble.dependsOn lintTask
+//        }
+//    }
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
     implementation 'androidx.appcompat:appcompat:1.3.0-alpha02'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation 'androidx.core:core-ktx:1.3.2'
+
+    api 'com.squareup.retrofit2:retrofit:2.9.0'
+    api 'com.squareup.retrofit2:converter-gson:2.9.0'
+    api 'com.squareup.retrofit2:adapter-rxjava2:2.9.0'
+
+    api "io.reactivex.rxjava2:rxjava:2.2.20"
+    api 'io.reactivex.rxjava2:rxandroid:2.1.1'
+
+
+    implementation 'com.github.bumptech.glide:glide:4.11.0'
+    kapt 'com.github.bumptech.glide:compiler:4.11.0'
+    implementation ('com.github.bumptech.glide:okhttp3-integration:4.9.0'){
+        exclude group: 'glide-parent'
+    }
+
+    implementation 'com.github.lzyzsd:circleprogress:1.2.1'
+
+
+    api 'com.scwang.smartrefresh:SmartRefreshLayout:1.1.2'
+    api 'com.scwang.smartrefresh:SmartRefreshHeader:1.1.2'
 
     implementation 'com.squareup.okhttp3:logging-interceptor:4.4.0'
     implementation 'com.rengwuxian.materialedittext:library:2.1.4'
     implementation 'jp.wasabeef:glide-transformations:4.1.0'
-    implementation 'jp.co.cyberagent.android:gpuimage:2.0.3'
     implementation 'de.hdodenhof:circleimageview:3.0.1'
     implementation 'com.github.ybq:Android-SpinKit:1.4.0'
-    implementation 'androidx.room:room-runtime:2.2.5'
-    annotationProcessor 'androidx.room:room-compiler:2.2.5'
-    implementation 'com.just.agentweb:agentweb:4.0.3-beta@aar'
+    implementation 'androidx.room:room-runtime:2.2.6'
+    annotationProcessor 'androidx.room:room-compiler:2.2.6'
+    implementation 'com.just.agentweb:agentweb:4.1.4'
     implementation 'com.facebook.rebound:rebound:0.3.8'
-    implementation 'com.liulishuo.okdownload:okdownload:1.0.5'
-    implementation 'com.github.tbruyelle:rxpermissions:0.10.2'
     implementation 'com.github.kingideayou:tagcloudview:1.0.2'
     implementation 'com.github.chrisbanes:PhotoView:2.3.0'
     implementation 'org.sufficientlysecure:html-textview:3.9'
     implementation 'com.wdullaer:materialdatetimepicker:3.5.0'
-    implementation 'com.nononsenseapps:filepicker:4.1.0'
     implementation 'com.qmuiteam:qmui:2.0.0-alpha10'
     implementation 'com.mxn.soul:flowingdrawer-core:2.1.0'
     implementation 'com.ToxicBakery.viewpager.transforms:view-pager-transforms:2.0.24'
@@ -86,15 +128,16 @@ dependencies {
     implementation 'android.arch.persistence.room:runtime:1.1.1'
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
     kapt 'android.arch.persistence.room:compiler:1.1.1'
-    implementation 'jp.wasabeef:recyclerview-animators:3.0.0'
+    implementation 'jp.wasabeef:recyclerview-animators:4.0.1'
     implementation 'gdut.bsx:share2:0.9.3'
-    implementation 'nl.joery.animatedbottombar:library:1.0.8'
     implementation "com.github.skydoves:transformationlayout:1.0.4"
     implementation 'com.blankj:utilcodex:1.29.0'
-    implementation group: 'net.lingala.zip4j', name: 'zip4j', version: '2.2.8'
     implementation 'com.safframework.log:saf-logginginterceptor:1.4.6'
-    implementation 'com.google.firebase:firebase-analytics:17.5.0'
-    implementation 'com.google.firebase:firebase-crashlytics:17.2.1'
+    implementation 'com.google.firebase:firebase-analytics:18.0.0'
+    implementation 'com.google.firebase:firebase-crashlytics:17.3.0'
+
+    implementation 'com.afollestad:drag-select-recyclerview:2.4.0'
+
 
     implementation 'com.jaredrummler:colorpicker:1.1.0'
 
@@ -103,16 +146,38 @@ dependencies {
     implementation 'com.makeramen:roundedimageview:2.3.0'
 
 
-    implementation project(path: ':models')
-    implementation project(path: ':base')
+    implementation 'com.ljx.rxhttp:rxhttp:2.5.3'
+    kapt 'com.ljx.rxhttp:rxhttp-compiler:2.5.3'
 
+    implementation 'io.reactivex.rxjava3:rxjava:3.0.6'
+    implementation 'io.reactivex.rxjava3:rxandroid:3.0.0'
+    implementation 'com.ljx.rxlife3:rxlife-rxjava:3.0.0'
+
+    implementation 'xyz.zpayh:hdimageview:3.0.1'
+
+    implementation project(path: ':models')
+    implementation project(path: ':progress')
+    implementation 'com.waynejo:androidndkgif:0.3.3'
+    implementation 'com.tencent:mmkv-static:1.2.6'
+    implementation 'com.github.tbruyelle:rxpermissions:0.12'
+
+    implementation 'androidx.webkit:webkit:1.2.0'
+
+    implementation 'com.hjq:toast:8.8'
 
     testImplementation 'junit:junit:4.13'
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 
+    implementation "androidx.documentfile:documentfile:1.0.1"
+
+
+
     configurations {
         all*.exclude group: 'com.android.support', module: 'support-v13'
     }
 }
+
+preBuild.dependsOn(lintKotlin)
+//lintKotlin.dependsOn(formatKotlin)

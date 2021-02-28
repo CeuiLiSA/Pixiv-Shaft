@@ -2,16 +2,16 @@ package ceui.lisa.repo
 
 import ceui.lisa.core.RemoteRepo
 import ceui.lisa.http.Retro
-import ceui.lisa.model.NovelSeries
+import ceui.lisa.model.ListNovelSeries
 import io.reactivex.Observable
 
-class NovelSeriesRepo constructor(private val seriesID: Int) : RemoteRepo<NovelSeries>() {
+class NovelSeriesRepo(private val userID: Int) : RemoteRepo<ListNovelSeries>() {
 
-    override fun initApi(): Observable<NovelSeries> {
-        return Retro.getAppApi().getNovelSeries(token(), seriesID)
+    override fun initApi(): Observable<ListNovelSeries> {
+        return Retro.getAppApi().getUserNovelSeries(token(), userID)
     }
 
-    override fun initNextApi(): Observable<NovelSeries> {
-        return Retro.getAppApi().getNextSeriesNovel(token(), nextUrl)
+    override fun initNextApi(): Observable<ListNovelSeries>? {
+        return Retro.getAppApi().getNextUserNovelSeries(token(), nextUrl)
     }
 }

@@ -5,20 +5,27 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.view.MenuItem;
 
+import androidx.appcompat.widget.Toolbar;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapter;
+import ceui.lisa.adapters.IAdapterWithStar;
 import ceui.lisa.core.RemoteRepo;
+import ceui.lisa.database.AppDatabase;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
+import ceui.lisa.feature.FeatureEntity;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.notification.BaseReceiver;
 import ceui.lisa.notification.FilterReceiver;
 import ceui.lisa.repo.LikeIllustRepo;
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 
 /**
@@ -27,8 +34,6 @@ import ceui.lisa.utils.Params;
 public class FragmentLikeIllust extends NetListFragment<FragmentBaseListBinding,
         ListIllust, IllustsBean> {
 
-    public static final String TYPE_PUBLUC = "public";
-    public static final String TYPE_PRIVATE = "private";
     private int userID;
     private String starType, tag = "";
     private boolean showToolbar = false;
@@ -50,6 +55,31 @@ public class FragmentLikeIllust extends NetListFragment<FragmentBaseListBinding,
     }
 
     @Override
+    public void initView() {
+        super.initView();
+        baseBind.toolbar.inflateMenu(R.menu.local_save);
+        baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                if (item.getItemId() == R.id.action_bookmark) {
+                    FeatureEntity entity = new FeatureEntity();
+                    entity.setUuid(userID + "插画/漫画收藏");
+                    entity.setShowToolbar(showToolbar);
+                    entity.setDataType("插画/漫画收藏");
+                    entity.setIllustJson(Common.cutToJson(allItems));
+                    entity.setUserID(userID);
+                    entity.setStarType(starType);
+                    entity.setDateTime(System.currentTimeMillis());
+                    AppDatabase.getAppDatabase(mContext).downloadDao().insertFeature(entity);
+                    Common.showToast("已收藏到精华");
+                    return true;
+                }
+                return false;
+            }
+        });
+    }
+
+    @Override
     public void initBundle(Bundle bundle) {
         userID = bundle.getInt(Params.USER_ID);
         starType = bundle.getString(Params.STAR_TYPE);
@@ -63,7 +93,8 @@ public class FragmentLikeIllust extends NetListFragment<FragmentBaseListBinding,
 
     @Override
     public BaseAdapter<IllustsBean, RecyIllustStaggerBinding> adapter() {
-        return new IAdapter(allItems, mContext);
+        boolean isOwnPage = Shaft.sUserModel.getUser().getUserId() == userID;
+        return new IAdapterWithStar(allItems, mContext).setHideStarIcon(isOwnPage);
     }
 
     @Override
@@ -78,6 +109,7 @@ public class FragmentLikeIllust extends NetListFragment<FragmentBaseListBinding,
                     String type = bundle.getString(Params.STAR_TYPE);
                     if (starType.equals(type)) {
                         tag = bundle.getString(Params.CONTENT);
+                        ((LikeIllustRepo) mRemoteRepo).setTag(tag);
                         baseBind.refreshLayout.autoRefresh();
                     }
                 }

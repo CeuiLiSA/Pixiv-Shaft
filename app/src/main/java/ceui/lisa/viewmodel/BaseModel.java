@@ -16,19 +16,31 @@ import ceui.lisa.utils.Common;
 
 public class BaseModel<T> extends ViewModel{
 
-    private List<T> content = new ArrayList<>();
+    private List<T> content = null;
     private boolean isLoaded = false;
     private BaseRepo mBaseRepo;
 
+    public BaseModel() {
+        Common.showLog("trace 构造 000");
+    }
+
     public List<T> getContent() {
+        if (content == null) {
+            content = new ArrayList<>();
+        }
         return content;
     }
 
-    public void load(List<T> list) {
-        if (!Common.isEmpty(list)) {
-            content.addAll(list);
+    public void load(List<T> list, boolean isFresh) {
+        if (isFresh) {
+            content.clear();
         }
+        content.addAll(list);
         isLoaded = true;
+    }
+
+    public void load(List<T> list, int index) {
+        content.addAll(index, list);
     }
 
     public boolean isLoaded() {

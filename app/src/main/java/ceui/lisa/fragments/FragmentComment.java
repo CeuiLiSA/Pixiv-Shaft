@@ -25,8 +25,10 @@ import ceui.lisa.adapters.EmojiAdapter;
 import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.databinding.FragmentCommentBinding;
 import ceui.lisa.databinding.RecyCommentListBinding;
+import ceui.lisa.helper.BackHandlerHelper;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
+import ceui.lisa.interfaces.FragmentBackHandler;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.EmojiItem;
 import ceui.lisa.model.ListComment;
@@ -44,7 +46,7 @@ import io.reactivex.schedulers.Schedulers;
 import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class FragmentComment extends NetListFragment<FragmentCommentBinding,
-        ListComment, CommentsBean> {
+        ListComment, CommentsBean> implements FragmentBackHandler {
 
     private String[] OPTIONS;
     private int illustID;
@@ -208,7 +210,7 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
                 getString(R.string.string_174)
         };
         baseBind.post.setOnClickListener(v -> {
-            if (!sUserModel.getResponse().getUser().isIs_mail_authorized()) {
+            if (!sUserModel.getUser().isIs_mail_authorized()) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
                 builder.setMessage(R.string.string_158);
                 builder.setPositiveButton(R.string.string_159, (dialog, which) -> {
@@ -221,19 +223,15 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
                 alertDialog.show();
                 alertDialog
                         .getButton(AlertDialog.BUTTON_POSITIVE)
-                        .setTextColor(
-                                getResources().getColor(R.color.colorPrimary)
-                        );
+                        .setTextColor(R.attr.colorPrimary);
                 alertDialog
                         .getButton(AlertDialog.BUTTON_NEGATIVE)
-                        .setTextColor(
-                                getResources().getColor(R.color.colorPrimary)
-                        );
+                        .setTextColor(R.attr.colorPrimary);
                 return;
             }
 
             if (baseBind.inputBox.getText().toString().length() == 0) {
-                Common.showToast(getString(R.string.string_161), baseBind.inputBox, 3);
+                Common.showToast(getString(R.string.string_161), 3);
                 return;
             }
 
@@ -251,7 +249,7 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
                 public void success(CommentHolder commentHolder) {
                     if (allItems.size() == 0) {
                         mRecyclerView.setVisibility(View.VISIBLE);
-                        noData.setVisibility(View.INVISIBLE);
+                        emptyRela.setVisibility(View.INVISIBLE);
                     }
 
                     if (Emoji.hasEmoji(commentHolder.getComment().getComment())) {
@@ -271,13 +269,13 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
                 }
             };
             if (parentCommentID != 0) {
-                Retro.getAppApi().postComment(sUserModel.getResponse().getAccess_token(), illustID,
+                Retro.getAppApi().postComment(sUserModel.getAccess_token(), illustID,
                         baseBind.inputBox.getText().toString(), parentCommentID)
                         .subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(nullCtrl);
             } else {
-                Retro.getAppApi().postComment(sUserModel.getResponse().getAccess_token(), illustID,
+                Retro.getAppApi().postComment(sUserModel.getAccess_token(), illustID,
                         baseBind.inputBox.getText().toString())
                         .subscribeOn(Schedulers.newThread())
                         .observeOn(AndroidSchedulers.mainThread())
@@ -310,7 +308,7 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
                     String left = show.substring(0, selection);
                     String right = show.substring(selection);
 
-                    baseBind.inputBox.setText(left + name + right);
+                    baseBind.inputBox.setText(String.format("%s%s%s", left, name, right));
                     baseBind.inputBox.setSelection(selection + name.length());
                 } else {
                     String result = show + name;
@@ -331,5 +329,11 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
                 }
             }
         });
+    }
+
+    @Override
+    public boolean onBackPressed() {
+        boolean childResult = BackHandlerHelper.handleBackPress(this);
+        return childResult || mHelper.hookSystemBackByPanelSwitcher();
     }
 }

@@ -25,8 +25,6 @@ public class UniformScaleTransformation extends ImageViewTarget<Bitmap> {
     @Override
     public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
         super.onResourceReady(resource, transition);
-
-
         if (changeSize) {
             //获取原图的宽高
             int width = resource.getWidth();

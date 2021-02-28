@@ -19,7 +19,7 @@ class FragmentLive : NetListFragment<FragmentBaseListBinding, ListLive, Live>() 
     override fun repository(): RemoteRepo<ListLive> {
         return object : RemoteRepo<ListLive>() {
             override fun initApi(): Observable<ListLive> {
-                return Retro.getAppApi().getLiveList(sUserModel.response.access_token, "popular")
+                return Retro.getAppApi().getLiveList(sUserModel.access_token, "popular")
             }
 
             override fun initNextApi(): Observable<ListLive>? {

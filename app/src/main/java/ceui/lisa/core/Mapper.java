@@ -3,7 +3,7 @@ package ceui.lisa.core;
 import java.util.ArrayList;
 import java.util.List;
 
-import ceui.lisa.helper.TagFilter;
+import ceui.lisa.helper.IllustFilter;
 import ceui.lisa.interfaces.ListShow;
 import ceui.lisa.models.IllustsBean;
 import io.reactivex.functions.Function;
@@ -14,14 +14,14 @@ import io.reactivex.functions.Function;
  */
 public class Mapper<T extends ListShow<?>> implements Function<T, T> {
 
-    private List<IllustsBean> dash = new ArrayList<>();
-
     @Override
     public T apply(T t) {
+        List<IllustsBean> dash = new ArrayList<>();
         for (Object o : t.getList()) {
             if (o instanceof IllustsBean) {
-                boolean isBanned = TagFilter.judge(((IllustsBean) o));
-                if (isBanned) {
+                boolean isTagBanned = IllustFilter.judgeTag((IllustsBean) o);
+                boolean isIdBanned = IllustFilter.judgeID((IllustsBean) o);
+                if (isTagBanned || isIdBanned) {
                     dash.add((IllustsBean) o);
                 }
             }
@@ -31,9 +31,5 @@ public class Mapper<T extends ListShow<?>> implements Function<T, T> {
             t.getList().removeAll(dash);
         }
         return t;
-    }
-
-    public List<IllustsBean> getDash() {
-        return dash;
     }
 }

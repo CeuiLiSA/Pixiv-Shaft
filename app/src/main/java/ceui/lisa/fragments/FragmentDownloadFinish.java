@@ -20,6 +20,7 @@ import ceui.lisa.core.LocalRepo;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.databinding.FragmentBaseListBinding;
+import ceui.lisa.databinding.RecyDownloadedBinding;
 import ceui.lisa.databinding.RecyViewHistoryBinding;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.interfaces.OnItemClickListener;
@@ -36,7 +37,7 @@ public class FragmentDownloadFinish extends LocalListFragment<FragmentBaseListBi
     private DownloadReceiver<?> mReceiver;
 
     @Override
-    public BaseAdapter<DownloadEntity, RecyViewHistoryBinding> adapter() {
+    public BaseAdapter<DownloadEntity, RecyDownloadedBinding> adapter() {
         return new DownloadedAdapter(allItems, mContext).setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
@@ -79,6 +80,8 @@ public class FragmentDownloadFinish extends LocalListFragment<FragmentBaseListBi
 
     @Override
     public void onFirstLoaded(List<DownloadEntity> illustHistoryEntities) {
+        all.clear();
+        filePaths.clear();
         for (int i = 0; i < illustHistoryEntities.size(); i++) {
             IllustsBean illustsBean = Shaft.sGson.fromJson(
                     illustHistoryEntities.get(i).getIllustGson(), IllustsBean.class);
@@ -109,7 +112,7 @@ public class FragmentDownloadFinish extends LocalListFragment<FragmentBaseListBi
         IntentFilter intentFilter = new IntentFilter();
         mReceiver = new DownloadReceiver<>((Callback<DownloadEntity>) entity -> {
             mRecyclerView.setVisibility(View.VISIBLE);
-            noData.setVisibility(View.INVISIBLE);
+            emptyRela.setVisibility(View.INVISIBLE);
             allItems.add(0, entity);
             all.add(Shaft.sGson.fromJson(entity.getIllustGson(), IllustsBean.class));
             filePaths.add(0, entity.getFilePath());
@@ -127,5 +130,10 @@ public class FragmentDownloadFinish extends LocalListFragment<FragmentBaseListBi
         if (mReceiver != null) {
             LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mReceiver);
         }
+    }
+
+    @Override
+    public boolean isLazy() {
+        return false;
     }
 }

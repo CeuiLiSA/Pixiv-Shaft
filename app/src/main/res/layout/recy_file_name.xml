@@ -31,7 +31,7 @@
                 android:layout_width="wrap_content"
                 android:text="@string/string_116"
                 android:textSize="15sp"
-                android:buttonTint="#666af6"
+                android:buttonTint="?attr/colorPrimary"
                 android:layout_toEndOf="@+id/change_position"
                 android:id="@+id/title"
                 android:layout_marginStart="@dimen/four_dp"

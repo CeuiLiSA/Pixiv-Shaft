@@ -18,11 +18,11 @@ import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.blankj.utilcode.util.BarUtils;
 import com.mxn.soul.flowingdrawer_core.ElasticDrawer;
 
 import ceui.lisa.R;
-import ceui.lisa.base.BaseActivity;
-import ceui.lisa.base.BaseFragment;
+import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.databinding.FragmentNewSearchBinding;
 import ceui.lisa.fragments.FragmentFilter;
 import ceui.lisa.fragments.FragmentSearchIllust;
@@ -33,7 +33,7 @@ import ceui.lisa.viewmodel.SearchModel;
 
 public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 
-    private BaseFragment<?>[] allPages = new BaseFragment[]{null, null, null};
+    private final BaseFragment<?>[] allPages = new BaseFragment[]{null, null, null};
     private String keyWord = "";
     private SearchModel searchModel;
     private int index = 0;
@@ -59,7 +59,6 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 
     @Override
     protected void initView() {
-        getWindow().setStatusBarColor(getResources().getColor(R.color.new_color_primary));
         final String[] TITLES = new String[]{
                 getString(R.string.string_136),
                 getString(R.string.string_137),
@@ -73,9 +72,9 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                 if (allPages[position] == null) {
                     if (position == 0) {
                         allPages[position] = FragmentSearchIllust.newInstance(false);
-                    } else if(position == 1)  {
+                    } else if (position == 1) {
                         allPages[position] = FragmentSearchIllust.newInstance(true);
-                    } else  {
+                    } else {
                         allPages[position] = FragmentSearchNovel.newInstance();
                     }
                 }
@@ -158,11 +157,11 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
         if (!fragmentFilter.isAdded()) {
             fragmentManager.beginTransaction()
                     .add(R.id.id_container_menu, fragmentFilter)
-                    .commit();
+                    .commitNowAllowingStateLoss();
         } else {
             fragmentManager.beginTransaction()
                     .show(fragmentFilter)
-                    .commit();
+                    .commitNowAllowingStateLoss();
         }
     }
 }

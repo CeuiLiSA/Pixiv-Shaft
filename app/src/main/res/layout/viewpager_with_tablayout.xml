@@ -6,59 +6,62 @@
 
     </data>
 
-        <androidx.coordinatorlayout.widget.CoordinatorLayout
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.google.android.material.appbar.AppBarLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content"
+            android:id="@+id/app_bar"
+            android:background="?attr/colorPrimary">
 
-            <com.google.android.material.appbar.AppBarLayout
+
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
                 android:layout_width="match_parent"
+                android:theme="@style/AppTheme.AppBarOverlay"
+                app:popupTheme="@style/AppTheme.PopupOverlay"
                 android:layout_height="wrap_content"
-                android:background="@color/new_color_primary">
+                android:elevation="@dimen/six_dp"
+                android:fitsSystemWindows="true"
+                app:layout_scrollFlags="scroll|enterAlways"
+                app:navigationIcon="@drawable/ic_baseline_arrow_back_ios_24"
+                app:title=" "
+                app:titleTextColor="@android:color/white">
 
-
-                <androidx.appcompat.widget.Toolbar
-                    android:id="@+id/toolbar"
-                    android:layout_width="match_parent"
+                <TextView
+                    android:id="@+id/toolbar_title"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:fitsSystemWindows="true"
-                    android:elevation="@dimen/six_dp"
-                    app:layout_scrollFlags="scroll|enterAlways"
-                    app:navigationIcon="@drawable/ic_baseline_arrow_back_ios_24"
-                    app:title=" "
-                    app:titleTextColor="@android:color/white" >
+                    android:layout_gravity="center"
+                    android:textColor="@color/white"
+                    android:textSize="18sp">
 
+                </TextView>
+            </androidx.appcompat.widget.Toolbar>
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:id="@+id/toolbar_title"
-                        android:textColor="@color/white"
-                        android:textSize="18sp">
-
-                    </TextView>
-                </androidx.appcompat.widget.Toolbar>
-
-                <com.google.android.material.tabs.TabLayout
-                    android:layout_width="match_parent"
-                    android:id="@+id/tab_layout"
-                    app:tabMode="fixed"
-                    android:background="@color/new_color_primary"
-                    app:tabTextColor="@color/light_new_primary_color"
-                    app:tabIndicatorFullWidth="false"
-                    app:tabIndicatorColor="@android:color/white"
-                    app:tabSelectedTextColor="@android:color/white"
-                    android:layout_height="35dp">
-
-                </com.google.android.material.tabs.TabLayout>
-
-            </com.google.android.material.appbar.AppBarLayout>
-
-            <androidx.viewpager.widget.ViewPager
-                android:id="@+id/view_pager"
+            <com.google.android.material.tabs.TabLayout
+                android:id="@+id/tab_layout"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+                android:layout_height="35dp"
+                android:background="?attr/colorPrimary"
+                app:tabIndicatorColor="@android:color/white"
+                app:tabIndicatorFullWidth="false"
+                app:tabMode="fixed"
+                app:tabSelectedTextColor="@android:color/white"
+                app:tabTextColor="@color/light_new_primary_color">
 
-        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+            </com.google.android.material.tabs.TabLayout>
+
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <androidx.viewpager.widget.ViewPager
+            android:id="@+id/view_pager"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>
+

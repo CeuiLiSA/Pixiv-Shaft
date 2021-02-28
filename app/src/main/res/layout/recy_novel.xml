@@ -42,7 +42,7 @@
 
                 <ImageView
                     android:layout_width="2dp"
-                    android:background="@color/new_color_primary"
+                    android:background="?attr/colorPrimary"
                     android:layout_alignTop="@+id/title"
                     android:layout_alignBottom="@+id/title"
                     android:layout_height="wrap_content">
@@ -72,7 +72,7 @@
                 android:layout_below="@+id/top_rela"
                 android:layout_marginEnd="@dimen/eight_dp"
                 android:maxLines="2"
-                android:textColor="@color/new_color_primary"
+                android:textColor="?attr/colorPrimary"
                 android:layout_toStartOf="@+id/cover"
                 android:textSize="13sp"
                 android:layout_marginStart="@dimen/eight_dp"
@@ -134,7 +134,7 @@
             <Button
                 style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="wrap_content"
-                android:textColor="@color/new_color_primary"
+                android:textColor="?attr/colorPrimary"
                 android:layout_height="wrap_content"
                 android:id="@+id/like"
                 android:layout_marginEnd="@dimen/four_dp"
@@ -151,3 +151,4 @@
 
     </androidx.cardview.widget.CardView>
 </layout>
+

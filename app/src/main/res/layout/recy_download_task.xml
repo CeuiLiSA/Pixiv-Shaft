@@ -10,16 +10,24 @@
         android:layout_width="match_parent"
         app:cardCornerRadius="@dimen/four_dp"
         app:cardElevation="@dimen/four_dp"
-        android:layout_height="wrap_content">
+        android:layout_height="115dp">
 
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
+            <ImageView
+                android:id="@+id/illust_image"
+                android:layout_width="140dp"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop" />
+
             <TextView
                 android:layout_width="wrap_content"
                 android:id="@+id/task_name"
-                android:layout_margin="@dimen/sixteen_dp"
+                android:layout_toEndOf="@+id/illust_image"
+                android:layout_marginTop="@dimen/six_dp"
+                android:layout_marginStart="@dimen/six_dp"
                 android:textColor="@color/dark_text"
                 android:layout_height="wrap_content" />
 
@@ -28,20 +36,22 @@
                 android:id="@+id/progress"
                 style="@style/Widget.AppCompat.ProgressBar.Horizontal"
                 android:layout_width="match_parent"
+                android:layout_toEndOf="@+id/illust_image"
+                android:progressTint="?attr/colorPrimary"
+                android:layout_alignParentBottom="true"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/task_name"
-                android:layout_marginStart="@dimen/sixteen_dp"
-                android:progress="0"
-                android:layout_marginEnd="@dimen/sixteen_dp" />
+                android:layout_marginStart="@dimen/six_dp"
+                android:progress="60"
+                android:layout_marginEnd="@dimen/six_dp" />
 
             <TextView
                 android:layout_width="wrap_content"
-                android:layout_marginStart="@dimen/sixteen_dp"
-                android:layout_marginTop="@dimen/eight_dp"
-                android:layout_marginBottom="@dimen/sixteen_dp"
+                android:layout_marginStart="@dimen/six_dp"
+                android:layout_toEndOf="@+id/illust_image"
                 android:textSize="12sp"
+                android:textColor="@color/dark_text"
                 android:text="@string/string_115"
-                android:layout_below="@+id/progress"
+                android:layout_above="@+id/progress"
                 android:id="@+id/current_size"
                 android:layout_height="wrap_content" />
 
@@ -49,13 +59,12 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_marginStart="@dimen/sixteen_dp"
-                android:layout_marginTop="@dimen/eight_dp"
-                android:layout_marginBottom="@dimen/sixteen_dp"
                 android:textSize="12sp"
+                android:textColor="@color/dark_text"
                 android:layout_alignParentEnd="true"
                 android:layout_marginEnd="@dimen/sixteen_dp"
                 android:id="@+id/state"
-                android:layout_below="@+id/progress"
+                android:layout_above="@+id/progress"
                 android:layout_height="wrap_content" />
 
         </RelativeLayout>
@@ -63,3 +72,4 @@
 
     </androidx.cardview.widget.CardView>
 </layout>
+

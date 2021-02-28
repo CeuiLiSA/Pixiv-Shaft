@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="@color/white">
+    android:layout_height="wrap_content">
 
 
     <ImageView
@@ -11,24 +10,6 @@
         android:transitionName="big_image"
         android:layout_height="240dp"
         android:scaleType="centerCrop" />
-
-
-    <ImageView
-        android:layout_width="40dp"
-        android:id="@+id/play_gif"
-        android:visibility="invisible"
-        android:layout_centerInParent="true"
-        android:src="@drawable/ic_play_gif"
-        android:layout_height="40dp" />
-
-
-    <ProgressBar
-        android:id="@+id/gif_progress"
-        android:visibility="invisible"
-        style="@android:style/Widget.DeviceDefault.Light.ProgressBar.Horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true" />
 
 
 </RelativeLayout>

@@ -15,14 +15,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/app_bar"
-            android:background="@color/new_color_primary">
+            android:background="?attr/colorPrimary">
 
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 app:layout_scrollFlags="scroll|enterAlways"
                 android:layout_height="wrap_content"
-                android:background="@color/new_color_primary"
+                app:contentInsetStartWithNavigation="0dp"
+                android:background="?attr/colorPrimary"
                 android:elevation="0dp"
                 android:fitsSystemWindows="true"
                 android:theme="@style/AppTheme.AppBarOverlay"
@@ -46,7 +47,8 @@
                     android:paddingEnd="@dimen/sixteen_dp"
                     android:paddingTop="@dimen/eight_dp"
                     android:paddingBottom="@dimen/eight_dp"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:inputType="text">
 
 
                 </EditText>
@@ -78,7 +80,7 @@
             android:clipToPadding="false"
             app:edPosition="2"
             app:edMenuSize="280dp"
-            app:edMenuBackground="@color/white">
+            app:edMenuBackground="@color/fragment_center">
 
             <androidx.viewpager.widget.ViewPager
                 android:layout_width="match_parent"
@@ -106,3 +108,4 @@
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>
+

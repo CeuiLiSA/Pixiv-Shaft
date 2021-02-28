@@ -21,6 +21,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
+import androidx.documentfile.provider.DocumentFile;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -34,20 +35,21 @@ import com.zhy.view.flowlayout.TagAdapter;
 import com.zhy.view.flowlayout.TagFlowLayout;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.SearchActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UserActivity;
 import ceui.lisa.adapters.IllustAdapter;
-import ceui.lisa.base.SwipeFragment;
 import ceui.lisa.databinding.FragmentIllustBinding;
 import ceui.lisa.dialogs.MuteDialog;
-import ceui.lisa.download.GifCreate;
+import ceui.lisa.download.FileCreator;
 import ceui.lisa.download.IllustDownload;
+import ceui.lisa.file.SAFile;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.notification.BaseReceiver;
-import ceui.lisa.notification.StarReceiver;
+import ceui.lisa.notification.CallBackReceiver;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Dev;
@@ -55,6 +57,8 @@ import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.ShareIllust;
+
+import static ceui.lisa.utils.ShareIllust.URL_Head;
 
 
 public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
@@ -72,9 +76,6 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
     @Override
     public void initBundle(Bundle bundle) {
         illust = (IllustsBean) bundle.getSerializable(Params.CONTENT);
-        if (Dev.isDev) {
-            Common.showLog(Shaft.sGson.toJson(illust));
-        }
     }
 
     @Override
@@ -84,19 +85,25 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
 
     @Override
     protected void initView() {
+        if (illust.getId() == 0 || !illust.isVisible()) {
+            Common.showToast(R.string.string_206);
+            finish();
+            return;
+        }
+
         if (illust.getSeries() != null && !TextUtils.isEmpty(illust.getSeries().getTitle())) {
             ClickableSpan clickableSpan = new ClickableSpan() {
                 @Override
                 public void onClick(View widget) {
                     Intent intent = new Intent(mContext, TemplateActivity.class);
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "漫画系列");
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "漫画系列详情");
                     intent.putExtra(Params.ID, illust.getSeries().getId());
                     startActivity(intent);
                 }
 
                 @Override
                 public void updateDrawState(TextPaint ds) {
-                    ds.setColor(getResources().getColor(R.color.new_color_primary));
+                    ds.setColor(Common.resolveThemeAttribute(mContext, R.attr.colorPrimary));
                 }
             };
             SpannableString spannableString;
@@ -110,6 +117,13 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
         } else {
             baseBind.title.setText(illust.getTitle());
         }
+        baseBind.title.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Common.copy(mContext, illust.getTitle());
+                return true;
+            }
+        });
         baseBind.toolbar.inflateMenu(R.menu.share);
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
         baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
@@ -126,6 +140,14 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 } else if (menuItem.getItemId() == R.id.action_dislike) {
                     MuteDialog muteDialog = MuteDialog.newInstance(illust);
                     muteDialog.show(getChildFragmentManager(), "MuteDialog");
+                } else if (menuItem.getItemId() == R.id.action_copy_link) {
+                    String url = URL_Head + illust.getId();
+                    Common.copy(mContext, url);
+                } else if (menuItem.getItemId() == R.id.action_show_original) {
+                    baseBind.recyclerView.setAdapter(new IllustAdapter(mContext, illust,
+                            recyHeight, true));
+                } else if (menuItem.getItemId() == R.id.action_mute_illust) {
+                    PixivOperate.muteIllust(illust);
                 }
                 return false;
             }
@@ -143,19 +165,21 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 } else {
                     baseBind.postLike.setImageResource(R.drawable.ic_favorite_red_24dp);
                 }
-                PixivOperate.postLike(illust, FragmentLikeIllust.TYPE_PUBLUC);
+                if (Shaft.sSettings.isPrivateStar()) {
+                    PixivOperate.postLike(illust, Params.TYPE_PRIVATE);
+                } else {
+                    PixivOperate.postLike(illust, Params.TYPE_PUBLUC);
+                }
             }
         });
         baseBind.postLike.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                if (!illust.isIs_bookmarked()) {
-                    Intent intent = new Intent(mContext, TemplateActivity.class);
-                    intent.putExtra(Params.ILLUST_ID, illust.getId());
-                    intent.putExtra(Params.LAST_CLASS, getClass().getSimpleName());
-                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏");
-                    startActivity(intent);
-                }
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(Params.ILLUST_ID, illust.getId());
+                intent.putExtra(Params.LAST_CLASS, getClass().getSimpleName());
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏");
+                startActivity(intent);
                 return true;
             }
         });
@@ -182,9 +206,9 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 return true;
             }
         });
-        baseBind.illustSize.setText(getString(R.string.string_193) + illust.getWidth() + "px * " + illust.getHeight() + "px");
-        baseBind.illustId.setText(getString(R.string.string_194) + illust.getId());
-        baseBind.userId.setText(getString(R.string.string_195) + illust.getUser().getId());
+        baseBind.illustSize.setText(getString(R.string.string_193, illust.getWidth(), illust.getHeight()));
+        baseBind.illustId.setText(getString(R.string.string_194, illust.getId()));
+        baseBind.userId.setText(getString(R.string.string_195, illust.getUser().getId()));
 
         final BottomSheetBehavior<?> sheetBehavior = BottomSheetBehavior.from(baseBind.coreLinear);
 
@@ -196,11 +220,12 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                         baseBind.secondLinear.getHeight();
                 final int maxHeight = getResources().getDisplayMetrics().heightPixels * 3 / 4;
                 ViewGroup.LayoutParams params = baseBind.coreLinear.getLayoutParams();
-                params.height = Math.min(realHeight, maxHeight);
+                int slideMaxHeight = Math.min(realHeight, maxHeight);
+                params.height = slideMaxHeight;
                 baseBind.coreLinear.setLayoutParams(params);
 
                 final int bottomCardHeight = baseBind.bottomBar.getHeight();
-                final int deltaY = realHeight - baseBind.bottomBar.getHeight();
+                final int deltaY = slideMaxHeight - baseBind.bottomBar.getHeight();
                 sheetBehavior.setPeekHeight(bottomCardHeight, true);
                 baseBind.refreshLayout.setPadding(0, 0, 0, bottomCardHeight - DensityUtil.dp2px(16.0f));
                 sheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
@@ -216,8 +241,9 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 });
 
                 baseBind.recyclerView.setLayoutManager(new LinearLayoutManager(mContext));
-                baseBind.recyclerView.setAdapter(new IllustAdapter(mContext, illust,
-                        baseBind.recyclerView.getHeight() - bottomCardHeight + DensityUtil.dp2px(16.0f)));
+
+                recyHeight = baseBind.recyclerView.getHeight() - bottomCardHeight + DensityUtil.dp2px(16.0f);
+                baseBind.recyclerView.setAdapter(new IllustAdapter(mContext, illust, recyHeight));
 
                 baseBind.coreLinear.getViewTreeObserver().removeOnGlobalLayoutListener(this);
             }
@@ -288,44 +314,52 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                     illust.getUser().setIs_followed(false);
                 } else {
                     baseBind.follow.setText(R.string.string_177);
-                    PixivOperate.postFollowUser(illust.getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC);
+                    PixivOperate.postFollowUser(illust.getUser().getId(), Params.TYPE_PUBLUC);
                     illust.getUser().setIs_followed(true);
                 }
             }
         });
 
         baseBind.follow.setOnLongClickListener(v1 -> {
-            if (illust.getUser().isIs_followed()) {
-
-            } else {
+            if (!illust.getUser().isIs_followed()) {
                 baseBind.follow.setText(R.string.string_177);
                 illust.getUser().setIs_followed(true);
-                PixivOperate.postFollowUser(illust.getUser().getId(), FragmentLikeIllust.TYPE_PRIVATE);
+                PixivOperate.postFollowUser(illust.getUser().getId(), Params.TYPE_PRIVATE);
+                return true;
+            } else {
+                return false;
             }
-            return true;
         });
         baseBind.userName.setText(illust.getUser().getName());
-        baseBind.postTime.setText(illust.getCreate_date().substring(0, 16) + "投递");
+        baseBind.postTime.setText(String.format("%s投递", illust.getCreate_date().substring(0, 16)));
         baseBind.totalView.setText(String.valueOf(illust.getTotal_view()));
         baseBind.totalLike.setText(String.valueOf(illust.getTotal_bookmarks()));
+        baseBind.download.setChangeAlphaWhenPress(true);
+        baseBind.related.setChangeAlphaWhenPress(true);
+        baseBind.comment.setChangeAlphaWhenPress(true);
         baseBind.download.setOnClickListener(v -> {
-            if (illust.isGif()) {
-                GifCreate.createGif(illust);
+            if (illust.getPage_count() == 1) {
+                IllustDownload.downloadIllust(illust, (BaseActivity<?>) mContext);
             } else {
-                if (illust.getPage_count() == 1) {
-                    IllustDownload.downloadIllust(illust);
-                } else {
-                    IllustDownload.downloadAllIllust(illust);
-                }
+                IllustDownload.downloadAllIllust(illust, (BaseActivity<?>) mContext);
             }
+            checkDownload();
         });
+
+
         baseBind.download.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
                 if (illust.getPage_count() == 1) {
+                    String[] IMG_RESOLUTION = new String[]{
+                            getString(R.string.string_280),
+                            getString(R.string.string_281),
+                            getString(R.string.string_282),
+                            getString(R.string.string_283)
+                    };
                     new QMUIDialog.CheckableDialogBuilder(mContext)
                             .setSkinManager(QMUISkinManager.defaultInstance(mContext))
-                            .addItems(items, new DialogInterface.OnClickListener() {
+                            .addItems(IMG_RESOLUTION, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     dialog.dismiss();
@@ -333,9 +367,9 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                             })
                             .create()
                             .show();
-
+                    return true;
                 }
-                return true;
+                return false;
             }
         });
         baseBind.illustId.setOnClickListener(new View.OnClickListener() {
@@ -351,18 +385,45 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
             }
         });
         Glide.with(mContext)
-                .load(GlideUtil.getMediumImg(illust.getUser().getProfile_image_urls().getMedium()))
+                .load(GlideUtil.getUrl(illust.getUser().getProfile_image_urls().getMedium()))
                 .into(baseBind.userHead);
     }
 
-    private static final String[] items = new String[]{"小图(square_medium)", "中图(medium)", "大图(large)", "原图(original)"};
-    private StarReceiver mReceiver;
+    private CallBackReceiver mReceiver;
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        checkDownload();
+    }
+
+    private int recyHeight = 0;
+
+    private void checkDownload() {
+        //只有1P的作品才检查是否下载过
+        if (illust.getPage_count() == 1) {
+            if (Shaft.sSettings.getDownloadWay() == 1) {
+                String displayName = FileCreator.customFileName(illust, 0);
+                if (SAFile.isFileExists(mContext, displayName)) {
+                    baseBind.download.setText(R.string.string_337);
+                } else {
+                    baseBind.download.setText(R.string.string_72);
+                }
+            } else {
+                if (FileCreator.isExist(illust, 0)) {
+                    baseBind.download.setText(R.string.string_337);
+                } else {
+                    baseBind.download.setText(R.string.string_72);
+                }
+            }
+        }
+    }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         IntentFilter intentFilter = new IntentFilter();
-        mReceiver = new StarReceiver(new BaseReceiver.CallBack() {
+        mReceiver = new CallBackReceiver(new BaseReceiver.CallBack() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 Bundle bundle = intent.getExtras();
@@ -398,6 +459,9 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
         if (mReceiver != null) {
             LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mReceiver);
         }
+        if (baseBind.recyclerView != null) {
+            baseBind.recyclerView.setAdapter(null);
+        }
         super.onDestroy();
     }
 
@@ -406,7 +470,6 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
         //竖屏
         baseBind.toolbar.setPadding(0, Shaft.statusHeight, 0, 0);
     }
-
 
     @Override
     public SmartRefreshLayout getSmartRefreshLayout() {

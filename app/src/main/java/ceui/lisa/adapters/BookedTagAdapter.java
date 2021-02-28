@@ -31,10 +31,9 @@ public class BookedTagAdapter extends BaseAdapter<TagsBean, RecyBookTagBinding> 
             bindView.baseBind.starSize.setText(R.string.string_155);
         } else {
             if (!TextUtils.isEmpty(allIllust.get(position).getTranslated_name())) {
-                bindView.baseBind.starSize.setText("#" + (allIllust.get(position).getName() +
-                        "/" + allIllust.get(position).getTranslated_name()));
+                bindView.baseBind.starSize.setText(String.format("#%s/%s", allIllust.get(position).getName(), allIllust.get(position).getTranslated_name()));
             } else {
-                bindView.baseBind.starSize.setText("#" + allIllust.get(position).getName());
+                bindView.baseBind.starSize.setText(String.format("#%s", allIllust.get(position).getName()));
             }
         }
 
@@ -50,7 +49,7 @@ public class BookedTagAdapter extends BaseAdapter<TagsBean, RecyBookTagBinding> 
                     }
                 });
             } else {
-                bindView.baseBind.illustCount.setText(allIllust.get(position).getCount() + mContext.getString(R.string.string_156));
+                bindView.baseBind.illustCount.setText(mContext.getString(R.string.string_156, allIllust.get(position).getCount()));
             }
         }
         if (mOnItemClickListener != null) {

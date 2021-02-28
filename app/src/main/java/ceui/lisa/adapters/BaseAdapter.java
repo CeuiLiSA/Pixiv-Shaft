@@ -25,6 +25,7 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
     protected Context mContext;
     protected int mLayoutID = -1;
     protected OnItemClickListener mOnItemClickListener;
+    protected String nextUrl, uuid;
 
     public BaseAdapter(@Nullable List<Item> targetList, Context context) {
         Common.showLog(getClass().getSimpleName() + " newInstance");
@@ -38,7 +39,7 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
         int viewType = getItemViewType(position);
         if (viewType == ITEM_NORMAL) {
             int index = position - headerSize();
-            bindData(allIllust.get(index), (ViewHolder<BindView>) holder, index);
+            tryCatchBindData(allIllust.get(index), (ViewHolder<BindView>) holder, index);
         } else if (viewType == ITEM_HEAD) {
 
         }
@@ -52,6 +53,14 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
     public abstract void initLayout();
 
     public abstract void bindData(Item target, ViewHolder<BindView> bindView, int position);
+
+    private void tryCatchBindData(Item target, ViewHolder<BindView> bindView, int position){
+        try {
+            bindData(target, bindView, position);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     @NonNull
     @Override
@@ -131,5 +140,18 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
                 }
             }
         }
+    }
+
+    public void setNextUrl(String nextUrl) {
+        this.nextUrl = nextUrl;
+    }
+
+    /**
+     * 赋值uuid
+     *
+     * @param uuid 宿主fragment 的 uuid
+     */
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
     }
 }

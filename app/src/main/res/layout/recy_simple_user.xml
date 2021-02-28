@@ -42,7 +42,7 @@
                 android:layout_toStartOf="@+id/post_like_user"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:textColor="@color/new_color_primary" />
+                android:textColor="?attr/colorPrimary" />
 
             <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
                 android:id="@+id/post_like_user"
@@ -52,16 +52,17 @@
                 android:paddingBottom="@dimen/four_dp"
                 android:textSize="13sp"
                 android:paddingEnd="@dimen/sixteen_dp"
-                app:qmui_borderColor="@color/new_color_primary"
+                app:qmui_borderColor="?attr/colorPrimary"
                 android:layout_height="30dp"
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
                 android:layout_margin="@dimen/twelve_dip"
                 android:gravity="center"
                 android:text="@string/string_123"
-                android:textColor="@color/new_color_primary" />
+                android:textColor="?attr/colorPrimary" />
 
         </RelativeLayout>
 
     </androidx.cardview.widget.CardView>
 </layout>
+

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <data>
 
@@ -46,7 +47,7 @@
             android:layout_alignParentEnd="true"
             android:layout_marginBottom="@dimen/twelve_dp"
             android:src="@drawable/ic_thumb_up_black_24dp"
-            android:tint="#999999" />
+            app:tint="#999999" />
 
 
         <TextView
@@ -67,6 +68,7 @@
             android:lineSpacingExtra="@dimen/four_dp"
             android:layout_height="wrap_content"
             android:clickable="false"
+            android:textColorLink="?attr/colorPrimary"
             android:layout_below="@+id/user_head"
             android:layout_alignStart="@+id/user_name"
             android:layout_marginTop="@dimen/eight_dp"
@@ -93,6 +95,7 @@
                 android:lineSpacingExtra="@dimen/four_dp"
                 android:clickable="false"
                 android:paddingStart="@dimen/six_dp"
+                android:textColorLink="?attr/colorPrimary"
                 android:paddingTop="@dimen/six_dp"
                 android:paddingEnd="@dimen/six_dp"
                 android:paddingBottom="@dimen/six_dp"
@@ -101,13 +104,12 @@
         </RelativeLayout>
 
         <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
             android:layout_below="@+id/reply_comment"
             android:layout_alignStart="@id/user_name"
             android:layout_marginTop="@dimen/eight_dp"
-            android:background="@color/settings_divider_bg" />
-
+            android:layout_marginStart="0dp"
+            style="@style/half_divider" />
 
     </RelativeLayout>
 </layout>
+

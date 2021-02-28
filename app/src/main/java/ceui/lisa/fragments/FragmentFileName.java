@@ -2,6 +2,7 @@ package ceui.lisa.fragments;
 
 import android.text.TextUtils;
 import android.view.View;
+import android.widget.CompoundButton;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.ItemTouchHelper;
@@ -18,7 +19,6 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.FileNameAdapter;
-import ceui.lisa.base.SwipeFragment;
 import ceui.lisa.databinding.FragmentFileNameBinding;
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.model.CustomFileNameCell;
@@ -47,7 +47,8 @@ public class FragmentFileName extends SwipeFragment<FragmentFileNameBinding> {
     @Override
     protected void initView() {
         illust = Shaft.sGson.fromJson(Params.EXAMPLE_ILLUST, IllustsBean.class);
-        baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
+        baseBind.toolbar.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
+        baseBind.toolbar.toolbar.setTitle(R.string.string_242);
         baseBind.showNow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -66,6 +67,15 @@ public class FragmentFileName extends SwipeFragment<FragmentFileNameBinding> {
                 if (mAdapter != null) {
                     mAdapter.unCheckAll();
                 }
+            }
+        });
+        baseBind.hasP0.setChecked(Shaft.sSettings.isHasP0());
+        baseBind.hasP0.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setHasP0(isChecked);
+                Common.showToast("设置成功");
+                Local.setSettings(Shaft.sSettings);
             }
         });
     }

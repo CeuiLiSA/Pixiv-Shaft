@@ -3,6 +3,7 @@ package ceui.lisa.utils;
 import android.content.Context;
 import android.content.Intent;
 
+import ceui.lisa.activities.OutReversActivity;
 import ceui.lisa.activities.TemplateActivity;
 import io.reactivex.disposables.Disposable;
 import okhttp3.ResponseBody;
@@ -27,10 +28,14 @@ public class ReverseWebviewCallback implements ReverseImage.Callback {
         intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "以图搜图");
         intent.putExtra("result", new ReverseResult(response));
         mContext.startActivity(intent);
+        if (mContext instanceof OutReversActivity) {
+            ((OutReversActivity) mContext).finish();
+        }
     }
 
     @Override
     public void onError(Throwable e) {
+        e.printStackTrace();
         Common.showToast(e.getMessage());
     }
 }

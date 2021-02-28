@@ -5,13 +5,9 @@
 <!--    <color name="colorAccent">#D81B60</color>-->
 <!--    <color name="light_primary_color">#B3E5FC</color>-->
 
-    <color name="colorPrimary">#00BCD4</color>
-    <color name="colorPrimaryDark">#0097A7</color>
     <color name="colorAccent">#CDDC39</color>
-    <color name="light_new_primary_color">#d1c4e9</color>
+    <color name="light_new_primary_color">#eceff1</color>
     <color name="illust_size_bg">#eeeffd</color>
-
-    <color name="hint_text">#00BCD4</color>
 
     <color name="background">#f2f2f2</color>
     <color name="dark_bg">#999999</color>
@@ -46,6 +42,7 @@
     <color name="second_text_color">#333333</color>
     <color name="no_data_color">#666666</color>
     <color name="white_to_deep_dark">#FFFFFF</color>
+    <color name="f5_to_deep_dark">#F5F5F5</color>
     <color name="comment_content">#333333</color>
     <color name="comment_parent_bg">#F2F2F2</color>
     <color name="about_user_divider">#E3E3E3</color>
@@ -60,8 +57,55 @@
 
 
 
-    <color name="new_color_primary">#686bdd</color>
+<!--    <color name="new_color_primary">#008BF4</color>-->
     <color name="novel_holder">#000339</color>
+    <color name="rank_title">#333333</color>
+    <color name="fragment_right_divider">#f0f0f0</color>
+    <color name="recmd_user_horizontal">#eff0fe</color>
+    <color name="settings_divider">#e3e3e3</color>
+    <color name="fragment_illust_divider">#f3f4f5</color>
+    <color name="white_and_black">#FFFFFF</color>
+    <color name="f0_and_black">#f0f0f0</color>
+    <color name="black_to_grey">#000000</color>
+    <color name="white_to_1414">#FFFFFF</color>
+    <color name="user_name_horizontal">#7377ff</color>
+    <color name="white_to_black">#FFFFFF</color>
+    <color name="fragment_center">#FFFFFF</color>
+    <color name="button_stroke">#e8e8f2</color>
 
+
+    <color name="nb.read.bg_1">#FFFFFF</color>
+    <color name="nb.read.bg_2">#F1E2CD</color>
+    <color name="nb.read.bg_3">#CBDEEF</color>
+    <color name="nb.read.bg_4">#D6EAD5</color>
+    <color name="nb.read.bg_5">#000000</color>
+
+    <color name="nb.read.font_1">#999999</color>
+    <color name="nb.read.font_2">#2F332D</color>
+    <color name="nb.read.font_3">#92918C</color>
+    <color name="nb.read.font_4">#383429</color>
+    <color name="nb.read.font_5">#627176</color>
+
+
+
+    <color name="nb.read.bg.night">#000000</color>
+    <color name="nb.read.font_night">#99ffffff</color>
+
+    <color name="nb.read.menu.bg">#191919</color>
+    <color name="nb.read.menu.text">#CBCBCB</color>
+    <color name="nb.read.bar.translucent">#88000000</color>
+
+    <!--read-->
+    <color name="bg1">#FFFFFF</color>
+    <color name="bg2">#F1E2CD</color>
+    <color name="bg3">#CBDEEF</color>
+    <color name="bg4">#D6EAD5</color>
+    <color name="bg5">#000000</color>
+
+    <color name="pixivision_logo_1">#231815</color>
+    <color name="pixivision_logo_2">#221714</color>
+    <color name="delivery_header_cloud">#ECEFF1</color>
+    <color name="glare_unselected_text">#7b7b7b</color>
 
 </resources>
+

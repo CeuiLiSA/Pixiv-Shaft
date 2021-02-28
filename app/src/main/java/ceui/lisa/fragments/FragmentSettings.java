@@ -1,23 +1,19 @@
 package ceui.lisa.fragments;
 
-import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Environment;
+import android.os.Build;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.CompoundButton;
-import android.widget.LinearLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import com.blankj.utilcode.util.FileUtils;
 import com.blankj.utilcode.util.LanguageUtils;
-import com.facebook.rebound.SimpleSpringListener;
-import com.facebook.rebound.Spring;
-import com.facebook.rebound.SpringChain;
-import com.liulishuo.okdownload.core.dispatcher.DownloadDispatcher;
-import com.nononsenseapps.filepicker.FilePickerActivity;
-import com.nononsenseapps.filepicker.Utils;
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
@@ -25,32 +21,30 @@ import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
 
-import java.io.File;
-import java.util.List;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.Locale;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
-import ceui.lisa.base.SwipeFragment;
+import ceui.lisa.core.Manager;
 import ceui.lisa.databinding.FragmentSettingsBinding;
+import ceui.lisa.feature.HostManager;
+import ceui.lisa.file.LegacyFile;
 import ceui.lisa.helper.ThemeHelper;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
+import ceui.lisa.utils.PixivSearchParamUtil;
 
-import static ceui.lisa.fragments.FragmentFilter.ALL_SIZE;
-import static ceui.lisa.fragments.FragmentFilter.ALL_SIZE_VALUE;
-import static ceui.lisa.fragments.FragmentFilter.THEME_NAME;
+import static android.provider.DocumentsContract.EXTRA_INITIAL_URI;
 import static ceui.lisa.utils.Settings.ALL_LANGUAGE;
 
 
 public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
-
-    private static final int illustPath_CODE = 10086;
-    private static final int gifResultPath_CODE = 10087;
-    private static final int gifZipPath_CODE = 10088;
-    private static final int gifUnzipPath_CODE = 10089;
 
     @Override
     public void initLayout() {
@@ -60,7 +54,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
     @Override
     protected void initData() {
         baseBind.toolbar.setNavigationOnClickListener(view -> mActivity.finish());
-        animate(baseBind.parentLinear);
+        Common.animate(baseBind.parentLinear);
 
         baseBind.loginOut.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -69,7 +63,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                         .setTitle(getString(R.string.string_185))
                         .setMessage(getString(R.string.string_186))
                         .setChecked(true)
-                        .setSkinManager(QMUISkinManager.defaultInstance(getContext()))
+                        .setSkinManager(QMUISkinManager.defaultInstance(mContext))
                         .addAction(getString(R.string.string_187), new QMUIDialogAction.ActionListener() {
                             @Override
                             public void onClick(QMUIDialog dialog, int index) {
@@ -116,6 +110,15 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             }
         });
 
+        baseBind.workSpace.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "我的作业环境");
+                startActivity(intent);
+            }
+        });
+
         baseBind.saveHistory.setChecked(Shaft.sSettings.isSaveViewHistory());
         baseBind.saveHistory.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -125,7 +128,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 } else {
                     Shaft.sSettings.setSaveViewHistory(false);
                 }
-                Common.showToast("设置成功", baseBind.saveHistory);
+                Common.showToast("设置成功", 2);
                 Local.setSettings(Shaft.sSettings);
             }
         });
@@ -136,38 +139,12 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             }
         });
 
-        baseBind.singleDownloadTask.setChecked(Shaft.sSettings.isSingleDownloadTask());
-        baseBind.singleDownloadTask.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    Shaft.sSettings.setSingleDownloadTask(true);
-                    DownloadDispatcher.setMaxParallelRunningCount(1);
-                } else {
-                    Shaft.sSettings.setSingleDownloadTask(false);
-                    DownloadDispatcher.setMaxParallelRunningCount(5);
-                }
-                Common.showToast("设置成功", baseBind.singleDownloadTask);
-                Local.setSettings(Shaft.sSettings);
-            }
-        });
-        baseBind.singleDownloadTaskRela.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                baseBind.singleDownloadTask.performClick();
-            }
-        });
-
-        baseBind.showLikeButton.setChecked(Shaft.sSettings.isShowLikeButton());
+        baseBind.showLikeButton.setChecked(Shaft.sSettings.isPrivateStar());
         baseBind.showLikeButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    Shaft.sSettings.setShowLikeButton(true);
-                } else {
-                    Shaft.sSettings.setShowLikeButton(false);
-                }
-                Common.showToast("重启APP生效", baseBind.showLikeButton);
+                Shaft.sSettings.setPrivateStar(isChecked);
+                Common.showToast("设置成功", 2);
                 Local.setSettings(Shaft.sSettings);
             }
         });
@@ -175,6 +152,22 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             @Override
             public void onClick(View v) {
                 baseBind.showLikeButton.performClick();
+            }
+        });
+
+        baseBind.mainViewR18.setChecked(Shaft.sSettings.isMainViewR18());
+        baseBind.mainViewR18.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setMainViewR18(isChecked);
+                Common.showToast(getString(R.string.please_restart_app), 2);
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.mainViewR18Rela.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                baseBind.mainViewR18.performClick();
             }
         });
 
@@ -187,7 +180,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 } else {
                     Shaft.sSettings.setUseFragmentIllust(false);
                 }
-                Common.showToast("设置成功", baseBind.illustDetailUserNew);
+                Common.showToast("设置成功", 2);
                 Local.setSettings(Shaft.sSettings);
             }
         });
@@ -198,63 +191,19 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             }
         });
 
-        baseBind.relatedNoLimit.setChecked(Shaft.sSettings.isRelatedIllustNoLimit());
-        baseBind.relatedNoLimit.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        baseBind.userNewUser.setChecked(Shaft.sSettings.isUseNewUserPage());
+        baseBind.userNewUser.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    Shaft.sSettings.setRelatedIllustNoLimit(true);
-                } else {
-                    Shaft.sSettings.setRelatedIllustNoLimit(false);
-                }
-                Common.showToast("设置成功", baseBind.relatedNoLimit);
+                Shaft.sSettings.setUseNewUserPage(isChecked);
+                Common.showToast("设置成功", 2);
                 Local.setSettings(Shaft.sSettings);
             }
         });
-        baseBind.relatedNoLimitRela.setOnClickListener(new View.OnClickListener() {
+        baseBind.userNewUserRela.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                baseBind.relatedNoLimit.performClick();
-            }
-        });
-
-        baseBind.autoDns.setChecked(Shaft.sSettings.isAutoFuckChina());
-        baseBind.autoDns.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    Shaft.sSettings.setAutoFuckChina(true);
-                } else {
-                    Shaft.sSettings.setAutoFuckChina(false);
-                }
-                Common.showToast("设置成功", baseBind.autoDns);
-                Local.setSettings(Shaft.sSettings);
-            }
-        });
-        baseBind.fuckChinaRela.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                baseBind.autoDns.performClick();
-            }
-        });
-
-        baseBind.firstDetailOrigin.setChecked(Shaft.sSettings.isFirstImageSize());
-        baseBind.firstDetailOrigin.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    Shaft.sSettings.setFirstImageSize(true);
-                } else {
-                    Shaft.sSettings.setFirstImageSize(false);
-                }
-                Common.showToast("设置成功", baseBind.firstDetailOrigin);
-                Local.setSettings(Shaft.sSettings);
-            }
-        });
-        baseBind.firstDetailOriginRela.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                baseBind.firstDetailOrigin.performClick();
+                baseBind.userNewUser.performClick();
             }
         });
 
@@ -267,7 +216,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 } else {
                     Shaft.sSettings.setDeleteStarIllust(false);
                 }
-                Common.showToast("设置成功", baseBind.deleteStarIllust);
+                Common.showToast("设置成功", 2);
                 Local.setSettings(Shaft.sSettings);
             }
         });
@@ -278,49 +227,143 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             }
         });
 
-        baseBind.illustPath.setText(Shaft.sSettings.getIllustPath());
-        baseBind.illustPath.setOnClickListener(new View.OnClickListener() {
+        setOrderName();
+        baseBind.orderSelect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(mContext, FilePickerActivity.class);
-                // This works if you defined the intent filter
-                // Intent i = new Intent(Intent.ACTION_GET_CONTENT);
-
-                // Set these depending on your use case. These are the defaults.
-                i.putExtra(FilePickerActivity.EXTRA_ALLOW_MULTIPLE, false);
-                i.putExtra(FilePickerActivity.EXTRA_ALLOW_CREATE_DIR, true);
-                i.putExtra(FilePickerActivity.EXTRA_MODE, FilePickerActivity.MODE_DIR);
-
-                // Configure initial directory by specifying a String.
-                // You could specify a String like "/storage/emulated/0/", but that can
-                // dangerous. Always use Android's API calls to get paths to the SD-card or
-                // internal memory.
-                i.putExtra(FilePickerActivity.EXTRA_START_PATH, Environment.getExternalStorageDirectory().getPath());
-
-                startActivityForResult(i, illustPath_CODE);
+                final int index = Shaft.sSettings.getBottomBarOrder();
+                String[] ORDER_NAME = new String[]{
+                        getString(R.string.string_343),
+                        getString(R.string.string_344),
+                        getString(R.string.string_345),
+                        getString(R.string.string_346),
+                        getString(R.string.string_347),
+                        getString(R.string.string_348),
+                };
+                new QMUIDialog.CheckableDialogBuilder(mActivity)
+                        .setCheckedIndex(index)
+                        .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                        .addItems(ORDER_NAME, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                if (which == index) {
+                                    Common.showLog("什么也不做");
+                                } else {
+                                    Shaft.sSettings.setBottomBarOrder(which);
+                                    baseBind.orderSelect.setText(ORDER_NAME[which]);
+                                    Local.setSettings(Shaft.sSettings);
+                                    Common.showToast(getString(R.string.please_restart_app));
+                                }
+                                dialog.dismiss();
+                            }
+                        })
+                        .show();
+            }
+        });
+        baseBind.bottomBarOrderRela.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                baseBind.orderSelect.performClick();
             }
         });
 
-        baseBind.gifResult.setText(Shaft.sSettings.getGifResultPath());
-        baseBind.gifResult.setOnClickListener(new View.OnClickListener() {
+        baseBind.autoDns.setChecked(Shaft.sSettings.isAutoFuckChina());
+        baseBind.autoDns.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    Shaft.sSettings.setAutoFuckChina(true);
+                } else {
+                    Shaft.sSettings.setAutoFuckChina(false);
+                }
+                Common.showToast("设置成功", 2);
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.fuckChinaRela.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(mContext, FilePickerActivity.class);
-                // This works if you defined the intent filter
-                // Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+                baseBind.autoDns.performClick();
+            }
+        });
 
-                // Set these depending on your use case. These are the defaults.
-                i.putExtra(FilePickerActivity.EXTRA_ALLOW_MULTIPLE, false);
-                i.putExtra(FilePickerActivity.EXTRA_ALLOW_CREATE_DIR, true);
-                i.putExtra(FilePickerActivity.EXTRA_MODE, FilePickerActivity.MODE_DIR);
+        baseBind.firstDetailOrigin.setChecked(Shaft.sSettings.isUsePixivCat());
+        baseBind.firstDetailOrigin.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    Shaft.sSettings.setUsePixivCat(true);
+                } else {
+                    Shaft.sSettings.setUsePixivCat(false);
+                }
+                Common.showToast("设置成功");
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.firstDetailOriginRela.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                baseBind.firstDetailOrigin.performClick();
+            }
+        });
 
-                // Configure initial directory by specifying a String.
-                // You could specify a String like "/storage/emulated/0/", but that can
-                // dangerous. Always use Android's API calls to get paths to the SD-card or
-                // internal memory.
-                i.putExtra(FilePickerActivity.EXTRA_START_PATH, Environment.getExternalStorageDirectory().getPath());
+        baseBind.r18DivideSave.setChecked(Shaft.sSettings.isR18DivideSave());
+        baseBind.r18DivideSave.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setR18DivideSave(isChecked);
+                Common.showToast("设置成功");
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.r18DivideSaveRela.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                baseBind.r18DivideSave.performClick();
+            }
+        });
 
-                startActivityForResult(i, gifResultPath_CODE);
+        //是否显示原图
+        baseBind.showOriginalImage.setChecked(Shaft.sSettings.isShowOriginalImage());
+        baseBind.showOriginalImage.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setShowOriginalImage(isChecked);
+                Common.showToast("设置成功");
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.showOriginalImageRela.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                baseBind.showOriginalImage.performClick();
+            }
+        });
+
+
+        if (Shaft.sSettings.getDownloadWay() == 1) {
+            try {
+                baseBind.illustPath.setText(URLDecoder.decode(Shaft.sSettings.getRootPathUri(), "utf-8"));
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        } else {
+            baseBind.illustPath.setText(Shaft.sSettings.getIllustPath());
+        }
+        baseBind.singleIllustPath.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (Shaft.sSettings.getDownloadWay() == 0) {
+                    Common.showToast(getString(R.string.string_329), true);
+                } else {
+                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+                    if (!TextUtils.isEmpty(Shaft.sSettings.getRootPathUri()) &&
+                            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        Uri start = Uri.parse(Shaft.sSettings.getRootPathUri());
+                        intent.putExtra(EXTRA_INITIAL_URI, start);
+                    }
+                    mActivity.startActivityForResult(intent, BaseActivity.ASK_URI);
+                }
             }
         });
 
@@ -335,19 +378,21 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             }
         });
 
-        baseBind.searchFilter.setText(Shaft.sSettings.getSearchFilter());
+        final String searchFilter = Shaft.sSettings.getSearchFilter();
+        baseBind.searchFilter.setText(PixivSearchParamUtil.getSizeName(searchFilter));
         baseBind.searchFilterRela.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 new QMUIDialog.CheckableDialogBuilder(mContext)
+                        .setCheckedIndex(PixivSearchParamUtil.getSizeIndex(searchFilter))
                         .setSkinManager(QMUISkinManager.defaultInstance(mContext))
-                        .addItems(ALL_SIZE, new DialogInterface.OnClickListener() {
+                        .addItems(PixivSearchParamUtil.ALL_SIZE_NAME, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                Shaft.sSettings.setSearchFilter(ALL_SIZE_VALUE[which]);
-                                Common.showToast("设置成功", baseBind.searchFilter);
+                                Shaft.sSettings.setSearchFilter(PixivSearchParamUtil.ALL_SIZE_VALUE[which]);
+                                Common.showToast("设置成功", 2);
                                 Local.setSettings(Shaft.sSettings);
-                                baseBind.searchFilter.setText(ALL_SIZE[which]);
+                                baseBind.searchFilter.setText(PixivSearchParamUtil.ALL_SIZE_NAME[which]);
                                 dialog.dismiss();
                             }
                         })
@@ -360,13 +405,12 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             @Override
             public void onClick(View v) {
                 new QMUIDialog.CheckableDialogBuilder(getActivity())
-                        .setSkinManager(QMUISkinManager.defaultInstance(getContext()))
                         .addItems(ALL_LANGUAGE, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 Shaft.sSettings.setAppLanguage(ALL_LANGUAGE[which]);
                                 baseBind.appLanguage.setText(ALL_LANGUAGE[which]);
-                                Common.showToast("设置成功", baseBind.appLanguage);
+                                Common.showToast("设置成功", 2);
                                 Local.setSettings(Shaft.sSettings);
                                 if (which == 0) {
                                     LanguageUtils.applyLanguage(Locale.SIMPLIFIED_CHINESE, "");
@@ -376,6 +420,8 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                                     LanguageUtils.applyLanguage(Locale.US, "");
                                 } else if (which == 3) {
                                     LanguageUtils.applyLanguage(Locale.TRADITIONAL_CHINESE, "");
+                                } else if (which == 4) {
+                                    LanguageUtils.applyLanguage(new Locale("RU", "ru", ""), "");
                                 }
                                 dialog.dismiss();
                             }
@@ -397,7 +443,12 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
         baseBind.themeModeRela.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final int index = ThemeHelper.getThemeType();
+                final int index = ThemeHelper.getThemeType(mContext);
+                String[] THEME_NAME = new String[]{
+                        getString(R.string.string_298),
+                        getString(R.string.string_299),
+                        getString(R.string.string_300)
+                };
                 new QMUIDialog.CheckableDialogBuilder(mActivity)
                         .setCheckedIndex(index)
                         .setSkinManager(QMUISkinManager.defaultInstance(mContext))
@@ -419,82 +470,137 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
         });
 
 
+        String[] downloadWays = new String[]{
+                getString(R.string.string_363),
+                getString(R.string.string_364)
+        };
+        baseBind.downloadWay.setText(downloadWays[Shaft.sSettings.getDownloadWay()]);
+        baseBind.downloadWayRela.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new QMUIDialog.CheckableDialogBuilder(mActivity)
+                        .setCheckedIndex(Shaft.sSettings.getDownloadWay())
+                        .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                        .addItems(downloadWays, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                if (which == Shaft.sSettings.getDownloadWay()) {
+                                    Common.showLog("什么也不做");
+                                } else {
+                                    Shaft.sSettings.setDownloadWay(which);
+                                    baseBind.downloadWay.setText(downloadWays[which]);
+                                    Local.setSettings(Shaft.sSettings);
+                                }
+                                dialog.dismiss();
+                            }
+                        })
+                        .show();
+            }
+        });
+
+        baseBind.isFirebaseEnable.setChecked(Shaft.sSettings.isFirebaseEnable());
+        baseBind.isFirebaseEnable.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setFirebaseEnable(isChecked);
+                Local.setSettings(Shaft.sSettings);
+                Common.showToast("设置成功", 2);
+                FirebaseAnalytics.getInstance(mContext).setAnalyticsCollectionEnabled(isChecked);
+            }
+        });
+
+        baseBind.lineCount.setText(getString(R.string.string_349, Shaft.sSettings.getLineCount()));
+        baseBind.lineCountRela.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int index = 0;
+                if (Shaft.sSettings.getLineCount() == 3) {
+                    index = 1;
+                } else if (Shaft.sSettings.getLineCount() == 4) {
+                    index = 2;
+                }
+                String[] LINE_COUNT = new String[]{
+                        getString(R.string.string_349, 2),
+                        getString(R.string.string_349, 3),
+                        getString(R.string.string_349, 4)
+                };
+                final int selectIndex = index;
+                new QMUIDialog.CheckableDialogBuilder(mActivity)
+                        .setCheckedIndex(index)
+                        .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                        .addItems(LINE_COUNT, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                if (which == selectIndex) {
+                                    Common.showLog("什么也不做");
+                                } else {
+                                    int lineCount = which + 2;
+                                    Shaft.sSettings.setLineCount(lineCount);
+                                    baseBind.lineCount.setText(getString(R.string.string_349, lineCount));
+                                    Local.setSettings(Shaft.sSettings);
+                                    Common.showToast(getString(R.string.please_restart_app), 2);
+                                }
+                                dialog.dismiss();
+                            }
+                        })
+                        .show();
+            }
+        });
+
+
+        setThemeName();
+        baseBind.colorSelectRela.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "主题颜色");
+                startActivity(intent);
+            }
+        });
+
+        baseBind.imageCacheSize.setText(FileUtils.getSize(new LegacyFile().imageCacheFolder(mContext)));
+        baseBind.clearImageCache.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FileUtils.deleteAllInDir(new LegacyFile().imageCacheFolder(mContext));
+                Common.showToast("图片缓存清除成功！");
+                baseBind.imageCacheSize.setText(FileUtils.getSize(new LegacyFile().imageCacheFolder(mContext)));
+            }
+        });
+
+        baseBind.gifCacheSize.setText(FileUtils.getSize(new LegacyFile().gifCacheFolder(mContext)));
         baseBind.clearGifCache.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                FileUtils.deleteAllInDir(new LegacyFile().gifCacheFolder(mContext));
+                Common.showToast("GIF缓存清除成功！");
+                baseBind.gifCacheSize.setText(FileUtils.getSize(new LegacyFile().gifCacheFolder(mContext)));
             }
         });
         baseBind.refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));
         baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
     }
 
-    private void animate(LinearLayout linearLayout) {
-        SpringChain springChain = SpringChain.create(40, 8, 60, 10);
-
-        int childCount = linearLayout.getChildCount();
-        for (int i = 0; i < childCount; i++) {
-            final View view = linearLayout.getChildAt(i);
-
-            final int position = i;
-            springChain.addSpring(new SimpleSpringListener() {
-                @Override
-                public void onSpringUpdate(Spring spring) {
-                    view.setTranslationX((float) spring.getCurrentValue());
-                    if (position == 0) {
-                        Common.showLog(className + (float) spring.getCurrentValue());
-                    }
-                }
-            });
-        }
-
-        List<Spring> springs = springChain.getAllSprings();
-        for (int i = 0; i < springs.size(); i++) {
-            springs.get(i).setCurrentValue(400);
-        }
-        springChain.setControlSpringIndex(0).getControlSpring().setEndValue(0);
-    }
-
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == illustPath_CODE && resultCode == Activity.RESULT_OK) {
-            List<Uri> files = Utils.getSelectedFilesFromResult(data);
-            for (Uri uri : files) {
-                File file = Utils.getFileForUri(uri);
-                String path = file.getPath();
-                if (path.startsWith("/storage/emulated/0/")) {
-                    Shaft.sSettings.setIllustPath(path);
-                    Local.setSettings(Shaft.sSettings);
-                    baseBind.illustPath.setText(path);
-                } else {
-                    Common.showToast(getString(R.string.select_inner_storage));
-                }
-            }
-            return;
-        }
-
-
-        if (requestCode == gifResultPath_CODE && resultCode == Activity.RESULT_OK) {
-            List<Uri> files = Utils.getSelectedFilesFromResult(data);
-            for (Uri uri : files) {
-                File file = Utils.getFileForUri(uri);
-                String path = file.getPath();
-                if (path.startsWith("/storage/emulated/0/")) {
-                    Shaft.sSettings.setGifResultPath(path);
-                    Local.setSettings(Shaft.sSettings);
-                    baseBind.gifResult.setText(path);
-                } else {
-                    Common.showToast(getString(R.string.select_inner_storage));
-                }
-            }
-            return;
-        }
-    }
-
     @Override
     public SmartRefreshLayout getSmartRefreshLayout() {
         return baseBind.refreshLayout;
+    }
+
+    private void setOrderName() {
+        final int index = Shaft.sSettings.getBottomBarOrder();
+        String[] ORDER_NAME = new String[]{
+                getString(R.string.string_343),
+                getString(R.string.string_344),
+                getString(R.string.string_345),
+                getString(R.string.string_346),
+                getString(R.string.string_347),
+                getString(R.string.string_348),
+        };
+        baseBind.orderSelect.setText(ORDER_NAME[index]);
+    }
+
+    private void setThemeName() {
+        final int index = Shaft.sSettings.getThemeIndex();
+        baseBind.colorSelect.setText(FragmentColors.COLOR_NAMES[index]);
     }
 }

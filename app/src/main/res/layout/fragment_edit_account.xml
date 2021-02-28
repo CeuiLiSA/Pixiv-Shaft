@@ -19,18 +19,9 @@
             android:layout_height="match_parent">
 
 
-            <androidx.appcompat.widget.Toolbar
+            <include
                 android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:fitsSystemWindows="true"
-                android:background="@color/colorPrimary"
-                android:elevation="@dimen/six_dp"
-                app:navigationIcon="@drawable/ic_arrow_back_black_24dp"
-                app:title="编辑账号信息"
-                app:titleTextColor="@android:color/white">
-
-            </androidx.appcompat.widget.Toolbar>
+                layout="@layout/toolbar_layout" />
 
             <com.rengwuxian.materialedittext.MaterialEditText
                 android:id="@+id/email_address"
@@ -41,7 +32,9 @@
                 android:layout_marginEnd="@dimen/tweenty_four_dp"
                 android:hint="@string/email_address"
                 app:met_floatingLabel="highlight"
-                app:met_primaryColor="@color/colorPrimary"
+                app:met_baseColor="@color/rank_text_color"
+                app:met_primaryColor="?attr/colorPrimary"
+                app:met_textColor="@color/dark_text"
                 app:met_singleLineEllipsis="true" />
 
 
@@ -54,7 +47,9 @@
                 android:layout_marginEnd="@dimen/tweenty_four_dp"
                 android:hint="@string/string_51"
                 app:met_floatingLabel="highlight"
-                app:met_primaryColor="@color/colorPrimary"
+                app:met_baseColor="@color/rank_text_color"
+                app:met_primaryColor="?attr/colorPrimary"
+                app:met_textColor="@color/dark_text"
                 app:met_singleLineEllipsis="true" />
 
 
@@ -67,7 +62,9 @@
                 android:layout_marginEnd="@dimen/tweenty_four_dp"
                 android:hint="@string/string_52"
                 app:met_floatingLabel="highlight"
-                app:met_primaryColor="@color/colorPrimary"
+                app:met_baseColor="@color/rank_text_color"
+                app:met_primaryColor="?attr/colorPrimary"
+                app:met_textColor="@color/dark_text"
                 app:met_singleLineEllipsis="true" />
 
         </LinearLayout>
@@ -86,6 +83,8 @@
             android:layout_alignParentBottom="true"
             android:text="@string/string_53"
             android:layout_margin="@dimen/sixteen_dp"
+            android:textColor="@color/white"
+            android:background="@drawable/primary_round_bg"
             android:id="@+id/submit"
             android:layout_height="wrap_content">
 
@@ -93,3 +92,4 @@
     </RelativeLayout>
 
 </layout>
+

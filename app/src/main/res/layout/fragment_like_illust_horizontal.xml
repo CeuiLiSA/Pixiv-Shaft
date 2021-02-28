@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
 
@@ -14,7 +15,7 @@
             android:id="@+id/root_parent_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/white"
+            android:background="@color/fragment_center"
             android:orientation="vertical">
 
             <View
@@ -34,7 +35,7 @@
                     android:layout_width="2dp"
                     android:layout_height="@dimen/sixteen_dp"
                     android:layout_centerVertical="true"
-                    android:background="@color/colorPrimary">
+                    android:background="?attr/colorPrimary">
 
                 </View>
 
@@ -61,10 +62,10 @@
                     android:layout_marginTop="@dimen/eight_dp"
                     android:layout_marginEnd="@dimen/sixteen_dp"
                     android:layout_marginBottom="@dimen/eight_dp"
-                    android:drawableEnd="@drawable/ic_chevron_right_black_24dp"
-                    android:drawableTint="@color/colorPrimary"
+                    app:drawableTint="?attr/colorPrimary"
+                    app:drawableEndCompat ="@drawable/ic_chevron_right_black_24dp"
                     android:gravity="center_vertical"
-                    android:textColor="@color/colorPrimary"
+                    android:textColor="?attr/colorPrimary"
                     android:textSize="15sp"
                     android:textStyle="bold">
 
@@ -84,9 +85,11 @@
         <ProgressBar
             android:layout_width="wrap_content"
             android:id="@+id/progress"
+            android:indeterminateTint="?attr/colorPrimary"
             android:layout_centerInParent="true"
             android:layout_height="wrap_content">
 
         </ProgressBar>
     </RelativeLayout>
 </layout>
+

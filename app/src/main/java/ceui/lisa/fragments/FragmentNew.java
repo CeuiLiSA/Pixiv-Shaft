@@ -5,19 +5,13 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 
+import com.blankj.utilcode.util.BarUtils;
+
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.base.BaseFragment;
 import ceui.lisa.databinding.ViewpagerWithTablayoutBinding;
-import ceui.lisa.utils.Dev;
 
 public class FragmentNew extends BaseFragment<ViewpagerWithTablayoutBinding> {
-
-    private static final String[] CHINESE_TITLES = new String[]{
-            Shaft.getContext().getString(R.string.type_illust),
-            Shaft.getContext().getString(R.string.type_manga),
-            Shaft.getContext().getString(R.string.type_novel)
-    };
 
     @Override
     public void initLayout() {
@@ -26,7 +20,11 @@ public class FragmentNew extends BaseFragment<ViewpagerWithTablayoutBinding> {
 
     @Override
     public void initView() {
-        mActivity.getWindow().setStatusBarColor(getResources().getColor(R.color.new_color_primary));
+        String[] CHINESE_TITLES = new String[]{
+                Shaft.getContext().getString(R.string.type_illust),
+                Shaft.getContext().getString(R.string.type_manga),
+                Shaft.getContext().getString(R.string.type_novel)
+        };
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
         baseBind.toolbarTitle.setText(R.string.string_204);
         baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {

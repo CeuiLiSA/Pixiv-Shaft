@@ -12,13 +12,11 @@ import com.github.ybq.android.spinkit.style.Wave;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.VActivity;
 import ceui.lisa.adapters.LAdapter;
-import ceui.lisa.base.BaseFragment;
 import ceui.lisa.core.Container;
 import ceui.lisa.core.PageData;
 import ceui.lisa.databinding.FragmentLikeIllustHorizontalBinding;
@@ -71,7 +69,7 @@ public class FragmentLikeIllustHorizontal extends BaseFragment<FragmentLikeIllus
     @Override
     public void initView() {
         Wave wave = new Wave();
-        wave.setColor(getResources().getColor(R.color.colorPrimary));
+        wave.setColor(R.attr.colorPrimary);
         baseBind.progress.setIndeterminateDrawable(wave);
         baseBind.recyclerView.addItemDecoration(new
                 LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
@@ -91,13 +89,12 @@ public class FragmentLikeIllustHorizontal extends BaseFragment<FragmentLikeIllus
         mAdapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                final String uuid = UUID.randomUUID().toString();
-                final PageData pageData = new PageData(uuid, allItems);
+                final PageData pageData = new PageData(allItems);
                 Container.get().addPageToMap(pageData);
 
                 Intent intent = new Intent(mContext, VActivity.class);
                 intent.putExtra(Params.POSITION, position);
-                intent.putExtra(Params.PAGE_UUID, uuid);
+                intent.putExtra(Params.PAGE_UUID, pageData.getUUID());
                 mContext.startActivity(intent);
             }
         });
@@ -136,14 +133,14 @@ public class FragmentLikeIllustHorizontal extends BaseFragment<FragmentLikeIllus
     protected void initData() {
         Observable<ListIllust> api = null;
         if (type == 1) {
-            api = Retro.getAppApi().getUserLikeIllust(sUserModel.getResponse().getAccess_token(),
-                    mUserDetailResponse.getUser().getId(), FragmentLikeIllust.TYPE_PUBLUC);
+            api = Retro.getAppApi().getUserLikeIllust(sUserModel.getAccess_token(),
+                    mUserDetailResponse.getUser().getId(), Params.TYPE_PUBLUC);
         } else if (type == 2) {
-            api = Retro.getAppApi().getUserSubmitIllust(sUserModel.getResponse().getAccess_token(),
-                    mUserDetailResponse.getUser().getId(), "illust");
+            api = Retro.getAppApi().getUserSubmitIllust(sUserModel.getAccess_token(),
+                    mUserDetailResponse.getUser().getId(), Params.TYPE_ILLUST);
         } else if (type == 3) {
-            api = Retro.getAppApi().getUserSubmitIllust(sUserModel.getResponse().getAccess_token(),
-                    mUserDetailResponse.getUser().getId(), "manga");
+            api = Retro.getAppApi().getUserSubmitIllust(sUserModel.getAccess_token(),
+                    mUserDetailResponse.getUser().getId(), Params.TYPE_MANGA);
         }
 
         if (api != null) {

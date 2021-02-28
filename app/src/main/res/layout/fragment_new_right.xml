@@ -16,7 +16,7 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_gravity=""
-            android:background="@color/new_color_primary"
+            android:background="?attr/colorPrimary"
             android:elevation="@dimen/four_dp">
 
         </ImageView>
@@ -25,7 +25,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/new_color_primary"
+            android:background="?attr/colorPrimary"
             android:elevation="@dimen/four_dp"
             app:navigationIcon="@drawable/ic_baseline_dns_24"
             app:titleTextColor="@color/white">
@@ -36,7 +36,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:text="@string/string_77"
-                android:textColor="@color/white"
+                android:textColor="@color/always_white"
                 android:textSize="18sp">
 
             </TextView>
@@ -46,7 +46,7 @@
         <androidx.coordinatorlayout.widget.CoordinatorLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#f0f0f0"
+            android:background="@color/fragment_right_divider"
             android:orientation="vertical">
 
             <LinearLayout
@@ -60,7 +60,7 @@
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@color/white">
+                    android:background="@color/fragment_center">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -70,7 +70,7 @@
                         android:drawablePadding="@dimen/four_dp"
                         android:gravity="center_vertical"
                         android:text="@string/string_78"
-                        android:textColor="#333333"
+                        android:textColor="@color/rank_title"
                         android:textSize="16sp"
                         android:textStyle="bold"
                         app:drawableStartCompat="@drawable/ic_baseline_data_usage_24">
@@ -83,14 +83,13 @@
                         android:layout_alignParentEnd="true"
                         android:layout_marginTop="@dimen/twelve_dp"
                         android:id="@+id/see_more"
-                        android:drawableTint="@color/new_color_primary"
-                        android:textColor="@color/new_color_primary"
+                        app:drawableTint="?attr/colorPrimary"
+                        android:textColor="?attr/colorPrimary"
                         android:layout_marginEnd="@dimen/twelve_dp"
                         android:gravity="center_vertical"
                         android:text="@string/string_79"
                         android:textSize="13sp"
-                        app:drawableEndCompat="@drawable/ic_chevron_right_black_20dp"
-                        app:drawableTint="#999999">
+                        app:drawableEndCompat="@drawable/ic_chevron_right_black_20dp">
 
                     </TextView>
 
@@ -99,14 +98,14 @@
                 <FrameLayout
                     android:id="@+id/user_recmd_fragment"
                     android:layout_width="match_parent"
-                    android:layout_height="144dp"
-                    android:background="@color/white">
+                    android:layout_height="124dp"
+                    android:background="@color/fragment_center">
 
                 </FrameLayout>
 
                 <View
                     android:layout_width="match_parent"
-                    android:background="#f0f0f0"
+                    android:background="@color/f0_and_black"
                     android:layout_height="16dp">
 
                 </View>
@@ -117,60 +116,49 @@
                 android:layout_width="match_parent"
                 app:layout_behavior="ceui.lisa.ui.behavior.FragmentRightContentBehavior"
                 android:orientation="vertical"
-                app:qmui_backgroundColor="@color/white"
+                app:qmui_backgroundColor="@color/fragment_center"
                 app:qmui_borderWidth="0dp"
+                android:background="@color/fragment_center"
                 app:qmui_radiusTopLeft="20dp"
                 app:qmui_radiusTopRight="20dp"
                 android:id="@+id/content_item"
                 android:layout_height="match_parent">
 
-                <RelativeLayout
+                <androidx.core.widget.NestedScrollView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="14dp"
-                        android:layout_marginTop="@dimen/twelve_dp"
-                        android:layout_marginBottom="@dimen/twelve_dp"
-                        android:drawablePadding="@dimen/four_dp"
-                        android:drawableTint="#75d2f0"
-                        android:gravity="center_vertical"
-                        android:text="@string/string_80"
-                        android:textColor="#333333"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        app:drawableStartCompat="@drawable/ic_toys_black_24dp">
-
-                    </TextView>
-
-                    <Switch
-                        android:layout_width="wrap_content"
-                        android:text="@string/string_81"
-                        android:id="@+id/show_private"
-                        android:textSize="12sp"
-                        android:textColor="@color/new_color_primary"
-                        android:thumbTint="@color/new_color_primary"
-                        android:trackTint="@color/new_color_primary"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:layout_marginEnd="@dimen/sixteen_dp"
+                    <RelativeLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content">
 
-                    </Switch>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="14dp"
+                            android:layout_marginTop="@dimen/twelve_dp"
+                            android:layout_marginBottom="@dimen/twelve_dp"
+                            android:drawablePadding="@dimen/four_dp"
+                            app:drawableTint="#75d2f0"
+                            android:gravity="center_vertical"
+                            android:text="@string/string_80"
+                            android:textColor="@color/rank_title"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            app:drawableStartCompat="@drawable/ic_toys_black_24dp">
+                        </TextView>
 
-                </RelativeLayout>
+                        <ceui.lisa.view.GlareLayout
+                            android:layout_width="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_alignParentEnd="true"
+                            android:layout_marginEnd="@dimen/sixteen_dp"
+                            android:id="@+id/glare_layout"
+                            android:layout_height="wrap_content" />
 
+                    </RelativeLayout>
 
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_alignParentBottom="true"
-                    android:background="#f0f0f0">
-
-                </View>
+                </androidx.core.widget.NestedScrollView>
 
                 <com.scwang.smartrefresh.layout.SmartRefreshLayout
                     android:layout_width="match_parent"
@@ -180,33 +168,25 @@
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/recyclerView"
                         android:layout_width="match_parent"
-                        android:background="@color/white"
-                        android:layout_height="match_parent"
-                        >
-
-
-                    </androidx.recyclerview.widget.RecyclerView>
+                        android:layout_height="match_parent" />
 
                 </com.scwang.smartrefresh.layout.SmartRefreshLayout>
 
 
-
             </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundLinearLayout>
 
-            <ImageView
-                android:id="@+id/no_data"
+
+            <include
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
-                android:scaleType="centerCrop"
-                android:src="@mipmap/no_data_line"
-                android:tint="@color/colorPrimary"
-                android:visibility="invisible"
                 app:layout_anchor="@+id/content_item"
-                app:layout_anchorGravity="center" />
+                app:layout_anchorGravity="center"
+                layout="@layout/empty_layout" />
 
         </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
     </LinearLayout>
 
 </layout>
+

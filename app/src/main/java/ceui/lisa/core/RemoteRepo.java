@@ -7,9 +7,9 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 
-public abstract class RemoteRepo<Response extends ListShow<?>> extends BaseRepo{
+public abstract class RemoteRepo<Response extends ListShow<?>> extends BaseRepo {
 
-    private Observable<Response> mApi;
+    private Observable<? extends Response> mApi;
     private Function<? super Response, Response> mFunction;
     protected String nextUrl = "";
 
@@ -17,9 +17,9 @@ public abstract class RemoteRepo<Response extends ListShow<?>> extends BaseRepo{
         mFunction = mapper();
     }
 
-    public abstract Observable<Response> initApi();
+    public abstract Observable<? extends Response> initApi();
 
-    public abstract Observable<Response> initNextApi();
+    public abstract Observable<? extends Response> initNextApi();
 
     public void getFirstData(NullCtrl<Response> nullCtrl) {
         mApi = initApi();

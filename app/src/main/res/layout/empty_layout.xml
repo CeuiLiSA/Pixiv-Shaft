@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+
+    </data>
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:id="@+id/no_data_rela"
+        android:visibility="invisible"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:id="@+id/no_data"
+            android:src="@mipmap/empty_img"
+            android:layout_centerHorizontal="true"
+            android:scaleType="centerCrop"
+            android:layout_height="wrap_content"
+            app:tint="?attr/colorPrimary" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:textColor="?attr/colorPrimary"
+            android:text="@string/string_243"
+            android:layout_marginTop="@dimen/twelve_dp"
+            android:textStyle="bold"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@+id/no_data"
+            android:textSize="13sp"
+            android:layout_height="wrap_content">
+
+        </TextView>
+
+    </RelativeLayout>
+</layout>
+

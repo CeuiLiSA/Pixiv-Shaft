@@ -14,7 +14,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/new_color_primary"
+            android:background="?attr/colorPrimary"
             android:elevation="@dimen/six_dp"
             android:fitsSystemWindows="true"
             android:theme="@style/AppTheme.AppBarOverlay"
@@ -28,9 +28,12 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/sixteen_dp"
+                android:singleLine="true"
+                android:ellipsize="end"
                 android:layout_gravity="center"
                 android:id="@+id/toolbar_title"
-                android:textColor="@color/white"
+                android:textColor="@color/always_white"
                 android:textSize="18sp">
 
             </TextView>
@@ -41,13 +44,12 @@
             android:layout_width="match_parent"
             android:id="@+id/refreshLayout"
             android:layout_below="@+id/toolbar"
-            android:background="@color/white"
+            android:background="@color/fragment_center"
             android:layout_height="match_parent">
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerView"
                 android:layout_width="match_parent"
-                android:background="@color/white"
                 android:layout_height="match_parent"
                 android:fadeScrollbars="false">
 
@@ -55,16 +57,12 @@
 
         </com.scwang.smartrefresh.layout.SmartRefreshLayout>
 
-        <ImageView
+        <include
             android:layout_width="wrap_content"
-            android:id="@+id/no_data"
-            android:visibility="invisible"
-            android:src="@mipmap/no_data_line"
-            android:tint="@color/colorPrimary"
+            android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:scaleType="centerCrop"
-            android:layout_height="wrap_content" />
-
+            layout="@layout/empty_layout" />
 
     </RelativeLayout>
 </layout>
+

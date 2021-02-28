@@ -1,10 +1,15 @@
 package ceui.lisa.http;
 
+import android.content.Intent;
+import android.text.TextUtils;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
+import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.fragments.FragmentLogin;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.utils.Common;
@@ -19,7 +24,9 @@ import retrofit2.Call;
  */
 public class TokenInterceptor implements Interceptor {
 
-    private static final String TOKEN_ERROR = "Error occurred at the OAuth process";
+    private static final String TOKEN_ERROR_1 = "Error occurred at the OAuth process";
+    private static final String TOKEN_ERROR_2 = "Invalid refresh token";
+    private static final int TOKEN_LENGTH = 50;
 
     @NotNull
     @Override
@@ -28,6 +35,7 @@ public class TokenInterceptor implements Interceptor {
         Response response = chain.proceed(request);
 
         if (isTokenExpired(response)) {
+            Common.showLog("getNewToken 检测到是过期Token ");
             response.close();
             String newToken = getNewToken(request.header("Authorization"));
             Request newRequest = chain.request()
@@ -47,8 +55,27 @@ public class TokenInterceptor implements Interceptor {
      * @return
      */
     private boolean isTokenExpired(Response response) {
-        return response.code() == 400 &&
-                Common.getResponseBody(response).contains(TOKEN_ERROR);
+        final String body = Common.getResponseBody(response);
+        Common.showLog("isTokenExpired body " + body);
+        if (response.code() == 400) {
+            if (body.contains(TOKEN_ERROR_1)) {
+                Common.showLog("isTokenExpired 000");
+                return true;
+            } else if(body.contains(TOKEN_ERROR_2)){
+                Shaft.sUserModel.getUser().setIs_login(false);
+                Local.saveUser(Shaft.sUserModel);
+                Common.showToast(R.string.string_340);
+                Common.restart();
+                Common.showLog("isTokenExpired 111");
+                return false;
+            } else {
+                Common.showLog("isTokenExpired 222");
+                return false;
+            }
+        } else {
+            Common.showLog("isTokenExpired 333");
+            return false;
+        }
     }
 
     /**
@@ -57,31 +84,30 @@ public class TokenInterceptor implements Interceptor {
      * @return
      */
     private synchronized String getNewToken(String tokenForThisRequest) throws IOException {
-        if (Shaft.sUserModel.getResponse().getAccess_token().equals(tokenForThisRequest)) {
+        if (Shaft.sUserModel.getAccess_token().equals(tokenForThisRequest) ||
+                tokenForThisRequest.length() != TOKEN_LENGTH ||
+                Shaft.sUserModel.getAccess_token().length() != TOKEN_LENGTH) {
+            Common.showLog("getNewToken 主动获取最新的token old:" + tokenForThisRequest + " new:" + Shaft.sUserModel.getAccess_token());
             UserModel userModel = Local.getUser();
-            Call<UserModel> call = Retro.getAccountApi().refreshToken(
+            Call<UserModel> call = Retro.getAccountApi().newRefreshToken(
                     FragmentLogin.CLIENT_ID,
                     FragmentLogin.CLIENT_SECRET,
                     FragmentLogin.REFRESH_TOKEN,
-                    userModel.getResponse().getRefresh_token(),
-                    userModel.getResponse().getDevice_token(),
-                    Boolean.TRUE,
+                    userModel.getRefresh_token(),
                     Boolean.TRUE);
             UserModel newUser = call.execute().body();
             if (newUser != null) {
-                newUser.getResponse().getUser().setPassword(
-                        Shaft.sUserModel.getResponse().getUser().getPassword()
+                newUser.getUser().setPassword(
+                        Shaft.sUserModel.getUser().getPassword()
                 );
-                newUser.getResponse().getUser().setIs_login(true);
+                newUser.getUser().setIs_login(true);
             }
             Local.saveUser(newUser);
-            if (newUser != null && newUser.getResponse() != null) {
-                return newUser.getResponse().getAccess_token();
-            } else {
-                return "ERROR ON GET TOKEN";
-            }
+            Common.showLog("getNewToken 获取到了最新的 token:" + newUser.getAccess_token());
+            return newUser.getAccess_token();
         } else {
-            return Shaft.sUserModel.getResponse().getAccess_token();
+            Common.showLog("getNewToken 使用最新的token old:" + tokenForThisRequest + " new:" + Shaft.sUserModel.getAccess_token());
+            return Shaft.sUserModel.getAccess_token();
         }
     }
 }

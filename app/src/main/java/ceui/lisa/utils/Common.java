@@ -3,35 +3,40 @@ package ceui.lisa.utils;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
-import android.content.ContentResolver;
+import android.content.ComponentName;
 import android.content.Context;
-import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
-import android.net.Uri;
-import android.provider.MediaStore;
+import android.content.res.Configuration;
+import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.LayoutInflater;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.Window;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 
+import com.blankj.utilcode.util.Utils;
+import com.facebook.rebound.SimpleSpringListener;
+import com.facebook.rebound.Spring;
+import com.facebook.rebound.SpringChain;
+import com.hjq.toast.ToastUtils;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
-import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UserActivity;
@@ -44,7 +49,8 @@ import okio.BufferedSource;
 
 public class Common {
 
-    private static Toast toast = null;
+    private static final String[][] safeReplacer = new String[][]{{"|", "%7c"}, {"\\", "%5c"}, {"?", "%3f"},
+            {"*", "\u22c6"}, {"<", "%3c"}, {"\"", "%22"}, {":", "%3a"}, {">", "%3e"}, {"/", "%2f"}};
 
     public static boolean isNumeric(String str) {
         for (int i = str.length(); --i >= 0; ) {
@@ -71,36 +77,14 @@ public class Common {
 
     public static void logOut(Context context) {
         if (Shaft.sUserModel != null) {
-            Shaft.sUserModel.getResponse().getUser().setIs_login(false);
-            Local.saveUser(Shaft.sUserModel);
+            if (!Dev.isDev) { //测试状态，不要真的退出登录，只是跳转到登录页面
+                Shaft.sUserModel.getUser().setIs_login(false);
+                Local.saveUser(Shaft.sUserModel);
+            }
             Intent intent = new Intent(context, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "登录注册");
             context.startActivity(intent);
         }
-    }
-
-    public static String getRealFilePath(final Context context, final Uri uri) {
-        if (null == uri) return null;
-        final String scheme = uri.getScheme();
-        String data = null;
-        if (scheme == null)
-            data = uri.getPath();
-        else if (ContentResolver.SCHEME_FILE.equals(scheme)) {
-            data = uri.getPath();
-        } else if (ContentResolver.SCHEME_CONTENT.equals(scheme)) {
-            Cursor cursor = context.getContentResolver().query(uri,
-                    new String[]{MediaStore.Images.ImageColumns.DATA}, null, null, null);
-            if (null != cursor) {
-                if (cursor.moveToFirst()) {
-                    int index = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
-                    if (index > -1) {
-                        data = cursor.getString(index);
-                    }
-                }
-                cursor.close();
-            }
-        }
-        return data;
     }
 
     public static <T> void showLog(T t) {
@@ -108,50 +92,16 @@ public class Common {
     }
 
     public static <T> void showToast(T t) {
-        if (toast == null) {
-            toast = Toast.makeText(Shaft.getContext(), String.valueOf(t), Toast.LENGTH_SHORT);
-        } else {
-            toast.cancel();
-            toast = Toast.makeText(Shaft.getContext(), String.valueOf(t), Toast.LENGTH_SHORT);
-        }
-        View view = LayoutInflater.from(Shaft.getContext()).inflate(R.layout.toast_item, null);
-        TextView textView = view.findViewById(R.id.toast_text);
-        textView.setText(String.valueOf(t));
-        toast.setView(view);
-        toast.show();
+        ToastUtils.show(t);
     }
 
-    public static <T> void showToast(T t, View view) {
-        showToast(t, view, QMUITipDialog.Builder.ICON_TYPE_SUCCESS);
+    public static void showToast(int id) {
+        ToastUtils.show(id);
     }
 
     //2成功， 3失败， 4info
-    public static <T> void showToast(T t, View view, int type) {
-        final QMUITipDialog tipDialog = new QMUITipDialog.Builder(view.getContext())
-                .setIconType(type)
-                .setTipWord(String.valueOf(t))
-                .create();
-        tipDialog.show();
-        view.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if(tipDialog.isShowing()) { //check if dialog is showing.
-
-                    //get the Context object that was used to great the dialog
-                    Context context = ((ContextWrapper)tipDialog.getContext()).getBaseContext();
-
-                    //if the Context used here was an activity AND it hasn't been finished or destroyed
-                    //then dismiss it
-                    if(context instanceof Activity) {
-                        if(!((Activity)context).isFinishing() && !((Activity)context).isDestroyed()) {
-                            tipDialog.dismiss();
-                        }
-                    } else {
-                        tipDialog.dismiss();
-                    }
-                }
-            }
-        }, 1000L);
+    public static <T> void showToast(T t, int type) {
+        ToastUtils.show(t);
     }
 
     public static String getAppVersionCode(Context context) {
@@ -182,32 +132,8 @@ public class Common {
         return versionName;
     }
 
-    public static void success(Context context, String s, View view) {
-        QMUITipDialog dialog = new QMUITipDialog.Builder(context)
-                .setIconType(QMUITipDialog.Builder.ICON_TYPE_SUCCESS)
-                .setTipWord(s)
-                .create();
-        dialog.show();
-        view.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                dialog.dismiss();
-            }
-        }, 1500);
-    }
-
     public static <T> void showToast(T t, boolean isLong) {
-        if (toast == null) {
-            toast = Toast.makeText(Shaft.getContext(), String.valueOf(t), isLong ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT);
-        } else {
-            toast.cancel();
-            toast = Toast.makeText(Shaft.getContext(), String.valueOf(t), isLong ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT);
-        }
-        View view = LayoutInflater.from(Shaft.getContext()).inflate(R.layout.toast_item, null);
-        TextView textView = view.findViewById(R.id.toast_text);
-        textView.setText(String.valueOf(t));
-        toast.setView(view);
-        toast.show();
+        ToastUtils.show(t);
     }
 
     public static void copy(Context context, String s) {
@@ -227,6 +153,36 @@ public class Common {
         return TextUtils.isEmpty(before) ? Shaft.getContext().getString(R.string.no_info) : before;
     }
 
+    public static String checkEmpty(EditText before) {
+        if (before != null && before.getText() != null && !TextUtils.isEmpty(before.getText().toString())) {
+            return before.getText().toString();
+        } else {
+            return "";
+        }
+    }
+
+    public static void animate(LinearLayout linearLayout) {
+        SpringChain springChain = SpringChain.create(40, 8, 60, 10);
+
+        int childCount = linearLayout.getChildCount();
+        for (int i = 0; i < childCount; i++) {
+            final View view = linearLayout.getChildAt(i);
+
+            springChain.addSpring(new SimpleSpringListener() {
+                @Override
+                public void onSpringUpdate(Spring spring) {
+                    view.setTranslationX((float) spring.getCurrentValue());
+                }
+            });
+        }
+
+        List<Spring> springs = springChain.getAllSprings();
+        for (int i = 0; i < springs.size(); i++) {
+            springs.get(i).setCurrentValue(400);
+        }
+        springChain.setControlSpringIndex(0).getControlSpring().setEndValue(0);
+    }
+
     public static void createDialog(Context context){
         QMUIDialog qmuiDialog = new QMUIDialog.MessageDialogBuilder(context)
                 .setTitle(context.getString(R.string.string_188))
@@ -235,14 +191,16 @@ public class Common {
                 .addAction(context.getString(R.string.string_189), new QMUIDialogAction.ActionListener() {
                     @Override
                     public void onClick(QMUIDialog dialog, int index) {
-                        Local.setBoolean(Params.SHOW_DIALOG, false);
+                        //保存SHOW_DIALOG 为false，不再提示
+                        Shaft.getMMKV().encode(Params.SHOW_DIALOG, false);
                         dialog.dismiss();
                     }
                 })
                 .addAction(context.getString(R.string.string_190), new QMUIDialogAction.ActionListener() {
                     @Override
                     public void onClick(QMUIDialog dialog, int index) {
-                        Local.setBoolean(Params.SHOW_DIALOG, true);
+                        //保存SHOW_DIALOG 为true，需要继续提示
+                        Shaft.getMMKV().encode(Params.SHOW_DIALOG, true);
                         dialog.dismiss();
                     }
                 })
@@ -252,6 +210,10 @@ public class Common {
             window.setWindowAnimations(R.style.dialog_animation_scale);
         }
         qmuiDialog.show();
+    }
+
+    public static void createLoginHintDialog(Context context){
+
     }
 
     public static String getResponseBody(Response response) {
@@ -285,4 +247,77 @@ public class Common {
     }
 
 
+    public static <T> String cutToJson(List<T> from) {
+        if (isEmpty(from)) {
+            return "";
+        }
+
+        if (from.size() > 5) {
+            List<T> temp = new ArrayList<>();
+            for (int i = 0; i < 5; i++) {
+                temp.add(from.get(i));
+            }
+            return Shaft.sGson.toJson(temp);
+        } else {
+            return Shaft.sGson.toJson(from);
+        }
+    }
+
+    public static boolean isAndroidQ() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q;
+    }
+
+    public static void restart() {
+        Intent intent = new Intent();
+        String realActivityClassName = MainActivity.class.getName();
+        intent.setComponent(new ComponentName(Utils.getApp(), realActivityClassName));
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        Utils.getApp().startActivity(intent);
+    }
+
+    /**
+     * left 0, right 5
+     *
+     * 结果只有 0 1 2 3 4
+     *
+     *
+     * @param left
+     * @param right
+     * @return
+     */
+    public static int flatRandom(int left, int right) {
+        Random r = new Random();
+        return r.nextInt(right - left) + left;
+    }
+
+    public static int flatRandom(int right) {
+        return flatRandom(0, right);
+    }
+
+    /**
+     * 解析主题相关的 attribute 的当前值
+     */
+    public static int resolveThemeAttribute(Context context, int resId){
+        TypedValue typedValue = new TypedValue();
+        context.getTheme().resolveAttribute(resId, typedValue, true);
+        return typedValue.data;
+    }
+
+    /**
+     * 当前主题是否是 Dark Mode
+     */
+    public static boolean isUIModeNight(Context context){
+        return (context.getResources().getConfiguration().uiMode
+                & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
+    }
+
+    /**
+     * 移除文件系统保留字符
+     */
+    public static String removeFSReservedChars(String s){
+        for (int i = 0; i < safeReplacer.length; i++){
+            s = s.replace(safeReplacer[i][0], safeReplacer[i][1]);
+        }
+        return s;
+    }
 }

@@ -1,19 +1,19 @@
 package ceui.lisa.database;
 
-import com.liulishuo.okdownload.DownloadTask;
 
+import ceui.lisa.core.DownloadItem;
 import ceui.lisa.models.IllustsBean;
 
 public class IllustTask {
 
-    private DownloadTask mDownloadTask;
+    private DownloadItem mDownloadTask;
     private IllustsBean mIllustsBean;
 
-    public DownloadTask getDownloadTask() {
+    public DownloadItem getDownloadTask() {
         return mDownloadTask;
     }
 
-    public void setDownloadTask(DownloadTask downloadTask) {
+    public void setDownloadTask(DownloadItem downloadTask) {
         mDownloadTask = downloadTask;
     }
 

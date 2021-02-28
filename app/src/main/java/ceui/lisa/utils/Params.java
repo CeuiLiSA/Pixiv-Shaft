@@ -35,23 +35,60 @@ public class Params {
     public static final String TYPE_MANGA    = "manga";
     public static final String NOVEL_KEY     = "pixiv_shaft_novel_";
     public static final String USER_KEY      = "pixiv_shaft_local_user";
-    public static final String SECRET_PWD_KEY= "pixiv_secret_password:";
     public static final String PAGE_UUID     = "page_uuid";
     public static final String POSITION      = "position";
     public static final String IS_LIKED      = "is liked";
     public static final String IS_POPULAR    = "is popular";
     public static final String LAST_CLASS    = "last class";
+    public static final String NOVEL_DETAIL  = "novel detail";
+    public static final String PREFER_PRESERVE  = "prefer preserve";
+
+
+    public static final String VIEW_PAGER_MUTED  = "muted history viewpager";
+    public static final String VIEW_PAGER_R18  = "r18 viewpager";
 
     public static final String FILTER_ILLUST        = "ceui.lisa.fragments.NetListFragment FILTER_ILLUST";
     public static final String LIKED_ILLUST        = "ceui.lisa.fragments.NetListFragment LIKED_ILLUST";
+    public static final String PLAY_GIF        = "ceui.lisa.fragments.FragmentSingleUgora PLAY_GIF";
     public static final String LIKED_USER          = "ceui.lisa.fragments.NetListFragment LIKED_USER";
     public static final String LIKED_NOVEL         = "ceui.lisa.fragments.NetListFragment LIKED_NOVEL";
     public static final String DOWNLOAD_FINISH         = "ceui.lisa.fragments.NetListFragment DOWNLOAD_FINISH";
     public static final String DOWNLOAD_ING         = "ceui.lisa.fragments.NetListFragment DOWNLOAD_ING";
+    public static final String REFRESH_MAIN_ACTIVITY         = "ceui.lisa.REFRESH_MAIN_ACTIVITY";
+    public static final String FRAGMENT_ADD_DATA         = "ceui.lisa.FRAGMENT_ADD_DATA";
+    public static final String FRAGMENT_ADD_RELATED_DATA         = "ceui.lisa.FRAGMENT_ADD_RELATED_DATA";
+
+    public static final String MAP_KEY = "Referer";
+    public static final String MAP_KEY_SMALL = "referer";
+    public static final String IMAGE_REFERER = "https://app-api.pixiv.net/";
+    public static final String USER_AGENT = "User-Agent";
+    public static final String PHONE_MODEL = "PixivIOSApp/5.8.0";
+    public static final String HOST = "Host";
+    public static final String CLOUD_DNS = "cloud dns";
+    public static final String HOST_NAME = "i.pximg.net";
+    public static final int    DOWNLOAD_FAILED = -86;
+    public static final int    DOWNLOAD_SUCCESS = -87;
+
+    public static final int    MUTE_TAG = 0;
+    public static final int    MUTE_ILLUST = 1;
+    public static final int    MUTE_NOVEL = 2;
+    public static final int    MUTE_USER = 3;
+
+    //hint
+    public static final String HINT_MULTI_DOWNLOAD = "HINT_MULTI_DOWNLOAD";
+    public static final String HINT_MULTI_DOWNLOAD_LONG_PRESS = "HINT_MULTI_DOWNLOAD_LONG_PRESS";
+    public static final String HINT_DOWNLOAD_LONG_PRESS = "HINT_DOWNLOAD";
+
 
     public static final String IMAGE_UNKNOWN = "https://s.pximg.net/common/images/limit_unknown_360.png";
     public static final String HEAD_UNKNOWN  = "https://s.pximg.net/common/images/no_profile.png";
 
+    public static final String TYPE_PUBLUC = "public";
+    public static final String TYPE_PRIVATE = "private";
+    public static final String TYPE_ALL = "all";
+
+    public static final String SHOW_LONG_DIALOG = "show long dialog";
+    public static final String IS_MIGRATE = "IS_MIGRATE";
 
     public static final int REQUEST_CODE_CHOOSE = 10086;
     public static final String EXAMPLE_ILLUST = "{\n" +

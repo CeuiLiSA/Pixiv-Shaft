@@ -24,7 +24,7 @@
 
             <ImageView
                 android:layout_width="match_parent"
-                android:background="@color/new_color_primary"
+                android:background="?attr/colorPrimary"
                 android:layout_height="@dimen/six_dp">
 
             </ImageView>
@@ -32,7 +32,7 @@
             <ImageView
                 android:id="@+id/illust_image"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"
+                android:layout_height="0dp"
                 android:layout_gravity="center_horizontal"
                 android:layout_weight="1"
                 android:scaleType="centerCrop" />
@@ -59,3 +59,4 @@
 
     </androidx.cardview.widget.CardView>
 </layout>
+

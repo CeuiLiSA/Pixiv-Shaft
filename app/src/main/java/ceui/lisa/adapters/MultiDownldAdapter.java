@@ -1,19 +1,26 @@
 package ceui.lisa.adapters;
 
 import android.content.Context;
+import android.content.Intent;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
 
 import com.bumptech.glide.Glide;
 
+import java.util.Collections;
 import java.util.List;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.VActivity;
+import ceui.lisa.core.Container;
+import ceui.lisa.core.PageData;
 import ceui.lisa.databinding.RecyMultiDownloadBinding;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.interfaces.MultiDownload;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.GlideUtil;
+import ceui.lisa.utils.Params;
 
 public class MultiDownldAdapter extends BaseAdapter<IllustsBean, RecyMultiDownloadBinding> implements MultiDownload {
 
@@ -61,8 +68,20 @@ public class MultiDownldAdapter extends BaseAdapter<IllustsBean, RecyMultiDownlo
             bindView.baseBind.checkbox.setChecked(false);
         }
 
-        bindView.itemView.setOnClickListener(v ->
-                mOnItemClickListener.onItemClick(bindView.itemView, position, 0));
+        bindView.itemView.setOnClickListener(v -> bindView.baseBind.checkbox.performClick());
+        bindView.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                final PageData pageData = new PageData(allIllust);
+                Container.get().addPageToMap(pageData);
+
+                Intent intent = new Intent(mContext, VActivity.class);
+                intent.putExtra(Params.POSITION, position);
+                intent.putExtra(Params.PAGE_UUID, pageData.getUUID());
+                mContext.startActivity(intent);
+                return true;
+            }
+        });
     }
 
     @Override

@@ -14,7 +14,7 @@
         <com.google.android.material.appbar.AppBarLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/new_color_primary">
+            android:background="?attr/colorPrimary">
 
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
@@ -31,7 +31,6 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:id="@+id/toolbar_title"
-                    android:text="@string/ranking_list"
                     android:textColor="@color/white"
                     android:textSize="18sp">
 
@@ -61,3 +60,4 @@
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </layout>
+
