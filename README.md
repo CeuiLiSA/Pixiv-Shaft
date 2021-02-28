@@ -41,7 +41,7 @@
 |:---:|:---:|:---:|
 |![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-3.jpg)|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-4.jpg)|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-5.jpg)
 
-## 4.在Google Play上获取
+## 4.在 Google Play 上获取
 
 <a href="https://play.google.com/store/apps/details?id=ceui.lisa.pixiv">
     <img
@@ -51,6 +51,10 @@
         height="128"
     />
 </a>
+
+## 5.在 Github 上获取
+
+[Releases](https://github.com/CeuiLiSA/Pixiv-Shaft/releases)
 
 
 ### 开源许可
