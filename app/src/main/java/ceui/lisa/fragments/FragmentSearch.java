@@ -397,8 +397,11 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
     }
 
     private void predictSearchType(){
-        // 当前搜索过程，手动切换后不再根据剪贴板内容预测
+        // 当前搜索过程，手动切换后 或 输入框里有值时，不再根据剪贴板内容预测
         if(hasSwitchSearchType){
+            return;
+        }
+        if(!TextUtils.isEmpty(baseBind.inputBox.getText().toString())){
             return;
         }
         mActivity.getWindow().getDecorView().post(new Runnable() {
