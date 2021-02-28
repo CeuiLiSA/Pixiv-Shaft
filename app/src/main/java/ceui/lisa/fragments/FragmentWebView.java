@@ -58,6 +58,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
     private static final String USER_HEAD = "https://www.pixiv.net/member.php?id=";
     private static final String WORKS_HEAD = "https://www.pixiv.net/artworks/";
     private static final String PIXIV_HEAD = "https://www.pixiv.net/";
+    private static final String ACCOUNT_URL = "intent://account/";
     private static final String PIXIVISION_HEAD = "https://www.pixivision.net/";
     private static final String TAG = "FragmentWebView";
     private String title;
@@ -170,6 +171,22 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                                         e.printStackTrace();
                                     }
                                     return true;
+                                }
+                            } else if(destiny.contains(ACCOUNT_URL)){
+                                try {
+                                    String urlForThisAPP = destiny.replace("intent", "shaftintent");
+                                    Common.showLog(className + "destiny new " + urlForThisAPP);
+                                    Intent intent = new Intent(mContext, OutWakeActivity.class);
+                                    intent.setData(Uri.parse(urlForThisAPP));
+                                    startActivity(intent);
+                                    if (!preferPreserve) {
+                                        finish();
+                                    }
+                                    return true;
+                                } catch (Exception e) {
+                                    Common.showToast(e.toString());
+                                    e.printStackTrace();
+                                    return false;
                                 }
                             }
                         } catch (Exception e) {
