@@ -137,16 +137,11 @@ public class Common {
     }
 
     public static void copy(Context context, String s) {
-        copy(context, s, true);
+        ClipBoardUtils.putTextIntoClipboard(context, s, true);
     }
 
     public static void copy(Context context, String s, boolean hasHint) {
-        ClipboardManager cm = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
-        ClipData mClipData = ClipData.newPlainText("Label", s);
-        cm.setPrimaryClip(mClipData);
-        if (hasHint) {
-            showToast(s + context.getString(R.string.has_copyed));
-        }
+        ClipBoardUtils.putTextIntoClipboard(context, s, hasHint);
     }
 
     public static String checkEmpty(String before) {

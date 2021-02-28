@@ -124,10 +124,9 @@ dependencies {
     implementation 'com.qmuiteam:qmui:2.0.0-alpha10'
     implementation 'com.mxn.soul:flowingdrawer-core:2.1.0'
     implementation 'com.ToxicBakery.viewpager.transforms:view-pager-transforms:2.0.24'
-    implementation 'com.hyman:flowlayout-lib:1.1.2'
-    implementation 'android.arch.persistence.room:runtime:1.1.1'
+    implementation 'androidx.room:room-runtime:2.0.0'
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
-    kapt 'android.arch.persistence.room:compiler:1.1.1'
+    kapt 'androidx.room:room-compiler:2.0.0'
     implementation 'jp.wasabeef:recyclerview-animators:4.0.1'
     implementation 'gdut.bsx:share2:0.9.3'
     implementation "com.github.skydoves:transformationlayout:1.0.4"
@@ -156,7 +155,8 @@ dependencies {
     implementation 'xyz.zpayh:hdimageview:3.0.1'
 
     implementation project(path: ':models')
-    implementation project(path: ':progress')
+    implementation project(path: ':progressmanager')
+    implementation project(path: ':flowlayout-lib')
     implementation 'com.waynejo:androidndkgif:0.3.3'
     implementation 'com.tencent:mmkv-static:1.2.6'
     implementation 'com.github.tbruyelle:rxpermissions:0.12'

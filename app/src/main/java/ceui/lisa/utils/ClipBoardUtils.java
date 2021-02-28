@@ -14,10 +14,16 @@ import ceui.lisa.R;
 public class ClipBoardUtils {
 
     public static void putTextIntoClipboard(Context context, String text) {
+        putTextIntoClipboard(context, text, true);
+    }
+
+    public static void putTextIntoClipboard(Context context, String text, boolean showHint) {
         ClipboardManager clipboardManager = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clipData = ClipData.newPlainText("copy text", text);
         clipboardManager.setPrimaryClip(clipData);
-        Common.showToast(text + context.getString(R.string.has_copyed));
+        if(showHint){
+            Common.showToast(text + context.getString(R.string.has_copyed));
+        }
     }
 
     public static String getClipboardContent(Context context) {
