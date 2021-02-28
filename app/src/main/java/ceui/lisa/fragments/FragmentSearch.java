@@ -61,6 +61,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
 
     private ObservableEmitter<String> fuck = null;
     private int searchType = SearchTypeUtil.defaultSearchType;
+    private boolean hasSwitchSearchType = false;
 
     @Override
     public void initLayout() {
@@ -174,6 +175,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                                 if (searchType != which) {
                                     baseBind.inputBox.setHint(SEARCH_TYPE[which]);
                                     searchType = which;
+                                    hasSwitchSearchType = true;
                                 }
                                 dialog.dismiss();
                             }
@@ -395,12 +397,15 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
     }
 
     private void predictSearchType(){
+        // 当前搜索过程，手动切换后不再根据剪贴板内容预测
+        if(hasSwitchSearchType){
+            return;
+        }
         mActivity.getWindow().getDecorView().post(new Runnable() {
             @Override
             public void run() {
                 String content = ClipBoardUtils.getClipboardContent(mContext);
-                int suggestSearchType = SearchTypeUtil.getSuggestSearchType(content);
-                searchType = suggestSearchType;
+                searchType = SearchTypeUtil.getSuggestSearchType(content);
                 baseBind.inputBox.setHint(SearchTypeUtil.SEARCH_TYPE_NAME[searchType]);
             }
         });
