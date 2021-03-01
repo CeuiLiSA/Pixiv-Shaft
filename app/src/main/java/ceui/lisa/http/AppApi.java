@@ -448,4 +448,17 @@ public interface AppApi {
 
     @GET("web/v1/login?code_challenge_method=S256&client=pixiv-android")
     Observable<String> tryLogin(@Query("code_challenge") String code_challenge);
+
+    // 添加小说书签 相同id只能有1个 不同页数会直接覆盖
+    @FormUrlEncoded
+    @POST("v1/novel/marker/add")
+    Observable<NullResponse> postAddNovelMarker(@Header("Authorization") String token,
+                                           @Field("novel_id") int novel_id,
+                                           @Field("page") int page);
+
+    // 删除小说书签
+    @FormUrlEncoded
+    @POST("v1/novel/marker/delete")
+    Observable<NullResponse> postDeleteNovelMarker(@Header("Authorization") String token,
+                                                @Field("novel_id") int novel_id);
 }

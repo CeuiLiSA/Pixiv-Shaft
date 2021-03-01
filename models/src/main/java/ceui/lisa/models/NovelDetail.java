@@ -1,6 +1,7 @@
 package ceui.lisa.models;
 
 import java.io.Serializable;
+import java.util.List;
 
 public class NovelDetail implements Serializable {
 
@@ -22,6 +23,7 @@ public class NovelDetail implements Serializable {
     private String novel_text;
     private NovelBean series_prev;
     private NovelBean series_next;
+    private List<NovelChapterBean> parsedChapters = null;
 
     public NovelMarkerBean getNovel_marker() {
         return novel_marker;
@@ -55,6 +57,53 @@ public class NovelDetail implements Serializable {
         this.series_next = series_next;
     }
 
+    public List<NovelChapterBean> getParsedChapters() {
+        return parsedChapters;
+    }
+
+    public void setParsedChapters(List<NovelChapterBean> parsedChapters) {
+        this.parsedChapters = parsedChapters;
+    }
+
     public static class NovelMarkerBean implements Serializable {
+        private int page = 0;
+
+        public int getPage() {
+            return page;
+        }
+
+        public void setPage(int page) {
+            this.page = page;
+        }
+    }
+
+    public static class NovelChapterBean {
+        private int chapterIndex; // 1 based value
+        private String chapterName;
+        private String chapterContent;
+
+        public int getChapterIndex() {
+            return chapterIndex;
+        }
+
+        public void setChapterIndex(int chapterIndex) {
+            this.chapterIndex = chapterIndex;
+        }
+
+        public String getChapterName() {
+            return chapterName;
+        }
+
+        public void setChapterName(String chapterName) {
+            this.chapterName = chapterName;
+        }
+
+        public String getChapterContent() {
+            return chapterContent;
+        }
+
+        public void setChapterContent(String chapterContent) {
+            this.chapterContent = chapterContent;
+        }
     }
 }
