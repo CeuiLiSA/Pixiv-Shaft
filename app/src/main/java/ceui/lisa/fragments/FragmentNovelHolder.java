@@ -217,6 +217,13 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                         }
                     });
         }
+
+        baseBind.toolbar.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                return baseBind.awesomeCardCon.dispatchTouchEvent(event);
+            }
+        });
     }
 
     private void refreshDetail(NovelDetail novelDetail) {
@@ -235,8 +242,9 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                 if (isOpen) {
                     baseBind.transformationLayout.finishTransform();
                     isOpen = false;
+                    return true;
                 }
-                return false;
+                return baseBind.viewPager.dispatchTouchEvent(event);
             }
         });
 
