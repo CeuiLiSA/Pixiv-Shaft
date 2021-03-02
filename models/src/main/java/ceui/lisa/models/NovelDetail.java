@@ -77,7 +77,7 @@ public class NovelDetail implements Serializable {
         }
     }
 
-    public static class NovelChapterBean {
+    public static class NovelChapterBean implements Serializable {
         private int chapterIndex; // 1 based value
         private String chapterName;
         private String chapterContent;

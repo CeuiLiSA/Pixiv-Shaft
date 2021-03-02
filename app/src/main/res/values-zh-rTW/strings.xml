@@ -536,7 +536,9 @@
   <string name="string_367">啟用Firebase資訊蒐集</string>  
   <string name="string_368">第%d頁已加入書籤</string>  
   <string name="string_369">已刪除書籤</string>  
-  <string name="string_370">個性化</string>
-  <string name="string_371">我的收藏不顯示收藏按鈕</string>
-  <string name="string_372">按標籤收藏默認全選標籤</string>
+  <string name="string_370">個性化</string>  
+  <string name="string_371">我的收藏不顯示收藏按鈕</string>  
+  <string name="string_372">按標籤收藏默認全選標籤</string>  
+  <string name="string_373">小說本地保存路徑</string>
+  <string name="string_374">小說暫時不支持自定義資料夾</string>
 </resources>

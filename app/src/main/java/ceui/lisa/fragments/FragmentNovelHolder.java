@@ -220,7 +220,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
     }
 
     private void refreshDetail(NovelDetail novelDetail) {
-        if (Dev.isDev) {
+        if (Dev.isDev && false) {
             Intent intent = new Intent(mContext, NovelActivity.class);
             intent.putExtra(Params.NOVEL_DETAIL, novelDetail);
             startActivity(intent);
@@ -310,6 +310,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
         baseBind.saveNovelTxt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                //需要下载txt文件
                 IllustDownload.downloadNovel((BaseActivity<?>) mContext, FileCreator.deleteSpecialWords(
                         mNovelBean.getTitle() + "_" + mNovelBean.getId() + "_novel_tasks.txt"
                 ), novelDetail.getNovel_text(), new Callback<Uri>() {
@@ -348,6 +349,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                     baseBind.transformationLayout.finishTransform();
                     return true;
                 } else if (item.getItemId() == R.id.action_txt) {
+                    //需要下载txt文件
                     IllustDownload.downloadNovel((BaseActivity<?>) mContext, FileCreator.deleteSpecialWords(
                             mNovelBean.getTitle() + "_" + mNovelBean.getId() + "_novel_tasks.txt"
                     ), novelDetail.getNovel_text(), new Callback<Uri>() {
@@ -358,6 +360,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                     });
                     return true;
                 } else if (item.getItemId() == R.id.action_txt_and_share) {
+                    //不需要下载txt文件
                     IllustDownload.downloadNovel((BaseActivity<?>) mActivity,
                             FileCreator.deleteSpecialWords(mNovelBean.getTitle() + "_" +
                                     mNovelBean.getId() + "_novel_tasks.txt"),

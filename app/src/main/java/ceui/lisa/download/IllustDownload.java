@@ -26,6 +26,7 @@ import ceui.lisa.core.DownloadItem;
 import ceui.lisa.core.Manager;
 import ceui.lisa.feature.HostManager;
 import ceui.lisa.file.LegacyFile;
+import ceui.lisa.file.OutPut;
 import ceui.lisa.file.SAFile;
 import ceui.lisa.helper.SAFactory;
 import ceui.lisa.interfaces.Callback;
@@ -153,6 +154,8 @@ public class IllustDownload {
                     OutputStream outStream = new FileOutputStream(textFile);
                     outStream.write(content.getBytes());
                     outStream.close();
+                    Common.showLog("downloadNovel displayName " + displayName);
+                    OutPut.outPutNovel(activity, textFile, displayName);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

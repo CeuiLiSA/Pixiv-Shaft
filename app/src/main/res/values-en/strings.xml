@@ -536,7 +536,9 @@
   <string name="string_367">Enable firebase information gathering</string>  
   <string name="string_369">Bookmark deleted</string>  
   <string name="string_368">Bookmark added on page %d</string>  
-  <string name="string_370">individualization</string>
-  <string name="string_371">My favorite doesnt show the favorite button</string>
-  <string name="string_372">Select all by label by default</string>
+  <string name="string_370">individualization</string>  
+  <string name="string_371">My favorite doesnt show the favorite button</string>  
+  <string name="string_372">Select all by label by default</string>  
+  <string name="string_373">Local preservation of Novels</string>
+  <string name="string_374">Custom folders are not supported for novels at this time</string>
 </resources>

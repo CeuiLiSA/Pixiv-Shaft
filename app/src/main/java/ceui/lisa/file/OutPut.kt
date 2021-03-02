@@ -19,6 +19,7 @@ import java.io.OutputStream
 object OutPut {
 
     private val relativePath: String = Environment.DIRECTORY_PICTURES + "/ShaftImages"
+    private val relativeNovelPath: String = Environment.DIRECTORY_DOWNLOADS + "/ShaftNovels"
 
     @JvmStatic
     fun outPutGif(context: Context, from: File, illust: IllustsBean) {
@@ -73,6 +74,56 @@ object OutPut {
             val gifResult = File(parentFile, from.name)
             FileUtils.copy(from, gifResult)
             Common.showToast("GIF保存成功")
+        }
+    }
+
+    @JvmStatic
+    fun outPutNovel(context: Context, from: File, fileName: String) {
+        if (Common.isAndroidQ()) {
+            var uri = MediaStore.Downloads.EXTERNAL_CONTENT_URI.query(context, fileName, relativeNovelPath)
+            if (uri != null) {
+                val outputStream: OutputStream = context.contentResolver.openOutputStream(uri, "rwt")!!
+                outputStream.write(ByteArray(0))
+                outputStream.flush()
+                outputStream.close()
+            } else {
+                uri = ContentValues().run {
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, relativeNovelPath) // 下载到指定目录
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, fileName) // 文件名
+                    // 取contentType响应头作为文件类型
+                    put(MediaStore.MediaColumns.MIME_TYPE, "text/plain")
+                    context.contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, this)
+                    // 当相同路径下的文件，在文件管理器中被手动删除时，就会插入失败
+                }
+            }
+
+            try {
+                val bis = BufferedInputStream(FileInputStream(from))
+                if (uri != null) {
+                    val outputStream: OutputStream = context.contentResolver.openOutputStream(uri)!!
+                    val bos = BufferedOutputStream(outputStream)
+                    val buffer = ByteArray(1024)
+                    var bytes = bis.read(buffer)
+                    while (bytes >= 0) {
+                        bos.write(buffer, 0, bytes)
+                        bos.flush()
+                        bytes = bis.read(buffer)
+                    }
+                    bos.close()
+                }
+                bis.close()
+                Common.showToast("小说文件保存成功")
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        } else {
+            val parentFile = File(Settings.FILE_PATH_NOVEL)
+            if (!parentFile.exists()) {
+                parentFile.mkdir()
+            }
+            val gifResult = File(parentFile, fileName)
+            FileUtils.copy(from, gifResult)
+            Common.showToast("小说文件保存成功")
         }
     }
 }

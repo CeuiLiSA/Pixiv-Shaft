@@ -14,6 +14,7 @@ public class Settings {
 
     //只包含1P图片的下载路径
     public static final String FILE_PATH_SINGLE = PathUtils.getExternalPicturesPath() + "/ShaftImages";
+    public static final String FILE_PATH_NOVEL = PathUtils.getExternalDownloadsPath() + "/ShaftNovels";
     public static final String FILE_PATH_SINGLE_R18 = PathUtils.getExternalPicturesPath() + "/ShaftImages-R18";
 
     //下载的GIF 压缩包存放在这里

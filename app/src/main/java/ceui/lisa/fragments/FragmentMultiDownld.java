@@ -87,6 +87,7 @@ public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownload
                     if (TextUtils.isEmpty(result)) {
                         Common.showToast("没有选择任何作品");
                     } else {
+                        //不需要下载txt文件
                         IllustDownload.downloadNovel((BaseActivity<?>) mContext,
                                 System.currentTimeMillis() + "_download_tasks.txt", result,
                                 new Callback<Uri>() {

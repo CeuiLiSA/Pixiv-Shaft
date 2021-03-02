@@ -536,7 +536,9 @@
   <string name="string_367">Включить коллекцию информации Firebase</string>  
   <string name="string_368">Закладка добавлена ​​на страницу %d</string>  
   <string name="string_369">Закладка удалена</string>  
-  <string name="string_370">индивидуализация</string>
-  <string name="string_371">кнопка коллекции не отображается</string>
-  <string name="string_372">По умолчанию для коллекции вкладок</string>
+  <string name="string_370">индивидуализация</string>  
+  <string name="string_371">кнопка коллекции не отображается</string>  
+  <string name="string_372">По умолчанию для коллекции вкладок</string>  
+  <string name="string_373">путь к локальному сохранению романа</string>
+  <string name="string_374">файл временно не поддерживает пользовательскую папку</string>
 </resources>

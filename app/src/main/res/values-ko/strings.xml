@@ -536,7 +536,9 @@
   <string name="string_367">Firebase 정보 수집 사용 하기</string>  
   <string name="string_369">북마크가 삭제되었습니다</string>  
   <string name="string_368">%d 페이지에 추가 된 북마크</string>  
-  <string name="string_370">개성 화</string>
-  <string name="string_371">내 저장 소 에는 저장 버튼 이 표시 되 지 않 습 니 다.</string>
-  <string name="string_372">태그 에 따라 모든 태그 선택</string>
+  <string name="string_370">개성 화</string>  
+  <string name="string_371">내 저장 소 에는 저장 버튼 이 표시 되 지 않 습 니 다.</string>  
+  <string name="string_372">태그 에 따라 모든 태그 선택</string>  
+  <string name="string_373">소설 로 컬 보존 경로</string>
+  <string name="string_374">소설 은 사용자 정의 폴 더 를 잠시 지원 하지 않 습 니 다.</string>
 </resources>

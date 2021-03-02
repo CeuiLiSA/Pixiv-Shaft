@@ -39,6 +39,7 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivSearchParamUtil;
+import ceui.lisa.utils.Settings;
 
 import static android.provider.DocumentsContract.EXTRA_INITIAL_URI;
 import static ceui.lisa.utils.Settings.ALL_LANGUAGE;
@@ -397,6 +398,14 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                     }
                     mActivity.startActivityForResult(intent, BaseActivity.ASK_URI);
                 }
+            }
+        });
+
+        baseBind.novelPath.setText(Settings.FILE_PATH_NOVEL);
+        baseBind.novelPathRela.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Common.showToast(getString(R.string.string_374), true);
             }
         });
 

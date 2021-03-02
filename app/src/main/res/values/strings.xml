@@ -512,7 +512,7 @@
     <string name="string_326">开始</string>
     <string name="string_327">暂停</string>
     <string name="string_328">清空任务</string>
-    <string name="string_329">暂时不支持自定义文件夹</string>
+    <string name="string_329">传统模式暂时不支持自定义文件夹</string>
     <string name="string_330">暂未设置</string>
     <string name="string_331">使用PixivCat代理</string>
     <string name="string_332">详情/二级详情页面显示原图</string>
@@ -560,5 +560,7 @@
     <string name="string_370">个性化</string>
     <string name="string_371">我的收藏不显示收藏按钮</string>
     <string name="string_372">按标签收藏默认全选标签</string>
+    <string name="string_373">小说本地保存路径</string>
+    <string name="string_374">小说暂时不支持自定义文件夹</string>
 
 </resources>
