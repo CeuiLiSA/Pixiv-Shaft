@@ -10,6 +10,7 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.databinding.DataBindingUtil;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource;
@@ -23,6 +24,7 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.RecyIllustDetailBinding;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.feature.HostManager;
+import ceui.lisa.interfaces.FeedBack;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.transformer.LargeBitmapScaleTransformer;
 import ceui.lisa.transformer.UniformScaleTransformation;
@@ -36,6 +38,7 @@ import me.jessyan.progressmanager.body.ProgressInfo;
 public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDetailBinding>> {
 
     private int maxHeight;
+    private FeedBack mFeedBack;
 
     public IllustAdapter(Context context, IllustsBean illustsBean, int maxHeight) {
         this(context, illustsBean, maxHeight, false);
@@ -161,9 +164,16 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                         if (isForceOriginal) {
                             Shaft.getMMKV().encode(imageUrl, true);
                         }
+                        if (allIllust.getPage_count() != 1 && mFeedBack != null) {
+                            mFeedBack.doSomething();
+                        }
                         return false;
                     }
                 })
                 .into(new UniformScaleTransformation(holder.baseBind.illust, changeSize));
+    }
+
+    public void setFeedBack(FeedBack feedBack) {
+        mFeedBack = feedBack;
     }
 }

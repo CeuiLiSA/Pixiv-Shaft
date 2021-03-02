@@ -46,6 +46,7 @@ import ceui.lisa.dialogs.MuteDialog;
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.file.SAFile;
+import ceui.lisa.interfaces.FeedBack;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.notification.BaseReceiver;
@@ -243,8 +244,32 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 baseBind.recyclerView.setLayoutManager(new LinearLayoutManager(mContext));
 
                 recyHeight = baseBind.recyclerView.getHeight() - bottomCardHeight + DensityUtil.dp2px(16.0f);
-                baseBind.recyclerView.setAdapter(new IllustAdapter(mContext, illust, recyHeight));
+                IllustAdapter adapter = new IllustAdapter(mContext, illust, recyHeight);
+                //设置图片加载成功的回调
+                adapter.setFeedBack(new FeedBack() {
+                    @Override
+                    public void doSomething() {
+                        try {
+                            if (baseBind != null && baseBind.recyclerView != null) {
+                                synchronized (this) {
+                                    int contentHeight = 0;
+                                    //可能图片加载成功的时候这个页面已经退出了
+                                    for (int i = 0; i < baseBind.recyclerView.getChildCount(); i++) {
+                                        View view = baseBind.recyclerView.getChildAt(i);
+                                        contentHeight += view.getHeight();
+                                    }
 
+
+                                    Common.showLog("recyclerView 00 " + contentHeight);
+                                    Common.showLog("recyclerView 11 " + recyHeight);
+                                }
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+                baseBind.recyclerView.setAdapter(adapter);
                 baseBind.coreLinear.getViewTreeObserver().removeOnGlobalLayoutListener(this);
             }
         });
@@ -459,10 +484,15 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
         if (mReceiver != null) {
             LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mReceiver);
         }
-        if (baseBind.recyclerView != null) {
+        super.onDestroy();
+    }
+
+    @Override
+    public void onDestroyView() {
+        if (baseBind != null && baseBind.recyclerView != null) {
             baseBind.recyclerView.setAdapter(null);
         }
-        super.onDestroy();
+        super.onDestroyView();
     }
 
     @Override

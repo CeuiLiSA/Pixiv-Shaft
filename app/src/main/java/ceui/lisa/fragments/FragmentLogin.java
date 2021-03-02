@@ -134,24 +134,16 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
             public void onClick(View v) {
                 openProxyHint(() -> {
                     String url = LOGIN_HEAD + HostManager.get().getPkce().getChallenge() + LOGIN_END;
-                    if (DeviceUtils.isTablet()) {
-                        Uri uri = Uri.parse(url);
-                        Intent intent = new Intent();
-                        intent.setAction(Intent.ACTION_VIEW);
-                        intent.setData(uri);
-                        startActivity(intent);
-                    } else {
-                        if (Shaft.sSettings.isAutoFuckChina()) {
-                            WeissUtil.start();
-                            WeissUtil.proxy();
-                        }
-                        Intent intent = new Intent(mContext, TemplateActivity.class);
-                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
-                        intent.putExtra(Params.URL, url);
-                        intent.putExtra(Params.TITLE, getString(R.string.now_login));
-                        intent.putExtra(Params.PREFER_PRESERVE, true);
-                        startActivity(intent);
+                    if (Shaft.sSettings.isAutoFuckChina()) {
+                        WeissUtil.start();
+                        WeissUtil.proxy();
                     }
+                    Intent intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
+                    intent.putExtra(Params.URL, url);
+                    intent.putExtra(Params.TITLE, getString(R.string.now_login));
+                    intent.putExtra(Params.PREFER_PRESERVE, true);
+                    startActivity(intent);
                 });
             }
         });
@@ -161,24 +153,16 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
             public void onClick(View v) {
                 openProxyHint(() -> {
                     String url = SIGN_HEAD + HostManager.get().getPkce().getChallenge() + SIGN_END;
-                    if (DeviceUtils.isTablet()) {
-                        Uri uri = Uri.parse(url);
-                        Intent intent = new Intent();
-                        intent.setAction(Intent.ACTION_VIEW);
-                        intent.setData(uri);
-                        startActivity(intent);
-                    } else {
-                        if (Shaft.sSettings.isAutoFuckChina()) {
-                            WeissUtil.start();
-                            WeissUtil.proxy();
-                        }
-                        Intent intent = new Intent(mContext, TemplateActivity.class);
-                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
-                        intent.putExtra(Params.URL, url);
-                        intent.putExtra(Params.TITLE, getString(R.string.now_sign));
-                        intent.putExtra(Params.PREFER_PRESERVE, true);
-                        startActivity(intent);
+                    if (Shaft.sSettings.isAutoFuckChina()) {
+                        WeissUtil.start();
+                        WeissUtil.proxy();
                     }
+                    Intent intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
+                    intent.putExtra(Params.URL, url);
+                    intent.putExtra(Params.TITLE, getString(R.string.now_sign));
+                    intent.putExtra(Params.PREFER_PRESERVE, true);
+                    startActivity(intent);
                 });
             }
         });
