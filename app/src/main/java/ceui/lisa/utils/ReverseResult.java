@@ -42,13 +42,13 @@ public class ReverseResult implements Parcelable {
             url = response.raw().request().url().toString();
             mime = response.headers().get("Content-Type");
             encoding = response.headers().get("Transfer-Encoding");
-            responseBody = (response.body().string());
+            if (response.body() != null) {
+                responseBody = response.body().string();
+            }
             history_url = response.raw().request().url().host();
-
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     public int describeContents() {

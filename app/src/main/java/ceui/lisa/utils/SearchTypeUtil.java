@@ -29,24 +29,27 @@ public class SearchTypeUtil {
 
 
     public static int getSuggestSearchType(String content){
-        if(TextUtils.isEmpty(content)){
-            return defaultSearchType;
-        }
-
-        if(WEB_URL_PATTERN.matcher(content).matches()){
-            return 5;
-        }
-
-        Matcher matcher = NUMBERIC_PATTERN.matcher(content);
-        if(matcher.find()){
-            int number = Integer.parseInt(matcher.group(1));
-            if(number > 10000000){
-                return 1;
-            }else{
-                return 3;
+        try {
+            if(TextUtils.isEmpty(content)){
+                return defaultSearchType;
             }
-        }
 
+            if(WEB_URL_PATTERN.matcher(content).matches()){
+                return 5;
+            }
+
+            Matcher matcher = NUMBERIC_PATTERN.matcher(content);
+            if(matcher.find()){
+                long number = Long.parseLong(matcher.group(1));
+                if(number > 10000000L){
+                    return 1;
+                }else{
+                    return 3;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return defaultSearchType;
     }
 }

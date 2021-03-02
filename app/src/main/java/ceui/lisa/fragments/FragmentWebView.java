@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Bundle;
 
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
@@ -127,9 +128,6 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
     public void initView() {
         baseBind.toolbarTitle.setText(title);
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
-        baseBind.ibMenu.setOnClickListener(v -> {
-            mActivity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(mWebView.getUrl())));
-        });
     }
 
     @Override
@@ -210,7 +208,12 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
 
         if (response == null) {
             mAgentWeb = ready.go(url);
+            baseBind.ibMenu.setVisibility(View.VISIBLE);
+            baseBind.ibMenu.setOnClickListener(v -> {
+                mActivity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(mWebView.getUrl())));
+            });
         } else {
+            baseBind.ibMenu.setVisibility(View.GONE);
             mAgentWeb = ready.get();
             mAgentWeb.getUrlLoader().loadDataWithBaseURL(url, response, mime, encoding, historyUrl);
         }
