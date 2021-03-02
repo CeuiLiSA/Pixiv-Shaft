@@ -534,4 +534,6 @@
   <string name="string_365">파일 을 만 드 는 데 실 패 했 습 니 다. 권한 을 수 여 받 은 다운로드 디 렉 터 리 가 존재 하지 않 습 니 다.</string>  
   <string name="string_366">다시 권한 을 부여 한다</string>  
   <string name="string_367">Firebase 정보 수집 사용 하기</string>
+  <string name="string_369">북마크가 삭제되었습니다</string>
+  <string name="string_368">%d 페이지에 추가 된 북마크</string>
 </resources>

@@ -555,5 +555,7 @@
     <string name="string_365">创建文件失败，已授权的下载目录不存在</string>
     <string name="string_366">重新授权</string>
     <string name="string_367">启用Firebase信息搜集</string>
+    <string name="string_368">第%d页已加入书签</string>
+    <string name="string_369">已删除书签</string>
 
 </resources>

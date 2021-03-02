@@ -16,7 +16,7 @@ public class SearchTypeUtil {
     public static final int defaultSearchType = 0;
 
     private static final Pattern WEB_URL_PATTERN = Patterns.WEB_URL;
-    private static final Pattern NUMBERIC_PATTERN = Pattern.compile("^\\D*(\\d{4,10})\\D*$");
+    private static final Pattern NUMBERIC_PATTERN = Pattern.compile("(?:\\b|\\D)([1-9]\\d{3,9})(?:\\b|\\D)");
 
     public static String[] SEARCH_TYPE_NAME = new String[]{
             resources.getString(R.string.string_149),
@@ -38,7 +38,7 @@ public class SearchTypeUtil {
         }
 
         Matcher matcher = NUMBERIC_PATTERN.matcher(content);
-        if(matcher.matches()){
+        if(matcher.find()){
             int number = Integer.parseInt(matcher.group(1));
             if(number > 10000000){
                 return 1;

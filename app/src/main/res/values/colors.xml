@@ -106,6 +106,8 @@
     <color name="pixivision_logo_2">#221714</color>
     <color name="delivery_header_cloud">#ECEFF1</color>
     <color name="glare_unselected_text">#7b7b7b</color>
+    <color name="novel_marker_add">#ff445b</color>
+    <color name="novel_marker_none">#eaeaea</color>
 
 </resources>
 

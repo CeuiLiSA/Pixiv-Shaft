@@ -524,7 +524,7 @@
   <string name="string_357">已設定為不生效</string>  
   <string name="string_358">顯示密碼</string>  
   <string name="string_355_2">複製作品連結</string>  
-  <string name="string_r">右</string>  
+  <string name="string_r">R</string>
   <string name="string_359">APP主頁顯示R頁面</string>  
   <string name="string_360">由於科技限制，中國大陸地區用戶進行登入/注册操作需要自行開啟代理（即梯子，非APP內寘代理）</string>  
   <string name="string_361">我開了</string>  
@@ -534,4 +534,6 @@
   <string name="string_365">創建檔案失敗，已授權的下載目錄不存在</string>  
   <string name="string_366">重新授權</string>  
   <string name="string_367">啟用Firebase資訊蒐集</string>
+  <string name="string_368">第%d頁已加入書籤</string>
+  <string name="string_369">已刪除書籤</string>
 </resources>

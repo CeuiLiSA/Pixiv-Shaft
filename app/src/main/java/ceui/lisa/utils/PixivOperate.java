@@ -3,12 +3,15 @@ package ceui.lisa.utils;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 
+import androidx.core.widget.ImageViewCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.blankj.utilcode.util.FileUtils;
@@ -49,6 +52,7 @@ import ceui.lisa.models.FramesBean;
 import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.IllustSearchResponse;
 import ceui.lisa.models.NovelBean;
+import ceui.lisa.models.NovelDetail;
 import ceui.lisa.models.NovelSearchResponse;
 import ceui.lisa.models.NullResponse;
 import ceui.lisa.models.TagsBean;
@@ -64,6 +68,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
+import static com.blankj.utilcode.util.ColorUtils.getColor;
 import static com.blankj.utilcode.util.StringUtils.getString;
 
 
@@ -205,7 +210,7 @@ public class PixivOperate {
                             LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
 
                             if(view instanceof Button){
-                                ((Button) view).setText("收藏");
+                                ((Button) view).setText(getString(R.string.string_180));
                             }
                             Common.showToast(getString(R.string.cancel_like_illust));
                         }
@@ -224,7 +229,7 @@ public class PixivOperate {
                             LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
 
                             if(view instanceof Button){
-                                ((Button) view).setText("取消收藏");
+                                ((Button) view).setText(getString(R.string.string_179));
                             }
                             if (Params.TYPE_PUBLUC.equals(starType)) {
                                 Common.showToast(getString(R.string.like_novel_success_public));
@@ -727,5 +732,40 @@ public class PixivOperate {
 
     public static void setBack(Back back) {
         sBack = back;
+    }
+
+    public static void postNovelMarker(NovelDetail.NovelMarkerBean novelMarkerBean, int novelId, int page, View view) {
+        int currentMarkPage = novelMarkerBean.getPage();
+        if (currentMarkPage == 0 || (currentMarkPage > 0 && currentMarkPage != page)) {
+            novelMarkerBean.setPage(page);
+            Retro.getAppApi().postAddNovelMarker(
+                    sUserModel.getAccess_token(), novelId, page)
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new ErrorCtrl<NullResponse>() {
+                        @Override
+                        public void next(NullResponse nullResponse) {
+                            if(view instanceof ImageView){
+                                ImageViewCompat.setImageTintList(((ImageView) view), ColorStateList.valueOf(getColor(R.color.novel_marker_add)));
+                            }
+                            Common.showToast(getString(R.string.string_368, page));
+                        }
+                    });
+        } else {
+            novelMarkerBean.setPage(0);
+            Retro.getAppApi().postDeleteNovelMarker(
+                    sUserModel.getAccess_token(), novelId)
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new ErrorCtrl<NullResponse>() {
+                        @Override
+                        public void next(NullResponse nullResponse) {
+                            if(view instanceof ImageView){
+                                ImageViewCompat.setImageTintList(((ImageView) view), ColorStateList.valueOf(getColor(R.color.novel_marker_none)));
+                            }
+                            Common.showToast(getString(R.string.string_369));
+                        }
+                    });
+        }
     }
 }

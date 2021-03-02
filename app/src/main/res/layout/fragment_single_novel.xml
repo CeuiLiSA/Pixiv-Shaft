@@ -48,8 +48,8 @@
             android:textColor="@color/white_to_gray"
             android:lineSpacingExtra="@dimen/six_dp"
             android:layout_height="wrap_content"
-            android:textIsSelectable="true" />
-
+            android:textIsSelectable="true"
+            android:textColorHighlight="?attr/colorPrimary"/>
 
         <TextView
             android:layout_width="match_parent"
