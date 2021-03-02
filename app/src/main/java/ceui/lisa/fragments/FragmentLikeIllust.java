@@ -94,7 +94,9 @@ public class FragmentLikeIllust extends NetListFragment<FragmentBaseListBinding,
     @Override
     public BaseAdapter<IllustsBean, RecyIllustStaggerBinding> adapter() {
         boolean isOwnPage = Shaft.sUserModel.getUser().getUserId() == userID;
-        return new IAdapterWithStar(allItems, mContext).setHideStarIcon(isOwnPage);
+        return new IAdapterWithStar(allItems, mContext).setHideStarIcon(
+                isOwnPage && Shaft.sSettings.isHideStarButtonAtMyCollection()
+        );
     }
 
     @Override

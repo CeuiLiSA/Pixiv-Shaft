@@ -533,7 +533,10 @@
   <string name="string_364">Saf mode</string>  
   <string name="string_365">Failed to create file. The authorized download directory does not exist</string>  
   <string name="string_366">Reauthorization</string>  
-  <string name="string_367">Enable firebase information gathering</string>
-    <string name="string_369">Bookmark deleted</string>
-  <string name="string_368">Bookmark added on page %d</string>
+  <string name="string_367">Enable firebase information gathering</string>  
+  <string name="string_369">Bookmark deleted</string>  
+  <string name="string_368">Bookmark added on page %d</string>  
+  <string name="string_370">individualization</string>
+  <string name="string_371">My favorite doesnt show the favorite button</string>
+  <string name="string_372">Select all by label by default</string>
 </resources>

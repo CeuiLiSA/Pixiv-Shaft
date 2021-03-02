@@ -151,6 +151,14 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
     }
 
     @Override
+    public void beforeFirstLoad(List<TagsBean> tagsBeans) {
+        super.beforeFirstLoad(tagsBeans);
+        for (TagsBean tagsBean : tagsBeans) {
+            tagsBean.setSelected(Shaft.sSettings.isStarWithTagSelectAll());
+        }
+    }
+
+    @Override
     public void initToolbar(Toolbar toolbar) {
         super.initToolbar(toolbar);
         toolbar.inflateMenu(R.menu.add_tag);

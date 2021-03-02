@@ -105,6 +105,13 @@ public class Settings {
 
     private boolean r18DivideSave = false;
 
+
+    //在我的收藏列表，隐藏收藏按钮，默认显示
+    private boolean hideStarButtonAtMyCollection = false;
+
+    //按标签收藏时全选标签。默认不全选
+    private boolean starWithTagSelectAll = false;
+
     //单P作品的文件名是否带P0
     private boolean hasP0 = false;
 
@@ -427,5 +434,21 @@ public class Settings {
 
     public void setUseNewUserPage(boolean useNewUserPage) {
         this.useNewUserPage = useNewUserPage;
+    }
+
+    public boolean isHideStarButtonAtMyCollection() {
+        return hideStarButtonAtMyCollection;
+    }
+
+    public void setHideStarButtonAtMyCollection(boolean hideStarButtonAtMyCollection) {
+        this.hideStarButtonAtMyCollection = hideStarButtonAtMyCollection;
+    }
+
+    public boolean isStarWithTagSelectAll() {
+        return starWithTagSelectAll;
+    }
+
+    public void setStarWithTagSelectAll(boolean starWithTagSelectAll) {
+        this.starWithTagSelectAll = starWithTagSelectAll;
     }
 }

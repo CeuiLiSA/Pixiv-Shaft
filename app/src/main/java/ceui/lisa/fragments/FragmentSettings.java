@@ -323,6 +323,39 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             }
         });
 
+        baseBind.hideStarBar.setChecked(Shaft.sSettings.isHideStarButtonAtMyCollection());
+        baseBind.hideStarBar.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setHideStarButtonAtMyCollection(isChecked);
+                Common.showToast("设置成功");
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.hideStarBarRela.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                baseBind.hideStarBar.performClick();
+            }
+        });
+
+
+        baseBind.selectAllTag.setChecked(Shaft.sSettings.isStarWithTagSelectAll());
+        baseBind.selectAllTag.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setStarWithTagSelectAll(isChecked);
+                Common.showToast("设置成功");
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.selectAllTagRela.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                baseBind.selectAllTag.performClick();
+            }
+        });
+
         //是否显示原图
         baseBind.showOriginalImage.setChecked(Shaft.sSettings.isShowOriginalImage());
         baseBind.showOriginalImage.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {

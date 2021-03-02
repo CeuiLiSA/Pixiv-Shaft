@@ -533,7 +533,10 @@
   <string name="string_364">SAFモード</string>  
   <string name="string_365">ファイルの作成に失敗しました。許可されたダウンロードディレクトリは存在しませんでした。</string>  
   <string name="string_366">再認証</string>  
-  <string name="string_367">Firebase情報収集を有効にする</string>
-    <string name="string_368">%dページにブックマークを追加</string>
-  <string name="string_369">ブックマークが削除されました</string>
+  <string name="string_367">Firebase情報収集を有効にする</string>  
+  <string name="string_368">%dページにブックマークを追加</string>  
+  <string name="string_369">ブックマークが削除されました</string>  
+  <string name="string_370">個性化</string>
+  <string name="string_371">私のコレクションはコレクションボタンを表示しません。</string>
+  <string name="string_372">タグによるデフォルトの全選択ラベルのコレクション</string>
 </resources>
