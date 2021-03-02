@@ -29,6 +29,7 @@ import ceui.lisa.activities.SearchActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UserActivity;
+import ceui.lisa.adapters.IllustAdapter;
 import ceui.lisa.adapters.IllustDetailAdapter;
 import ceui.lisa.databinding.FragmentSingleIllustBinding;
 import ceui.lisa.dialogs.MuteDialog;
@@ -48,6 +49,7 @@ import ceui.lisa.view.ScrollChange;
 import jp.wasabeef.glide.transformations.BlurTransformation;
 import me.next.tagview.TagCloudView;
 
+import static ceui.lisa.utils.ShareIllust.URL_Head;
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 import static com.bumptech.glide.request.RequestOptions.bitmapTransform;
 
@@ -173,6 +175,18 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
                 } else if (menuItem.getItemId() == R.id.action_dislike) {
                     MuteDialog muteDialog = MuteDialog.newInstance(illust);
                     muteDialog.show(getChildFragmentManager(), "MuteDialog");
+                    return true;
+                } else if (menuItem.getItemId() == R.id.action_copy_link) {
+                    String url = URL_Head + illust.getId();
+                    Common.copy(mContext, url);
+                    return true;
+                } else if (menuItem.getItemId() == R.id.action_show_original) {
+//                    baseBind.recyclerView.setAdapter(new IllustAdapter(mContext, illust,
+//                            recyHeight, true));
+                    return true;
+                } else if (menuItem.getItemId() == R.id.action_mute_illust) {
+                    PixivOperate.muteIllust(illust);
+                    return true;
                 }
                 return false;
             }
