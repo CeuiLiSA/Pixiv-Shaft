@@ -40,6 +40,9 @@ import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UserActivity;
+import ceui.lisa.download.FileCreator;
+import ceui.lisa.file.SAFile;
+import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.UserContainer;
 import okhttp3.MediaType;
 import okhttp3.Response;
@@ -299,14 +302,6 @@ public class Common {
     }
 
     /**
-     * 当前主题是否是 Dark Mode
-     */
-    public static boolean isUIModeNight(Context context){
-        return (context.getResources().getConfiguration().uiMode
-                & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
-    }
-
-    /**
      * 移除文件系统保留字符
      */
     public static String removeFSReservedChars(String s){
@@ -314,5 +309,29 @@ public class Common {
             s = s.replace(safeReplacer[i][0], safeReplacer[i][1]);
         }
         return s;
+    }
+
+    /**
+     * 检查插画是否已经下载过
+     * */
+    public static boolean isIllustDownloaded(IllustsBean illust) {
+        //只有1P的作品才检查是否下载过
+        if (illust.getPage_count() == 1) {
+            if (Shaft.sSettings.getDownloadWay() == 1) {
+                String displayName = FileCreator.customFileName(illust, 0);
+                if (SAFile.isFileExists(Shaft.getContext(), displayName)) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                if (FileCreator.isExist(illust, 0)) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }
+        return false;
     }
 }

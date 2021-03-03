@@ -541,4 +541,5 @@
   <string name="string_372">По умолчанию для коллекции вкладок</string>  
   <string name="string_373">путь к локальному сохранению романа</string>
   <string name="string_374">файл временно не поддерживает пользовательскую папку</string>
+    <string name="string_375">100000 Коллекция</string>
 </resources>

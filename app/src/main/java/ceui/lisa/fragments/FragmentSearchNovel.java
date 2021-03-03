@@ -58,7 +58,8 @@ public class FragmentSearchNovel extends NetListFragment<FragmentBaseListBinding
         return new SearchNovelRepo(
                 searchModel.getKeyword().getValue(),
                 searchModel.getSortType().getValue(),
-                searchModel.getSearchType().getValue()
+                searchModel.getSearchType().getValue(),
+                searchModel.getStarSize().getValue()
         );
     }
 

@@ -22,6 +22,7 @@ import ceui.lisa.download.IllustDownload;
 import ceui.lisa.fragments.FragmentImageDetail;
 import ceui.lisa.fragments.FragmentLocalImageDetail;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.utils.Common;
 
 /**
  * 图片二级详情
@@ -67,6 +68,9 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
                 }
             });
             baseBind.viewPager.setCurrentItem(index);
+            if (Common.isIllustDownloaded(mIllustsBean)) {
+                downloadSingle.setVisibility(View.GONE);
+            }
             downloadSingle.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
