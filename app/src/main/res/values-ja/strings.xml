@@ -541,4 +541,5 @@
   <string name="string_372">タグによるデフォルトの全選択ラベルのコレクション</string>  
   <string name="string_373">小説のローカル保存パス</string>
   <string name="string_374">小説はカスタムフォルダをサポートしていません。</string>
+    <string name="string_375">100000人のお気に入り</string>
 </resources>

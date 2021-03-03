@@ -429,22 +429,10 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
     private int recyHeight = 0;
 
     private void checkDownload() {
-        //只有1P的作品才检查是否下载过
-        if (illust.getPage_count() == 1) {
-            if (Shaft.sSettings.getDownloadWay() == 1) {
-                String displayName = FileCreator.customFileName(illust, 0);
-                if (SAFile.isFileExists(mContext, displayName)) {
-                    baseBind.download.setText(R.string.string_337);
-                } else {
-                    baseBind.download.setText(R.string.string_72);
-                }
-            } else {
-                if (FileCreator.isExist(illust, 0)) {
-                    baseBind.download.setText(R.string.string_337);
-                } else {
-                    baseBind.download.setText(R.string.string_72);
-                }
-            }
+        if(Common.isIllustDownloaded(illust)){
+            baseBind.download.setText(R.string.string_337);
+        }else{
+            baseBind.download.setText(R.string.string_72);
         }
     }
 

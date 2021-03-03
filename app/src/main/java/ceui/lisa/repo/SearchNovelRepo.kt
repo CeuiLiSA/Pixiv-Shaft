@@ -1,5 +1,6 @@
 package ceui.lisa.repo
 
+import android.text.TextUtils
 import ceui.lisa.core.RemoteRepo
 import ceui.lisa.http.Retro
 import ceui.lisa.model.ListNovel
@@ -9,11 +10,17 @@ import io.reactivex.Observable
 class SearchNovelRepo(
     var keyword: String?,
     var sortType: String?,
-    var searchType: String?
+    var searchType: String?,
+    var starSize: String?
 ) : RemoteRepo<ListNovel>() {
 
     override fun initApi(): Observable<ListNovel> {
-        return Retro.getAppApi().searchNovel(token(), keyword, sortType, searchType)
+        return Retro.getAppApi().searchNovel(
+            token(),
+            keyword + if (TextUtils.isEmpty(starSize)) "" else " $starSize",
+            sortType,
+            searchType
+        )
     }
 
     override fun initNextApi(): Observable<ListNovel> {
@@ -24,5 +31,6 @@ class SearchNovelRepo(
         keyword = searchModel.keyword.value
         sortType = searchModel.sortType.value
         searchType = searchModel.searchType.value
+        starSize = searchModel.starSize.value
     }
 }
