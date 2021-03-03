@@ -99,11 +99,12 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                                                 Intent intent = new Intent(Params.FRAGMENT_ADD_DATA);
                                                 intent.putExtra(Params.CONTENT, listIllust);
                                                 LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
-                                                Container.get().addLoadingUrl(nextUrl, true);
 
                                                 pageData.getList().addAll(listIllust.getList());
                                                 pageData.setNextUrl(listIllust.getNextUrl());
-                                                baseBind.viewPager.getAdapter().notifyDataSetChanged();
+                                                if (baseBind.viewPager.getAdapter() != null) {
+                                                    baseBind.viewPager.getAdapter().notifyDataSetChanged();
+                                                }
                                             }
 
                                             @Override
@@ -115,7 +116,6 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                                             @Override
                                             public void subscribe(Disposable d) {
                                                 super.subscribe(d);
-                                                Container.get().addLoadingUrl(nextUrl, false);
                                                 Container.get().setNetworking(true);
                                             }
                                         });
@@ -155,6 +155,10 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
     @Override
     protected void onDestroy() {
         PixivOperate.setBack(null);
+        //通知外界列表，滚动到正确的位置
+        Intent intent = new Intent(Params.FRAGMENT_SCROLL_TO_POSITION);
+        intent.putExtra(Params.INDEX, baseBind.viewPager.getCurrentItem());
+        LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
         super.onDestroy();
     }
 

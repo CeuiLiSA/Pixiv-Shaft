@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -49,7 +50,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
 
     protected RemoteRepo<Response> mRemoteRepo;
     protected Response mResponse;
-    protected BroadcastReceiver mReceiver = null, dataReceiver = null;
+    protected BroadcastReceiver mReceiver = null, dataReceiver = null, scrollReceiver = null;
     protected String uuid;
 
     @Override
@@ -192,46 +193,8 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                 LocalBroadcastManager.getInstance(mContext).registerReceiver(mReceiver, intentFilter);
             }
             if (mAdapter instanceof IAdapter) {
-                IntentFilter intentFilter = new IntentFilter();
-                dataReceiver = new CallBackReceiver(new BaseReceiver.CallBack() {
-                    @Override
-                    public void onReceive(Context context, Intent intent) {
-                        Bundle bundle = intent.getExtras();
-                        if (bundle != null) {
-                            //接受VActivity传过来的ListIllust 数据
-                            PageData pageData = Container.get().getPage(uuid);
-                            if (pageData != null) {
-                                if (TextUtils.equals(pageData.getUUID(), uuid)) {
-                                    ListIllust listIllust = (ListIllust) bundle.getSerializable(Params.CONTENT);
-                                    if (listIllust != null){
-                                        if (!Common.isEmpty(listIllust.getList())) {
-                                            if (!isAdded()) {
-                                                return;
-                                            }
-                                            mResponse = (Response) listIllust;
-                                            if (!Common.isEmpty(mResponse.getList())) {
-                                                beforeNextLoad(mResponse.getList());
-                                                mModel.load(mResponse.getList(), false);
-                                                allItems = mModel.getContent();
-                                                onNextLoaded(mResponse.getList());
-                                                mAdapter.notifyItemRangeInserted(getStartSize(), mResponse.getList().size());
-                                            }
-                                            mRemoteRepo.setNextUrl(mResponse.getNextUrl());
-                                            mAdapter.setNextUrl(mResponse.getNextUrl());
-                                            if (!TextUtils.isEmpty(mResponse.getNextUrl())) {
-                                                mRefreshLayout.setRefreshFooter(new ClassicsFooter(mContext));
-                                            } else {
-                                                mRefreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
-                intentFilter.addAction(Params.FRAGMENT_ADD_DATA);
-                LocalBroadcastManager.getInstance(mContext).registerReceiver(dataReceiver, intentFilter);
+                addPageLoadReceiver();
+                addPageScrollReceiver();
             }
         } else if (mAdapter instanceof UAdapter || mAdapter instanceof SimpleUserAdapter) {
             IntentFilter intentFilter = new IntentFilter();
@@ -255,5 +218,74 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
         if (dataReceiver != null) {
             LocalBroadcastManager.getInstance(mContext).unregisterReceiver(dataReceiver);
         }
+        if (scrollReceiver != null) {
+            LocalBroadcastManager.getInstance(mContext).unregisterReceiver(scrollReceiver);
+        }
+    }
+
+    private void addPageLoadReceiver() {
+        IntentFilter intentFilter = new IntentFilter();
+        dataReceiver = new CallBackReceiver(new BaseReceiver.CallBack() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Bundle bundle = intent.getExtras();
+                if (bundle != null) {
+                    //接受VActivity传过来的ListIllust 数据
+                    PageData pageData = Container.get().getPage(uuid);
+                    if (pageData != null) {
+                        if (TextUtils.equals(pageData.getUUID(), uuid)) {
+                            ListIllust listIllust = (ListIllust) bundle.getSerializable(Params.CONTENT);
+                            if (listIllust != null){
+                                if (!Common.isEmpty(listIllust.getList())) {
+                                    if (!isAdded()) {
+                                        return;
+                                    }
+                                    mResponse = (Response) listIllust;
+                                    if (!Common.isEmpty(mResponse.getList())) {
+                                        beforeNextLoad(mResponse.getList());
+                                        mModel.load(mResponse.getList(), false);
+                                        allItems = mModel.getContent();
+                                        onNextLoaded(mResponse.getList());
+                                        mAdapter.notifyItemRangeInserted(getStartSize(), mResponse.getList().size());
+                                    }
+                                    mRemoteRepo.setNextUrl(mResponse.getNextUrl());
+                                    mAdapter.setNextUrl(mResponse.getNextUrl());
+                                    if (!TextUtils.isEmpty(mResponse.getNextUrl())) {
+                                        mRefreshLayout.setRefreshFooter(new ClassicsFooter(mContext));
+                                    } else {
+                                        mRefreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        intentFilter.addAction(Params.FRAGMENT_ADD_DATA);
+        LocalBroadcastManager.getInstance(mContext).registerReceiver(dataReceiver, intentFilter);
+    }
+
+    private void addPageScrollReceiver() {
+        IntentFilter intentFilter = new IntentFilter();
+        scrollReceiver = new CallBackReceiver(new BaseReceiver.CallBack() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Bundle bundle = intent.getExtras();
+                if (bundle != null) {
+                    //接受VActivity传过来的ListIllust 数据
+                    PageData pageData = Container.get().getPage(uuid);
+                    if (pageData != null) {
+                        if (TextUtils.equals(pageData.getUUID(), uuid)) {
+                            int index = bundle.getInt(Params.INDEX);
+                            Common.showLog("滚动到" + index + " height " + mRecyclerView.getHeight());
+                            mRecyclerView.smoothScrollToPosition(index);
+                        }
+                    }
+                }
+            }
+        });
+        intentFilter.addAction(Params.FRAGMENT_SCROLL_TO_POSITION);
+        LocalBroadcastManager.getInstance(mContext).registerReceiver(scrollReceiver, intentFilter);
     }
 }

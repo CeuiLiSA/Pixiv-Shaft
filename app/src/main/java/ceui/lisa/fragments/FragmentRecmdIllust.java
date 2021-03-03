@@ -29,6 +29,7 @@ import ceui.lisa.database.IllustRecmdEntity;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.helper.IllustFilter;
+import ceui.lisa.helper.StaggeredtManager;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListIllust;
@@ -148,8 +149,8 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
 
     @Override
     public void initRecyclerView() {
-        StaggeredGridLayoutManager layoutManager =
-                new StaggeredGridLayoutManager(Shaft.sSettings.getLineCount(), StaggeredGridLayoutManager.VERTICAL);
+        StaggeredtManager layoutManager =
+                new StaggeredtManager(Shaft.sSettings.getLineCount(), StaggeredGridLayoutManager.VERTICAL);
         layoutManager.setGapStrategy(StaggeredGridLayoutManager.GAP_HANDLING_NONE);
         baseBind.recyclerView.setLayoutManager(layoutManager);
         baseBind.recyclerView.addItemDecoration(new SpacesItemWithHeadDecoration(DensityUtil.dp2px(8.0f)));
