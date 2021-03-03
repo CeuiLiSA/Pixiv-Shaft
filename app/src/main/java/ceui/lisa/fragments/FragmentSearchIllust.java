@@ -1,6 +1,7 @@
 package ceui.lisa.fragments;
 
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -46,6 +47,14 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
             @Override
             public void onChanged(String s) {
                 ((SearchIllustRepo) mRemoteRepo).update(searchModel, isPopular);
+                if(isPopular){
+                    if(TextUtils.isEmpty(searchModel.getKeyword().getValue())){
+                        mRefreshLayout.setEnableRefresh(false);
+                        return;
+                    }else{
+                        mRefreshLayout.setEnableRefresh(true);
+                    }
+                }
                 mRefreshLayout.autoRefresh();
             }
         });

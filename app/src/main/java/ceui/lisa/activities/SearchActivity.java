@@ -92,6 +92,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                 return TITLES[position];
             }
         });
+        baseBind.viewPager.setOffscreenPageLimit(2);
         baseBind.tabLayout.setupWithViewPager(baseBind.viewPager);
         if (index != 0) {
             baseBind.viewPager.setCurrentItem(index);
@@ -141,7 +142,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
         baseBind.searchBox.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (TextUtils.isEmpty(baseBind.searchBox.getText().toString())) {
+                if (TextUtils.isEmpty(baseBind.searchBox.getText().toString()) && TextUtils.isEmpty(searchModel.getStarSize().getValue())) {
                     Common.showToast(getString(R.string.string_139));
                     return false;
                 }
