@@ -305,8 +305,12 @@ public class Common {
      * 移除文件系统保留字符
      */
     public static String removeFSReservedChars(String s){
-        for (int i = 0; i < safeReplacer.length; i++){
-            s = s.replace(safeReplacer[i][0], safeReplacer[i][1]);
+        try {
+            for (int i = 0; i < safeReplacer.length; i++){
+                s = s.replace(safeReplacer[i][0], safeReplacer[i][1]);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return s;
     }
@@ -316,21 +320,17 @@ public class Common {
      * */
     public static boolean isIllustDownloaded(IllustsBean illust) {
         //只有1P的作品才检查是否下载过
-        if (illust.getPage_count() == 1) {
-            if (Shaft.sSettings.getDownloadWay() == 1) {
-                String displayName = FileCreator.customFileName(illust, 0);
-                if (SAFile.isFileExists(Shaft.getContext(), displayName)) {
-                    return true;
+        try {
+            if (illust.getPage_count() == 1) {
+                if (Shaft.sSettings.getDownloadWay() == 1) {
+                    String displayName = FileCreator.customFileName(illust, 0);
+                    return SAFile.isFileExists(Shaft.getContext(), displayName);
                 } else {
-                    return false;
-                }
-            } else {
-                if (FileCreator.isExist(illust, 0)) {
-                    return true;
-                } else {
-                    return false;
+                    return FileCreator.isExist(illust, 0);
                 }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return false;
     }
