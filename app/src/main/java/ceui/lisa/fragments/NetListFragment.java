@@ -282,9 +282,9 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                         //粗略滚动，后续想办法滚动并且居中
                         mRecyclerView.smoothScrollToPosition(index);
 //                        ((StaggeredtManager) mRecyclerView.getLayoutManager()).scrollToPositionWithOffset(index, 400);
-                        Common.showLog("收到ScrollReceiver广播，开始滚动");
+                        Common.showLog("收到 ScrollReceiver广播，开始滚动");
                     } else {
-                        Common.showLog("收到ScrollReceiver广播，但是不滚动");
+                        Common.showLog("收到 ScrollReceiver广播，但是不滚动");
                     }
                     TimeRecord.end();
                     TimeRecord.result();
