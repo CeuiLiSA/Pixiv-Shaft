@@ -49,10 +49,14 @@ public class StaggeredtManager extends StaggeredGridLayoutManager {
                     action.update(-dx, -dy, time, mDecelerateInterpolator);
                 }
             }
+
+            @Override
+            protected float calculateSpeedPerPixel(DisplayMetrics displayMetrics) {
+                return 50f / displayMetrics.densityDpi;
+            }
         };
         scroller.setTargetPosition(position);
         startSmoothScroll(scroller);
     }
-
 
 }

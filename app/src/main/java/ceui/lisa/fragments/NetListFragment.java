@@ -279,10 +279,13 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                     int index = bundle.getInt(Params.INDEX);
                     String pageUUID = bundle.getString(Params.PAGE_UUID);
                     if (TextUtils.equals(pageUUID, uuid)) {
-                        mRecyclerView.smoothScrollToPosition(index + mAdapter.headerSize());
+                        mRecyclerView.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                mRecyclerView.smoothScrollToPosition(index + mAdapter.headerSize());
+                            }
+                        }, 200L);
                     }
-                    TimeRecord.end();
-                    TimeRecord.result();
                 }
             }
         });
