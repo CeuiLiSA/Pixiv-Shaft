@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearSmoothScroller;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
+import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 
 public class StaggeredtManager extends StaggeredGridLayoutManager {
@@ -33,8 +34,15 @@ public class StaggeredtManager extends StaggeredGridLayoutManager {
 
             @Override
             protected void onTargetFound(View targetView, RecyclerView.State state, Action action) {
+                Rect rect = new Rect();
+                recyclerView.getLocalVisibleRect(rect);
+
+                int parentHeight = rect.bottom - rect.top;
+                int childHeight = targetView.getHeight();
+                int offset = (parentHeight - childHeight) / 2;
+
                 final int dx = calculateDxToMakeVisible(targetView, getHorizontalSnapPreference());
-                final int dy = calculateDyToMakeVisible(targetView, getVerticalSnapPreference());
+                final int dy = calculateDyToMakeVisible(targetView, getVerticalSnapPreference()) + offset;
                 final int distance = (int) Math.sqrt(dx * dx + dy * dy);
                 final int time = calculateTimeForDeceleration(distance);
                 if (time > 0) {
@@ -45,4 +53,6 @@ public class StaggeredtManager extends StaggeredGridLayoutManager {
         scroller.setTargetPosition(position);
         startSmoothScroll(scroller);
     }
+
+
 }

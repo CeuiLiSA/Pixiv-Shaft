@@ -155,6 +155,11 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
     @Override
     protected void onDestroy() {
         PixivOperate.setBack(null);
+        super.onDestroy();
+    }
+
+    @Override
+    protected void onPause() {
         //通知外界列表，滚动到正确的位置
         Intent intent = new Intent(Params.FRAGMENT_SCROLL_TO_POSITION);
         intent.putExtra(Params.INDEX, baseBind.viewPager.getCurrentItem());
@@ -162,7 +167,7 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
         LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
         Common.showLog("发送 ScrollReceiver广播，");
         TimeRecord.start();
-        super.onDestroy();
+        super.onPause();
     }
 
     @Override

@@ -13,6 +13,7 @@ import androidx.annotation.CallSuper;
 import androidx.annotation.Nullable;
 import androidx.databinding.ViewDataBinding;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
@@ -278,13 +279,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                     int index = bundle.getInt(Params.INDEX);
                     String pageUUID = bundle.getString(Params.PAGE_UUID);
                     if (TextUtils.equals(pageUUID, uuid)) {
-                        Common.showLog("滚动到" + index + " height " + mRecyclerView.getHeight());
-                        //粗略滚动，后续想办法滚动并且居中
-                        mRecyclerView.smoothScrollToPosition(index);
-//                        ((StaggeredtManager) mRecyclerView.getLayoutManager()).scrollToPositionWithOffset(index, 400);
-                        Common.showLog("收到 ScrollReceiver广播，开始滚动");
-                    } else {
-                        Common.showLog("收到 ScrollReceiver广播，但是不滚动");
+                        mRecyclerView.smoothScrollToPosition(index + mAdapter.headerSize());
                     }
                     TimeRecord.end();
                     TimeRecord.result();
