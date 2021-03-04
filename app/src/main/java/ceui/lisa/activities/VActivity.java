@@ -160,6 +160,8 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
         intent.putExtra(Params.INDEX, baseBind.viewPager.getCurrentItem());
         intent.putExtra(Params.PAGE_UUID, pageUUID);
         LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
+        Common.showLog("发送 ScrollReceiver广播，");
+        TimeRecord.start();
         super.onDestroy();
     }
 

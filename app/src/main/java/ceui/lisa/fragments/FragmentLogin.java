@@ -2,7 +2,6 @@ package ceui.lisa.fragments;
 
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.Uri;
 import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
@@ -12,7 +11,6 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 
-import com.blankj.utilcode.util.DeviceUtils;
 import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringConfig;
@@ -29,7 +27,6 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.ActivityLoginBinding;
 import ceui.lisa.feature.HostManager;
-import ceui.lisa.feature.WeissUtil;
 import ceui.lisa.interfaces.FeedBack;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.utils.ClipBoardUtils;
@@ -134,10 +131,6 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
             public void onClick(View v) {
                 openProxyHint(() -> {
                     String url = LOGIN_HEAD + HostManager.get().getPkce().getChallenge() + LOGIN_END;
-                    if (Shaft.sSettings.isAutoFuckChina()) {
-                        WeissUtil.start();
-                        WeissUtil.proxy();
-                    }
                     Intent intent = new Intent(mContext, TemplateActivity.class);
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
                     intent.putExtra(Params.URL, url);
@@ -153,10 +146,6 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
             public void onClick(View v) {
                 openProxyHint(() -> {
                     String url = SIGN_HEAD + HostManager.get().getPkce().getChallenge() + SIGN_END;
-                    if (Shaft.sSettings.isAutoFuckChina()) {
-                        WeissUtil.start();
-                        WeissUtil.proxy();
-                    }
                     Intent intent = new Intent(mContext, TemplateActivity.class);
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
                     intent.putExtra(Params.URL, url);
