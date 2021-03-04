@@ -13,6 +13,7 @@ import androidx.annotation.CallSuper;
 import androidx.annotation.Nullable;
 import androidx.databinding.ViewDataBinding;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
@@ -28,6 +29,7 @@ import ceui.lisa.adapters.UAdapter;
 import ceui.lisa.core.Container;
 import ceui.lisa.core.PageData;
 import ceui.lisa.core.RemoteRepo;
+import ceui.lisa.helper.StaggeredtManager;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.interfaces.ListShow;
 import ceui.lisa.model.ListIllust;
@@ -51,7 +53,6 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
     protected RemoteRepo<Response> mRemoteRepo;
     protected Response mResponse;
     protected BroadcastReceiver mReceiver = null, dataReceiver = null, scrollReceiver = null;
-    protected String uuid;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -273,14 +274,15 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
             public void onReceive(Context context, Intent intent) {
                 Bundle bundle = intent.getExtras();
                 if (bundle != null) {
-                    //接受VActivity传过来的ListIllust 数据
-                    PageData pageData = Container.get().getPage(uuid);
-                    if (pageData != null) {
-                        if (TextUtils.equals(pageData.getUUID(), uuid)) {
-                            int index = bundle.getInt(Params.INDEX);
-                            Common.showLog("滚动到" + index + " height " + mRecyclerView.getHeight());
-                            mRecyclerView.smoothScrollToPosition(index);
-                        }
+                    int index = bundle.getInt(Params.INDEX);
+                    String pageUUID = bundle.getString(Params.PAGE_UUID);
+                    if (TextUtils.equals(pageUUID, uuid)) {
+                        Common.showLog("滚动到" + index + " height " + mRecyclerView.getHeight());
+                        //粗略滚动，后续想办法滚动并且居中
+                        mRecyclerView.smoothScrollToPosition(index);
+                        Common.showLog("收到广播，开始滚动");
+                    } else {
+                        Common.showLog("收到广播，但是不滚动");
                     }
                 }
             }

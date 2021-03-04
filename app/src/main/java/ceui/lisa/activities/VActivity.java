@@ -158,6 +158,7 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
         //通知外界列表，滚动到正确的位置
         Intent intent = new Intent(Params.FRAGMENT_SCROLL_TO_POSITION);
         intent.putExtra(Params.INDEX, baseBind.viewPager.getCurrentItem());
+        intent.putExtra(Params.PAGE_UUID, pageUUID);
         LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
         super.onDestroy();
     }
