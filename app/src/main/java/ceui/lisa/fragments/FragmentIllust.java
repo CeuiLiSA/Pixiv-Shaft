@@ -211,6 +211,13 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 return true;
             }
         });
+        baseBind.illustTag.setOnTagLongClickListener(new TagFlowLayout.OnTagLongClickListener(){
+            @Override
+            public boolean onTagLongClick(View view, int position, FlowLayout parent) {
+                Common.copy(mContext, illust.getTags().get(position).getName());
+                return true;
+            }
+        });
         baseBind.illustSize.setText(getString(R.string.string_193, illust.getWidth(), illust.getHeight()));
         baseBind.illustId.setText(getString(R.string.string_194, illust.getId()));
         baseBind.userId.setText(getString(R.string.string_195, illust.getUser().getId()));
