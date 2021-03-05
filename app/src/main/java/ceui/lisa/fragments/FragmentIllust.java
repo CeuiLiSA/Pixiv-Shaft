@@ -355,7 +355,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
             }
         });
         baseBind.userName.setText(illust.getUser().getName());
-        baseBind.postTime.setText(String.format("%s投递", illust.getCreate_date().substring(0, 16)));
+        baseBind.postTime.setText(String.format("%s投递", Common.getLocalYYYYMMDDHHMMString(illust.getCreate_date())));
         baseBind.totalView.setText(String.valueOf(illust.getTotal_view()));
         baseBind.totalLike.setText(String.valueOf(illust.getTotal_bookmarks()));
         baseBind.download.setChangeAlphaWhenPress(true);

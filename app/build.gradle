@@ -38,6 +38,7 @@ android {
     }
 
     compileOptions {
+        coreLibraryDesugaringEnabled = true
         sourceCompatibility = '1.8'
         targetCompatibility = '1.8'
     }
@@ -172,7 +173,7 @@ dependencies {
 
     implementation "androidx.documentfile:documentfile:1.0.1"
 
-
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
 
     configurations {
         all*.exclude group: 'com.android.support', module: 'support-v13'

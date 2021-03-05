@@ -1,8 +1,6 @@
 package ceui.lisa.utils;
 
 import android.app.Activity;
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -31,6 +29,9 @@ import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -333,5 +334,18 @@ public class Common {
             e.printStackTrace();
         }
         return false;
+    }
+
+    /**
+     * 根据ISO8601格式的时间字符串获取年月日时分格式的字符串
+     */
+    public static String getLocalYYYYMMDDHHMMString(String source) {
+        try {
+            return ZonedDateTime.parse(source).withZoneSameInstant(ZoneId.systemDefault())
+                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return source.substring(0, 16);
+        }
     }
 }
