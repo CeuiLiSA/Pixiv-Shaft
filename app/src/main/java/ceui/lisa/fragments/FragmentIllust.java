@@ -317,6 +317,13 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 startActivity(intent);
             }
         });
+        baseBind.userName.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Common.copy(mContext, illust.getUser().getName());
+                return true;
+            }
+        });
         if (illust.getUser().isIs_followed()) {
             baseBind.follow.setText(R.string.string_177);
         } else {
