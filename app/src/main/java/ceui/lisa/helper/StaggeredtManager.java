@@ -11,6 +11,11 @@ import androidx.recyclerview.widget.LinearSmoothScroller;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
+import com.facebook.rebound.SimpleSpringListener;
+import com.facebook.rebound.Spring;
+import com.facebook.rebound.SpringConfig;
+import com.facebook.rebound.SpringSystem;
+
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 
@@ -34,19 +39,25 @@ public class StaggeredtManager extends StaggeredGridLayoutManager {
 
             @Override
             protected void onTargetFound(View targetView, RecyclerView.State state, Action action) {
-                Rect rect = new Rect();
-                recyclerView.getLocalVisibleRect(rect);
+                try {
+                    if (!targetView.getGlobalVisibleRect(new Rect())) {
+                        Rect rect = new Rect();
+                        recyclerView.getGlobalVisibleRect(rect);
 
-                int parentHeight = rect.bottom - rect.top;
-                int childHeight = targetView.getHeight();
-                int offset = (parentHeight - childHeight) / 2;
+                        int parentHeight = rect.bottom - rect.top;
+                        int childHeight = targetView.getHeight();
+                        int offset = (parentHeight - childHeight) / 2;
 
-                final int dx = calculateDxToMakeVisible(targetView, getHorizontalSnapPreference());
-                final int dy = calculateDyToMakeVisible(targetView, getVerticalSnapPreference()) + offset;
-                final int distance = (int) Math.sqrt(dx * dx + dy * dy);
-                final int time = calculateTimeForDeceleration(distance);
-                if (time > 0) {
-                    action.update(-dx, -dy, time, mDecelerateInterpolator);
+                        final int dx = calculateDxToMakeVisible(targetView, getHorizontalSnapPreference());
+                        final int dy = calculateDyToMakeVisible(targetView, getVerticalSnapPreference()) + offset;
+                        final int distance = (int) Math.sqrt(dx * dx + dy * dy);
+                        final int time = calculateTimeForDeceleration(distance);
+                        if (time > 0) {
+                            action.update(-dx, -dy, time, mDecelerateInterpolator);
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
 
