@@ -254,30 +254,6 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
 
                 recyHeight = baseBind.recyclerView.getHeight();
                 IllustAdapter adapter = new IllustAdapter(mContext, illust, recyHeight);
-                //设置图片加载成功的回调
-                adapter.setFeedBack(new FeedBack() {
-                    @Override
-                    public void doSomething() {
-                        try {
-                            if (baseBind != null && baseBind.recyclerView != null) {
-                                synchronized (this) {
-                                    int contentHeight = 0;
-                                    //可能图片加载成功的时候这个页面已经退出了
-                                    for (int i = 0; i < baseBind.recyclerView.getChildCount(); i++) {
-                                        View view = baseBind.recyclerView.getChildAt(i);
-                                        contentHeight += view.getHeight();
-                                    }
-
-
-                                    Common.showLog("recyclerView 00 " + contentHeight);
-                                    Common.showLog("recyclerView 11 " + recyHeight);
-                                }
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
                 baseBind.recyclerView.setAdapter(adapter);
                 baseBind.coreLinear.getViewTreeObserver().removeOnGlobalLayoutListener(this);
             }

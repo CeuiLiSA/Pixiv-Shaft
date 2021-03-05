@@ -38,7 +38,6 @@ import me.jessyan.progressmanager.body.ProgressInfo;
 public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDetailBinding>> {
 
     private int maxHeight;
-    private FeedBack mFeedBack;
 
     public IllustAdapter(Context context, IllustsBean illustsBean, int maxHeight) {
         this(context, illustsBean, maxHeight, false);
@@ -164,16 +163,9 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                         if (isForceOriginal) {
                             Shaft.getMMKV().encode(imageUrl, true);
                         }
-                        if (allIllust.getPage_count() != 1 && mFeedBack != null) {
-                            mFeedBack.doSomething();
-                        }
                         return false;
                     }
                 })
                 .into(new UniformScaleTransformation(holder.baseBind.illust, changeSize));
-    }
-
-    public void setFeedBack(FeedBack feedBack) {
-        mFeedBack = feedBack;
     }
 }
