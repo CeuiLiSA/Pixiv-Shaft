@@ -542,4 +542,6 @@
   <string name="string_373">путь к локальному сохранению романа</string>
   <string name="string_374">файл временно не поддерживает пользовательскую папку</string>
     <string name="string_375">100000 Коллекция</string>
+    <string name="string_377">Скачать</string>
+  <string name="string_376">Интерфейс</string>
 </resources>
