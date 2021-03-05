@@ -77,7 +77,7 @@ public class UAdapter extends BaseAdapter<UserPreviewsBean, RecyUserPreviewBindi
         }
 
         Glide.with(mContext).load(GlideUtil.getUrl(allIllust.get(position)
-                .getUser().getProfile_image_urls().getMedium())).into(bindView.baseBind.userHead);
+                .getUser().getProfile_image_urls().getMedium())).error(R.drawable.no_profile).into(bindView.baseBind.userHead);
         bindView.baseBind.postLikeUser.setText(allIllust.get(position).getUser().isIs_followed() ?
                 mContext.getString(R.string.post_unfollow) : mContext.getString(R.string.post_follow));
 

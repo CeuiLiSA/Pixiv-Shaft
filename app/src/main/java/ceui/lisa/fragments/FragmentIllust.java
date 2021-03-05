@@ -410,6 +410,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
         });
         Glide.with(mContext)
                 .load(GlideUtil.getUrl(illust.getUser().getProfile_image_urls().getMedium()))
+                .error(R.drawable.no_profile)
                 .into(baseBind.userHead);
     }
 
