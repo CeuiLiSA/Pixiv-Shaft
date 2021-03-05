@@ -232,7 +232,12 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 final int bottomCardHeight = baseBind.bottomBar.getHeight();
                 final int deltaY = slideMaxHeight - baseBind.bottomBar.getHeight();
                 sheetBehavior.setPeekHeight(bottomCardHeight, true);
-                baseBind.refreshLayout.setPadding(0, 0, 0, bottomCardHeight - DensityUtil.dp2px(16.0f));
+
+                //设置占位view大小
+                ViewGroup.LayoutParams headParams = baseBind.helperView.getLayoutParams();
+                headParams.height = bottomCardHeight - DensityUtil.dp2px(16.0f);
+                baseBind.helperView.setLayoutParams(headParams);
+
                 sheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
                     @Override
                     public void onStateChanged(@NonNull View bottomSheet, int newState) {
@@ -247,7 +252,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
 
                 baseBind.recyclerView.setLayoutManager(new LinearLayoutManager(mContext));
 
-                recyHeight = baseBind.recyclerView.getHeight() - bottomCardHeight + DensityUtil.dp2px(16.0f);
+                recyHeight = baseBind.recyclerView.getHeight();
                 IllustAdapter adapter = new IllustAdapter(mContext, illust, recyHeight);
                 //设置图片加载成功的回调
                 adapter.setFeedBack(new FeedBack() {
@@ -481,8 +486,12 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
 
     @Override
     public void onDestroyView() {
-        if (baseBind != null && baseBind.recyclerView != null) {
-            baseBind.recyclerView.setAdapter(null);
+        try {
+            if (baseBind != null && baseBind.recyclerView != null) {
+                baseBind.recyclerView.setAdapter(null);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         super.onDestroyView();
     }
@@ -496,5 +505,6 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
     @Override
     public SmartRefreshLayout getSmartRefreshLayout() {
         return baseBind.refreshLayout;
+//        return null;
     }
 }

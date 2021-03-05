@@ -18,20 +18,46 @@
             android:layout_height="match_parent"
             android:layout_above="@+id/bottom_linear">
 
-            <com.scwang.smartrefresh.layout.SmartRefreshLayout
-                android:id="@+id/refreshLayout"
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@color/black">
+                android:background="@color/black"
+                android:layout_height="match_parent">
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/recyclerView"
+                <RelativeLayout
+                    android:id="@+id/holder"
+                    android:layout_above="@+id/helper_view"
+                    android:clipChildren="false"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
 
-                </androidx.recyclerview.widget.RecyclerView>
+                    <com.scwang.smartrefresh.layout.SmartRefreshLayout
+                        android:id="@+id/refreshLayout"
+                        android:layout_centerInParent="true"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
 
-            </com.scwang.smartrefresh.layout.SmartRefreshLayout>
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/recyclerView"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                        </androidx.recyclerview.widget.RecyclerView>
+
+                    </com.scwang.smartrefresh.layout.SmartRefreshLayout>
+
+                </RelativeLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:id="@+id/helper_view"
+                    android:layout_alignParentBottom="true"
+                    android:layout_height="1dp">
+
+                </View>
+
+            </RelativeLayout>
+
+
 
 
             <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundLinearLayout

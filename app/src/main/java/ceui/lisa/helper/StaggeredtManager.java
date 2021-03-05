@@ -40,6 +40,12 @@ public class StaggeredtManager extends StaggeredGridLayoutManager {
             @Override
             protected void onTargetFound(View targetView, RecyclerView.State state, Action action) {
                 try {
+                    /*
+                     * Android 判断一个 View 是否可见 getLocalVisibleRect(rect) 与 getGlobalVisibleRect(rect)
+                     *
+                     * https://www.bbsmax.com/A/ELPdow2d3a/
+                     */
+
                     if (!targetView.getGlobalVisibleRect(new Rect())) {
                         Rect rect = new Rect();
                         recyclerView.getGlobalVisibleRect(rect);
