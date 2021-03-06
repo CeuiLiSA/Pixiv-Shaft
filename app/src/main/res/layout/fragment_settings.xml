@@ -346,12 +346,23 @@
 
                             </TextView>
 
-
                         </RelativeLayout>
 
-                        <View
-                            android:visibility="gone"
-                            style="@style/half_divider" />
+                        <View style="@style/half_divider" />
+
+                        <RelativeLayout
+                            android:id="@+id/filter_comment_rela"
+                            style="@style/ripple_rela">
+
+                            <TextView
+                                style="@style/setting_text_left"
+                                android:text="@string/string_379" />
+
+                            <androidx.appcompat.widget.SwitchCompat
+                                android:id="@+id/filter_comment"
+                                style="@style/setting_right_switch"/>
+
+                        </RelativeLayout>
 
                     </LinearLayout>
 

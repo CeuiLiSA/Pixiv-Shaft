@@ -551,6 +551,26 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             }
         });
 
+        baseBind.filterComment.setChecked(Shaft.sSettings.isFilterComment());
+        baseBind.filterComment.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    Shaft.sSettings.setFilterComment(true);
+                } else {
+                    Shaft.sSettings.setFilterComment(false);
+                }
+                Common.showToast("设置成功", 2);
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.filterCommentRela.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                baseBind.filterComment.performClick();
+            }
+        });
+
         baseBind.lineCount.setText(getString(R.string.string_349, Shaft.sSettings.getLineCount()));
         baseBind.lineCountRela.setOnClickListener(new View.OnClickListener() {
             @Override
