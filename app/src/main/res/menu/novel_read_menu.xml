@@ -8,6 +8,12 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/action_change_text_color"
+        android:orderInCategory="100"
+        android:title="@string/string_378"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_save"
         android:orderInCategory="100"
         android:title="@string/string_82"

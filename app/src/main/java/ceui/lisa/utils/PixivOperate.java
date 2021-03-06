@@ -11,7 +11,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 
-import androidx.core.widget.ImageViewCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.blankj.utilcode.util.FileUtils;
@@ -746,7 +745,7 @@ public class PixivOperate {
                         @Override
                         public void next(NullResponse nullResponse) {
                             if(view instanceof ImageView){
-                                ImageViewCompat.setImageTintList(((ImageView) view), ColorStateList.valueOf(getColor(R.color.novel_marker_add)));
+                                ((ImageView)view).setImageTintList(ColorStateList.valueOf(getColor(R.color.novel_marker_add)));
                             }
                             Common.showToast(getString(R.string.string_368, page));
                         }
@@ -761,7 +760,7 @@ public class PixivOperate {
                         @Override
                         public void next(NullResponse nullResponse) {
                             if(view instanceof ImageView){
-                                ImageViewCompat.setImageTintList(((ImageView) view), ColorStateList.valueOf(getColor(R.color.novel_marker_none)));
+                                ((ImageView)view).setImageTintList(ColorStateList.valueOf(getColor(R.color.novel_marker_none)));
                             }
                             Common.showToast(getString(R.string.string_369));
                         }
