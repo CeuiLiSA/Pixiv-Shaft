@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import androidx.core.content.ContextCompat;
 import ceui.lisa.R;
 import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;
@@ -347,5 +348,16 @@ public class Common {
             e.printStackTrace();
             return source.substring(0, 16);
         }
+    }
+
+    /**
+     * 获取小说文字颜色配置
+     */
+    public static int getNovelTextColor(){
+        int color = Shaft.sSettings.getNovelHolderTextColor();
+        if(color == 0){
+            return ContextCompat.getColor(Shaft.getContext(), R.color.white);
+        }
+        return color;
     }
 }

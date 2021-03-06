@@ -115,6 +115,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
 
     public void setTextColor(int color) {
         Common.showLog(className + color);
+        baseBind.toolbar.getOverflowIcon().setTint(Common.getNovelTextColor());
         setNovelAdapter();
     }
 
@@ -281,6 +282,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
         }
         baseBind.toolbar.getMenu().clear();
         baseBind.toolbar.inflateMenu(R.menu.novel_read_menu);
+        baseBind.toolbar.getOverflowIcon().setTint(Common.getNovelTextColor());
         baseBind.saveNovelTxt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

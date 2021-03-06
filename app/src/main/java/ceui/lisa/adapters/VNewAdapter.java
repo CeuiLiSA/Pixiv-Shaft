@@ -6,9 +6,9 @@ import android.view.View;
 import java.util.List;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.FragmentSingleNovelBinding;
 import ceui.lisa.models.NovelDetail;
+import ceui.lisa.utils.Common;
 
 public class VNewAdapter extends BaseAdapter<NovelDetail.NovelChapterBean, FragmentSingleNovelBinding> {
 
@@ -16,7 +16,7 @@ public class VNewAdapter extends BaseAdapter<NovelDetail.NovelChapterBean, Fragm
 
     public VNewAdapter(List<NovelDetail.NovelChapterBean> targetList, Context context) {
         super(targetList, context);
-        getTextColor();
+        textColor = Common.getNovelTextColor();
     }
 
     @Override
@@ -50,13 +50,5 @@ public class VNewAdapter extends BaseAdapter<NovelDetail.NovelChapterBean, Fragm
         bindView.baseBind.chapter.setTextColor(textColor);
         bindView.baseBind.novelDetail.setTextColor(textColor);
         bindView.baseBind.endText.setTextColor(textColor);
-    }
-
-    private void getTextColor() {
-        int color = Shaft.sSettings.getNovelHolderTextColor();
-        if (color == 0) {
-            color = mContext.getResources().getColor(R.color.white);
-        }
-        textColor = color;
     }
 }
