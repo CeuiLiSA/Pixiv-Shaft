@@ -105,6 +105,10 @@ public class HistoryAdapter extends BaseAdapter<IllustHistoryEntity, RecyViewHis
                     intent.putExtra("hideStatusBar", true);
                     mContext.startActivity(intent);
                 });
+                bindView.baseBind.author.setOnClickListener(v -> {
+                    bindView.baseBind.author.setTag(current.getUser().getId());
+                    mOnItemClickListener.onItemClick(bindView.baseBind.author, position, 1);
+                });
             }
         }
 
