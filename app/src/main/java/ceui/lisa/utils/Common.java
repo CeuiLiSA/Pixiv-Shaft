@@ -351,6 +351,19 @@ public class Common {
     }
 
     /**
+     * 根据ISO8601格式的时间字符串获取年月日时分秒格式的字符串
+     */
+    public static String getLocalYYYYMMDDHHMMSSString(String source) {
+        try {
+            return ZonedDateTime.parse(source).withZoneSameInstant(ZoneId.systemDefault())
+                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return source;
+        }
+    }
+
+    /**
      * 获取小说文字颜色配置
      */
     public static int getNovelTextColor(){
