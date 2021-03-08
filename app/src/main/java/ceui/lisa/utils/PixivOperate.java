@@ -642,11 +642,7 @@ public class PixivOperate {
                     animatedGifEncoder.start(bos);
                     animatedGifEncoder.setRepeat(0); // 无限循环
 
-                    List<Bitmap> allBitmaps = new ArrayList<>();
                     int frameCount = allFiles.size();
-                    for(int i = 0; i < frameCount; i++){
-                        allBitmaps.add(BitmapFactory.decodeFile(allFiles.get(i).getPath()));
-                    }
 
                     GifResponse gifResponse = Cache.get().getModel(Params.ILLUST_ID + "_" + illustsBean.getId(), GifResponse.class);
                     int delayMs = 60;
@@ -656,9 +652,10 @@ public class PixivOperate {
                             Common.showLog("使用返回的delay 00");
 
                             for (int i = 0; i < frameCount; i++) {
+                                Bitmap bitmap = BitmapFactory.decodeFile(allFiles.get(i).getPath());
                                 Common.showLog("编码中 00 " + frameCount + " " + (i + 1));
                                 animatedGifEncoder.setDelay(framesBeans.get(i).getDelay());
-                                animatedGifEncoder.addFrame(allBitmaps.get(i));
+                                animatedGifEncoder.addFrame(bitmap);
 
                                 try {
                                     if (sBack != null) {
@@ -673,17 +670,19 @@ public class PixivOperate {
                             delayMs = gifResponse.getDelay();
                             Common.showLog("使用返回的delay 11");
                             for (int i = 0; i < frameCount; i++) {
+                                Bitmap bitmap = BitmapFactory.decodeFile(allFiles.get(i).getPath());
                                 Common.showLog("编码中 00 " + frameCount);
                                 animatedGifEncoder.setDelay(delayMs);
-                                animatedGifEncoder.addFrame(allBitmaps.get(i));
+                                animatedGifEncoder.addFrame(bitmap);
                             }
                         }
                     } else {
                         Common.showLog("使用返回的delay 22");
                         for (int i = 0; i < frameCount; i++) {
                             Common.showLog("编码中 00 " + frameCount);
+                            Bitmap bitmap = BitmapFactory.decodeFile(allFiles.get(i).getPath());
                             animatedGifEncoder.setDelay(delayMs);
-                            animatedGifEncoder.addFrame(allBitmaps.get(i));
+                            animatedGifEncoder.addFrame(bitmap);
                         }
                     }
 

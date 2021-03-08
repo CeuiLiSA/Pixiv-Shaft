@@ -80,6 +80,14 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                 @Override
                 public void onPageSelected(int position) {
                     Common.showLog("Container onPageSelected " + position);
+                    if (Common.isEmpty(pageData.getList())) {
+                        return;
+                    }
+
+                    if (position >= pageData.getList().size()) {
+                        return;
+                    }
+
                     if (Shaft.sSettings.isSaveViewHistory()) {
                         PixivOperate.insertIllustViewHistory(pageData.getList().get(position));
                     }
