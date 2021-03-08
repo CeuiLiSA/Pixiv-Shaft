@@ -146,7 +146,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
                                 baseBind.postLike.setImageResource(R.drawable.ic_favorite_red_24dp);
                             } else {
                                 illust.setIs_bookmarked(false);
-                                baseBind.postLike.setImageResource(R.drawable.ic_favorite_grey_24dp);
+                                baseBind.postLike.setImageResource(R.drawable.ic_favorite_black_24dp);
                             }
                         }
                     }
@@ -385,7 +385,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
             }
         });
         if (illust.isIs_bookmarked()) {
-            baseBind.postLike.setImageResource(R.drawable.ic_favorite_accent_24dp);
+            baseBind.postLike.setImageResource(R.drawable.ic_favorite_red_24dp);
         } else {
             baseBind.postLike.setImageResource(R.drawable.ic_favorite_black_24dp);
         }
@@ -393,9 +393,9 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
             @Override
             public void onClick(View v) {
                 if (illust.isIs_bookmarked()) {
-                    baseBind.postLike.setImageResource(R.drawable.ic_favorite_black_24dp);
+                    baseBind.postLike.setImageResource(R.drawable.ic_favorite_red_24dp);
                 } else {
-                    baseBind.postLike.setImageResource(R.drawable.ic_favorite_accent_24dp);
+                    baseBind.postLike.setImageResource(R.drawable.ic_favorite_black_24dp);
                 }
                 if (Shaft.sSettings.isPrivateStar()) {
                     PixivOperate.postLike(illust, Params.TYPE_PRIVATE);

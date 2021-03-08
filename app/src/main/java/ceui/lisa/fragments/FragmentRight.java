@@ -98,13 +98,13 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
                     restrict = Params.TYPE_PRIVATE;
                 }
                 ((RightRepo) mRemoteRepo).setRestrict(restrict);
-                clearAndRefresh();
+                forceRefresh();
             }
 
             @Override
             public void onReselect(int index, View view) {
                 Common.showLog("glareLayout onReselect " + index);
-                clearAndRefresh();
+                forceRefresh();
             }
         });
     }
@@ -170,5 +170,11 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
                         baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
                     }
                 });
+    }
+
+    @Override
+    public void forceRefresh() {
+        emptyRela.setVisibility(View.INVISIBLE);
+        super.forceRefresh();
     }
 }

@@ -10,6 +10,7 @@ import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.view.KeyEvent;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -56,6 +57,10 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     private TextView user_email;
     private long mExitTime;
     private Fragment[] baseFragments = null;
+    private float latestDownX;
+    private float latestDownY;
+    private long latestMoveTime;
+    private static final long moveTimeThreshold = 100;
 
     @Override
     protected int initLayout() {
@@ -147,6 +152,36 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             @Override
             public void onPageScrollStateChanged(int state) {
 
+            }
+        });
+        baseBind.viewPager.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (baseBind.viewPager.getCurrentItem() != 0) {
+                    return false;
+                }
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_MOVE:
+                        long eventTime = event.getEventTime();
+                        if (eventTime > latestMoveTime + moveTimeThreshold) {
+                            latestDownX = event.getX();
+                            latestDownY = event.getY();
+                            latestMoveTime = eventTime;
+                        }
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        float newDownX = event.getX();
+                        float newDownY = event.getY();
+                        float deltaX = newDownX - latestDownX;
+                        float deltaY = newDownY - latestDownY;
+                        if (Math.abs(deltaX) > Math.abs(deltaY) && deltaX > 0) {
+                            getDrawer().openDrawer(GravityCompat.START, true);
+                            return true;
+                        }
+                        break;
+                }
+
+                return false;
             }
         });
     }

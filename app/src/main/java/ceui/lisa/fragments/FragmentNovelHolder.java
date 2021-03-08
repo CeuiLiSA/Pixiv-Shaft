@@ -25,7 +25,7 @@ import com.zhy.view.flowlayout.TagFlowLayout;
 import java.util.Arrays;
 import java.util.Collections;
 
-import androidx.core.widget.ImageViewCompat;
+import androidx.core.content.ContextCompat;
 import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.NovelActivity;
@@ -86,7 +86,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
     public void initView() {
         BarUtils.setNavBarColor(mActivity, getResources().getColor(R.color.hito_bg));
         if (Shaft.sSettings.getNovelHolderColor() != 0) {
-            setColor(Shaft.sSettings.getNovelHolderColor());
+            setBackgroundColor(Shaft.sSettings.getNovelHolderColor());
         }
         baseBind.fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -108,9 +108,15 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
         getNovel(mNovelBean);
     }
 
-    public void setColor(int color) {
+    public void setBackgroundColor(int color) {
         Common.showLog(className + color);
         baseBind.relaRoot.setBackgroundColor(color);
+    }
+
+    public void setTextColor(int color) {
+        Common.showLog(className + color);
+        baseBind.toolbar.getOverflowIcon().setTint(Common.getNovelTextColor());
+        setNovelAdapter();
     }
 
     private void getNovel(NovelBean novelBean) {
@@ -248,46 +254,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
             }
         });
 
-        // 如果解析成功，就使用新方式
-        if(novelDetail.getParsedChapters() != null && novelDetail.getParsedChapters().size() > 0){
-
-            baseBind.viewPager.setAdapter(new VNewAdapter(novelDetail.getParsedChapters(), mContext));
-            if(novelDetail.getNovel_marker() != null){
-                int parsedSize = novelDetail.getParsedChapters().size();
-                int pageIndex = Math.min(novelDetail.getNovel_marker().getPage(),novelDetail.getParsedChapters().get(parsedSize-1).getChapterIndex());
-                pageIndex = Math.max(pageIndex,novelDetail.getParsedChapters().get(0).getChapterIndex());
-                baseBind.viewPager.scrollToPosition(pageIndex-1);
-            }
-
-            // 设置书签
-            int markerPage = mNovelDetail.getNovel_marker().getPage();
-            if(markerPage > 0){
-                ImageViewCompat.setImageTintList(baseBind.saveNovel, ColorStateList.valueOf(mContext.getResources().getColor(R.color.novel_marker_add)));
-            }else{
-                ImageViewCompat.setImageTintList(baseBind.saveNovel, ColorStateList.valueOf(mContext.getResources().getColor(R.color.novel_marker_none)));
-            }
-
-            baseBind.saveNovel.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    View someView = baseBind.viewPager.findChildViewUnder(0,0);
-                    int currentPageIndex = baseBind.viewPager.findContainingViewHolder(someView).getAdapterPosition();
-                    int chapterIndex = mNovelDetail.getParsedChapters().get(currentPageIndex).getChapterIndex();
-                    PixivOperate.postNovelMarker(mNovelDetail.getNovel_marker(), mNovelBean.getId(), chapterIndex, baseBind.saveNovel);
-                }
-            });
-        }
-        // 旧方式
-        else {
-            if (novelDetail.getNovel_text().contains("[newpage]")) {
-                String[] partList = novelDetail.getNovel_text().split("\\[newpage]");
-                baseBind.viewPager.setAdapter(new VAdapter(
-                        Arrays.asList(partList), mContext));
-            } else {
-                baseBind.viewPager.setAdapter(new VAdapter(
-                        Collections.singletonList(novelDetail.getNovel_text()), mContext));
-            }
-        }
+        setNovelAdapter();
 
         if (novelDetail.getSeries_prev() != null && novelDetail.getSeries_prev().getId() != 0) {
             baseBind.showPrev.setVisibility(View.VISIBLE);
@@ -315,6 +282,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
         }
         baseBind.toolbar.getMenu().clear();
         baseBind.toolbar.inflateMenu(R.menu.novel_read_menu);
+        baseBind.toolbar.getOverflowIcon().setTint(Common.getNovelTextColor());
         baseBind.saveNovelTxt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -335,11 +303,26 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                 if (item.getItemId() == R.id.action_change_color) {
                     if (Shaft.sSettings.getNovelHolderColor() != 0) {
                         ColorPickerDialog.newBuilder()
+                                .setDialogId(Params.DIALOG_NOVEL_BG_COLOR)
                                 .setColor(Shaft.sSettings.getNovelHolderColor())
                                 .show(mActivity);
                     } else {
                         ColorPickerDialog.newBuilder()
+                                .setDialogId(Params.DIALOG_NOVEL_BG_COLOR)
                                 .setColor(getResources().getColor(R.color.novel_holder))
+                                .show(mActivity);
+                    }
+                    return true;
+                }else if(item.getItemId() == R.id.action_change_text_color){
+                    if (Shaft.sSettings.getNovelHolderTextColor() != 0) {
+                        ColorPickerDialog.newBuilder()
+                                .setDialogId(Params.DIALOG_NOVEL_TEXT_COLOR)
+                                .setColor(Shaft.sSettings.getNovelHolderTextColor())
+                                .show(mActivity);
+                    } else {
+                        ColorPickerDialog.newBuilder()
+                                .setDialogId(Params.DIALOG_NOVEL_TEXT_COLOR)
+                                .setColor(getResources().getColor(R.color.white))
                                 .show(mActivity);
                     }
                     return true;
@@ -389,5 +372,49 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                 return false;
             }
         });
+    }
+
+    private void setNovelAdapter() {
+        NovelDetail novelDetail = mNovelDetail;
+        // 如果解析成功，就使用新方式
+        if(novelDetail.getParsedChapters() != null && novelDetail.getParsedChapters().size() > 0){
+
+            baseBind.viewPager.setAdapter(new VNewAdapter(novelDetail.getParsedChapters(), mContext));
+            if(novelDetail.getNovel_marker() != null){
+                int parsedSize = novelDetail.getParsedChapters().size();
+                int pageIndex = Math.min(novelDetail.getNovel_marker().getPage(),novelDetail.getParsedChapters().get(parsedSize-1).getChapterIndex());
+                pageIndex = Math.max(pageIndex,novelDetail.getParsedChapters().get(0).getChapterIndex());
+                baseBind.viewPager.scrollToPosition(pageIndex-1);
+            }
+
+            // 设置书签
+            int markerPage = mNovelDetail.getNovel_marker().getPage();
+            if(markerPage > 0){
+                baseBind.saveNovel.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.novel_marker_add)));
+            }else{
+                baseBind.saveNovel.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.novel_marker_none)));
+            }
+
+            baseBind.saveNovel.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    View someView = baseBind.viewPager.findChildViewUnder(0,0);
+                    int currentPageIndex = baseBind.viewPager.findContainingViewHolder(someView).getAdapterPosition();
+                    int chapterIndex = mNovelDetail.getParsedChapters().get(currentPageIndex).getChapterIndex();
+                    PixivOperate.postNovelMarker(mNovelDetail.getNovel_marker(), mNovelBean.getId(), chapterIndex, baseBind.saveNovel);
+                }
+            });
+        }
+        // 旧方式
+        else {
+            if (novelDetail.getNovel_text().contains("[newpage]")) {
+                String[] partList = novelDetail.getNovel_text().split("\\[newpage]");
+                baseBind.viewPager.setAdapter(new VAdapter(
+                        Arrays.asList(partList), mContext));
+            } else {
+                baseBind.viewPager.setAdapter(new VAdapter(
+                        Collections.singletonList(novelDetail.getNovel_text()), mContext));
+            }
+        }
     }
 }

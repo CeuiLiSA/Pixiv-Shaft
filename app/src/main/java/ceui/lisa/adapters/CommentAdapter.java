@@ -42,7 +42,7 @@ public class CommentAdapter extends BaseAdapter<CommentsBean, RecyCommentListBin
         Glide.with(mContext).load(GlideUtil.getHead(allIllust.get(position).getUser()))
                 .into(bindView.baseBind.userHead);
         bindView.baseBind.userName.setText(allIllust.get(position).getUser().getName());
-        bindView.baseBind.time.setText(allIllust.get(position).getDate());
+        bindView.baseBind.time.setText(Common.getLocalYYYYMMDDHHMMSSString(allIllust.get(position).getDate()));
         bindView.baseBind.content.setHtml(allIllust.get(position).getComment(),
                 new ImgGetter(bindView.baseBind.content));
 

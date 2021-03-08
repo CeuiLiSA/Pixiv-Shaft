@@ -64,11 +64,9 @@ import ceui.lisa.fragments.FragmentWalkThrough;
 import ceui.lisa.fragments.FragmentWebView;
 import ceui.lisa.fragments.FragmentWhoFollowThisUser;
 import ceui.lisa.fragments.FragmentWorkSpace;
-import ceui.lisa.fragments.TestFragment;
 import ceui.lisa.helper.BackHandlerHelper;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.NovelBean;
-import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseResult;
@@ -281,8 +279,14 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
     @Override
     public void onColorSelected(int dialogId, int color) {
         if (childFragment instanceof FragmentNovelHolder) {
-            ((FragmentNovelHolder) childFragment).setColor(color);
-            Shaft.sSettings.setNovelHolderColor(color);
+            if (dialogId == Params.DIALOG_NOVEL_BG_COLOR) {
+                Shaft.sSettings.setNovelHolderColor(color);
+                ((FragmentNovelHolder) childFragment).setBackgroundColor(color);
+            } else if (dialogId == Params.DIALOG_NOVEL_TEXT_COLOR) {
+                Shaft.sSettings.setNovelHolderTextColor(color);
+                ((FragmentNovelHolder) childFragment).setTextColor(color);
+            }
+
             Local.setSettings(Shaft.sSettings);
         }
     }

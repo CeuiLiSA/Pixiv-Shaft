@@ -136,6 +136,8 @@ public class Settings {
 
     private int novelHolderColor = 0;
 
+    private int novelHolderTextColor = 0;
+
     private int bottomBarOrder = 0;
 
     private boolean reverseDialogNeverShowAgain = false;
@@ -147,6 +149,8 @@ public class Settings {
     private String rootPathUri = "";
 
     private int downloadWay = 0; //0传统模式，保存到Pictures目录下。    1 SAF模式保存到自选目录下
+
+    private boolean filterComment = true;
 
     public String getAppLanguage() {
         if(!TextUtils.isEmpty(appLanguage)){
@@ -421,6 +425,14 @@ public class Settings {
         this.novelHolderColor = novelHolderColor;
     }
 
+    public int getNovelHolderTextColor() {
+        return novelHolderTextColor;
+    }
+
+    public void setNovelHolderTextColor(int novelHolderTextColor) {
+        this.novelHolderTextColor = novelHolderTextColor;
+    }
+
     public int getBottomBarOrder() {
         return bottomBarOrder;
     }
@@ -451,5 +463,13 @@ public class Settings {
 
     public void setStarWithTagSelectAll(boolean starWithTagSelectAll) {
         this.starWithTagSelectAll = starWithTagSelectAll;
+    }
+
+    public boolean isFilterComment() {
+        return filterComment;
+    }
+
+    public void setFilterComment(boolean filterComment) {
+        this.filterComment = filterComment;
     }
 }

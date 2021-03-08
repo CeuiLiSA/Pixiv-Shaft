@@ -318,7 +318,6 @@
                                 android:layout_marginEnd="@dimen/twelve_dp"
                                 android:layout_marginBottom="@dimen/eight_dp"
                                 android:layout_weight="1"
-                                android:foregroundTint="@color/white"
                                 android:src="@drawable/ic_favorite_black_24dp"
                                 app:backgroundTint="?attr/colorPrimary" />
 

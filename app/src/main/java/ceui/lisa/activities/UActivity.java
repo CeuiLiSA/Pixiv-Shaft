@@ -163,6 +163,20 @@ public class UActivity extends BaseActivity<ActivityNewUserBinding> implements D
         }
         Glide.with(mContext).load(GlideUtil.getHead(data.getUser())).into(baseBind.userHead);
         baseBind.userName.setText(data.getUser().getName());
+        baseBind.userName.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Common.copy(mContext, String.valueOf(data.getUser().getId()));
+            }
+        });
+        baseBind.userName.setOnLongClickListener(new View.OnLongClickListener(){
+            @Override
+            public boolean onLongClick(View v) {
+                Common.copy(mContext, data.getUser().getName());
+                return true;
+            }
+        });
+
         baseBind.follow.setText(String.valueOf(data.getProfile().getTotal_follow_users()));
         baseBind.pFriend.setText(String.valueOf(data.getProfile().getTotal_mypixiv_users()));
 

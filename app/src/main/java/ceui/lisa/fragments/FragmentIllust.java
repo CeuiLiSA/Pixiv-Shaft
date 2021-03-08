@@ -211,6 +211,13 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 return true;
             }
         });
+        baseBind.illustTag.setOnTagLongClickListener(new TagFlowLayout.OnTagLongClickListener(){
+            @Override
+            public boolean onTagLongClick(View view, int position, FlowLayout parent) {
+                Common.copy(mContext, illust.getTags().get(position).getName());
+                return true;
+            }
+        });
         baseBind.illustSize.setText(getString(R.string.string_193, illust.getWidth(), illust.getHeight()));
         baseBind.illustId.setText(getString(R.string.string_194, illust.getId()));
         baseBind.userId.setText(getString(R.string.string_195, illust.getUser().getId()));
@@ -310,6 +317,13 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 startActivity(intent);
             }
         });
+        baseBind.userName.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Common.copy(mContext, illust.getUser().getName());
+                return true;
+            }
+        });
         if (illust.getUser().isIs_followed()) {
             baseBind.follow.setText(R.string.string_177);
         } else {
@@ -341,7 +355,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
             }
         });
         baseBind.userName.setText(illust.getUser().getName());
-        baseBind.postTime.setText(String.format("%s投递", illust.getCreate_date().substring(0, 16)));
+        baseBind.postTime.setText(String.format("%s投递", Common.getLocalYYYYMMDDHHMMString(illust.getCreate_date())));
         baseBind.totalView.setText(String.valueOf(illust.getTotal_view()));
         baseBind.totalLike.setText(String.valueOf(illust.getTotal_bookmarks()));
         baseBind.download.setChangeAlphaWhenPress(true);
@@ -396,6 +410,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
         });
         Glide.with(mContext)
                 .load(GlideUtil.getUrl(illust.getUser().getProfile_image_urls().getMedium()))
+                .error(R.drawable.no_profile)
                 .into(baseBind.userHead);
     }
 

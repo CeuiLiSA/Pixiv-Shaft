@@ -200,6 +200,7 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
     @Override
     public void initView() {
         super.initView();
+        baseBind.isPrivate.setChecked(!Shaft.sSettings.isPrivateStar());
         baseBind.submitArea.setOnClickListener(v -> submitStar());
     }
 

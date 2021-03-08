@@ -563,5 +563,8 @@
     <string name="string_373">小说本地保存路径</string>
     <string name="string_374">小说暂时不支持自定义文件夹</string>
     <string name="string_375">\ 100000人收藏</string>
-
+    <string name="string_376">界面</string>
+    <string name="string_377">下载</string>
+    <string name="string_378">修改文字颜色</string>
+    <string name="string_379">过滤垃圾评论</string>
 </resources>
