@@ -14,7 +14,7 @@ import ceui.lisa.models.CommentsBean;
 
 public class CommentFilter {
 
-    private static List<CommentFilterRule> rules = getRules();
+    private static final List<CommentFilterRule> rules = getRules();
 
     public static boolean judge(CommentsBean commentsBean) {
         return rules.stream()
