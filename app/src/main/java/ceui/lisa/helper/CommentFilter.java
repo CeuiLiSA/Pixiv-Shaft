@@ -2,6 +2,7 @@ package ceui.lisa.helper;
 
 import android.text.TextUtils;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,33 +11,70 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.http.NullCtrl;
+import ceui.lisa.http.Retro;
 import ceui.lisa.models.CommentsBean;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
+import okhttp3.ResponseBody;
 
 public class CommentFilter {
 
-    private static final List<CommentFilterRule> rules = getRules();
+    private static List<CommentFilterRule> rules = new ArrayList<>();
+
+    static {
+        updateRules();
+    }
 
     public static boolean judge(CommentsBean commentsBean) {
         return rules.stream()
                 .anyMatch(rule -> rule.judge(commentsBean.getComment()));
     }
 
-    public static List<CommentFilterRule> getRules() {
-        List<CommentFilterRule> rules = new ArrayList<>();
+    private static void updateRules() {
+        updateRulesFromLocal();
+        updateRulesFromRemote();
+    }
+
+    private static void updateRulesFromLocal() {
         try {
             InputStream inputStream = Shaft.getContext().getAssets().open("comment.filter.rule.txt");
             byte[] buffer = new byte[inputStream.available()];
             inputStream.read(buffer);
             inputStream.close();
             String content = new String(buffer);
-            return Arrays.stream(content.split("\\r?\\n", -1))
+            rules = Arrays.stream(content.split("\\r?\\n", -1))
                     .filter(string -> !TextUtils.isEmpty(string))
                     .map(CommentFilterRule::new)
                     .collect(Collectors.toList());
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return rules;
+    }
+
+    private static void updateRulesFromRemote() {
+
+        Retro.getResourceApi().getCommentFilterRule()
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new NullCtrl<ResponseBody>() {
+                    @Override
+                    public void success(ResponseBody responseBody) {
+                        try {
+                            String content = responseBody.string();
+                            if (TextUtils.isEmpty(content)) {
+                                return;
+                            }
+
+                            rules = Arrays.stream(content.split("\\r?\\n", -1))
+                                    .filter(string -> !TextUtils.isEmpty(string))
+                                    .map(CommentFilterRule::new)
+                                    .collect(Collectors.toList());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
     }
 
     private static class CommentFilterRule {
