@@ -5,7 +5,6 @@ import android.util.Log;
 import com.blankj.utilcode.util.DeviceUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.safframework.http.interceptor.LoggingInterceptor;
 
 import java.security.cert.X509Certificate;
 import java.util.Collections;
@@ -23,6 +22,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 import static ceui.lisa.http.AccountApi.ACCOUNT_BASE_URL;
 import static ceui.lisa.http.AppApi.API_BASE_URL;
+import static ceui.lisa.http.ResourceApi.JSDELIVR_BASE_URL;
 import static ceui.lisa.http.SignApi.SIGN_API;
 
 public class Retro {
@@ -37,6 +37,10 @@ public class Retro {
 
     public static AccountApi getAccountApi() {
         return buildRetrofit(ACCOUNT_BASE_URL).create(AccountApi.class);
+    }
+
+    public static ResourceApi getResourceApi(){
+        return buildPlainRetrofit(JSDELIVR_BASE_URL).create(ResourceApi.class);
     }
 
     private static Request.Builder addHeader(Request.Builder before) {
@@ -69,6 +73,16 @@ public class Retro {
                 .client(client)
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create(gson))
+                .baseUrl(baseUrl)
+                .build();
+    }
+
+    private static Retrofit buildPlainRetrofit(String baseUrl){
+        OkHttpClient.Builder builder = getLogClient();
+        OkHttpClient client = builder.build();
+        return new Retrofit.Builder()
+                .client(client)
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .baseUrl(baseUrl)
                 .build();
     }

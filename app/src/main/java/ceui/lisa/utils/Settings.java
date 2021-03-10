@@ -150,7 +150,7 @@ public class Settings {
 
     private int downloadWay = 0; //0传统模式，保存到Pictures目录下。    1 SAF模式保存到自选目录下
 
-    private boolean filterComment = true;
+    private boolean filterComment = false; // 过滤垃圾评论，默认不开启
 
     public String getAppLanguage() {
         if(!TextUtils.isEmpty(appLanguage)){
