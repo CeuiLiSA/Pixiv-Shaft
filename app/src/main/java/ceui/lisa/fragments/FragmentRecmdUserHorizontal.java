@@ -14,6 +14,9 @@ import ceui.lisa.activities.UserActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.UserHAdapter;
 import ceui.lisa.core.BaseRepo;
+import ceui.lisa.core.RxRun;
+import ceui.lisa.core.RxRunnable;
+import ceui.lisa.core.TimeRecord;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustRecmdEntity;
 import ceui.lisa.databinding.FragmentUserHorizontalBinding;
@@ -31,6 +34,8 @@ import ceui.lisa.view.LinearItemHorizontalDecoration;
 import io.reactivex.Observable;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.annotations.NonNull;
+import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import jp.wasabeef.recyclerview.animators.BaseItemAnimator;
 import jp.wasabeef.recyclerview.animators.FadeInLeftAnimator;
@@ -89,40 +94,38 @@ public class FragmentRecmdUserHorizontal extends NetListFragment<FragmentUserHor
 
     @Override
     public void showDataBase() {
-        Observable.create((ObservableOnSubscribe<List<IllustRecmdEntity>>) emitter -> {
-            List<IllustRecmdEntity> temp = AppDatabase.getAppDatabase(mContext).recmdDao().getAll();
-            Thread.sleep(100);
-            emitter.onNext(temp);
-            emitter.onComplete();
-        }).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .map(entities -> {
-                    Common.showLog(className + entities.size());
-                    List<IllustsBean> temp = new ArrayList<>();
-                    for (int i = 0; i < entities.size(); i++) {
-                        IllustsBean illustsBean = Shaft.sGson.fromJson(
-                                entities.get(i).getIllustJson(), IllustsBean.class);
-                        temp.add(illustsBean);
-                    }
-                    return temp;
-                })
-                .subscribe(new NullCtrl<List<IllustsBean>>() {
-                    @Override
-                    public void success(List<IllustsBean> illustsBeans) {
-                        for (IllustsBean illustsBean : illustsBeans) {
-                            UserPreviewsBean userPreviewsBean = new UserPreviewsBean();
-                            userPreviewsBean.setUser(illustsBean.getUser());
-                            allItems.add(userPreviewsBean);
-                        }
-                        mAdapter.notifyItemRangeInserted(mAdapter.headerSize(), allItems.size());
-                    }
+        RxRun.runOn(new RxRunnable<List<IllustsBean>>() {
+            @Override
+            public List<IllustsBean> execute() throws Exception {
+                TimeRecord.start();
+                List<IllustRecmdEntity> entities = AppDatabase.getAppDatabase(mContext).recmdDao().getAll();
+                Thread.sleep(100);
+                List<IllustsBean> temp = new ArrayList<>();
+                for (int i = 0; i < entities.size(); i++) {
+                    IllustsBean illustsBean = Shaft.sGson.fromJson(
+                            entities.get(i).getIllustJson(), IllustsBean.class);
+                    temp.add(illustsBean);
+                }
+                return temp;
+            }
+        }, new NullCtrl<List<IllustsBean>>() {
+            @Override
+            public void success(List<IllustsBean> illustsBeans) {
+                TimeRecord.end();
+                for (IllustsBean illustsBean : illustsBeans) {
+                    UserPreviewsBean userPreviewsBean = new UserPreviewsBean();
+                    userPreviewsBean.setUser(illustsBean.getUser());
+                    allItems.add(userPreviewsBean);
+                }
+                mAdapter.notifyItemRangeInserted(mAdapter.headerSize(), allItems.size());
+            }
 
-                    @Override
-                    public void must(boolean isSuccess) {
-                        baseBind.refreshLayout.finishRefresh(isSuccess);
-                        baseBind.refreshLayout.setEnableRefresh(false);
-                        baseBind.refreshLayout.setEnableLoadMore(false);
-                    }
-                });
+            @Override
+            public void must(boolean isSuccess) {
+                baseBind.refreshLayout.finishRefresh(isSuccess);
+                baseBind.refreshLayout.setEnableRefresh(false);
+                baseBind.refreshLayout.setEnableLoadMore(false);
+            }
+        });
     }
 }

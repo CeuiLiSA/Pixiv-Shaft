@@ -22,6 +22,8 @@ import ceui.lisa.R;
 import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
+import ceui.lisa.core.RxRun;
+import ceui.lisa.core.RxRunnable;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
 import ceui.lisa.databinding.FragmentLocalUserBinding;
@@ -75,34 +77,28 @@ public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
 
     @Override
     protected void initData() {
-        Observable.create((ObservableOnSubscribe<List<UserEntity>>) emitter -> {
-            List<UserEntity> temp = AppDatabase.getAppDatabase(mContext)
-                    .downloadDao().getAllUser();
-            emitter.onNext(temp);
-        })
-                .map(new Function<List<UserEntity>, List<UserModel>>() {
-                    @Override
-                    public List<UserModel> apply(List<UserEntity> userEntities) throws Exception {
-                        allItems = new ArrayList<>();
-                        for (int i = 0; i < userEntities.size(); i++) {
-                            allItems.add(Shaft.sGson.fromJson(userEntities.get(i).getUserGson(), UserModel.class));
-                        }
-                        return allItems;
+        RxRun.runOn(new RxRunnable<List<UserModel>>() {
+            @Override
+            public List<UserModel> execute() {
+                List<UserEntity> temp = AppDatabase.getAppDatabase(mContext)
+                        .downloadDao().getAllUser();
+                allItems = new ArrayList<>();
+                for (int i = 0; i < temp.size(); i++) {
+                    allItems.add(Shaft.sGson.fromJson(temp.get(i).getUserGson(), UserModel.class));
+                }
+                return allItems;
+            }
+        }, new NullCtrl<List<UserModel>>() {
+            @Override
+            public void success(List<UserModel> userModels) {
+                if (userModels.size() != 0) {
+                    for (int i = 0; i < userModels.size(); i++) {
+                        bindData(userModels.get(i));
                     }
-                }).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new NullCtrl<List<UserModel>>() {
-                    @Override
-                    public void success(List<UserModel> userModels) {
-                        if (userModels.size() != 0) {
-                            for (int i = 0; i < userModels.size(); i++) {
-                                bindData(userModels.get(i));
-                            }
-                        }
-                    }
-                });
+                }
+            }
+        });
     }
-
 
     private void bindData(UserModel userModel) {
         RecyLocalUserBinding binding = DataBindingUtil.inflate(

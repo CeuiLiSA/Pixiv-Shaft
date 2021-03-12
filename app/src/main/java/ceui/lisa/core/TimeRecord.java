@@ -17,6 +17,7 @@ public class TimeRecord {
         endTime = 0L;
         Common.showLog("TimeRecord end " + System.nanoTime());
         endTime = System.nanoTime();
+        result();
     }
 
     public static void result() {

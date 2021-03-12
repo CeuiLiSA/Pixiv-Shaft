@@ -24,6 +24,9 @@ import ceui.lisa.adapters.IAdapterWithHeadView;
 import ceui.lisa.core.Container;
 import ceui.lisa.core.PageData;
 import ceui.lisa.core.RemoteRepo;
+import ceui.lisa.core.RxRun;
+import ceui.lisa.core.RxRunnable;
+import ceui.lisa.core.TryCatchObserverImpl;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustRecmdEntity;
 import ceui.lisa.databinding.FragmentBaseListBinding;
@@ -171,28 +174,23 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
     @Override
     public void onFirstLoaded(List<IllustsBean> illustsBeans) {
         ((RecmdModel) mModel).getRankList().clear();
-        Observable.create((ObservableOnSubscribe<String>) emitter -> {
-            emitter.onNext("开始写入数据库");
-            if (allItems != null) {
-                if (allItems.size() >= 20) {
-                    for (int i = 0; i < 20; i++) {
-                        insertViewHistory(allItems.get(i));
-                    }
-                } else {
-                    for (int i = 0; i < allItems.size(); i++) {
-                        insertViewHistory(allItems.get(i));
+        RxRun.runOn(new RxRunnable<Void>() {
+            @Override
+            public Void execute() {
+                if (allItems != null) {
+                    if (allItems.size() >= 20) {
+                        for (int i = 0; i < 20; i++) {
+                            insertViewHistory(allItems.get(i));
+                        }
+                    } else {
+                        for (int i = 0; i < allItems.size(); i++) {
+                            insertViewHistory(allItems.get(i));
+                        }
                     }
                 }
+                return null;
             }
-            emitter.onComplete();
-        }).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new NullCtrl<String>() {
-                    @Override
-                    public void success(String s) {
-
-                    }
-                });
+        }, new TryCatchObserverImpl<>());
         ((RecmdModel) mModel).getRankList().addAll(((RecmdIllust) mResponse).getRanking_illusts());
         ((IAdapterWithHeadView) mAdapter).setHeadData(((RecmdModel) mModel).getRankList());
     }
@@ -210,38 +208,34 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
         if (Common.isEmpty(localData)) {
             return;
         }
-        Observable.create((ObservableOnSubscribe<List<IllustRecmdEntity>>) emitter -> {
-            Thread.sleep(100);
-            emitter.onNext(localData);
-            emitter.onComplete();
-        }).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .map(entities -> {
-                    Common.showLog(className + entities.size());
-                    List<IllustsBean> temp = new ArrayList<>();
-                    for (int i = 0; i < entities.size(); i++) {
-                        IllustsBean illustsBean = Shaft.sGson.fromJson(
-                                entities.get(i).getIllustJson(), IllustsBean.class);
-                        if (!IllustFilter.judge(illustsBean)) {
-                            temp.add(illustsBean);
-                        }
+        RxRun.runOn(new RxRunnable<List<IllustsBean>>() {
+            @Override
+            public List<IllustsBean> execute() throws Exception {
+                Thread.sleep(100);
+                List<IllustsBean> temp = new ArrayList<>();
+                for (int i = 0; i < localData.size(); i++) {
+                    IllustsBean illustsBean = Shaft.sGson.fromJson(
+                            localData.get(i).getIllustJson(), IllustsBean.class);
+                    if (!IllustFilter.judge(illustsBean)) {
+                        temp.add(illustsBean);
                     }
-                    return temp;
-                })
-                .subscribe(new NullCtrl<List<IllustsBean>>() {
-                    @Override
-                    public void success(List<IllustsBean> illustsBeans) {
-                        allItems.addAll(illustsBeans);
-                        ((RecmdModel) mModel).getRankList().addAll(illustsBeans);
-                        ((IAdapterWithHeadView) mAdapter).setHeadData(((RecmdModel) mModel).getRankList());
-                        mAdapter.notifyItemRangeInserted(mAdapter.headerSize(), allItems.size());
-                    }
+                }
+                return temp;
+            }
+        }, new NullCtrl<List<IllustsBean>>() {
+            @Override
+            public void success(List<IllustsBean> illustsBeans) {
+                allItems.addAll(illustsBeans);
+                ((RecmdModel) mModel).getRankList().addAll(illustsBeans);
+                ((IAdapterWithHeadView) mAdapter).setHeadData(((RecmdModel) mModel).getRankList());
+                mAdapter.notifyItemRangeInserted(mAdapter.headerSize(), allItems.size());
+            }
 
-                    @Override
-                    public void must(boolean isSuccess) {
-                        baseBind.refreshLayout.finishRefresh(isSuccess);
-                        baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
-                    }
-                });
+            @Override
+            public void must(boolean isSuccess) {
+                baseBind.refreshLayout.finishRefresh(isSuccess);
+                baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
+            }
+        });
     }
 }

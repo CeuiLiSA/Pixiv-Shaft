@@ -22,6 +22,8 @@ import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapter;
 import ceui.lisa.core.BaseRepo;
+import ceui.lisa.core.RxRun;
+import ceui.lisa.core.RxRunnable;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustRecmdEntity;
 import ceui.lisa.databinding.FragmentNewRightBinding;
@@ -141,35 +143,32 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
 
     @Override
     public void showDataBase() {
-        Observable.create((ObservableOnSubscribe<List<IllustRecmdEntity>>) emitter -> {
-            List<IllustRecmdEntity> temp = AppDatabase.getAppDatabase(mContext).recmdDao().getAll();
-            Thread.sleep(100);
-            emitter.onNext(temp);
-            emitter.onComplete();
-        }).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .map(entities -> {
-                    List<IllustsBean> temp = new ArrayList<>();
-                    for (int i = 0; i < entities.size(); i++) {
-                        IllustsBean illustsBean = Shaft.sGson.fromJson(
-                                entities.get(i).getIllustJson(), IllustsBean.class);
-                        temp.add(illustsBean);
-                    }
-                    return temp;
-                })
-                .subscribe(new NullCtrl<List<IllustsBean>>() {
-                    @Override
-                    public void success(List<IllustsBean> illustsBeans) {
-                        allItems.addAll(illustsBeans);
-                        mAdapter.notifyItemRangeInserted(mAdapter.headerSize(), allItems.size());
-                    }
+        RxRun.runOn(new RxRunnable<List<IllustsBean>>() {
+            @Override
+            public List<IllustsBean> execute() throws Exception {
+                Thread.sleep(100);
+                List<IllustRecmdEntity> entities = AppDatabase.getAppDatabase(mContext).recmdDao().getAll();
+                List<IllustsBean> temp = new ArrayList<>();
+                for (int i = 0; i < entities.size(); i++) {
+                    IllustsBean illustsBean = Shaft.sGson.fromJson(
+                            entities.get(i).getIllustJson(), IllustsBean.class);
+                    temp.add(illustsBean);
+                }
+                return temp;
+            }
+        }, new NullCtrl<List<IllustsBean>>() {
+            @Override
+            public void success(List<IllustsBean> illustsBeans) {
+                allItems.addAll(illustsBeans);
+                mAdapter.notifyItemRangeInserted(mAdapter.headerSize(), allItems.size());
+            }
 
-                    @Override
-                    public void must(boolean isSuccess) {
-                        baseBind.refreshLayout.finishRefresh(isSuccess);
-                        baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
-                    }
-                });
+            @Override
+            public void must(boolean isSuccess) {
+                baseBind.refreshLayout.finishRefresh(isSuccess);
+                baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
+            }
+        });
     }
 
     @Override
