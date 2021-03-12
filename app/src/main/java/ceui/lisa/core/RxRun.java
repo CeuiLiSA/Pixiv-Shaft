@@ -21,15 +21,15 @@ public class RxRun {
      * @param <R>      observer接收类型
      */
     public static <T, R> void runOn(RxRunnable<T> runnable, Observer<R> observer, Function<T, R> mapper) {
+        if (runnable == null) {
+            return;
+        }
+        runnable.beforeExecute();
         Observable<T> observable = Observable.create(emitter -> {
             try {
-                if (runnable != null) {
-                    T result = runnable.execute();
-                    if (result != null) {
-                        emitter.onNext(result);
-                    }
-                    emitter.onComplete();
-                }
+                T result = runnable.execute();
+                emitter.onNext(result);
+                emitter.onComplete();
             } catch (Exception e) {
                 emitter.onError(e);
             }
