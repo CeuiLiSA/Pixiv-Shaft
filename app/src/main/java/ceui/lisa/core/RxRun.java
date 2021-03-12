@@ -32,7 +32,6 @@ public class RxRun {
                 }
             } catch (Exception e) {
                 emitter.onError(e);
-                e.printStackTrace();
             }
         });
         observable.subscribeOn(Schedulers.newThread())
