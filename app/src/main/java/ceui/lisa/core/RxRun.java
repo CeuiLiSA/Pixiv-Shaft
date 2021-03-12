@@ -24,6 +24,7 @@ public class RxRun {
         if (runnable == null) {
             return;
         }
+
         runnable.beforeExecute();
         Observable<T> observable = Observable.create(emitter -> {
             try {
