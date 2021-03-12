@@ -97,7 +97,6 @@ public class FragmentRecmdUserHorizontal extends NetListFragment<FragmentUserHor
         RxRun.runOn(new RxRunnable<List<IllustsBean>>() {
             @Override
             public List<IllustsBean> execute() throws Exception {
-                TimeRecord.start();
                 List<IllustRecmdEntity> entities = AppDatabase.getAppDatabase(mContext).recmdDao().getAll();
                 Thread.sleep(100);
                 List<IllustsBean> temp = new ArrayList<>();
@@ -111,7 +110,6 @@ public class FragmentRecmdUserHorizontal extends NetListFragment<FragmentUserHor
         }, new NullCtrl<List<IllustsBean>>() {
             @Override
             public void success(List<IllustsBean> illustsBeans) {
-                TimeRecord.end();
                 for (IllustsBean illustsBean : illustsBeans) {
                     UserPreviewsBean userPreviewsBean = new UserPreviewsBean();
                     userPreviewsBean.setUser(illustsBean.getUser());
