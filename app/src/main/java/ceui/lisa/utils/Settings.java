@@ -204,11 +204,12 @@ public class Settings {
         this.appLanguage = appLanguage;
     }
 
-    public String getThemeType() {
-        if (TextUtils.isEmpty(themeType)) {
-            return ThemeHelper.DEFAULT_MODE;
+    public ThemeHelper.ThemeType getThemeType() {
+        try {
+            return ThemeHelper.ThemeType.valueOf(themeType);
+        }catch (Exception e){
+            return ThemeHelper.ThemeType.DEFAULT_MODE;
         }
-        return themeType;
     }
 
     public boolean isFirebaseEnable() {
@@ -219,8 +220,8 @@ public class Settings {
         isFirebaseEnable = firebaseEnable;
     }
 
-    public void setThemeType(AppCompatActivity activity, String themeType) {
-        this.themeType = themeType;
+    public void setThemeType(AppCompatActivity activity, ThemeHelper.ThemeType themeType) {
+        this.themeType = themeType.name();
         ThemeHelper.applyTheme(activity, themeType);
     }
 

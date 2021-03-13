@@ -9,7 +9,6 @@ import android.view.View;
 import android.widget.CompoundButton;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.blankj.utilcode.util.FileUtils;
 import com.blankj.utilcode.util.LanguageUtils;
@@ -23,16 +22,13 @@ import com.scwang.smartrefresh.layout.header.FalsifyHeader;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.util.Locale;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
-import ceui.lisa.core.Manager;
 import ceui.lisa.databinding.FragmentSettingsBinding;
-import ceui.lisa.feature.HostManager;
 import ceui.lisa.file.LegacyFile;
 import ceui.lisa.helper.ThemeHelper;
 import ceui.lisa.utils.Common;
@@ -42,6 +38,9 @@ import ceui.lisa.utils.PixivSearchParamUtil;
 import ceui.lisa.utils.Settings;
 
 import static android.provider.DocumentsContract.EXTRA_INITIAL_URI;
+import static ceui.lisa.helper.ThemeHelper.ThemeType.DARK_MODE;
+import static ceui.lisa.helper.ThemeHelper.ThemeType.DEFAULT_MODE;
+import static ceui.lisa.helper.ThemeHelper.ThemeType.LIGHT_MODE;
 import static ceui.lisa.utils.Settings.ALL_LANGUAGE;
 
 
@@ -481,15 +480,20 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             }
         });
 
-        baseBind.themeMode.setText(Shaft.sSettings.getThemeType());
+        baseBind.themeMode.setText(Shaft.sSettings.getThemeType().toDisplayString(mContext));
         baseBind.themeModeRela.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final int index = ThemeHelper.getThemeType(mContext);
+                final int index = Shaft.sSettings.getThemeType().themeTypeIndex;
+                ThemeHelper.ThemeType[] THEME_MODES = new ThemeHelper.ThemeType[]{
+                        DEFAULT_MODE,
+                        LIGHT_MODE,
+                        DARK_MODE
+                };
                 String[] THEME_NAME = new String[]{
-                        getString(R.string.string_298),
-                        getString(R.string.string_299),
-                        getString(R.string.string_300)
+                        THEME_MODES[0].toDisplayString(mContext),
+                        THEME_MODES[1].toDisplayString(mContext),
+                        THEME_MODES[2].toDisplayString(mContext)
                 };
                 new QMUIDialog.CheckableDialogBuilder(mActivity)
                         .setCheckedIndex(index)
@@ -500,7 +504,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                                 if (which == index) {
                                     Common.showLog("什么也不做");
                                 } else {
-                                    Shaft.sSettings.setThemeType(((AppCompatActivity) mActivity), THEME_NAME[which]);
+                                    Shaft.sSettings.setThemeType(((AppCompatActivity) mActivity), THEME_MODES[which]);
                                     baseBind.themeMode.setText(THEME_NAME[which]);
                                     Local.setSettings(Shaft.sSettings);
                                 }
