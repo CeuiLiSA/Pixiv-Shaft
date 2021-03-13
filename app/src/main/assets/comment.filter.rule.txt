@@ -10,3 +10,5 @@
 0,pp9.store
 0,q33.live
 0,ur1.one
+0,wp8.email
+0,yesxdxw.xyz
