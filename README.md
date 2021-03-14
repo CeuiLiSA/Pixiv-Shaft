@@ -20,6 +20,7 @@
 * 新增小说功能
 * Pixiv特辑
 * R18显示（需自行到官网开启）
+* 过滤垃圾评论
 
 ## 2.特性
 * 美观大方的界面，融合多家客户端设计优点
@@ -64,7 +65,7 @@ This project is under the MIT License. See the [LICENSE](LICENSE) file for the f
 ```text
 MIT License
 
-Copyright (c) 2020 CeuiLiSA
+Copyright (c) 2021 CeuiLiSA
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
