@@ -78,7 +78,8 @@ public class CommentFilter {
     }
 
     private static class CommentFilterRule {
-        private static final int URL = 0; // 根据域名过滤
+        private static final int URL_DOMAIN = 0; // 根据域名过滤
+        private static final int FULL_MATCH = 1; // 根据完整正则过滤
 
         private int ruleType;
         private String ruleValue;
@@ -104,14 +105,21 @@ public class CommentFilter {
         }
 
         private void init() {
-            if (ruleType == URL) {
+            if (ruleType == URL_DOMAIN) {
                 String regexRuleValue = ruleValue.replace(".", "\\.");
                 mPattern = Pattern.compile("https?://([0-9a-zA-Z]+\\.)*" + regexRuleValue);
+            } else if (ruleType == FULL_MATCH) {
+                mPattern = Pattern.compile(ruleValue);
             }
         }
 
         public boolean judge(String input) {
-            if (ruleType == URL) {
+            if (mPattern == null) {
+                return false;
+            }
+            if (ruleType == URL_DOMAIN) {
+                return mPattern.matcher(input).find();
+            } else if (ruleType == FULL_MATCH) {
                 return mPattern.matcher(input).find();
             }
             return false;
