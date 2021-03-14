@@ -12,3 +12,4 @@
 0,ur1.one
 0,wp8.email
 0,yesxdxw.xyz
+1,http://[0-9a-zA-Z.]+/portal\.php\?x=\d{6,}

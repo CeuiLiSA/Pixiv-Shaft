@@ -79,6 +79,7 @@ public class CommentFilter {
 
     private static class CommentFilterRule {
         private static final int URL = 0; // 根据域名过滤
+        private static final int HTTP_PORTAL = 1; // http + portal 格式地址 http://55p.link/portal.php?x=870326
 
         private int ruleType;
         private String ruleValue;
@@ -107,11 +108,15 @@ public class CommentFilter {
             if (ruleType == URL) {
                 String regexRuleValue = ruleValue.replace(".", "\\.");
                 mPattern = Pattern.compile("https?://([0-9a-zA-Z]+\\.)*" + regexRuleValue);
+            } else if (ruleType == HTTP_PORTAL){
+                mPattern = Pattern.compile(ruleValue);
             }
         }
 
         public boolean judge(String input) {
             if (ruleType == URL) {
+                return mPattern.matcher(input).find();
+            }else if (ruleType == HTTP_PORTAL) {
                 return mPattern.matcher(input).find();
             }
             return false;
