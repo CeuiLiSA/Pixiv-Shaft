@@ -108,15 +108,18 @@ public class CommentFilter {
             if (ruleType == URL_DOMAIN) {
                 String regexRuleValue = ruleValue.replace(".", "\\.");
                 mPattern = Pattern.compile("https?://([0-9a-zA-Z]+\\.)*" + regexRuleValue);
-            } else if (ruleType == FULL_MATCH){
+            } else if (ruleType == FULL_MATCH) {
                 mPattern = Pattern.compile(ruleValue);
             }
         }
 
         public boolean judge(String input) {
+            if (mPattern == null) {
+                return false;
+            }
             if (ruleType == URL_DOMAIN) {
                 return mPattern.matcher(input).find();
-            }else if (ruleType == FULL_MATCH) {
+            } else if (ruleType == FULL_MATCH) {
                 return mPattern.matcher(input).find();
             }
             return false;
