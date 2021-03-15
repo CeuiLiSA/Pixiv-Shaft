@@ -87,7 +87,7 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
         baseBind.tabLayout.setupWithViewPager(baseBind.viewPager);
     }
 
-    public void scrollToTop() {
+    public void forceRefresh() {
         try {
             mFragments[baseBind.viewPager.getCurrentItem()].forceRefresh();
         } catch (Exception e) {

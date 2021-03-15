@@ -30,6 +30,7 @@ import ceui.lisa.utils.Params;
 public class FragmentViewPager extends BaseFragment<ViewpagerWithTablayoutBinding> {
 
     private String title;
+    private ListFragment[] mFragments = null;
 
     public static FragmentViewPager newInstance(String title) {
         Bundle args = new Bundle();
@@ -119,12 +120,18 @@ public class FragmentViewPager extends BaseFragment<ViewpagerWithTablayoutBindin
                     Shaft.getContext().getString(R.string.r_eighteen_male_rank),
                     Shaft.getContext().getString(R.string.r_eighteen_female_rank),
             };
+            mFragments = new ListFragment[] {
+                    FragmentRankIllust.newInstance(7, "", false),
+                    FragmentRankIllust.newInstance(8, "", false),
+                    FragmentRankIllust.newInstance(9, "", false),
+                    FragmentRankIllust.newInstance(10, "", false)
+            };
             baseBind.toolbarTitle.setText(R.string.string_r);
             baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
                 @NonNull
                 @Override
                 public Fragment getItem(int position) {
-                    return FragmentRankIllust.newInstance(position + 7, "", false);
+                    return mFragments[position];
                 }
 
                 @Override
@@ -141,5 +148,13 @@ public class FragmentViewPager extends BaseFragment<ViewpagerWithTablayoutBindin
         }
         baseBind.tabLayout.setupWithViewPager(baseBind.viewPager);
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
+    }
+
+    public void forceRefresh() {
+        try {
+            mFragments[baseBind.viewPager.getCurrentItem()].forceRefresh();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
