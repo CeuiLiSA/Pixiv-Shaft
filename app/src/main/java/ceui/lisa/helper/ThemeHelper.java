@@ -8,15 +8,33 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.Shaft;
 
 public class ThemeHelper {
 
-    public static final String LIGHT_MODE = "白天模式（浅色）";
-    public static final String DARK_MODE = "黑暗模式（深色）";
-    public static final String DEFAULT_MODE = "默认模式（跟随系统）";
+    public enum ThemeType {
+        DEFAULT_MODE(0, R.string.string_298),
+        LIGHT_MODE(1, R.string.string_299),
+        DARK_MODE(2, R.string.string_300);
 
-    public static void applyTheme(AppCompatActivity activity, @NonNull String themePref) {
+        public int themeTypeIndex;
+        private int themeTypeNameResId;
+
+        ThemeType(int themeTypeIndex, int themeTypeNameResId) {
+            this.themeTypeIndex = themeTypeIndex;
+            this.themeTypeNameResId = themeTypeNameResId;
+        }
+
+        @Override
+        public String toString() {
+            return String.valueOf(themeTypeIndex);
+        }
+
+        public String toDisplayString(Context context) {
+            return context.getString(themeTypeNameResId);
+        }
+    }
+
+    public static void applyTheme(AppCompatActivity activity, @NonNull ThemeType themePref) {
         switch (themePref) {
             case LIGHT_MODE: {
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
@@ -47,22 +65,5 @@ public class ThemeHelper {
                 break;
             }
         }
-    }
-
-    public static int getThemeType(Context context) {
-        String[] THEME_NAME = new String[]{
-                context.getResources().getString(R.string.string_298),
-                context.getResources().getString(R.string.string_299),
-                context.getResources().getString(R.string.string_300)
-        };
-        String currentType = Shaft.sSettings.getThemeType();
-        int index = 0;
-        for (int i = 0; i < THEME_NAME.length; i++) {
-            if (THEME_NAME[i].equals(currentType)) {
-                index = i;
-                break;
-            }
-        }
-        return index;
     }
 }
