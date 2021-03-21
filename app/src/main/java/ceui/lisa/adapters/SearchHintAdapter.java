@@ -1,12 +1,10 @@
 package ceui.lisa.adapters;
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
-import android.util.TypedValue;
 import android.view.View;
 
 import java.util.List;
@@ -46,6 +44,15 @@ public class SearchHintAdapter extends BaseAdapter<ListTrendingtag.TrendTagsBean
                 @Override
                 public void onClick(View view) {
                     mOnItemClickListener.onItemClick(view, position, 0);
+                }
+            });
+        }
+        if (mOnItemLongClickListener != null){
+            bindView.itemView.setOnLongClickListener(new View.OnLongClickListener(){
+                @Override
+                public boolean onLongClick(View view) {
+                    mOnItemLongClickListener.onItemLongClick(view, position, 0);
+                    return true;
                 }
             });
         }
