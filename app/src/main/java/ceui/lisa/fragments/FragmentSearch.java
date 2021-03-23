@@ -100,16 +100,16 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                 String inputs = String.valueOf(charSequence);
-                List<String> keys = Arrays.stream(inputs.split(" "))
-                        .filter(s -> !TextUtils.isEmpty(s)).collect(Collectors.toList());
-                if (keys.size() != 0 && searchType == 0) {
-                    if (fuck != null) {
+                baseBind.clear.setVisibility(inputs.length() > 0 ? View.VISIBLE : View.INVISIBLE);
+
+                if (inputs.length() > 0 && searchType == 0 && !inputs.endsWith(" ") && fuck != null) {
+                    List<String> keys = Arrays.stream(inputs.split(" "))
+                            .filter(s -> !TextUtils.isEmpty(s)).collect(Collectors.toList());
+                    if (keys.size() > 0) {
                         fuck.onNext(keys.get(keys.size() - 1));
                     }
-                    baseBind.clear.setVisibility(View.VISIBLE);
                 } else {
                     baseBind.hintList.setVisibility(View.GONE);
-                    baseBind.clear.setVisibility(View.INVISIBLE);
                 }
             }
 
@@ -193,49 +193,49 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
         getHotTags();
     }
 
-
     private void dispatchClick(String keyWord, int searchType) {
+        String trimmedKeyword = keyWord.trim();
         if (searchType == 0) {
             baseBind.hintList.setVisibility(View.INVISIBLE);
             Intent intent = new Intent(mContext, SearchActivity.class);
-            intent.putExtra(Params.KEY_WORD, keyWord);
+            intent.putExtra(Params.KEY_WORD, trimmedKeyword);
             intent.putExtra(Params.INDEX, 0);
             startActivity(intent);
         } else if (searchType == 1) {
-            if (isNumeric(keyWord)) {
-                insertSearchHistory(keyWord, searchType);
-                PixivOperate.getIllustByID(sUserModel, Integer.valueOf(keyWord), mContext);
+            if (isNumeric(trimmedKeyword)) {
+                insertSearchHistory(trimmedKeyword, searchType);
+                PixivOperate.getIllustByID(sUserModel, Integer.valueOf(trimmedKeyword), mContext);
             } else {
                 Common.showToast(getString(R.string.string_154));
             }
         } else if (searchType == 2) {
-            insertSearchHistory(keyWord, searchType);
+            insertSearchHistory(trimmedKeyword, searchType);
             Intent intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_KEYWORD,
-                    keyWord);
+                    trimmedKeyword);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "搜索用户");
             startActivity(intent);
         } else if (searchType == 3) {
-            if (isNumeric(keyWord)) {
-                insertSearchHistory(keyWord, searchType);
+            if (isNumeric(trimmedKeyword)) {
+                insertSearchHistory(trimmedKeyword, searchType);
                 Intent intent = new Intent(mContext, UserActivity.class);
-                intent.putExtra(Params.USER_ID, Integer.valueOf(keyWord));
+                intent.putExtra(Params.USER_ID, Integer.valueOf(trimmedKeyword));
                 startActivity(intent);
             } else {
                 Common.showToast(getString(R.string.string_154));
             }
         } else if (searchType == 4) {
-            if (isNumeric(keyWord)) {
-                insertSearchHistory(keyWord, searchType);
-                PixivOperate.getNovelByID(sUserModel, Integer.valueOf(keyWord), mContext, null);
+            if (isNumeric(trimmedKeyword)) {
+                insertSearchHistory(trimmedKeyword, searchType);
+                PixivOperate.getNovelByID(sUserModel, Integer.valueOf(trimmedKeyword), mContext, null);
             } else {
                 Common.showToast(getString(R.string.string_154));
             }
         } else if (searchType == 5) {
-            if (!TextUtils.isEmpty(keyWord)) {
+            if (!TextUtils.isEmpty(trimmedKeyword)) {
                 try {
                     Intent intent = new Intent(mContext, OutWakeActivity.class);
-                    intent.setData(Uri.parse(keyWord));
+                    intent.setData(Uri.parse(trimmedKeyword));
                     startActivity(intent);
                 } catch (Exception e) {
                     Common.showToast(e.toString());
@@ -276,12 +276,14 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                                 List<String> keys = Arrays.stream(currentInput.split(" "))
                                         .filter(s -> !TextUtils.isEmpty(s)).collect(Collectors.toList());
                                 String tagName = listTrendingtag.getList().get(position).getTag();
+                                StringBuilder sb = new StringBuilder();
                                 if (keys.size() > 0) {
                                     keys.set(keys.size() - 1, tagName);
-                                    baseBind.inputBox.setText(TextUtils.join(" ", keys));
+                                    sb.append(TextUtils.join(" ", keys));
                                 } else {
-                                    baseBind.inputBox.setText(tagName);
+                                    sb.append(tagName);
                                 }
+                                baseBind.inputBox.setText(sb.append(" ").toString());
                                 baseBind.inputBox.setSelection(baseBind.inputBox.getText().length());
                             }
                         });
