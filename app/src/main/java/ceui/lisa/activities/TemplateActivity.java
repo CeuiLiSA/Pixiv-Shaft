@@ -127,7 +127,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 }
                 case "按标签收藏": {
                     int id = intent.getIntExtra(Params.ILLUST_ID, 0);
-                    return FragmentSB.newInstance(id);
+                    String[] tagNames = intent.getStringArrayExtra(Params.TAG_NAMES);
+                    return FragmentSB.newInstance(id, tagNames);
                 }
                 case "关于软件":
                     return new FragmentAboutApp();

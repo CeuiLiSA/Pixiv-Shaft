@@ -97,6 +97,7 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
             public boolean onLongClick(View v) {
                 Intent intent = new Intent(mContext, TemplateActivity.class);
                 intent.putExtra(Params.ILLUST_ID, target.getId());
+                intent.putExtra(Params.TAG_NAMES, target.getTagNames());
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏");
                 mContext.startActivity(intent);
                 return true;

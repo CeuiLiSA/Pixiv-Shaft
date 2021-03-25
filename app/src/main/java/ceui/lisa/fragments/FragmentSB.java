@@ -16,6 +16,7 @@ import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import ceui.lisa.R;
@@ -43,6 +44,7 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
 
     private int illustID;
     private String lastClass = "";
+    private List<String> tagNames = new ArrayList<>();
 
     public static FragmentSB newInstance(int illustID) {
         Bundle args = new Bundle();
@@ -52,9 +54,19 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
         return fragment;
     }
 
+    public static FragmentSB newInstance(int illustID, String[] tagNames) {
+        Bundle args = new Bundle();
+        args.putInt(Params.ILLUST_ID, illustID);
+        args.putStringArray(Params.TAG_NAMES, tagNames);
+        FragmentSB fragment = new FragmentSB();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
     @Override
     public void initBundle(Bundle bundle) {
         illustID = bundle.getInt(Params.ILLUST_ID);
+        tagNames = Arrays.asList(bundle.getStringArray(Params.TAG_NAMES));
     }
 
     @Override
@@ -74,7 +86,7 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
 
     @Override
     public BaseRepo repository() {
-        return new SelectTagRepo(illustID);
+        return new SelectTagRepo(illustID, tagNames);
     }
 
     private void submitStar() {
@@ -156,8 +168,10 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
     @Override
     public void beforeFirstLoad(List<TagsBean> tagsBeans) {
         super.beforeFirstLoad(tagsBeans);
-        for (TagsBean tagsBean : tagsBeans) {
-            tagsBean.setSelected(Shaft.sSettings.isStarWithTagSelectAll());
+        if (Shaft.sSettings.isStarWithTagSelectAll()) {
+            for (TagsBean tagsBean : tagsBeans) {
+                tagsBean.setSelected(true);
+            }
         }
     }
 

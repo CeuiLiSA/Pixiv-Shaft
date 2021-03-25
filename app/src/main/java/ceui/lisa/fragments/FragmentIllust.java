@@ -182,6 +182,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
             public boolean onLongClick(View v) {
                 Intent intent = new Intent(mContext, TemplateActivity.class);
                 intent.putExtra(Params.ILLUST_ID, illust.getId());
+                intent.putExtra(Params.TAG_NAMES, illust.getTagNames());
                 intent.putExtra(Params.LAST_CLASS, getClass().getSimpleName());
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏");
                 startActivity(intent);

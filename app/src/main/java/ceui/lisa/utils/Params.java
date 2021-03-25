@@ -42,6 +42,7 @@ public class Params {
     public static final String LAST_CLASS    = "last class";
     public static final String NOVEL_DETAIL  = "novel detail";
     public static final String PREFER_PRESERVE  = "prefer preserve";
+    public static final String TAG_NAMES  = "tag names";
 
 
     public static final String VIEW_PAGER_MUTED  = "muted history viewpager";

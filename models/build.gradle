@@ -23,12 +23,18 @@ android {
         }
     }
 
+    compileOptions {
+        coreLibraryDesugaringEnabled = true
+        sourceCompatibility = '1.8'
+        targetCompatibility = '1.8'
+    }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "androidx.core:core-ktx:+"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
 }
 repositories {
     maven { url 'https://dl.bintray.com/kotlin/kotlin-eap' }
