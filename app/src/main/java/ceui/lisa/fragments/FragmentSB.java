@@ -86,30 +86,33 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
         }
 
         if (tempList.size() == 0) {
+            boolean isPrivate = baseBind.isPrivate.isChecked();
+            String toastMsg = isPrivate ? getString(R.string.like_novel_success_private) : getString(R.string.like_novel_success_public);
             Retro.getAppApi().postLike(Shaft.sUserModel.getAccess_token(), illustID,
-                    baseBind.isPrivate.isChecked() ? Params.TYPE_PRIVATE : Params.TYPE_PUBLUC)
+                    isPrivate ? Params.TYPE_PRIVATE : Params.TYPE_PUBLUC)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {
                         @Override
                         public void next(NullResponse nullResponse) {
-                            Common.showToast("收藏成功");
+                            Common.showToast(toastMsg);
                             setFollowed();
                         }
                     });
         } else {
-
+            boolean isPrivate = baseBind.isPrivate.isChecked();
+            String toastMsg = isPrivate ? getString(R.string.like_novel_success_private) : getString(R.string.like_novel_success_public);
             String[] strings = new String[tempList.size()];
             tempList.toArray(strings);
 
             Retro.getAppApi().postLike(Shaft.sUserModel.getAccess_token(), illustID,
-                    baseBind.isPrivate.isChecked() ? Params.TYPE_PRIVATE : Params.TYPE_PUBLUC, strings)
+                    isPrivate ? Params.TYPE_PRIVATE : Params.TYPE_PUBLUC, strings)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {
                         @Override
                         public void next(NullResponse nullResponse) {
-                            Common.showToast("收藏成功");
+                            Common.showToast(toastMsg);
                             setFollowed();
                         }
                     });
@@ -200,7 +203,7 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
     @Override
     public void initView() {
         super.initView();
-        baseBind.isPrivate.setChecked(!Shaft.sSettings.isPrivateStar());
+        baseBind.isPrivate.setChecked(Shaft.sSettings.isPrivateStar());
         baseBind.submitArea.setOnClickListener(v -> submitStar());
     }
 
