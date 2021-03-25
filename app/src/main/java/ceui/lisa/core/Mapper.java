@@ -6,6 +6,7 @@ import java.util.List;
 import ceui.lisa.helper.IllustFilter;
 import ceui.lisa.interfaces.ListShow;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.utils.Common;
 import io.reactivex.functions.Function;
 
 /**
@@ -21,7 +22,8 @@ public class Mapper<T extends ListShow<?>> implements Function<T, T> {
             if (o instanceof IllustsBean) {
                 boolean isTagBanned = IllustFilter.judgeTag((IllustsBean) o);
                 boolean isIdBanned = IllustFilter.judgeID((IllustsBean) o);
-                if (isTagBanned || isIdBanned) {
+                boolean isUserBanned = IllustFilter.judgeUserID((IllustsBean) o);
+                if (isTagBanned || isIdBanned || isUserBanned) {
                     dash.add((IllustsBean) o);
                 }
             }

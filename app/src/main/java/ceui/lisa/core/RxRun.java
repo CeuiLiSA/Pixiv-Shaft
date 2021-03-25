@@ -36,8 +36,8 @@ public class RxRun {
             }
         });
         observable.subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
                 .map(mapper)
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(observer);
     }
 

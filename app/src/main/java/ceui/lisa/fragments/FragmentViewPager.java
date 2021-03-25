@@ -57,10 +57,12 @@ public class FragmentViewPager extends BaseFragment<ViewpagerWithTablayoutBindin
             String[] CHINESE_TITLES = new String[]{
                     Shaft.getContext().getString(R.string.string_353),
                     Shaft.getContext().getString(R.string.string_354),
+                    Shaft.getContext().getString(R.string.string_381),
             };
             Toolbar.OnMenuItemClickListener[] mFragments = new Toolbar.OnMenuItemClickListener[]{
                     new FragmentMutedTags(),
-                    new FragmentMutedObjects()
+                    new FragmentMutedObjects(),
+                    new FragmentMutedUser(),
             };
             baseBind.toolbar.inflateMenu(R.menu.delete_and_add);
             baseBind.toolbar.setOnMenuItemClickListener(mFragments[0]);

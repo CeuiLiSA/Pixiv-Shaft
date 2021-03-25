@@ -15,7 +15,7 @@ import ceui.lisa.utils.Common;
 public class IllustFilter {
 
     public static boolean judge(IllustsBean illust) {
-        return judgeID(illust) || judgeTag(illust);
+        return judgeID(illust) || judgeTag(illust) || judgeUserID(illust) ;
     }
 
     public static boolean judgeID(IllustsBean illust) {
@@ -30,6 +30,13 @@ public class IllustFilter {
             }
         }
         return isBanned;
+    }
+
+    public static boolean judgeUserID(IllustsBean illust) {
+        MuteEntity temp = AppDatabase.getAppDatabase(Shaft.getContext())
+                .searchDao()
+                .getMuteEntityByID(illust.getUser().getUserId());
+        return temp != null;
     }
 
     public static boolean judgeTag(IllustsBean illustsBean) {

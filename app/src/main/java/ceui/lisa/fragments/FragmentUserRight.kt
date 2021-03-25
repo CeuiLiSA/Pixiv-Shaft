@@ -7,10 +7,13 @@ import android.view.View
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import ceui.lisa.R
+import ceui.lisa.activities.Shaft
 import ceui.lisa.activities.TemplateActivity
+import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentUserRightBinding
 import ceui.lisa.databinding.TagItemBinding
 import ceui.lisa.utils.Params
+import ceui.lisa.utils.PixivOperate
 import ceui.lisa.viewmodel.UserViewModel
 import com.scwang.smartrefresh.layout.SmartRefreshLayout
 import com.zhy.view.flowlayout.FlowLayout
@@ -63,6 +66,16 @@ class FragmentUserRight : SwipeFragment<FragmentUserRightBinding>() {
                 return binding.root
             }
         }
+        val entity = AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().getMuteEntityByID(data.userId)
+        baseBind.banUser.isChecked = entity != null
+        baseBind.banUser.setOnCheckedChangeListener { buttonView, isChecked ->
+            if (isChecked) {
+                PixivOperate.muteUser(data.user)
+            } else {
+                PixivOperate.unMuteUser(data.user)
+            }
+        }
+        baseBind.banUserRela.setOnClickListener { baseBind.banUser.performClick() }
         baseBind.tagLayout.setOnTagClickListener { _, position, _ ->
             val intent = Intent(mContext, TemplateActivity::class.java)
             intent.putExtra(Params.USER_ID, data.user.userId)

@@ -37,6 +37,9 @@ public interface SearchDao {
     @Query("DELETE FROM tag_mute_table WHERE type = 0")
     void deleteAllMutedTags();
 
+    @Query("DELETE FROM tag_mute_table WHERE type = 3")
+    void deleteAllMutedUsers();
+
     @Query("DELETE FROM tag_mute_table WHERE type = 1 OR type = 2")
     void deleteMutedWorks();
 
@@ -52,8 +55,12 @@ public interface SearchDao {
     @Query("SELECT * FROM tag_mute_table WHERE type = 1 ORDER BY searchTime DESC ")
     List<MuteEntity> getMutedIllusts();
 
-    @Query("SELECT * FROM tag_mute_table WHERE type = 3 ORDER BY searchTime DESC ")
-    List<MuteEntity> getMutedUser();
+    @Query("SELECT * FROM tag_mute_table WHERE type = 3 ORDER BY searchTime DESC LIMIT :limit OFFSET :offset")
+    List<MuteEntity> getMutedUser(int limit, int offset);
+
+    @Query("SELECT * FROM tag_mute_table WHERE type = 3 AND id = :userID LIMIT 1")
+    MuteEntity getMuteEntityByID(int userID);
+
 
     @Delete
     void unMuteTag(MuteEntity userEntity);

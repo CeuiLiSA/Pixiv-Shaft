@@ -9,6 +9,8 @@ import ceui.lisa.databinding.FragmentAboutBinding
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.PackageUtils
 import ceui.lisa.utils.Params
+import com.qmuiteam.qmui.skin.QMUISkinManager
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog.MenuDialogBuilder
 import com.scwang.smartrefresh.layout.SmartRefreshLayout
 
 class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
@@ -79,16 +81,31 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
             }
         }
         baseBind.goQq.setOnClickListener {
-            val intent = Intent()
-            intent.data = Uri.parse(
-//                "mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + "_RMaPSgL-eB-JZPMFdXGJTSqIqtgCn5G"
-                "mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + "t4_EApMhD08yaYtdTQ40TmrjIx-uuWsk"
-            )
-            try {
-                startActivity(intent)
-            } catch (e: Exception) {
-                Common.showToast(getString(R.string.string_227))
-            }
+            val choices = arrayOf("一群", "二群", "三群")
+            MenuDialogBuilder(mActivity)
+                .addItems(choices) { dialog, which ->
+                    val intent = Intent()
+                    if (which == 0) {
+                        intent.data = Uri.parse(
+                            "mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + "_RMaPSgL-eB-JZPMFdXGJTSqIqtgCn5G"
+                        )
+                    } else if (which == 1) {
+                        intent.data = Uri.parse(
+                            "mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + "t4_EApMhD08yaYtdTQ40TmrjIx-uuWsk"
+                        )
+                    } else if (which == 2) {
+                        intent.data = Uri.parse(
+                            "mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + "wP7NEZdMl11ijJgm0IDQMjZ3kaPQPio6"
+                        )
+                    }
+                    try {
+                        startActivity(intent)
+                    } catch (e: Exception) {
+                        Common.showToast(getString(R.string.string_227))
+                    }
+                }
+                .setSkinManager(QMUISkinManager.defaultInstance(mActivity))
+                .show()
         }
         baseBind.appVersion.text = "%s (%s) "
             .format(Common.getAppVersionName(mContext), Common.getAppVersionCode(mContext))

@@ -25,8 +25,8 @@ public abstract class RemoteRepo<Response extends ListShow<?>> extends BaseRepo 
         mApi = initApi();
         if (mApi != null) {
             mApi.subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
                     .map(mFunction)
+                    .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(nullCtrl);
         }
     }
@@ -35,8 +35,8 @@ public abstract class RemoteRepo<Response extends ListShow<?>> extends BaseRepo 
         mApi = initNextApi();
         if (mApi != null) {
             mApi.subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
                     .map(mFunction)
+                    .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(nullCtrl);
         }
     }
