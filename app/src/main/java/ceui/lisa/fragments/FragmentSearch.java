@@ -23,8 +23,10 @@ import com.zhy.view.flowlayout.FlowLayout;
 import com.zhy.view.flowlayout.TagAdapter;
 import com.zhy.view.flowlayout.TagFlowLayout;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.OutWakeActivity;
@@ -41,6 +43,7 @@ import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.OnItemClickListener;
+import ceui.lisa.interfaces.OnItemLongClickListener;
 import ceui.lisa.model.ListTrendingtag;
 import ceui.lisa.utils.ClipBoardUtils;
 import ceui.lisa.utils.Common;
@@ -96,15 +99,17 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                String key = String.valueOf(charSequence);
-                if (key.length() != 0 && searchType == 0) {
-                    if (fuck != null) {
-                        fuck.onNext(key);
+                String inputs = String.valueOf(charSequence);
+                baseBind.clear.setVisibility(inputs.length() > 0 ? View.VISIBLE : View.INVISIBLE);
+
+                if (inputs.length() > 0 && searchType == 0 && !inputs.endsWith(" ") && fuck != null) {
+                    List<String> keys = Arrays.stream(inputs.split(" "))
+                            .filter(s -> !TextUtils.isEmpty(s)).collect(Collectors.toList());
+                    if (keys.size() > 0) {
+                        fuck.onNext(keys.get(keys.size() - 1));
                     }
-                    baseBind.clear.setVisibility(View.VISIBLE);
                 } else {
                     baseBind.hintList.setVisibility(View.GONE);
-                    baseBind.clear.setVisibility(View.INVISIBLE);
                 }
             }
 
@@ -188,49 +193,49 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
         getHotTags();
     }
 
-
     private void dispatchClick(String keyWord, int searchType) {
+        String trimmedKeyword = keyWord.trim();
         if (searchType == 0) {
             baseBind.hintList.setVisibility(View.INVISIBLE);
             Intent intent = new Intent(mContext, SearchActivity.class);
-            intent.putExtra(Params.KEY_WORD, keyWord);
+            intent.putExtra(Params.KEY_WORD, trimmedKeyword);
             intent.putExtra(Params.INDEX, 0);
             startActivity(intent);
         } else if (searchType == 1) {
-            if (isNumeric(keyWord)) {
-                insertSearchHistory(keyWord, searchType);
-                PixivOperate.getIllustByID(sUserModel, Integer.valueOf(keyWord), mContext);
+            if (isNumeric(trimmedKeyword)) {
+                insertSearchHistory(trimmedKeyword, searchType);
+                PixivOperate.getIllustByID(sUserModel, Integer.valueOf(trimmedKeyword), mContext);
             } else {
                 Common.showToast(getString(R.string.string_154));
             }
         } else if (searchType == 2) {
-            insertSearchHistory(keyWord, searchType);
+            insertSearchHistory(trimmedKeyword, searchType);
             Intent intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_KEYWORD,
-                    keyWord);
+                    trimmedKeyword);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "搜索用户");
             startActivity(intent);
         } else if (searchType == 3) {
-            if (isNumeric(keyWord)) {
-                insertSearchHistory(keyWord, searchType);
+            if (isNumeric(trimmedKeyword)) {
+                insertSearchHistory(trimmedKeyword, searchType);
                 Intent intent = new Intent(mContext, UserActivity.class);
-                intent.putExtra(Params.USER_ID, Integer.valueOf(keyWord));
+                intent.putExtra(Params.USER_ID, Integer.valueOf(trimmedKeyword));
                 startActivity(intent);
             } else {
                 Common.showToast(getString(R.string.string_154));
             }
         } else if (searchType == 4) {
-            if (isNumeric(keyWord)) {
-                insertSearchHistory(keyWord, searchType);
-                PixivOperate.getNovelByID(sUserModel, Integer.valueOf(keyWord), mContext, null);
+            if (isNumeric(trimmedKeyword)) {
+                insertSearchHistory(trimmedKeyword, searchType);
+                PixivOperate.getNovelByID(sUserModel, Integer.valueOf(trimmedKeyword), mContext, null);
             } else {
                 Common.showToast(getString(R.string.string_154));
             }
         } else if (searchType == 5) {
-            if (!TextUtils.isEmpty(keyWord)) {
+            if (!TextUtils.isEmpty(trimmedKeyword)) {
                 try {
                     Intent intent = new Intent(mContext, OutWakeActivity.class);
-                    intent.setData(Uri.parse(keyWord));
+                    intent.setData(Uri.parse(trimmedKeyword));
                     startActivity(intent);
                 } catch (Exception e) {
                     Common.showToast(e.toString());
@@ -250,6 +255,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                         baseBind.hintList.setLayoutManager(new LinearLayoutManager(mContext));
                         SearchHintAdapter searchHintAdapter =
                                 new SearchHintAdapter(listTrendingtag.getList(), mContext, key);
+                        // 点击直接搜索条目
                         searchHintAdapter.setOnItemClickListener(new OnItemClickListener() {
                             @Override
                             public void onItemClick(View v, int position, int viewType) {
@@ -258,6 +264,27 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                                 intent.putExtra(Params.KEY_WORD, listTrendingtag.getList().get(position).getTag());
                                 intent.putExtra(Params.INDEX, 0);
                                 startActivity(intent);
+                            }
+                        });
+                        // 长按将条目填写入搜索框
+                        searchHintAdapter.setOnItemLongClickListener(new OnItemLongClickListener() {
+                            @Override
+                            public void onItemLongClick(View v, int position, int viewType) {
+                                baseBind.hintList.setVisibility(View.INVISIBLE);
+                                // 将现有文字最后方的非空部分替换为 hint
+                                String currentInput = baseBind.inputBox.getText().toString();
+                                List<String> keys = Arrays.stream(currentInput.split(" "))
+                                        .filter(s -> !TextUtils.isEmpty(s)).collect(Collectors.toList());
+                                String tagName = listTrendingtag.getList().get(position).getTag();
+                                StringBuilder sb = new StringBuilder();
+                                if (keys.size() > 0) {
+                                    keys.set(keys.size() - 1, tagName);
+                                    sb.append(TextUtils.join(" ", keys));
+                                } else {
+                                    sb.append(tagName);
+                                }
+                                baseBind.inputBox.setText(sb.append(" ").toString());
+                                baseBind.inputBox.setSelection(baseBind.inputBox.getText().length());
                             }
                         });
                         baseBind.hintList.setAdapter(searchHintAdapter);

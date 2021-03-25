@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
 import ceui.lisa.interfaces.OnItemClickListener;
+import ceui.lisa.interfaces.OnItemLongClickListener;
 import ceui.lisa.models.Starable;
 import ceui.lisa.utils.Common;
 
@@ -25,6 +26,7 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
     protected Context mContext;
     protected int mLayoutID = -1;
     protected OnItemClickListener mOnItemClickListener;
+    protected OnItemLongClickListener mOnItemLongClickListener;
     protected String nextUrl, uuid;
 
     public BaseAdapter(@Nullable List<Item> targetList, Context context) {
@@ -74,6 +76,11 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
 
     public BaseAdapter<Item, BindView> setOnItemClickListener(OnItemClickListener onItemClickListener) {
         mOnItemClickListener = onItemClickListener;
+        return this;
+    }
+
+    public BaseAdapter<Item, BindView> setOnItemLongClickListener(OnItemLongClickListener onItemLongClickListener) {
+        mOnItemLongClickListener = onItemLongClickListener;
         return this;
     }
 

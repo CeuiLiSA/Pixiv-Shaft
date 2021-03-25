@@ -112,7 +112,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 if (item.getItemId() == R.id.action_1) {
                     for (Fragment baseFragment : baseFragments) {
                         if (baseFragment instanceof FragmentLeft) {
-                            ((FragmentLeft) baseFragment).scrollToTop();
+                            ((FragmentLeft) baseFragment).forceRefresh();
                         }
                     }
                 } else if (item.getItemId() == R.id.action_2) {
@@ -125,6 +125,12 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                     for (Fragment baseFragment : baseFragments) {
                         if (baseFragment instanceof FragmentRight) {
                             ((FragmentRight) baseFragment).forceRefresh();
+                        }
+                    }
+                } else if (item.getItemId() == R.id.action_4) {
+                    for (Fragment baseFragment : baseFragments) {
+                        if (baseFragment instanceof FragmentViewPager) {
+                            ((FragmentViewPager) baseFragment).forceRefresh();
                         }
                     }
                 }
