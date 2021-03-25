@@ -569,4 +569,10 @@
     <string name="string_379">过滤垃圾评论</string>
     <string name="string_380">屏蔽这个用户</string>
     <string name="string_381">屏蔽用户</string>
+    <string name="string_382">屏蔽操作成功</string>
+    <string name="string_383">取消屏蔽操作成功</string>
+    <string name="string_384">操作成功</string>
+    <string name="string_385">一群</string>
+    <string name="string_386">二群</string>
+    <string name="string_387">三群</string>
 </resources>

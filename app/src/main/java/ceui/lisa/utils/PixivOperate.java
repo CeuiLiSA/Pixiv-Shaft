@@ -382,7 +382,7 @@ public class PixivOperate {
         muteEntity.setTagJson(Shaft.sGson.toJson(userBean));
         muteEntity.setSearchTime(System.currentTimeMillis());
         AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().insertMuteTag(muteEntity);
-        Common.showToast("屏蔽操作成功");
+        Common.showToast(Shaft.getContext().getString(R.string.string_382));
     }
 
     public static void unMuteUser(UserBean userBean) {
@@ -392,7 +392,7 @@ public class PixivOperate {
         muteEntity.setTagJson(Shaft.sGson.toJson(userBean));
         muteEntity.setSearchTime(System.currentTimeMillis());
         AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().unMuteTag(muteEntity);
-        Common.showToast("取消屏蔽操作成功");
+        Common.showToast(Shaft.getContext().getString(R.string.string_383));
     }
 
     public static void muteIllust(IllustsBean illust) {
@@ -402,7 +402,7 @@ public class PixivOperate {
         muteEntity.setTagJson(Shaft.sGson.toJson(illust));
         muteEntity.setSearchTime(System.currentTimeMillis());
         AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().insertMuteTag(muteEntity);
-        Common.showToast("操作成功");
+        Common.showToast(Shaft.getContext().getString(R.string.string_384));
     }
 
     public static void muteNovel(NovelBean novelBean) {

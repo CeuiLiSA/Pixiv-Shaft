@@ -81,7 +81,7 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
             }
         }
         baseBind.goQq.setOnClickListener {
-            val choices = arrayOf("一群", "二群", "三群")
+            val choices = arrayOf(getString(R.string.string_385), getString(R.string.string_386), getString(R.string.string_387))
             MenuDialogBuilder(mActivity)
                 .addItems(choices) { dialog, which ->
                     val intent = Intent()
