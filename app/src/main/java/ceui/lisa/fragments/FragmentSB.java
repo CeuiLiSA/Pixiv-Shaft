@@ -170,7 +170,9 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
         super.beforeFirstLoad(tagsBeans);
         if (Shaft.sSettings.isStarWithTagSelectAll()) {
             for (TagsBean tagsBean : tagsBeans) {
-                tagsBean.setSelected(true);
+                if (tagNames.isEmpty() || tagNames.contains(tagsBean.getName())) {
+                    tagsBean.setSelected(true);
+                }
             }
         }
     }
