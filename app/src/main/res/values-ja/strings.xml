@@ -554,4 +554,6 @@
   <string name="string_385">一群</string>
   <string name="string_386">二群</string>
   <string name="string_387">三つのグループ</string>
+  <string name="string_388">現在、削除するブロックされたユーザーはありません</string>
+  <string name="string_389">これにより、ブロックされたすべてのユーザーが削除されます</string>
 </resources>

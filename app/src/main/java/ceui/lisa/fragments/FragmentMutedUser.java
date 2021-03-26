@@ -83,11 +83,11 @@ public class FragmentMutedUser extends LocalListFragment<FragmentBaseListBinding
     public boolean onMenuItemClick(MenuItem item) {
         if (item.getItemId() == R.id.action_delete) {
             if (allItems.size() == 0) {
-                Common.showToast(getString(R.string.string_215));
+                Common.showToast(getString(R.string.string_388));
             } else {
                 new QMUIDialog.MessageDialogBuilder(mActivity)
                         .setTitle(getString(R.string.string_216))
-                        .setMessage(getString(R.string.string_217))
+                        .setMessage(getString(R.string.string_389))
                         .setSkinManager(QMUISkinManager.defaultInstance(mContext))
                         .addAction(getString(R.string.string_218), new QMUIDialogAction.ActionListener() {
                             @Override

@@ -554,4 +554,6 @@
   <string name="string_385">a group</string>
   <string name="string_386">Two groups</string>
   <string name="string_387">Three groups</string>
+  <string name="string_389">This will delete all blocked users</string>
+  <string name="string_388">There are currently no blocked users to delete</string>
 </resources>
