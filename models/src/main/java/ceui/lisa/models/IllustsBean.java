@@ -2,6 +2,7 @@ package ceui.lisa.models;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class IllustsBean implements Serializable, Starable {
     /**
@@ -337,5 +338,9 @@ public class IllustsBean implements Serializable, Starable {
 
     public void setRelated(boolean related) {
         isRelated = related;
+    }
+
+    public String[] getTagNames(){
+        return tags.stream().map(TagsBean::getName).toArray(String[]::new);
     }
 }
