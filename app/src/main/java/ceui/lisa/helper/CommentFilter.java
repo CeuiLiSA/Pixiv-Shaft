@@ -28,7 +28,9 @@ public class CommentFilter {
 
     public static boolean judge(CommentsBean commentsBean) {
         return rules.stream()
-                .anyMatch(rule -> rule.judge(commentsBean.getComment()));
+                .anyMatch(rule -> rule.judge(commentsBean.getComment()) ||
+                        ((commentsBean.getParent_comment().getId() > 0) && rule.judge(commentsBean.getParent_comment().getComment()))
+                );
     }
 
     private static void updateRules() {
@@ -114,7 +116,7 @@ public class CommentFilter {
         }
 
         public boolean judge(String input) {
-            if (mPattern == null) {
+            if (mPattern == null || TextUtils.isEmpty(input)) {
                 return false;
             }
             if (ruleType == URL_DOMAIN) {
