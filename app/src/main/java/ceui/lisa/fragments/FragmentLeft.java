@@ -15,6 +15,7 @@ import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.FragmentLeftBinding;
+import ceui.lisa.utils.MyOnTabSelectedListener;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
 
@@ -85,6 +86,8 @@ public class FragmentLeft extends BaseLazyFragment<FragmentLeftBinding> {
             }
         });
         baseBind.tabLayout.setupWithViewPager(baseBind.viewPager);
+        MyOnTabSelectedListener listener = new MyOnTabSelectedListener(mFragments);
+        baseBind.tabLayout.addOnTabSelectedListener(listener);
     }
 
     public void forceRefresh() {
