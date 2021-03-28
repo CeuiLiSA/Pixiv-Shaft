@@ -60,13 +60,13 @@ public class FragmentViewPager extends BaseFragment<ViewpagerWithTablayoutBindin
                     Shaft.getContext().getString(R.string.string_354),
                     Shaft.getContext().getString(R.string.string_381),
             };
-            Toolbar.OnMenuItemClickListener[] mFragments = new Toolbar.OnMenuItemClickListener[]{
+            mFragments = new ListFragment[]{
                     new FragmentMutedTags(),
                     new FragmentMutedObjects(),
                     new FragmentMutedUser(),
             };
             baseBind.toolbar.inflateMenu(R.menu.delete_and_add);
-            baseBind.toolbar.setOnMenuItemClickListener(mFragments[0]);
+            baseBind.toolbar.setOnMenuItemClickListener((Toolbar.OnMenuItemClickListener) mFragments[0]);
             baseBind.toolbarTitle.setText(R.string.muted_history);
             baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {
                 @NonNull
@@ -94,7 +94,7 @@ public class FragmentViewPager extends BaseFragment<ViewpagerWithTablayoutBindin
 
                 @Override
                 public void onPageSelected(int position) {
-                    baseBind.toolbar.setOnMenuItemClickListener(mFragments[position]);
+                    baseBind.toolbar.setOnMenuItemClickListener((Toolbar.OnMenuItemClickListener) mFragments[position]);
                     if (position == 0) {
                         baseBind.toolbar.getMenu().clear();
                         baseBind.toolbar.inflateMenu(R.menu.delete_and_add);
@@ -148,10 +148,11 @@ public class FragmentViewPager extends BaseFragment<ViewpagerWithTablayoutBindin
                     return CHINESE_TITLES[position];
                 }
             });
-            MyOnTabSelectedListener listener = new MyOnTabSelectedListener(mFragments);
-            baseBind.tabLayout.addOnTabSelectedListener(listener);
+
         }
         baseBind.tabLayout.setupWithViewPager(baseBind.viewPager);
+        MyOnTabSelectedListener listener = new MyOnTabSelectedListener(mFragments);
+        baseBind.tabLayout.addOnTabSelectedListener(listener);
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
     }
 
