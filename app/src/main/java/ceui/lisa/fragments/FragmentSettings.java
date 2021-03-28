@@ -373,15 +373,9 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             }
         });
 
-
-        if (Shaft.sSettings.getDownloadWay() == 1) {
-            try {
-                baseBind.illustPath.setText(URLDecoder.decode(Shaft.sSettings.getRootPathUri(), "utf-8"));
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-        } else {
-            baseBind.illustPath.setText(Shaft.sSettings.getIllustPath());
+        updateIllustPathUI();
+        if(mActivity instanceof BaseActivity){
+            ((BaseActivity)mActivity).setFeedBack(this::updateIllustPathUI);
         }
         baseBind.singleIllustPath.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -538,6 +532,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                                     Shaft.sSettings.setDownloadWay(which);
                                     baseBind.downloadWay.setText(downloadWays[which]);
                                     Local.setSettings(Shaft.sSettings);
+                                    updateIllustPathUI();
                                 }
                                 dialog.dismiss();
                             }
@@ -670,5 +665,17 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
     private void setThemeName() {
         final int index = Shaft.sSettings.getThemeIndex();
         baseBind.colorSelect.setText(FragmentColors.COLOR_NAMES[index]);
+    }
+
+    private void updateIllustPathUI(){
+        if (Shaft.sSettings.getDownloadWay() == 1) {
+            try {
+                baseBind.illustPath.setText(URLDecoder.decode(Shaft.sSettings.getRootPathUri(), "utf-8"));
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        } else {
+            baseBind.illustPath.setText(Shaft.sSettings.getIllustPath());
+        }
     }
 }

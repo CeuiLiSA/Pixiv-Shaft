@@ -325,8 +325,7 @@ public class Common {
         try {
             if (illust.getPage_count() == 1) {
                 if (Shaft.sSettings.getDownloadWay() == 1) {
-                    String displayName = FileCreator.customFileName(illust, 0);
-                    return SAFile.isFileExists(Shaft.getContext(), displayName);
+                    return SAFile.isFileExists(Shaft.getContext(), illust);
                 } else {
                     return FileCreator.isExist(illust, 0);
                 }

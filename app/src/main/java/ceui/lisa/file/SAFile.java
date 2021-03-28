@@ -18,7 +18,8 @@ public class SAFile {
         DocumentFile root = rootFolder(context);
         String displayName = FileCreator.customFileName(illust, index);
         String id = DocumentsContract.getTreeDocumentId(root.getUri());
-        id = id + "/" + displayName;
+        String subDirectoryName = getShaftDir(illust);
+        id = id + "/" + subDirectoryName + "/" + displayName;
         Uri childrenUri = DocumentsContract.buildDocumentUriUsingTree(root.getUri(), id);
         DocumentFile realFile = DocumentFile.fromSingleUri(context, childrenUri);
         if (realFile != null && realFile.exists()) {
@@ -28,7 +29,12 @@ public class SAFile {
                 e.printStackTrace();
             }
         }
-        return root.createFile(getMimeTypeFromIllust(illust, index), displayName);
+
+        DocumentFile subDirectory = root.findFile(subDirectoryName);
+        if(subDirectory == null){
+            subDirectory = root.createDirectory(subDirectoryName);
+        }
+        return subDirectory.createFile(getMimeTypeFromIllust(illust, index), displayName);
     }
 
     public static DocumentFile rootFolder(Context context) {
@@ -42,11 +48,12 @@ public class SAFile {
         }
     }
 
-    public static boolean isFileExists(Context context, String displayName) {
+    public static boolean isFileExists(Context context, IllustsBean illust) {
         DocumentFile root = rootFolder(context);
         if (root != null) {
             String id = DocumentsContract.getTreeDocumentId(root.getUri());
-            id = id + "/" + displayName;
+            String displayName = FileCreator.customFileName(illust, 0);
+            id = id + "/" + getShaftDir(illust) + "/" + displayName;
             Uri childrenUri = DocumentsContract.buildDocumentUriUsingTree(root.getUri(), id);
             DocumentFile realFile = DocumentFile.fromSingleUri(context, childrenUri);
             return realFile != null && realFile.exists();
@@ -69,5 +76,13 @@ public class SAFile {
         }
         Common.showLog("getMimeTypeFromIllust fileUrl: " + url + ", fileType: " + result);
         return "image/" + result;
+    }
+
+    private static String getShaftDir(IllustsBean illust) {
+        return isSaveToR18Dir(illust) ? "ShaftImages-R18" : "ShaftImages";
+    }
+
+    private static boolean isSaveToR18Dir(IllustsBean illust){
+        return illust.isR18File() && Shaft.sSettings.isR18DivideSave();
     }
 }
