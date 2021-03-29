@@ -18,6 +18,7 @@ import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.ViewpagerWithTablayoutBinding;
+import ceui.lisa.utils.MyOnTabSelectedListener;
 import ceui.lisa.utils.Params;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
@@ -133,6 +134,8 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
             }
         });
         baseBind.tabLayout.setupWithViewPager(baseBind.viewPager);
+        MyOnTabSelectedListener listener = new MyOnTabSelectedListener(allPages);
+        baseBind.tabLayout.addOnTabSelectedListener(listener);
         baseBind.toolbar.inflateMenu(R.menu.illust_filter);
         baseBind.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override

@@ -21,6 +21,7 @@ import ceui.lisa.core.Manager;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.databinding.ViewpagerWithTablayoutBinding;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.MyOnTabSelectedListener;
 
 /**
  * 下载管理
@@ -128,6 +129,8 @@ public class FragmentDownload extends BaseFragment<ViewpagerWithTablayoutBinding
 
         });
         baseBind.tabLayout.setupWithViewPager(baseBind.viewPager);
+        MyOnTabSelectedListener listener = new MyOnTabSelectedListener(allPages);
+        baseBind.tabLayout.addOnTabSelectedListener(listener);
         baseBind.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int i, float v, int i1) {
