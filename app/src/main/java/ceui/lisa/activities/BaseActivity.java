@@ -61,7 +61,11 @@ public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCo
                         View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
                                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
             }
-            baseBind = DataBindingUtil.setContentView(mActivity, mLayoutID);
+            try {
+                baseBind = DataBindingUtil.setContentView(mActivity, mLayoutID);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
 
             initModel();
             initView();
