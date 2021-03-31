@@ -37,12 +37,14 @@ import ceui.lisa.fragments.FragmentCenter;
 import ceui.lisa.fragments.FragmentLeft;
 import ceui.lisa.fragments.FragmentRight;
 import ceui.lisa.fragments.FragmentViewPager;
+import ceui.lisa.helper.DrawerLayoutHelper;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseImage;
 import ceui.lisa.utils.ReverseWebviewCallback;
+import ceui.lisa.view.DrawerLayoutViewPager;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
@@ -57,10 +59,6 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     private TextView user_email;
     private long mExitTime;
     private Fragment[] baseFragments = null;
-    private float latestDownX;
-    private float latestDownY;
-    private long latestMoveTime;
-    private static final long moveTimeThreshold = 100;
 
     @Override
     protected int initLayout() {
@@ -160,36 +158,14 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
             }
         });
-        baseBind.viewPager.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (baseBind.viewPager.getCurrentItem() != 0) {
-                    return false;
-                }
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_MOVE:
-                        long eventTime = event.getEventTime();
-                        if (eventTime > latestMoveTime + moveTimeThreshold) {
-                            latestDownX = event.getX();
-                            latestDownY = event.getY();
-                            latestMoveTime = eventTime;
-                        }
-                        break;
-                    case MotionEvent.ACTION_UP:
-                        float newDownX = event.getX();
-                        float newDownY = event.getY();
-                        float deltaX = newDownX - latestDownX;
-                        float deltaY = newDownY - latestDownY;
-                        if (Math.abs(deltaX) > Math.abs(deltaY) && deltaX > 0) {
-                            getDrawer().openDrawer(GravityCompat.START, true);
-                            return true;
-                        }
-                        break;
-                }
 
-                return false;
+        baseBind.viewPager.setTouchEventForwarder(new DrawerLayoutViewPager.IForwardTouchEvent() {
+            @Override
+            public void forwardTouchEvent(MotionEvent ev) {
+                getDrawer().onTouchEvent(ev);
             }
         });
+        DrawerLayoutHelper.setCustomLeftEdgeSize(getDrawer(), 1.0f);
     }
 
     private void initFragment() {

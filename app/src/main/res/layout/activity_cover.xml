@@ -17,15 +17,13 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-
-            <androidx.viewpager.widget.ViewPager
+            <ceui.lisa.view.DrawerLayoutViewPager
                 android:id="@+id/view_pager"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_above="@+id/navigation_view">
 
-
-            </androidx.viewpager.widget.ViewPager>
+            </ceui.lisa.view.DrawerLayoutViewPager>
 
             <com.google.android.material.bottomnavigation.BottomNavigationView
                 android:layout_width="match_parent"
