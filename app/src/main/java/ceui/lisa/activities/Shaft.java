@@ -1,6 +1,7 @@
 package ceui.lisa.activities;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.IntentFilter;
@@ -10,6 +11,7 @@ import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.view.Gravity;
 
+import com.billy.android.swipe.SmartSwipeBack;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.gson.Gson;
 import com.hjq.toast.ToastUtils;
@@ -118,6 +120,12 @@ public class Shaft extends Application {
         IntentFilter filter = new IntentFilter();
         filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         registerReceiver(netWorkStateReceiver, filter);
+        SmartSwipeBack.activitySlidingBack(this, new SmartSwipeBack.ActivitySwipeBackFilter(){
+            @Override
+            public boolean onFilter(Activity activity) {
+                return !(activity instanceof MainActivity);
+            }
+        });
     }
 
     public OkHttpClient getOkHttpClient() {
