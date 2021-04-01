@@ -168,4 +168,9 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
                             | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                             | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
     }
+
+    @Override
+    public boolean hideStatusBar() {
+        return true;
+    }
 }
