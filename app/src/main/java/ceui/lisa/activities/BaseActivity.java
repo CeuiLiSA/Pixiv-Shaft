@@ -60,6 +60,8 @@ public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCo
                 getWindow().getDecorView().setSystemUiVisibility(
                         View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
                                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+            } else {
+                getWindow().setStatusBarColor(Common.resolveThemeAttribute(mContext, R.attr.colorPrimary));
             }
             baseBind = DataBindingUtil.setContentView(mActivity, mLayoutID);
 

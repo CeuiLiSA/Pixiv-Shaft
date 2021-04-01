@@ -270,12 +270,11 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
 
     @Override
     public boolean hideStatusBar() {
-        return true;
-//        if ("相关评论".equals(dataType)) {
-//            return false;
-//        } else {
-//            return getIntent().getBooleanExtra("hideStatusBar", true);
-//        }
+        if ("相关评论".equals(dataType)) {
+            return false;
+        } else {
+            return getIntent().getBooleanExtra("hideStatusBar", true);
+        }
     }
 
     @Override
