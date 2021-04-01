@@ -49,10 +49,14 @@ public class SAFile {
     }
 
     public static boolean isFileExists(Context context, IllustsBean illust) {
+        return isFileExists(context, illust, 0);
+    }
+
+    public static boolean isFileExists(Context context, IllustsBean illust, int index) {
         DocumentFile root = rootFolder(context);
         if (root != null) {
             String id = DocumentsContract.getTreeDocumentId(root.getUri());
-            String displayName = FileCreator.customFileName(illust, 0);
+            String displayName = FileCreator.customFileName(illust, index);
             id = id + "/" + getShaftDir(illust) + "/" + displayName;
             Uri childrenUri = DocumentsContract.buildDocumentUriUsingTree(root.getUri(), id);
             DocumentFile realFile = DocumentFile.fromSingleUri(context, childrenUri);
