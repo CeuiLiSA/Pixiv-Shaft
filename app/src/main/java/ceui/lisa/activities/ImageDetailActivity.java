@@ -36,10 +36,11 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
 
     @Override
     protected int initLayout() {
-        BarUtils.setStatusBarColor(this, ColorUtils.getColor(R.color.qmui_config_color_transparent));
         if (BarUtils.isSupportNavBar()) {
             BarUtils.setNavBarVisibility(this, false);
         }
+        getWindow().getDecorView().setSystemUiVisibility(getWindow().getDecorView().getSystemUiVisibility()
+                | View.SYSTEM_UI_FLAG_FULLSCREEN);
         return R.layout.activity_image_detail;
     }
 
@@ -159,16 +160,6 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
         } else {
             mActivity.finish();
         }
-    }
-
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-            getWindow().getDecorView().setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
     }
 
     @Override
