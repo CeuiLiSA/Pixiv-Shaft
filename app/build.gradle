@@ -172,6 +172,7 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 
     implementation "androidx.documentfile:documentfile:1.0.1"
+    implementation 'com.billy.android:smart-swipe:1.1.2'
 
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
 

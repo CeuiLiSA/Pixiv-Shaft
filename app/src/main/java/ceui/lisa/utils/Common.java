@@ -337,6 +337,30 @@ public class Common {
     }
 
     /**
+     * 检查插画某页是否已经下载过
+     * */
+    public static boolean isIllustDownloaded(IllustsBean illust, int index) {
+        try {
+            if (illust.getPage_count() == 1) {
+                if (Shaft.sSettings.getDownloadWay() == 1) {
+                    return SAFile.isFileExists(Shaft.getContext(), illust);
+                } else {
+                    return FileCreator.isExist(illust, 0);
+                }
+            }else{
+                if (Shaft.sSettings.getDownloadWay() == 1) {
+                    return SAFile.isFileExists(Shaft.getContext(), illust, index);
+                } else {
+                    return FileCreator.isExist(illust, index);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
      * 根据ISO8601格式的时间字符串获取年月日时分格式的字符串
      */
     public static String getLocalYYYYMMDDHHMMString(String source) {

@@ -68,9 +68,7 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
                 }
             });
             baseBind.viewPager.setCurrentItem(index);
-            if (Common.isIllustDownloaded(mIllustsBean)) {
-                downloadSingle.setVisibility(View.GONE);
-            }
+            checkDownload(index);
             downloadSingle.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -85,6 +83,7 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
 
                 @Override
                 public void onPageSelected(int i) {
+                    checkDownload(i);
                     currentPage.setText(String.format("第%dP / 共%dP", i + 1, mIllustsBean.getPage_count()));
                 }
 
@@ -144,6 +143,9 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
         }
     }
 
+    private void checkDownload(int i) {
+        downloadSingle.setVisibility(Common.isIllustDownloaded(mIllustsBean, i) ? View.GONE : View.VISIBLE);
+    }
 
     @Override
     protected void initData() {
@@ -167,5 +169,10 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
                             | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                             | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                             | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+    }
+
+    @Override
+    public boolean hideStatusBar() {
+        return true;
     }
 }
