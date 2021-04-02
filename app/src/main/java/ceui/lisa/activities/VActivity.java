@@ -162,7 +162,7 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
 
     @Override
     protected void onDestroy() {
-        PixivOperate.setBack(null);
+        PixivOperate.clearBack();
         super.onDestroy();
     }
 

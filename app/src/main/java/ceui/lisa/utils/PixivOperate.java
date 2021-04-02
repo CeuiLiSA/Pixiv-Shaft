@@ -25,7 +25,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.OutWakeActivity;
@@ -569,15 +571,17 @@ public class PixivOperate {
                 if (gifResponse != null) {
                     if (allFiles.size() == gifResponse.getUgoira_metadata().getFrames().size()) {
                         Common.showLog("使用返回的delay 00");
+                        Back back = sBack.get(illustsBean.getId());
                         for (int i = 0; i < allFiles.size(); i++) {
                             Common.showLog("编码中 00 " + allFiles.size() + " " + (i + 1));
                             gifEncoder.encodeFrame(BitmapFactory.decodeFile(allFiles.get(i).getPath()),
                                     gifResponse.getUgoira_metadata().getFrames().get(i).getDelay());
-                            if (sBack != null) {
+                            if (back != null) {
                                 float proc = i / (float) (allFiles.size() - 1);
-                                sBack.invoke(proc);
+                                back.invoke(proc);
                             }
                         }
+                        sBack.remove(illustsBean.getId());
                     } else {
                         delayMs = gifResponse.getDelay();
                         Common.showLog("使用返回的delay 11");
@@ -651,17 +655,19 @@ public class PixivOperate {
                     if (frameCount == framesBeans.size()) {
                         Common.showLog("使用返回的delay 00");
 
+                        Back back = sBack.get(illustsBean.getId());
                         for (int i = 0; i < frameCount; i++) {
                             Bitmap bitmap = BitmapFactory.decodeFile(allFiles.get(i).getPath());
                             Common.showLog("编码中 00 " + frameCount + " " + (i + 1));
                             animatedGifEncoder.setDelay(framesBeans.get(i).getDelay());
                             animatedGifEncoder.addFrame(bitmap);
 
-                            if (sBack != null) {
+                            if (back != null) {
                                 float proc = i / (float) (frameCount - 1);
-                                sBack.invoke(proc);
+                                back.invoke(proc);
                             }
                         }
+                        sBack.remove(illustsBean.getId());
                     } else {
                         delayMs = gifResponse.getDelay();
                         Common.showLog("使用返回的delay 11");
@@ -714,10 +720,14 @@ public class PixivOperate {
         }
     }
 
-    private static Back sBack = null;
+    private static Map<Integer,Back> sBack =  new HashMap<Integer,Back>();
 
-    public static void setBack(Back back) {
-        sBack = back;
+    public static void setBack(int illustId, Back back) {
+        sBack.put(illustId, back);
+    }
+
+    public static void clearBack(){
+        sBack.clear();
     }
 
     public static void postNovelMarker(NovelDetail.NovelMarkerBean novelMarkerBean, int novelId, int page, View view) {
