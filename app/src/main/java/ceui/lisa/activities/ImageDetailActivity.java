@@ -112,7 +112,7 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
                     return localIllust.size();
                 }
             });
-            currentPage.setVisibility(View.GONE);
+            currentPage.setVisibility(View.INVISIBLE);
             baseBind.viewPager.setCurrentItem(index);
             baseBind.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
                 @Override
@@ -145,7 +145,7 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
     }
 
     private void checkDownload(int i) {
-        downloadSingle.setVisibility(Common.isIllustDownloaded(mIllustsBean, i) ? View.GONE : View.VISIBLE);
+        downloadSingle.setVisibility(Common.isIllustDownloaded(mIllustsBean, i) ? View.INVISIBLE : View.VISIBLE);
     }
 
     @Override
