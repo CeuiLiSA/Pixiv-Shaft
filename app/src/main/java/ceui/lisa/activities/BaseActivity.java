@@ -60,7 +60,7 @@ public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCo
             if (hideStatusBar()) {
                 BarUtils.transparentStatusBar(this);
             } else {
-                BarUtils.setStatusBarColor(this, Common.resolveThemeAttribute(mContext, R.attr.colorPrimary));
+                getWindow().setStatusBarColor(Common.resolveThemeAttribute(mContext, R.attr.colorPrimary));
             }
             try {
                 baseBind = DataBindingUtil.setContentView(mActivity, mLayoutID);
