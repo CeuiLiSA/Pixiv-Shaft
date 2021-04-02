@@ -556,4 +556,7 @@
   <string name="string_387">삼 군</string>
   <string name="string_389">차단 된 모든 사용자가 삭제됩니다</string>
   <string name="string_388">현재 삭제할 차단 된 사용자가 없습니다</string>
+  <string name="string_390">모두</string>
+  <string name="string_391">공공의</string>
+  <string name="string_392">은밀한</string>
 </resources>

@@ -577,4 +577,7 @@
     <string name="string_387">三群</string>
     <string name="string_388">当前没有可删除的屏蔽用户</string>
     <string name="string_389">这将会删除所有的屏蔽用户</string>
+    <string name="string_390">全部</string>
+    <string name="string_391">公开</string>
+    <string name="string_392">私人</string>
 </resources>

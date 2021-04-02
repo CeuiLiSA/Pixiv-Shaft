@@ -556,4 +556,7 @@
   <string name="string_387">три группы</string>
   <string name="string_388">В настоящее время нет заблокированных пользователей для удаления</string>
   <string name="string_389">Это удалит всех заблокированных пользователей</string>
+  <string name="string_392">Частный</string>
+  <string name="string_391">Общественные</string>
+  <string name="string_390">Все</string>
 </resources>
