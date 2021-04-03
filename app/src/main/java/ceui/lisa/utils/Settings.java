@@ -152,6 +152,8 @@ public class Settings {
 
     private boolean filterComment = false; // 过滤垃圾评论，默认不开启
 
+    private int transformerType = 5; // 二级详情转场动画，默认是3D盒子
+
     public String getAppLanguage() {
         if(!TextUtils.isEmpty(appLanguage)){
             return appLanguage;
@@ -472,5 +474,13 @@ public class Settings {
 
     public void setFilterComment(boolean filterComment) {
         this.filterComment = filterComment;
+    }
+
+    public int getTransformerType() {
+        return transformerType;
+    }
+
+    public void setTransformerType(int transformerType) {
+        this.transformerType = transformerType;
     }
 }

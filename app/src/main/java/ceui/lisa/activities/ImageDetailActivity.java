@@ -21,6 +21,7 @@ import ceui.lisa.databinding.ActivityImageDetailBinding;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.fragments.FragmentImageDetail;
 import ceui.lisa.fragments.FragmentLocalImageDetail;
+import ceui.lisa.helper.PageTransformerHelper;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 
@@ -47,7 +48,7 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
     @Override
     protected void initView() {
         String dataType = getIntent().getStringExtra("dataType");
-        baseBind.viewPager.setPageTransformer(true, new CubeOutTransformer());
+        baseBind.viewPager.setPageTransformer(true, PageTransformerHelper.getCurrentTransformer());
         if ("二级详情".equals(dataType)) {
             currentSize = findViewById(R.id.current_size);
             currentPage = findViewById(R.id.current_page);

@@ -741,6 +741,31 @@
                         <View style="@style/half_divider" />
 
                         <RelativeLayout
+                            android:id="@+id/transform_type_rela"
+                            style="@style/ripple_rela">
+
+                            <TextView
+                                style="@style/setting_text_left"
+                                android:text="@string/string_393" />
+
+                            <TextView
+                                android:id="@+id/transform_type"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
+                                android:layout_centerVertical="true"
+                                android:text=""
+                                android:textColor="?attr/colorPrimary"
+                                android:textSize="14sp">
+
+                            </TextView>
+
+                        </RelativeLayout>
+
+                        <View style="@style/half_divider" />
+
+                        <RelativeLayout
                             android:id="@+id/is_firebase_enable_rela"
                             style="@style/ripple_rela">
 
