@@ -39,8 +39,9 @@ jobs:
         gradle wrapper
         bash gradlew assembleDebug
     
-    - name: Upload articact
+    - name: Upload artifact
       uses: actions/upload-artifact@v2
       if: ${{ !github.head_ref }}
       with:
+        name: debug-apk
         path: app/build/outputs/apk
