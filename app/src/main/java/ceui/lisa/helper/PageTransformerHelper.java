@@ -20,82 +20,80 @@ import com.ToxicBakery.viewpager.transforms.ZoomInTransformer;
 import com.ToxicBakery.viewpager.transforms.ZoomOutSlideTransformer;
 import com.ToxicBakery.viewpager.transforms.ZoomOutTransformer;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import ceui.lisa.activities.Shaft;
 
 public class PageTransformerHelper {
-    private final static List<TransformerType> transformers = Arrays.asList(
-            new TransformerType(DefaultTransformer.class),
-            new TransformerType(AccordionTransformer.class),
 
-            new TransformerType(BackgroundToForegroundTransformer.class),
-            new TransformerType(ForegroundToBackgroundTransformer.class),
+    private final static IndexedLinkedHashMap<Integer, TransformerType> transformerMap = Stream.of(
+            new TransformerType(0, DefaultTransformer.class),
+            new TransformerType(1, AccordionTransformer.class),
+            new TransformerType(2, BackgroundToForegroundTransformer.class),
+            new TransformerType(3, ForegroundToBackgroundTransformer.class),
+            new TransformerType(4, CubeInTransformer.class),
+            new TransformerType(5, CubeOutTransformer.class),
+            new TransformerType(6, DepthPageTransformer.class),
+            new TransformerType(7, FlipHorizontalTransformer.class),
+            new TransformerType(8, FlipVerticalTransformer.class),
+            new TransformerType(9, RotateDownTransformer.class),
+            new TransformerType(10, RotateUpTransformer.class),
+            new TransformerType(11, ScaleInOutTransformer.class),
+            new TransformerType(12, ZoomOutSlideTransformer.class),
+            new TransformerType(13, ZoomInTransformer.class),
+            new TransformerType(14, ZoomOutTransformer.class),
+            new TransformerType(15, StackTransformer.class),
+            new TransformerType(16, TabletTransformer.class),
+            new TransformerType(17, DrawerTransformer.class)
+    ).collect(Collectors.toMap(TransformerType::getTypeId, t -> t, (v1, v2) -> v1, IndexedLinkedHashMap::new)).tidyIndexes();
 
-            new TransformerType(CubeInTransformer.class),
-            new TransformerType(CubeOutTransformer.class),
-
-            new TransformerType(DepthPageTransformer.class),
-
-            new TransformerType(FlipHorizontalTransformer.class),
-            new TransformerType(FlipVerticalTransformer.class),
-
-            new TransformerType(RotateDownTransformer.class),
-            new TransformerType(RotateUpTransformer.class),
-
-            new TransformerType(ScaleInOutTransformer.class),
-            new TransformerType(ZoomOutSlideTransformer.class),
-
-            new TransformerType(ZoomInTransformer.class),
-            new TransformerType(ZoomOutTransformer.class),
-
-            new TransformerType(StackTransformer.class),
-            new TransformerType(TabletTransformer.class),
-            new TransformerType(DrawerTransformer.class)
-    );
-
-    public static int getCurrentTransformerIndex(){
-        return Shaft.sSettings.getTransformerType();
+    public static int getCurrentTransformerIndex() {
+        int transformerType = Shaft.sSettings.getTransformerType();
+        if (!transformerMap.containsKey(transformerType)) {
+            return 0;
+        }
+        int index = new ArrayList<>(transformerMap.keySet()).indexOf(transformerType);
+        return Math.min(Math.max(index, 0), transformerMap.size() - 1);
     }
 
-    public static ABaseTransformer getCurrentTransformer(){
+    public static ABaseTransformer getCurrentTransformer() {
         try {
-            return transformers.get(Shaft.sSettings.getTransformerType()).pageTransformer.newInstance();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
+            return transformerMap.get(Shaft.sSettings.getTransformerType()).pageTransformer.newInstance();
+        } catch (IllegalAccessException | InstantiationException e) {
             e.printStackTrace();
         }
         return new DefaultTransformer();
     }
 
-    public static String[] getTransformerNames(){
-        return transformers.stream().map(TransformerType::getName).toArray(String[]::new);
+    public static String[] getTransformerNames() {
+        return transformerMap.values().stream().map(TransformerType::getName).toArray(String[]::new);
     }
 
-    public static void setCurrentTransformer(int index){
-        if (index < 0 || index >= transformers.size()){
-            return;
+    public static void setCurrentTransformer(int index) {
+        if (index < 0 || index >= transformerMap.size()) {
+            index = 0;
         }
-        Shaft.sSettings.setTransformerType(index);
+        Shaft.sSettings.setTransformerType(transformerMap.getIndexed(index).getTypeId());
     }
 
     private static class TransformerType {
+
+        private int typeId;
         private int nameResId;
         private Class<? extends ABaseTransformer> pageTransformer;
 
-        public TransformerType(Class<? extends ABaseTransformer> pageTransformer) {
+        public TransformerType(int typeId, Class<? extends ABaseTransformer> pageTransformer) {
+            this.typeId = typeId;
             this.pageTransformer = pageTransformer;
         }
 
-        public TransformerType(int nameResId, Class<? extends ABaseTransformer> pageTransformer) {
-            this.nameResId = nameResId;
-            this.pageTransformer = pageTransformer;
+        public int getTypeId() {
+            return typeId;
         }
 
-        public String getName(){
+        public String getName() {
             return pageTransformer.getSimpleName().replace("Transformer", "");
         }
     }

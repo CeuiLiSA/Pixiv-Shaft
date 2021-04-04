@@ -543,13 +543,12 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
         });
 
         String[] transformerNames = PageTransformerHelper.getTransformerNames();
-        int transformerTypeIndex = PageTransformerHelper.getCurrentTransformerIndex();
-        baseBind.transformType.setText(transformerNames[transformerTypeIndex]);
+        baseBind.transformType.setText(transformerNames[PageTransformerHelper.getCurrentTransformerIndex()]);
         baseBind.transformTypeRela.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
                 new QMUIDialog.CheckableDialogBuilder(mActivity)
-                        .setCheckedIndex(transformerTypeIndex)
+                        .setCheckedIndex(PageTransformerHelper.getCurrentTransformerIndex())
                         .setSkinManager(QMUISkinManager.defaultInstance(mContext))
                         .addItems(transformerNames, new DialogInterface.OnClickListener() {
                             @Override
