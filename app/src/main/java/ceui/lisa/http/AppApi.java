@@ -109,13 +109,13 @@ public interface AppApi {
      * search_target=partial_match_for_tags 标签部分匹配
      * search_target=title_and_caption 标题或简介
      */
-    @GET("v1/search/illust?filter=for_android&include_translated_tag_results=true")
+    @GET("v1/search/illust?filter=for_android&include_translated_tag_results=true&merge_plain_keyword_results=true")
     Observable<ListIllust> searchIllust(@Header("Authorization") String token,
                                         @Query("word") String word,
                                         @Query("sort") String sort,
                                         @Query("search_target") String search_target);
 
-    @GET("v1/search/novel?filter=for_android&include_translated_tag_results=true")
+    @GET("v1/search/novel?filter=for_android&include_translated_tag_results=true&merge_plain_keyword_results=true")
     Observable<ListNovel> searchNovel(@Header("Authorization") String token,
                                       @Query("word") String word,
                                       @Query("sort") String sort,
