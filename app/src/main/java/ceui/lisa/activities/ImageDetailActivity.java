@@ -21,6 +21,7 @@ import ceui.lisa.databinding.ActivityImageDetailBinding;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.fragments.FragmentImageDetail;
 import ceui.lisa.fragments.FragmentLocalImageDetail;
+import ceui.lisa.helper.PageTransformerHelper;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 
@@ -36,17 +37,18 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
 
     @Override
     protected int initLayout() {
-        BarUtils.setStatusBarColor(this, ColorUtils.getColor(R.color.qmui_config_color_transparent));
         if (BarUtils.isSupportNavBar()) {
             BarUtils.setNavBarVisibility(this, false);
         }
+        getWindow().getDecorView().setSystemUiVisibility(getWindow().getDecorView().getSystemUiVisibility()
+                | View.SYSTEM_UI_FLAG_FULLSCREEN);
         return R.layout.activity_image_detail;
     }
 
     @Override
     protected void initView() {
         String dataType = getIntent().getStringExtra("dataType");
-        baseBind.viewPager.setPageTransformer(true, new CubeOutTransformer());
+        baseBind.viewPager.setPageTransformer(true, PageTransformerHelper.getCurrentTransformer());
         if ("二级详情".equals(dataType)) {
             currentSize = findViewById(R.id.current_size);
             currentPage = findViewById(R.id.current_page);
@@ -111,7 +113,7 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
                     return localIllust.size();
                 }
             });
-            currentPage.setVisibility(View.GONE);
+            currentPage.setVisibility(View.INVISIBLE);
             baseBind.viewPager.setCurrentItem(index);
             baseBind.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
                 @Override
@@ -144,7 +146,7 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
     }
 
     private void checkDownload(int i) {
-        downloadSingle.setVisibility(Common.isIllustDownloaded(mIllustsBean, i) ? View.GONE : View.VISIBLE);
+        downloadSingle.setVisibility(Common.isIllustDownloaded(mIllustsBean, i) ? View.INVISIBLE : View.VISIBLE);
     }
 
     @Override
@@ -159,16 +161,6 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
         } else {
             mActivity.finish();
         }
-    }
-
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-            getWindow().getDecorView().setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
     }
 
     @Override

@@ -46,12 +46,12 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_centerHorizontal="true"
-                    android:layout_margin="@dimen/twelve_dip"
+                    android:layout_margin="@dimen/four_dp"
                     android:background="@drawable/follow_user_bg"
                     android:paddingStart="@dimen/sixteen_dp"
-                    android:paddingTop="@dimen/six_dp"
+                    android:paddingTop="@dimen/four_dp"
                     android:paddingEnd="@dimen/sixteen_dp"
-                    android:paddingBottom="@dimen/six_dp"
+                    android:paddingBottom="@dimen/four_dp"
                     android:text="@string/string_7"
                     android:textColor="@android:color/white" />
 

@@ -1,6 +1,5 @@
 package ceui.lisa.fragments;
 
-import android.content.Intent;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.view.MenuItem;
@@ -14,22 +13,21 @@ import com.afollestad.dragselectrecyclerview.DragSelectTouchListener;
 
 import java.util.List;
 
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.SimpleItemAnimator;
 import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
-import ceui.lisa.activities.VActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.MultiDownldAdapter;
 import ceui.lisa.core.BaseRepo;
-import ceui.lisa.core.Container;
 import ceui.lisa.core.LocalRepo;
-import ceui.lisa.core.PageData;
 import ceui.lisa.databinding.FragmentMultiDownloadBinding;
 import ceui.lisa.databinding.RecyMultiDownloadBinding;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.feature.worker.BatchStarTask;
 import ceui.lisa.feature.worker.Worker;
 import ceui.lisa.interfaces.Callback;
-import ceui.lisa.interfaces.OnItemClickListener;
+import ceui.lisa.interfaces.OnItemLongClickListener;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DataChannel;
@@ -41,6 +39,9 @@ import gdut.bsx.share2.ShareContentType;
 
 public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownloadBinding,
         IllustsBean> {
+
+    private DragSelectTouchListener dragSelectTouchListener;
+    private boolean dragStartCheckStatus;
 
     @Override
     public void initLayout() {
@@ -126,11 +127,17 @@ public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownload
                 IllustDownload.downloadAllIllust(allItems, (BaseActivity<?>) mContext);
             }
         });
+
         MyReceiver receiver = new MyReceiver();
-        DragSelectTouchListener listener = DragSelectTouchListener.Companion.create(
+        dragSelectTouchListener = DragSelectTouchListener.Companion.create(
                 mContext, receiver, null);
-        baseBind.recyclerView.addOnItemTouchListener(listener);
-        listener.setIsActive(true, 0);
+        baseBind.recyclerView.addOnItemTouchListener(dragSelectTouchListener);
+
+        RecyclerView.ItemAnimator itemAnimator = mRecyclerView.getItemAnimator();
+        if (itemAnimator != null) {
+            itemAnimator.setChangeDuration(0);
+            ((SimpleItemAnimator) itemAnimator).setSupportsChangeAnimations(false);
+        }
     }
 
     private class MyReceiver implements DragSelectReceiver {
@@ -142,39 +149,37 @@ public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownload
 
         @Override
         public boolean isIndexSelectable(int i) {
-            return false;
+            return true;
         }
 
         @Override
         public boolean isSelected(int i) {
-            return false;
+            return allItems.get(i).isChecked();
         }
 
         @Override
         public void setSelected(int i, boolean b) {
-            Common.showLog("MyReceiver setSelected " + i);
+            if (dragStartCheckStatus) b = !b;
+            allItems.get(i).setChecked(b);
+            mAdapter.notifyItemChanged(i);
+//            Common.showLog("MyReceiver setSelected " + i + ",status="+b);
         }
     }
 
     @Override
     public BaseAdapter<IllustsBean, RecyMultiDownloadBinding> adapter() {
         MultiDownldAdapter adapter = new MultiDownldAdapter(allItems, mContext);
-        adapter.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(View v, int position, int viewType) {
-                final PageData pageData = new PageData(allItems);
-                Container.get().addPageToMap(pageData);
-
-                Intent intent = new Intent(mContext, VActivity.class);
-                intent.putExtra(Params.POSITION, position);
-                intent.putExtra(Params.PAGE_UUID, pageData.getUUID());
-                mContext.startActivity(intent);
-            }
-        });
         adapter.setCallback(new Callback() {
             @Override
             public void doSomething(Object t) {
                 baseBind.toolbarTitle.setText(getToolbarTitle());
+            }
+        });
+        adapter.setOnItemLongClickListener(new OnItemLongClickListener() {
+            @Override
+            public void onItemLongClick(View v, int position, int viewType) {
+                dragStartCheckStatus = allItems.get(position).isChecked();
+                dragSelectTouchListener.setIsActive(true, position);
             }
         });
         return adapter;
@@ -218,6 +223,13 @@ public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownload
             }
             return selectCount + getString(R.string.string_222) + fileCount + getString(R.string.string_223);
         }
+    }
+
+    @Override
+    protected void initData() {
+        super.initData();
+        baseBind.refreshLayout.setEnableRefresh(false);
+        baseBind.refreshLayout.setEnableLoadMore(false);
     }
 
     @Override

@@ -580,4 +580,6 @@
     <string name="string_390">全部</string>
     <string name="string_391">公开</string>
     <string name="string_392">私人</string>
+    <string name="string_393">作品详情翻页模式</string>
+    <item type="id" name="tag_image_url"></item>
 </resources>

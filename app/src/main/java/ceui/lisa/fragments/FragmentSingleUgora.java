@@ -175,14 +175,12 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
             LocalBroadcastManager.getInstance(mContext).registerReceiver(mPlayReceiver, intentFilter);
         }
 
-        if (illust.getId() == Manager.get().getCurrentIllustID()) {
-            PixivOperate.setBack(new Back() {
-                @Override
-                public void invoke(float progress) {
-                    baseBind.progressLayout.donutProgress.setProgress((float) (Math.round(progress * 100)));
-                }
-            });
-        }
+        PixivOperate.setBack(illust.getId(), new Back() {
+            @Override
+            public void invoke(float progress) {
+                baseBind.progressLayout.donutProgress.setProgress((float) (Math.round(progress * 100)));
+            }
+        });
 
 //        File gifFile = new LegacyFile().gifResultFile(mContext, illust);
 //        if (gifFile.exists() && gifFile.length() > 1024) {
@@ -208,7 +206,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
 
     public void nowPlayGif() {
         File gifFile = new LegacyFile().gifResultFile(mContext, illust);
-        PixivOperate.setBack(new Back() {
+        PixivOperate.setBack(illust.getId(), new Back() {
             @Override
             public void invoke(float progress) {
                 baseBind.progressLayout.donutProgress.setProgress((float) (Math.round(progress * 100)));

@@ -30,6 +30,7 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.FragmentSettingsBinding;
 import ceui.lisa.file.LegacyFile;
+import ceui.lisa.helper.PageTransformerHelper;
 import ceui.lisa.helper.ThemeHelper;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
@@ -533,6 +534,29 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                                     baseBind.downloadWay.setText(downloadWays[which]);
                                     Local.setSettings(Shaft.sSettings);
                                     updateIllustPathUI();
+                                }
+                                dialog.dismiss();
+                            }
+                        })
+                        .show();
+            }
+        });
+
+        String[] transformerNames = PageTransformerHelper.getTransformerNames();
+        baseBind.transformType.setText(transformerNames[PageTransformerHelper.getCurrentTransformerIndex()]);
+        baseBind.transformTypeRela.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                new QMUIDialog.CheckableDialogBuilder(mActivity)
+                        .setCheckedIndex(PageTransformerHelper.getCurrentTransformerIndex())
+                        .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                        .addItems(transformerNames, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                if (which != PageTransformerHelper.getCurrentTransformerIndex()) {
+                                    PageTransformerHelper.setCurrentTransformer(which);
+                                    baseBind.transformType.setText(transformerNames[which]);
+                                    Local.setSettings(Shaft.sSettings);
                                 }
                                 dialog.dismiss();
                             }

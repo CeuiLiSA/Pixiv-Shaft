@@ -8,7 +8,6 @@ import android.widget.CompoundButton;
 
 import com.bumptech.glide.Glide;
 
-import java.util.Collections;
 import java.util.List;
 
 import ceui.lisa.R;
@@ -45,33 +44,39 @@ public class MultiDownldAdapter extends BaseAdapter<IllustsBean, RecyMultiDownlo
         params.height = imageSize;
         params.width = imageSize;
         bindView.baseBind.illustImage.setLayoutParams(params);
-        Glide.with(mContext)
-                .load(GlideUtil.getMediumImg(allIllust.get(position)))
-                .placeholder(R.color.light_bg)
-                .into(bindView.baseBind.illustImage);
+        final IllustsBean illustsBean = allIllust.get(position);
+        Object tag = bindView.itemView.getTag(R.id.tag_image_url);
+        if ((tag == null) || !(tag instanceof String) || !((String) tag).equals(illustsBean.getImage_urls().getMedium())) {
+            Glide.with(mContext)
+                    .load(GlideUtil.getMediumImg(illustsBean))
+                    .placeholder(R.color.light_bg)
+                    .into(bindView.baseBind.illustImage);
+
+            bindView.itemView.setTag(R.id.tag_image_url, illustsBean.getImage_urls().getMedium());
+        }
 
         bindView.baseBind.checkbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
-                    allIllust.get(position).setChecked(true);
+                    illustsBean.setChecked(true);
                 } else {
-                    allIllust.get(position).setChecked(false);
+                    illustsBean.setChecked(false);
                 }
                 mCallback.doSomething(null);
             }
         });
 
-        if (allIllust.get(position).isChecked()) {
+        if (illustsBean.isChecked()) {
             bindView.baseBind.checkbox.setChecked(true);
         } else {
             bindView.baseBind.checkbox.setChecked(false);
         }
 
-        bindView.itemView.setOnClickListener(v -> bindView.baseBind.checkbox.performClick());
-        bindView.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+//        bindView.itemView.setOnClickListener(v -> bindView.baseBind.checkbox.performClick());
+        bindView.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
-            public boolean onLongClick(View v) {
+            public void onClick(View v) {
                 final PageData pageData = new PageData(allIllust);
                 Container.get().addPageToMap(pageData);
 
@@ -79,9 +84,17 @@ public class MultiDownldAdapter extends BaseAdapter<IllustsBean, RecyMultiDownlo
                 intent.putExtra(Params.POSITION, position);
                 intent.putExtra(Params.PAGE_UUID, pageData.getUUID());
                 mContext.startActivity(intent);
-                return true;
             }
         });
+        if (mOnItemLongClickListener != null) {
+            bindView.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View view) {
+                    mOnItemLongClickListener.onItemLongClick(view, position, 0);
+                    return true;
+                }
+            });
+        }
     }
 
     @Override
