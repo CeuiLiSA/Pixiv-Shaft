@@ -9,6 +9,7 @@ import com.blankj.utilcode.util.BarUtils;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.ViewpagerWithTablayoutBinding;
+import ceui.lisa.utils.MyOnTabSelectedListener;
 
 public class FragmentPv extends BaseFragment<ViewpagerWithTablayoutBinding> {
 
@@ -20,23 +21,22 @@ public class FragmentPv extends BaseFragment<ViewpagerWithTablayoutBinding> {
 
     @Override
     public void initView() {
-        String[] CHINESE_TITLES = new String[]{
+        final String[] CHINESE_TITLES = new String[]{
                 Shaft.getContext().getString(R.string.type_illust),
                 Shaft.getContext().getString(R.string.type_manga)
         };
+        final ListFragment[] mFragments = new ListFragment[]{
+                FragmentPivision.newInstance("illust"),
+                FragmentPivision.newInstance("manga")
+        };
+
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
         baseBind.toolbarTitle.setText(R.string.string_191);
         baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager(), 0) {
             @NonNull
             @Override
             public Fragment getItem(int position) {
-                if (position == 0) {
-                    return FragmentPivision.newInstance("illust");
-                } else if (position == 1) {
-                    return FragmentPivision.newInstance("manga");
-                } else {
-                    return new Fragment();
-                }
+                return mFragments[position];
             }
 
             @Override
@@ -50,5 +50,7 @@ public class FragmentPv extends BaseFragment<ViewpagerWithTablayoutBinding> {
             }
         });
         baseBind.tabLayout.setupWithViewPager(baseBind.viewPager);
+        MyOnTabSelectedListener listener = new MyOnTabSelectedListener(mFragments);
+        baseBind.tabLayout.addOnTabSelectedListener(listener);
     }
 }
