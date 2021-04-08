@@ -151,6 +151,12 @@ public interface AppApi {
     @GET("v1/user/bookmarks/novel")
     Observable<ListNovel> getUserLikeNovel(@Header("Authorization") String token,
                                            @Query("user_id") int user_id,
+                                           @Query("restrict") String restrict,
+                                           @Query("tag") String tag);
+
+    @GET("v1/user/bookmarks/novel")
+    Observable<ListNovel> getUserLikeNovel(@Header("Authorization") String token,
+                                           @Query("user_id") int user_id,
                                            @Query("restrict") String restrict);
 
     @GET("v1/user/illusts?filter=for_android")
@@ -296,11 +302,20 @@ public interface AppApi {
 
 
     /**
-     * 获取收藏的标签
+     * 获取插画收藏的标签
      */
     //GET v1/user/bookmark-tags/illust?user_id=41531382&restrict=public HTTP/1.1
     @GET("v1/user/bookmark-tags/illust")
     Observable<ListTag> getBookmarkTags(@Header("Authorization") String token,
+                                        @Query("user_id") int user_id,
+                                        @Query("restrict") String restrict);
+
+    /**
+     * 获取小说收藏的标签
+     */
+    //GET v1/user/bookmark-tags/novel?user_id=41531382&restrict=public HTTP/1.1
+    @GET("v1/user/bookmark-tags/novel")
+    Observable<ListTag> getNovelBookmarkTags(@Header("Authorization") String token,
                                         @Query("user_id") int user_id,
                                         @Query("restrict") String restrict);
 

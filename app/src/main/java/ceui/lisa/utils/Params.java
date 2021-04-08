@@ -49,6 +49,7 @@ public class Params {
     public static final String VIEW_PAGER_R18  = "r18 viewpager";
 
     public static final String FILTER_ILLUST        = "ceui.lisa.fragments.NetListFragment FILTER_ILLUST";
+    public static final String FILTER_NOVEL        = "ceui.lisa.fragments.NetListFragment FILTER_NOVEL";
     public static final String LIKED_ILLUST        = "ceui.lisa.fragments.NetListFragment LIKED_ILLUST";
     public static final String PLAY_GIF        = "ceui.lisa.fragments.FragmentSingleUgora PLAY_GIF";
     public static final String LIKED_USER          = "ceui.lisa.fragments.NetListFragment LIKED_USER";

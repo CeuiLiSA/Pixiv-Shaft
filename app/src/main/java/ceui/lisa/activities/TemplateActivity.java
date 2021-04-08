@@ -123,7 +123,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "账号管理":
                     return new FragmentLocalUsers();
                 case "按标签筛选": {
-                    return FragmentBookedTag.newInstance(intent.getStringExtra(EXTRA_KEYWORD));
+                    return FragmentBookedTag.newInstance(intent.getIntExtra(Params.DATA_TYPE, 0), intent.getStringExtra(EXTRA_KEYWORD));
                 }
                 case "按标签收藏": {
                     int id = intent.getIntExtra(Params.ILLUST_ID, 0);

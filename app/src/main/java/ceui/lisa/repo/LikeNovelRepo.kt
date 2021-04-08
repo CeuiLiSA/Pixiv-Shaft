@@ -1,5 +1,6 @@
 package ceui.lisa.repo
 
+import android.text.TextUtils
 import ceui.lisa.core.RemoteRepo
 import ceui.lisa.http.Retro
 import ceui.lisa.model.ListNovel
@@ -7,11 +8,16 @@ import io.reactivex.Observable
 
 class LikeNovelRepo(
     private val userID: Int,
-    private val starType: String?
+    private val starType: String?,
+    var tag: String?,
 ) : RemoteRepo<ListNovel>() {
 
     override fun initApi(): Observable<ListNovel> {
-        return Retro.getAppApi().getUserLikeNovel(token(), userID, starType)
+        return if (TextUtils.isEmpty(tag)) {
+            return Retro.getAppApi().getUserLikeNovel(token(), userID, starType)
+        } else {
+            return Retro.getAppApi().getUserLikeNovel(token(), userID, starType, tag)
+        }
     }
 
     override fun initNextApi(): Observable<ListNovel> {
