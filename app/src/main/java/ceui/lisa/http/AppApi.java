@@ -109,13 +109,13 @@ public interface AppApi {
      * search_target=partial_match_for_tags 标签部分匹配
      * search_target=title_and_caption 标题或简介
      */
-    @GET("v1/search/illust?filter=for_android&include_translated_tag_results=true")
+    @GET("v1/search/illust?filter=for_android&include_translated_tag_results=true&merge_plain_keyword_results=true")
     Observable<ListIllust> searchIllust(@Header("Authorization") String token,
                                         @Query("word") String word,
                                         @Query("sort") String sort,
                                         @Query("search_target") String search_target);
 
-    @GET("v1/search/novel?filter=for_android&include_translated_tag_results=true")
+    @GET("v1/search/novel?filter=for_android&include_translated_tag_results=true&merge_plain_keyword_results=true")
     Observable<ListNovel> searchNovel(@Header("Authorization") String token,
                                       @Query("word") String word,
                                       @Query("sort") String sort,
@@ -147,6 +147,12 @@ public interface AppApi {
     Observable<ListIllust> getUserLikeIllust(@Header("Authorization") String token,
                                              @Query("user_id") int user_id,
                                              @Query("restrict") String restrict);
+
+    @GET("v1/user/bookmarks/novel")
+    Observable<ListNovel> getUserLikeNovel(@Header("Authorization") String token,
+                                           @Query("user_id") int user_id,
+                                           @Query("restrict") String restrict,
+                                           @Query("tag") String tag);
 
     @GET("v1/user/bookmarks/novel")
     Observable<ListNovel> getUserLikeNovel(@Header("Authorization") String token,
@@ -296,11 +302,20 @@ public interface AppApi {
 
 
     /**
-     * 获取收藏的标签
+     * 获取插画收藏的标签
      */
     //GET v1/user/bookmark-tags/illust?user_id=41531382&restrict=public HTTP/1.1
     @GET("v1/user/bookmark-tags/illust")
     Observable<ListTag> getBookmarkTags(@Header("Authorization") String token,
+                                        @Query("user_id") int user_id,
+                                        @Query("restrict") String restrict);
+
+    /**
+     * 获取小说收藏的标签
+     */
+    //GET v1/user/bookmark-tags/novel?user_id=41531382&restrict=public HTTP/1.1
+    @GET("v1/user/bookmark-tags/novel")
+    Observable<ListTag> getNovelBookmarkTags(@Header("Authorization") String token,
                                         @Query("user_id") int user_id,
                                         @Query("restrict") String restrict);
 

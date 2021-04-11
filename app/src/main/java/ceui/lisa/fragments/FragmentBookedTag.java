@@ -27,6 +27,7 @@ public class FragmentBookedTag extends NetListFragment<FragmentBaseListBinding,
         ListTag, TagsBean> {
 
     private String starType = "";
+    private int type = 0;
 
     /**
      * @param starType public/private 公开收藏或者私人收藏
@@ -40,14 +41,29 @@ public class FragmentBookedTag extends NetListFragment<FragmentBaseListBinding,
         return fragment;
     }
 
+    /**
+     * @param type 0 插画 1 小说
+     * @param starType public/private 公开收藏或者私人收藏
+     * @return FragmentBookedTag
+     */
+    public static FragmentBookedTag newInstance(int type, String starType) {
+        Bundle args = new Bundle();
+        args.putInt(Params.DATA_TYPE, type);
+        args.putString(Params.STAR_TYPE, starType);
+        FragmentBookedTag fragment = new FragmentBookedTag();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
     @Override
     public void initBundle(Bundle bundle) {
         starType = bundle.getString(Params.STAR_TYPE);
+        type = bundle.getInt(Params.DATA_TYPE, 0);
     }
 
     @Override
     public RemoteRepo<ListTag> repository() {
-        return new BookedTagRepo(starType);
+        return new BookedTagRepo(type, starType);
     }
 
     @Override
@@ -55,7 +71,7 @@ public class FragmentBookedTag extends NetListFragment<FragmentBaseListBinding,
         return new BookedTagAdapter(allItems, mContext, false).setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                Intent intent = new Intent(Params.FILTER_ILLUST);
+                Intent intent = new Intent(type == 1 ? Params.FILTER_NOVEL : Params.FILTER_ILLUST);
                 intent.putExtra(Params.CONTENT, allItems.get(position).getName());
                 intent.putExtra(Params.STAR_TYPE, starType);
                 LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);

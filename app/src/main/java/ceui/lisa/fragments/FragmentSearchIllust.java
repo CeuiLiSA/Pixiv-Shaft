@@ -4,6 +4,8 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 
+import java.util.Arrays;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.databinding.ViewDataBinding;
@@ -18,6 +20,7 @@ import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.repo.SearchIllustRepo;
 import ceui.lisa.utils.Params;
+import ceui.lisa.utils.PixivSearchParamUtil;
 import ceui.lisa.viewmodel.SearchModel;
 
 public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBinding, ListIllust,
@@ -46,6 +49,9 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
         searchModel.getNowGo().observe(getViewLifecycleOwner(), new Observer<String>() {
             @Override
             public void onChanged(String s) {
+                if(!Arrays.asList(PixivSearchParamUtil.TAG_MATCH_VALUE).contains(searchModel.getSearchType().getValue())){
+                    return;
+                }
                 ((SearchIllustRepo) mRemoteRepo).update(searchModel, isPopular);
                 if(isPopular){
                     if(TextUtils.isEmpty(searchModel.getKeyword().getValue())){
@@ -60,6 +66,12 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
         });
         // 监测侧滑过滤器中的收藏数选项变化
         searchModel.getStarSize().observe(getViewLifecycleOwner(), new Observer<String>() {
+            @Override
+            public void onChanged(String s) {
+                ((SearchIllustRepo) mRemoteRepo).update(searchModel, isPopular);
+            }
+        });
+        searchModel.getSearchType().observe(getViewLifecycleOwner(), new Observer<String>() {
             @Override
             public void onChanged(String s) {
                 ((SearchIllustRepo) mRemoteRepo).update(searchModel, isPopular);

@@ -436,6 +436,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                         .show();
             }
         });
+
         baseBind.appLanguage.setText(Shaft.sSettings.getAppLanguage());
         baseBind.appLanguageRela.setOnClickListener(new View.OnClickListener() {
             @Override

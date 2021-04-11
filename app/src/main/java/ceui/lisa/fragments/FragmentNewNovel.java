@@ -13,6 +13,7 @@ import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.ViewpagerWithTablayoutBinding;
+import ceui.lisa.utils.MyOnTabSelectedListener;
 import ceui.lisa.utils.Params;
 
 public class FragmentNewNovel extends BaseFragment<ViewpagerWithTablayoutBinding> {
@@ -24,9 +25,13 @@ public class FragmentNewNovel extends BaseFragment<ViewpagerWithTablayoutBinding
 
     @Override
     public void initView() {
-        String[] TITLES = new String[]{
+        final String[] TITLES = new String[]{
                 Shaft.getContext().getString(R.string.recommend_illust),
                 Shaft.getContext().getString(R.string.hot_tag)
+        };
+        final Fragment[] mFragments = new Fragment[]{
+                new FragmentRecmdNovel(),
+                FragmentHotTag.newInstance(Params.TYPE_NOVEL)
         };
         baseBind.toolbarTitle.setText(R.string.type_novel);
         baseBind.toolbar.setNavigationOnClickListener(v -> finish());
@@ -47,11 +52,7 @@ public class FragmentNewNovel extends BaseFragment<ViewpagerWithTablayoutBinding
             @NonNull
             @Override
             public Fragment getItem(int i) {
-                if (i == 0) {
-                    return new FragmentRecmdNovel();
-                } else {
-                    return FragmentHotTag.newInstance(Params.TYPE_NOVEL);
-                }
+                return mFragments[i];
             }
 
             @Override
@@ -66,5 +67,7 @@ public class FragmentNewNovel extends BaseFragment<ViewpagerWithTablayoutBinding
             }
         });
         baseBind.tabLayout.setupWithViewPager(baseBind.viewPager);
+        MyOnTabSelectedListener listener = new MyOnTabSelectedListener(mFragments);
+        baseBind.tabLayout.addOnTabSelectedListener(listener);
     }
 }

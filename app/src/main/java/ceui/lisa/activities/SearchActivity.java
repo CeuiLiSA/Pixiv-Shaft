@@ -21,6 +21,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.blankj.utilcode.util.BarUtils;
 import com.mxn.soul.flowingdrawer_core.ElasticDrawer;
 
+import androidx.viewpager.widget.ViewPager;
 import ceui.lisa.R;
 import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.databinding.FragmentNewSearchBinding;
@@ -34,6 +35,7 @@ import ceui.lisa.viewmodel.SearchModel;
 public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 
     private final BaseFragment<?>[] allPages = new BaseFragment[]{null, null, null};
+    private FragmentFilter fragmentFilter;
     private String keyWord = "";
     private SearchModel searchModel;
     private int index = 0;
@@ -44,6 +46,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
         index = bundle.getInt(Params.INDEX);
         searchModel = new ViewModelProvider(this).get(SearchModel.class);
         searchModel.getKeyword().setValue(keyWord);
+        searchModel.getIsNovel().setValue(index == 2);
         searchModel.getNowGo().observe(this, new Observer<String>() {
             @Override
             public void onChanged(String s) {
@@ -90,6 +93,27 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
             @Override
             public CharSequence getPageTitle(int position) {
                 return TITLES[position];
+            }
+        });
+        baseBind.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener(){
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                // 通知更改 过滤器-关键字匹配 类型
+                if(fragmentFilter != null){
+                    if((position == 0 || position == 1) && searchModel.getIsNovel().getValue()){
+                        searchModel.getIsNovel().setValue(false);
+                    }else if(position == 2 && !searchModel.getIsNovel().getValue()){
+                        searchModel.getIsNovel().setValue(true);
+                    }
+                }
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
             }
         });
         baseBind.viewPager.setOffscreenPageLimit(2);
@@ -153,7 +177,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
         });
 
         baseBind.drawerlayout.setTouchMode(ElasticDrawer.TOUCH_MODE_BEZEL);
-        FragmentFilter fragmentFilter = new FragmentFilter();
+        fragmentFilter = new FragmentFilter();
         FragmentManager fragmentManager = getSupportFragmentManager();
         if (!fragmentFilter.isAdded()) {
             fragmentManager.beginTransaction()

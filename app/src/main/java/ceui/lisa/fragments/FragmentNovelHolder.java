@@ -191,7 +191,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                 public boolean onTagClick(View view, int position, FlowLayout parent) {
                     Intent intent = new Intent(mContext, SearchActivity.class);
                     intent.putExtra(Params.KEY_WORD, mNovelBean.getTags().get(position).getName());
-                    intent.putExtra(Params.INDEX, 1);
+                    intent.putExtra(Params.INDEX, 2);
                     startActivity(intent);
                     return false;
                 }

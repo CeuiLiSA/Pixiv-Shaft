@@ -24,6 +24,8 @@ public class SearchModel extends ViewModel {
 
     private MutableLiveData<String> nowGo = new MutableLiveData<>();
 
+    private MutableLiveData<Boolean> isNovel = new MutableLiveData<>();
+
     public MutableLiveData<String> getKeyword() {
         return keyword;
     }
@@ -56,5 +58,9 @@ public class SearchModel extends ViewModel {
 
     public MutableLiveData<String> getNowGo() {
         return nowGo;
+    }
+
+    public MutableLiveData<Boolean> getIsNovel() {
+        return isNovel;
     }
 }

@@ -19,6 +19,7 @@ import ceui.lisa.databinding.ActivityMultiViewPagerBinding;
 import ceui.lisa.fragments.FragmentRankIllust;
 import ceui.lisa.fragments.FragmentRankNovel;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.MyOnTabSelectedListener;
 
 public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> implements
         DatePickerDialog.OnDateSetListener {
@@ -70,52 +71,67 @@ public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> im
                 getString(R.string.string_134)
         };
 
+        final String[] titles = getTitles(CHINESE_TITLES, CHINESE_TITLES_MANGA, CHINESE_TITLES_NOVEL);
+        final Fragment[] mFragments = getFragments(CHINESE_TITLES, CHINESE_TITLES_MANGA, CHINESE_TITLES_NOVEL);
+
         baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
             @Override
             public Fragment getItem(int i) {
-                if ("插画".equals(dataType)) {
-                    return FragmentRankIllust.newInstance(i, queryDate, false);
-                } else if ("漫画".equals(dataType)) {
-                    return FragmentRankIllust.newInstance(i, queryDate, true);
-                } else if ("小说".equals(dataType)) {
-                    return FragmentRankNovel.newInstance(i, queryDate);
-                } else {
-                    return new Fragment();
-                }
+                return mFragments[i];
             }
 
             @Override
             public int getCount() {
-                if ("插画".equals(dataType)) {
-                    return CHINESE_TITLES.length;
-                } else if ("漫画".equals(dataType)) {
-                    return CHINESE_TITLES_MANGA.length;
-                } else if ("小说".equals(dataType)) {
-                    return CHINESE_TITLES_NOVEL.length;
-                }
-                return 0;
+                return titles.length;
             }
 
             @Nullable
             @Override
             public CharSequence getPageTitle(int position) {
-                if ("插画".equals(dataType)) {
-                    return CHINESE_TITLES[position];
-                } else if ("漫画".equals(dataType)) {
-                    return CHINESE_TITLES_MANGA[position];
-                } else if ("小说".equals(dataType)) {
-                    return CHINESE_TITLES_NOVEL[position];
-                }
-                return "";
+                return titles[position];
             }
-
-
         });
         baseBind.tabLayout.setupWithViewPager(baseBind.viewPager);
+        MyOnTabSelectedListener listener = new MyOnTabSelectedListener(mFragments);
+        baseBind.tabLayout.addOnTabSelectedListener(listener);
         //如果指定了跳转到某一个排行，就显示该页排行
         if (getIntent().getIntExtra("index", 0) >= 0) {
             baseBind.viewPager.setCurrentItem(getIntent().getIntExtra("index", 0));
         }
+    }
+
+    private String[] getTitles(String[] CHINESE_TITLES, String[] CHINESE_TITLES_MANGA, String[] CHINESE_TITLES_NOVEL) {
+        if ("插画".equals(dataType)) {
+            return CHINESE_TITLES;
+        } else if ("漫画".equals(dataType)) {
+            return CHINESE_TITLES_MANGA;
+        } else if ("小说".equals(dataType)) {
+            return CHINESE_TITLES_NOVEL;
+        }
+        return new String[0];
+    }
+
+    private Fragment[] getFragments(String[] CHINESE_TITLES, String[] CHINESE_TITLES_MANGA, String[] CHINESE_TITLES_NOVEL) {
+        final Fragment[] mFragments;
+        if("插画".equals(dataType)){
+            mFragments = new Fragment[CHINESE_TITLES.length];
+            for (int i = 0; i < CHINESE_TITLES.length; i++) {
+                mFragments[i] = FragmentRankIllust.newInstance(i, queryDate, false);
+            }
+        } else if ("漫画".equals(dataType)) {
+            mFragments = new Fragment[CHINESE_TITLES_MANGA.length];
+            for (int i = 0; i < CHINESE_TITLES_MANGA.length; i++) {
+                mFragments[i] = FragmentRankIllust.newInstance(i, queryDate, true);
+            }
+        } else if ("小说".equals(dataType)) {
+            mFragments = new Fragment[CHINESE_TITLES_NOVEL.length];
+            for (int i = 0; i < CHINESE_TITLES_NOVEL.length; i++) {
+                mFragments[i] = FragmentRankNovel.newInstance(i, queryDate);
+            }
+        } else {
+            mFragments = new Fragment[0];
+        }
+        return mFragments;
     }
 
     @Override

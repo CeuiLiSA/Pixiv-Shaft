@@ -3,6 +3,8 @@ package ceui.lisa.fragments;
 import android.os.Bundle;
 import android.view.View;
 
+import java.util.Arrays;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.databinding.ViewDataBinding;
@@ -16,6 +18,7 @@ import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.model.ListNovel;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.repo.SearchNovelRepo;
+import ceui.lisa.utils.PixivSearchParamUtil;
 import ceui.lisa.viewmodel.SearchModel;
 
 public class FragmentSearchNovel extends NetListFragment<FragmentBaseListBinding, ListNovel,
@@ -42,8 +45,24 @@ public class FragmentSearchNovel extends NetListFragment<FragmentBaseListBinding
         searchModel.getNowGo().observe(getViewLifecycleOwner(), new Observer<String>() {
             @Override
             public void onChanged(String s) {
+                if(!Arrays.asList(PixivSearchParamUtil.TAG_MATCH_VALUE_NOVEL).contains(searchModel.getSearchType().getValue())){
+                    return;
+                }
                 ((SearchNovelRepo) mRemoteRepo).update(searchModel);
                 mRefreshLayout.autoRefresh();
+            }
+        });
+        // 监测侧滑过滤器中的收藏数选项变化
+        searchModel.getStarSize().observe(getViewLifecycleOwner(), new Observer<String>() {
+            @Override
+            public void onChanged(String s) {
+                ((SearchNovelRepo) mRemoteRepo).update(searchModel);
+            }
+        });
+        searchModel.getSearchType().observe(getViewLifecycleOwner(), new Observer<String>() {
+            @Override
+            public void onChanged(String s) {
+                ((SearchNovelRepo) mRemoteRepo).update(searchModel);
             }
         });
     }

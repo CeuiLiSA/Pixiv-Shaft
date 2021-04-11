@@ -5,9 +5,15 @@ import ceui.lisa.http.Retro
 import ceui.lisa.model.ListTag
 import io.reactivex.Observable
 
-class BookedTagRepo(private val starType: String?) : RemoteRepo<ListTag>() {
+class BookedTagRepo(
+    private val type: Int,
+    private val starType: String?,
+) : RemoteRepo<ListTag>() {
 
     override fun initApi(): Observable<ListTag> {
+        if (type == 1) {
+            return Retro.getAppApi().getNovelBookmarkTags(token(), currentUserID(), starType)
+        }
         return Retro.getAppApi().getBookmarkTags(token(), currentUserID(), starType)
     }
 

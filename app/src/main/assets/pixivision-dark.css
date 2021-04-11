@@ -54,3 +54,11 @@ body:not(.android-browser) ._modal-menu .mdmsp__header {
 ._modal-menu-layer {
     background-color: #aaa !important;
 }
+
+._article-main .amsp__description .amsp__description-text::after {
+    background: linear-gradient(rgba(42,42,42,0), rgba(42,42,42,0.8)) !important;
+}
+
+._article-main .amsp__description .amsp__description-more-button-label {
+    background: #2a2a2a !important;
+}
