@@ -87,7 +87,7 @@
                             android:layout_width="100dp"
                             android:layout_height="3dp"
                             android:layout_centerHorizontal="true"
-                            android:layout_marginTop="12dp"
+                            android:layout_marginTop="@dimen/four_dp"
                             android:layout_marginBottom="@dimen/eight_dp"
                             android:background="@drawable/illust_slider_bg">
 
@@ -97,15 +97,19 @@
 
                     <TextView
                         android:id="@+id/title"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/tweenty_four_dp"
                         android:layout_marginStart="@dimen/tweenty_four_dp"
-                        android:layout_marginEnd="48dp"
+                        android:layout_marginEnd="56dp"
                         android:ellipsize="end"
-                        android:maxLines="2"
+                        android:maxLines="1"
                         android:text="@string/string_66"
                         android:textColor="@color/rank_text_color"
+                        android:includeFontPadding="false"
                         android:textSize="20sp"
+                        app:autoSizeMaxTextSize="20sp"
+                        app:autoSizeMinTextSize="6sp"
+                        app:autoSizeTextType="uniform"
                         android:textStyle="bold">
 
                     </TextView>
@@ -126,10 +130,10 @@
                             android:id="@+id/user_head"
                             android:layout_width="50dp"
                             android:layout_height="50dp"
-                            android:layout_marginStart="@dimen/twelve_dp"
-                            android:layout_marginTop="@dimen/twelve_dp"
+                            android:layout_marginStart="@dimen/eight_dp"
+                            android:layout_marginTop="@dimen/eight_dp"
                             android:layout_marginEnd="@dimen/eight_dp"
-                            android:layout_marginBottom="@dimen/twelve_dp"
+                            android:layout_marginBottom="@dimen/eight_dp"
                             android:scaleType="centerCrop"
                             app:civ_border_color="?attr/colorPrimary"
                             app:civ_border_width="1dp">
@@ -147,6 +151,7 @@
                             android:layout_toEndOf="@+id/user_head"
                             android:ellipsize="end"
                             android:maxLines="1"
+                            android:includeFontPadding="false"
                             android:text="@string/string_67"
                             android:textColor="@color/white"
                             android:textSize="16sp"
@@ -163,6 +168,7 @@
                             android:layout_toEndOf="@+id/user_head"
                             android:ellipsize="end"
                             android:maxLines="1"
+                            android:includeFontPadding="false"
                             android:text="@string/string_68"
                             android:textColor="#bdbed6"
                             android:textSize="12sp">
@@ -175,7 +181,7 @@
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
                             android:layout_centerVertical="true"
-                            android:layout_marginEnd="@dimen/twelve_dp"
+                            android:layout_marginEnd="@dimen/eight_dp"
                             android:paddingStart="@dimen/eight_dp"
                             android:paddingTop="@dimen/four_dp"
                             android:paddingEnd="@dimen/eight_dp"
