@@ -100,7 +100,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/tweenty_four_dp"
                         android:layout_marginStart="@dimen/tweenty_four_dp"
-                        android:layout_marginEnd="56dp"
+                        android:layout_marginEnd="64dp"
                         android:ellipsize="end"
                         android:maxLines="1"
                         android:text="@string/string_66"
