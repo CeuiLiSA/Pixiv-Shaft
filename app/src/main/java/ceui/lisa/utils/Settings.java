@@ -154,6 +154,8 @@ public class Settings {
 
     private int transformerType = 5; // 二级详情转场动画，默认是3D盒子
 
+    private boolean showRelatedWhenStar = true; // 收藏作品时展示关联作品
+
     public String getAppLanguage() {
         if(!TextUtils.isEmpty(appLanguage)){
             return appLanguage;
@@ -482,5 +484,13 @@ public class Settings {
 
     public void setTransformerType(int transformerType) {
         this.transformerType = transformerType;
+    }
+
+    public boolean isShowRelatedWhenStar() {
+        return showRelatedWhenStar;
+    }
+
+    public void setShowRelatedWhenStar(boolean showRelatedWhenStar) {
+        this.showRelatedWhenStar = showRelatedWhenStar;
     }
 }

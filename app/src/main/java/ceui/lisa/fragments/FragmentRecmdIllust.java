@@ -98,7 +98,7 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
 
     @Override
     public BaseAdapter<IllustsBean, RecyIllustStaggerBinding> adapter() {
-        return new IAdapterWithHeadView(allItems, mContext, dataType).setShowRelated(true);
+        return new IAdapterWithHeadView(allItems, mContext, dataType).setShowRelated(Shaft.sSettings.isShowRelatedWhenStar());
     }
 
     @Override
