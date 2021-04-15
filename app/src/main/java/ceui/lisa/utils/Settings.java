@@ -156,6 +156,8 @@ public class Settings {
 
     private boolean showRelatedWhenStar = true; // 收藏作品时展示关联作品
 
+    private boolean globalSwipeBack = true; // 全局滑动返回
+
     public String getAppLanguage() {
         if(!TextUtils.isEmpty(appLanguage)){
             return appLanguage;
@@ -492,5 +494,13 @@ public class Settings {
 
     public void setShowRelatedWhenStar(boolean showRelatedWhenStar) {
         this.showRelatedWhenStar = showRelatedWhenStar;
+    }
+
+    public boolean isGlobalSwipeBack() {
+        return globalSwipeBack;
+    }
+
+    public void setGlobalSwipeBack(boolean globalSwipeBack) {
+        this.globalSwipeBack = globalSwipeBack;
     }
 }
