@@ -179,7 +179,7 @@ public class FragmentImageDetail extends BaseFragment<FragmentImageDetailBinding
     }
 
     public void adjustAutoScale() {
-        if (imageWidth <=0 || imageHeight <= 0){
+        if (imageWidth <= 0 || imageHeight <= 0) {
             return;
         }
 

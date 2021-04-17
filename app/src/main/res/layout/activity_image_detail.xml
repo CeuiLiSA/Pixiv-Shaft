@@ -47,6 +47,8 @@
                     android:layout_height="wrap_content"
                     android:layout_centerHorizontal="true"
                     android:layout_margin="@dimen/four_dp"
+                    android:shadowColor="@android:color/black"
+                    android:shadowRadius="3"
                     android:background="@drawable/follow_user_bg"
                     android:paddingStart="@dimen/sixteen_dp"
                     android:paddingTop="@dimen/four_dp"
@@ -65,6 +67,8 @@
                     android:layout_marginBottom="5dp"
                     android:layout_toEndOf="@+id/download_this_one"
                     android:gravity="end"
+                    android:shadowColor="@android:color/black"
+                    android:shadowRadius="3"
                     android:textColor="@android:color/white" />
 
 

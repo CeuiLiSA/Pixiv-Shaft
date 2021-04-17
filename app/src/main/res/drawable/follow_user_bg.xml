@@ -1,11 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <stroke android:color="@android:color/white"
-        android:width="1dp"
-        />
-    <corners android:topLeftRadius="60dp"
-        android:topRightRadius="60dp"
-        android:bottomRightRadius="60dp"
-        android:bottomLeftRadius="60dp" />
-    <!--圆角矩形白色背景-->
-</shape>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape>
+            <stroke android:color="@android:color/black"
+                android:width="1dp"
+                />
+            <corners android:topLeftRadius="60dp"
+                android:topRightRadius="60dp"
+                android:bottomRightRadius="60dp"
+                android:bottomLeftRadius="60dp" />
+            <!--圆角矩形黑色边框-->
+        </shape>
+    </item>
+    <item
+        android:top="0.5dp"
+        android:bottom="0.5dp"
+        android:left="0.5dp"
+        android:right="0.5dp">
+        <shape>
+            <stroke android:color="@android:color/white"
+                android:width="1dp"
+                />
+            <corners android:topLeftRadius="60dp"
+                android:topRightRadius="60dp"
+                android:bottomRightRadius="60dp"
+                android:bottomLeftRadius="60dp" />
+            <!--错位的圆角矩形白色边框-->
+        </shape>
+    </item>
+</layer-list>
