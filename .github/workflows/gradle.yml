@@ -1,0 +1,47 @@
+name: Build CI
+
+on:
+  - push
+  - pull_request
+
+env:
+  WARN_ON_PR: "artifact upload is disabled due to the workflow is trigged by pull request."
+
+jobs:
+  build:
+    name: Gradle CI
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      name: Clone repository
+
+    - name: Prepare Java 11
+      uses: actions/setup-java@v1
+      with:
+        java-version: 11
+        java-package: jdk
+
+    - name: Cache Gradle packages
+      uses: actions/cache@v2
+      with:
+        path: ~/.gradle/caches
+        key: ${{ hashFiles('**/*gradle*') }}
+        restore-keys: ${{ runner.os }}
+
+    - name: Build project
+      env:
+        DEBUG_KEY_PASSWORD: android
+        DEBUG_STORE_PASSWORD: android
+        DEBUG_KEY_ALIAS: androiddebugkey
+      run: |
+        if ${{ !!github.head_ref }}; then echo "::warning:: Gradle $WARN_ON_PR"; fi
+        gradle wrapper
+        bash gradlew assembleDebug
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      if: ${{ !github.head_ref }}
+      with:
+        name: debug-apk
+        path: app/build/outputs/apk
