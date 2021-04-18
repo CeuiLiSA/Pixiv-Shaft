@@ -113,7 +113,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:textSize="13sp"
-                android:shadowColor="#FF000000"
+                android:shadowColor="@android:color/black"
                 android:shadowDx="1.5"
                 android:shadowDy="1.5"
                 android:layout_toStartOf="@+id/like"

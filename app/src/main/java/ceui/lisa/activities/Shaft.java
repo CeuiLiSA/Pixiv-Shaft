@@ -120,12 +120,15 @@ public class Shaft extends Application {
         IntentFilter filter = new IntentFilter();
         filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         registerReceiver(netWorkStateReceiver, filter);
-        SmartSwipeBack.activitySlidingBack(this, new SmartSwipeBack.ActivitySwipeBackFilter(){
-            @Override
-            public boolean onFilter(Activity activity) {
-                return !(activity instanceof MainActivity);
-            }
-        });
+
+        if(sSettings.isGlobalSwipeBack()){
+            SmartSwipeBack.activitySlidingBack(this, new SmartSwipeBack.ActivitySwipeBackFilter(){
+                @Override
+                public boolean onFilter(Activity activity) {
+                    return !(activity instanceof MainActivity);
+                }
+            });
+        }
     }
 
     public OkHttpClient getOkHttpClient() {

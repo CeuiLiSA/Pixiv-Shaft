@@ -36,7 +36,7 @@ public class Retro {
     }
 
     public static AccountApi getAccountApi() {
-        return buildRetrofit(ACCOUNT_BASE_URL).create(AccountApi.class);
+        return buildRetrofit(ACCOUNT_BASE_URL, false).create(AccountApi.class);
     }
 
     public static ResourceApi getResourceApi(){
@@ -54,7 +54,19 @@ public class Retro {
         return before;
     }
 
+    private static OkHttpClient.Builder fuckChinaWithConfig(OkHttpClient.Builder before, boolean enable) {
+        if(enable && Shaft.sSettings.isAutoFuckChina()){
+            before.sslSocketFactory(new RubySSLSocketFactory(), new pixivOkHttpClient());
+            before.dns(HttpDns.getInstance());
+        }
+        return before;
+    }
+
     private static Retrofit buildRetrofit(String baseUrl) {
+        return buildRetrofit(baseUrl, true);
+    }
+
+    private static Retrofit buildRetrofit(String baseUrl, boolean autoFuckChina) {
         OkHttpClient.Builder builder = getLogClient();
         try {
             builder.addInterceptor(chain ->
@@ -63,10 +75,7 @@ public class Retro {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        if (Shaft.sSettings.isAutoFuckChina()) {
-            builder.sslSocketFactory(new RubySSLSocketFactory(), new pixivOkHttpClient());
-            builder.dns(HttpDns.getInstance());
-        }
+        fuckChinaWithConfig(builder, autoFuckChina);
         OkHttpClient client = builder.build();
         Gson gson = new GsonBuilder().setLenient().create();
         return new Retrofit.Builder()

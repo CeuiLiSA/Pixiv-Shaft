@@ -167,6 +167,14 @@ public class UserBean implements Serializable, UserContainer, Starable {
         setIs_followed(isLiked);
     }
 
+    public boolean isR18Enabled(){
+        return x_restrict != 0;
+    }
+
+    public boolean isR18GEnabled(){
+        return x_restrict == 2;
+    }
+
     @Override
     public String toString() {
         return "UserBean{" +

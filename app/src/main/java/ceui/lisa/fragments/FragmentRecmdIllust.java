@@ -98,7 +98,7 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
 
     @Override
     public BaseAdapter<IllustsBean, RecyIllustStaggerBinding> adapter() {
-        return new IAdapterWithHeadView(allItems, mContext, dataType).setShowRelated(true);
+        return new IAdapterWithHeadView(allItems, mContext, dataType).setShowRelated(Shaft.sSettings.isShowRelatedWhenStar());
     }
 
     @Override
@@ -130,7 +130,7 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
                             if (!Common.isEmpty(temp)) {
                                 if (index < allItems.size()) {
                                     mModel.load(temp, index);
-                                    Common.showToast(index);
+//                                    Common.showToast(index);
                                     mAdapter.notifyItemRangeInserted(index + 1, temp.size());
                                     mAdapter.notifyItemRangeChanged(index + 1, allItems.size() - index - 1);
                                 }

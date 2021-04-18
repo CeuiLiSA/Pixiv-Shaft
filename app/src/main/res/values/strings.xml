@@ -584,4 +584,11 @@
     <item type="id" name="tag_image_url"></item>
     <string name="string_394">文本</string>
     <string name="string_395">关键词</string>
+    <string name="string_396">收藏作品时展示关联作品</string>
+    <string name="string_397">全局滑动返回</string>
+    <string name="string_398">R18 / R18G 设置</string>
+    <string name="string_399">高级会员设置</string>
+    <string name="string_400">检测到账户未开启 R18 选项，是否去开启？</string>
+    <string name="string_401">继续使用</string>
+    <string name="string_402">去开启</string>
 </resources>

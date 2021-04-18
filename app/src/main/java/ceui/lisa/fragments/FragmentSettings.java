@@ -120,6 +120,26 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             }
         });
 
+        baseBind.r18Space.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
+                intent.putExtra(Params.URL, Params.URL_R18_SETTING);
+                startActivity(intent);
+            }
+        });
+
+        baseBind.premiumSpace.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
+                intent.putExtra(Params.URL, Params.URL_PREMIUM_SETTING);
+                startActivity(intent);
+            }
+        });
+
         baseBind.saveHistory.setChecked(Shaft.sSettings.isSaveViewHistory());
         baseBind.saveHistory.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -563,6 +583,38 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                             }
                         })
                         .show();
+            }
+        });
+
+        baseBind.showRelatedWhenStar.setChecked(Shaft.sSettings.isShowRelatedWhenStar());
+        baseBind.showRelatedWhenStar.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setShowRelatedWhenStar(isChecked);
+                Common.showToast(getString(R.string.please_restart_app));
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.showRelatedWhenStarRela.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                baseBind.showRelatedWhenStar.performClick();
+            }
+        });
+
+        baseBind.globalSwipeBack.setChecked(Shaft.sSettings.isGlobalSwipeBack());
+        baseBind.globalSwipeBack.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                Shaft.sSettings.setGlobalSwipeBack(isChecked);
+                Common.showToast(getString(R.string.please_restart_app));
+                Local.setSettings(Shaft.sSettings);
+            }
+        });
+        baseBind.globalSwipeBackRela.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                baseBind.globalSwipeBack.performClick();
             }
         });
 

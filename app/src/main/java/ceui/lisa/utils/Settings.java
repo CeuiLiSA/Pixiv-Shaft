@@ -80,7 +80,7 @@ public class Settings {
     private boolean deleteStarIllust = false;
 
     //是否自动添加DNS，true开启直连  false自行代理
-    private boolean autoFuckChina = false;
+    private boolean autoFuckChina = true;
 
     private boolean relatedIllustNoLimit = true;
 
@@ -153,6 +153,10 @@ public class Settings {
     private boolean filterComment = false; // 过滤垃圾评论，默认不开启
 
     private int transformerType = 5; // 二级详情转场动画，默认是3D盒子
+
+    private boolean showRelatedWhenStar = true; // 收藏作品时展示关联作品
+
+    private boolean globalSwipeBack = true; // 全局滑动返回
 
     public String getAppLanguage() {
         if(!TextUtils.isEmpty(appLanguage)){
@@ -482,5 +486,21 @@ public class Settings {
 
     public void setTransformerType(int transformerType) {
         this.transformerType = transformerType;
+    }
+
+    public boolean isShowRelatedWhenStar() {
+        return showRelatedWhenStar;
+    }
+
+    public void setShowRelatedWhenStar(boolean showRelatedWhenStar) {
+        this.showRelatedWhenStar = showRelatedWhenStar;
+    }
+
+    public boolean isGlobalSwipeBack() {
+        return globalSwipeBack;
+    }
+
+    public void setGlobalSwipeBack(boolean globalSwipeBack) {
+        this.globalSwipeBack = globalSwipeBack;
     }
 }

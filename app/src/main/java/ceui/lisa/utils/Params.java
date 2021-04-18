@@ -89,6 +89,8 @@ public class Params {
 
     public static final String IMAGE_UNKNOWN = "https://s.pximg.net/common/images/limit_unknown_360.png";
     public static final String HEAD_UNKNOWN  = "https://s.pximg.net/common/images/no_profile.png";
+    public static final String URL_R18_SETTING  = "https://www.pixiv.net/settings.php?mode=age-check";
+    public static final String URL_PREMIUM_SETTING  = "https://www.pixiv.net/premium.php#premium-payment";
 
     public static final String TYPE_PUBLUC = "public";
     public static final String TYPE_PRIVATE = "private";
