@@ -125,6 +125,34 @@
                         <View style="@style/half_divider" />
 
                         <RelativeLayout
+                            android:id="@+id/r18_space"
+                            style="@style/ripple_rela">
+
+                            <TextView
+                                style="@style/setting_text_left"
+                                android:text="@string/string_398" />
+
+                            <TextView style="@style/setting_right_arrow" />
+
+                        </RelativeLayout>
+
+                        <View style="@style/half_divider" />
+
+                        <RelativeLayout
+                            android:id="@+id/premium_space"
+                            style="@style/ripple_rela">
+
+                            <TextView
+                                style="@style/setting_text_left"
+                                android:text="@string/string_399" />
+
+                            <TextView style="@style/setting_right_arrow" />
+
+                        </RelativeLayout>
+
+                        <View style="@style/half_divider" />
+
+                        <RelativeLayout
                             android:id="@+id/login_out"
                             style="@style/ripple_rela">
 
