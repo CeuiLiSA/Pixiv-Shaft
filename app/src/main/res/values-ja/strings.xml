@@ -566,4 +566,7 @@
   <string name="string_397">グローバルスワイプバック</string>
   <string name="string_398">R18 / R18G 設定</string>
   <string name="string_399">プレミアム設定</string>
+  <string name="string_400">アカウントがR18オプションを開いていないことが検出されましたが、開きますか？</string>
+  <string name="string_401">使い続ける</string>
+  <string name="string_402">有効にする</string>
 </resources>

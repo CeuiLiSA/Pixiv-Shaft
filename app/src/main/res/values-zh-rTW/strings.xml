@@ -566,4 +566,7 @@
   <string name="string_397">全局滑動返回</string>
   <string name="string_398">R18 / R18G 設置</string>
   <string name="string_399">高級會員設置</string>
+  <string name="string_400">檢測到賬戶未開啟 R18 選項，是否去開啟？</string>
+  <string name="string_401">繼續使用</string>
+  <string name="string_402">去開啟</string>
 </resources>

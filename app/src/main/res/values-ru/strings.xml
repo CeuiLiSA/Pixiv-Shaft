@@ -566,4 +566,7 @@
   <string name="string_397">Глобальное смахивание назад</string>
   <string name="string_398">Настройки R18 / R18G</string>
   <string name="string_399">Настройки премиум-членства</string>
+  <string name="string_400">Обнаружено, что в аккаунте не открыта опция R18, хотите ли вы ее открыть?</string>
+  <string name="string_401">продолжать использовать</string>
+  <string name="string_402">Перейти к включению</string>
 </resources>

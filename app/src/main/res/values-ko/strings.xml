@@ -566,4 +566,7 @@
   <string name="string_397">뒤로 글로벌 스 와이프</string>
   <string name="string_398">R18 / R18G 설정</string>
   <string name="string_399">프리미엄 멤버십 설정</string>
+  <string name="string_400">계정이 R18 옵션을 열지 않은 것으로 감지되었습니다.여시겠습니까?</string>
+  <string name="string_401">계속 사용</string>
+  <string name="string_402">활성화로 이동</string>
 </resources>

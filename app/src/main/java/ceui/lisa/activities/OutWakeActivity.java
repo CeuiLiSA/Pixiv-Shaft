@@ -4,6 +4,10 @@ import android.content.Intent;
 import android.net.Uri;
 import android.text.TextUtils;
 
+import com.qmuiteam.qmui.skin.QMUISkinManager;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
+
 import java.util.List;
 
 import ceui.lisa.R;
@@ -152,7 +156,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                         if (!TextUtils.isEmpty(host)) {
 
                             if (host.equals("account")) {
-                                Common.showToast("尝试登陆");
+                                Common.showToast("尝试登录");
                                 String code = uri.getQueryParameter("code");
                                 Retro.getAccountApi().newLogin(
                                         FragmentLogin.CLIENT_ID,
@@ -169,6 +173,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                                     public void success(UserModel userModel) {
 
                                         Common.showLog(userModel.toString());
+                                        Common.showToast("登录成功");
 
                                         userModel.getUser().setIs_login(true);
                                         Local.saveUser(userModel);
@@ -178,15 +183,37 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                                         userEntity.setUserID(userModel.getUser().getId());
                                         userEntity.setUserGson(Shaft.sGson.toJson(Local.getUser()));
 
-
                                         AppDatabase.getAppDatabase(mContext).downloadDao().insertUser(userEntity);
-                                        Common.restart();
-                                    }
 
-                                    @Override
-                                    public void must() {
-                                        super.must();
-                                        mActivity.finish();
+                                        // 检测是否打开R18并提示开启
+                                        if (userModel.getUser().isR18Enabled()) {
+                                            mActivity.finish();
+                                            Common.restart();
+                                        } else {
+                                            new QMUIDialog.MessageDialogBuilder(mActivity)
+                                                    .setTitle(R.string.string_216)
+                                                    .setMessage(R.string.string_400)
+                                                    .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                                                    .addAction(R.string.string_401, new QMUIDialogAction.ActionListener() {
+                                                        @Override
+                                                        public void onClick(QMUIDialog dialog, int index) {
+                                                            dialog.dismiss();
+                                                            mActivity.finish();
+                                                            Common.restart();
+                                                        }
+                                                    })
+                                                    .addAction(R.string.string_402, new QMUIDialogAction.ActionListener() {
+                                                        @Override
+                                                        public void onClick(QMUIDialog dialog, int index) {
+                                                            Intent intent = new Intent(mContext, TemplateActivity.class);
+                                                            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
+                                                            intent.putExtra(Params.URL, Params.URL_R18_SETTING);
+                                                            startActivity(intent);
+                                                        }
+                                                    })
+                                                    .create()
+                                                    .show();
+                                        }
                                     }
                                 });
                                 return;
