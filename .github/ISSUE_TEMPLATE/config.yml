@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: FAQ / 常见问题与解答
+    url: https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/FAQ.md
+    about: Please read it before submit any issue. / 提交 issue 前，请先尝试查阅你的问题
