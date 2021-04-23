@@ -117,6 +117,16 @@ public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownload
                         Worker.get().addTask(task);
                     }
                     Worker.get().start();
+                } else if (item.getItemId() == R.id.action_6) {
+                    for (int i = 0; i < allItems.size(); i++) {
+                        allItems.get(i).setChecked(allItems.get(i).isIs_bookmarked());
+                    }
+                    mAdapter.notifyDataSetChanged();
+                } else if (item.getItemId() == R.id.action_7) {
+                    for (int i = 0; i < allItems.size(); i++) {
+                        allItems.get(i).setChecked(!Common.isIllustDownloaded(allItems.get(i)));
+                    }
+                    mAdapter.notifyDataSetChanged();
                 }
                 return false;
             }

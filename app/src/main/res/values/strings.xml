@@ -591,4 +591,6 @@
     <string name="string_400">检测到账户未开启 R18 选项，是否去开启？</string>
     <string name="string_401">继续使用</string>
     <string name="string_402">去开启</string>
+    <string name="string_403">选择已收藏</string>
+    <string name="string_404">选择未下载</string>
 </resources>

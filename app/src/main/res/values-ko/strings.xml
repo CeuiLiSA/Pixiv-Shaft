@@ -569,4 +569,6 @@
   <string name="string_400">계정이 R18 옵션을 열지 않은 것으로 감지되었습니다.여시겠습니까?</string>
   <string name="string_401">계속 사용</string>
   <string name="string_402">활성화로 이동</string>
+  <string name="string_403">즐겨 찾기 선택</string>
+  <string name="string_404">다운로드되지 않음 선택</string>
 </resources>

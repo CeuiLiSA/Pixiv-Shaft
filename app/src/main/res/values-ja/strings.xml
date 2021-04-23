@@ -569,4 +569,6 @@
   <string name="string_400">アカウントがR18オプションを開いていないことが検出されましたが、開きますか？</string>
   <string name="string_401">使い続ける</string>
   <string name="string_402">有効にする</string>
+  <string name="string_403">お気に入りを選択</string>
+  <string name="string_404">ダウンロードしないを選択する</string>
 </resources>

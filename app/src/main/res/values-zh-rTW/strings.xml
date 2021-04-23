@@ -569,4 +569,6 @@
   <string name="string_400">檢測到賬戶未開啟 R18 選項，是否去開啟？</string>
   <string name="string_401">繼續使用</string>
   <string name="string_402">去開啟</string>
+  <string name="string_403">選擇已收藏</string>
+  <string name="string_404">選擇未下載</string>
 </resources>

@@ -569,4 +569,6 @@
   <string name="string_400">Обнаружено, что в аккаунте не открыта опция R18, хотите ли вы ее открыть?</string>
   <string name="string_401">продолжать использовать</string>
   <string name="string_402">Перейти к включению</string>
+  <string name="string_403">Выберите избранное</string>
+  <string name="string_404">Выбрать не загружено</string>
 </resources>

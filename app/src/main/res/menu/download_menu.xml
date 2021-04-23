@@ -14,6 +14,18 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/action_6"
+        android:orderInCategory="100"
+        android:title="@string/string_403"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_7"
+        android:orderInCategory="100"
+        android:title="@string/string_404"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_3"
         android:orderInCategory="100"
         android:title="@string/string_22"

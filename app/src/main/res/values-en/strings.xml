@@ -569,4 +569,6 @@
   <string name="string_400">It is detected that the account has not enabled the R18 option, do you want to open it?</string>
   <string name="string_401">Continue to use</string>
   <string name="string_402">Go to enable</string>
+  <string name="string_403">Choose liked</string>
+  <string name="string_404">Select not downloaded</string>
 </resources>

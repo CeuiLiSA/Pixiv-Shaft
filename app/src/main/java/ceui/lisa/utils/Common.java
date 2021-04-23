@@ -35,6 +35,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.IntStream;
 
 import androidx.core.content.ContextCompat;
 import ceui.lisa.R;
@@ -321,13 +322,21 @@ public class Common {
      * 检查插画是否已经下载过
      * */
     public static boolean isIllustDownloaded(IllustsBean illust) {
-        //只有1P的作品才检查是否下载过
         try {
             if (illust.getPage_count() == 1) {
                 if (Shaft.sSettings.getDownloadWay() == 1) {
                     return SAFile.isFileExists(Shaft.getContext(), illust);
                 } else {
                     return FileCreator.isExist(illust, 0);
+                }
+            } else {
+                IntStream pageIndexStream = IntStream.range(0, illust.getPage_count() - 1);
+                if (Shaft.sSettings.getDownloadWay() == 1) {
+                    return pageIndexStream
+                            .allMatch(index -> SAFile.isFileExists(Shaft.getContext(), illust, index));
+                } else {
+                    return pageIndexStream
+                            .allMatch(index -> FileCreator.isExist(illust, index));
                 }
             }
         } catch (Exception e) {
@@ -347,7 +356,7 @@ public class Common {
                 } else {
                     return FileCreator.isExist(illust, 0);
                 }
-            }else{
+            } else {
                 if (Shaft.sSettings.getDownloadWay() == 1) {
                     return SAFile.isFileExists(Shaft.getContext(), illust, index);
                 } else {
