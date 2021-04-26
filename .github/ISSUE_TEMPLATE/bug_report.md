@@ -23,6 +23,12 @@ I acknowledge that / 我确认以下事项:
 - Android system version: ?
 - Phone model: ?
 
+## Network information (if necessary) / 如果需要（无法看图之类），请提交网络信息
+- Can directly access to pixiv website: ?
+- Use proxy: ?
+- Settings-Direct open enabled: ?
+- Settings-Use pixivcat enabled: ?
+
 ## Steps to reproduce / 复现步骤
 1. First Step
 2. Second Step
