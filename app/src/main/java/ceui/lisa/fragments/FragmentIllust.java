@@ -147,7 +147,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                     Common.copy(mContext, url);
                     return true;
                 } else if (menuItem.getItemId() == R.id.action_show_original) {
-                    baseBind.recyclerView.setAdapter(new IllustAdapter(mContext, illust,
+                    baseBind.recyclerView.setAdapter(new IllustAdapter(mActivity, mContext, illust,
                             recyHeight, true));
                     return true;
                 } else if (menuItem.getItemId() == R.id.action_mute_illust) {
@@ -261,7 +261,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 baseBind.recyclerView.setLayoutManager(new LinearLayoutManager(mContext));
 
                 recyHeight = baseBind.recyclerView.getHeight();
-                IllustAdapter adapter = new IllustAdapter(mContext, illust, recyHeight);
+                IllustAdapter adapter = new IllustAdapter(mActivity, mContext, illust, recyHeight);
                 baseBind.recyclerView.setAdapter(adapter);
                 baseBind.coreLinear.getViewTreeObserver().removeOnGlobalLayoutListener(this);
             }

@@ -158,6 +158,8 @@ public class Settings {
 
     private boolean globalSwipeBack = true; // 全局滑动返回
 
+    private boolean illustLongPressDownload = false; // 插画详情长按下载
+
     public String getAppLanguage() {
         if(!TextUtils.isEmpty(appLanguage)){
             return appLanguage;
@@ -502,5 +504,13 @@ public class Settings {
 
     public void setGlobalSwipeBack(boolean globalSwipeBack) {
         this.globalSwipeBack = globalSwipeBack;
+    }
+
+    public boolean isIllustLongPressDownload() {
+        return illustLongPressDownload;
+    }
+
+    public void setIllustLongPressDownload(boolean illustLongPressDownload) {
+        this.illustLongPressDownload = illustLongPressDownload;
     }
 }

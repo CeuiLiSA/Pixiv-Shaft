@@ -10,6 +10,7 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.databinding.DataBindingUtil;
+import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -20,6 +21,7 @@ import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.RecyIllustDetailBinding;
 import ceui.lisa.download.IllustDownload;
@@ -38,13 +40,16 @@ import me.jessyan.progressmanager.body.ProgressInfo;
 public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDetailBinding>> {
 
     private int maxHeight;
+    private FragmentActivity mActivity;
+    private static boolean longPressDownload = Shaft.sSettings.isIllustLongPressDownload();
 
-    public IllustAdapter(Context context, IllustsBean illustsBean, int maxHeight) {
-        this(context, illustsBean, maxHeight, false);
+    public IllustAdapter(FragmentActivity activity, Context context, IllustsBean illustsBean, int maxHeight) {
+        this(activity, context, illustsBean, maxHeight, false);
     }
 
-    public IllustAdapter(Context context, IllustsBean illustsBean, int maxHeight, boolean isForceOriginal) {
+    public IllustAdapter(FragmentActivity activity, Context context, IllustsBean illustsBean, int maxHeight, boolean isForceOriginal) {
         Common.showLog("IllustAdapter maxHeight " + maxHeight);
+        mActivity = activity;
         mContext = context;
         allIllust = illustsBean;
         this.maxHeight = maxHeight;
@@ -63,6 +68,13 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
     @Override
     public void onBindViewHolder(@NonNull ViewHolder<RecyIllustDetailBinding> holder, int position) {
         super.onBindViewHolder(holder, position);
+        if(longPressDownload && mActivity instanceof BaseActivity<?>){
+            holder.itemView.setOnLongClickListener(v -> {
+                IllustDownload.downloadIllust(allIllust, position, (BaseActivity<?>) mActivity);
+                return true;
+            });
+        }
+
         if (position == 0) {
             if (allIllust.getPage_count() == 1) {
                 //获取屏幕imageview的宽高比率

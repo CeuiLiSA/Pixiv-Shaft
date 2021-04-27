@@ -622,6 +622,22 @@
                         <View style="@style/half_divider" />
 
                         <RelativeLayout
+                            android:id="@+id/illust_long_press_download_rela"
+                            style="@style/ripple_rela">
+
+                            <TextView
+                                style="@style/setting_text_left"
+                                android:text="@string/string_405" />
+
+                            <androidx.appcompat.widget.SwitchCompat
+                                android:id="@+id/illust_long_press_download"
+                                style="@style/setting_right_switch"/>
+
+                        </RelativeLayout>
+
+                        <View style="@style/half_divider" />
+
+                        <RelativeLayout
                             android:id="@+id/download_way_rela"
                             style="@style/ripple_rela">
 
