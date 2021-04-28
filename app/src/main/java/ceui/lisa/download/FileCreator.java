@@ -32,7 +32,7 @@ public class FileCreator {
     public static String deleteSpecialWords(String before) {
         if (!TextUtils.isEmpty(before)) {
             if(before.startsWith(".")){
-                before = before.replaceFirst("\\.","·");
+                before = before.replaceFirst("\\.","\u2024");
             }
             String temp1 = before.replace("-", DASH);
             String temp2 = temp1.replace("/", DASH);
