@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.file.FileName;
 import ceui.lisa.model.CustomFileNameCell;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
@@ -22,8 +23,9 @@ public class FileCreator {
     private static final String DASH = "_";
 
     public static boolean isExist(IllustsBean illust, int index) {
-        File file = new File(FILE_PATH_SINGLE, customFileName(illust, index));
-        File fileR18 = new File(FILE_PATH_SINGLE_R18, customFileName(illust, index));
+        String fileName = illust.isGif() ? new FileName().gifName(illust) : customFileName(illust, index);
+        File file = new File(FILE_PATH_SINGLE, fileName);
+        File fileR18 = new File(FILE_PATH_SINGLE_R18, fileName);
         return file.exists() || fileR18.exists();
     }
 
