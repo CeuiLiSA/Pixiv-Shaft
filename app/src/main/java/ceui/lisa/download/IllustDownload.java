@@ -22,6 +22,7 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.cache.Cache;
 import ceui.lisa.core.DownloadItem;
 import ceui.lisa.core.Manager;
 import ceui.lisa.feature.HostManager;
@@ -29,11 +30,14 @@ import ceui.lisa.file.LegacyFile;
 import ceui.lisa.file.OutPut;
 import ceui.lisa.file.SAFile;
 import ceui.lisa.helper.SAFactory;
+import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.interfaces.FeedBack;
 import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Params;
+import ceui.lisa.utils.PixivOperate;
 
 import static android.provider.DocumentsContract.EXTRA_INITIAL_URI;
 
@@ -114,26 +118,32 @@ public class IllustDownload {
     public static void downloadAllIllust(List<IllustsBean> beans, BaseActivity<?> activity) {
         check(activity, () -> {
             List<DownloadItem> tempList = new ArrayList<>();
+            int taskCount = 0;
             for (int i = 0; i < beans.size(); i++) {
                 if (beans.get(i).isChecked()) {
                     final IllustsBean illust = beans.get(i);
 
-                    if (illust.getPage_count() == 1) {
+                    if(illust.isGif()){
+                        downloadGif(illust, activity);
+                        taskCount++;
+                    } else if (illust.getPage_count() == 1) {
                         DownloadItem item = new DownloadItem(illust, 0);
                         item.setUrl(getUrl(illust, 0));
                         item.setShowUrl(getShowUrl(illust, 0));
                         tempList.add(item);
+                        taskCount++;
                     } else {
                         for (int j = 0; j < illust.getPage_count(); j++) {
                             DownloadItem item = new DownloadItem(illust, j);
                             item.setUrl(getUrl(illust, j));
                             item.setShowUrl(getShowUrl(illust, j));
                             tempList.add(item);
+                            taskCount++;
                         }
                     }
                 }
             }
-            Common.showToast(tempList.size() + "个任务已经加入下载队列");
+            Common.showToast(taskCount + "个任务已经加入下载队列");
             Manager.get().addTasks(tempList, activity);
         });
     }
@@ -143,6 +153,20 @@ public class IllustDownload {
         item.setUrl(HostManager.get().replaceUrl(response.getUgoira_metadata().getZip_urls().getMedium()));
         item.setShowUrl(HostManager.get().replaceUrl(illust.getImage_urls().getMedium()));
         Manager.get().addTask(item, activity);
+    }
+
+    public static void downloadGif(IllustsBean illustsBean, BaseActivity<?> activity){
+        if(!illustsBean.isGif()){
+            return;
+        }
+        PixivOperate.getGifInfo(illustsBean, new ErrorCtrl<GifResponse>() {
+            @Override
+            public void next(GifResponse gifResponse) {
+                Cache.get().saveModel(Params.ILLUST_ID + "_" + illustsBean.getId(), gifResponse);
+//                Common.showToast("下载GIF文件");
+                downloadGif(gifResponse, illustsBean, (BaseActivity<?>) activity);
+            }
+        });
     }
 
     public static void downloadNovel(BaseActivity<?> activity, String displayName, String content, Callback<Uri> targetCallback) {
