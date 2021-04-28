@@ -31,6 +31,9 @@ public class FileCreator {
 
     public static String deleteSpecialWords(String before) {
         if (!TextUtils.isEmpty(before)) {
+            if(before.startsWith(".")){
+                before = before.replaceFirst("\\.","·");
+            }
             String temp1 = before.replace("-", DASH);
             String temp2 = temp1.replace("/", DASH);
             String temp3 = temp2.replace(",", DASH);
