@@ -62,9 +62,6 @@ import ceui.lisa.models.TagsBean;
 import ceui.lisa.models.UserBean;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.models.IllustsBean;
-import io.reactivex.Observable;
-import io.reactivex.ObservableEmitter;
-import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
@@ -76,6 +73,10 @@ import static com.blankj.utilcode.util.StringUtils.getString;
 
 
 public class PixivOperate {
+
+    private static Map<Integer,Back> sBack =  new HashMap<Integer,Back>();
+    private static Map<Integer, Long> gifEncodingWorkSet = new HashMap<Integer, Long>();
+    private static final long reEncodeTimeThresholdMillis = 60 * 1000;
 
     public static void refreshUserData(UserModel userModel, Callback<UserModel> callback) {
         Call<UserModel> call = Retro.getAccountApi().newRefreshToken(
@@ -622,6 +623,12 @@ public class PixivOperate {
         RxRun.runOn(new RxRunnable<Void>() {
             @Override
             public Void execute() throws Exception {
+                long currentTimeMillis = System.currentTimeMillis();
+                if(gifEncodingWorkSet.containsKey(illustsBean.getId())
+                        && (currentTimeMillis - gifEncodingWorkSet.get(illustsBean.getId())) < reEncodeTimeThresholdMillis){
+                    return null;
+                }
+                gifEncodingWorkSet.put(illustsBean.getId(), currentTimeMillis);
                 Common.showLog("encodeGif 开始生成gif图");
                 final File[] listfile = parentFile.listFiles();
 
@@ -655,13 +662,13 @@ public class PixivOperate {
                     if (frameCount == framesBeans.size()) {
                         Common.showLog("使用返回的delay 00");
 
-                        Back back = sBack.get(illustsBean.getId());
                         for (int i = 0; i < frameCount; i++) {
                             Bitmap bitmap = BitmapFactory.decodeFile(allFiles.get(i).getPath());
                             Common.showLog("编码中 00 " + frameCount + " " + (i + 1));
                             animatedGifEncoder.setDelay(framesBeans.get(i).getDelay());
                             animatedGifEncoder.addFrame(bitmap);
 
+                            Back back = sBack.get(illustsBean.getId());
                             if (back != null) {
                                 float proc = i / (float) (frameCount - 1);
                                 back.invoke(proc);
@@ -697,6 +704,7 @@ public class PixivOperate {
                 outStream.close();
 
                 Common.showLog("gifFile gifFile " + FileUtils.getSize(gifFile));
+                gifEncodingWorkSet.remove(illustsBean.getId());
 
                 Intent intent = new Intent(Params.PLAY_GIF);
                 intent.putExtra(Params.ID, illustsBean.getId());
@@ -719,8 +727,6 @@ public class PixivOperate {
             e.printStackTrace();
         }
     }
-
-    private static Map<Integer,Back> sBack =  new HashMap<Integer,Back>();
 
     public static void setBack(int illustId, Back back) {
         sBack.put(illustId, back);
