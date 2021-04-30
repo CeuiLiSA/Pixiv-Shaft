@@ -36,7 +36,6 @@ import ceui.lisa.activities.SearchActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UserActivity;
-import ceui.lisa.adapters.IllustAdapter;
 import ceui.lisa.cache.Cache;
 import ceui.lisa.core.Manager;
 import ceui.lisa.databinding.FragmentUgoraBinding;

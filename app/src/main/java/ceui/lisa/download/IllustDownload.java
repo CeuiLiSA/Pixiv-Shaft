@@ -149,7 +149,12 @@ public class IllustDownload {
     }
 
     public static void downloadGif(GifResponse response, IllustsBean illust, BaseActivity<?> activity) {
+        downloadGif(response, illust, false, activity);
+    }
+
+    public static void downloadGif(GifResponse response, IllustsBean illust, boolean autoSave, BaseActivity<?> activity) {
         DownloadItem item = new DownloadItem(illust, 0);
+        item.setAutoSave(autoSave);
         item.setUrl(HostManager.get().replaceUrl(response.getUgoira_metadata().getZip_urls().getMedium()));
         item.setShowUrl(HostManager.get().replaceUrl(illust.getImage_urls().getMedium()));
         Manager.get().addTask(item, activity);
@@ -163,8 +168,7 @@ public class IllustDownload {
             @Override
             public void next(GifResponse gifResponse) {
                 Cache.get().saveModel(Params.ILLUST_ID + "_" + illustsBean.getId(), gifResponse);
-//                Common.showToast("下载GIF文件");
-                downloadGif(gifResponse, illustsBean, (BaseActivity<?>) activity);
+                downloadGif(gifResponse, illustsBean, true, (BaseActivity<?>) activity);
             }
         });
     }

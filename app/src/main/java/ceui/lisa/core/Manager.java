@@ -203,7 +203,7 @@ public class Manager {
 
                     if(bean.getIllust().isGif()){
                         Shaft.getMMKV().encode(Params.ILLUST_ID + "_" + bean.getIllust().getId(), true);
-                        PixivOperate.unzipAndePlay(context, bean.getIllust());
+                        PixivOperate.unzipAndePlay(context, bean.getIllust(), bean.isAutoSave());
                     }
 
                     //通知 DOWNLOAD_ING 下载完成

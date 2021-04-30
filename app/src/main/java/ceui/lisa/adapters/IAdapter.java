@@ -171,6 +171,8 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
 
     private void handleLongClick(View v, IllustsBean illust) {
         View popView = View.inflate(mContext, R.layout.pop_window_2, null);
+        popView.findViewById(R.id.download_this_one).setVisibility(illust.isGif() ? View.GONE : View.VISIBLE);
+
         QMUIPopup mNormalPopup = QMUIPopups.popup(mContext)
                 .preferredDirection(QMUIPopup.DIRECTION_BOTTOM)
                 .view(popView)

@@ -45,6 +45,7 @@ import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.database.MuteEntity;
 import ceui.lisa.database.SearchEntity;
 import ceui.lisa.file.LegacyFile;
+import ceui.lisa.file.OutPut;
 import ceui.lisa.fragments.FragmentLogin;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.NullCtrl;
@@ -619,7 +620,7 @@ public class PixivOperate {
         }, new TryCatchObserverImpl<>());
     }
 
-    public static void encodeGifV2(Context context, File parentFile, IllustsBean illustsBean){
+    public static void encodeGifV2(Context context, File parentFile, IllustsBean illustsBean, boolean autoSave){
         RxRun.runOn(new RxRunnable<Void>() {
             @Override
             public Void execute() throws Exception {
@@ -703,6 +704,10 @@ public class PixivOperate {
                 outStream.write(bos.toByteArray());
                 outStream.close();
 
+                if(autoSave){
+                    OutPut.outPutGif(context, gifFile,illustsBean);
+                }
+
                 Common.showLog("gifFile gifFile " + FileUtils.getSize(gifFile));
                 gifEncodingWorkSet.remove(illustsBean.getId());
 
@@ -715,6 +720,10 @@ public class PixivOperate {
     }
 
     public static void unzipAndePlay(Context context, IllustsBean illustsBean) {
+        unzipAndePlay(context, illustsBean, false);
+    }
+
+    public static void unzipAndePlay(Context context, IllustsBean illustsBean, boolean autoSave) {
         try {
             LegacyFile legacyFile = new LegacyFile();
             File fromZip = legacyFile.gifZipFile(context, illustsBean);
@@ -722,7 +731,7 @@ public class PixivOperate {
             justUnzipFile(fromZip, toFolder);
             // encodeGif(context, toFolder, illustsBean);
             // 速度快一点，效果待观察
-            encodeGifV2(context, toFolder, illustsBean);
+            encodeGifV2(context, toFolder, illustsBean, autoSave);
         } catch (Exception e) {
             e.printStackTrace();
         }
