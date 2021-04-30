@@ -7,7 +7,6 @@ import android.os.Environment
 import android.provider.MediaStore
 import ceui.lisa.activities.Shaft
 import ceui.lisa.core.DownloadItem
-import ceui.lisa.download.ImageSaver
 import ceui.lisa.file.LegacyFile
 import ceui.lisa.utils.Common
 import com.blankj.utilcode.util.FileUtils
@@ -87,11 +86,11 @@ class Android10DownloadFactory22 constructor(
                     imageFile.createNewFile()
                 }
 
-                object : ImageSaver() {
-                    override fun whichFile(): File {
-                        return imageFile
-                    }
-                }.execute(context)
+//                object : ImageSaver() {
+//                    override fun whichFile(): File {
+//                        return imageFile
+//                    }
+//                }.execute(context)
 
                 fileUri = Uri.fromFile(imageFile)
                 return fileUri

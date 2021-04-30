@@ -6,6 +6,7 @@ import android.net.Uri;
 import androidx.documentfile.provider.DocumentFile;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 
@@ -22,6 +23,12 @@ public class SAFactory extends UriFactory {
     public SAFactory(@NotNull Context context, DownloadItem item) {
         super(context);
         this.mItem = item;
+    }
+
+    @Nullable
+    @Override
+    public Uri query() {
+        return mUri;
     }
 
     @NotNull
