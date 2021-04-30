@@ -136,11 +136,13 @@
 
                         </RelativeLayout>
 
-                        <View style="@style/half_divider" />
+                        <View style="@style/half_divider"
+                            android:visibility="gone" />
 
                         <RelativeLayout
                             android:id="@+id/premium_space"
-                            style="@style/ripple_rela">
+                            style="@style/ripple_rela"
+                            android:visibility="gone">
 
                             <TextView
                                 style="@style/setting_text_left"
