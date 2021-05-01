@@ -573,4 +573,5 @@
   <string name="string_404">Select not downloaded</string>
   <string name="string_405">Illust detail page long press to download</string>
   <string name="string_406">Illust sub detail show navbar</string>
+  <string name="string_407">Save to a separate folder by author</string>
 </resources>

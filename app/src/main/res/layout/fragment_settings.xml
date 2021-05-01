@@ -639,6 +639,22 @@
                         <View style="@style/half_divider" />
 
                         <RelativeLayout
+                            android:id="@+id/save_for_separate_author_rela"
+                            style="@style/ripple_rela">
+
+                            <TextView
+                                style="@style/setting_text_left"
+                                android:text="按作者保存到单独文件夹" />
+
+                            <androidx.appcompat.widget.SwitchCompat
+                                android:id="@+id/save_for_separate_author"
+                                style="@style/setting_right_switch"/>
+
+                        </RelativeLayout>
+
+                        <View style="@style/half_divider" />
+
+                        <RelativeLayout
                             android:id="@+id/illust_long_press_download_rela"
                             style="@style/ripple_rela">
 

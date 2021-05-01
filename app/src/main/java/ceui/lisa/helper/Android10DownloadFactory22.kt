@@ -77,7 +77,7 @@ class Android10DownloadFactory22 constructor(
                 // 低于 android 10， 使用 File 操作
                 val parentFile: File = File(getRelativePath())
                 if (!parentFile.exists()) {
-                    parentFile.mkdir()
+                    parentFile.mkdirs()
                 }
                 val imageFile = File(parentFile, item.name)
                 if (imageFile.exists() && imageFile.length() > 0) {
@@ -107,11 +107,11 @@ class Android10DownloadFactory22 constructor(
     }
 
     private fun getRelativePath(): String {
-        return PathUtils.getExternalPicturesPath() + File.separator + getShaftDir()
+        return PathUtils.getExternalPicturesPath() + File.separator + getShaftDir() + getAuthorPath()
     }
 
     private fun getRelativePathQ(): String {
-        return Environment.DIRECTORY_PICTURES + File.separator + getShaftDir()
+        return Environment.DIRECTORY_PICTURES + File.separator + getShaftDir() + getAuthorPath()
     }
 
     private fun getShaftDir(): String {
@@ -119,4 +119,8 @@ class Android10DownloadFactory22 constructor(
     }
 
     private fun isSaveToR18Dir() = item.illust.isR18File && Shaft.sSettings.isR18DivideSave
+
+    private fun getAuthorPath(): String {
+        return if (Shaft.sSettings.isSaveForSeparateAuthor) File.separator + item.illust.user.id else ""
+    }
 }

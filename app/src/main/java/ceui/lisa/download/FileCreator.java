@@ -24,8 +24,8 @@ public class FileCreator {
 
     public static boolean isExist(IllustsBean illust, int index) {
         String fileName = illust.isGif() ? new FileName().gifName(illust) : customFileName(illust, index);
-        File file = new File(FILE_PATH_SINGLE, fileName);
-        File fileR18 = new File(FILE_PATH_SINGLE_R18, fileName);
+        File file = new File(getPath(illust, false), fileName);
+        File fileR18 = new File(getPath(illust, true), fileName);
         return file.exists() || fileR18.exists();
     }
 
@@ -167,5 +167,9 @@ public class FileCreator {
         cells.add(new CustomFileNameCell("画师昵称", "画师昵称，可选项", 5, false));
         cells.add(new CustomFileNameCell("作品尺寸", "显示当前图片的尺寸信息，可选项", 6, false));
         return cells;
+    }
+
+    private static String getPath(IllustsBean illust, boolean isR18){
+        return isR18 ? FILE_PATH_SINGLE_R18 : FILE_PATH_SINGLE + (Shaft.sSettings.isSaveForSeparateAuthor() ? File.separator + illust.getUser().getId() : "");
     }
 }

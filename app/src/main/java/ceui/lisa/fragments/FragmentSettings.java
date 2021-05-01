@@ -557,6 +557,22 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 }
             });
 
+            baseBind.saveForSeparateAuthor.setChecked(Shaft.sSettings.isSaveForSeparateAuthor());
+            baseBind.saveForSeparateAuthor.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    Shaft.sSettings.setSaveForSeparateAuthor(isChecked);
+                    Common.showToast("设置成功", 2);
+                    Local.setSettings(Shaft.sSettings);
+                }
+            });
+            baseBind.saveForSeparateAuthorRela.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    baseBind.saveForSeparateAuthor.performClick();
+                }
+            });
+
             baseBind.illustLongPressDownload.setChecked(Shaft.sSettings.isIllustLongPressDownload());
             baseBind.illustLongPressDownload.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override

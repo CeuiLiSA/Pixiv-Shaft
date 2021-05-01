@@ -595,4 +595,5 @@
     <string name="string_404">选择未下载</string>
     <string name="string_405">插画详情长按下载</string>
     <string name="string_406">插画二级详情显示导航栏</string>
+    <string name="string_407">按作者保存到单独文件夹</string>
 </resources>

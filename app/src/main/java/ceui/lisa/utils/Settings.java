@@ -162,6 +162,8 @@ public class Settings {
 
     private boolean illustDetailShowNavbar = true; // 插画二级详情显示导航栏
 
+    private boolean saveForSeparateAuthor = false; // 不同作者单独保存
+
     public String getAppLanguage() {
         if(!TextUtils.isEmpty(appLanguage)){
             return appLanguage;
@@ -522,5 +524,13 @@ public class Settings {
 
     public void setIllustDetailShowNavbar(boolean illustDetailShowNavbar) {
         this.illustDetailShowNavbar = illustDetailShowNavbar;
+    }
+
+    public boolean isSaveForSeparateAuthor() {
+        return saveForSeparateAuthor;
+    }
+
+    public void setSaveForSeparateAuthor(boolean saveForSeparateAuthor) {
+        this.saveForSeparateAuthor = saveForSeparateAuthor;
     }
 }

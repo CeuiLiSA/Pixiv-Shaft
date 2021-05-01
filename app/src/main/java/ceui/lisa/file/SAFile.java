@@ -19,7 +19,13 @@ public class SAFile {
         String displayName = FileCreator.customFileName(illust, index);
         String id = DocumentsContract.getTreeDocumentId(root.getUri());
         String subDirectoryName = getShaftDir(illust);
-        id = id + "/" + subDirectoryName + "/" + displayName;
+        String authorDirectoryName = String.valueOf(illust.getUser().getId());
+        id += "/" + subDirectoryName;
+        boolean saveForSeparateAuthor = Shaft.sSettings.isSaveForSeparateAuthor();
+        if(saveForSeparateAuthor){
+            id += "/" + authorDirectoryName;
+        }
+        id += "/" + displayName;
         Uri childrenUri = DocumentsContract.buildDocumentUriUsingTree(root.getUri(), id);
         DocumentFile realFile = DocumentFile.fromSingleUri(context, childrenUri);
         if (realFile != null && realFile.exists()) {
@@ -30,11 +36,21 @@ public class SAFile {
             }
         }
 
+        DocumentFile finalDirectory;
         DocumentFile subDirectory = root.findFile(subDirectoryName);
         if(subDirectory == null){
             subDirectory = root.createDirectory(subDirectoryName);
         }
-        return subDirectory.createFile(getMimeTypeFromIllust(illust, index), displayName);
+        finalDirectory = subDirectory;
+
+        if(saveForSeparateAuthor){
+            DocumentFile authorDirectory = subDirectory.findFile(authorDirectoryName);
+            if(authorDirectory == null){
+                authorDirectory = subDirectory.createDirectory(authorDirectoryName);
+            }
+            finalDirectory = authorDirectory;
+        }
+        return finalDirectory.createFile(getMimeTypeFromIllust(illust, index), displayName);
     }
 
     public static DocumentFile rootFolder(Context context) {
@@ -57,7 +73,7 @@ public class SAFile {
         if (root != null) {
             String id = DocumentsContract.getTreeDocumentId(root.getUri());
             String displayName = FileCreator.customFileName(illust, index);
-            id = id + "/" + getShaftDir(illust) + "/" + displayName;
+            id = id + "/" + getShaftDir(illust) + (Shaft.sSettings.isSaveForSeparateAuthor() ? "/" + illust.getUser().getId() : "") + "/" + displayName;
             Uri childrenUri = DocumentsContract.buildDocumentUriUsingTree(root.getUri(), id);
             DocumentFile realFile = DocumentFile.fromSingleUri(context, childrenUri);
             return realFile != null && realFile.exists();
