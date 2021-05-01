@@ -160,6 +160,8 @@ public class Settings {
 
     private boolean illustLongPressDownload = false; // 插画详情长按下载
 
+    private boolean illustDetailShowNavbar = true; // 插画二级详情显示导航栏
+
     public String getAppLanguage() {
         if(!TextUtils.isEmpty(appLanguage)){
             return appLanguage;
@@ -512,5 +514,13 @@ public class Settings {
 
     public void setIllustLongPressDownload(boolean illustLongPressDownload) {
         this.illustLongPressDownload = illustLongPressDownload;
+    }
+
+    public boolean isIllustDetailShowNavbar() {
+        return illustDetailShowNavbar;
+    }
+
+    public void setIllustDetailShowNavbar(boolean illustDetailShowNavbar) {
+        this.illustDetailShowNavbar = illustDetailShowNavbar;
     }
 }

@@ -353,6 +353,22 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 }
             });
 
+            baseBind.illustDetailShowNavbar.setChecked(Shaft.sSettings.isIllustDetailShowNavbar());
+            baseBind.illustDetailShowNavbar.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    Shaft.sSettings.setIllustDetailShowNavbar(isChecked);
+                    Common.showToast("设置成功", 2);
+                    Local.setSettings(Shaft.sSettings);
+                }
+            });
+            baseBind.illustDetailShowNavbarRela.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    baseBind.illustDetailShowNavbar.performClick();
+                }
+            });
+
             // 主题模式
             baseBind.themeMode.setText(Shaft.sSettings.getThemeType().toDisplayString(mContext));
             baseBind.themeModeRela.setOnClickListener(new View.OnClickListener() {

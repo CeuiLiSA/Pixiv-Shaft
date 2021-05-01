@@ -74,8 +74,6 @@ public class FragmentImageDetail extends BaseFragment<FragmentImageDetailBinding
 
     @Override
     protected void initView() {
-        BarUtils.setNavBarVisibility(mActivity, false);
-
         baseBind.realIllustImage.setOnBitmapLoadListener(new OnBitmapLoadListener() {
             @Override
             public void onBitmapLoadReady() {
