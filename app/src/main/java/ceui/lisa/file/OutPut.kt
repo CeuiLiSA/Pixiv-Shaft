@@ -2,9 +2,8 @@ package ceui.lisa.file
 
 import android.content.ContentValues
 import android.content.Context
-import android.os.Environment
 import android.provider.MediaStore
-import ceui.lisa.activities.Shaft
+import ceui.lisa.helper.FileStorageHelper
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Settings
@@ -18,12 +17,10 @@ import java.io.OutputStream
 
 object OutPut {
 
-    private val relativePath: String = Environment.DIRECTORY_PICTURES + "/ShaftImages"
-    private val relativeNovelPath: String = Environment.DIRECTORY_DOWNLOADS + "/ShaftNovels"
-
     @JvmStatic
     fun outPutGif(context: Context, from: File, illust: IllustsBean) {
         if (Common.isAndroidQ()) {
+            val relativePath = FileStorageHelper.getIllustRelativePathQ(illust)
             var uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI.query(context, from.name, relativePath)
             if (uri != null) {
                 val outputStream: OutputStream = context.contentResolver.openOutputStream(uri, "rwt")!!
@@ -61,14 +58,9 @@ object OutPut {
                 e.printStackTrace()
             }
         } else {
-            val parentFile: File
-            if (illust.isR18File && Shaft.sSettings.isR18DivideSave) {
-                parentFile = File(Settings.FILE_PATH_SINGLE_R18)
-            } else {
-                parentFile = File(Settings.FILE_PATH_SINGLE)
-            }
+            val parentFile = File(FileStorageHelper.getIllustAbsolutePath(illust))
             if (!parentFile.exists()) {
-                parentFile.mkdir()
+                parentFile.mkdirs()
             }
 
             val gifResult = File(parentFile, from.name)
@@ -80,7 +72,8 @@ object OutPut {
     @JvmStatic
     fun outPutNovel(context: Context, from: File, fileName: String) {
         if (Common.isAndroidQ()) {
-            var uri = MediaStore.Downloads.EXTERNAL_CONTENT_URI.query(context, fileName, relativeNovelPath)
+            val relativePath = FileStorageHelper.getNovelRelativePathQ()
+            var uri = MediaStore.Downloads.EXTERNAL_CONTENT_URI.query(context, fileName, relativePath)
             if (uri != null) {
                 val outputStream: OutputStream = context.contentResolver.openOutputStream(uri, "rwt")!!
                 outputStream.write(ByteArray(0))
@@ -88,7 +81,7 @@ object OutPut {
                 outputStream.close()
             } else {
                 uri = ContentValues().run {
-                    put(MediaStore.MediaColumns.RELATIVE_PATH, relativeNovelPath) // 下载到指定目录
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath) // 下载到指定目录
                     put(MediaStore.MediaColumns.DISPLAY_NAME, fileName) // 文件名
                     // 取contentType响应头作为文件类型
                     put(MediaStore.MediaColumns.MIME_TYPE, "text/plain")
@@ -119,7 +112,7 @@ object OutPut {
         } else {
             val parentFile = File(Settings.FILE_PATH_NOVEL)
             if (!parentFile.exists()) {
-                parentFile.mkdir()
+                parentFile.mkdirs()
             }
             val gifResult = File(parentFile, fileName)
             FileUtils.copy(from, gifResult)
