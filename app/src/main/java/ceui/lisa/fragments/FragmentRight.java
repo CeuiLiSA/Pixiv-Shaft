@@ -89,15 +89,12 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
             startActivity(intent);
         });
         baseBind.glareLayout.setListener(new OnCheckChangeListener() {
+            final String[] types = {Params.TYPE_ALL, Params.TYPE_PUBLUC, Params.TYPE_PRIVATE};
             @Override
             public void onSelect(int index, View view) {
                 Common.showLog("glareLayout onSelect " + index);
-                if (index == 0) {
-                    restrict = Params.TYPE_ALL;
-                } else if (index == 1) {
-                    restrict = Params.TYPE_PUBLUC;
-                } else if (index == 2) {
-                    restrict = Params.TYPE_PRIVATE;
+                if (index < types.length) {
+                    restrict = types[index];
                 }
                 ((RightRepo) mRemoteRepo).setRestrict(restrict);
                 forceRefresh();
@@ -139,7 +136,7 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
         return false;
     }
 
-    private String restrict = Params.TYPE_PUBLUC;
+    private String restrict = Params.TYPE_ALL;
 
     @Override
     public void showDataBase() {
