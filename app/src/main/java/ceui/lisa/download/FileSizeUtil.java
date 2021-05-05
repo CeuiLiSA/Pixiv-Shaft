@@ -108,7 +108,7 @@ public class FileSizeUtil {
         DecimalFormat df = new DecimalFormat("#.00");
         String fileSizeString = "";
         String wrongSize = "0B";
-        if (fileS == 0) {
+        if (fileS <= 0) {
             return wrongSize;
         }
         if (fileS < 1024) {
