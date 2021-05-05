@@ -60,7 +60,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                 if (!TextUtils.isEmpty(scheme)) {
 
                     if (uri.getPath() != null) {
-                        if (uri.getPath().contains("artworks")) {
+                        if (uri.getPathSegments().contains("artworks") || uri.getPathSegments().contains("i")) {
                             if (isNetWorking) {
                                 return;
                             }
@@ -79,7 +79,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                             }
                         }
 
-                        if (uri.getPath().contains("users")) {
+                        if (uri.getPathSegments().contains("users")) {
                             List<String> pathArray = uri.getPathSegments();
                             String userID = pathArray.get(pathArray.size() - 1);
                             if (!TextUtils.isEmpty(userID)) {
