@@ -105,6 +105,7 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                                             public void success(ListIllust listIllust) {
                                                 Common.showLog("Container 下一页请求成功 ");
                                                 Intent intent = new Intent(Params.FRAGMENT_ADD_DATA);
+                                                intent.putExtra(Params.PAGE_UUID, pageUUID);
                                                 intent.putExtra(Params.CONTENT, listIllust);
                                                 LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
 
