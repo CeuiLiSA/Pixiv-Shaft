@@ -9,6 +9,8 @@ import java.io.File;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.core.DownloadItem;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.models.UserBean;
+import ceui.lisa.utils.Common;
 
 public class FileStorageHelper {
 
@@ -53,11 +55,15 @@ public class FileStorageHelper {
     }
 
     private static String getAuthorPathPart(IllustsBean illustsBean) {
-        String name = getAuthorDirectoryName(illustsBean);
+        String name = getAuthorDirectoryName(illustsBean.getUser());
         return name.length() > 0 ? File.separator + name : name;
     }
 
-    public static String getAuthorDirectoryName(IllustsBean illustsBean){
-        return Shaft.sSettings.isSaveForSeparateAuthor() ? String.valueOf(illustsBean.getUser().getId()) : "";
+    public static String getAuthorDirectoryName(UserBean userBean){
+        return Shaft.sSettings.isSaveForSeparateAuthor() ? getCleanAuthorDirectoryName(userBean) : "";
+    }
+
+    private static String getCleanAuthorDirectoryName(UserBean userBean){
+        return Common.removeFSReservedChars(userBean.getName() + "_" + userBean.getId());
     }
 }

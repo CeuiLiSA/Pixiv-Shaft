@@ -19,7 +19,7 @@ public class SAFile {
         String displayName = FileCreator.customFileName(illust, index);
         String id = DocumentsContract.getTreeDocumentId(root.getUri());
         String subDirectoryName = FileStorageHelper.getShaftIllustDir(illust);
-        String authorDirectoryName = FileStorageHelper.getAuthorDirectoryName(illust);
+        String authorDirectoryName = FileStorageHelper.getAuthorDirectoryName(illust.getUser());
         id += "/" + subDirectoryName;
         boolean saveForSeparateAuthor = authorDirectoryName.length() > 0;
         if(saveForSeparateAuthor){
