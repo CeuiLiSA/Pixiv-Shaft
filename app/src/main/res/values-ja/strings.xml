@@ -574,4 +574,5 @@
   <string name="string_405">イラストの詳細を長押ししてダウンロード</string>
   <string name="string_406">イラスト二次詳細表示ナビゲーションバー</string>
   <string name="string_407">著者ごとに別のフォルダーに保存</string>
+  <string name="string_408">URL形式が正しくありません</string>
 </resources>

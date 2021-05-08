@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.URLUtil;
 import android.widget.TextView;
 
 import androidx.databinding.DataBindingUtil;
@@ -232,7 +233,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                 Common.showToast(getString(R.string.string_154));
             }
         } else if (searchType == 5) {
-            if (!TextUtils.isEmpty(trimmedKeyword)) {
+            if (!TextUtils.isEmpty(trimmedKeyword) && URLUtil.isValidUrl(trimmedKeyword)) {
                 try {
                     Intent intent = new Intent(mContext, OutWakeActivity.class);
                     intent.setData(Uri.parse(trimmedKeyword));
@@ -241,6 +242,8 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                     Common.showToast(e.toString());
                     e.printStackTrace();
                 }
+            } else {
+                Common.showToast(getString(R.string.string_408));
             }
         }
     }
