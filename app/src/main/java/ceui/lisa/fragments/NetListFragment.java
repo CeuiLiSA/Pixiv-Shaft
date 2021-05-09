@@ -55,11 +55,14 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
     protected RemoteRepo<Response> mRemoteRepo;
     protected Response mResponse;
     protected BroadcastReceiver mReceiver = null, dataReceiver = null, scrollReceiver = null;
+    protected boolean isLoading = false;
 
     @Override
     public void fresh() {
         if (!mRemoteRepo.localData()) {
             emptyRela.setVisibility(View.INVISIBLE);
+            if(isLoading) return;
+            isLoading = true;
             mRemoteRepo.getFirstData(new NullCtrl<Response>() {
                 @Override
                 public void success(Response response) {
@@ -100,6 +103,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                 @Override
                 public void must(boolean isSuccess) {
                     mRefreshLayout.finishRefresh(isSuccess);
+                    isLoading = false;
                 }
 
                 @Override
@@ -125,6 +129,8 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
     @Override
     public void loadMore() {
         if (!TextUtils.isEmpty(mRemoteRepo.getNextUrl())) {
+            if(isLoading) return;
+            isLoading = true;
             mRemoteRepo.getNextData(new NullCtrl<Response>() {
                 @Override
                 public void success(Response response) {
@@ -151,6 +157,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                 @Override
                 public void must(boolean isSuccess) {
                     mRefreshLayout.finishLoadMore(isSuccess);
+                    isLoading = false;
                 }
             });
         } else {
@@ -203,6 +210,11 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
             mReceiver = new CommonReceiver((BaseAdapter<Starable, ?>) mAdapter);
             intentFilter.addAction(Params.LIKED_NOVEL);
             LocalBroadcastManager.getInstance(mContext).registerReceiver(mReceiver, intentFilter);
+        }
+
+        // 预加载
+        if (mAdapter instanceof IAdapter) {
+            mAdapter.onPreload = this::loadMore;
         }
     }
 
