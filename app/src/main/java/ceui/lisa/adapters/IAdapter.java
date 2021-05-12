@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.drawable.Drawable;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.PopupWindow;
 
@@ -27,7 +26,6 @@ import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.VActivity;
 import ceui.lisa.core.Container;
 import ceui.lisa.core.PageData;
-import ceui.lisa.core.TimeRecord;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.dialogs.MuteDialog;
 import ceui.lisa.download.IllustDownload;
@@ -59,14 +57,13 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
         float ratio = 1.0f * target.getHeight() / target.getWidth();
         if (ratio > MAX_HEIGHT_RATIO) {
             ratio = MAX_HEIGHT_RATIO;
-            bindView.baseBind.illustImage.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            bindView.baseBind.illustImage.setHeightRatioAndScaleType(ratio, ImageView.ScaleType.CENTER_CROP);
         } else if (ratio < MIN_HEIGHT_RATIO) {
             ratio = MIN_HEIGHT_RATIO;
-            bindView.baseBind.illustImage.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            bindView.baseBind.illustImage.setHeightRatioAndScaleType(ratio, ImageView.ScaleType.CENTER_CROP);
         } else {
-            bindView.baseBind.illustImage.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            bindView.baseBind.illustImage.setHeightRatioAndScaleType(ratio, ImageView.ScaleType.FIT_CENTER);
         }
-        bindView.baseBind.illustImage.setHeightRatio(ratio);
 
         if (target.isIs_bookmarked()) {
             bindView.baseBind.likeButton.setImageTintList(

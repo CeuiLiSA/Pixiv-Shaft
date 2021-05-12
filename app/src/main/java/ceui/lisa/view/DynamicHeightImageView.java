@@ -9,6 +9,7 @@ import androidx.annotation.Nullable;
 public class DynamicHeightImageView extends androidx.appcompat.widget.AppCompatImageView {
 
     private float mHeightRatio;
+    private ScaleType tmpScaleType;
 
     public DynamicHeightImageView(Context context) {
         super(context);
@@ -29,6 +30,15 @@ public class DynamicHeightImageView extends androidx.appcompat.widget.AppCompatI
         }
     }
 
+    public void setHeightRatioAndScaleType(float ratio, ScaleType scaleType) {
+        boolean b1 = ratio != mHeightRatio;
+        if (b1) {
+            mHeightRatio = ratio;
+            requestLayout();
+        }
+        tmpScaleType = scaleType;
+    }
+
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         if (mHeightRatio > 0.0) {
@@ -36,6 +46,9 @@ public class DynamicHeightImageView extends androidx.appcompat.widget.AppCompatI
             int width = MeasureSpec.getSize(widthMeasureSpec);
             int height = (int) (width * mHeightRatio);
             setMeasuredDimension(width, height);
+            if(tmpScaleType != null && tmpScaleType != getScaleType()){
+                setScaleType(tmpScaleType);
+            }
         }
         else {
             super.onMeasure(widthMeasureSpec, heightMeasureSpec);
