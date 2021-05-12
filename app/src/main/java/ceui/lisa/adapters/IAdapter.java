@@ -14,6 +14,7 @@ import androidx.fragment.app.FragmentActivity;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestBuilder;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
+import com.bumptech.glide.request.target.Target;
 import com.qmuiteam.qmui.util.QMUIDisplayHelper;
 import com.qmuiteam.qmui.widget.popup.QMUIPopup;
 import com.qmuiteam.qmui.widget.popup.QMUIPopups;
@@ -31,6 +32,7 @@ import ceui.lisa.dialogs.MuteDialog;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.interfaces.MultiDownload;
 import ceui.lisa.interfaces.OnItemClickListener;
+import ceui.lisa.interfaces.OnItemLongClickListener;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
@@ -44,6 +46,7 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
     public IAdapter(List<IllustsBean> targetList, Context context) {
         super(targetList, context);
         handleClick();
+        handleLongClick();
     }
 
     @Override
@@ -101,12 +104,24 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
             }
         });
 
-        Glide.with(mContext)
-                .load(GlideUtil.getMediumImg(target))
-                .placeholder(R.color.second_light_bg)
-                .transition(DrawableTransitionOptions.withCrossFade())
-                .error(getBuilder(target))
-                .into(bindView.baseBind.illustImage);
+        RequestBuilder<Drawable> requestBuilder = Glide.with(mContext)
+                .load(GlideUtil.getMediumImg(target));
+        if (ratio == MIN_HEIGHT_RATIO || ratio == MAX_HEIGHT_RATIO) {
+            requestBuilder
+                    .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
+                    .centerCrop()
+                    .placeholder(R.color.second_light_bg)
+                    .transition(DrawableTransitionOptions.withCrossFade())
+                    .error(getBuilder(target))
+                    .into(bindView.baseBind.illustImage);
+        } else {
+            requestBuilder
+                    .fitCenter()
+                    .placeholder(R.color.second_light_bg)
+                    .transition(DrawableTransitionOptions.withCrossFade())
+                    .error(getBuilder(target))
+                    .into(bindView.baseBind.illustImage);
+        }
 
         if (target.getPage_count() == 1) {
             bindView.baseBind.pSize.setVisibility(View.GONE);
@@ -120,12 +135,12 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
                 mOnItemClickListener.onItemClick(view, position, 0);
             }
         });
-        bindView.itemView.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                handleLongClick(v, target);
+        bindView.itemView.setOnLongClickListener(view -> {
+            if(mOnItemLongClickListener != null){
+                mOnItemLongClickListener.onItemLongClick(view, position, 0);
                 return true;
             }
+            return false;
         });
         if (target.isRelated()) {
             bindView.baseBind.pRelated.setVisibility(View.VISIBLE);
@@ -166,59 +181,65 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
         });
     }
 
-    private void handleLongClick(View v, IllustsBean illust) {
-        View popView = View.inflate(mContext, R.layout.pop_window_2, null);
-        popView.findViewById(R.id.download_this_one).setVisibility(illust.isGif() ? View.GONE : View.VISIBLE);
+    private void handleLongClick() {
+        setOnItemLongClickListener(new OnItemLongClickListener() {
+            @Override
+            public void onItemLongClick(View v, int position, int viewType) {
+                IllustsBean illust = allIllust.get(position);
+                View popView = View.inflate(mContext, R.layout.pop_window_2, null);
+                popView.findViewById(R.id.download_this_one).setVisibility(illust.isGif() ? View.GONE : View.VISIBLE);
 
-        QMUIPopup mNormalPopup = QMUIPopups.popup(mContext)
-                .preferredDirection(QMUIPopup.DIRECTION_BOTTOM)
-                .view(popView)
-                .dimAmount(0.5f)
-                .edgeProtection(QMUIDisplayHelper.dp2px(mContext, 20))
-                .offsetX(QMUIDisplayHelper.dp2px(mContext, 20))
-                .offsetYIfBottom(QMUIDisplayHelper.dp2px(mContext, 5))
-                .shadow(true)
-                .arrow(true)
-                .bgColor(mContext.getResources().getColor(R.color.fragment_center))
-                .animStyle(QMUIPopup.ANIM_GROW_FROM_RIGHT)
-                .onDismiss(new PopupWindow.OnDismissListener() {
+                QMUIPopup mNormalPopup = QMUIPopups.popup(mContext)
+                        .preferredDirection(QMUIPopup.DIRECTION_BOTTOM)
+                        .view(popView)
+                        .dimAmount(0.5f)
+                        .edgeProtection(QMUIDisplayHelper.dp2px(mContext, 20))
+                        .offsetX(QMUIDisplayHelper.dp2px(mContext, 20))
+                        .offsetYIfBottom(QMUIDisplayHelper.dp2px(mContext, 5))
+                        .shadow(true)
+                        .arrow(true)
+                        .bgColor(mContext.getResources().getColor(R.color.fragment_center))
+                        .animStyle(QMUIPopup.ANIM_GROW_FROM_RIGHT)
+                        .onDismiss(new PopupWindow.OnDismissListener() {
+                            @Override
+                            public void onDismiss() {
+                            }
+                        })
+                        .show(v);
+
+                popView.findViewById(R.id.not_interested).setOnClickListener(new View.OnClickListener() {
                     @Override
-                    public void onDismiss() {
+                    public void onClick(View v) {
+                        MuteDialog muteDialog = MuteDialog.newInstance(illust);
+                        muteDialog.show(((FragmentActivity) mContext).getSupportFragmentManager(), "MuteDialog");
+                        mNormalPopup.dismiss();
                     }
-                })
-                .show(v);
-
-        popView.findViewById(R.id.not_interested).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                MuteDialog muteDialog = MuteDialog.newInstance(illust);
-                muteDialog.show(((FragmentActivity) mContext).getSupportFragmentManager(), "MuteDialog");
-                mNormalPopup.dismiss();
-            }
-        });
-        popView.findViewById(R.id.share).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startDownload();
-                mNormalPopup.dismiss();
-            }
-        });
-        popView.findViewById(R.id.download_this_one).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                IllustDownload.downloadAllIllust(illust, mContext);
-                mNormalPopup.dismiss();
-            }
-        });
-        popView.findViewById(R.id.show_comment).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关评论");
-                intent.putExtra(Params.ILLUST_ID, illust.getId());
-                intent.putExtra(Params.ILLUST_TITLE, illust.getTitle());
-                mContext.startActivity(intent);
-                mNormalPopup.dismiss();
+                });
+                popView.findViewById(R.id.share).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        startDownload();
+                        mNormalPopup.dismiss();
+                    }
+                });
+                popView.findViewById(R.id.download_this_one).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        IllustDownload.downloadAllIllust(illust, mContext);
+                        mNormalPopup.dismiss();
+                    }
+                });
+                popView.findViewById(R.id.show_comment).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent(mContext, TemplateActivity.class);
+                        intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关评论");
+                        intent.putExtra(Params.ILLUST_ID, illust.getId());
+                        intent.putExtra(Params.ILLUST_TITLE, illust.getTitle());
+                        mContext.startActivity(intent);
+                        mNormalPopup.dismiss();
+                    }
+                });
             }
         });
     }
