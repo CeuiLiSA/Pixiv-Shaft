@@ -77,12 +77,20 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data
-                    android:host="www.pixiv.net"
-                    android:scheme="http" />
-                <data
-                    android:host="www.pixiv.net"
-                    android:scheme="https" />
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:host="www.pixiv.net" />
+                <data android:host="pixiv.net" />
+                <data android:pathPrefix="/member_illust.php"/>
+                <data android:pathPrefix="/novel/show.php"/>
+                <data android:pathPrefix="/novel/member.php"/>
+                <data android:pathPrefix="/member.php"/>
+                <data android:pathPrefix="/premium/android"/>
+                <data android:pathPrefix="/artworks/"/>
+                <data android:pathPrefix="/en/artworks/"/>
+                <data android:pathPrefix="/users/"/>
+                <data android:pathPrefix="/en/users/"/>
+                <data android:pathPrefix="/i/"/>
 
             </intent-filter>
 
@@ -92,12 +100,9 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data
-                    android:host="pixiv.net"
-                    android:scheme="http" />
-                <data
-                    android:host="pixiv.net"
-                    android:scheme="https" />
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:host="i.pximg.net" />
 
             </intent-filter>
 
@@ -107,27 +112,10 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <data
-                    android:host="i.pximg.net"
-                    android:scheme="http" />
-                <data
-                    android:host="i.pximg.net"
-                    android:scheme="https" />
-            </intent-filter>
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+                <data android:host="www.pixiv.me" />
 
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data
-                    android:host="www.pixiv.me"
-                    android:scheme="http" />
-
-                <data
-                    android:host="www.pixiv.me"
-                    android:scheme="https" />
             </intent-filter>
 
             <intent-filter android:autoVerify="true">
