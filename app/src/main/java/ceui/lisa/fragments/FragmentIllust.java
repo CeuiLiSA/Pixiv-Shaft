@@ -108,10 +108,10 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 }
             };
             SpannableString spannableString;
+            String seriesString = getString(R.string.string_229);
             spannableString = new SpannableString(String.format("@%s %s",
-                    illust.getTitle(), getString(R.string.string_229)));
-            spannableString.setSpan(clickableSpan,
-                    illust.getTitle().length() + 2, illust.getTitle().length() + 4,
+                    seriesString, illust.getTitle()));
+            spannableString.setSpan(clickableSpan, 0, seriesString.length() + 1,
                     Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             baseBind.title.setMovementMethod(LinkMovementMethod.getInstance());
             baseBind.title.setText(spannableString);
