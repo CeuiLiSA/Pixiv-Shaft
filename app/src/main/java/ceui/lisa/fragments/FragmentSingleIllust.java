@@ -9,9 +9,11 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.appcompat.widget.Toolbar;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -19,9 +21,9 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import com.bumptech.glide.Glide;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.zhy.view.flowlayout.FlowLayout;
+import com.zhy.view.flowlayout.TagAdapter;
+import com.zhy.view.flowlayout.TagFlowLayout;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
@@ -29,13 +31,13 @@ import ceui.lisa.activities.SearchActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UserActivity;
-import ceui.lisa.adapters.IllustAdapter;
 import ceui.lisa.adapters.IllustDetailAdapter;
 import ceui.lisa.databinding.FragmentSingleIllustBinding;
 import ceui.lisa.dialogs.MuteDialog;
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.models.TagsBean;
 import ceui.lisa.notification.BaseReceiver;
 import ceui.lisa.notification.CallBackReceiver;
 import ceui.lisa.utils.Common;
@@ -47,7 +49,6 @@ import ceui.lisa.utils.ShareIllust;
 import ceui.lisa.view.LinearItemDecorationNoLRTB;
 import ceui.lisa.view.ScrollChange;
 import jp.wasabeef.glide.transformations.BlurTransformation;
-import me.next.tagview.TagCloudView;
 
 import static ceui.lisa.utils.ShareIllust.URL_Head;
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
@@ -321,24 +322,38 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
         sizeString.setSpan(new ForegroundColorSpan(R.attr.colorPrimary),
                 3, illust.getSize().length() + 3, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         baseBind.illustPx.setText(sizeString);
-        List<String> tags = new ArrayList<>();
-        for (int i = 0; i < illust.getTags().size(); i++) {
-            String temp = illust.getTags().get(i).getName();
-            if (!TextUtils.isEmpty(illust.getTags().get(i).getTranslated_name())) {
-                temp = temp + "/" + illust.getTags().get(i).getTranslated_name();
-            }
-            tags.add(temp);
-        }
-        baseBind.illustTag.setOnTagClickListener(new TagCloudView.OnTagClickListener() {
+
+        baseBind.illustTag.setAdapter(new TagAdapter<TagsBean>(illust.getTags()) {
             @Override
-            public void onTagClick(int position) {
+            public View getView(FlowLayout parent, int position, TagsBean s) {
+                TextView tv = (TextView) LayoutInflater.from(mContext).inflate(R.layout.recy_single_line_text_new,
+                        parent, false);
+                String tag = s.getName();
+                if (!TextUtils.isEmpty(s.getTranslated_name())) {
+                    tag = tag + "/" + s.getTranslated_name();
+                }
+                tv.setText(tag);
+                return tv;
+            }
+        });
+        baseBind.illustTag.setOnTagClickListener(new TagFlowLayout.OnTagClickListener() {
+            @Override
+            public boolean onTagClick(View view, int position, FlowLayout parent) {
                 Intent intent = new Intent(mContext, SearchActivity.class);
                 intent.putExtra(Params.KEY_WORD, illust.getTags().get(position).getName());
                 intent.putExtra(Params.INDEX, 0);
                 startActivity(intent);
+                return true;
             }
         });
-        baseBind.illustTag.setTags(tags);
+        baseBind.illustTag.setOnTagLongClickListener(new TagFlowLayout.OnTagLongClickListener() {
+            @Override
+            public boolean onTagLongClick(View view, int position, FlowLayout parent) {
+                Common.copy(mContext, illust.getTags().get(position).getName());
+                return true;
+            }
+        });
+
         if (!TextUtils.isEmpty(illust.getCaption())) {
             baseBind.description.setVisibility(View.VISIBLE);
             baseBind.description.setHtml(illust.getCaption());

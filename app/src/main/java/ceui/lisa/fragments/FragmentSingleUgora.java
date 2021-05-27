@@ -10,9 +10,11 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -25,10 +27,11 @@ import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
+import com.zhy.view.flowlayout.FlowLayout;
+import com.zhy.view.flowlayout.TagAdapter;
+import com.zhy.view.flowlayout.TagFlowLayout;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
@@ -48,6 +51,7 @@ import ceui.lisa.interfaces.Back;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.models.TagsBean;
 import ceui.lisa.notification.BaseReceiver;
 import ceui.lisa.notification.CallBackReceiver;
 import ceui.lisa.utils.Common;
@@ -56,7 +60,6 @@ import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.ShareIllust;
 import jp.wasabeef.glide.transformations.BlurTransformation;
-import me.next.tagview.TagCloudView;
 import rxhttp.wrapper.entity.Progress;
 
 import static ceui.lisa.utils.ShareIllust.URL_Head;
@@ -467,24 +470,38 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
         sizeString.setSpan(new ForegroundColorSpan(R.attr.colorPrimary),
                 3, illust.getSize().length() + 3, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         baseBind.illustPx.setText(sizeString);
-        List<String> tags = new ArrayList<>();
-        for (int i = 0; i < illust.getTags().size(); i++) {
-            String temp = illust.getTags().get(i).getName();
-            if (!TextUtils.isEmpty(illust.getTags().get(i).getTranslated_name())) {
-                temp = temp + "/" + illust.getTags().get(i).getTranslated_name();
-            }
-            tags.add(temp);
-        }
-        baseBind.illustTag.setOnTagClickListener(new TagCloudView.OnTagClickListener() {
+
+        baseBind.illustTag.setAdapter(new TagAdapter<TagsBean>(illust.getTags()) {
             @Override
-            public void onTagClick(int position) {
+            public View getView(FlowLayout parent, int position, TagsBean s) {
+                TextView tv = (TextView) LayoutInflater.from(mContext).inflate(R.layout.recy_single_line_text_new,
+                        parent, false);
+                String tag = s.getName();
+                if (!TextUtils.isEmpty(s.getTranslated_name())) {
+                    tag = tag + "/" + s.getTranslated_name();
+                }
+                tv.setText(tag);
+                return tv;
+            }
+        });
+        baseBind.illustTag.setOnTagClickListener(new TagFlowLayout.OnTagClickListener() {
+            @Override
+            public boolean onTagClick(View view, int position, FlowLayout parent) {
                 Intent intent = new Intent(mContext, SearchActivity.class);
                 intent.putExtra(Params.KEY_WORD, illust.getTags().get(position).getName());
                 intent.putExtra(Params.INDEX, 0);
                 startActivity(intent);
+                return true;
             }
         });
-        baseBind.illustTag.setTags(tags);
+        baseBind.illustTag.setOnTagLongClickListener(new TagFlowLayout.OnTagLongClickListener() {
+            @Override
+            public boolean onTagLongClick(View view, int position, FlowLayout parent) {
+                Common.copy(mContext, illust.getTags().get(position).getName());
+                return true;
+            }
+        });
+
         if (!TextUtils.isEmpty(illust.getCaption())) {
             baseBind.description.setVisibility(View.VISIBLE);
             baseBind.description.setHtml(illust.getCaption());

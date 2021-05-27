@@ -118,7 +118,6 @@ dependencies {
     annotationProcessor 'androidx.room:room-compiler:2.2.6'
     implementation 'com.just.agentweb:agentweb:4.1.4'
     implementation 'com.facebook.rebound:rebound:0.3.8'
-    implementation 'com.github.kingideayou:tagcloudview:1.0.2'
     implementation 'com.github.chrisbanes:PhotoView:2.3.0'
     implementation 'org.sufficientlysecure:html-textview:3.9'
     implementation 'com.wdullaer:materialdatetimepicker:3.5.0'
