@@ -153,8 +153,8 @@
 
     <string name="finding_datas">资源解析中</string>
     <string name="dont_catch_me">
-        1、本应用为日本插画交流网站Pixiv的安卓客户端第三方重制版.\n2、项目已开源且仅做交流和学习使用，不得用于任何商业用途。\n3、APP内所有插画、漫画、小说作品版权均归属于其著作者或Pixiv所有\n4、推荐使用原版Pixiv。
-    </string>
+        1、本应用为日本插画交流网站 Pixiv 的安卓客户端第三方重制版 .\n2、项目已开源且仅做交流和学习使用，不得用于任何商业用途。\n3、APP 内所有插画、漫画、小说作品版权均归属于其著作者或 Pixiv 所有\n4、推荐使用原版 Pixiv。
+   </string>
     <string name="clear">清空</string>
 
     <string name="daily_rank">日榜</string>
@@ -294,7 +294,7 @@
     <string name="string_99">/storage/emulated/0/Shaft/SingleImages</string>
     <string name="string_100">缓存</string>
     <string name="string_101">清除图片缓存</string>
-    <string name="string_102">清除GIF缓存</string>
+    <string name="string_102">清除 GIF 缓存</string>
     <string name="string_103">点击展开</string>
     <string name="string_104">+ 关注</string>
     <string name="string_105">点击展开</string>
@@ -392,7 +392,7 @@
     <string name="string_198">为此软件评分</string>
     <string name="string_199">版本</string>
     <string name="string_200">在微博关注我</string>
-    <string name="string_201">Telegram群组</string>
+    <string name="string_201">Telegram 群组</string>
     <string name="string_202">反馈</string>
     <string name="string_203">下载管理</string>
     <string name="string_204">最新作品</string>
@@ -415,7 +415,7 @@
     <string name="string_222">个插画, 共</string>
     <string name="string_223">个文件</string>
     <string name="string_224">没有更多数据啦</string>
-    <string name="string_225">QQ群组</string>
+    <string name="string_225">QQ 群组</string>
     <string name="string_226">还没创建群呢，谁创了在评论区发我</string>
     <string name="string_227">未安装手Q或安装的版本不支持</string>
     <string name="string_228">导出TXT</string>
@@ -426,7 +426,7 @@
     <string name="string_233">漫画作品</string>
     <string name="string_234">画廊</string>
     <string name="string_235">好P友</string>
-    <string name="string_236">搜索用户 </string>
+    <string name="string_236">搜索用户</string>
     <string name="string_237">小说作品</string>
     <string name="string_238">按标签收藏</string>
     <string name="string_239">推荐</string>
@@ -514,7 +514,7 @@
     <string name="string_328">清空任务</string>
     <string name="string_329">传统模式暂时不支持自定义文件夹</string>
     <string name="string_330">暂未设置</string>
-    <string name="string_331">使用PixivCat代理</string>
+    <string name="string_331">使用 PixivCat 代理</string>
     <string name="string_332">详情/二级详情页面显示原图</string>
     <string name="string_333">加速加载图片，如果觉得加载变慢了，可以关闭</string>
     <string name="string_334">原图画质好，如果觉得原图加载太慢了，可以关闭</string>
@@ -522,12 +522,12 @@
     <string name="string_335">添加收藏默认私人收藏</string>
     <string name="string_336">图片纵向展示列数</string>
     <string name="string_337">重新下载</string>
-    <string name="string_338">R18作品下载至另一目录</string>
+    <string name="string_338">R18 作品下载至另一目录</string>
     <string name="string_339">下载这个作品</string>
     <string name="string_0">当前作品加载原图</string>
     <string name="string_340">请退出重新登录</string>
     <string name="string_341">网址智能跳转</string>
-    <string name="string_342">APP底部TAB顺序</string>
+    <string name="string_342">APP 底部 TAB 顺序</string>
     <string name="string_343">推荐 - 发现 - 动态</string>
     <string name="string_344">推荐 - 动态 - 发现</string>
     <string name="string_345">发现 - 推荐 - 动态</string>
@@ -554,7 +554,7 @@
     <string name="string_364">SAF模式</string>
     <string name="string_365">创建文件失败，已授权的下载目录不存在</string>
     <string name="string_366">重新授权</string>
-    <string name="string_367">启用Firebase信息搜集</string>
+    <string name="string_367">启用 Firebase 信息搜集</string>
     <string name="string_368">第%d页已加入书签</string>
     <string name="string_369">已删除书签</string>
     <string name="string_370">个性化</string>

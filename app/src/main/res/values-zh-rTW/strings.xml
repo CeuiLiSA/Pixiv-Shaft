@@ -123,7 +123,9 @@
   <string name="gif_result_path">GIF生成路徑</string>  
   <string name="please_restart_app">重啟軟體後生效</string>  
   <string name="finding_datas">資源解析中</string>  
-  <string name="dont_catch_me">1、本應用為日本插畫交流網站Pixiv的安卓用戶端第三方重製版.\n         </string>  
+  <string name="dont_catch_me">
+      1、本應用為日本插畫交流網站 Pixiv 的安卓客戶端第三方重製版 .\n2、項目已開源且僅做交流和學習使用，不得用於任何商業用途。 \n3、APP 內所有插畫、漫畫、小說作品版權均歸屬於其著作者或 Pixiv 所有\n4、推薦使用原版 Pixiv。
+  </string>
   <string name="clear">清空</string>  
   <string name="daily_rank">日榜</string>  
   <string name="weekly_rank">每週</string>  
@@ -272,7 +274,7 @@
   <string name="string_99">/storage/emulated/0/Shaft/SingleImages</string>  
   <string name="string_100">快取</string>  
   <string name="string_101">清除圖片快取</string>  
-  <string name="string_102">清除GIF快取</string>  
+  <string name="string_102">清除 GIF 快取</string>
   <string name="string_103">點擊展開</string>  
   <string name="string_104">+關注</string>  
   <string name="string_105">點擊展開</string>  
@@ -370,7 +372,7 @@
   <string name="string_198">為此軟體評分</string>  
   <string name="string_199">版本</string>  
   <string name="string_200">在微博關注我</string>  
-  <string name="string_201">Telegram群組</string>  
+  <string name="string_201">Telegram 群組</string>
   <string name="string_202">迴響</string>  
   <string name="string_203">下載管理</string>  
   <string name="string_204">最新作品</string>  
@@ -393,7 +395,7 @@
   <string name="string_222">個插畫，共</string>  
   <string name="string_223">個檔案</string>  
   <string name="string_224">沒有更多數據啦</string>  
-  <string name="string_225">QQ群組</string>  
+  <string name="string_225">QQ 群組</string>
   <string name="string_226">還沒創建群呢，誰創了在評論區發我</string>  
   <string name="string_227">未安裝手Q或安裝的版本不支持</string>  
   <string name="string_228">匯出TXT</string>  
@@ -493,7 +495,7 @@
   <string name="r_eighteen_weekly_rank">本週R</string>  
   <string name="r_eighteen_male_rank">男性R</string>  
   <string name="r_eighteen_female_rank">女性R</string>  
-  <string name="string_331">使用PixivCat代理</string>  
+  <string name="string_331">使用 PixivCat 代理</string>
   <string name="string_332">詳情/二級詳情頁面顯示原圖</string>  
   <string name="string_333">加速載入圖片，如果覺得載入變慢了，可以關閉</string>  
   <string name="string_334">原圖畫質好，如果覺得原圖載入太慢了，可以關閉</string>  
@@ -501,12 +503,12 @@
   <string name="string_335">添加收藏默認私人收藏</string>  
   <string name="string_336">圖片縱向展示列數</string>  
   <string name="string_337">已下載</string>  
-  <string name="string_338">R18作品下載至另一目錄</string>  
+  <string name="string_338">R18 作品下載至另一目錄</string>
   <string name="string_339">下載這個作品</string>  
   <string name="string_0">當前作品載入原圖</string>  
   <string name="string_340">請退出重新登入</string>  
   <string name="string_341">網址智慧跳轉</string>  
-  <string name="string_342">APP底部TAB順序</string>  
+  <string name="string_342">APP 底部 TAB 順序</string>
   <string name="string_343">推薦-發現-動態</string>  
   <string name="string_344">推薦-動態-發現</string>  
   <string name="string_345">發現-推薦-動態</string>  
@@ -533,7 +535,7 @@
   <string name="string_364">SAF模式</string>  
   <string name="string_365">創建檔案失敗，已授權的下載目錄不存在</string>  
   <string name="string_366">重新授權</string>  
-  <string name="string_367">啟用Firebase資訊蒐集</string>  
+  <string name="string_367">啟用 Firebase 資訊蒐集</string>
   <string name="string_368">第%d頁已加入書籤</string>  
   <string name="string_369">已刪除書籤</string>  
   <string name="string_370">個性化</string>  
