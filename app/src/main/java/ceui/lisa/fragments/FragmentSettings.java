@@ -754,6 +754,22 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 }
             });
 
+            baseBind.downloadAutoPostLike.setChecked(Shaft.sSettings.isAutoPostLikeWhenDownload());
+            baseBind.downloadAutoPostLike.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    Shaft.sSettings.setAutoPostLikeWhenDownload(isChecked);
+                    Common.showToast("设置成功");
+                    Local.setSettings(Shaft.sSettings);
+                }
+            });
+            baseBind.downloadAutoPostLikeRela.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    baseBind.downloadAutoPostLike.performClick();
+                }
+            });
+
             baseBind.isFirebaseEnable.setChecked(Shaft.sSettings.isFirebaseEnable());
             baseBind.isFirebaseEnable.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override

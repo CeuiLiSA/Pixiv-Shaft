@@ -344,6 +344,9 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
             File gifFile = new LegacyFile().gifResultFile(mContext, illust);
             if (gifFile.exists() && gifFile.length() > 1024) {
                 OutPut.outPutGif(mContext, gifFile, illust);
+                if(Shaft.sSettings.isAutoPostLikeWhenDownload() && !illust.isIs_bookmarked()){
+                    PixivOperate.postLikeDefaultStarType(illust);
+                }
             } else {
                 Common.showToast("请先播放后下载");
             }
@@ -393,15 +396,11 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
             @Override
             public void onClick(View v) {
                 if (illust.isIs_bookmarked()) {
-                    baseBind.postLike.setImageResource(R.drawable.ic_favorite_red_24dp);
-                } else {
                     baseBind.postLike.setImageResource(R.drawable.ic_favorite_black_24dp);
-                }
-                if (Shaft.sSettings.isPrivateStar()) {
-                    PixivOperate.postLike(illust, Params.TYPE_PRIVATE);
                 } else {
-                    PixivOperate.postLike(illust, Params.TYPE_PUBLUC);
+                    baseBind.postLike.setImageResource(R.drawable.ic_favorite_red_24dp);
                 }
+                PixivOperate.postLikeDefaultStarType(illust);
             }
         });
         baseBind.postLike.setOnLongClickListener(new View.OnLongClickListener() {

@@ -215,7 +215,7 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
                         mNormalPopup.dismiss();
                     }
                 });
-                popView.findViewById(R.id.share).setOnClickListener(new View.OnClickListener() {
+                popView.findViewById(R.id.batch_download).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         startDownload();
@@ -226,6 +226,9 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
                     @Override
                     public void onClick(View v) {
                         IllustDownload.downloadAllIllust(illust, mContext);
+                        if(Shaft.sSettings.isAutoPostLikeWhenDownload() && !illust.isIs_bookmarked()){
+                            PixivOperate.postLikeDefaultStarType(illust);
+                        }
                         mNormalPopup.dismiss();
                     }
                 });

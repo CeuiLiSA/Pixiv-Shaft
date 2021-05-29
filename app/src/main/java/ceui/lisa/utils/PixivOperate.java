@@ -130,6 +130,14 @@ public class PixivOperate {
                 });
     }
 
+    public static void postLikeDefaultStarType(IllustsBean illustsBean) {
+        if(Shaft.sSettings.isPrivateStar()){
+            postLike(illustsBean, Params.TYPE_PRIVATE, false, 0);
+        }else{
+            postLike(illustsBean, Params.TYPE_PUBLUC, false, 0);
+        }
+    }
+
     public static void postLike(IllustsBean illustsBean, String starType) {
         postLike(illustsBean, starType, false, 0);
     }

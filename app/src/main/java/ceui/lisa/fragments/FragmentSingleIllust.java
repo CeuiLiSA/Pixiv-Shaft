@@ -199,6 +199,9 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
             } else {
                 IllustDownload.downloadAllIllust(illust, (BaseActivity<?>) mContext);
             }
+            if(Shaft.sSettings.isAutoPostLikeWhenDownload() && !illust.isIs_bookmarked()){
+                PixivOperate.postLikeDefaultStarType(illust);
+            }
         });
         baseBind.userName.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -237,7 +240,7 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
             }
         });
         if (illust.isIs_bookmarked()) {
-            baseBind.postLike.setImageResource(R.drawable.ic_favorite_accent_24dp);
+            baseBind.postLike.setImageResource(R.drawable.ic_favorite_red_24dp);
         } else {
             baseBind.postLike.setImageResource(R.drawable.ic_favorite_black_24dp);
         }
@@ -247,13 +250,9 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
                 if (illust.isIs_bookmarked()) {
                     baseBind.postLike.setImageResource(R.drawable.ic_favorite_black_24dp);
                 } else {
-                    baseBind.postLike.setImageResource(R.drawable.ic_favorite_accent_24dp);
+                    baseBind.postLike.setImageResource(R.drawable.ic_favorite_red_24dp);
                 }
-                if (Shaft.sSettings.isPrivateStar()) {
-                    PixivOperate.postLike(illust, Params.TYPE_PRIVATE);
-                } else {
-                    PixivOperate.postLike(illust, Params.TYPE_PUBLUC);
-                }
+                PixivOperate.postLikeDefaultStarType(illust);
             }
         });
         baseBind.postLike.setOnLongClickListener(new View.OnLongClickListener() {

@@ -90,7 +90,7 @@
         android:paddingEnd="24dp"
         android:paddingTop="@dimen/six_dp"
         android:paddingBottom="@dimen/twelve_dp"
-        android:id="@+id/share"
+        android:id="@+id/batch_download"
         android:layout_height="wrap_content">
 
         <ImageView

@@ -164,6 +164,8 @@ public class Settings {
 
     private boolean saveForSeparateAuthor = false; // 不同作者单独保存
 
+    private boolean autoPostLikeWhenDownload = false; // 下载时自动收藏
+
     public String getAppLanguage() {
         if(!TextUtils.isEmpty(appLanguage)){
             return appLanguage;
@@ -532,5 +534,13 @@ public class Settings {
 
     public void setSaveForSeparateAuthor(boolean saveForSeparateAuthor) {
         this.saveForSeparateAuthor = saveForSeparateAuthor;
+    }
+
+    public boolean isAutoPostLikeWhenDownload() {
+        return autoPostLikeWhenDownload;
+    }
+
+    public void setAutoPostLikeWhenDownload(boolean autoPostLikeWhenDownload) {
+        this.autoPostLikeWhenDownload = autoPostLikeWhenDownload;
     }
 }

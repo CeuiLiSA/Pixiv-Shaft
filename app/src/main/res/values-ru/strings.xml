@@ -575,4 +575,5 @@
   <string name="string_406">Панель навигации отображения дополнительных деталей иллюстрации</string>
   <string name="string_407">Сохранить в отдельную папку по автору</string>
   <string name="string_408">Формат URL неверный</string>
+  <string name="string_409">Автоматический сбор при скачивании</string>
 </resources>

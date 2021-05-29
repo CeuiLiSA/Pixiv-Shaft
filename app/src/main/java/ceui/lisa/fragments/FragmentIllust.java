@@ -170,11 +170,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 } else {
                     baseBind.postLike.setImageResource(R.drawable.ic_favorite_red_24dp);
                 }
-                if (Shaft.sSettings.isPrivateStar()) {
-                    PixivOperate.postLike(illust, Params.TYPE_PRIVATE);
-                } else {
-                    PixivOperate.postLike(illust, Params.TYPE_PUBLUC);
-                }
+                PixivOperate.postLikeDefaultStarType(illust);
             }
         });
         baseBind.postLike.setOnLongClickListener(new View.OnLongClickListener() {
@@ -369,8 +365,10 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 IllustDownload.downloadAllIllust(illust, (BaseActivity<?>) mContext);
             }
             checkDownload();
+            if(Shaft.sSettings.isAutoPostLikeWhenDownload() && !illust.isIs_bookmarked()){
+                PixivOperate.postLikeDefaultStarType(illust);
+            }
         });
-
 
         baseBind.download.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
