@@ -80,6 +80,7 @@
                 <data android:scheme="http" />
                 <data android:scheme="https" />
                 <data android:host="www.pixiv.net" />
+                <data android:host="touch.pixiv.net" />
                 <data android:host="pixiv.net" />
                 <data android:pathPrefix="/member_illust.php"/>
                 <data android:pathPrefix="/novel/show.php"/>
@@ -115,6 +116,7 @@
                 <data android:scheme="http" />
                 <data android:scheme="https" />
                 <data android:host="www.pixiv.me" />
+                <data android:host="pixiv.me" />
 
             </intent-filter>
 
