@@ -147,7 +147,7 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
                     } else { //没有header
                         notifyItemChanged(i);
                     }
-                    break;
+                    // break; // 可能出现重复数据，导致多个相同 Item 状态不一致
                 }
             }
         }
