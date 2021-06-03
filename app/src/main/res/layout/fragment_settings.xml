@@ -644,7 +644,7 @@
 
                             <TextView
                                 style="@style/setting_text_left"
-                                android:text="按作者保存到单独文件夹" />
+                                android:text="@string/string_407" />
 
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/save_for_separate_author"
