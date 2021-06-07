@@ -576,4 +576,5 @@
   <string name="string_407">작성자별로 별도의 폴더에 저장</string>
   <string name="string_408">URL 형식이 올바르지 않습니다</string>
   <string name="string_409">다운로드시 자동 수집</string>
+  <string name="string_410">이미지로 검색된 소스 이미지의 크기가 제한을 초과했습니다</string>
 </resources>

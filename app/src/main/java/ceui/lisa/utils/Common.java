@@ -7,7 +7,10 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Build;
+import android.provider.OpenableColumns;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
@@ -404,5 +407,23 @@ public class Common {
             return ContextCompat.getColor(Shaft.getContext(), R.color.white);
         }
         return color;
+    }
+
+    /**
+     * 文件大小是否满足反向搜索条件
+     *
+     * @param uri 文件地址
+     * @return 大小是否可搜索
+     */
+    public static boolean isFileSizeOkToReverseSearch(Uri uri) {
+        Cursor cursor = Shaft.getContext().getContentResolver().query(uri, null, null, null, null);
+        if (cursor == null) {
+            return false;
+        }
+        int sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE);
+        cursor.moveToFirst();
+        boolean ret = cursor.getLong(sizeIndex) <= ReverseImage.IMAGE_MAX_SIZE;
+        cursor.close();
+        return ret;
     }
 }

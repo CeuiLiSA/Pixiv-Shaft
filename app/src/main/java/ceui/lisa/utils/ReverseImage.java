@@ -25,6 +25,7 @@ public class ReverseImage {
     private static final String IQDB_BASE_URL = "https://iqdb.org/";
     private static final String SAUCENAO_BASE_URL = "https://saucenao.com/";
     private static final String TINEYE_BASE_URL = "https://www.tineye.com/";
+    public static final long IMAGE_MAX_SIZE = 15 * 1024 * 1024; // SauceNao limit: 15MB
 
     public static void reverse(byte[] file, ReverseProvider reverseProvider, Callback callback) {
 

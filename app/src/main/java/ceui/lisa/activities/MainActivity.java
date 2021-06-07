@@ -5,6 +5,7 @@ import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.TextUtils;
@@ -350,7 +351,12 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == Params.REQUEST_CODE_CHOOSE && resultCode == RESULT_OK) {
             try {
-                ReverseImage.reverse(UriUtils.uri2Bytes(data.getData()),
+                Uri imageUri = data.getData();
+                if (!Common.isFileSizeOkToReverseSearch(imageUri)) {
+                    Common.showToast(getString(R.string.string_410));
+                    return;
+                }
+                ReverseImage.reverse(UriUtils.uri2Bytes(imageUri),
                         ReverseImage.ReverseProvider.SauceNao, new ReverseWebviewCallback(this));
             } catch (Exception e) {
                 e.printStackTrace();
