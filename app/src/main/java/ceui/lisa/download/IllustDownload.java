@@ -35,6 +35,7 @@ import ceui.lisa.interfaces.Callback;
 import ceui.lisa.interfaces.FeedBack;
 import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.models.ImageUrlsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
@@ -48,6 +49,18 @@ public class IllustDownload {
             if (illust.getPage_count() == 1) {
                 DownloadItem item = new DownloadItem(illust, 0);
                 item.setUrl(getUrl(illust, 0));
+                item.setShowUrl(getShowUrl(illust, 0));
+                Common.showToast(1 + "个任务已经加入下载队列");
+                Manager.get().addTask(item, activity);
+            }
+        });
+    }
+
+    public static void downloadIllust(IllustsBean illust, String imageResolution, BaseActivity<?> activity) {
+        check(activity, () -> {
+            if (illust.getPage_count() == 1) {
+                DownloadItem item = new DownloadItem(illust, 0);
+                item.setUrl(getUrl(illust, 0, imageResolution));
                 item.setShowUrl(getShowUrl(illust, 0));
                 Common.showToast(1 + "个任务已经加入下载队列");
                 Manager.get().addTask(item, activity);
@@ -89,6 +102,24 @@ public class IllustDownload {
                 for (int i = 0; i < illust.getPage_count(); i++) {
                     DownloadItem item = new DownloadItem(illust, i);
                     item.setUrl(getUrl(illust, i));
+                    item.setShowUrl(getShowUrl(illust, i));
+                    tempList.add(item);
+                }
+                Common.showToast(tempList.size() + "个任务已经加入下载队列");
+                Manager.get().addTasks(tempList, activity);
+            }
+        });
+    }
+
+    public static void downloadAllIllust(IllustsBean illust, String imageResolution, BaseActivity<?> activity) {
+        check(activity, () -> {
+            if (illust.getPage_count() == 1) {
+                downloadIllust(illust, activity);
+            } else {
+                List<DownloadItem> tempList = new ArrayList<>();
+                for (int i = 0; i < illust.getPage_count(); i++) {
+                    DownloadItem item = new DownloadItem(illust, i);
+                    item.setUrl(getUrl(illust, i, imageResolution));
                     item.setShowUrl(getShowUrl(illust, i));
                     tempList.add(item);
                 }
@@ -197,10 +228,34 @@ public class IllustDownload {
     }
 
     public static String getUrl(IllustsBean illust, int index) {
+        return getUrl(illust, index, Params.IMAGE_RESOLUTION_ORIGINAL);
+    }
+
+    public static String getUrl(IllustsBean illust, int index, String imageResolution) {
+        return HostManager.get().replaceUrl(getImageUrlByResolution(illust, index, imageResolution));
+    }
+
+    private static String getImageUrlByResolution(IllustsBean illust, int index, String imageResolution) {
+        ImageUrlsBean imageUrlsBean = getImageUrlsBean(illust, index, imageResolution);
+        switch (imageResolution) {
+            case Params.IMAGE_RESOLUTION_ORIGINAL:
+                return imageUrlsBean.getOriginal();
+            case Params.IMAGE_RESOLUTION_LARGE:
+                return imageUrlsBean.getLarge();
+            case Params.IMAGE_RESOLUTION_MEDIUM:
+                return imageUrlsBean.getMedium();
+            case Params.IMAGE_RESOLUTION_SQUARE_MEDIUM:
+                return imageUrlsBean.getSquare_medium();
+            default:
+                return imageUrlsBean.getMaxImage();
+        }
+    }
+
+    private static ImageUrlsBean getImageUrlsBean(IllustsBean illust, int index, String imageResolution) {
         if (illust.getPage_count() == 1) {
-            return HostManager.get().replaceUrl(illust.getMeta_single_page().getOriginal_image_url());
+            return imageResolution.equals(Params.IMAGE_RESOLUTION_ORIGINAL) ? illust.getMeta_single_page() : illust.getImage_urls();
         } else {
-            return HostManager.get().replaceUrl(illust.getMeta_pages().get(index).getImage_urls().getOriginal());
+            return illust.getMeta_pages().get(index).getImage_urls();
         }
     }
 

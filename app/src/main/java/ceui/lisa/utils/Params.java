@@ -96,6 +96,11 @@ public class Params {
     public static final String TYPE_PRIVATE = "private";
     public static final String TYPE_ALL = "all";
 
+    public static final String IMAGE_RESOLUTION_ORIGINAL = "original";
+    public static final String IMAGE_RESOLUTION_LARGE = "large";
+    public static final String IMAGE_RESOLUTION_MEDIUM = "medium";
+    public static final String IMAGE_RESOLUTION_SQUARE_MEDIUM = "square_medium";
+
     public static final String SHOW_LONG_DIALOG = "show long dialog";
     public static final String IS_MIGRATE = "IS_MIGRATE";
 

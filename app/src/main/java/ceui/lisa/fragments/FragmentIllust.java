@@ -373,26 +373,34 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
         baseBind.download.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                if (illust.getPage_count() == 1) {
-                    String[] IMG_RESOLUTION = new String[]{
-                            getString(R.string.string_280),
-                            getString(R.string.string_281),
-                            getString(R.string.string_282),
-                            getString(R.string.string_283)
-                    };
-                    new QMUIDialog.CheckableDialogBuilder(mContext)
-                            .setSkinManager(QMUISkinManager.defaultInstance(mContext))
-                            .addItems(IMG_RESOLUTION, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
+                String[] IMG_RESOLUTION_TITLE = new String[]{
+                        getString(R.string.string_280),
+                        getString(R.string.string_281),
+                        getString(R.string.string_282),
+                        getString(R.string.string_283)
+                };
+                String[] IMG_RESOLUTION = new String[]{
+                        Params.IMAGE_RESOLUTION_ORIGINAL,
+                        Params.IMAGE_RESOLUTION_LARGE,
+                        Params.IMAGE_RESOLUTION_MEDIUM,
+                        Params.IMAGE_RESOLUTION_SQUARE_MEDIUM
+                };
+                new QMUIDialog.CheckableDialogBuilder(mContext)
+                        .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                        .addItems(IMG_RESOLUTION_TITLE, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                if (illust.getPage_count() == 1) {
+                                    IllustDownload.downloadIllust(illust, IMG_RESOLUTION[which], (BaseActivity<?>) mContext);
+                                } else {
+                                    IllustDownload.downloadAllIllust(illust, IMG_RESOLUTION[which], (BaseActivity<?>) mContext);
                                 }
-                            })
-                            .create()
-                            .show();
-                    return true;
-                }
-                return false;
+                                dialog.dismiss();
+                            }
+                        })
+                        .create()
+                        .show();
+                return true;
             }
         });
         baseBind.illustId.setOnClickListener(new View.OnClickListener() {
