@@ -74,7 +74,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                                         finish();
                                     }
                                 });
-                                finish();
+                                // finish(); // wait for callback
                                 return;
                             }
                         }
