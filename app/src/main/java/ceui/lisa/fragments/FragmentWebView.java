@@ -6,7 +6,8 @@ import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Bundle;
 
-import android.text.TextUtils;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
@@ -18,7 +19,6 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.RelativeLayout;
 
-import com.blankj.utilcode.util.DeviceUtils;
 import com.google.android.material.snackbar.Snackbar;
 import com.just.agentweb.AgentWeb;
 import com.just.agentweb.WebViewClient;
@@ -26,6 +26,7 @@ import android.util.Base64;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
@@ -42,6 +43,7 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
+import androidx.annotation.NonNull;
 import ceui.lisa.R;
 import ceui.lisa.activities.OutWakeActivity;
 import ceui.lisa.databinding.FragmentWebviewBinding;
@@ -74,6 +76,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
     private String mIntentUrl;
     private WebViewClickHandler handler = new WebViewClickHandler();
     private HttpDns httpDns = HttpDns.getInstance();
+    private String mLongClickLinkText;
 
     @Override
     public void initBundle(Bundle bundle) {
@@ -224,6 +227,30 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
         settings.setDisplayZoomControls(false);
         settings.setUseWideViewPort(true);
         registerForContextMenu(mWebView);
+        // 复制链接文本
+        final Handler handler = new LongClickHandler(this);
+        mWebView.setOnLongClickListener(v -> {
+            final Message message = handler.obtainMessage();
+            mWebView.requestFocusNodeHref(message);
+            return false;
+        });
+    }
+
+    private static class LongClickHandler extends Handler {
+        private final WeakReference<FragmentWebView> mFragment;
+
+        public LongClickHandler(FragmentWebView fragment){
+            mFragment = new WeakReference<>(fragment);
+        }
+
+        @Override
+        public void handleMessage(@NonNull Message msg) {
+            FragmentWebView fragment = mFragment.get();
+            if(fragment != null){
+                final Bundle bundle = msg.getData();
+                fragment.mLongClickLinkText = String.valueOf(bundle.get("title"));
+            }
+        }
     }
 
     @Override
@@ -312,7 +339,8 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                     break;
                 }
                 case COPY_LINK_TEXT: {
-                    Common.showToast("不会");
+                    ClipBoardUtils.putTextIntoClipboard(mContext, mLongClickLinkText);
+                    Snackbar.make(rootView, R.string.copy_to_clipboard, Snackbar.LENGTH_SHORT).show();
                     break;
                 }
                 case SEARCH_GOOGLE: {
