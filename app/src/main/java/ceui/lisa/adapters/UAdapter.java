@@ -60,8 +60,8 @@ public class UAdapter extends BaseAdapter<UserPreviewsBean, RecyUserPreviewBindi
         if (shows.size() < 3) {
             shows.addAll(target.getNovels().subList(0, Math.min(3 - shows.size(), target.getNovels().size())));
         }
-        for (int i = 0; i < shows.size(); i++) {
-            Serializable item = shows.get(i);
+        for (int i = 0; i < 3; i++) {
+            Serializable item = i < shows.size() ? shows.get(i) : null;
             Object model = null;
             if (item instanceof IllustsBean) {
                 model = GlideUtil.getMediumImg((IllustsBean) shows.get(i));

@@ -75,6 +75,7 @@ class FragmentMangaSeries :
                     val entity = FeatureEntity()
                     entity.uuid = userID.toString() + "漫画系列作品"
                     entity.dataType = "漫画系列作品"
+                    entity.illustJson = Common.cutToJson(allItems)
                     entity.userID = userID
                     entity.dateTime = System.currentTimeMillis()
                     AppDatabase.getAppDatabase(mContext).downloadDao().insertFeature(entity)

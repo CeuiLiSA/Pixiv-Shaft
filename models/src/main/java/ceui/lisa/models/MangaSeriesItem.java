@@ -1,6 +1,8 @@
 package ceui.lisa.models;
 
-public class MangaSeriesItem {
+import java.io.Serializable;
+
+public class MangaSeriesItem implements Serializable {
 
     /**
      * id : 79357
