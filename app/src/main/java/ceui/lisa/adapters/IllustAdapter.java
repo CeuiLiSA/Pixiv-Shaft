@@ -10,10 +10,12 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.databinding.DataBindingUtil;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.load.resource.bitmap.BitmapTransitionOptions;
@@ -41,20 +43,18 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
 
     private int maxHeight;
     private FragmentActivity mActivity;
+    private Fragment mFragment;
     private static boolean longPressDownload = Shaft.sSettings.isIllustLongPressDownload();
 
-    public IllustAdapter(FragmentActivity activity, Context context, IllustsBean illustsBean, int maxHeight) {
-        this(activity, context, illustsBean, maxHeight, false);
-    }
-
-    public IllustAdapter(FragmentActivity activity, Context context, IllustsBean illustsBean, int maxHeight, boolean isForceOriginal) {
+    public IllustAdapter(FragmentActivity activity, Fragment fragment, IllustsBean illustsBean, int maxHeight, boolean isForceOriginal) {
         Common.showLog("IllustAdapter maxHeight " + maxHeight);
         mActivity = activity;
-        mContext = context;
+        mContext = fragment.requireContext();
         allIllust = illustsBean;
         this.maxHeight = maxHeight;
         imageSize = mContext.getResources().getDisplayMetrics().widthPixels;
         this.isForceOriginal = isForceOriginal;
+        this.mFragment = fragment;
     }
 
     @NonNull
@@ -155,7 +155,9 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
             }
         });
 
-        Glide.with(mContext)
+        RequestManager requestManager = this.mFragment != null ? Glide.with(this.mFragment) : Glide.with(mContext);
+
+        requestManager
                 .asBitmap()
                 .load(new GlideUrlChild(imageUrl))
                 .transform(new LargeBitmapScaleTransformer())
