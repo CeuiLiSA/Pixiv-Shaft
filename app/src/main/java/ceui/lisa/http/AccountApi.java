@@ -25,15 +25,6 @@ public interface AccountApi {
                                  @Field("redirect_uri") String redirect_uri, //https://app-api.pixiv.net/web/v1/users/auth/pixiv/callback
                                  @Field("include_policy") boolean include_policy);
 
-    @FormUrlEncoded
-    @POST("/auth/token")
-    Call<UserModel> newRefreshToken(@Field("client_id") String client_id,
-                                 @Field("client_secret") String client_secret,
-                                 @Field("grant_type") String grant_type,
-                                 @Field("refresh_token") String refresh_token,
-                                 @Field("include_policy") boolean include_policy);
-
-
     @GET("login?prompt=select_account&source=pixiv-android&ref=&client=pixiv-android")
     Observable<String> tryLogin(@Query("return_to") String return_to);
 }
