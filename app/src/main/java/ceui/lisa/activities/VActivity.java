@@ -13,6 +13,7 @@ import androidx.viewpager.widget.ViewPager;
 import ceui.lisa.R;
 import ceui.lisa.core.Container;
 import ceui.lisa.core.IDWithList;
+import ceui.lisa.core.Mapper;
 import ceui.lisa.core.PageData;
 import ceui.lisa.core.TimeRecord;
 import ceui.lisa.databinding.ActivityViewPagerBinding;
@@ -103,6 +104,8 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                                         .subscribe(new NullCtrl<ListIllust>() {
                                             @Override
                                             public void success(ListIllust listIllust) {
+                                                Mapper mapper = new Mapper<ListIllust>();
+                                                listIllust = (ListIllust) mapper.apply(listIllust);
                                                 Common.showLog("Container 下一页请求成功 ");
                                                 Intent intent = new Intent(Params.FRAGMENT_ADD_DATA);
                                                 intent.putExtra(Params.PAGE_UUID, pageUUID);
