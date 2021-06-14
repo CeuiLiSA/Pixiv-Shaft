@@ -23,9 +23,15 @@ import ceui.lisa.utils.PixivOperate;
 public class SimpleUserAdapter extends BaseAdapter<UserBean, RecySimpleUserBinding> {
 
     private FullClickListener mFullClickListener;
+    private boolean isMuteUser;
 
     public SimpleUserAdapter(@Nullable List<UserBean> targetList, Context context) {
+        this(targetList, context, false);
+    }
+
+    public SimpleUserAdapter(@Nullable List<UserBean> targetList, Context context, boolean isMuteUser) {
         super(targetList, context);
+        this.isMuteUser = isMuteUser;
         handleClick();
     }
 
@@ -50,6 +56,14 @@ public class SimpleUserAdapter extends BaseAdapter<UserBean, RecySimpleUserBindi
 
             bindView.baseBind.postLikeUser.setOnClickListener(v ->
                     mFullClickListener.onItemClick(bindView.baseBind.postLikeUser, position, 1));
+
+            bindView.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    mFullClickListener.onItemLongClick(bindView.itemView, position, 0);
+                    return true;
+                }
+            });
 
             bindView.baseBind.postLikeUser.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
@@ -90,7 +104,11 @@ public class SimpleUserAdapter extends BaseAdapter<UserBean, RecySimpleUserBindi
 
             @Override
             public void onItemLongClick(View v, int position, int viewType) {
-                if (!allIllust.get(position).isIs_followed()) {
+                if (isMuteUser && viewType == 0) {
+                    PixivOperate.unMuteUser(allIllust.get(position));
+                    allIllust.remove(position);
+                    notifyDataSetChanged();
+                } else if (viewType == 1 && !allIllust.get(position).isIs_followed()) {
                     PixivOperate.postFollowUser(allIllust.get(position).getId(),
                             Params.TYPE_PRIVATE);
                     Button postFollow = ((Button) v);

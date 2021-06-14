@@ -71,7 +71,7 @@ public class FragmentMutedUser extends LocalListFragment<FragmentBaseListBinding
 
     @Override
     public BaseAdapter<UserBean, RecySimpleUserBinding> adapter() {
-        return new SimpleUserAdapter(allItems, mContext);
+        return new SimpleUserAdapter(allItems, mContext, true);
     }
 
     @Override

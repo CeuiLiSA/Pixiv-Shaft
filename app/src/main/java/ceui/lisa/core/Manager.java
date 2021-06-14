@@ -6,6 +6,7 @@ import android.content.Intent;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,6 +14,7 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.database.DownloadingEntity;
+import ceui.lisa.download.ImageSaver;
 import ceui.lisa.helper.Android10DownloadFactory22;
 import ceui.lisa.helper.SAFactory;
 import ceui.lisa.interfaces.Callback;
@@ -203,7 +205,7 @@ public class Manager {
 
                     if(bean.getIllust().isGif()){
                         Shaft.getMMKV().encode(Params.ILLUST_ID + "_" + bean.getIllust().getId(), true);
-                        PixivOperate.unzipAndePlay(context, bean.getIllust());
+                        PixivOperate.unzipAndePlay(context, bean.getIllust(), bean.isAutoSave());
                     }
 
                     //通知 DOWNLOAD_ING 下载完成
@@ -234,6 +236,15 @@ public class Manager {
                         intent.putExtra(Params.CONTENT, downloadEntity);
                         LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
                     }
+
+                    // 通知相册下载完成
+                    new ImageSaver(){
+                        @Override
+                        public File whichFile() {
+                            return new File(factory.query().getPath());
+                        }
+                    }.execute(context);
+
                     safeDelete(bean);
                 }, throwable -> {
                     //下载失败，处理相关逻辑

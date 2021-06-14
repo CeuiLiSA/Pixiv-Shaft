@@ -17,4 +17,9 @@ public class MetaSinglePageBean extends ImageUrlsBean implements Serializable {
     public void setOriginal_image_url(String original_image_url) {
         this.original_image_url = original_image_url;
     }
+
+    @Override
+    public String getOriginal() {
+        return this.original_image_url;
+    }
 }

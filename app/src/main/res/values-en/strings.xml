@@ -559,7 +559,7 @@
   <string name="string_390">All</string>
   <string name="string_391">Public</string>
   <string name="string_392">Private</string>
-  <string name="string_393">Illustration Page Transform</string>
+  <string name="string_393">Illust sub detail page transform</string>
   <string name="string_394">Text</string>
   <string name="string_395">Keyword</string>
   <string name="string_396">Show related works when collect</string>
@@ -569,4 +569,12 @@
   <string name="string_400">It is detected that the account has not enabled the R18 option, do you want to open it?</string>
   <string name="string_401">Continue to use</string>
   <string name="string_402">Go to enable</string>
+  <string name="string_403">Choose liked</string>
+  <string name="string_404">Select not downloaded</string>
+  <string name="string_405">Illust detail page long press to download</string>
+  <string name="string_406">Illust sub detail show navbar</string>
+  <string name="string_407">Save to a separate folder by author</string>
+  <string name="string_408">URL format is incorrect</string>
+  <string name="string_409">Auto collection when download</string>
+  <string name="string_410">The size of the source image searched by the image exceeds the limit</string>
 </resources>

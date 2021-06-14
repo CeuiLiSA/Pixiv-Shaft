@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:zhy="http://schemas.android.com/tools">
 
     <data>
 
@@ -207,18 +208,18 @@
 
                             </TextView>
 
-                            <me.next.tagview.TagCloudView
+                            <com.zhy.view.flowlayout.TagFlowLayout
                                 android:id="@+id/illust_tag"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:layout_marginTop="4dp"
+                                android:layout_marginBottom="4dp"
+                                android:layout_marginStart="@dimen/eight_dp"
                                 android:layout_marginEnd="@dimen/eight_dp"
-                                app:tcvBackground="@drawable/btn_follow_legency"
-                                app:tcvBorder="@dimen/eight_dp"
-                                app:tcvItemBorderVertical="6dp">
+                                zhy:max_select="-1">
 
 
-                            </me.next.tagview.TagCloudView>
+                            </com.zhy.view.flowlayout.TagFlowLayout>
 
 
                             <LinearLayout

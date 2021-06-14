@@ -3,15 +3,11 @@ package ceui.lisa.helper
 import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
-import android.os.Environment
 import android.provider.MediaStore
-import ceui.lisa.activities.Shaft
 import ceui.lisa.core.DownloadItem
-import ceui.lisa.download.ImageSaver
 import ceui.lisa.file.LegacyFile
 import ceui.lisa.utils.Common
 import com.blankj.utilcode.util.FileUtils
-import com.blankj.utilcode.util.PathUtils
 import okhttp3.Response
 import rxhttp.wrapper.callback.UriFactory
 import rxhttp.wrapper.utils.query
@@ -27,14 +23,14 @@ class Android10DownloadFactory22 constructor(
 
     override fun query(): Uri? {
         if (Common.isAndroidQ()) {
-            val relativePath: String = getRelativePathQ()
+            val relativePath: String = FileStorageHelper.getIllustRelativePathQ(item.illust)
             return MediaStore.Images.Media.EXTERNAL_CONTENT_URI.query(
                 context,
                 item.name,
                 relativePath
             )
         } else {
-            val file = File(getFileName())
+            val file = File(FileStorageHelper.getIllustFileFullNameUnderQ(item))
             return Uri.fromFile(file)
         }
     }
@@ -48,7 +44,7 @@ class Android10DownloadFactory22 constructor(
         } else {
             // 大于等于 android 10， 使用 contentResolver insert 生成文件
             if (Common.isAndroidQ()) {
-                val relativePath: String = getRelativePathQ()
+                val relativePath: String = FileStorageHelper.getIllustRelativePathQ(item.illust)
                 val uri = query()
                 if (uri != null) {
                     val outputStream: OutputStream =
@@ -76,9 +72,9 @@ class Android10DownloadFactory22 constructor(
                 return fileUri
             } else {
                 // 低于 android 10， 使用 File 操作
-                val parentFile: File = File(getRelativePath())
+                val parentFile: File = File(FileStorageHelper.getIllustAbsolutePath(item.illust))
                 if (!parentFile.exists()) {
-                    parentFile.mkdir()
+                    parentFile.mkdirs()
                 }
                 val imageFile = File(parentFile, item.name)
                 if (imageFile.exists() && imageFile.length() > 0) {
@@ -87,37 +83,15 @@ class Android10DownloadFactory22 constructor(
                     imageFile.createNewFile()
                 }
 
-                object : ImageSaver() {
-                    override fun whichFile(): File {
-                        return imageFile
-                    }
-                }.execute(context)
+//                object : ImageSaver() {
+//                    override fun whichFile(): File {
+//                        return imageFile
+//                    }
+//                }.execute(context)
 
                 fileUri = Uri.fromFile(imageFile)
                 return fileUri
             }
         }
     }
-
-    private fun getFileName(): String {
-        return getRelativePath() + File.separator + item.name
-    }
-
-    private fun getFileNameQ(): String {
-        return getRelativePathQ() + File.separator + item.name
-    }
-
-    private fun getRelativePath(): String {
-        return PathUtils.getExternalPicturesPath() + File.separator + getShaftDir()
-    }
-
-    private fun getRelativePathQ(): String {
-        return Environment.DIRECTORY_PICTURES + File.separator + getShaftDir()
-    }
-
-    private fun getShaftDir(): String {
-        return if (isSaveToR18Dir()) "ShaftImages-R18" else "ShaftImages"
-    }
-
-    private fun isSaveToR18Dir() = item.illust.isR18File && Shaft.sSettings.isR18DivideSave
 }

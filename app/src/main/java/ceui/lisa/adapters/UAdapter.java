@@ -4,15 +4,21 @@ import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.RecyUserPreviewBinding;
 import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.interfaces.FullClickListener;
+import ceui.lisa.models.IllustsBean;
+import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.UserPreviewsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
@@ -48,32 +54,23 @@ public class UAdapter extends BaseAdapter<UserPreviewsBean, RecyUserPreviewBindi
         bindView.baseBind.userShowOne.setImageResource(android.R.color.transparent);
         bindView.baseBind.userShowTwo.setImageResource(android.R.color.transparent);
         bindView.baseBind.userShowThree.setImageResource(android.R.color.transparent);
-        if (target.getIllusts() != null && target.getIllusts().size() >= 3) {
-            Glide.with(mContext).load(GlideUtil.getMediumImg(target
-                    .getIllusts().get(0)))
+
+        final List<ImageView> views = Arrays.asList(bindView.baseBind.userShowOne, bindView.baseBind.userShowTwo, bindView.baseBind.userShowThree);
+        final List<Serializable> shows = new ArrayList<>(target.getIllusts().subList(0, Math.min(3, target.getIllusts().size())));
+        if (shows.size() < 3) {
+            shows.addAll(target.getNovels().subList(0, Math.min(3 - shows.size(), target.getNovels().size())));
+        }
+        for (int i = 0; i < 3; i++) {
+            Serializable item = i < shows.size() ? shows.get(i) : null;
+            Object model = null;
+            if (item instanceof IllustsBean) {
+                model = GlideUtil.getMediumImg((IllustsBean) shows.get(i));
+            } else if (item instanceof NovelBean) {
+                model = GlideUtil.getUrl(((NovelBean) shows.get(i)).getImage_urls().getMedium());
+            }
+            Glide.with(mContext).load(model)
                     .placeholder(R.color.light_bg)
-                    .into(bindView.baseBind.userShowOne);
-            Glide.with(mContext).load(GlideUtil.getMediumImg(target
-                    .getIllusts().get(1)))
-                    .placeholder(R.color.light_bg)
-                    .into(bindView.baseBind.userShowTwo);
-            Glide.with(mContext).load(GlideUtil.getMediumImg(target
-                    .getIllusts().get(2)))
-                    .placeholder(R.color.light_bg)
-                    .into(bindView.baseBind.userShowThree);
-        } else if (target.getNovels() != null && target.getNovels().size() >= 3) {
-            Glide.with(mContext).load(GlideUtil.getUrl(target
-                    .getNovels().get(0).getImage_urls().getMedium()))
-                    .placeholder(R.color.light_bg)
-                    .into(bindView.baseBind.userShowOne);
-            Glide.with(mContext).load(GlideUtil.getUrl(target
-                    .getNovels().get(1).getImage_urls().getMedium()))
-                    .placeholder(R.color.light_bg)
-                    .into(bindView.baseBind.userShowTwo);
-            Glide.with(mContext).load(GlideUtil.getUrl(target
-                    .getNovels().get(2).getImage_urls().getMedium()))
-                    .placeholder(R.color.light_bg)
-                    .into(bindView.baseBind.userShowThree);
+                    .into(views.get(i));
         }
 
         Glide.with(mContext).load(GlideUtil.getUrl(allIllust.get(position)

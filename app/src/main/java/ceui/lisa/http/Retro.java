@@ -12,6 +12,7 @@ import java.util.Collections;
 import javax.net.ssl.X509TrustManager;
 
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.helper.LanguageHelper;
 import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
 import okhttp3.Request;
@@ -48,7 +49,7 @@ public class Retro {
         String osVersion = DeviceUtils.getSDKVersionName();
         String phoneName = DeviceUtils.getModel();
         before.addHeader("User-Agent", "PixivAndroidApp/5.0.234 (Android " + osVersion + "; " + phoneName + ")")
-                .addHeader("accept-language", "zh-cn")
+                .addHeader("accept-language", LanguageHelper.getRequestHeaderAcceptLanguageFromAppLanguage())
                 .addHeader("x-client-time", pixivHeaders.getXClientTime())
                 .addHeader("x-client-hash", pixivHeaders.getXClientHash());
         return before;

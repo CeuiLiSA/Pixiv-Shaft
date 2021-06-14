@@ -17,6 +17,7 @@ import ceui.lisa.database.AppDatabase
 import ceui.lisa.databinding.FragmentBaseListBinding
 import ceui.lisa.feature.FeatureEntity
 import ceui.lisa.models.IllustsBean
+import ceui.lisa.models.MangaSeriesItem
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
 import com.google.gson.reflect.TypeToken
@@ -113,10 +114,17 @@ class FragmentFeature : LocalListFragment<FragmentBaseListBinding, FeatureEntity
         super.onFirstLoaded(items)
         for (item in items) {
             if (!TextUtils.isEmpty(item.illustJson)) {
-                item.allIllust = Shaft.sGson.fromJson<List<IllustsBean>>(
-                    item.illustJson,
-                    object : TypeToken<List<IllustsBean>>() {}.type
-                )
+                if (item.dataType.equals("漫画系列作品")) {
+                    item.allMangaSeries = Shaft.sGson.fromJson<List<MangaSeriesItem>>(
+                        item.illustJson,
+                        object : TypeToken<List<MangaSeriesItem>>() {}.type
+                    )
+                } else {
+                    item.allIllust = Shaft.sGson.fromJson<List<IllustsBean>>(
+                        item.illustJson,
+                        object : TypeToken<List<IllustsBean>>() {}.type
+                    )
+                }
             }
         }
     }

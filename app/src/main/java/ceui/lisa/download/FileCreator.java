@@ -9,26 +9,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.file.FileName;
+import ceui.lisa.helper.FileStorageHelper;
 import ceui.lisa.model.CustomFileNameCell;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
-
-import static ceui.lisa.utils.Settings.FILE_PATH_SINGLE;
-import static ceui.lisa.utils.Settings.FILE_PATH_SINGLE_R18;
-
 
 public class FileCreator {
 
     private static final String DASH = "_";
 
     public static boolean isExist(IllustsBean illust, int index) {
-        File file = new File(FILE_PATH_SINGLE, customFileName(illust, index));
-        File fileR18 = new File(FILE_PATH_SINGLE_R18, customFileName(illust, index));
+        String fileName = illust.isGif() ? new FileName().gifName(illust) : customFileName(illust, index);
+        File file = new File(FileStorageHelper.getIllustAbsolutePath(illust, false), fileName);
+        File fileR18 = new File(FileStorageHelper.getIllustAbsolutePath(illust, true), fileName);
         return file.exists() || fileR18.exists();
     }
 
     public static String deleteSpecialWords(String before) {
         if (!TextUtils.isEmpty(before)) {
+            if(before.startsWith(".")){
+                before = before.replaceFirst("\\.","\u2024");
+            }
             String temp1 = before.replace("-", DASH);
             String temp2 = temp1.replace("/", DASH);
             String temp3 = temp2.replace(",", DASH);

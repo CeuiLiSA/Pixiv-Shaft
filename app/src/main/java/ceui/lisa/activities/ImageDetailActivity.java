@@ -37,11 +37,7 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
 
     @Override
     protected int initLayout() {
-        if (BarUtils.isSupportNavBar()) {
-            BarUtils.setNavBarVisibility(this, false);
-        }
-        getWindow().getDecorView().setSystemUiVisibility(getWindow().getDecorView().getSystemUiVisibility()
-                | View.SYSTEM_UI_FLAG_FULLSCREEN);
+        refreshSystemUiVisibility();
         return R.layout.activity_image_detail;
     }
 
@@ -86,7 +82,7 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
                 @Override
                 public void onPageSelected(int i) {
                     checkDownload(i);
-                    currentPage.setText(String.format("第%dP / 共%dP", i + 1, mIllustsBean.getPage_count()));
+                    currentPage.setText(String.format("第 %d/%d P", i + 1, mIllustsBean.getPage_count()));
                 }
 
                 @Override
@@ -94,7 +90,11 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
 
                 }
             });
-            currentPage.setText(String.format("第%dP / 共%dP", index + 1, mIllustsBean.getPage_count()));
+            if(mIllustsBean.getPage_count() == 1){
+                currentPage.setVisibility(View.INVISIBLE);
+            }else{
+                currentPage.setText(String.format("第 %d/%d P", index + 1, mIllustsBean.getPage_count()));
+            }
 
         } else if ("下载详情".equals(dataType)) {
             currentPage = findViewById(R.id.current_page);
@@ -166,5 +166,23 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
     @Override
     public boolean hideStatusBar() {
         return true;
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            refreshSystemUiVisibility();
+        }
+    }
+
+    private void refreshSystemUiVisibility(){
+        final int includeFlag = View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+        int excludeFlag = 0;
+        if(Shaft.sSettings.isIllustDetailShowNavbar()){
+            excludeFlag = excludeFlag | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
+        }
+        final int flag = getWindow().getDecorView().getSystemUiVisibility();
+        getWindow().getDecorView().setSystemUiVisibility(flag |includeFlag & ~excludeFlag);
     }
 }

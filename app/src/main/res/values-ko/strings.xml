@@ -559,7 +559,7 @@
   <string name="string_390">모두</string>
   <string name="string_391">공공의</string>
   <string name="string_392">은밀한</string>
-  <string name="string_393">일러스트레이션 페이지 변환</string>
+  <string name="string_393">그림 하위 세부 사항 페이지 변환</string>
   <string name="string_394">본문</string>
   <string name="string_395">예어</string>
   <string name="string_396">수집시 관련 작품보기</string>
@@ -569,4 +569,12 @@
   <string name="string_400">계정이 R18 옵션을 열지 않은 것으로 감지되었습니다.여시겠습니까?</string>
   <string name="string_401">계속 사용</string>
   <string name="string_402">활성화로 이동</string>
+  <string name="string_403">즐겨 찾기 선택</string>
+  <string name="string_404">다운로드되지 않음 선택</string>
+  <string name="string_405">다운로드하려면 길게 누르세요</string>
+  <string name="string_406">그림 보조 세부 정보는 탐색 모음을 표시합니다</string>
+  <string name="string_407">작성자별로 별도의 폴더에 저장</string>
+  <string name="string_408">URL 형식이 올바르지 않습니다</string>
+  <string name="string_409">다운로드시 자동 수집</string>
+  <string name="string_410">이미지로 검색된 소스 이미지의 크기가 제한을 초과했습니다</string>
 </resources>

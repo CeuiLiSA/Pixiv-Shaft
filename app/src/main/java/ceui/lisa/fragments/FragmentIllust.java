@@ -108,10 +108,10 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 }
             };
             SpannableString spannableString;
+            String seriesString = getString(R.string.string_229);
             spannableString = new SpannableString(String.format("@%s %s",
-                    illust.getTitle(), getString(R.string.string_229)));
-            spannableString.setSpan(clickableSpan,
-                    illust.getTitle().length() + 2, illust.getTitle().length() + 4,
+                    seriesString, illust.getTitle()));
+            spannableString.setSpan(clickableSpan, 0, seriesString.length() + 1,
                     Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             baseBind.title.setMovementMethod(LinkMovementMethod.getInstance());
             baseBind.title.setText(spannableString);
@@ -147,7 +147,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                     Common.copy(mContext, url);
                     return true;
                 } else if (menuItem.getItemId() == R.id.action_show_original) {
-                    baseBind.recyclerView.setAdapter(new IllustAdapter(mContext, illust,
+                    baseBind.recyclerView.setAdapter(new IllustAdapter(mActivity, FragmentIllust.this, illust,
                             recyHeight, true));
                     return true;
                 } else if (menuItem.getItemId() == R.id.action_mute_illust) {
@@ -170,11 +170,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 } else {
                     baseBind.postLike.setImageResource(R.drawable.ic_favorite_red_24dp);
                 }
-                if (Shaft.sSettings.isPrivateStar()) {
-                    PixivOperate.postLike(illust, Params.TYPE_PRIVATE);
-                } else {
-                    PixivOperate.postLike(illust, Params.TYPE_PUBLUC);
-                }
+                PixivOperate.postLikeDefaultStarType(illust);
             }
         });
         baseBind.postLike.setOnLongClickListener(new View.OnLongClickListener() {
@@ -261,7 +257,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 baseBind.recyclerView.setLayoutManager(new LinearLayoutManager(mContext));
 
                 recyHeight = baseBind.recyclerView.getHeight();
-                IllustAdapter adapter = new IllustAdapter(mContext, illust, recyHeight);
+                IllustAdapter adapter = new IllustAdapter(mActivity, FragmentIllust.this, illust, recyHeight, false);
                 baseBind.recyclerView.setAdapter(adapter);
                 baseBind.coreLinear.getViewTreeObserver().removeOnGlobalLayoutListener(this);
             }
@@ -369,32 +365,42 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 IllustDownload.downloadAllIllust(illust, (BaseActivity<?>) mContext);
             }
             checkDownload();
+            if(Shaft.sSettings.isAutoPostLikeWhenDownload() && !illust.isIs_bookmarked()){
+                PixivOperate.postLikeDefaultStarType(illust);
+            }
         });
-
 
         baseBind.download.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                if (illust.getPage_count() == 1) {
-                    String[] IMG_RESOLUTION = new String[]{
-                            getString(R.string.string_280),
-                            getString(R.string.string_281),
-                            getString(R.string.string_282),
-                            getString(R.string.string_283)
-                    };
-                    new QMUIDialog.CheckableDialogBuilder(mContext)
-                            .setSkinManager(QMUISkinManager.defaultInstance(mContext))
-                            .addItems(IMG_RESOLUTION, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
+                String[] IMG_RESOLUTION_TITLE = new String[]{
+                        getString(R.string.string_280),
+                        getString(R.string.string_281),
+                        getString(R.string.string_282),
+                        getString(R.string.string_283)
+                };
+                String[] IMG_RESOLUTION = new String[]{
+                        Params.IMAGE_RESOLUTION_ORIGINAL,
+                        Params.IMAGE_RESOLUTION_LARGE,
+                        Params.IMAGE_RESOLUTION_MEDIUM,
+                        Params.IMAGE_RESOLUTION_SQUARE_MEDIUM
+                };
+                new QMUIDialog.CheckableDialogBuilder(mContext)
+                        .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                        .addItems(IMG_RESOLUTION_TITLE, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                if (illust.getPage_count() == 1) {
+                                    IllustDownload.downloadIllust(illust, IMG_RESOLUTION[which], (BaseActivity<?>) mContext);
+                                } else {
+                                    IllustDownload.downloadAllIllust(illust, IMG_RESOLUTION[which], (BaseActivity<?>) mContext);
                                 }
-                            })
-                            .create()
-                            .show();
-                    return true;
-                }
-                return false;
+                                dialog.dismiss();
+                            }
+                        })
+                        .create()
+                        .show();
+                return true;
             }
         });
         baseBind.illustId.setOnClickListener(new View.OnClickListener() {

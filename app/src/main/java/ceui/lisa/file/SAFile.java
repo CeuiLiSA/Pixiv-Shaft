@@ -3,12 +3,12 @@ package ceui.lisa.file;
 import android.content.Context;
 import android.net.Uri;
 import android.provider.DocumentsContract;
-import android.text.TextUtils;
 
 import androidx.documentfile.provider.DocumentFile;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.download.FileCreator;
+import ceui.lisa.helper.FileStorageHelper;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 
@@ -18,8 +18,14 @@ public class SAFile {
         DocumentFile root = rootFolder(context);
         String displayName = FileCreator.customFileName(illust, index);
         String id = DocumentsContract.getTreeDocumentId(root.getUri());
-        String subDirectoryName = getShaftDir(illust);
-        id = id + "/" + subDirectoryName + "/" + displayName;
+        String subDirectoryName = FileStorageHelper.getShaftIllustDir(illust);
+        String authorDirectoryName = FileStorageHelper.getAuthorDirectoryName(illust.getUser());
+        id += "/" + subDirectoryName;
+        boolean saveForSeparateAuthor = authorDirectoryName.length() > 0;
+        if(saveForSeparateAuthor){
+            id += "/" + authorDirectoryName;
+        }
+        id += "/" + displayName;
         Uri childrenUri = DocumentsContract.buildDocumentUriUsingTree(root.getUri(), id);
         DocumentFile realFile = DocumentFile.fromSingleUri(context, childrenUri);
         if (realFile != null && realFile.exists()) {
@@ -30,11 +36,21 @@ public class SAFile {
             }
         }
 
+        DocumentFile finalDirectory;
         DocumentFile subDirectory = root.findFile(subDirectoryName);
         if(subDirectory == null){
             subDirectory = root.createDirectory(subDirectoryName);
         }
-        return subDirectory.createFile(getMimeTypeFromIllust(illust, index), displayName);
+        finalDirectory = subDirectory;
+
+        if(saveForSeparateAuthor){
+            DocumentFile authorDirectory = subDirectory.findFile(authorDirectoryName);
+            if(authorDirectory == null){
+                authorDirectory = subDirectory.createDirectory(authorDirectoryName);
+            }
+            finalDirectory = authorDirectory;
+        }
+        return finalDirectory.createFile(getMimeTypeFromIllust(illust, index), displayName);
     }
 
     public static DocumentFile rootFolder(Context context) {
@@ -56,8 +72,8 @@ public class SAFile {
         DocumentFile root = rootFolder(context);
         if (root != null) {
             String id = DocumentsContract.getTreeDocumentId(root.getUri());
-            String displayName = FileCreator.customFileName(illust, index);
-            id = id + "/" + getShaftDir(illust) + "/" + displayName;
+            String displayName = illust.isGif() ? new FileName().gifName(illust) : FileCreator.customFileName(illust, index);
+            id = FileStorageHelper.getIllustFileSAFFullName(id, illust, displayName);
             Uri childrenUri = DocumentsContract.buildDocumentUriUsingTree(root.getUri(), id);
             DocumentFile realFile = DocumentFile.fromSingleUri(context, childrenUri);
             return realFile != null && realFile.exists();
@@ -80,13 +96,5 @@ public class SAFile {
         }
         Common.showLog("getMimeTypeFromIllust fileUrl: " + url + ", fileType: " + result);
         return "image/" + result;
-    }
-
-    private static String getShaftDir(IllustsBean illust) {
-        return isSaveToR18Dir(illust) ? "ShaftImages-R18" : "ShaftImages";
-    }
-
-    private static boolean isSaveToR18Dir(IllustsBean illust){
-        return illust.isR18File() && Shaft.sSettings.isR18DivideSave();
     }
 }

@@ -158,6 +158,14 @@ public class Settings {
 
     private boolean globalSwipeBack = true; // 全局滑动返回
 
+    private boolean illustLongPressDownload = false; // 插画详情长按下载
+
+    private boolean illustDetailShowNavbar = true; // 插画二级详情显示导航栏
+
+    private boolean saveForSeparateAuthor = false; // 不同作者单独保存
+
+    private boolean autoPostLikeWhenDownload = false; // 下载时自动收藏
+
     public String getAppLanguage() {
         if(!TextUtils.isEmpty(appLanguage)){
             return appLanguage;
@@ -502,5 +510,37 @@ public class Settings {
 
     public void setGlobalSwipeBack(boolean globalSwipeBack) {
         this.globalSwipeBack = globalSwipeBack;
+    }
+
+    public boolean isIllustLongPressDownload() {
+        return illustLongPressDownload;
+    }
+
+    public void setIllustLongPressDownload(boolean illustLongPressDownload) {
+        this.illustLongPressDownload = illustLongPressDownload;
+    }
+
+    public boolean isIllustDetailShowNavbar() {
+        return illustDetailShowNavbar;
+    }
+
+    public void setIllustDetailShowNavbar(boolean illustDetailShowNavbar) {
+        this.illustDetailShowNavbar = illustDetailShowNavbar;
+    }
+
+    public boolean isSaveForSeparateAuthor() {
+        return saveForSeparateAuthor;
+    }
+
+    public void setSaveForSeparateAuthor(boolean saveForSeparateAuthor) {
+        this.saveForSeparateAuthor = saveForSeparateAuthor;
+    }
+
+    public boolean isAutoPostLikeWhenDownload() {
+        return autoPostLikeWhenDownload;
+    }
+
+    public void setAutoPostLikeWhenDownload(boolean autoPostLikeWhenDownload) {
+        this.autoPostLikeWhenDownload = autoPostLikeWhenDownload;
     }
 }

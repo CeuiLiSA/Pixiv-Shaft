@@ -172,7 +172,7 @@ public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> im
             dpd.setMaxDate(now);
             dpd.setAccentColor(Common.resolveThemeAttribute(mContext, R.attr.colorPrimary));
             dpd.setThemeDark(mContext.getResources().getBoolean(R.bool.is_night_mode));
-            dpd.show(getFragmentManager(), "DatePickerDialog");
+            dpd.show(getSupportFragmentManager(), "DatePickerDialog");
             return true;
         }
         return super.onOptionsItemSelected(item);

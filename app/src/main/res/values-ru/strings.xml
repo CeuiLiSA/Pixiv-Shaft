@@ -559,7 +559,7 @@
   <string name="string_392">Частный</string>
   <string name="string_391">Общественные</string>
   <string name="string_390">Все</string>
-  <string name="string_393">Преобразование страницы иллюстрации</string>
+  <string name="string_393">Преобразование страницы дополнительных сведений иллюстрации</string>
   <string name="string_394">Текст</string>
   <string name="string_395">Ключевое слово</string>
   <string name="string_396">Показывать похожие работы при сборе</string>
@@ -569,4 +569,12 @@
   <string name="string_400">Обнаружено, что в аккаунте не открыта опция R18, хотите ли вы ее открыть?</string>
   <string name="string_401">продолжать использовать</string>
   <string name="string_402">Перейти к включению</string>
+  <string name="string_403">Выберите избранное</string>
+  <string name="string_404">Выбрать не загружено</string>
+  <string name="string_405">Подробности иллюстрации долгое нажатие для загрузки</string>
+  <string name="string_406">Панель навигации отображения дополнительных деталей иллюстрации</string>
+  <string name="string_407">Сохранить в отдельную папку по автору</string>
+  <string name="string_408">Формат URL неверный</string>
+  <string name="string_409">Автоматический сбор при скачивании</string>
+  <string name="string_410">Размер исходного изображения, найденного по изображению, превышает предел</string>
 </resources>

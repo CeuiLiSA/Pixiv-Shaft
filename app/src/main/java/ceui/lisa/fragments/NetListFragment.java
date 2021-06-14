@@ -55,17 +55,14 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
     protected RemoteRepo<Response> mRemoteRepo;
     protected Response mResponse;
     protected BroadcastReceiver mReceiver = null, dataReceiver = null, scrollReceiver = null;
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        uuid = UUID.randomUUID().toString();
-    }
+    protected boolean isLoading = false;
 
     @Override
     public void fresh() {
         if (!mRemoteRepo.localData()) {
             emptyRela.setVisibility(View.INVISIBLE);
+            if(isLoading) return;
+            isLoading = true;
             mRemoteRepo.getFirstData(new NullCtrl<Response>() {
                 @Override
                 public void success(Response response) {
@@ -106,6 +103,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                 @Override
                 public void must(boolean isSuccess) {
                     mRefreshLayout.finishRefresh(isSuccess);
+                    isLoading = false;
                 }
 
                 @Override
@@ -131,6 +129,8 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
     @Override
     public void loadMore() {
         if (!TextUtils.isEmpty(mRemoteRepo.getNextUrl())) {
+            if(isLoading) return;
+            isLoading = true;
             mRemoteRepo.getNextData(new NullCtrl<Response>() {
                 @Override
                 public void success(Response response) {
@@ -157,6 +157,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                 @Override
                 public void must(boolean isSuccess) {
                     mRefreshLayout.finishLoadMore(isSuccess);
+                    isLoading = false;
                 }
             });
         } else {
@@ -210,11 +211,15 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
             intentFilter.addAction(Params.LIKED_NOVEL);
             LocalBroadcastManager.getInstance(mContext).registerReceiver(mReceiver, intentFilter);
         }
+
+        // 预加载
+        if (mAdapter instanceof IAdapter) {
+            mAdapter.onPreload = this::loadMore;
+        }
     }
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
         if (mReceiver != null) {
             LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mReceiver);
         }
@@ -224,6 +229,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
         if (scrollReceiver != null) {
             LocalBroadcastManager.getInstance(mContext).unregisterReceiver(scrollReceiver);
         }
+        super.onDestroy();
     }
 
     private void addPageLoadReceiver() {
@@ -234,31 +240,28 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                 Bundle bundle = intent.getExtras();
                 if (bundle != null) {
                     //接受VActivity传过来的ListIllust 数据
-                    PageData pageData = Container.get().getPage(uuid);
-                    if (pageData != null) {
-                        if (TextUtils.equals(pageData.getUUID(), uuid)) {
-                            ListIllust listIllust = (ListIllust) bundle.getSerializable(Params.CONTENT);
-                            if (listIllust != null){
-                                if (!Common.isEmpty(listIllust.getList())) {
-                                    if (!isAdded()) {
-                                        return;
-                                    }
-                                    mResponse = (Response) listIllust;
-                                    if (!Common.isEmpty(mResponse.getList())) {
-                                        beforeNextLoad(mResponse.getList());
-                                        mModel.load(mResponse.getList(), false);
-                                        allItems = mModel.getContent();
-                                        onNextLoaded(mResponse.getList());
-                                        mAdapter.notifyItemRangeInserted(getStartSize(), mResponse.getList().size());
-                                    }
-                                    mRemoteRepo.setNextUrl(mResponse.getNextUrl());
-                                    mAdapter.setNextUrl(mResponse.getNextUrl());
-                                    if (!TextUtils.isEmpty(mResponse.getNextUrl())) {
-                                        mRefreshLayout.setRefreshFooter(new ClassicsFooter(mContext));
-                                    } else {
-                                        mRefreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
-                                    }
-                                }
+                    final String intentUUID = intent.getStringExtra(Params.PAGE_UUID);
+                    PageData pageData = Container.get().getPage(intentUUID);
+                    if (pageData != null && TextUtils.equals(pageData.getUUID(), uuid)) {
+                        ListIllust listIllust = (ListIllust) bundle.getSerializable(Params.CONTENT);
+                        if (listIllust != null && !Common.isEmpty(listIllust.getList())) {
+                            if (!isAdded()) {
+                                return;
+                            }
+                            mResponse = (Response) listIllust;
+                            if (!Common.isEmpty(mResponse.getList())) {
+                                beforeNextLoad(mResponse.getList());
+                                mModel.load(mResponse.getList(), false);
+                                allItems = mModel.getContent();
+                                onNextLoaded(mResponse.getList());
+                                mAdapter.notifyItemRangeInserted(getStartSize(), mResponse.getList().size());
+                            }
+                            mRemoteRepo.setNextUrl(mResponse.getNextUrl());
+                            mAdapter.setNextUrl(mResponse.getNextUrl());
+                            if (!TextUtils.isEmpty(mResponse.getNextUrl())) {
+                                mRefreshLayout.setRefreshFooter(new ClassicsFooter(mContext));
+                            } else {
+                                mRefreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
                             }
                         }
                     }

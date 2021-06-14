@@ -7,9 +7,6 @@ import java.io.File;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 
-import static android.os.Environment.DIRECTORY_PICTURES;
-import static ceui.lisa.utils.Settings.FILE_PATH_SINGLE_R18;
-
 public class LegacyFile implements FileProxy {
 
     private static final String GIF_CACHE = "/gif cache";
@@ -19,7 +16,7 @@ public class LegacyFile implements FileProxy {
     public File imageCacheFolder(Context context) {
         File cacheDir = new File(context.getCacheDir().getPath() + IMAGE_CACHE);
         if (!cacheDir.exists()) {
-            cacheDir.mkdir();
+            cacheDir.mkdirs();
         }
         Common.showLog("LegacyFile imageCacheFolder " + cacheDir.getPath());
         return cacheDir;
@@ -29,7 +26,7 @@ public class LegacyFile implements FileProxy {
     public File gifCacheFolder(Context context) {
         File cacheDir = new File(context.getExternalCacheDir().getPath() + GIF_CACHE);
         if (!cacheDir.exists()) {
-            cacheDir.mkdir();
+            cacheDir.mkdirs();
         }
         Common.showLog("LegacyFile gifCacheFolder " + cacheDir.getPath());
         return cacheDir;
@@ -56,7 +53,7 @@ public class LegacyFile implements FileProxy {
         String folderName = new FileName().unzipName(illust);
         File unzipDirFile = new File(gifCacheFolder(context).getPath() + "/" + folderName);
         if (!unzipDirFile.exists()) {
-            unzipDirFile.mkdir();
+            unzipDirFile.mkdirs();
         }
         Common.showLog("LegacyFile gifUnzipFolder " + unzipDirFile.getPath());
         return unzipDirFile;

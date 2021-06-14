@@ -45,6 +45,7 @@ import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.database.MuteEntity;
 import ceui.lisa.database.SearchEntity;
 import ceui.lisa.file.LegacyFile;
+import ceui.lisa.file.OutPut;
 import ceui.lisa.fragments.FragmentLogin;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.http.NullCtrl;
@@ -62,9 +63,6 @@ import ceui.lisa.models.TagsBean;
 import ceui.lisa.models.UserBean;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.models.IllustsBean;
-import io.reactivex.Observable;
-import io.reactivex.ObservableEmitter;
-import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
@@ -76,6 +74,10 @@ import static com.blankj.utilcode.util.StringUtils.getString;
 
 
 public class PixivOperate {
+
+    private static Map<Integer,Back> sBack =  new HashMap<Integer,Back>();
+    private static Map<Integer, Long> gifEncodingWorkSet = new HashMap<Integer, Long>();
+    private static final long reEncodeTimeThresholdMillis = 60 * 1000;
 
     public static void refreshUserData(UserModel userModel, Callback<UserModel> callback) {
         Call<UserModel> call = Retro.getAccountApi().newRefreshToken(
@@ -126,6 +128,14 @@ public class PixivOperate {
                         Common.showToast(getString(R.string.cancel_like));
                     }
                 });
+    }
+
+    public static void postLikeDefaultStarType(IllustsBean illustsBean) {
+        if(Shaft.sSettings.isPrivateStar()){
+            postLike(illustsBean, Params.TYPE_PRIVATE, false, 0);
+        }else{
+            postLike(illustsBean, Params.TYPE_PUBLUC, false, 0);
+        }
     }
 
     public static void postLike(IllustsBean illustsBean, String starType) {
@@ -618,10 +628,16 @@ public class PixivOperate {
         }, new TryCatchObserverImpl<>());
     }
 
-    public static void encodeGifV2(Context context, File parentFile, IllustsBean illustsBean){
+    public static void encodeGifV2(Context context, File parentFile, IllustsBean illustsBean, boolean autoSave){
         RxRun.runOn(new RxRunnable<Void>() {
             @Override
             public Void execute() throws Exception {
+                long currentTimeMillis = System.currentTimeMillis();
+                if(gifEncodingWorkSet.containsKey(illustsBean.getId())
+                        && (currentTimeMillis - gifEncodingWorkSet.get(illustsBean.getId())) < reEncodeTimeThresholdMillis){
+                    return null;
+                }
+                gifEncodingWorkSet.put(illustsBean.getId(), currentTimeMillis);
                 Common.showLog("encodeGif 开始生成gif图");
                 final File[] listfile = parentFile.listFiles();
 
@@ -655,13 +671,13 @@ public class PixivOperate {
                     if (frameCount == framesBeans.size()) {
                         Common.showLog("使用返回的delay 00");
 
-                        Back back = sBack.get(illustsBean.getId());
                         for (int i = 0; i < frameCount; i++) {
                             Bitmap bitmap = BitmapFactory.decodeFile(allFiles.get(i).getPath());
                             Common.showLog("编码中 00 " + frameCount + " " + (i + 1));
                             animatedGifEncoder.setDelay(framesBeans.get(i).getDelay());
                             animatedGifEncoder.addFrame(bitmap);
 
+                            Back back = sBack.get(illustsBean.getId());
                             if (back != null) {
                                 float proc = i / (float) (frameCount - 1);
                                 back.invoke(proc);
@@ -696,7 +712,12 @@ public class PixivOperate {
                 outStream.write(bos.toByteArray());
                 outStream.close();
 
+                if(autoSave){
+                    OutPut.outPutGif(context, gifFile,illustsBean);
+                }
+
                 Common.showLog("gifFile gifFile " + FileUtils.getSize(gifFile));
+                gifEncodingWorkSet.remove(illustsBean.getId());
 
                 Intent intent = new Intent(Params.PLAY_GIF);
                 intent.putExtra(Params.ID, illustsBean.getId());
@@ -707,6 +728,10 @@ public class PixivOperate {
     }
 
     public static void unzipAndePlay(Context context, IllustsBean illustsBean) {
+        unzipAndePlay(context, illustsBean, false);
+    }
+
+    public static void unzipAndePlay(Context context, IllustsBean illustsBean, boolean autoSave) {
         try {
             LegacyFile legacyFile = new LegacyFile();
             File fromZip = legacyFile.gifZipFile(context, illustsBean);
@@ -714,13 +739,11 @@ public class PixivOperate {
             justUnzipFile(fromZip, toFolder);
             // encodeGif(context, toFolder, illustsBean);
             // 速度快一点，效果待观察
-            encodeGifV2(context, toFolder, illustsBean);
+            encodeGifV2(context, toFolder, illustsBean, autoSave);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
-    private static Map<Integer,Back> sBack =  new HashMap<Integer,Back>();
 
     public static void setBack(int illustId, Back back) {
         sBack.put(illustId, back);

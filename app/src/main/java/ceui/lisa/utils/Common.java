@@ -7,7 +7,10 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Build;
+import android.provider.OpenableColumns;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
@@ -35,6 +38,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.IntStream;
 
 import androidx.core.content.ContextCompat;
 import ceui.lisa.R;
@@ -321,13 +325,21 @@ public class Common {
      * 检查插画是否已经下载过
      * */
     public static boolean isIllustDownloaded(IllustsBean illust) {
-        //只有1P的作品才检查是否下载过
         try {
             if (illust.getPage_count() == 1) {
                 if (Shaft.sSettings.getDownloadWay() == 1) {
                     return SAFile.isFileExists(Shaft.getContext(), illust);
                 } else {
                     return FileCreator.isExist(illust, 0);
+                }
+            } else {
+                IntStream pageIndexStream = IntStream.range(0, illust.getPage_count() - 1);
+                if (Shaft.sSettings.getDownloadWay() == 1) {
+                    return pageIndexStream
+                            .allMatch(index -> SAFile.isFileExists(Shaft.getContext(), illust, index));
+                } else {
+                    return pageIndexStream
+                            .allMatch(index -> FileCreator.isExist(illust, index));
                 }
             }
         } catch (Exception e) {
@@ -347,7 +359,7 @@ public class Common {
                 } else {
                     return FileCreator.isExist(illust, 0);
                 }
-            }else{
+            } else {
                 if (Shaft.sSettings.getDownloadWay() == 1) {
                     return SAFile.isFileExists(Shaft.getContext(), illust, index);
                 } else {
@@ -395,5 +407,23 @@ public class Common {
             return ContextCompat.getColor(Shaft.getContext(), R.color.white);
         }
         return color;
+    }
+
+    /**
+     * 文件大小是否满足反向搜索条件
+     *
+     * @param uri 文件地址
+     * @return 大小是否可搜索
+     */
+    public static boolean isFileSizeOkToReverseSearch(Uri uri) {
+        Cursor cursor = Shaft.getContext().getContentResolver().query(uri, null, null, null, null);
+        if (cursor == null) {
+            return false;
+        }
+        int sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE);
+        cursor.moveToFirst();
+        boolean ret = cursor.getLong(sizeIndex) <= ReverseImage.IMAGE_MAX_SIZE;
+        cursor.close();
+        return ret;
     }
 }

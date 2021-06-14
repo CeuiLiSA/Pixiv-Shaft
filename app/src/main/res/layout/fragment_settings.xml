@@ -136,11 +136,13 @@
 
                         </RelativeLayout>
 
-                        <View style="@style/half_divider" />
+                        <View style="@style/half_divider"
+                            android:visibility="gone" />
 
                         <RelativeLayout
                             android:id="@+id/premium_space"
-                            style="@style/ripple_rela">
+                            style="@style/ripple_rela"
+                            android:visibility="gone">
 
                             <TextView
                                 style="@style/setting_text_left"
@@ -453,6 +455,21 @@
                                 android:id="@+id/user_new_user"
                                 style="@style/setting_right_switch"/>
 
+                        </RelativeLayout>
+
+                        <View style="@style/half_divider" />
+
+                        <RelativeLayout
+                            android:id="@+id/illust_detail_show_navbar_rela"
+                            style="@style/ripple_rela">
+
+                            <TextView
+                                style="@style/setting_text_left"
+                                android:text="@string/string_406" />
+
+                            <androidx.appcompat.widget.SwitchCompat
+                                android:id="@+id/illust_detail_show_navbar"
+                                style="@style/setting_right_switch"/>
 
                         </RelativeLayout>
 
@@ -617,6 +634,38 @@
                                 android:textSize="14sp">
 
                             </TextView>
+                        </RelativeLayout>
+
+                        <View style="@style/half_divider" />
+
+                        <RelativeLayout
+                            android:id="@+id/save_for_separate_author_rela"
+                            style="@style/ripple_rela">
+
+                            <TextView
+                                style="@style/setting_text_left"
+                                android:text="@string/string_407" />
+
+                            <androidx.appcompat.widget.SwitchCompat
+                                android:id="@+id/save_for_separate_author"
+                                style="@style/setting_right_switch"/>
+
+                        </RelativeLayout>
+
+                        <View style="@style/half_divider" />
+
+                        <RelativeLayout
+                            android:id="@+id/illust_long_press_download_rela"
+                            style="@style/ripple_rela">
+
+                            <TextView
+                                style="@style/setting_text_left"
+                                android:text="@string/string_405" />
+
+                            <androidx.appcompat.widget.SwitchCompat
+                                android:id="@+id/illust_long_press_download"
+                                style="@style/setting_right_switch"/>
+
                         </RelativeLayout>
 
                         <View style="@style/half_divider" />
@@ -822,6 +871,22 @@
                                 android:id="@+id/global_swipe_back"
                                 style="@style/setting_right_switch"/>
 
+
+                        </RelativeLayout>
+
+                        <View style="@style/half_divider" />
+
+                        <RelativeLayout
+                            android:id="@+id/download_auto_post_like_rela"
+                            style="@style/ripple_rela">
+
+                            <TextView
+                                style="@style/setting_text_left"
+                                android:text="@string/string_409" />
+
+                            <androidx.appcompat.widget.SwitchCompat
+                                android:id="@+id/download_auto_post_like"
+                                style="@style/setting_right_switch"/>
 
                         </RelativeLayout>
 

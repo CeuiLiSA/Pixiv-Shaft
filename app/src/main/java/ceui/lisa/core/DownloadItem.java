@@ -22,6 +22,7 @@ public class DownloadItem implements Serializable {
     private boolean isProcessed;
     private final IllustsBean illust;
     private int index;
+    private boolean autoSave = true;
 
     public DownloadItem(IllustsBean illustsBean, int index) {
         this.illust = illustsBean;
@@ -86,6 +87,14 @@ public class DownloadItem implements Serializable {
     public void setUrl(String url) {
         Common.showLog("DownloadItem 准备下载：" + url);
         this.url = url;
+    }
+
+    public boolean isAutoSave() {
+        return autoSave;
+    }
+
+    public void setAutoSave(boolean autoSave) {
+        this.autoSave = autoSave;
     }
 
     public boolean isSame(DownloadItem next) {
