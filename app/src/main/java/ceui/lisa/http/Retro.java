@@ -40,6 +40,10 @@ public class Retro {
         return buildRetrofit(ACCOUNT_BASE_URL, false).create(AccountApi.class);
     }
 
+    public static AccountTokenApi getAccountTokenApi(){
+        return buildRetrofit(ACCOUNT_BASE_URL).create(AccountTokenApi.class);
+    }
+
     public static ResourceApi getResourceApi(){
         return buildPlainRetrofit(JSDELIVR_BASE_URL).create(ResourceApi.class);
     }

@@ -80,7 +80,7 @@ public class PixivOperate {
     private static final long reEncodeTimeThresholdMillis = 60 * 1000;
 
     public static void refreshUserData(UserModel userModel, Callback<UserModel> callback) {
-        Call<UserModel> call = Retro.getAccountApi().newRefreshToken(
+        Call<UserModel> call = Retro.getAccountTokenApi().newRefreshToken(
                 FragmentLogin.CLIENT_ID,
                 FragmentLogin.CLIENT_SECRET,
                 FragmentLogin.REFRESH_TOKEN,

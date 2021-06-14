@@ -89,7 +89,7 @@ public class TokenInterceptor implements Interceptor {
                 Shaft.sUserModel.getAccess_token().length() != TOKEN_LENGTH) {
             Common.showLog("getNewToken 主动获取最新的token old:" + tokenForThisRequest + " new:" + Shaft.sUserModel.getAccess_token());
             UserModel userModel = Local.getUser();
-            Call<UserModel> call = Retro.getAccountApi().newRefreshToken(
+            Call<UserModel> call = Retro.getAccountTokenApi().newRefreshToken(
                     FragmentLogin.CLIENT_ID,
                     FragmentLogin.CLIENT_SECRET,
                     FragmentLogin.REFRESH_TOKEN,
