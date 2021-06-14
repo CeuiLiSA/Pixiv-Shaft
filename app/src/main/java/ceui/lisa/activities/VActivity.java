@@ -71,6 +71,7 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                     return pageData.getList().size();
                 }
             });
+            baseBind.viewPager.setOffscreenPageLimit(2);
 
             ViewPager.OnPageChangeListener listener = new ViewPager.OnPageChangeListener() {
                 @Override
