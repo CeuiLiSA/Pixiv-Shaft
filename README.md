@@ -57,7 +57,7 @@
 
 [Releases](https://github.com/CeuiLiSA/Pixiv-Shaft/releases)
 
-## 6.FAQ
+## 6.常见问题 FAQ
 
 [Link](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/FAQ.md)
 
