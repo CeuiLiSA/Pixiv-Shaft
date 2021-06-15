@@ -39,6 +39,7 @@ import ceui.lisa.fragments.FragmentLeft;
 import ceui.lisa.fragments.FragmentRight;
 import ceui.lisa.fragments.FragmentViewPager;
 import ceui.lisa.helper.DrawerLayoutHelper;
+import ceui.lisa.jetpack.NavActivity;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
@@ -417,10 +418,9 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             Dev.refreshUser = false;
         }
 
-//        if (Dev.isDev) {
-//            Intent intent = new Intent(mContext, TemplateActivity.class);
-//            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "测试测试");
-//            startActivity(intent);
-//        }
+        if (Dev.isDev) {
+            Intent intent = new Intent(mContext, NavActivity.class);
+            startActivity(intent);
+        }
     }
 }
