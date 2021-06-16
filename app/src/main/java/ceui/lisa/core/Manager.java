@@ -3,6 +3,9 @@ package ceui.lisa.core;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
+
+import com.blankj.utilcode.util.FileUtils;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
@@ -15,6 +18,7 @@ import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.database.DownloadingEntity;
 import ceui.lisa.download.ImageSaver;
+import ceui.lisa.file.LegacyFile;
 import ceui.lisa.helper.Android10DownloadFactory22;
 import ceui.lisa.helper.SAFactory;
 import ceui.lisa.interfaces.Callback;
@@ -165,6 +169,13 @@ public class Manager {
         UriFactory factory;
         if (Shaft.sSettings.getDownloadWay() == 0 || bean.getIllust().isGif()) {
             factory = new Android10DownloadFactory22(context, bean);
+            // 考虑到有暂停继续功能，仅重新下载时移除因异常中断导致的部分文件
+            if (bean.getIllust().isGif() && nonius == 0) {
+                File file = new LegacyFile().gifZipFile(context, bean.getIllust());
+                if (file != null && file.exists() && file.length() > 0) {
+                    FileUtils.delete(file);
+                }
+            }
         } else {
             factory = new SAFactory(context, bean);
         }
@@ -241,7 +252,11 @@ public class Manager {
                     new ImageSaver(){
                         @Override
                         public File whichFile() {
-                            return new File(factory.query().getPath());
+                            Uri uri = factory.query();
+                            if (uri == null || uri.getPath() == null) {
+                                return null;
+                            }
+                            return new File(uri.getPath());
                         }
                     }.execute(context);
 

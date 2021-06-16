@@ -5,10 +5,10 @@ import androidx.lifecycle.ViewModel
 
 //SOME TEST CODE
 
-class SimpleTextViewModel: ViewModel() {
+class SimpleTextViewModel : ViewModel() {
     val text = MutableLiveData<String?>()
 }
 
-class SingleValueViewModel<T>: ViewModel() {
+class SingleValueViewModel<T> : ViewModel() {
     val content = MutableLiveData<T>()
 }
