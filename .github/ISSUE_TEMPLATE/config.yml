@@ -1,4 +1,4 @@
-blank_issues_enabled: false
+blank_issues_enabled: true
 contact_links:
   - name: FAQ / 常见问题与解答
     url: https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/FAQ.md
