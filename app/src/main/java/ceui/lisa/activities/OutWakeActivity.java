@@ -32,6 +32,7 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
 
     public static final String HOST_ME = "pixiv.me";
+    public static final String HOST_PIXIVISION = "pixivision.net";
     public static boolean isNetWorking = false;
 
     @Override
@@ -115,6 +116,15 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                                 i.putExtra(Params.URL, uriString);
                                 i.putExtra(Params.TITLE, HOST_ME);
                                 i.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
+                                startActivity(i);
+                                finish();
+                                return;
+                            } else if (uriString.contains(HOST_PIXIVISION)) {
+                                Intent i = new Intent(mContext, TemplateActivity.class);
+                                i.putExtra(Params.URL, uriString);
+                                i.putExtra(Params.TITLE, getString(R.string.pixiv_special));
+                                i.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
+                                i.putExtra(Params.PREFER_PRESERVE, true);
                                 startActivity(i);
                                 finish();
                                 return;
