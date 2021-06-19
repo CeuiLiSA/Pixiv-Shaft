@@ -20,7 +20,8 @@
 * 新增小说功能
 * Pixiv特辑
 * R18显示（需自行到官网开启）
-* 过滤垃圾评论
+* 过滤垃圾评论 （设定自行开启）
+* 支持黑暗模式
 
 ## 2.特性
 * 美观大方的界面，融合多家客户端设计优点
@@ -59,7 +60,7 @@
 
 ## 6.常见问题 FAQ
 
-[Link](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/FAQ.md)
+[FAQ](../master/FAQ.md)
 
 
 ### 开源许可
