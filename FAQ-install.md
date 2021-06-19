@@ -10,7 +10,7 @@
 1. 请确认通常解决方法无效之后才进行以下步骤
 2. 以下步骤会使用adb。**`adb`有风险请自行承担**
 3. 开启手机的开发者模式，详细请自行百度/谷歌
-4. 在开发者模式中寻找 "USB侦错"
+4. 在开发者模式中寻找 "USB侦错"并打开
 5. **"USB侦错" 有风险请自行承担**
 6. 找一台电脑，下载[相关工具](https://developer.android.com/studio/releases/platform-tools#downloads "SDK Platform Tools")
 7. (以下默认为windows电脑)
@@ -24,4 +24,6 @@
 15. 在手机浏览[这个repo的latest release](https://github.com/CeuiLiSA/Pixiv-Shaft/releases/latest "Latest Release")或者你想安装的版本
 16. 点开`Assets`部分，点击`app-release.apk`下载
 17. 下载完成后安装
-18. 确认安装成功后，在电脑端
+18. 确认安装成功后，在电脑端关闭`powershell`/`cmd`，并断开USB数据线
+19. 关闭"USB侦错"，点击取消"USB侦错"授权并确认
+20. 划到开发者模式菜单顶部，关闭开发者模式
