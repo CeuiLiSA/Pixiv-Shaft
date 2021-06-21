@@ -81,7 +81,7 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
             }
         }
         baseBind.goQq.setOnClickListener {
-            val choices = arrayOf(getString(R.string.string_385), getString(R.string.string_386), getString(R.string.string_387))
+            val choices = arrayOf(getString(R.string.string_385), getString(R.string.string_386), getString(R.string.string_387), getString(R.string.string_411))
             MenuDialogBuilder(mActivity)
                 .addItems(choices) { dialog, which ->
                     val intent = Intent()
@@ -96,6 +96,10 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
                     } else if (which == 2) {
                         intent.data = Uri.parse(
                             "mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + "wP7NEZdMl11ijJgm0IDQMjZ3kaPQPio6"
+                        )
+                    } else if (which == 3) {
+                        intent.data = Uri.parse(
+                            "mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + "8WwEAkjbS4yOYMtNR17TS-Wghwv8xjNK"
                         )
                     }
                     try {
