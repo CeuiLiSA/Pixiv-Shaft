@@ -82,18 +82,29 @@
 
             </TextView>
 
+            <com.zhy.view.flowlayout.TagFlowLayout
+                android:layout_width="match_parent"
+                android:id="@+id/novel_tag"
+                android:layout_below="@id/series"
+                android:layout_toStartOf="@+id/cover"
+                android:layout_marginStart="@dimen/eight_dp"
+                android:layout_marginEnd="@dimen/eight_dp"
+                android:layout_marginTop="@dimen/four_dp"
+                android:layout_height="wrap_content">
+
+            </com.zhy.view.flowlayout.TagFlowLayout>
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_alignStart="@+id/cover"
                 android:layout_alignEnd="@+id/cover"
+                android:layout_below="@id/cover"
                 android:textSize="12sp"
                 android:id="@+id/how_many_word"
                 android:textStyle="bold"
                 android:gravity="center"
-                android:layout_alignBottom="@+id/cover"
                 android:layout_marginBottom="@dimen/four_dp"
                 android:layout_height="wrap_content">
-
 
             </TextView>
 
@@ -104,8 +115,9 @@
                 app:civ_border_color="@color/dark_bg"
                 app:civ_border_width="1dp"
                 android:layout_marginStart="@dimen/eight_dp"
-                android:layout_alignBottom="@+id/cover"
-                android:layout_marginTop="@dimen/eight_dp"
+                android:layout_below="@id/novel_tag"
+                android:layout_marginTop="@dimen/four_dp"
+                android:layout_marginBottom="@dimen/four_dp"
                 android:layout_marginEnd="@dimen/four_dp"
                 android:layout_height="28dp" />
 
@@ -117,11 +129,11 @@
                 android:shadowDx="1.5"
                 android:shadowDy="1.5"
                 android:layout_toStartOf="@+id/like"
+                android:layout_toEndOf="@+id/user_head"
+                android:layout_alignBottom="@id/user_head"
                 android:maxLines="1"
                 android:ellipsize="end"
-                android:layout_toEndOf="@+id/user_head"
-                android:layout_alignBottom="@+id/cover"
-                android:layout_marginBottom="5dp"
+                android:layout_marginBottom="@dimen/four_dp"
                 android:shadowRadius="1.5"
                 android:layout_marginTop="14dp"
                 android:layout_marginEnd="@dimen/eight_dp"
@@ -141,7 +153,6 @@
                 android:layout_alignBaseline="@+id/author"
                 android:layout_toStartOf="@+id/cover"
                 android:text="@string/string_122">
-
 
             </Button>
 
