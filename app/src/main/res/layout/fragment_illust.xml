@@ -70,7 +70,9 @@
                 app:qmui_backgroundColor="@color/fragment_center"
                 app:qmui_borderWidth="0dp"
                 app:qmui_radiusTopLeft="20dp"
-                app:qmui_radiusTopRight="20dp">
+                app:qmui_radiusTopRight="20dp"
+                android:clickable="true"
+                android:focusable="true">
 
                 <LinearLayout
                     android:id="@+id/bottom_bar"

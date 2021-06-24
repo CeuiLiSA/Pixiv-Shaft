@@ -11,6 +11,7 @@ import androidx.databinding.ViewDataBinding;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
+import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.NAdapter;
 import ceui.lisa.core.BaseRepo;
@@ -31,6 +32,11 @@ public class FragmentSearchNovel extends NetListFragment<FragmentBaseListBinding
         FragmentSearchNovel fragment = new FragmentSearchNovel();
         fragment.setArguments(args);
         return fragment;
+    }
+
+    @Override
+    public void initLayout() {
+        mLayoutID = R.layout.fragment_base_scroll_list;
     }
 
     @Override
