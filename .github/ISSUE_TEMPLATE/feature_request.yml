@@ -1,0 +1,43 @@
+name: 🌟 Feature request / 功能建议
+description: Suggest a feature to improve this app / 为什么不加上这个？
+labels: [enhancement]
+body:
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements / 确认事项
+      description: I acknowledge these / 我确认以下事项
+      options:
+        - label: I have updated to the latest version of the app / 已经更新到最新版
+          required: true
+        - label: I have tried the FAQ / 试过FAQ了. [FAQ](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/FAQ.md)
+          required: true
+        - label: I have searched the existing issues and this is new ticket **NOT** a duplicate or related to another issue / 搜索过其他issue，确实不是重复问题
+          required: true
+        - label: I will fill out the title and the information in this template / 填好标题和内容
+          required: true
+
+  - type: textarea
+    id: feature-description
+    attributes:
+      label: What feature should be added? / 需要加上什么功能
+      description: Explain why this should be added
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: official-support
+    attributes:
+      options:
+        - label: Is this feature supported by the official pixiv app? / 官方App是否支持
+          required: true
+
+  - type: input
+    id: third-party-support
+    attributes:
+      label: Is this feature supported by any other third-party pixiv app? / 第三方App是否支持
+
+  - type: textarea
+    id: other-info
+    attributes:
+      label: Any other information can be help? / 其它信息

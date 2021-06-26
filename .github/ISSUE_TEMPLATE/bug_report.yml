@@ -1,6 +1,5 @@
 name: 🐞 Bug report / 问题反馈
 description: Report a bug / 至少不应该是这样…
-title: "[Bug] "
 labels: [bug]
 body:
   - type: checkboxes
@@ -35,9 +34,9 @@ body:
     validations:
       required: true
   - type: input
-    id: device-brand
+    id: device-model
     attributes:
-      label: Device brand
+      label: Device model
     validations:
       required: true
 
