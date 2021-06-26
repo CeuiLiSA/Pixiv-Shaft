@@ -60,8 +60,8 @@ body:
           1. First step
           2. Second step
           3. Bug occurs
-      validations:
-        required: true
+    validations:
+      required: true
 
   - type: textarea
     id: expected-behavior
