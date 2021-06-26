@@ -19,7 +19,7 @@ body:
           required: true
 
   - type: markdown
-    attriutes:
+    attributes:
       value: |
         Device information / 设备信息
   - type: input
@@ -80,7 +80,7 @@ body:
       required: true
 
   - type: markdown
-    attriutes:
+    attributes:
       value: |
         Provide a logcat record (if necessary) / 如果需要，请提交日志
         You can collect it by using the [following app](https://play.google.com/store/apps/details?id=com.dp.logcatapp) and [instruction](https://help.getpocket.com/article/1073-retrieving-a-pocket-crash-log-on-android)
