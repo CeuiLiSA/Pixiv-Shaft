@@ -103,8 +103,8 @@
 
                 <data android:scheme="http" />
                 <data android:scheme="https" />
-                <data android:host="i.pximg.net" />
 
+                <data android:host="i.pximg.net" />
             </intent-filter>
 
             <intent-filter android:autoVerify="true">
@@ -115,9 +115,9 @@
 
                 <data android:scheme="http" />
                 <data android:scheme="https" />
+
                 <data android:host="www.pixiv.me" />
                 <data android:host="pixiv.me" />
-
             </intent-filter>
 
             <intent-filter android:autoVerify="true">
@@ -136,6 +136,18 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data android:scheme="shaftintent" />
+            </intent-filter>
+
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+
+                <data android:host="www.pixivision.net" />
             </intent-filter>
         </activity>
 

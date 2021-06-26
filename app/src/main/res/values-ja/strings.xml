@@ -551,8 +551,8 @@
   <string name="string_382">シールドが成功しました</string>
   <string name="string_383">シールド解除成功</string>
   <string name="string_384">操作が成功しました</string>
-  <string name="string_385">一群</string>
-  <string name="string_386">二群</string>
+  <string name="string_385">一つのグループ</string>
+  <string name="string_386">二つのグループ</string>
   <string name="string_387">三つのグループ</string>
   <string name="string_388">現在、削除するブロックされたユーザーはありません</string>
   <string name="string_389">これにより、ブロックされたすべてのユーザーが削除されます</string>
@@ -577,4 +577,5 @@
   <string name="string_408">URL形式が正しくありません</string>
   <string name="string_409">ダウンロード時の自動収集</string>
   <string name="string_410">image で検索したソース画像のサイズが制限を超えています</string>
+  <string name="string_411">四つのグループ</string>
 </resources>
