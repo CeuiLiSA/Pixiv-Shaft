@@ -94,16 +94,21 @@ public class HostManager {
                 String finalUrl = before.replace(HOST_OLD, HOST_NEW);
                 Common.showLog("HostManager after0 " + finalUrl);
                 return finalUrl;
-            } else {
+            } else if (Shaft.sSettings.isAutoFuckChina()) {
                 String result = resizeUrl(before);
                 Common.showLog("HostManager after1 " + result);
                 return result;
+            } else {
+                Common.showLog("HostManager after1 " + before);
+                return before;
             }
         } else {
             if (Shaft.sSettings.isUsePixivCat() && !TextUtils.isEmpty(before) && before.contains(HOST_OLD)) {
                 return before.replace(HOST_OLD, HOST_NEW);
-            } else {
+            } else if (Shaft.sSettings.isAutoFuckChina()) {
                 return resizeUrl(before);
+            } else {
+                return before;
             }
         }
     }
