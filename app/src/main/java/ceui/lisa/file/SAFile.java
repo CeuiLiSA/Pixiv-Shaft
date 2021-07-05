@@ -3,6 +3,7 @@ package ceui.lisa.file;
 import android.content.Context;
 import android.net.Uri;
 import android.provider.DocumentsContract;
+import android.text.TextUtils;
 
 import androidx.documentfile.provider.DocumentFile;
 
@@ -18,9 +19,11 @@ public class SAFile {
         DocumentFile root = rootFolder(context);
         String displayName = FileCreator.customFileName(illust, index);
         String id = DocumentsContract.getTreeDocumentId(root.getUri());
-        String subDirectoryName = FileStorageHelper.getShaftIllustDir(illust);
+        String subDirectoryName = FileStorageHelper.getShaftIllustR18DirNameWithInnerR18Folder(illust);
         String authorDirectoryName = FileStorageHelper.getAuthorDirectoryName(illust.getUser());
-        id += "/" + subDirectoryName;
+        if(!TextUtils.isEmpty(subDirectoryName)){
+            id += "/" + subDirectoryName;
+        }
         boolean saveForSeparateAuthor = authorDirectoryName.length() > 0;
         if(saveForSeparateAuthor){
             id += "/" + authorDirectoryName;
@@ -37,15 +40,18 @@ public class SAFile {
         }
 
         DocumentFile finalDirectory;
-        DocumentFile subDirectory = root.findFile(subDirectoryName);
-        if(subDirectory == null){
-            subDirectory = root.createDirectory(subDirectoryName);
+        DocumentFile subDirectory = root;
+        if (!TextUtils.isEmpty(subDirectoryName)) {
+            subDirectory = root.findFile(subDirectoryName);
+            if (subDirectory == null) {
+                subDirectory = root.createDirectory(subDirectoryName);
+            }
         }
         finalDirectory = subDirectory;
 
-        if(saveForSeparateAuthor){
+        if (saveForSeparateAuthor) {
             DocumentFile authorDirectory = subDirectory.findFile(authorDirectoryName);
-            if(authorDirectory == null){
+            if (authorDirectory == null) {
                 authorDirectory = subDirectory.createDirectory(authorDirectoryName);
             }
             finalDirectory = authorDirectory;
