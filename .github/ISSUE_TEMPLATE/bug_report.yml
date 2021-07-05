@@ -1,0 +1,92 @@
+name: 🐞 Bug report / 问题反馈
+description: Report a bug / 至少不应该是这样…
+labels: [bug]
+body:
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements / 确认事项
+      description: I acknowledge these / 我确认以下事项
+      options:
+        - label: I have updated to the latest version of the app / 已经更新到最新版
+          required: true
+        - label: I have tried the FAQ / 试过FAQ了. [FAQ](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/FAQ.md)
+          required: true
+        - label: I have searched the existing issues and this is new ticket **NOT** a duplicate or related to another issue / 搜索过其他issue，确实不是重复问题
+          required: true
+        - label: I will fill out the title and the information in this template / 填好标题和内容
+          required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        Device information / 设备信息
+  - type: input
+    id: shaft-version
+    attributes:
+      label: Shaft app version
+    validations:
+      required: true
+  - type: input
+    id: android-version
+    attributes:
+      label: Android system version
+    validations:
+      required: true
+  - type: input
+    id: device-model
+    attributes:
+      label: Device model
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: network-info
+    attributes:
+      label: Network information (if necessary) / 如果需要（无法看图之类），请提交网络信息
+      options:
+        - label: Can directly access to pixiv website / 可直接访问网页版pixiv
+        - label: Use proxy / 使用了代理
+        - label: Settings-Direct open enabled / 开启直连
+        - label: Settings-Use pixivcat enabled / 开启使用pixivcat代理
+
+  - type: textarea
+    id: reproduce-steps
+    attributes:
+      label: Steps to reproduce / 复现步骤
+      placeholder: |
+        Example:
+          1. First step
+          2. Second step
+          3. Bug occurs
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected behavior / 期望行为
+      description: Describe what should have happened
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual behavior / 实际行为
+      description: Describe what happens instead
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        Provide a logcat record (if necessary) / 如果需要，请提交日志
+        You can collect it by using the [following app](https://play.google.com/store/apps/details?id=com.dp.logcatapp) and [instruction](https://help.getpocket.com/article/1073-retrieving-a-pocket-crash-log-on-android)
+
+  - type: textarea
+    id: other-details
+    attributes:
+      label: Other details / 其它细节
+      placeholder: |
+        Additional details and attachments.
