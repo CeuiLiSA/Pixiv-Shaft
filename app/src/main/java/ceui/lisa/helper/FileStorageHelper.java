@@ -60,6 +60,7 @@ public class FileStorageHelper {
         return "ShaftImages" + getShaftIllustPathPartWithInnerR18Folder(isR18);
     }
 
+    /*
     public static String getShaftIllustDir(IllustsBean illustsBean) {
         return getShaftIllustDir(isSaveToR18Dir(illustsBean));
     }
@@ -67,6 +68,7 @@ public class FileStorageHelper {
     private static String getShaftIllustDir(boolean isR18) {
         return isR18 ? "ShaftImages-R18" : "ShaftImages";
     }
+     */
 
     private static boolean isSaveToR18Dir(IllustsBean illustsBean){
         return illustsBean.isR18File() && Shaft.sSettings.isR18DivideSave();
