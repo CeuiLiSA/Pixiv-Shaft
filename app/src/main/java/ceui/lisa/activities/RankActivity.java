@@ -167,7 +167,7 @@ public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> im
                 );
             }
             Calendar start = Calendar.getInstance();
-            start.set(2008, 1, 1);
+            start.set(2008, 0, 1);
             dpd.setMinDate(start);
             dpd.setMaxDate(now);
             dpd.setAccentColor(Common.resolveThemeAttribute(mContext, R.attr.colorPrimary));
