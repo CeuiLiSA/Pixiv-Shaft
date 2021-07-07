@@ -133,6 +133,14 @@ public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
                 mActivity.finish();
             }
         });
+
+        binding.getRoot().setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Common.copy(mContext, String.valueOf(userModel.getUser().getAccount()));
+                return true;
+            }
+        });
         baseBind.userList.addView(binding.getRoot());
     }
 }

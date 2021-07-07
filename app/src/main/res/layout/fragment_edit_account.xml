@@ -52,9 +52,23 @@
                 app:met_textColor="@color/dark_text"
                 app:met_singleLineEllipsis="true" />
 
+            <com.rengwuxian.materialedittext.MaterialEditText
+                android:id="@+id/user_old_password"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/tweenty_four_dp"
+                android:layout_marginTop="@dimen/sixteen_dp"
+                android:layout_marginEnd="@dimen/tweenty_four_dp"
+                android:hint="@string/string_10"
+                app:met_floatingLabel="highlight"
+                app:met_baseColor="@color/rank_text_color"
+                app:met_primaryColor="?attr/colorPrimary"
+                app:met_textColor="@color/dark_text"
+                app:met_singleLineEllipsis="true"
+                android:visibility="gone"/>
 
             <com.rengwuxian.materialedittext.MaterialEditText
-                android:id="@+id/user_password"
+                android:id="@+id/user_new_password"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/tweenty_four_dp"

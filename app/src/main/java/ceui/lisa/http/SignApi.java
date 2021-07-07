@@ -26,7 +26,7 @@ public interface SignApi {
      * @return
      */
     @FormUrlEncoded
-    @POST("/api/account/edit")
+    @POST("/api/v2/account/edit")
     Observable<AccountEditResponse> edit(@Header("Authorization") String token,
                                          @Field("new_mail_address") String new_mail_address,
                                          @Field("new_user_account") String new_user_account,
@@ -42,7 +42,7 @@ public interface SignApi {
      * @return
      */
     @FormUrlEncoded
-    @POST("/api/account/edit")
+    @POST("/api/v2/account/edit")
     Observable<AccountEditResponse> changePassword(@Header("Authorization") String token,
                                                    @Field("current_password") String current_password,
                                                    @Field("new_password") String new_password);
@@ -57,14 +57,14 @@ public interface SignApi {
      * @return
      */
     @FormUrlEncoded
-    @POST("/api/account/edit")
+    @POST("/api/v2/account/edit")
     Observable<AccountEditResponse> changePasswordPixivID(@Header("Authorization") String token,
                                                    @Field("new_user_account") String new_user_account,
                                                    @Field("current_password") String current_password,
                                                    @Field("new_password") String new_password);
 
     @FormUrlEncoded
-    @POST("/api/account/edit")
+    @POST("/api/v2/account/edit")
     Observable<AccountEditResponse> changePixivID(@Header("Authorization") String token,
                                                           @Field("new_user_account") String new_user_account,
                                                           @Field("current_password") String current_password);
@@ -78,13 +78,13 @@ public interface SignApi {
      * @return
      */
     @FormUrlEncoded
-    @POST("/api/account/edit")
+    @POST("/api/v2/account/edit")
     Observable<AccountEditResponse> changeEmail(@Header("Authorization") String token,
                                                    @Field("new_mail_address") String new_mail_address,
                                                    @Field("current_password") String current_password);
 
     @FormUrlEncoded
-    @POST("/api/account/edit")
+    @POST("/api/v2/account/edit")
     Observable<AccountEditResponse> changeEmailAndPixivID(@Header("Authorization") String token,
                                                 @Field("new_mail_address") String new_mail_address,
                                                 @Field("new_user_account") String new_user_account,
@@ -100,7 +100,7 @@ public interface SignApi {
      * @return
      */
     @FormUrlEncoded
-    @POST("/api/account/edit")
+    @POST("/api/v2/account/edit")
     Observable<AccountEditResponse> changeEmailAndPassword(@Header("Authorization") String token,
                                                            @Field("new_mail_address") String new_mail_address,
                                                            @Field("current_password") String current_password,
