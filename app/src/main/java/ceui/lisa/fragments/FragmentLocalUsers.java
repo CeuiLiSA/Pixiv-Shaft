@@ -128,6 +128,7 @@ public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
                 Dev.refreshUser = true;
                 Shaft.sUserModel = userModel;
                 Intent intent = new Intent(mContext, MainActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 MainActivity.newInstance(intent, mContext);
                 mActivity.finish();
             }
