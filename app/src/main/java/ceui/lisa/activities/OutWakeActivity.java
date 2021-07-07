@@ -195,7 +195,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
 
                                         AppDatabase.getAppDatabase(mContext).downloadDao().insertUser(userEntity);
 
-                                        // 检测是否打开R18并提示开启，新注册未验证邮箱用户不提示，因为有邮箱才能登录进设置页？
+                                        // 检测是否打开R18并提示开启，新注册未验证邮箱用户不提示，严格来说只有设置过密码(has_password)才能进设置页，考虑到网页注册只能使用邮箱，故如此限制
                                         if (userModel.getUser().isR18Enabled() || !userModel.getUser().isIs_mail_authorized()) {
                                             mActivity.finish();
                                             Common.restart();
