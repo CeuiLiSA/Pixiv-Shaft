@@ -118,7 +118,8 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             baseBind.loginOut.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    new QMUIDialog.CheckBoxMessageDialogBuilder(getActivity())
+                    QMUIDialog.CheckBoxMessageDialogBuilder builder = new QMUIDialog.CheckBoxMessageDialogBuilder(getActivity());
+                    builder
                             .setTitle(getString(R.string.string_185))
                             .setMessage(getString(R.string.string_186))
                             .setChecked(true)
@@ -132,7 +133,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                             .addAction(R.string.login_out, new QMUIDialogAction.ActionListener() {
                                 @Override
                                 public void onClick(QMUIDialog dialog, int index) {
-                                    Common.logOut(mContext);
+                                    Common.logOut(mContext, builder.isChecked());
                                     mActivity.finish();
                                     dialog.dismiss();
                                 }
