@@ -248,6 +248,36 @@
 
                         <View style="@style/half_divider" />
 
+                        <RelativeLayout
+                            android:id="@+id/show_original_preview_image_rela"
+                            style="@style/ripple_rela">
+
+                            <TextView
+                                style="@style/setting_text_left"
+                                android:id="@+id/show_original_preview_image_mark"
+                                android:layout_marginBottom="@dimen/six_dp"
+                                android:text="@string/string_413" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_toStartOf="@+id/show_original_preview_image"
+                                android:layout_height="wrap_content"
+                                android:layout_below="@+id/show_original_preview_image_mark"
+                                android:layout_marginStart="@dimen/sixteen_dp"
+                                android:layout_marginBottom="@dimen/twelve_dp"
+                                android:textColor="?attr/colorPrimary"
+                                android:ellipsize="start"
+                                android:singleLine="true"
+                                android:text="@string/string_334"
+                                android:textSize="12sp" />
+
+                            <androidx.appcompat.widget.SwitchCompat
+                                android:id="@+id/show_original_preview_image"
+                                style="@style/setting_right_switch"/>
+
+                        </RelativeLayout>
+
+                        <View style="@style/half_divider" />
 
                         <RelativeLayout
                             android:id="@+id/show_original_image_rela"

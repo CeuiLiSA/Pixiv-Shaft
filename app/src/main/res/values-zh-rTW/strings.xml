@@ -496,7 +496,7 @@
   <string name="r_eighteen_male_rank">男性R</string>  
   <string name="r_eighteen_female_rank">女性R</string>  
   <string name="string_331">使用 PixivCat 代理</string>
-  <string name="string_332">詳情/二級詳情頁面顯示原圖</string>  
+  <string name="string_332">二級詳情頁面顯示原圖</string>
   <string name="string_333">加速載入圖片，如果覺得載入變慢了，可以關閉</string>  
   <string name="string_334">原圖畫質好，如果覺得原圖載入太慢了，可以關閉</string>  
   <string name="about_network">網路</string>  
@@ -581,4 +581,5 @@
   <string name="string_410">以圖搜源圖像大小超過限制</string>
   <string name="string_411">四群</string>
   <string name="string_412">生日</string>
+  <string name="string_413">詳情頁面顯示原圖</string>
 </resources>

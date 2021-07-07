@@ -87,6 +87,9 @@ public class Settings {
     //使用pixiv cat 代理 展示图片
     private boolean usePixivCat = false;
 
+    //一级详情FragmentIllust 图片显示原图
+    private boolean showOriginalPreviewImage = false;
+
     //二级详情FragmentImageDetail 图片显示原图
     private boolean showOriginalImage = false;
 
@@ -542,5 +545,13 @@ public class Settings {
 
     public void setAutoPostLikeWhenDownload(boolean autoPostLikeWhenDownload) {
         this.autoPostLikeWhenDownload = autoPostLikeWhenDownload;
+    }
+
+    public boolean isShowOriginalPreviewImage() {
+        return showOriginalPreviewImage;
+    }
+
+    public void setShowOriginalPreviewImage(boolean showOriginalPreviewImage) {
+        this.showOriginalPreviewImage = showOriginalPreviewImage;
     }
 }
