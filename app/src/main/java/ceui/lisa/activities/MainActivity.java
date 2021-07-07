@@ -85,6 +85,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             @Override
             public void onClick(View v) {
                 Common.showUser(mContext, sUserModel);
+                baseBind.drawerLayout.closeDrawer(GravityCompat.START);
             }
         });
         baseBind.navigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
