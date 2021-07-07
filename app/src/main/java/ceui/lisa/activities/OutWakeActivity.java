@@ -195,8 +195,8 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
 
                                         AppDatabase.getAppDatabase(mContext).downloadDao().insertUser(userEntity);
 
-                                        // 检测是否打开R18并提示开启
-                                        if (userModel.getUser().isR18Enabled()) {
+                                        // 检测是否打开R18并提示开启，新注册未验证邮箱用户不提示，因为有邮箱才能登录进设置页？
+                                        if (userModel.getUser().isR18Enabled() || !userModel.getUser().isIs_mail_authorized()) {
                                             mActivity.finish();
                                             Common.restart();
                                         } else {
