@@ -80,6 +80,21 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                             }
                         }
 
+                        if (uri.getPathSegments().contains("novel") && !TextUtils.isEmpty(uri.getQueryParameter("id"))) {
+                            if (isNetWorking) {
+                                return;
+                            }
+                            isNetWorking = true;
+                            String novelId = uri.getQueryParameter("id");
+                            PixivOperate.getNovelByID(sUserModel, Integer.valueOf(novelId), mContext, new Callback<Void>() {
+                                @Override
+                                public void doSomething(Void t) {
+                                    finish();
+                                }
+                            });
+                            return;
+                        }
+
                         if (uri.getPathSegments().contains("users")) {
                             List<String> pathArray = uri.getPathSegments();
                             String userID = pathArray.get(pathArray.size() - 1);
