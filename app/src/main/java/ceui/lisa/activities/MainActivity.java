@@ -88,6 +88,15 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 baseBind.drawerLayout.closeDrawer(GravityCompat.START);
             }
         });
+        userHead.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                boolean filterEnable = Shaft.sSettings.isR18FilterTempEnable();
+                Shaft.sSettings.setR18FilterTempEnable(!filterEnable);
+                Common.showToast(filterEnable ? "ヽ(✿ﾟ▽ﾟ)ノ" : "X﹏X");
+                return true;
+            }
+        });
         baseBind.navigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {

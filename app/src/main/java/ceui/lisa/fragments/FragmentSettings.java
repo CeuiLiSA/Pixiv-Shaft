@@ -295,6 +295,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 }
             });
 
+            // 过滤垃圾评论
             baseBind.filterComment.setChecked(Shaft.sSettings.isFilterComment());
             baseBind.filterComment.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
@@ -312,6 +313,23 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 @Override
                 public void onClick(View v) {
                     baseBind.filterComment.performClick();
+                }
+            });
+
+            // 默认开启R18内容过滤
+            baseBind.r18FilterDefaultEnable.setChecked(Shaft.sSettings.isR18FilterDefaultEnable());
+            baseBind.r18FilterDefaultEnable.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    Shaft.sSettings.setR18FilterDefaultEnable(isChecked);
+                    Common.showToast("设置成功", 2);
+                    Local.setSettings(Shaft.sSettings);
+                }
+            });
+            baseBind.r18FilterDefaultEnableRela.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    baseBind.r18FilterDefaultEnable.performClick();
                 }
             });
         }

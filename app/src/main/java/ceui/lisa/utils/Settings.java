@@ -169,6 +169,11 @@ public class Settings {
 
     private boolean autoPostLikeWhenDownload = false; // 下载时自动收藏
 
+    private boolean r18FilterDefaultEnable = false; // 默认开启R18内容过滤
+
+    private transient boolean r18FilterTempEnableInited = false;
+    private transient boolean r18FilterTempEnable = false; // 临时开启R18内容过滤
+
     public String getAppLanguage() {
         if(!TextUtils.isEmpty(appLanguage)){
             return appLanguage;
@@ -553,5 +558,25 @@ public class Settings {
 
     public void setShowOriginalPreviewImage(boolean showOriginalPreviewImage) {
         this.showOriginalPreviewImage = showOriginalPreviewImage;
+    }
+
+    public boolean isR18FilterDefaultEnable() {
+        return r18FilterDefaultEnable;
+    }
+
+    public void setR18FilterDefaultEnable(boolean r18FilterDefaultEnable) {
+        this.r18FilterDefaultEnable = r18FilterDefaultEnable;
+    }
+
+    public boolean isR18FilterTempEnable() {
+        if (!r18FilterTempEnableInited) {
+            r18FilterTempEnable = r18FilterDefaultEnable;
+            r18FilterTempEnableInited = true;
+        }
+        return r18FilterTempEnable;
+    }
+
+    public void setR18FilterTempEnable(boolean r18FilterTempEnable) {
+        this.r18FilterTempEnable = r18FilterTempEnable;
     }
 }
