@@ -40,7 +40,7 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
 
     @Override
     public void initLayout() {
-        mLayoutID = R.layout.fragment_base_scroll_list;
+        mLayoutID = R.layout.fragment_base_list;
     }
 
     @Override
