@@ -93,7 +93,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             public boolean onLongClick(View v) {
                 boolean filterEnable = Shaft.sSettings.isR18FilterTempEnable();
                 Shaft.sSettings.setR18FilterTempEnable(!filterEnable);
-                Common.showToast(filterEnable ? "ヽ(✿ﾟ▽ﾟ)ノ" : "X﹏X");
+                Common.showToast(filterEnable ? "ԅ(♡﹃♡ԅ)" : "X﹏X");
                 return true;
             }
         });
