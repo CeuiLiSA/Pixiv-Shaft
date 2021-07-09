@@ -208,6 +208,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 return baseFragments.length;
             }
         });
+        baseBind.viewPager.setOffscreenPageLimit(baseFragments.length - 1);
         Manager.get().restore(mContext);
     }
 
