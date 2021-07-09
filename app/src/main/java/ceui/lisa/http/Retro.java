@@ -32,6 +32,10 @@ public class Retro {
         return get().create(AppApi.class);
     }
 
+    public static void refreshAppApi() {
+        Holder.appRetrofit = buildRetrofit(API_BASE_URL);
+    }
+
     public static SignApi getSignApi() {
         return buildRetrofit(SIGN_API).create(SignApi.class);
     }
@@ -135,7 +139,7 @@ public class Retro {
 
 
     private static class Holder {
-        private static final Retrofit appRetrofit = buildRetrofit(API_BASE_URL);
+        private static Retrofit appRetrofit = buildRetrofit(API_BASE_URL);
     }
 
     private static Retrofit get() {

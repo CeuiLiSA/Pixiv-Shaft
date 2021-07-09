@@ -32,6 +32,7 @@ import ceui.lisa.databinding.FragmentSettingsBinding;
 import ceui.lisa.file.LegacyFile;
 import ceui.lisa.helper.PageTransformerHelper;
 import ceui.lisa.helper.ThemeHelper;
+import ceui.lisa.http.Retro;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
@@ -150,13 +151,13 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             baseBind.autoDns.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    if (isChecked) {
-                        Shaft.sSettings.setAutoFuckChina(true);
-                    } else {
-                        Shaft.sSettings.setAutoFuckChina(false);
-                    }
+                    boolean changed = isChecked != Shaft.sSettings.isAutoFuckChina();
+                    Shaft.sSettings.setAutoFuckChina(isChecked);
                     Common.showToast("设置成功", 2);
                     Local.setSettings(Shaft.sSettings);
+                    if (changed) {
+                        Retro.refreshAppApi();
+                    }
                 }
             });
             baseBind.fuckChina.setOnClickListener(new View.OnClickListener() {

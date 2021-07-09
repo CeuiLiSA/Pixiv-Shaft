@@ -121,8 +121,8 @@ public class Shaft extends Application {
         filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         registerReceiver(netWorkStateReceiver, filter);
 
-        if(sSettings.isGlobalSwipeBack()){
-            SmartSwipeBack.activitySlidingBack(this, new SmartSwipeBack.ActivitySwipeBackFilter(){
+        if (sSettings.isGlobalSwipeBack()) {
+            SmartSwipeBack.activitySlidingBack(this, new SmartSwipeBack.ActivitySwipeBackFilter() {
                 @Override
                 public boolean onFilter(Activity activity) {
                     return !(activity instanceof MainActivity);
