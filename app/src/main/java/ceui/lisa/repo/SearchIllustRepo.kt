@@ -15,7 +15,9 @@ class SearchIllustRepo(
     var sortType: String?,
     var searchType: String?,
     var starSize: String?,
-    var isPopular: Boolean
+    var isPopular: Boolean,
+    var startDate: String?,
+    var endDate: String?
 ) : RemoteRepo<ListIllust>() {
 
     private var filterMapper: FilterMapper? = null
@@ -29,6 +31,8 @@ class SearchIllustRepo(
                 token(),
                 keyword + if (TextUtils.isEmpty(starSize)) "" else " $starSize",
                 sortType,
+                startDate,
+                endDate,
                 searchType
             )
         }
@@ -51,6 +55,8 @@ class SearchIllustRepo(
         searchType = searchModel.searchType.value
         starSize = searchModel.starSize.value
         isPopular = pop
+        startDate = searchModel.startDate.value
+        endDate = searchModel.endDate.value
 
         this.filterMapper?.updateStarSizeLimit(this.getStarSizeLimit())
     }

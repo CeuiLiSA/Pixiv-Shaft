@@ -604,4 +604,7 @@
     <string name="string_413">详情页面显示原图</string>
     <string name="string_414">默认过滤 R18 内容</string>
     <string name="string_415">长按侧边抽屉头像临时切换</string>
+    <string name="string_416">开始结束日期</string>
+    <string name="string_417">开始日期</string>
+    <string name="string_418">结束日期</string>
 </resources>

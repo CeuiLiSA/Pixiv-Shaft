@@ -7,15 +7,21 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
 
+import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
+
+import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Calendar;
 
 import androidx.annotation.Nullable;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.FragmentFilterBinding;
+import ceui.lisa.utils.Common;
 import ceui.lisa.viewmodel.SearchModel;
 
 import ceui.lisa.utils.PixivSearchParamUtil;
@@ -31,6 +37,18 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
             @Override
             public void onChanged(Boolean aBoolean) {
                 initTagSpinner(aBoolean);
+            }
+        });
+        searchModel.getStartDate().observe(getViewLifecycleOwner(), new Observer<String>() {
+            @Override
+            public void onChanged(String s) {
+                baseBind.startDate.setText(TextUtils.isEmpty(s) ? getString(R.string.string_330) : s);
+            }
+        });
+        searchModel.getEndDate().observe(getViewLifecycleOwner(), new Observer<String>() {
+            @Override
+            public void onChanged(String s) {
+                baseBind.endDate.setText(TextUtils.isEmpty(s) ? getString(R.string.string_330) : s);
             }
         });
         super.onActivityCreated(savedInstanceState);
@@ -88,6 +106,26 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
             }
         });
 
+        baseBind.startDate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setDatePicker(searchModel.getStartDate());
+            }
+        });
+        baseBind.endDate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setDatePicker(searchModel.getEndDate());
+            }
+        });
+        baseBind.startEndDateClear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                searchModel.getStartDate().setValue(null);
+                searchModel.getEndDate().setValue(null);
+            }
+        });
+
         if (Shaft.sUserModel.getUser().isIs_premium()) {
             baseBind.popSwitch.setEnabled(true);
         } else {
@@ -127,5 +165,42 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
             int index = Arrays.asList(values).indexOf(searchModel.getSearchType().getValue());
             baseBind.tagSpinner.setSelection(Math.max(index, 0));
         }
+    }
+
+    private void setDatePicker(MutableLiveData<String> dateData) {
+        String currentDate = dateData.getValue();
+        DatePickerDialog.OnDateSetListener listener = new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePickerDialog view, int year, int monthOfYear, int dayOfMonth) {
+                String date = LocalDate.of(year, monthOfYear + 1, dayOfMonth).toString();
+                dateData.setValue(date);
+            }
+        };
+
+        DatePickerDialog dpd;
+        Calendar now = Calendar.getInstance();
+        Calendar start = Calendar.getInstance();
+        if (!TextUtils.isEmpty(currentDate)) {
+            String[] t = currentDate.split("-");
+            dpd = DatePickerDialog.newInstance(
+                    listener,
+                    Integer.parseInt(t[0]), // Initial year selection
+                    Integer.parseInt(t[1]) - 1, // Initial month selection
+                    Integer.parseInt(t[2]) // Inital day selection
+            );
+        } else {
+            dpd = DatePickerDialog.newInstance(
+                    listener,
+                    now.get(Calendar.YEAR), // Initial year selection
+                    now.get(Calendar.MONTH), // Initial month selection
+                    now.get(Calendar.DAY_OF_MONTH) // Inital day selection
+            );
+        }
+        start.set(1970, 0, 1);
+        dpd.setMinDate(start);
+        dpd.setMaxDate(now);
+        dpd.setAccentColor(Common.resolveThemeAttribute(mContext, R.attr.colorPrimary));
+        dpd.setThemeDark(mContext.getResources().getBoolean(R.bool.is_night_mode));
+        dpd.show(getParentFragmentManager(), "DatePickerDialog");
     }
 }

@@ -93,6 +93,8 @@
                 <data android:pathPrefix="/users/"/>
                 <data android:pathPrefix="/en/users/"/>
                 <data android:pathPrefix="/i/"/>
+                <data android:pathPrefix="/u/"/>
+                <data android:pathPrefix="/n/"/>
 
             </intent-filter>
 

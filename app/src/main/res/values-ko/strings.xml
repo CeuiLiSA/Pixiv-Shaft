@@ -582,4 +582,7 @@
   <string name="string_413">세부 정보 페이지에는 원본 이미지가 표시됩니다</string>
   <string name="string_414">기본적으로 R18 콘텐츠 필터링</string>
   <string name="string_415">일시적으로 전환하려면 서랍에서 아바타를 길게 누르세요.</string>
+  <string name="string_416">시작일과 종료일</string>
+  <string name="string_417">시작일</string>
+  <string name="string_418">종료일</string>
 </resources>

@@ -582,4 +582,7 @@
   <string name="string_413">The details page displays the original picture</string>
   <string name="string_414">Filter R18 content by default</string>
   <string name="string_415">Long press the avatar in drawer to switch temporarily</string>
+  <string name="string_416">Start and end date</string>
+  <string name="string_417">Start date</string>
+  <string name="string_418">End date</string>
 </resources>

@@ -80,12 +80,19 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                             }
                         }
 
-                        if (uri.getPathSegments().contains("novel") && !TextUtils.isEmpty(uri.getQueryParameter("id"))) {
+                        if (uri.getPathSegments().contains("novel") && !TextUtils.isEmpty(uri.getQueryParameter("id"))
+                                || uri.getPathSegments().contains("n")) {
                             if (isNetWorking) {
                                 return;
                             }
                             isNetWorking = true;
-                            String novelId = uri.getQueryParameter("id");
+                            String novelId;
+                            if (uri.getPathSegments().contains("novel") && !TextUtils.isEmpty(uri.getQueryParameter("id"))) {
+                                novelId = uri.getQueryParameter("id");
+                            } else {
+                                List<String> pathArray = uri.getPathSegments();
+                                novelId = pathArray.get(pathArray.size() - 1);
+                            }
                             PixivOperate.getNovelByID(sUserModel, Integer.valueOf(novelId), mContext, new Callback<Void>() {
                                 @Override
                                 public void doSomething(Void t) {
@@ -95,7 +102,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                             return;
                         }
 
-                        if (uri.getPathSegments().contains("users")) {
+                        if (uri.getPathSegments().contains("users") || uri.getPathSegments().contains("u")) {
                             List<String> pathArray = uri.getPathSegments();
                             String userID = pathArray.get(pathArray.size() - 1);
                             if (!TextUtils.isEmpty(userID)) {

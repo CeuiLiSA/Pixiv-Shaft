@@ -582,4 +582,7 @@
   <string name="string_413">На странице сведений показано исходное изображение</string>
   <string name="string_414">Фильтровать содержимое R18 по умолчанию</string>
   <string name="string_415">Нажмите и удерживайте аватар в ящике для временного переключения</string>
+  <string name="string_416">Дата начала и окончания</string>
+  <string name="string_417">Дата начала</string>
+  <string name="string_418">Дата окончания</string>
 </resources>

@@ -582,4 +582,7 @@
   <string name="string_413">詳細ページは原図を表示します</string>
   <string name="string_414">デフォルトでR18コンテンツをフィルタリングする</string>
   <string name="string_415">引き出しのアバターを長押しして一時的に切り替えます</string>
+  <string name="string_416">開始日と終了日</string>
+  <string name="string_417">開始日</string>
+  <string name="string_418">終了日</string>
 </resources>

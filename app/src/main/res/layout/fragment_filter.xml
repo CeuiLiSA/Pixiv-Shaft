@@ -136,8 +136,92 @@
             android:layout_marginStart="@dimen/sixteen_dp"
             android:layout_marginEnd="@dimen/sixteen_dp"
             android:layout_height="1dp">
+        </View>
 
 
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:text="@string/string_416"
+                android:textSize="13sp"
+                android:textColor="?attr/colorPrimary"
+                android:id="@+id/start_end_date_s"
+                android:layout_margin="@dimen/sixteen_dp"
+                android:layout_height="wrap_content" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/start_end_date_clear"
+                android:layout_toEndOf="@id/start_end_date_s"
+                android:layout_alignTop="@id/start_end_date_s"
+                android:layout_alignBottom="@id/start_end_date_s"
+                android:src="@drawable/met_ic_clear"
+                android:tint="?attr/colorPrimary">
+
+            </ImageView>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/start_date_label"
+                android:text="@string/string_417"
+                android:textSize="13sp"
+                android:textColor="@color/rank_text_color"
+                android:layout_below="@id/start_end_date_s"
+                android:layout_marginHorizontal="@dimen/sixteen_dp"
+                >
+            </TextView>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/start_date"
+                android:text="@string/string_330"
+                android:textSize="13sp"
+                android:textColor="@color/rank_text_color"
+                android:layout_toEndOf="@id/start_date_label"
+                android:layout_alignTop="@id/start_date_label"
+                android:layout_alignBottom="@id/start_date_label">
+            </TextView>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/end_date_label"
+                android:text="@string/string_418"
+                android:textSize="13sp"
+                android:textColor="@color/rank_text_color"
+                android:layout_below="@id/start_date_label"
+                android:layout_marginHorizontal="@dimen/sixteen_dp"
+                android:layout_marginTop="@dimen/eight_dp"
+                android:layout_marginBottom="@dimen/sixteen_dp">
+            </TextView>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/end_date"
+                android:text="@string/string_330"
+                android:textSize="13sp"
+                android:textColor="@color/rank_text_color"
+                android:layout_toEndOf="@id/end_date_label"
+                android:layout_alignTop="@id/end_date_label"
+                android:layout_alignBottom="@id/end_date_label">
+            </TextView>
+
+        </RelativeLayout>
+
+
+        <View
+            android:layout_width="match_parent"
+            android:background="@color/light_bg"
+            android:layout_marginStart="@dimen/sixteen_dp"
+            android:layout_marginEnd="@dimen/sixteen_dp"
+            android:layout_height="1dp">
         </View>
 
 
