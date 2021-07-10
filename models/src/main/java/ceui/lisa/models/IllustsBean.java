@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class IllustsBean implements Serializable, Starable {
+public class IllustsBean implements Serializable, Starable, Deduplicatable {
     /**
      * id : 73949833
      * title : 命に繋がる魂の絆
@@ -342,5 +342,10 @@ public class IllustsBean implements Serializable, Starable {
 
     public String[] getTagNames(){
         return tags.stream().map(TagsBean::getName).toArray(String[]::new);
+    }
+
+    @Override
+    public Object getDuplicateKey() {
+        return id;
     }
 }
