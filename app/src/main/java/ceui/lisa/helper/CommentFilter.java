@@ -81,11 +81,12 @@ public class CommentFilter {
 
     private static class CommentFilterRule {
         private static final int URL_DOMAIN = 0; // 根据域名过滤
-        private static final int FULL_MATCH = 1; // 根据完整正则过滤
+        private static final int REGEX_MATCH = 1; // 根据正则过滤
+        private static final int LIST_ALL_REGEX_MATCH = 2; // 列表正则全匹配过滤
 
         private int ruleType;
         private String ruleValue;
-        private Pattern mPattern;
+        private List<Pattern> mPatterns;
 
         public CommentFilterRule(int ruleType, String ruleValue) {
             this.ruleType = ruleType;
@@ -109,20 +110,36 @@ public class CommentFilter {
         private void init() {
             if (ruleType == URL_DOMAIN) {
                 String regexRuleValue = ruleValue.replace(".", "\\.");
-                mPattern = Pattern.compile("https?://([0-9a-zA-Z]+\\.)*" + regexRuleValue);
-            } else if (ruleType == FULL_MATCH) {
-                mPattern = Pattern.compile(ruleValue);
+                mPatterns = new ArrayList<Pattern>() {
+                    {
+                        add(Pattern.compile("https?://([0-9a-zA-Z]+\\.)*" + regexRuleValue));
+                    }
+                };
+            } else if (ruleType == REGEX_MATCH) {
+                mPatterns = new ArrayList<Pattern>() {
+                    {
+                        add(Pattern.compile(ruleValue));
+                    }
+                };
+            } else if (ruleType == LIST_ALL_REGEX_MATCH) {
+                String[] ruleStrings = ruleValue.split("\\$\\$");
+                mPatterns = new ArrayList<>();
+                for (String ruleString : ruleStrings) {
+                    mPatterns.add(Pattern.compile(ruleString));
+                }
             }
         }
 
         public boolean judge(String input) {
-            if (mPattern == null || TextUtils.isEmpty(input)) {
+            if (mPatterns == null || mPatterns.isEmpty() || TextUtils.isEmpty(input)) {
                 return false;
             }
             if (ruleType == URL_DOMAIN) {
-                return mPattern.matcher(input).find();
-            } else if (ruleType == FULL_MATCH) {
-                return mPattern.matcher(input).find();
+                return mPatterns.get(0).matcher(input).find();
+            } else if (ruleType == REGEX_MATCH) {
+                return mPatterns.get(0).matcher(input).find();
+            } else if (ruleType == LIST_ALL_REGEX_MATCH) {
+                return mPatterns.stream().allMatch(mPattern -> mPattern.matcher(input).find());
             }
             return false;
         }
