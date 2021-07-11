@@ -5,15 +5,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.text.TextUtils;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
-import com.scwang.smartrefresh.layout.footer.ClassicsFooter;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,8 +18,6 @@ import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapterWithHeadView;
-import ceui.lisa.core.Container;
-import ceui.lisa.core.PageData;
 import ceui.lisa.core.RemoteRepo;
 import ceui.lisa.core.RxRun;
 import ceui.lisa.core.RxRunnable;
@@ -32,29 +27,21 @@ import ceui.lisa.database.IllustRecmdEntity;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyIllustStaggerBinding;
 import ceui.lisa.helper.IllustFilter;
-import ceui.lisa.helper.StaggeredtManager;
+import ceui.lisa.helper.StaggeredManager;
 import ceui.lisa.http.NullCtrl;
-import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListIllust;
 import ceui.lisa.model.RecmdIllust;
 import ceui.lisa.models.IllustsBean;
-import ceui.lisa.models.UserModel;
 import ceui.lisa.notification.BaseReceiver;
 import ceui.lisa.notification.CallBackReceiver;
 import ceui.lisa.repo.RecmdIllustRepo;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Dev;
-import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.SpacesItemWithHeadDecoration;
 import ceui.lisa.viewmodel.BaseModel;
 import ceui.lisa.viewmodel.RecmdModel;
-import io.reactivex.Observable;
-import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
-import retrofit2.Call;
 
 public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding,
         RecmdIllust, IllustsBean> {
@@ -154,8 +141,8 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
 
     @Override
     public void initRecyclerView() {
-        StaggeredtManager layoutManager =
-                new StaggeredtManager(Shaft.sSettings.getLineCount(), StaggeredGridLayoutManager.VERTICAL);
+        StaggeredManager layoutManager =
+                new StaggeredManager(Shaft.sSettings.getLineCount(), StaggeredGridLayoutManager.VERTICAL);
         layoutManager.setGapStrategy(StaggeredGridLayoutManager.GAP_HANDLING_NONE);
         baseBind.recyclerView.setLayoutManager(layoutManager);
         baseBind.recyclerView.addItemDecoration(new SpacesItemWithHeadDecoration(DensityUtil.dp2px(8.0f)));

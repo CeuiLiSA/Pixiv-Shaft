@@ -65,36 +65,40 @@ public class DeduplicateArrayList<E extends Deduplicatable> extends ArrayList<E>
 
     @Override
     public boolean addAll(@NonNull Collection<? extends E> c) {
-        List<E> cc = new ArrayList<>(c);
-        List<E> removeList = new ArrayList<>();
-        for (int i = 0; i < cc.size(); i++) {
-            E e = cc.get(i);
-            Object obj = e.getDuplicateKey();
-            if (innerSet.contains(obj)) {
-                removeList.add(e);
-            } else {
-                innerSet.add(obj);
+        synchronized (this) {
+            List<E> cc = new ArrayList<>(c);
+            List<E> removeList = new ArrayList<>();
+            for (int i = 0; i < cc.size(); i++) {
+                E e = cc.get(i);
+                Object obj = e.getDuplicateKey();
+                if (innerSet.contains(obj)) {
+                    removeList.add(e);
+                } else {
+                    innerSet.add(obj);
+                }
             }
+            cc.removeAll(removeList);
+            return super.addAll(cc);
         }
-        cc.removeAll(removeList);
-        return super.addAll(cc);
     }
 
     @Override
     public boolean addAll(int index, @NonNull Collection<? extends E> c) {
-        List<E> cc = new ArrayList<>(c);
-        List<E> removeList = new ArrayList<>();
-        for (int i = 0; i < cc.size(); i++) {
-            E e = cc.get(i);
-            Object obj = e.getDuplicateKey();
-            if (innerSet.contains(obj)) {
-                removeList.add(e);
-            } else {
-                innerSet.add(obj);
+        synchronized (this) {
+            List<E> cc = new ArrayList<>(c);
+            List<E> removeList = new ArrayList<>();
+            for (int i = 0; i < cc.size(); i++) {
+                E e = cc.get(i);
+                Object obj = e.getDuplicateKey();
+                if (innerSet.contains(obj)) {
+                    removeList.add(e);
+                } else {
+                    innerSet.add(obj);
+                }
             }
+            cc.removeAll(removeList);
+            return super.addAll(index, cc);
         }
-        cc.removeAll(removeList);
-        return super.addAll(index, cc);
     }
 
     @Override
@@ -118,5 +122,23 @@ public class DeduplicateArrayList<E extends Deduplicatable> extends ArrayList<E>
     public void clear() {
         super.clear();
         innerSet.clear();
+    }
+
+    /**
+     *
+     * @param dist 目标集合
+     * @param src 数据来源集合
+     * @param <T> Deduplicatable
+     */
+    public static <T extends Deduplicatable> void addAllWithNoRepeat(Collection<T> dist, Collection<T> src) {
+        final Set<Object> set = new HashSet<>();
+        for (T element : dist) {
+            set.add(element.getDuplicateKey());
+        }
+        for (T element : src) {
+            if (!set.contains(element.getDuplicateKey())) {
+                dist.add(element);
+            }
+        }
     }
 }
