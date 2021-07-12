@@ -545,17 +545,17 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                                     Common.showToast("设置成功", 2);
                                     Local.setSettings(Shaft.sSettings);
                                     if (which == 0) {
-                                        LanguageUtils.applyLanguage(Locale.SIMPLIFIED_CHINESE, "");
+                                        LanguageUtils.applyLanguage(Locale.SIMPLIFIED_CHINESE, true);
                                     } else if (which == 1) {
-                                        LanguageUtils.applyLanguage(Locale.JAPAN, "");
+                                        LanguageUtils.applyLanguage(Locale.JAPAN, true);
                                     } else if (which == 2) {
-                                        LanguageUtils.applyLanguage(Locale.US, "");
+                                        LanguageUtils.applyLanguage(Locale.US, true);
                                     } else if (which == 3) {
-                                        LanguageUtils.applyLanguage(Locale.TRADITIONAL_CHINESE, "");
+                                        LanguageUtils.applyLanguage(Locale.TRADITIONAL_CHINESE, true);
                                     } else if (which == 4) {
-                                        LanguageUtils.applyLanguage(new Locale("RU", "ru", ""), "");
+                                        LanguageUtils.applyLanguage(new Locale("RU", "ru", ""), true);
                                     } else if (which == 5) {
-                                        LanguageUtils.applyLanguage(Locale.KOREA, "");
+                                        LanguageUtils.applyLanguage(Locale.KOREA, true);
                                     }
                                     dialog.dismiss();
                                 }
