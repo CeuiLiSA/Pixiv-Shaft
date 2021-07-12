@@ -69,7 +69,7 @@ public class StaggeredManager extends StaggeredGridLayoutManager {
 
             @Override
             protected float calculateSpeedPerPixel(DisplayMetrics displayMetrics) {
-                return 25f / displayMetrics.densityDpi;
+                return 40f / displayMetrics.densityDpi;
             }
         };
         scroller.setTargetPosition(position);
