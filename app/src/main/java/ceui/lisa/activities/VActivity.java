@@ -2,9 +2,11 @@ package ceui.lisa.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -67,6 +69,17 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                 @Override
                 public int getCount() {
                     return pageData.getList().size();
+                }
+
+                @Nullable
+                @org.jetbrains.annotations.Nullable
+                @Override
+                public Parcelable saveState() {
+                    Bundle bundle = (Bundle) super.saveState();
+                    if (bundle != null) {
+                        bundle.putParcelableArray("states", null);
+                    }
+                    return bundle;
                 }
             });
             baseBind.viewPager.setOffscreenPageLimit(2);
