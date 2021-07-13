@@ -106,18 +106,22 @@ public class FragmentImageDetail extends BaseFragment<FragmentImageDetailBinding
     }
 
     private void loadImage() {
-        final String imageUrl;
-        final String originUrl = IllustDownload.getUrl(mIllustsBean, index);
-        if (Shaft.getMMKV().decodeBool(originUrl)) {
-            imageUrl = originUrl;
+        String imageUrl;
+        if (mIllustsBean == null && !TextUtils.isEmpty(url)) {
+            imageUrl = url;
         } else {
-            if (!TextUtils.isEmpty(url)) {
-                imageUrl = url;
+            final String originUrl = IllustDownload.getUrl(mIllustsBean, index);
+            if (Shaft.getMMKV().decodeBool(originUrl)) {
+                imageUrl = originUrl;
             } else {
-                if (Shaft.sSettings.isShowOriginalImage()) {
-                    imageUrl = IllustDownload.getUrl(mIllustsBean, index, Params.IMAGE_RESOLUTION_ORIGINAL);
+                if (!TextUtils.isEmpty(url)) {
+                    imageUrl = url;
                 } else {
-                    imageUrl = IllustDownload.getUrl(mIllustsBean, index, Params.IMAGE_RESOLUTION_LARGE);
+                    if (Shaft.sSettings.isShowOriginalImage()) {
+                        imageUrl = IllustDownload.getUrl(mIllustsBean, index, Params.IMAGE_RESOLUTION_ORIGINAL);
+                    } else {
+                        imageUrl = IllustDownload.getUrl(mIllustsBean, index, Params.IMAGE_RESOLUTION_LARGE);
+                    }
                 }
             }
         }
