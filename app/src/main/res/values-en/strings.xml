@@ -585,4 +585,7 @@
   <string name="string_416">Start and end date</string>
   <string name="string_417">Start date</string>
   <string name="string_418">End date</string>
+  <string name="string_419">Backup and restore</string>
+  <string name="string_420">Backup</string>
+  <string name="string_421">Restore</string>
 </resources>

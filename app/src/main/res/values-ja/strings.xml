@@ -585,4 +585,7 @@
   <string name="string_416">開始日と終了日</string>
   <string name="string_417">開始日</string>
   <string name="string_418">終了日</string>
+  <string name="string_419">バックアップと復元</string>
+  <string name="string_420">バックアップ</string>
+  <string name="string_421">復元</string>
 </resources>

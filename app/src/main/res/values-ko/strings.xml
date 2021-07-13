@@ -585,4 +585,7 @@
   <string name="string_416">시작일과 종료일</string>
   <string name="string_417">시작일</string>
   <string name="string_418">종료일</string>
+  <string name="string_419">백업 및 복원</string>
+  <string name="string_420">지원</string>
+  <string name="string_421">절감</string>
 </resources>

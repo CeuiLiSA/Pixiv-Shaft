@@ -971,7 +971,6 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:orientation="vertical"
-                        android:layout_marginBottom="60dp"
                         android:background="@color/white_and_black"
                         android:layout_height="wrap_content">
 
@@ -1012,6 +1011,46 @@
                         <View style="@style/full_divider" />
 
                     </LinearLayout>
+
+                    <TextView
+                        style="@style/setting_text_head"
+                        android:text="@string/string_419"/>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:orientation="vertical"
+                        android:layout_marginBottom="60dp"
+                        android:background="@color/white_and_black"
+                        android:layout_height="wrap_content">
+
+                        <View style="@style/full_divider" />
+
+                        <RelativeLayout
+                            android:id="@+id/backup_rela"
+                            style="@style/ripple_rela">
+
+                            <TextView
+                                style="@style/setting_text_left"
+                                android:text="@string/string_420" />
+
+                        </RelativeLayout>
+
+                        <View style="@style/half_divider" />
+
+                        <RelativeLayout
+                            android:id="@+id/restore_rela"
+                            style="@style/ripple_rela">
+
+                            <TextView
+                                style="@style/setting_text_left"
+                                android:text="@string/string_421" />
+
+                        </RelativeLayout>
+
+                        <View style="@style/full_divider" />
+
+                    </LinearLayout>
+
 
                 </LinearLayout>
             </androidx.core.widget.NestedScrollView>

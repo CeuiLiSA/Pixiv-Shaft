@@ -32,6 +32,8 @@ public class Settings {
     //WEB下载
     public static final String WEB_DOWNLOAD_PATH = PathUtils.getExternalPicturesPath() + "/ShaftWeb";
 
+    public static final String FILE_PATH_BACKUP = PathUtils.getExternalDownloadsPath() + "/ShaftBackups";
+
     private int themeIndex;
 
     private int lineCount = 2;

@@ -607,4 +607,7 @@
     <string name="string_416">开始结束日期</string>
     <string name="string_417">开始日期</string>
     <string name="string_418">结束日期</string>
+    <string name="string_419">备份与还原</string>
+    <string name="string_420">备份</string>
+    <string name="string_421">还原</string>
 </resources>

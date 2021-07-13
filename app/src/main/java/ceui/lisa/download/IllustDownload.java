@@ -218,10 +218,33 @@ public class IllustDownload {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                Uri photoURI = FileProvider.getUriForFile(activity,
+                Uri fileURI = FileProvider.getUriForFile(activity,
                         activity.getApplicationContext().getPackageName() + ".provider", textFile);
                 if (targetCallback != null) {
-                    targetCallback.doSomething(photoURI);
+                    targetCallback.doSomething(fileURI);
+                }
+            }
+        });
+    }
+
+    public static void downloadBackupFile(BaseActivity<?> activity, String displayName, String content, Callback<Uri> targetCallback){
+        check(activity, new FeedBack() {
+            @Override
+            public void doSomething() {
+                File textFile = new LegacyFile().textFile(activity, displayName);
+                try {
+                    OutputStream outStream = new FileOutputStream(textFile);
+                    outStream.write(content.getBytes());
+                    outStream.close();
+                    Common.showLog("downloadBackupFile displayName " + displayName);
+                    OutPut.outPutBackupFile(activity, textFile, displayName);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                Uri fileURI = FileProvider.getUriForFile(activity,
+                        activity.getApplicationContext().getPackageName() + ".provider", textFile);
+                if (targetCallback != null) {
+                    targetCallback.doSomething(fileURI);
                 }
             }
         });

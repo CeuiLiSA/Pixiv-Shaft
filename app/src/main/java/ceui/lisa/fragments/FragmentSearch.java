@@ -59,7 +59,6 @@ import io.reactivex.schedulers.Schedulers;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 import static ceui.lisa.utils.Common.isNumeric;
-import static ceui.lisa.utils.PixivOperate.insertSearchHistory;
 
 public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
 
@@ -204,13 +203,13 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
             startActivity(intent);
         } else if (searchType == 1) {
             if (isNumeric(trimmedKeyword)) {
-                insertSearchHistory(trimmedKeyword, searchType);
+                PixivOperate.insertSearchHistory(trimmedKeyword, searchType);
                 PixivOperate.getIllustByID(sUserModel, Integer.valueOf(trimmedKeyword), mContext);
             } else {
                 Common.showToast(getString(R.string.string_154));
             }
         } else if (searchType == 2) {
-            insertSearchHistory(trimmedKeyword, searchType);
+            PixivOperate.insertSearchHistory(trimmedKeyword, searchType);
             Intent intent = new Intent(mContext, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_KEYWORD,
                     trimmedKeyword);
@@ -218,7 +217,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
             startActivity(intent);
         } else if (searchType == 3) {
             if (isNumeric(trimmedKeyword)) {
-                insertSearchHistory(trimmedKeyword, searchType);
+                PixivOperate.insertSearchHistory(trimmedKeyword, searchType);
                 Intent intent = new Intent(mContext, UserActivity.class);
                 intent.putExtra(Params.USER_ID, Integer.valueOf(trimmedKeyword));
                 startActivity(intent);
@@ -227,7 +226,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
             }
         } else if (searchType == 4) {
             if (isNumeric(trimmedKeyword)) {
-                insertSearchHistory(trimmedKeyword, searchType);
+                PixivOperate.insertSearchHistory(trimmedKeyword, searchType);
                 PixivOperate.getNovelByID(sUserModel, Integer.valueOf(trimmedKeyword), mContext, null);
             } else {
                 Common.showToast(getString(R.string.string_154));
