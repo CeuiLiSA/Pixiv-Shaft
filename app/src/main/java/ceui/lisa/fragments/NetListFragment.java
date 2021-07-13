@@ -17,6 +17,7 @@ import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 
 import java.util.List;
 
+import ceui.lisa.R;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.EventAdapter;
 import ceui.lisa.adapters.IAdapter;
@@ -162,7 +163,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
             });
         } else {
             if (mRemoteRepo.showNoDataHint()) {
-                Common.showToast("没有更多数据啦");
+                Common.showToast(getString(R.string.string_224));
             }
             mRefreshLayout.finishLoadMore();
         }

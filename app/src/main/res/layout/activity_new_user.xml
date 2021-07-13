@@ -96,7 +96,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
-                            android:text="关注："
+                            android:text="@string/string_145"
                             android:id="@+id/follow_s"
                             android:textColor="@color/white"
                             android:textSize="13sp">
@@ -129,7 +129,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
-                            android:text="好P友："
+                            android:text="@string/string_147"
                             android:id="@+id/p_friend_s"
                             android:textColor="@color/white"
                             android:textSize="13sp">
@@ -141,7 +141,7 @@
                             android:id="@+id/p_friend"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="123"
+                            android:text=""
                             android:textColor="@color/white"
                             android:textSize="15sp"
                             android:textStyle="bold">
@@ -169,7 +169,7 @@
                         android:alpha="0.0"
                         android:ellipsize="end"
                         android:singleLine="true"
-                        android:text="个人中心"
+                        android:text="@string/string_422"
                         android:textColor="@color/white"
                         android:textSize="18sp">
 
@@ -177,7 +177,7 @@
 
                     <TextView
                         android:layout_width="wrap_content"
-                        android:text="取消关注"
+                        android:text="@string/string_177"
                         android:visibility="invisible"
                         android:textSize="12sp"
                         android:textColor="@color/white"
