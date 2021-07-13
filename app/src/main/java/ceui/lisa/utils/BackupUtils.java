@@ -10,6 +10,7 @@ import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.DownloadDao;
 import ceui.lisa.database.MuteEntity;
 import ceui.lisa.database.SearchDao;
+import ceui.lisa.database.SearchEntity;
 import ceui.lisa.feature.FeatureEntity;
 
 public class BackupUtils {
@@ -18,6 +19,7 @@ public class BackupUtils {
         private Settings settings;
         private List<MuteEntity> muteEntityList;
         private List<FeatureEntity> featureEntityList;
+        private List<SearchEntity> searchEntityList;
 
         public Settings getSettings() {
             return settings;
@@ -42,6 +44,14 @@ public class BackupUtils {
         public void setFeatureEntityList(List<FeatureEntity> featureEntityList) {
             this.featureEntityList = featureEntityList;
         }
+
+        public List<SearchEntity> getSearchEntityList() {
+            return searchEntityList;
+        }
+
+        public void setSearchEntityList(List<SearchEntity> searchEntityList) {
+            this.searchEntityList = searchEntityList;
+        }
     }
 
     public static String getBackupString(Context context) {
@@ -50,6 +60,7 @@ public class BackupUtils {
         AppDatabase appDatabase = AppDatabase.getAppDatabase(context);
         backupEntity.setMuteEntityList(appDatabase.searchDao().getAllMuteEntities());
         backupEntity.setFeatureEntityList(appDatabase.downloadDao().getAllFeatureEntities());
+        backupEntity.setSearchEntityList(appDatabase.searchDao().getAllSearchEntities());
         return Shaft.sGson.toJson(backupEntity);
     }
 
@@ -73,6 +84,13 @@ public class BackupUtils {
                 DownloadDao downloadDao = appDatabase.downloadDao();
                 for (FeatureEntity featureEntity : featureEntityList) {
                     downloadDao.insertFeature(featureEntity);
+                }
+            }
+            List<SearchEntity> searchEntityList = backupEntity.getSearchEntityList();
+            if (searchEntityList != null && !searchEntityList.isEmpty()) {
+                SearchDao searchDao = appDatabase.searchDao();
+                for (SearchEntity searchEntity : searchEntityList) {
+                    searchDao.insert(searchEntity);
                 }
             }
             return true;
