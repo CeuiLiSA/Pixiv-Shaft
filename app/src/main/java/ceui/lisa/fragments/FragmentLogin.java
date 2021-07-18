@@ -25,6 +25,8 @@ import ceui.lisa.R;
 import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
+import ceui.lisa.database.AppDatabase;
+import ceui.lisa.database.UserEntity;
 import ceui.lisa.databinding.ActivityLoginBinding;
 import ceui.lisa.feature.HostManager;
 import ceui.lisa.interfaces.FeedBack;
@@ -94,6 +96,13 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
                         Local.saveUser(exportUser);
                         Dev.refreshUser = true;
                         Shaft.sUserModel = exportUser;
+
+                        UserEntity userEntity = new UserEntity();
+                        userEntity.setLoginTime(System.currentTimeMillis());
+                        userEntity.setUserID(exportUser.getUser().getId());
+                        userEntity.setUserGson(Shaft.sGson.toJson(Local.getUser()));
+                        AppDatabase.getAppDatabase(mContext).downloadDao().insertUser(userEntity);
+
                         Intent intent = new Intent(mContext, MainActivity.class);
                         MainActivity.newInstance(intent, mContext);
                         mActivity.finish();
