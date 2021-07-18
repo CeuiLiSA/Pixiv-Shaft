@@ -25,6 +25,7 @@ import ceui.lisa.R;
 import ceui.lisa.feature.HostManager;
 import ceui.lisa.feature.ToastStyle;
 import ceui.lisa.feature.WeissUtil;
+import ceui.lisa.helper.ShortcutHelper;
 import ceui.lisa.helper.ThemeHelper;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.notification.NetWorkStateReceiver;
@@ -129,6 +130,8 @@ public class Shaft extends Application {
                 }
             });
         }
+
+        ShortcutHelper.addAppShortcuts();
     }
 
     public OkHttpClient getOkHttpClient() {
