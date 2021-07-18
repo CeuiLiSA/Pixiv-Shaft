@@ -345,11 +345,9 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
             if (!illust.getUser().isIs_followed()) {
                 baseBind.follow.setText(R.string.string_177);
                 illust.getUser().setIs_followed(true);
-                PixivOperate.postFollowUser(illust.getUser().getId(), Params.TYPE_PRIVATE);
-                return true;
-            } else {
-                return false;
             }
+            PixivOperate.postFollowUser(illust.getUser().getId(), Params.TYPE_PRIVATE);
+            return true;
         });
         baseBind.userName.setText(illust.getUser().getName());
         baseBind.postTime.setText(String.format("%s投递", Common.getLocalYYYYMMDDHHMMString(illust.getCreate_date())));

@@ -144,11 +144,9 @@ public class UActivity extends BaseActivity<ActivityNewUserBinding> implements D
                 if (!data.getUser().isIs_followed()) {
                     baseBind.starUser.setText(R.string.string_177);
                     data.getUser().setIs_followed(true);
-                    PixivOperate.postFollowUser(data.getUser().getId(), Params.TYPE_PRIVATE);
-                    return true;
-                } else {
-                    return false;
                 }
+                PixivOperate.postFollowUser(data.getUser().getId(), Params.TYPE_PRIVATE);
+                return true;
             });
         }
 

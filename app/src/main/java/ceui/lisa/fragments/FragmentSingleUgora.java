@@ -436,11 +436,11 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
             @Override
             public void onClick(View v) {
                 if (illust.getUser().isIs_followed()) {
-                    baseBind.follow.setText("+ 关注");
+                    baseBind.follow.setText(R.string.string_178);
                     PixivOperate.postUnFollowUser(illust.getUser().getId());
                     illust.getUser().setIs_followed(false);
                 } else {
-                    baseBind.follow.setText("取消关注");
+                    baseBind.follow.setText(R.string.string_177);
                     PixivOperate.postFollowUser(illust.getUser().getId(), Params.TYPE_PUBLUC);
                     illust.getUser().setIs_followed(true);
                 }
@@ -448,13 +448,11 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
         });
 
         baseBind.follow.setOnLongClickListener(v1 -> {
-            if (illust.getUser().isIs_followed()) {
-
-            } else {
-                baseBind.follow.setText("取消关注");
+            if (!illust.getUser().isIs_followed()) {
+                baseBind.follow.setText(R.string.string_177);
                 illust.getUser().setIs_followed(true);
-                PixivOperate.postFollowUser(illust.getUser().getId(), Params.TYPE_PRIVATE);
             }
+            PixivOperate.postFollowUser(illust.getUser().getId(), Params.TYPE_PRIVATE);
             return true;
         });
 
@@ -513,9 +511,9 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
 
 
         if (illust.getUser().isIs_followed()) {
-            baseBind.follow.setText("取消关注");
+            baseBind.follow.setText(R.string.string_177);
         } else {
-            baseBind.follow.setText("+ 关注");
+            baseBind.follow.setText(R.string.string_178);
         }
 
 
