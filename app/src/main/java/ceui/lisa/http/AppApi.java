@@ -27,6 +27,7 @@ import ceui.lisa.models.NovelSearchResponse;
 import ceui.lisa.models.NullResponse;
 import ceui.lisa.models.Preset;
 import ceui.lisa.models.UserDetailResponse;
+import ceui.lisa.models.UserFollowDetail;
 import ceui.lisa.models.UserState;
 import io.reactivex.Observable;
 import okhttp3.MultipartBody;
@@ -210,6 +211,10 @@ public interface AppApi {
     @POST("v1/user/follow/delete")
     Observable<NullResponse> postUnFollow(@Header("Authorization") String token,
                                           @Field("user_id") int user_id);
+
+    @GET("v1/user/follow/detail")
+    Observable<UserFollowDetail> getFollowDetail(@Header("Authorization") String token,
+                                                 @Query("user_id") int user_id);
 
 
     /**
