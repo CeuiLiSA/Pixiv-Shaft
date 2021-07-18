@@ -11,6 +11,7 @@ import ceui.lisa.database.DownloadDao;
 import ceui.lisa.database.MuteEntity;
 import ceui.lisa.database.SearchDao;
 import ceui.lisa.database.SearchEntity;
+import ceui.lisa.database.UserEntity;
 import ceui.lisa.feature.FeatureEntity;
 
 public class BackupUtils {
@@ -20,6 +21,7 @@ public class BackupUtils {
         private List<MuteEntity> muteEntityList;
         private List<FeatureEntity> featureEntityList;
         private List<SearchEntity> searchEntityList;
+        private List<UserEntity> userEntityList;
 
         public Settings getSettings() {
             return settings;
@@ -52,6 +54,14 @@ public class BackupUtils {
         public void setSearchEntityList(List<SearchEntity> searchEntityList) {
             this.searchEntityList = searchEntityList;
         }
+
+        public List<UserEntity> getUserEntityList() {
+            return userEntityList;
+        }
+
+        public void setUserEntityList(List<UserEntity> userEntityList) {
+            this.userEntityList = userEntityList;
+        }
     }
 
     public static String getBackupString(Context context) {
@@ -61,6 +71,7 @@ public class BackupUtils {
         backupEntity.setMuteEntityList(appDatabase.searchDao().getAllMuteEntities());
         backupEntity.setFeatureEntityList(appDatabase.downloadDao().getAllFeatureEntities());
         backupEntity.setSearchEntityList(appDatabase.searchDao().getAllSearchEntities());
+        backupEntity.setUserEntityList(appDatabase.downloadDao().getAllUser());
         return Shaft.sGson.toJson(backupEntity);
     }
 
@@ -91,6 +102,13 @@ public class BackupUtils {
                 SearchDao searchDao = appDatabase.searchDao();
                 for (SearchEntity searchEntity : searchEntityList) {
                     searchDao.insert(searchEntity);
+                }
+            }
+            List<UserEntity> userEntityList = backupEntity.getUserEntityList();
+            if (userEntityList != null && !userEntityList.isEmpty()) {
+                DownloadDao downloadDao = appDatabase.downloadDao();
+                for (UserEntity userEntity : userEntityList) {
+                    downloadDao.insertUser(userEntity);
                 }
             }
             return true;
