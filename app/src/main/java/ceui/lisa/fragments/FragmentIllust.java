@@ -432,9 +432,9 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
     private int recyHeight = 0;
 
     private void checkDownload() {
-        if(Common.isIllustDownloaded(illust)){
+        if (Common.isIllustDownloaded(illust)) {
             baseBind.download.setText(R.string.string_337);
-        }else{
+        } else {
             baseBind.download.setText(R.string.string_72);
         }
     }

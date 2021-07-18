@@ -84,7 +84,9 @@ public class FragmentSearchNovel extends NetListFragment<FragmentBaseListBinding
                 searchModel.getKeyword().getValue(),
                 searchModel.getSortType().getValue(),
                 searchModel.getSearchType().getValue(),
-                searchModel.getStarSize().getValue()
+                searchModel.getStarSize().getValue(),
+                searchModel.getStartDate().getValue(),
+                searchModel.getEndDate().getValue()
         );
     }
 

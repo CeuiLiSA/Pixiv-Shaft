@@ -11,7 +11,9 @@ class SearchNovelRepo(
     var keyword: String?,
     var sortType: String?,
     var searchType: String?,
-    var starSize: String?
+    var starSize: String?,
+    var startDate: String?,
+    var endDate: String?
 ) : RemoteRepo<ListNovel>() {
 
     override fun initApi(): Observable<ListNovel> {
@@ -19,6 +21,8 @@ class SearchNovelRepo(
             token(),
             keyword + if (TextUtils.isEmpty(starSize)) "" else " $starSize",
             sortType,
+            startDate,
+            endDate,
             searchType
         )
     }
@@ -32,5 +36,7 @@ class SearchNovelRepo(
         sortType = searchModel.sortType.value
         searchType = searchModel.searchType.value
         starSize = searchModel.starSize.value
+        startDate = searchModel.startDate.value
+        endDate = searchModel.endDate.value
     }
 }

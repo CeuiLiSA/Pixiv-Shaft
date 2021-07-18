@@ -2,9 +2,11 @@ package ceui.lisa.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -12,18 +14,16 @@ import androidx.viewpager.widget.ViewPager;
 
 import ceui.lisa.R;
 import ceui.lisa.core.Container;
-import ceui.lisa.core.IDWithList;
 import ceui.lisa.core.Mapper;
 import ceui.lisa.core.PageData;
-import ceui.lisa.core.TimeRecord;
 import ceui.lisa.databinding.ActivityViewPagerBinding;
 import ceui.lisa.fragments.FragmentIllust;
 import ceui.lisa.fragments.FragmentSingleIllust;
 import ceui.lisa.fragments.FragmentSingleUgora;
+import ceui.lisa.helper.DeduplicateArrayList;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListIllust;
-import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
@@ -70,6 +70,17 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                 public int getCount() {
                     return pageData.getList().size();
                 }
+
+                @Nullable
+                @org.jetbrains.annotations.Nullable
+                @Override
+                public Parcelable saveState() {
+                    Bundle bundle = (Bundle) super.saveState();
+                    if (bundle != null) {
+                        bundle.putParcelableArray("states", null);
+                    }
+                    return bundle;
+                }
             });
             baseBind.viewPager.setOffscreenPageLimit(2);
 
@@ -113,7 +124,8 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                                                 intent.putExtra(Params.CONTENT, listIllust);
                                                 LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
 
-                                                pageData.getList().addAll(listIllust.getList());
+                                                // pageData.getList().addAll(listIllust.getList());
+                                                DeduplicateArrayList.addAllWithNoRepeat(pageData.getList(), listIllust.getList());
                                                 pageData.setNextUrl(listIllust.getNextUrl());
                                                 if (baseBind.viewPager.getAdapter() != null) {
                                                     baseBind.viewPager.getAdapter().notifyDataSetChanged();

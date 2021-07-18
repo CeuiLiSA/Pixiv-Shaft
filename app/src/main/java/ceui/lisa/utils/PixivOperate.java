@@ -352,6 +352,12 @@ public class PixivOperate {
                             Common.showToast("NovelSearchResponse 为空");
                         }
                     }
+
+                    @Override
+                    public void must() {
+                        super.must();
+                        OutWakeActivity.isNetWorking = false;
+                    }
                 });
     }
 

@@ -486,7 +486,7 @@
   <string name="string_324">Theme color</string>  
   <string name="string_325">Click settings</string>  
   <string name="string_326">start</string>  
-  <string name="string_327">suspend</string>  
+  <string name="string_327">Suspend</string>
   <string name="string_328">Clear task</string>  
   <string name="string_329">The system version is lower than Android 10, unable to customize the folder</string>  
   <string name="string_330">Not set yet</string>  
@@ -494,7 +494,7 @@
   <string name="r_eighteen_male_rank">Male r</string>  
   <string name="r_eighteen_female_rank">Female r</string>  
   <string name="string_331">Using pixivcat agent</string>  
-  <string name="string_332">The details / secondary details page displays the original picture</string>  
+  <string name="string_332">The secondary details page displays the original picture</string>
   <string name="string_333">Speed up the loading of pictures. If you think the loading is slow, you can close it</string>  
   <string name="string_334">The image quality of the original image is good. If you think that the loading of the original image is too slow, you can close it</string>  
   <string name="about_network">Network</string>  
@@ -578,4 +578,15 @@
   <string name="string_409">Auto collection when download</string>
   <string name="string_410">The size of the source image searched by the image exceeds the limit</string>
   <string name="string_411">Four groups</string>
+  <string name="string_412">Birthday</string>
+  <string name="string_413">The details page displays the original picture</string>
+  <string name="string_414">Filter R18 content by default</string>
+  <string name="string_415">Long press the avatar in drawer to switch temporarily</string>
+  <string name="string_416">Start and end date</string>
+  <string name="string_417">Start date</string>
+  <string name="string_418">End date</string>
+  <string name="string_419">Backup and restore</string>
+  <string name="string_420">Backup</string>
+  <string name="string_421">Restore</string>
+  <string name="string_422">Personal center</string>
 </resources>

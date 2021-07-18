@@ -58,6 +58,16 @@ public class IllustFilter {
         return false;
     }
 
+    public static boolean judgeR18Filter(IllustsBean illustsBean) {
+        if (!Shaft.sSettings.isR18FilterTempEnable()) {
+            return false;
+        }
+        String tagString = illustsBean.getTagString();
+        boolean isHit = tagString.contains("*#R-18,") || tagString.contains("*#R-18G,");
+        illustsBean.setShield(isHit);
+        return isHit;
+    }
+
     public static List<TagsBean> getMutedTags() {
         List<TagsBean> result = new ArrayList<>();
         List<MuteEntity> muteEntities = AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().getAllMutedTags();

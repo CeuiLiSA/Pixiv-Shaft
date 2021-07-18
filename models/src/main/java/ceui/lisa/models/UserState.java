@@ -27,6 +27,7 @@ public class UserState {
         private boolean is_mail_authorized;
         private boolean has_changed_pixiv_id;
         private boolean can_change_pixiv_id;
+        private boolean has_password;
 
         public boolean isIs_mail_authorized() {
             return is_mail_authorized;
@@ -50,6 +51,14 @@ public class UserState {
 
         public void setCan_change_pixiv_id(boolean can_change_pixiv_id) {
             this.can_change_pixiv_id = can_change_pixiv_id;
+        }
+
+        public boolean isHas_password() {
+            return has_password;
+        }
+
+        public void setHas_password(boolean has_password) {
+            this.has_password = has_password;
         }
     }
 }

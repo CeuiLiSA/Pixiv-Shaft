@@ -8,10 +8,13 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.CompoundButton;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.blankj.utilcode.util.FileIOUtils;
 import com.blankj.utilcode.util.FileUtils;
 import com.blankj.utilcode.util.LanguageUtils;
+import com.blankj.utilcode.util.UriUtils;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
@@ -20,6 +23,7 @@ import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
 
+import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.Locale;
@@ -29,15 +33,20 @@ import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.FragmentSettingsBinding;
+import ceui.lisa.download.IllustDownload;
 import ceui.lisa.file.LegacyFile;
 import ceui.lisa.helper.PageTransformerHelper;
 import ceui.lisa.helper.ThemeHelper;
+import ceui.lisa.http.Retro;
+import ceui.lisa.interfaces.Callback;
+import ceui.lisa.utils.BackupUtils;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivSearchParamUtil;
 import ceui.lisa.utils.Settings;
 
+import static android.app.Activity.RESULT_OK;
 import static android.provider.DocumentsContract.EXTRA_INITIAL_URI;
 import static ceui.lisa.helper.ThemeHelper.ThemeType.DARK_MODE;
 import static ceui.lisa.helper.ThemeHelper.ThemeType.DEFAULT_MODE;
@@ -118,7 +127,8 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             baseBind.loginOut.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    new QMUIDialog.CheckBoxMessageDialogBuilder(getActivity())
+                    QMUIDialog.CheckBoxMessageDialogBuilder builder = new QMUIDialog.CheckBoxMessageDialogBuilder(getActivity());
+                    builder
                             .setTitle(getString(R.string.string_185))
                             .setMessage(getString(R.string.string_186))
                             .setChecked(true)
@@ -132,7 +142,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                             .addAction(R.string.login_out, new QMUIDialogAction.ActionListener() {
                                 @Override
                                 public void onClick(QMUIDialog dialog, int index) {
-                                    Common.logOut(mContext);
+                                    Common.logOut(mContext, builder.isChecked());
                                     mActivity.finish();
                                     dialog.dismiss();
                                 }
@@ -149,13 +159,13 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             baseBind.autoDns.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    if (isChecked) {
-                        Shaft.sSettings.setAutoFuckChina(true);
-                    } else {
-                        Shaft.sSettings.setAutoFuckChina(false);
-                    }
+                    boolean changed = isChecked != Shaft.sSettings.isAutoFuckChina();
+                    Shaft.sSettings.setAutoFuckChina(isChecked);
                     Common.showToast("设置成功", 2);
                     Local.setSettings(Shaft.sSettings);
+                    if (changed) {
+                        Retro.refreshAppApi();
+                    }
                 }
             });
             baseBind.fuckChina.setOnClickListener(new View.OnClickListener() {
@@ -196,6 +206,22 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             });
 
             //是否显示原图
+            baseBind.showOriginalPreviewImage.setChecked(Shaft.sSettings.isShowOriginalPreviewImage());
+            baseBind.showOriginalPreviewImage.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    Shaft.sSettings.setShowOriginalPreviewImage(isChecked);
+                    Common.showToast("设置成功");
+                    Local.setSettings(Shaft.sSettings);
+                }
+            });
+            baseBind.showOriginalPreviewImageRela.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    baseBind.showOriginalPreviewImage.performClick();
+                }
+            });
+
             baseBind.showOriginalImage.setChecked(Shaft.sSettings.isShowOriginalImage());
             baseBind.showOriginalImage.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
@@ -278,6 +304,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 }
             });
 
+            // 过滤垃圾评论
             baseBind.filterComment.setChecked(Shaft.sSettings.isFilterComment());
             baseBind.filterComment.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
@@ -295,6 +322,23 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 @Override
                 public void onClick(View v) {
                     baseBind.filterComment.performClick();
+                }
+            });
+
+            // 默认开启R18内容过滤
+            baseBind.r18FilterDefaultEnable.setChecked(Shaft.sSettings.isR18FilterDefaultEnable());
+            baseBind.r18FilterDefaultEnable.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    Shaft.sSettings.setR18FilterDefaultEnable(isChecked);
+                    Common.showToast("设置成功", 2);
+                    Local.setSettings(Shaft.sSettings);
+                }
+            });
+            baseBind.r18FilterDefaultEnableRela.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    baseBind.r18FilterDefaultEnable.performClick();
                 }
             });
         }
@@ -509,17 +553,17 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                                     Common.showToast("设置成功", 2);
                                     Local.setSettings(Shaft.sSettings);
                                     if (which == 0) {
-                                        LanguageUtils.applyLanguage(Locale.SIMPLIFIED_CHINESE, "");
+                                        LanguageUtils.applyLanguage(Locale.SIMPLIFIED_CHINESE, true);
                                     } else if (which == 1) {
-                                        LanguageUtils.applyLanguage(Locale.JAPAN, "");
+                                        LanguageUtils.applyLanguage(Locale.JAPAN, true);
                                     } else if (which == 2) {
-                                        LanguageUtils.applyLanguage(Locale.US, "");
+                                        LanguageUtils.applyLanguage(Locale.US, true);
                                     } else if (which == 3) {
-                                        LanguageUtils.applyLanguage(Locale.TRADITIONAL_CHINESE, "");
+                                        LanguageUtils.applyLanguage(Locale.TRADITIONAL_CHINESE, true);
                                     } else if (which == 4) {
-                                        LanguageUtils.applyLanguage(new Locale("RU", "ru", ""), "");
+                                        LanguageUtils.applyLanguage(new Locale("RU", "ru", ""), true);
                                     } else if (which == 5) {
-                                        LanguageUtils.applyLanguage(Locale.KOREA, "");
+                                        LanguageUtils.applyLanguage(Locale.KOREA, true);
                                     }
                                     dialog.dismiss();
                                 }
@@ -799,8 +843,39 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 @Override
                 public void onClick(View v) {
                     FileUtils.deleteAllInDir(new LegacyFile().gifCacheFolder(mContext));
-                    Common.showToast("GIF缓存清除成功！");
+                    Common.showToast("GIF缓存清除成功！", 2);
                     baseBind.gifCacheSize.setText(FileUtils.getSize(new LegacyFile().gifCacheFolder(mContext)));
+                }
+            });
+        }
+
+        // 备份与还原
+        {
+            baseBind.backupRela.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    String backupString = BackupUtils.getBackupString(mContext);
+                    IllustDownload.downloadBackupFile((BaseActivity<?>) mActivity, "Shaft-Backup.json", backupString, new Callback<Uri>() {
+                        @Override
+                        public void doSomething(Uri t) {
+                            Common.showToast("备份成功 " + Settings.FILE_PATH_BACKUP);
+                        }
+                    });
+                }
+            });
+
+            baseBind.restoreRela.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                    intent.addCategory(Intent.CATEGORY_OPENABLE);//必须
+                    intent.setType("*/*");//必须
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        Uri backupFileUri = Uri.parse("content://com.android.externalstorage.documents/document/primary:"+"Download%2fShaftBackups%2fShaft-Backup.json");
+//                        Common.showToast(backupFileUri);
+                        intent.putExtra(EXTRA_INITIAL_URI, backupFileUri);
+                    }
+                    startActivityForResult(intent, Params.REQUEST_CODE_CHOOSE);
                 }
             });
         }
@@ -841,6 +916,21 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             }
         } else {
             baseBind.illustPath.setText(Shaft.sSettings.getIllustPath());
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable @org.jetbrains.annotations.Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == Params.REQUEST_CODE_CHOOSE && resultCode == RESULT_OK && data != null) {
+            try {
+                Uri uri = data.getData();
+                File file = UriUtils.uri2File(uri);
+                boolean restoreResult = BackupUtils.restoreBackups(mContext, FileIOUtils.readFile2String(file));
+                Common.showToast(restoreResult ? "还原成功" : "还原失败");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 }

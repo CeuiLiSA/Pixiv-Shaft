@@ -40,7 +40,7 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
 
     @Override
     public void initLayout() {
-        mLayoutID = R.layout.fragment_base_scroll_list;
+        mLayoutID = R.layout.fragment_base_list;
     }
 
     @Override
@@ -102,7 +102,9 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
                 searchModel.getSortType().getValue(),
                 searchModel.getSearchType().getValue(),
                 searchModel.getStarSize().getValue(),
-                isPopular
+                isPopular,
+                searchModel.getStartDate().getValue(),
+                searchModel.getEndDate().getValue()
         );
     }
 

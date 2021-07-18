@@ -30,7 +30,6 @@ body:
     attributes:
       options:
         - label: Is this feature supported by the official pixiv app? / 官方App是否支持
-          required: true
 
   - type: input
     id: third-party-support

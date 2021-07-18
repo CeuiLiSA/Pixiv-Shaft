@@ -35,6 +35,8 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.OnCheckChangeListener;
+import ceui.lisa.viewmodel.BaseModel;
+import ceui.lisa.viewmodel.DynamicIllustModel;
 import io.reactivex.Observable;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -45,6 +47,11 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
     @Override
     public void initLayout() {
         mLayoutID = R.layout.fragment_new_right;
+    }
+
+    @Override
+    public Class<? extends BaseModel> modelClass() {
+        return DynamicIllustModel.class;
     }
 
     @Override

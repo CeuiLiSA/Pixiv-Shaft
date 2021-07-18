@@ -23,7 +23,8 @@ public class Mapper<T extends ListShow<?>> implements Function<T, T> {
                 boolean isTagBanned = IllustFilter.judgeTag((IllustsBean) o);
                 boolean isIdBanned = IllustFilter.judgeID((IllustsBean) o);
                 boolean isUserBanned = IllustFilter.judgeUserID((IllustsBean) o);
-                if (isTagBanned || isIdBanned || isUserBanned) {
+                boolean isR18FilterBanned = IllustFilter.judgeR18Filter((IllustsBean) o);
+                if (isTagBanned || isIdBanned || isUserBanned || isR18FilterBanned) {
                     dash.add((IllustsBean) o);
                 }
             }

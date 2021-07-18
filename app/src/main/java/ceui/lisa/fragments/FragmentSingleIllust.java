@@ -288,11 +288,11 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
             @Override
             public void onClick(View v) {
                 if (illust.getUser().isIs_followed()) {
-                    baseBind.follow.setText("+ 关注");
+                    baseBind.follow.setText(R.string.string_178);
                     PixivOperate.postUnFollowUser(illust.getUser().getId());
                     illust.getUser().setIs_followed(false);
                 } else {
-                    baseBind.follow.setText("取消关注");
+                    baseBind.follow.setText(R.string.string_177);
                     PixivOperate.postFollowUser(illust.getUser().getId(), Params.TYPE_PUBLUC);
                     illust.getUser().setIs_followed(true);
                 }
@@ -303,7 +303,7 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
             if (illust.getUser().isIs_followed()) {
 
             } else {
-                baseBind.follow.setText("取消关注");
+                baseBind.follow.setText(R.string.string_177);
                 illust.getUser().setIs_followed(true);
                 PixivOperate.postFollowUser(illust.getUser().getId(), Params.TYPE_PRIVATE);
             }
@@ -316,10 +316,9 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
 
         baseBind.userName.setText(illust.getUser().getName());
 
-        SpannableString sizeString = new SpannableString(String.format("尺寸：%s",
-                illust.getSize()));
+        SpannableString sizeString = new SpannableString(getString(R.string.string_193, illust.getWidth(), illust.getHeight()));
         sizeString.setSpan(new ForegroundColorSpan(R.attr.colorPrimary),
-                3, illust.getSize().length() + 3, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                sizeString.length()-illust.getSize().length(), sizeString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         baseBind.illustPx.setText(sizeString);
 
         baseBind.illustTag.setAdapter(new TagAdapter<TagsBean>(illust.getTags()) {
@@ -359,7 +358,7 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
         } else {
             baseBind.description.setVisibility(View.GONE);
         }
-        baseBind.illustDate.setText(illust.getCreate_date().substring(0, 16));
+        baseBind.illustDate.setText(Common.getLocalYYYYMMDDHHMMString(illust.getCreate_date()));
         baseBind.illustView.setText(String.valueOf(illust.getTotal_view()));
         baseBind.illustLike.setText(String.valueOf(illust.getTotal_bookmarks()));
 
@@ -369,16 +368,15 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
         baseBind.recyclerView.addItemDecoration(new LinearItemDecorationNoLRTB(DensityUtil.dp2px(1.0f)));
 
         if (illust.getUser().isIs_followed()) {
-            baseBind.follow.setText("取消关注");
+            baseBind.follow.setText(R.string.string_177);
         } else {
-            baseBind.follow.setText("+ 关注");
+            baseBind.follow.setText(R.string.string_178);
         }
 
 
-        SpannableString userString = new SpannableString(String.format("用户ID：%s",
-                String.valueOf(illust.getUser().getId())));
+        SpannableString userString = new SpannableString(getString(R.string.string_195, illust.getUser().getId()));
         userString.setSpan(new ForegroundColorSpan(R.attr.colorPrimary),
-                5, String.valueOf(illust.getUser().getId()).length() + 5, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                userString.length()-String.valueOf(illust.getUser().getId()).length(), userString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         baseBind.userId.setText(userString);
         baseBind.userId.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -386,10 +384,9 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
                 Common.copy(mContext, String.valueOf(illust.getUser().getId()));
             }
         });
-        SpannableString illustString = new SpannableString(String.format("作品ID：%s",
-                String.valueOf(illust.getId())));
+        SpannableString illustString = new SpannableString(getString(R.string.string_194, illust.getId()));
         illustString.setSpan(new ForegroundColorSpan(R.attr.colorPrimary),
-                5, String.valueOf(illust.getId()).length() + 5, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                illustString.length()-String.valueOf(illust.getId()).length(), illustString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         baseBind.illustId.setText(illustString);
         baseBind.illustId.setOnClickListener(new View.OnClickListener() {
             @Override

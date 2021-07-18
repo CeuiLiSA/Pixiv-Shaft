@@ -494,7 +494,7 @@
   <string name="r_eighteen_male_rank">男性</string>  
   <string name="r_eighteen_female_rank">女性R</string>  
   <string name="string_331">PixivCatエージェントを使う</string>  
-  <string name="string_332">詳細/二級詳細ページは原図を表示します。</string>  
+  <string name="string_332">二級詳細ページは原図を表示します。</string>
   <string name="string_333">画像の読み込みを加速します。ロードが遅くなりましたら、閉じることができます。</string>  
   <string name="string_334">原図の画質がいいです。原図のロードが遅すぎるとクローズできます。</string>  
   <string name="about_network">ネットワーク</string>  
@@ -578,4 +578,15 @@
   <string name="string_409">ダウンロード時の自動収集</string>
   <string name="string_410">image で検索したソース画像のサイズが制限を超えています</string>
   <string name="string_411">四つのグループ</string>
+  <string name="string_412">お誕生日</string>
+  <string name="string_413">詳細ページは原図を表示します</string>
+  <string name="string_414">デフォルトでR18コンテンツをフィルタリングする</string>
+  <string name="string_415">引き出しのアバターを長押しして一時的に切り替えます</string>
+  <string name="string_416">開始日と終了日</string>
+  <string name="string_417">開始日</string>
+  <string name="string_418">終了日</string>
+  <string name="string_419">バックアップと復元</string>
+  <string name="string_420">バックアップ</string>
+  <string name="string_421">復元</string>
+  <string name="string_422">パーソナルセンター</string>
 </resources>

@@ -25,6 +25,8 @@ public interface SearchDao {
     @Query("SELECT * FROM search_table ORDER BY searchTime DESC LIMIT :limit")
     List<SearchEntity> getAll(int limit);
 
+    @Query("SELECT * FROM search_table")
+    List<SearchEntity> getAllSearchEntities();
 
     //添加一个屏蔽标签
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -61,6 +63,8 @@ public interface SearchDao {
     @Query("SELECT * FROM tag_mute_table WHERE type = 3 AND id = :userID LIMIT 1")
     MuteEntity getMuteEntityByID(int userID);
 
+    @Query("SELECT * FROM tag_mute_table")
+    List<MuteEntity> getAllMuteEntities();
 
     @Delete
     void unMuteTag(MuteEntity userEntity);

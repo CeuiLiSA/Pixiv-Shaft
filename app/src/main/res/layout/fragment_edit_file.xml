@@ -138,6 +138,44 @@
 
                         <View style="@style/half_divider" />
 
+                        <LinearLayout
+                            android:id="@+id/birthdayArea"
+                            style="@style/LinearHorizon">
+
+                            <TextView
+                                style="@style/AboutUserLeft"
+                                android:layout_width="60dp"
+                                android:text="@string/string_412">
+
+                            </TextView>
+
+                            <TextView
+                                android:id="@+id/birthday"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_gravity="center_vertical"
+                                android:layout_marginStart="@dimen/eight_dp"
+                                android:text=""
+                                android:textSize="15sp"
+                                android:textColor="@color/deep_dark">
+
+                            </TextView>
+
+                            <ImageView
+                                android:layout_width="@dimen/tweenty_four_dp"
+                                android:layout_height="@dimen/tweenty_four_dp"
+                                android:layout_gravity="center_vertical"
+                                android:layout_marginEnd="@dimen/tweenty_four_dp"
+                                android:tint="?attr/colorPrimary"
+                                android:src="@drawable/ic_date_range_black_24dp">
+
+                            </ImageView>
+
+                        </LinearLayout>
+
+                        <View style="@style/half_divider" />
+
                         <LinearLayout style="@style/LinearHorizon">
 
                             <TextView

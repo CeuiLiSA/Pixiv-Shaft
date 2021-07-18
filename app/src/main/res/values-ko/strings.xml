@@ -494,7 +494,7 @@
   <string name="r_eighteen_male_rank">남성 R</string>  
   <string name="r_eighteen_female_rank">여성 R</string>  
   <string name="string_331">PixivCat 대 리 를 사용 합 니 다.</string>  
-  <string name="string_332">자세 한 정보 / 2 급 자세 한 화면 은 원 그림 을 표시 합 니 다.</string>  
+  <string name="string_332">2 급 자세 한 화면 은 원 그림 을 표시 합 니 다.</string>
   <string name="string_333">가속 로 딩 이미지, 로 딩 이 느 려 지 는 느낌 이 들 면 닫 을 수 있 습 니 다.</string>  
   <string name="string_334">원 도 는 화질 이 좋 으 므 로 원 도 는 로드 가 너무 느리다 고 느껴 지면 닫 아 도 된다.</string>  
   <string name="about_network">인터넷</string>  
@@ -578,4 +578,15 @@
   <string name="string_409">다운로드시 자동 수집</string>
   <string name="string_410">이미지로 검색된 소스 이미지의 크기가 제한을 초과했습니다</string>
   <string name="string_411">4 개 그룹</string>
+  <string name="string_412">생신</string>
+  <string name="string_413">세부 정보 페이지에는 원본 이미지가 표시됩니다</string>
+  <string name="string_414">기본적으로 R18 콘텐츠 필터링</string>
+  <string name="string_415">일시적으로 전환하려면 서랍에서 아바타를 길게 누르세요.</string>
+  <string name="string_416">시작일과 종료일</string>
+  <string name="string_417">시작일</string>
+  <string name="string_418">종료일</string>
+  <string name="string_419">백업 및 복원</string>
+  <string name="string_420">지원</string>
+  <string name="string_421">절감</string>
+  <string name="string_422">개인 센터</string>
 </resources>

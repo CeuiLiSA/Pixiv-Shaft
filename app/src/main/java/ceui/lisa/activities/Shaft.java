@@ -25,6 +25,7 @@ import ceui.lisa.R;
 import ceui.lisa.feature.HostManager;
 import ceui.lisa.feature.ToastStyle;
 import ceui.lisa.feature.WeissUtil;
+import ceui.lisa.helper.ShortcutHelper;
 import ceui.lisa.helper.ThemeHelper;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.notification.NetWorkStateReceiver;
@@ -121,14 +122,16 @@ public class Shaft extends Application {
         filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         registerReceiver(netWorkStateReceiver, filter);
 
-        if(sSettings.isGlobalSwipeBack()){
-            SmartSwipeBack.activitySlidingBack(this, new SmartSwipeBack.ActivitySwipeBackFilter(){
+        if (sSettings.isGlobalSwipeBack()) {
+            SmartSwipeBack.activitySlidingBack(this, new SmartSwipeBack.ActivitySwipeBackFilter() {
                 @Override
                 public boolean onFilter(Activity activity) {
                     return !(activity instanceof MainActivity);
                 }
             });
         }
+
+        ShortcutHelper.addAppShortcuts();
     }
 
     public OkHttpClient getOkHttpClient() {

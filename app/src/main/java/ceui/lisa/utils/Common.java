@@ -46,6 +46,8 @@ import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UserActivity;
+import ceui.lisa.database.AppDatabase;
+import ceui.lisa.database.UserEntity;
 import ceui.lisa.download.FileCreator;
 import ceui.lisa.file.SAFile;
 import ceui.lisa.models.IllustsBean;
@@ -84,14 +86,21 @@ public class Common {
         }
     }
 
-    public static void logOut(Context context) {
+    public static void logOut(Context context, boolean deleteUser) {
         if (Shaft.sUserModel != null) {
             if (!Dev.isDev) { //测试状态，不要真的退出登录，只是跳转到登录页面
                 Shaft.sUserModel.getUser().setIs_login(false);
                 Local.saveUser(Shaft.sUserModel);
+                if(deleteUser){
+                    UserEntity userEntity = new UserEntity();
+                    userEntity.setUserID(Shaft.sUserModel.getUserId());
+                    AppDatabase.getAppDatabase(context)
+                            .downloadDao().deleteUser(userEntity);
+                }
             }
             Intent intent = new Intent(context, TemplateActivity.class);
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "登录注册");
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             context.startActivity(intent);
         }
     }

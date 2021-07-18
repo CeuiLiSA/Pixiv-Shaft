@@ -515,7 +515,7 @@
     <string name="string_329">传统模式暂时不支持自定义文件夹</string>
     <string name="string_330">暂未设置</string>
     <string name="string_331">使用 PixivCat 代理</string>
-    <string name="string_332">详情/二级详情页面显示原图</string>
+    <string name="string_332">二级详情页面显示原图</string>
     <string name="string_333">加速加载图片，如果觉得加载变慢了，可以关闭</string>
     <string name="string_334">原图画质好，如果觉得原图加载太慢了，可以关闭</string>
     <string name="about_network">网络</string>
@@ -600,4 +600,15 @@
     <string name="string_409">下载时自动收藏</string>
     <string name="string_410">以图搜源图像大小超过限制</string>
     <string name="string_411">四群</string>
+    <string name="string_412">生日</string>
+    <string name="string_413">详情页面显示原图</string>
+    <string name="string_414">默认过滤 R18 内容</string>
+    <string name="string_415">长按侧边抽屉头像临时切换</string>
+    <string name="string_416">开始结束日期</string>
+    <string name="string_417">开始日期</string>
+    <string name="string_418">结束日期</string>
+    <string name="string_419">备份与还原</string>
+    <string name="string_420">备份</string>
+    <string name="string_421">还原</string>
+    <string name="string_422">个人中心</string>
 </resources>

@@ -494,7 +494,7 @@
   <string name="r_eighteen_male_rank">мужской r</string>  
   <string name="r_eighteen_female_rank">женский R</string>  
   <string name="string_331">Использовать прокси PixivCat</string>  
-  <string name="string_332">Подробности / сведения о втором уровне</string>  
+  <string name="string_332">Исходное изображение отображается на вторичной странице сведений.</string>
   <string name="string_333">ускорить загрузку изображений, если вы чувствуете, что загрузка замедлилась, можно закрыть</string>  
   <string name="string_334">оригинальный Рисунок хорошо, если вы думаете, что загрузка оригинальной карты слишком медленно, можно закрыть</string>  
   <string name="about_network">сеть</string>  
@@ -578,4 +578,15 @@
   <string name="string_409">Автоматический сбор при скачивании</string>
   <string name="string_410">Размер исходного изображения, найденного по изображению, превышает предел</string>
   <string name="string_411">Четыре группы</string>
+  <string name="string_412">день рождения</string>
+  <string name="string_413">На странице сведений показано исходное изображение</string>
+  <string name="string_414">Фильтровать содержимое R18 по умолчанию</string>
+  <string name="string_415">Нажмите и удерживайте аватар в ящике для временного переключения</string>
+  <string name="string_416">Дата начала и окончания</string>
+  <string name="string_417">Дата начала</string>
+  <string name="string_418">Дата окончания</string>
+  <string name="string_419">Резервное копирование и восстановление</string>
+  <string name="string_420">Резервное копирование</string>
+  <string name="string_421">снижение</string>
+  <string name="string_422">Персональный центр</string>
 </resources>

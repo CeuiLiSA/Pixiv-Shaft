@@ -35,6 +35,7 @@ import ceui.lisa.transformer.UniformScaleTransformation;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUrlChild;
+import ceui.lisa.utils.Params;
 import me.jessyan.progressmanager.ProgressListener;
 import me.jessyan.progressmanager.ProgressManager;
 import me.jessyan.progressmanager.body.ProgressInfo;
@@ -131,14 +132,10 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
             }
         });
         final String imageUrl;
-        if (Shaft.sSettings.isShowOriginalImage() || isForceOriginal) {
-            imageUrl = IllustDownload.getUrl(allIllust, position);
+        if (Shaft.sSettings.isShowOriginalPreviewImage() || isForceOriginal) {
+            imageUrl = IllustDownload.getUrl(allIllust, position, Params.IMAGE_RESOLUTION_ORIGINAL);
         } else {
-            if (allIllust.getPage_count() == 1) {
-                imageUrl = HostManager.get().replaceUrl(allIllust.getImage_urls().getLarge());
-            } else {
-                imageUrl = HostManager.get().replaceUrl(allIllust.getMeta_pages().get(position).getImage_urls().getLarge());
-            }
+            imageUrl = IllustDownload.getUrl(allIllust, position, Params.IMAGE_RESOLUTION_LARGE);
         }
         ProgressManager.getInstance().addResponseListener(imageUrl, new ProgressListener() {
             @Override

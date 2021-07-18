@@ -26,7 +26,7 @@ import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.core.BaseRepo;
-import ceui.lisa.helper.StaggeredtManager;
+import ceui.lisa.helper.StaggeredManager;
 import ceui.lisa.interfaces.FeedBack;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
@@ -218,7 +218,7 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
     }
 
     protected void staggerRecyclerView() {
-        StaggeredtManager manager = new StaggeredtManager(
+        StaggeredManager manager = new StaggeredManager(
                 Shaft.sSettings.getLineCount(), StaggeredGridLayoutManager.VERTICAL);
         mRecyclerView.setLayoutManager(manager);
         mRecyclerView.addItemDecoration(new SpacesItemDecoration(

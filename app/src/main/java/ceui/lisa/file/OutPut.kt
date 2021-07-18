@@ -2,12 +2,13 @@ package ceui.lisa.file
 
 import android.content.ContentValues
 import android.content.Context
+import android.os.Environment
 import android.provider.MediaStore
 import ceui.lisa.helper.FileStorageHelper
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Common
-import ceui.lisa.utils.Settings
 import com.blankj.utilcode.util.FileUtils
+import com.blankj.utilcode.util.PathUtils
 import rxhttp.wrapper.utils.query
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
@@ -71,8 +72,18 @@ object OutPut {
 
     @JvmStatic
     fun outPutNovel(context: Context, from: File, fileName: String) {
+        outPutToDownload(context, from, "ShaftNovels", fileName)
+    }
+
+    @JvmStatic
+    fun outPutBackupFile(context: Context, from: File, fileName: String) {
+        outPutToDownload(context, from, "ShaftBackups", fileName)
+    }
+
+    @JvmStatic
+    fun outPutToDownload(context: Context, from: File, path: String, fileName: String) {
         if (Common.isAndroidQ()) {
-            val relativePath = FileStorageHelper.getNovelRelativePathQ()
+            val relativePath = PathUtils.join(Environment.DIRECTORY_DOWNLOADS, path)
             var uri = MediaStore.Downloads.EXTERNAL_CONTENT_URI.query(context, fileName, relativePath)
             if (uri != null) {
                 val outputStream: OutputStream = context.contentResolver.openOutputStream(uri, "rwt")!!
@@ -105,18 +116,16 @@ object OutPut {
                     bos.close()
                 }
                 bis.close()
-                Common.showToast("小说文件保存成功")
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         } else {
-            val parentFile = File(Settings.FILE_PATH_NOVEL)
+            val parentFile = File(PathUtils.join(PathUtils.getExternalDownloadsPath(), path))
             if (!parentFile.exists()) {
                 parentFile.mkdirs()
             }
-            val gifResult = File(parentFile, fileName)
-            FileUtils.copy(from, gifResult)
-            Common.showToast("小说文件保存成功")
+            val file = File(parentFile, fileName)
+            FileUtils.copy(from, file)
         }
     }
 }

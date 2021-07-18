@@ -19,13 +19,13 @@ import com.facebook.rebound.SpringSystem;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 
-public class StaggeredtManager extends StaggeredGridLayoutManager {
+public class StaggeredManager extends StaggeredGridLayoutManager {
 
-    public StaggeredtManager(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public StaggeredManager(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
 
-    public StaggeredtManager(int spanCount, int orientation) {
+    public StaggeredManager(int spanCount, int orientation) {
         super(spanCount, orientation);
     }
 
@@ -69,7 +69,7 @@ public class StaggeredtManager extends StaggeredGridLayoutManager {
 
             @Override
             protected float calculateSpeedPerPixel(DisplayMetrics displayMetrics) {
-                return 50f / displayMetrics.densityDpi;
+                return 40f / displayMetrics.densityDpi;
             }
         };
         scroller.setTargetPosition(position);

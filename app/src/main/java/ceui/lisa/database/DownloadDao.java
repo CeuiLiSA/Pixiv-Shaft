@@ -138,4 +138,7 @@ public interface DownloadDao {
 
     @Query("DELETE FROM feature_table")
     void deleteAllFeature();
+
+    @Query("SELECT * FROM feature_table")
+    List<FeatureEntity> getAllFeatureEntities();
 }

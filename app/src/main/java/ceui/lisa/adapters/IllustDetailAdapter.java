@@ -19,6 +19,7 @@ import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
@@ -57,6 +58,7 @@ public class IllustDetailAdapter extends AbstractIllustAdapter<RecyclerView.View
         super.onBindViewHolder(holder, position);
         final TagHolder currentOne = (TagHolder) holder;
         Common.showLog("IllustDetailAdapter onBindViewHolder 000");
+        boolean isLoadOriginalImage = Shaft.sSettings.isShowOriginalPreviewImage() || isForceOriginal;
         if (position == 0) {
             ViewGroup.LayoutParams params = currentOne.illust.getLayoutParams();
             params.height = imageSize * allIllust.getHeight() / allIllust.getWidth();
@@ -64,7 +66,7 @@ public class IllustDetailAdapter extends AbstractIllustAdapter<RecyclerView.View
             currentOne.illust.setLayoutParams(params);
             Glide.with(mContext)
                     .asDrawable()
-                    .load(isForceOriginal ?
+                    .load(isLoadOriginalImage ?
                             GlideUtil.getOriginalImage(allIllust, position) :
                             GlideUtil.getLargeImage(allIllust, position))
                     .transition(DrawableTransitionOptions.withCrossFade())
@@ -77,7 +79,7 @@ public class IllustDetailAdapter extends AbstractIllustAdapter<RecyclerView.View
         } else {
             Glide.with(mContext)
                     .asBitmap()
-                    .load(isForceOriginal ?
+                    .load(isLoadOriginalImage ?
                             GlideUtil.getOriginalImage(allIllust, position) :
                             GlideUtil.getLargeImage(allIllust, position))
                     .transition(withCrossFade())

@@ -32,6 +32,8 @@ public class Settings {
     //WEB下载
     public static final String WEB_DOWNLOAD_PATH = PathUtils.getExternalPicturesPath() + "/ShaftWeb";
 
+    public static final String FILE_PATH_BACKUP = PathUtils.getExternalDownloadsPath() + "/ShaftBackups";
+
     private int themeIndex;
 
     private int lineCount = 2;
@@ -86,6 +88,9 @@ public class Settings {
 
     //使用pixiv cat 代理 展示图片
     private boolean usePixivCat = false;
+
+    //一级详情FragmentIllust 图片显示原图
+    private boolean showOriginalPreviewImage = false;
 
     //二级详情FragmentImageDetail 图片显示原图
     private boolean showOriginalImage = false;
@@ -165,6 +170,11 @@ public class Settings {
     private boolean saveForSeparateAuthor = false; // 不同作者单独保存
 
     private boolean autoPostLikeWhenDownload = false; // 下载时自动收藏
+
+    private boolean r18FilterDefaultEnable = false; // 默认开启R18内容过滤
+
+    private transient boolean r18FilterTempEnableInited = false;
+    private transient boolean r18FilterTempEnable = false; // 临时开启R18内容过滤
 
     public String getAppLanguage() {
         if(!TextUtils.isEmpty(appLanguage)){
@@ -542,5 +552,33 @@ public class Settings {
 
     public void setAutoPostLikeWhenDownload(boolean autoPostLikeWhenDownload) {
         this.autoPostLikeWhenDownload = autoPostLikeWhenDownload;
+    }
+
+    public boolean isShowOriginalPreviewImage() {
+        return showOriginalPreviewImage;
+    }
+
+    public void setShowOriginalPreviewImage(boolean showOriginalPreviewImage) {
+        this.showOriginalPreviewImage = showOriginalPreviewImage;
+    }
+
+    public boolean isR18FilterDefaultEnable() {
+        return r18FilterDefaultEnable;
+    }
+
+    public void setR18FilterDefaultEnable(boolean r18FilterDefaultEnable) {
+        this.r18FilterDefaultEnable = r18FilterDefaultEnable;
+    }
+
+    public boolean isR18FilterTempEnable() {
+        if (!r18FilterTempEnableInited) {
+            r18FilterTempEnable = r18FilterDefaultEnable;
+            r18FilterTempEnableInited = true;
+        }
+        return r18FilterTempEnable;
+    }
+
+    public void setR18FilterTempEnable(boolean r18FilterTempEnable) {
+        this.r18FilterTempEnable = r18FilterTempEnable;
     }
 }
