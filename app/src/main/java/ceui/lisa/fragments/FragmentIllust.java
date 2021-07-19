@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextPaint;
@@ -88,7 +89,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
     protected void initView() {
         if (illust.getId() == 0 || !illust.isVisible()) {
             Common.showToast(R.string.string_206);
-            finish();
+            new Handler().postDelayed(this::finish, 1000);
             return;
         }
 
