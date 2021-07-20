@@ -589,4 +589,5 @@
   <string name="string_420">バックアップ</string>
   <string name="string_421">復元</string>
   <string name="string_422">パーソナルセンター</string>
+  <string name="string_423">同時に、閲覧履歴をバックアップしますか（おそらく非常に大きい）？</string>
 </resources>

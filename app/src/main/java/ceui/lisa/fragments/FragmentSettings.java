@@ -854,13 +854,32 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             baseBind.backupRela.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    String backupString = BackupUtils.getBackupString(mContext);
-                    IllustDownload.downloadBackupFile((BaseActivity<?>) mActivity, "Shaft-Backup.json", backupString, new Callback<Uri>() {
-                        @Override
-                        public void doSomething(Uri t) {
-                            Common.showToast("备份成功 " + Settings.FILE_PATH_BACKUP);
-                        }
-                    });
+                    QMUIDialog.CheckBoxMessageDialogBuilder builder = new QMUIDialog.CheckBoxMessageDialogBuilder(getActivity());
+                    builder
+                            .setTitle(getString(R.string.string_420))
+                            .setMessage(getString(R.string.string_423))
+                            .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                            .addAction(getString(R.string.string_187), new QMUIDialogAction.ActionListener() {
+                                @Override
+                                public void onClick(QMUIDialog dialog, int index) {
+                                    dialog.dismiss();
+                                }
+                            })
+                            .addAction(R.string.sure, new QMUIDialogAction.ActionListener() {
+                                @Override
+                                public void onClick(QMUIDialog dialog, int index) {
+                                    String backupString = BackupUtils.getBackupString(mContext, builder.isChecked());
+                                    IllustDownload.downloadBackupFile((BaseActivity<?>) mActivity, "Shaft-Backup.json", backupString, new Callback<Uri>() {
+                                        @Override
+                                        public void doSomething(Uri t) {
+                                            Common.showToast("备份成功 " + Settings.FILE_PATH_BACKUP);
+                                        }
+                                    });
+                                    dialog.dismiss();
+                                }
+                            })
+                            .create()
+                            .show();
                 }
             });
 

@@ -589,4 +589,5 @@
   <string name="string_420">Backup</string>
   <string name="string_421">Restore</string>
   <string name="string_422">Personal center</string>
+  <string name="string_423">At the same time backup browsing history (maybe very large)?</string>
 </resources>

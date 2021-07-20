@@ -65,11 +65,10 @@ public interface DownloadDao {
     /**
      * 新增一个浏览历史
      *
-     * @param userEntity
+     * @param illustHistoryEntity
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insert(IllustHistoryEntity userEntity);
-
+    void insert(IllustHistoryEntity illustHistoryEntity);
 
     /**
      * 删除一个浏览历史
@@ -79,16 +78,14 @@ public interface DownloadDao {
     @Delete
     void delete(IllustHistoryEntity userEntity);
 
-
     /**
      *
      */
     @Query("DELETE FROM illust_table")
     void deleteAllHistory();
 
-
     /**
-     * 查询所有浏览历史
+     * 分页查询所有浏览历史
      *
      * @param limit
      * @param offset
@@ -96,6 +93,14 @@ public interface DownloadDao {
      */
     @Query("SELECT * FROM illust_table ORDER BY time DESC LIMIT :limit OFFSET :offset")
     List<IllustHistoryEntity> getAllViewHistory(int limit, int offset);
+
+    /**
+     * 查询所有浏览历史
+     *
+     * @return
+     */
+    @Query("SELECT * FROM illust_table")
+    List<IllustHistoryEntity> getAllViewHistoryEntities();
 
 
     /**
