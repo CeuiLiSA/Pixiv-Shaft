@@ -24,7 +24,7 @@ class SearchIllustRepo(
 
     override fun initApi(): Observable<ListIllust> {
         return if (isPopular) {
-            Retro.getAppApi().popularPreview(token(), keyword)
+            Retro.getAppApi().popularPreview(token(), keyword, startDate, endDate, searchType)
         } else {
             PixivOperate.insertSearchHistory(keyword, 0)
             Retro.getAppApi().searchIllust(

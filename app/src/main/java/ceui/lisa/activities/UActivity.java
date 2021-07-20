@@ -21,6 +21,7 @@ import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.Display;
 import ceui.lisa.models.UserDetailResponse;
+import ceui.lisa.models.UserFollowDetail;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
@@ -84,6 +85,12 @@ public class UActivity extends BaseActivity<ActivityNewUserBinding> implements D
                 invoke(userDetailResponse);
             }
         });
+        mUserViewModel.getUserFollowDetail().observe(this, new Observer<UserFollowDetail>() {
+            @Override
+            public void onChanged(UserFollowDetail userFollowDetail) {
+                updateUserFollowDetailUI(userFollowDetail);
+            }
+        });
     }
 
     @Override
@@ -101,6 +108,15 @@ public class UActivity extends BaseActivity<ActivityNewUserBinding> implements D
                     @Override
                     public void must() {
                         baseBind.progress.setVisibility(View.INVISIBLE);
+                    }
+                });
+        Retro.getAppApi().getFollowDetail(Shaft.sUserModel.getAccess_token(), userID)
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new NullCtrl<UserFollowDetail>() {
+                    @Override
+                    public void success(UserFollowDetail userFollowDetail) {
+                        mUserViewModel.getUserFollowDetail().setValue(userFollowDetail);
                     }
                 });
     }
@@ -129,26 +145,39 @@ public class UActivity extends BaseActivity<ActivityNewUserBinding> implements D
             baseBind.starUser.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    UserFollowDetail userFollowDetail = mUserViewModel.getUserFollowDetail().getValue();
                     if (data.getUser().isIs_followed()) {
                         baseBind.starUser.setText(R.string.string_178);
                         PixivOperate.postUnFollowUser(data.getUser().getId());
                         data.getUser().setIs_followed(false);
+                        if (userFollowDetail != null) {
+                            userFollowDetail.getFollow_detail().setIs_followed(false);
+                        }
                     } else {
                         baseBind.starUser.setText(R.string.string_177);
                         PixivOperate.postFollowUser(data.getUser().getId(), Params.TYPE_PUBLUC);
                         data.getUser().setIs_followed(true);
+                        if (userFollowDetail != null) {
+                            userFollowDetail.getFollow_detail().setIs_followed(true);
+                            userFollowDetail.getFollow_detail().setRestrict(Params.TYPE_PUBLUC);
+                        }
                     }
+                    mUserViewModel.getUserFollowDetail().setValue(userFollowDetail);
                 }
             });
             baseBind.starUser.setOnLongClickListener(v1 -> {
                 if (!data.getUser().isIs_followed()) {
                     baseBind.starUser.setText(R.string.string_177);
                     data.getUser().setIs_followed(true);
-                    PixivOperate.postFollowUser(data.getUser().getId(), Params.TYPE_PRIVATE);
-                    return true;
-                } else {
-                    return false;
                 }
+                PixivOperate.postFollowUser(data.getUser().getId(), Params.TYPE_PRIVATE);
+                UserFollowDetail userFollowDetail = mUserViewModel.getUserFollowDetail().getValue();
+                if (userFollowDetail != null) {
+                    userFollowDetail.getFollow_detail().setIs_followed(true);
+                    userFollowDetail.getFollow_detail().setRestrict(Params.TYPE_PRIVATE);
+                    mUserViewModel.getUserFollowDetail().setValue(userFollowDetail);
+                }
+                return true;
             });
         }
 
@@ -203,6 +232,17 @@ public class UActivity extends BaseActivity<ActivityNewUserBinding> implements D
         };
         baseBind.follow.setOnClickListener(follow);
         baseBind.followS.setOnClickListener(follow);
+    }
 
+    private void updateUserFollowDetailUI(UserFollowDetail userFollowDetail) {
+        if (userFollowDetail == null) {
+            return;
+        }
+        if (!userFollowDetail.isFollow() || userFollowDetail.isPublicFollow()) {
+            baseBind.starUser.setBackgroundResource(R.drawable.follow_button_stroke_new);
+        }
+        if (userFollowDetail.isPrivateFollow()) {
+            baseBind.starUser.setBackgroundResource(R.drawable.follow_button_stroke_new_dotted);
+        }
     }
 }

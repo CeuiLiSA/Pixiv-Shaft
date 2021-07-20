@@ -36,6 +36,7 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUrlChild;
 import ceui.lisa.utils.Params;
+import ceui.lisa.utils.PixivOperate;
 import me.jessyan.progressmanager.ProgressListener;
 import me.jessyan.progressmanager.ProgressManager;
 import me.jessyan.progressmanager.body.ProgressInfo;
@@ -72,6 +73,9 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         if(longPressDownload && mActivity instanceof BaseActivity<?>){
             holder.itemView.setOnLongClickListener(v -> {
                 IllustDownload.downloadIllust(allIllust, position, (BaseActivity<?>) mActivity);
+                if(Shaft.sSettings.isAutoPostLikeWhenDownload() && !allIllust.isIs_bookmarked()){
+                    PixivOperate.postLikeDefaultStarType(allIllust);
+                }
                 return true;
             });
         }

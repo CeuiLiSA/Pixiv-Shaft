@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextPaint;
@@ -88,7 +89,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
     protected void initView() {
         if (illust.getId() == 0 || !illust.isVisible()) {
             Common.showToast(R.string.string_206);
-            finish();
+            new Handler().postDelayed(this::finish, 1000);
             return;
         }
 
@@ -345,11 +346,9 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
             if (!illust.getUser().isIs_followed()) {
                 baseBind.follow.setText(R.string.string_177);
                 illust.getUser().setIs_followed(true);
-                PixivOperate.postFollowUser(illust.getUser().getId(), Params.TYPE_PRIVATE);
-                return true;
-            } else {
-                return false;
             }
+            PixivOperate.postFollowUser(illust.getUser().getId(), Params.TYPE_PRIVATE);
+            return true;
         });
         baseBind.userName.setText(illust.getUser().getName());
         baseBind.postTime.setText(String.format("%s投递", Common.getLocalYYYYMMDDHHMMString(illust.getCreate_date())));

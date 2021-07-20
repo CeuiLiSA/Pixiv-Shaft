@@ -59,11 +59,11 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
                     return;
                 }
                 ((SearchIllustRepo) mRemoteRepo).update(searchModel, isPopular);
-                if(isPopular){
-                    if(TextUtils.isEmpty(searchModel.getKeyword().getValue())){
+                if (isPopular) {
+                    if (TextUtils.isEmpty(searchModel.getKeyword().getValue())) {
                         mRefreshLayout.setEnableRefresh(false);
                         return;
-                    }else{
+                    } else {
                         mRefreshLayout.setEnableRefresh(true);
                     }
                 }

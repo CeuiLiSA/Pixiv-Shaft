@@ -300,13 +300,11 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
         });
 
         baseBind.follow.setOnLongClickListener(v1 -> {
-            if (illust.getUser().isIs_followed()) {
-
-            } else {
+            if (!illust.getUser().isIs_followed()) {
                 baseBind.follow.setText(R.string.string_177);
                 illust.getUser().setIs_followed(true);
-                PixivOperate.postFollowUser(illust.getUser().getId(), Params.TYPE_PRIVATE);
             }
+            PixivOperate.postFollowUser(illust.getUser().getId(), Params.TYPE_PRIVATE);
             return true;
         });
 

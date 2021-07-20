@@ -8,6 +8,7 @@ import java.util.List;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.DownloadDao;
+import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.database.MuteEntity;
 import ceui.lisa.database.SearchDao;
 import ceui.lisa.database.SearchEntity;
@@ -22,6 +23,7 @@ public class BackupUtils {
         private List<FeatureEntity> featureEntityList;
         private List<SearchEntity> searchEntityList;
         private List<UserEntity> userEntityList;
+        private List<IllustHistoryEntity> illustHistoryEntityList;
 
         public Settings getSettings() {
             return settings;
@@ -62,9 +64,17 @@ public class BackupUtils {
         public void setUserEntityList(List<UserEntity> userEntityList) {
             this.userEntityList = userEntityList;
         }
+
+        public List<IllustHistoryEntity> getIllustHistoryEntityList() {
+            return illustHistoryEntityList;
+        }
+
+        public void setIllustHistoryEntityList(List<IllustHistoryEntity> illustHistoryEntityList) {
+            this.illustHistoryEntityList = illustHistoryEntityList;
+        }
     }
 
-    public static String getBackupString(Context context) {
+    public static String getBackupString(Context context, boolean backupViewHistory) {
         BackupEntity backupEntity = new BackupEntity();
         backupEntity.setSettings(Shaft.sSettings);
         AppDatabase appDatabase = AppDatabase.getAppDatabase(context);
@@ -72,6 +82,9 @@ public class BackupUtils {
         backupEntity.setFeatureEntityList(appDatabase.downloadDao().getAllFeatureEntities());
         backupEntity.setSearchEntityList(appDatabase.searchDao().getAllSearchEntities());
         backupEntity.setUserEntityList(appDatabase.downloadDao().getAllUser());
+        if (backupViewHistory){
+            backupEntity.setIllustHistoryEntityList(appDatabase.downloadDao().getAllViewHistoryEntities());
+        }
         return Shaft.sGson.toJson(backupEntity);
     }
 
@@ -111,6 +124,14 @@ public class BackupUtils {
                     downloadDao.insertUser(userEntity);
                 }
             }
+            List<IllustHistoryEntity> illustHistoryEntityList = backupEntity.getIllustHistoryEntityList();
+            if (illustHistoryEntityList != null && !illustHistoryEntityList.isEmpty()) {
+                DownloadDao downloadDao = appDatabase.downloadDao();
+                for (IllustHistoryEntity illustHistoryEntity : illustHistoryEntityList) {
+                    downloadDao.insert(illustHistoryEntity);
+                }
+            }
+
             return true;
         } catch (Exception e) {
             e.printStackTrace();
