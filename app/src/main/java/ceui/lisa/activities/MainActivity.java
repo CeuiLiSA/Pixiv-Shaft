@@ -209,6 +209,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             }
         });
         baseBind.viewPager.setOffscreenPageLimit(baseFragments.length - 1);
+        baseBind.viewPager.setCurrentItem(Shaft.getMMKV().getInt(Params.MAIN_ACTIVITY_NAVIGATION_POSITION, 0));
         Manager.get().restore(mContext);
     }
 
@@ -433,5 +434,12 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             Intent intent = new Intent(mContext, NavActivity.class);
             startActivity(intent);
         }
+    }
+
+    @Override
+    public void finish() {
+        int currentPosition = baseBind.viewPager.getCurrentItem();
+        Shaft.getMMKV().putInt(Params.MAIN_ACTIVITY_NAVIGATION_POSITION, currentPosition);
+        super.finish();
     }
 }
