@@ -590,4 +590,6 @@
   <string name="string_421">절감</string>
   <string name="string_422">개인 센터</string>
   <string name="string_423">동시에 백업 검색 기록에서 (아마도 매우 큰)?</string>
+  <string name="string_425">검색 유형 선택(클립보드)</string>
+  <string name="string_424">검색 유형 선택</string>
 </resources>

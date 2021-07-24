@@ -590,4 +590,6 @@
   <string name="string_421">снижение</string>
   <string name="string_422">Персональный центр</string>
   <string name="string_423">При этом бэкап истории просмотров (может очень большой)?</string>
+  <string name="string_425">Выберите тип поиска (буфер обмена)</string>
+  <string name="string_424">Выберите тип поиска</string>
 </resources>

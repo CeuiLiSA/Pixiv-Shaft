@@ -592,4 +592,6 @@
   <string name="string_421">還原</string>
   <string name="string_422">個人中心</string>
   <string name="string_423">同時備份瀏覽記錄（可能很大）？</string>
+  <string name="string_424">選擇搜索類型</string>
+  <string name="string_425">選擇搜索類型（剪貼板）</string>
 </resources>

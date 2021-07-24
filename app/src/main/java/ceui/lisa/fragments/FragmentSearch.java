@@ -171,22 +171,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
         baseBind.more.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                new QMUIDialog.CheckableDialogBuilder(mContext)
-                        .setCheckedIndex(searchType)
-                        .setSkinManager(QMUISkinManager.defaultInstance(mContext))
-                        .addItems(SEARCH_TYPE, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                if (searchType != which) {
-                                    baseBind.inputBox.setHint(SEARCH_TYPE[which]);
-                                    searchType = which;
-                                    hasSwitchSearchType = true;
-                                }
-                                dialog.dismiss();
-                            }
-                        })
-                        .create()
-                        .show();
+                popUpSearchTypeSwitcher();
             }
         });
         baseBind.inputBox.setHint(SEARCH_TYPE[searchType]);
@@ -439,7 +424,36 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                 String content = ClipBoardUtils.getClipboardContent(mContext);
                 searchType = SearchTypeUtil.getSuggestSearchType(content);
                 baseBind.inputBox.setHint(SearchTypeUtil.SEARCH_TYPE_NAME[searchType]);
+                popUpSearchTypeSwitcher(true, content);
             }
         });
+    }
+
+    private void popUpSearchTypeSwitcher(){
+        popUpSearchTypeSwitcher(false, null);
+    }
+
+    private void popUpSearchTypeSwitcher(boolean fromClipboard, String clipboardContent) {
+        final String[] SEARCH_TYPE = SearchTypeUtil.SEARCH_TYPE_NAME;
+        new QMUIDialog.CheckableDialogBuilder(mContext)
+                .setTitle(fromClipboard ? R.string.string_425 : R.string.string_424)
+                .setCheckedIndex(searchType)
+                .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                .addItems(SEARCH_TYPE, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (searchType != which) {
+                            searchType = which;
+                            baseBind.inputBox.setHint(SEARCH_TYPE[which]);
+                            hasSwitchSearchType = true;
+                        }
+                        if (fromClipboard && searchType != SearchTypeUtil.defaultSearchType) {
+                            baseBind.inputBox.setText(clipboardContent);
+                        }
+                        dialog.dismiss();
+                    }
+                })
+                .create()
+                .show();
     }
 }
