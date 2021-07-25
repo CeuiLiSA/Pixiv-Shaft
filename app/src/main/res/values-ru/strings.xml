@@ -592,4 +592,6 @@
   <string name="string_423">При этом бэкап истории просмотров (может очень большой)?</string>
   <string name="string_425">Выберите тип поиска (буфер обмена)</string>
   <string name="string_424">Выберите тип поиска</string>
+  <string name="string_426">Исходное положение панели навигации</string>
+  <string name="string_427">Последняя закрытая позиция</string>
 </resources>

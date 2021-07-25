@@ -39,6 +39,7 @@ import ceui.lisa.fragments.FragmentLeft;
 import ceui.lisa.fragments.FragmentRight;
 import ceui.lisa.fragments.FragmentViewPager;
 import ceui.lisa.helper.DrawerLayoutHelper;
+import ceui.lisa.helper.NavigationLocationHelper;
 import ceui.lisa.jetpack.NavActivity;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
@@ -209,7 +210,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             }
         });
         baseBind.viewPager.setOffscreenPageLimit(baseFragments.length - 1);
-        baseBind.viewPager.setCurrentItem(Shaft.getMMKV().getInt(Params.MAIN_ACTIVITY_NAVIGATION_POSITION, 0));
+        baseBind.viewPager.setCurrentItem(getNavigationInitPosition());
         Manager.get().restore(mContext);
     }
 
@@ -441,5 +442,26 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         int currentPosition = baseBind.viewPager.getCurrentItem();
         Shaft.getMMKV().putInt(Params.MAIN_ACTIVITY_NAVIGATION_POSITION, currentPosition);
         super.finish();
+    }
+
+    private int getNavigationInitPosition() {
+        int defaultPosition = 0;
+        String settingValue = Shaft.sSettings.getNavigationInitPosition();
+        if (settingValue.equals(NavigationLocationHelper.LATEST)) {
+            int latestPosition = Shaft.getMMKV().getInt(Params.MAIN_ACTIVITY_NAVIGATION_POSITION, 0);
+            return latestPosition < baseFragments.length ? latestPosition : defaultPosition;
+        }
+        NavigationLocationHelper.NavigationItem navigationValue = NavigationLocationHelper.NAVIGATION_MAP.getOrDefault(settingValue, null);
+        if (navigationValue == null) {
+            return defaultPosition;
+        }
+        Class clazz = navigationValue.getInstanceClass();
+        for (int i = 0; i < baseFragments.length; i++) {
+            Fragment fragment = baseFragments[i];
+            if (clazz == fragment.getClass()) {
+                return i;
+            }
+        }
+        return defaultPosition;
     }
 }

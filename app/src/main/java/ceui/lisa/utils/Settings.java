@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.blankj.utilcode.util.PathUtils;
 
+import ceui.lisa.helper.NavigationLocationHelper;
 import ceui.lisa.helper.ThemeHelper;
 
 public class Settings {
@@ -175,6 +176,8 @@ public class Settings {
 
     private transient boolean r18FilterTempEnableInited = false;
     private transient boolean r18FilterTempEnable = false; // 临时开启R18内容过滤
+
+    private String navigationInitPosition = NavigationLocationHelper.TUIJIAN; // 主页底部导航栏初始化位置
 
     public String getAppLanguage() {
         if(!TextUtils.isEmpty(appLanguage)){
@@ -580,5 +583,13 @@ public class Settings {
 
     public void setR18FilterTempEnable(boolean r18FilterTempEnable) {
         this.r18FilterTempEnable = r18FilterTempEnable;
+    }
+
+    public String getNavigationInitPosition() {
+        return navigationInitPosition;
+    }
+
+    public void setNavigationInitPosition(String navigationInitPosition) {
+        this.navigationInitPosition = navigationInitPosition;
     }
 }

@@ -26,8 +26,10 @@ import com.scwang.smartrefresh.layout.header.FalsifyHeader;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.Arrays;
 import java.util.Locale;
 
+import androidx.navigation.Navigation;
 import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.Shaft;
@@ -35,6 +37,7 @@ import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.FragmentSettingsBinding;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.file.LegacyFile;
+import ceui.lisa.helper.NavigationLocationHelper;
 import ceui.lisa.helper.PageTransformerHelper;
 import ceui.lisa.helper.ThemeHelper;
 import ceui.lisa.http.Retro;
@@ -345,6 +348,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
 
         // 界面
         {
+            // APP主页显示R页面
             baseBind.mainViewR18.setChecked(Shaft.sSettings.isMainViewR18());
             baseBind.mainViewR18.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
@@ -361,6 +365,37 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 }
             });
 
+            // 首页导航栏初始化位置
+            String navigationInitPositionSettingValue = Shaft.sSettings.getNavigationInitPosition();
+            final String navigationInitPosition = !TextUtils.isEmpty(navigationInitPositionSettingValue) ? navigationInitPositionSettingValue : NavigationLocationHelper.TUIJIAN;
+            baseBind.navigationInitPosition.setText(NavigationLocationHelper.SETTING_NAME_MAP.get(navigationInitPosition));
+            baseBind.navigationInitPositionRela.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    String[] OPTION_VALUES = NavigationLocationHelper.SETTING_NAME_MAP.keySet().toArray(new String[0]);
+                    String[] OPTION_NAMES = NavigationLocationHelper.SETTING_NAME_MAP.values().toArray(new String[0]);
+                    String navigationInitPositionSettingValue = Shaft.sSettings.getNavigationInitPosition();
+                    final String navigationInitPosition = !TextUtils.isEmpty(navigationInitPositionSettingValue) ? navigationInitPositionSettingValue : NavigationLocationHelper.TUIJIAN;
+                    final int index = Arrays.asList(OPTION_VALUES).indexOf(navigationInitPosition);
+                    new QMUIDialog.CheckableDialogBuilder(mActivity)
+                            .setCheckedIndex(index)
+                            .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                            .addItems(OPTION_NAMES, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    if (which != index) {
+                                        Shaft.sSettings.setNavigationInitPosition(OPTION_VALUES[which]);
+                                        baseBind.navigationInitPosition.setText(OPTION_NAMES[which]);
+                                        Local.setSettings(Shaft.sSettings);
+                                    }
+                                    dialog.dismiss();
+                                }
+                            })
+                            .show();
+                }
+            });
+
+            // 新版作品详情
             baseBind.illustDetailUserNew.setChecked(Shaft.sSettings.isUseFragmentIllust());
             baseBind.illustDetailUserNew.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
@@ -381,6 +416,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 }
             });
 
+            // 新版个人中心
             baseBind.userNewUser.setChecked(Shaft.sSettings.isUseNewUserPage());
             baseBind.userNewUser.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
@@ -397,6 +433,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 }
             });
 
+            // 二次详情显示导航栏
             baseBind.illustDetailShowNavbar.setChecked(Shaft.sSettings.isIllustDetailShowNavbar());
             baseBind.illustDetailShowNavbar.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
@@ -435,9 +472,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                             .addItems(THEME_NAME, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    if (which == index) {
-                                        Common.showLog("什么也不做");
-                                    } else {
+                                    if (which != index) {
                                         Shaft.sSettings.setThemeType(((AppCompatActivity) mActivity), THEME_MODES[which]);
                                         baseBind.themeMode.setText(THEME_NAME[which]);
                                         Local.setSettings(Shaft.sSettings);
@@ -477,14 +512,12 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                     };
                     final int selectIndex = index;
                     new QMUIDialog.CheckableDialogBuilder(mActivity)
-                            .setCheckedIndex(index)
+                            .setCheckedIndex(selectIndex)
                             .setSkinManager(QMUISkinManager.defaultInstance(mContext))
                             .addItems(LINE_COUNT, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    if (which == selectIndex) {
-                                        Common.showLog("什么也不做");
-                                    } else {
+                                    if (which != selectIndex) {
                                         int lineCount = which + 2;
                                         Shaft.sSettings.setLineCount(lineCount);
                                         baseBind.lineCount.setText(getString(R.string.string_349, lineCount));

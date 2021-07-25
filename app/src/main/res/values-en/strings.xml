@@ -592,4 +592,6 @@
   <string name="string_423">At the same time backup browsing history (maybe very large)?</string>
   <string name="string_425">Select search type (clipboard)</string>
   <string name="string_424">Select search type</string>
+  <string name="string_426">Initial position of the navigation bar</string>
+  <string name="string_427">Last close position</string>
 </resources>
