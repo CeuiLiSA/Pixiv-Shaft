@@ -445,7 +445,6 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                         if (searchType != which) {
                             searchType = which;
                             baseBind.inputBox.setHint(SEARCH_TYPE[which]);
-                            hasSwitchSearchType = true;
                         }
                         if (fromClipboard && searchType != SearchTypeUtil.defaultSearchType) {
                             baseBind.inputBox.setText(clipboardContent);
@@ -455,5 +454,9 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                 })
                 .create()
                 .show();
+        // 开启一次即不再开启
+        if (fromClipboard) {
+            hasSwitchSearchType = true;
+        }
     }
 }
