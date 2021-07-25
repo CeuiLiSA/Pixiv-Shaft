@@ -22,6 +22,8 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Local;
 
+import static com.blankj.utilcode.util.StringUtils.getString;
+
 public class ColorAdapter extends BaseAdapter<ColorItem, RecyColorBinding> {
 
     public ColorAdapter(@Nullable List<ColorItem> targetList, Context context) {
@@ -62,7 +64,7 @@ public class ColorAdapter extends BaseAdapter<ColorItem, RecyColorBinding> {
                 Shaft.sSettings.setThemeIndex(position);
                 Local.setSettings(Shaft.sSettings);
                 Common.restart();
-                Common.showToast("设置成功", 2);
+                Common.showToast(getString(R.string.string_428), 2);
             }
         });
     }

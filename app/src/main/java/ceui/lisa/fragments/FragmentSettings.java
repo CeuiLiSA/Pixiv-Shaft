@@ -164,7 +164,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     boolean changed = isChecked != Shaft.sSettings.isAutoFuckChina();
                     Shaft.sSettings.setAutoFuckChina(isChecked);
-                    Common.showToast("设置成功", 2);
+                    Common.showToast(getString(R.string.string_428), 2);
                     Local.setSettings(Shaft.sSettings);
                     if (changed) {
                         Retro.refreshAppApi();
@@ -197,7 +197,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                     } else {
                         Shaft.sSettings.setUsePixivCat(false);
                     }
-                    Common.showToast("设置成功");
+                    Common.showToast(getString(R.string.string_428));
                     Local.setSettings(Shaft.sSettings);
                 }
             });
@@ -214,7 +214,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     Shaft.sSettings.setShowOriginalPreviewImage(isChecked);
-                    Common.showToast("设置成功");
+                    Common.showToast(getString(R.string.string_428));
                     Local.setSettings(Shaft.sSettings);
                 }
             });
@@ -230,7 +230,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     Shaft.sSettings.setShowOriginalImage(isChecked);
-                    Common.showToast("设置成功");
+                    Common.showToast(getString(R.string.string_428));
                     Local.setSettings(Shaft.sSettings);
                 }
             });
@@ -253,7 +253,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                     } else {
                         Shaft.sSettings.setSaveViewHistory(false);
                     }
-                    Common.showToast("设置成功", 2);
+                    Common.showToast(getString(R.string.string_428), 2);
                     Local.setSettings(Shaft.sSettings);
                 }
             });
@@ -273,7 +273,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                     } else {
                         Shaft.sSettings.setDeleteStarIllust(false);
                     }
-                    Common.showToast("设置成功", 2);
+                    Common.showToast(getString(R.string.string_428), 2);
                     Local.setSettings(Shaft.sSettings);
                 }
             });
@@ -296,7 +296,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     Shaft.sSettings.setSearchFilter(PixivSearchParamUtil.ALL_SIZE_VALUE[which]);
-                                    Common.showToast("设置成功", 2);
+                                    Common.showToast(getString(R.string.string_428), 2);
                                     Local.setSettings(Shaft.sSettings);
                                     baseBind.searchFilter.setText(PixivSearchParamUtil.ALL_SIZE_NAME[which]);
                                     dialog.dismiss();
@@ -317,7 +317,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                     } else {
                         Shaft.sSettings.setFilterComment(false);
                     }
-                    Common.showToast("设置成功", 2);
+                    Common.showToast(getString(R.string.string_428), 2);
                     Local.setSettings(Shaft.sSettings);
                 }
             });
@@ -334,7 +334,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     Shaft.sSettings.setR18FilterDefaultEnable(isChecked);
-                    Common.showToast("设置成功", 2);
+                    Common.showToast(getString(R.string.string_428), 2);
                     Local.setSettings(Shaft.sSettings);
                 }
             });
@@ -405,7 +405,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                     } else {
                         Shaft.sSettings.setUseFragmentIllust(false);
                     }
-                    Common.showToast("设置成功", 2);
+                    Common.showToast(getString(R.string.string_428), 2);
                     Local.setSettings(Shaft.sSettings);
                 }
             });
@@ -422,7 +422,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     Shaft.sSettings.setUseNewUserPage(isChecked);
-                    Common.showToast("设置成功", 2);
+                    Common.showToast(getString(R.string.string_428), 2);
                     Local.setSettings(Shaft.sSettings);
                 }
             });
@@ -439,7 +439,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     Shaft.sSettings.setIllustDetailShowNavbar(isChecked);
-                    Common.showToast("设置成功", 2);
+                    Common.showToast(getString(R.string.string_428), 2);
                     Local.setSettings(Shaft.sSettings);
                 }
             });
@@ -583,7 +583,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                                 public void onClick(DialogInterface dialog, int which) {
                                     Shaft.sSettings.setAppLanguage(ALL_LANGUAGE[which]);
                                     baseBind.appLanguage.setText(ALL_LANGUAGE[which]);
-                                    Common.showToast("设置成功", 2);
+                                    Common.showToast(getString(R.string.string_428), 2);
                                     Local.setSettings(Shaft.sSettings);
                                     if (which == 0) {
                                         LanguageUtils.applyLanguage(Locale.SIMPLIFIED_CHINESE, true);
@@ -613,7 +613,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     Shaft.sSettings.setR18DivideSave(isChecked);
-                    Common.showToast("设置成功");
+                    Common.showToast(getString(R.string.string_428));
                     Local.setSettings(Shaft.sSettings);
                 }
             });
@@ -639,7 +639,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     Shaft.sSettings.setSaveForSeparateAuthor(isChecked);
-                    Common.showToast("设置成功", 2);
+                    Common.showToast(getString(R.string.string_428), 2);
                     Local.setSettings(Shaft.sSettings);
                 }
             });
@@ -733,7 +733,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     Shaft.sSettings.setPrivateStar(isChecked);
-                    Common.showToast("设置成功", 2);
+                    Common.showToast(getString(R.string.string_428), 2);
                     Local.setSettings(Shaft.sSettings);
                 }
             });
@@ -749,7 +749,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     Shaft.sSettings.setHideStarButtonAtMyCollection(isChecked);
-                    Common.showToast("设置成功");
+                    Common.showToast(getString(R.string.string_428));
                     Local.setSettings(Shaft.sSettings);
                 }
             });
@@ -765,7 +765,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     Shaft.sSettings.setStarWithTagSelectAll(isChecked);
-                    Common.showToast("设置成功");
+                    Common.showToast(getString(R.string.string_428));
                     Local.setSettings(Shaft.sSettings);
                 }
             });
@@ -836,7 +836,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     Shaft.sSettings.setAutoPostLikeWhenDownload(isChecked);
-                    Common.showToast("设置成功");
+                    Common.showToast(getString(R.string.string_428));
                     Local.setSettings(Shaft.sSettings);
                 }
             });
@@ -853,7 +853,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     Shaft.sSettings.setFirebaseEnable(isChecked);
                     Local.setSettings(Shaft.sSettings);
-                    Common.showToast("设置成功", 2);
+                    Common.showToast(getString(R.string.string_428), 2);
                     FirebaseAnalytics.getInstance(mContext).setAnalyticsCollectionEnabled(isChecked);
                 }
             });
