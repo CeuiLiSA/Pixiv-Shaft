@@ -422,9 +422,18 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
             @Override
             public void run() {
                 String content = ClipBoardUtils.getClipboardContent(mContext);
-                searchType = SearchTypeUtil.getSuggestSearchType(content);
-                baseBind.inputBox.setHint(SearchTypeUtil.SEARCH_TYPE_NAME[searchType]);
-                popUpSearchTypeSwitcher(true, content);
+                String previousClipboardValue = Shaft.getMMKV().getString(Params.FRAGMENT_SEARCH_CLIPBOARD_VALUE, "");
+                // 如果之前确认过的剪贴板值和本次相同，不进行预测
+                if (!TextUtils.isEmpty(previousClipboardValue) && previousClipboardValue.equals(content)) {
+                    return;
+                }
+                int suggestSearchType = SearchTypeUtil.getSuggestSearchType(content);
+                // 预测类型和现在不同，进行切换并提示确认
+                if (suggestSearchType != searchType) {
+                    searchType = suggestSearchType;
+                    baseBind.inputBox.setHint(SearchTypeUtil.SEARCH_TYPE_NAME[searchType]);
+                    popUpSearchTypeSwitcher(true, content);
+                }
             }
         });
     }
@@ -446,6 +455,11 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                             searchType = which;
                             baseBind.inputBox.setHint(SEARCH_TYPE[which]);
                         }
+                        // 只要选中过任何选项，就不再进行相同内容的剪贴板预测
+                        if (fromClipboard) {
+                            Shaft.getMMKV().putString(Params.FRAGMENT_SEARCH_CLIPBOARD_VALUE, clipboardContent);
+                        }
+                        // 对非标签搜索的，进行填充
                         if (fromClipboard && searchType != SearchTypeUtil.defaultSearchType) {
                             baseBind.inputBox.setText(clipboardContent);
                         }
