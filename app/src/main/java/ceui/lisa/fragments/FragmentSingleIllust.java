@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.appcompat.widget.Toolbar;
+import androidx.lifecycle.Observer;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.bumptech.glide.Glide;
@@ -48,6 +49,7 @@ import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.ShareIllust;
 import ceui.lisa.view.LinearItemDecorationNoLRTB;
 import ceui.lisa.view.ScrollChange;
+import ceui.lisa.viewmodel.AppLevelViewModel;
 import jp.wasabeef.glide.transformations.BlurTransformation;
 
 import static ceui.lisa.utils.ShareIllust.URL_Head;
@@ -287,12 +289,11 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
         baseBind.follow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (illust.getUser().isIs_followed()) {
-                    baseBind.follow.setText(R.string.string_178);
+                Integer integerValue = Shaft.appViewModel.getFollowUserLiveData(illust.getUser().getId()).getValue();
+                if (AppLevelViewModel.FollowUserStatus.isFollowed(integerValue)) {
                     PixivOperate.postUnFollowUser(illust.getUser().getId());
                     illust.getUser().setIs_followed(false);
                 } else {
-                    baseBind.follow.setText(R.string.string_177);
                     PixivOperate.postFollowUser(illust.getUser().getId(), Params.TYPE_PUBLUC);
                     illust.getUser().setIs_followed(true);
                 }
@@ -300,8 +301,8 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
         });
 
         baseBind.follow.setOnLongClickListener(v1 -> {
-            if (!illust.getUser().isIs_followed()) {
-                baseBind.follow.setText(R.string.string_177);
+            Integer integerValue = Shaft.appViewModel.getFollowUserLiveData(illust.getUser().getId()).getValue();
+            if (!AppLevelViewModel.FollowUserStatus.isFollowed(integerValue)) {
                 illust.getUser().setIs_followed(true);
             }
             PixivOperate.postFollowUser(illust.getUser().getId(), Params.TYPE_PRIVATE);
@@ -365,13 +366,6 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
         baseBind.recyclerView.setNestedScrollingEnabled(true);
         baseBind.recyclerView.addItemDecoration(new LinearItemDecorationNoLRTB(DensityUtil.dp2px(1.0f)));
 
-        if (illust.getUser().isIs_followed()) {
-            baseBind.follow.setText(R.string.string_177);
-        } else {
-            baseBind.follow.setText(R.string.string_178);
-        }
-
-
         SpannableString userString = new SpannableString(getString(R.string.string_195, illust.getUser().getId()));
         userString.setSpan(new ForegroundColorSpan(R.attr.colorPrimary),
                 userString.length()-String.valueOf(illust.getUser().getId()).length(), userString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -416,6 +410,13 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
                 }
             });
         }
+
+        Shaft.appViewModel.getFollowUserLiveData(illust.getUser().getId()).observe(this, new Observer<Integer>() {
+            @Override
+            public void onChanged(Integer integer) {
+                updateFollowUserUI(integer);
+            }
+        });
     }
 
     @Override
@@ -449,5 +450,13 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
         ViewGroup.LayoutParams headParams = baseBind.head.getLayoutParams();
         headParams.height = Shaft.statusHeight * 3 / 5 + Shaft.toolbarHeight;
         baseBind.head.setLayoutParams(headParams);
+    }
+
+    private void updateFollowUserUI(int status){
+        if(AppLevelViewModel.FollowUserStatus.isFollowed(status)){
+            baseBind.follow.setText(R.string.string_177);
+        }else{
+            baseBind.follow.setText(R.string.string_178);
+        }
     }
 }

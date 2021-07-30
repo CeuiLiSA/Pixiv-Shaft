@@ -319,21 +319,14 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 return true;
             }
         });
-//        if (illust.getUser().isIs_followed()) {
-//            baseBind.follow.setText(R.string.string_177);
-//        } else {
-//            baseBind.follow.setText(R.string.string_178);
-//        }
         baseBind.follow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Integer integerValue = Shaft.appViewModel.getFollowUserLiveData(illust.getUser().getId()).getValue();
                 if (AppLevelViewModel.FollowUserStatus.isFollowed(integerValue)) {
-                    // baseBind.follow.setText(R.string.string_178);
                     PixivOperate.postUnFollowUser(illust.getUser().getId());
                     illust.getUser().setIs_followed(false);
                 } else {
-                    // baseBind.follow.setText(R.string.string_177);
                     PixivOperate.postFollowUser(illust.getUser().getId(), Params.TYPE_PUBLUC);
                     illust.getUser().setIs_followed(true);
                 }
@@ -343,7 +336,6 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
         baseBind.follow.setOnLongClickListener(v1 -> {
             Integer integerValue = Shaft.appViewModel.getFollowUserLiveData(illust.getUser().getId()).getValue();
             if (!AppLevelViewModel.FollowUserStatus.isFollowed(integerValue)) {
-                //baseBind.follow.setText(R.string.string_177);
                 illust.getUser().setIs_followed(true);
             }
             PixivOperate.postFollowUser(illust.getUser().getId(), Params.TYPE_PRIVATE);
@@ -445,14 +437,6 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
         }
     }
 
-    private void updateFollowUserUI(int status){
-        if(AppLevelViewModel.FollowUserStatus.isFollowed(status)){
-            baseBind.follow.setText(R.string.string_177);
-        }else{
-            baseBind.follow.setText(R.string.string_178);
-        }
-    }
-
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -517,6 +501,13 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
     @Override
     public SmartRefreshLayout getSmartRefreshLayout() {
         return baseBind.refreshLayout;
-//        return null;
+    }
+
+    private void updateFollowUserUI(int status){
+        if(AppLevelViewModel.FollowUserStatus.isFollowed(status)){
+            baseBind.follow.setText(R.string.string_177);
+        }else{
+            baseBind.follow.setText(R.string.string_178);
+        }
     }
 }
