@@ -22,7 +22,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
-import androidx.documentfile.provider.DocumentFile;
+import androidx.lifecycle.Observer;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -44,21 +44,18 @@ import ceui.lisa.activities.UserActivity;
 import ceui.lisa.adapters.IllustAdapter;
 import ceui.lisa.databinding.FragmentIllustBinding;
 import ceui.lisa.dialogs.MuteDialog;
-import ceui.lisa.download.FileCreator;
 import ceui.lisa.download.IllustDownload;
-import ceui.lisa.file.SAFile;
-import ceui.lisa.interfaces.FeedBack;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.notification.BaseReceiver;
 import ceui.lisa.notification.CallBackReceiver;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
-import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.ShareIllust;
+import ceui.lisa.viewmodel.AppLevelViewModel;
 
 import static ceui.lisa.utils.ShareIllust.URL_Head;
 
@@ -322,20 +319,21 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 return true;
             }
         });
-        if (illust.getUser().isIs_followed()) {
-            baseBind.follow.setText(R.string.string_177);
-        } else {
-            baseBind.follow.setText(R.string.string_178);
-        }
+//        if (illust.getUser().isIs_followed()) {
+//            baseBind.follow.setText(R.string.string_177);
+//        } else {
+//            baseBind.follow.setText(R.string.string_178);
+//        }
         baseBind.follow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (illust.getUser().isIs_followed()) {
-                    baseBind.follow.setText(R.string.string_178);
+                Integer integerValue = Shaft.appViewModel.getFollowUserLiveData(illust.getUser().getId()).getValue();
+                if (AppLevelViewModel.FollowUserStatus.isFollowed(integerValue)) {
+                    // baseBind.follow.setText(R.string.string_178);
                     PixivOperate.postUnFollowUser(illust.getUser().getId());
                     illust.getUser().setIs_followed(false);
                 } else {
-                    baseBind.follow.setText(R.string.string_177);
+                    // baseBind.follow.setText(R.string.string_177);
                     PixivOperate.postFollowUser(illust.getUser().getId(), Params.TYPE_PUBLUC);
                     illust.getUser().setIs_followed(true);
                 }
@@ -343,13 +341,15 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
         });
 
         baseBind.follow.setOnLongClickListener(v1 -> {
-            if (!illust.getUser().isIs_followed()) {
-                baseBind.follow.setText(R.string.string_177);
+            Integer integerValue = Shaft.appViewModel.getFollowUserLiveData(illust.getUser().getId()).getValue();
+            if (!AppLevelViewModel.FollowUserStatus.isFollowed(integerValue)) {
+                //baseBind.follow.setText(R.string.string_177);
                 illust.getUser().setIs_followed(true);
             }
             PixivOperate.postFollowUser(illust.getUser().getId(), Params.TYPE_PRIVATE);
             return true;
         });
+
         baseBind.userName.setText(illust.getUser().getName());
         baseBind.postTime.setText(String.format("%s投递", Common.getLocalYYYYMMDDHHMMString(illust.getCreate_date())));
         baseBind.totalView.setText(String.valueOf(illust.getTotal_view()));
@@ -418,6 +418,13 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 .load(GlideUtil.getUrl(illust.getUser().getProfile_image_urls().getMedium()))
                 .error(R.drawable.no_profile)
                 .into(baseBind.userHead);
+
+        Shaft.appViewModel.getFollowUserLiveData(illust.getUser().getId()).observe(this, new Observer<Integer>() {
+            @Override
+            public void onChanged(Integer integer) {
+                updateFollowUserUI(integer);
+            }
+        });
     }
 
     private CallBackReceiver mReceiver;
@@ -435,6 +442,14 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
             baseBind.download.setText(R.string.string_337);
         } else {
             baseBind.download.setText(R.string.string_72);
+        }
+    }
+
+    private void updateFollowUserUI(int status){
+        if(AppLevelViewModel.FollowUserStatus.isFollowed(status)){
+            baseBind.follow.setText(R.string.string_177);
+        }else{
+            baseBind.follow.setText(R.string.string_178);
         }
     }
 

@@ -24,7 +24,6 @@ import androidx.annotation.NonNull;
 import ceui.lisa.R;
 import ceui.lisa.feature.HostManager;
 import ceui.lisa.feature.ToastStyle;
-import ceui.lisa.feature.WeissUtil;
 import ceui.lisa.helper.ShortcutHelper;
 import ceui.lisa.helper.ThemeHelper;
 import ceui.lisa.models.UserModel;
@@ -33,6 +32,7 @@ import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Settings;
 import ceui.lisa.view.MyDeliveryHeader;
+import ceui.lisa.viewmodel.AppLevelViewModel;
 import me.jessyan.progressmanager.ProgressManager;
 import okhttp3.OkHttpClient;
 
@@ -47,6 +47,7 @@ public class Shaft extends Application {
     protected NetWorkStateReceiver netWorkStateReceiver;
     private OkHttpClient mOkHttpClient;
     private static MMKV mmkv;
+    public static AppLevelViewModel appViewModel;
 
     /**
      * 状态栏高度，初始化
@@ -132,6 +133,8 @@ public class Shaft extends Application {
         }
 
         ShortcutHelper.addAppShortcuts();
+
+        appViewModel = new AppLevelViewModel(this);
     }
 
     public OkHttpClient getOkHttpClient() {
