@@ -280,6 +280,11 @@ public class PixivOperate {
                             return;
                         }
 
+                        UserBean user = illust.getUser();
+                        if(user != null){
+                            Shaft.appViewModel.updateFollowUserStatus(user.getId(), user.isIs_followed() ? AppLevelViewModel.FollowUserStatus.FOLLOWED : AppLevelViewModel.FollowUserStatus.NOT_FOLLOW);
+                        }
+
                         final PageData pageData = new PageData(
                                 Collections.singletonList(illustSearchResponse.getIllust()));
                         Container.get().addPageToMap(pageData);
@@ -310,9 +315,15 @@ public class PixivOperate {
                 .subscribe(new NullCtrl<IllustSearchResponse>() {
                     @Override
                     public void success(IllustSearchResponse illustSearchResponse) {
-                        if (illustSearchResponse.getIllust() != null) {
+                        IllustsBean illust = illustSearchResponse.getIllust();
+                        if (illust != null) {
+                            UserBean user = illust.getUser();
+                            if(user != null){
+                                Shaft.appViewModel.updateFollowUserStatus(user.getId(), user.isIs_followed() ? AppLevelViewModel.FollowUserStatus.FOLLOWED : AppLevelViewModel.FollowUserStatus.NOT_FOLLOW);
+                            }
+
                             final PageData pageData = new PageData(
-                                    Collections.singletonList(illustSearchResponse.getIllust()));
+                                    Collections.singletonList(illust));
                             Container.get().addPageToMap(pageData);
 
                             Intent intent = new Intent(context, VActivity.class);

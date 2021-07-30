@@ -256,6 +256,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                                 beforeNextLoad(mResponse.getList());
                                 int beforeLoadSize = getStartSize();
                                 mModel.load(mResponse.getList(), false);
+                                mModel.tidyAppViewModel(mResponse.getList());
                                 allItems = mModel.getContent();
                                 int afterLoadSize = getStartSize();
                                 onNextLoaded(mResponse.getList());
