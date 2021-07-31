@@ -257,7 +257,7 @@ public class PixivOperate {
     public static void getIllustByID(UserModel userModel, int illustID, Context context) {
         QMUITipDialog tipDialog = new QMUITipDialog.Builder(context)
                 .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
-                .setTipWord("正在加载")
+                .setTipWord(getString(R.string.string_424))
                 .create();
         tipDialog.show();
         Retro.getAppApi().getIllustByID(userModel.getAccess_token(), illustID)
@@ -299,7 +299,7 @@ public class PixivOperate {
     }
 
     public static void getIllustByID(UserModel userModel, int illustID, Context context,
-                                     ceui.lisa.interfaces.Callback<Void> callback) {
+                                     ceui.lisa.interfaces.Callback<Void> success,ceui.lisa.interfaces.Callback<Void> fail) {
         Retro.getAppApi().getIllustByID(userModel.getAccess_token(), illustID)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -316,10 +316,14 @@ public class PixivOperate {
                             intent.putExtra(Params.PAGE_UUID, pageData.getUUID());
                             context.startActivity(intent);
 
-                            if (callback != null) {
-                                callback.doSomething(null);
+                            if (success != null) {
+                                success.doSomething(null);
                             }
                         }
+                    }
+                    @Override
+                    public void must(boolean isSuccess) {
+                        if(!isSuccess&&fail!=null) fail.doSomething(null);
                     }
 
                     @Override
@@ -430,7 +434,7 @@ public class PixivOperate {
         muteEntity.setTagJson(Shaft.sGson.toJson(novelBean));
         muteEntity.setSearchTime(System.currentTimeMillis());
         AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().insertMuteTag(muteEntity);
-        Common.showToast("操作成功");
+        Common.showToast(Shaft.getContext().getString(R.string.string_384));
     }
 
     public static void muteTags(List<TagsBean> tagsBeans) {

@@ -612,4 +612,9 @@
     <string name="string_421">还原</string>
     <string name="string_422">个人中心</string>
     <string name="string_423">同时备份浏览记录（可能很大）？</string>
+
+    <string name="string_424">正在加载</string>
+    <string name="string_425">关键词搜索</string>
+    <string name="string_426">搜索</string>
+    <string name="string_427">画师</string>
 </resources>

@@ -28,13 +28,14 @@ import ceui.lisa.databinding.FragmentNewSearchBinding;
 import ceui.lisa.fragments.FragmentFilter;
 import ceui.lisa.fragments.FragmentSearchIllust;
 import ceui.lisa.fragments.FragmentSearchNovel;
+import ceui.lisa.fragments.FragmentSearchUser;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 import ceui.lisa.viewmodel.SearchModel;
 
 public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 
-    private final BaseFragment<?>[] allPages = new BaseFragment[]{null, null, null};
+    private final BaseFragment<?>[] allPages = new BaseFragment[]{null, null, null,null};
     private FragmentFilter fragmentFilter;
     private String keyWord = "";
     private SearchModel searchModel;
@@ -65,7 +66,8 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
         final String[] TITLES = new String[]{
                 getString(R.string.string_136),
                 getString(R.string.string_137),
-                getString(R.string.string_138)
+                getString(R.string.string_138),
+                getString(R.string.string_427)
         };
         baseBind.searchBox.setText(keyWord);
         baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager(), 0) {
@@ -77,10 +79,13 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                         allPages[position] = FragmentSearchIllust.newInstance(false);
                     } else if (position == 1) {
                         allPages[position] = FragmentSearchIllust.newInstance(true);
-                    } else {
+                    } else if(position == 2){
                         allPages[position] = FragmentSearchNovel.newInstance();
+                    } else if(position == 3){
+                        allPages[position] = FragmentSearchUser.newInstance(keyWord);
                     }
                 }
+
                 return allPages[position];
             }
 

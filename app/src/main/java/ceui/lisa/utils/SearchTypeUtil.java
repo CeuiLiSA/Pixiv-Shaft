@@ -13,18 +13,18 @@ import ceui.lisa.activities.Shaft;
 public class SearchTypeUtil {
 
     private static Resources resources = Shaft.getContext().getResources();
-    public static final int defaultSearchType = 0;
+    public static final int defaultSearchType = 5;
 
     private static final Pattern WEB_URL_PATTERN = Patterns.WEB_URL;
     private static final Pattern NUMBERIC_PATTERN = Pattern.compile("(?:\\b|\\D)([1-9]\\d{3,9})(?:\\b|\\D)");
 
     public static String[] SEARCH_TYPE_NAME = new String[]{
-            resources.getString(R.string.string_149),
+            resources.getString(R.string.string_425),
             resources.getString(R.string.string_150),
-            resources.getString(R.string.string_151),
             resources.getString(R.string.string_152),
             resources.getString(R.string.string_153),
-            resources.getString(R.string.string_341)
+            resources.getString(R.string.string_341),
+            resources.getString(R.string.string_426)
     };
 
 
@@ -35,7 +35,7 @@ public class SearchTypeUtil {
             }
 
             if(WEB_URL_PATTERN.matcher(content).matches()){
-                return 5;
+                return 4;
             }
 
             Matcher matcher = NUMBERIC_PATTERN.matcher(content);
@@ -44,7 +44,7 @@ public class SearchTypeUtil {
                 if(number > 10000000L){
                     return 1;
                 }else{
-                    return 3;
+                    return 2;
                 }
             }
         } catch (Exception e) {
