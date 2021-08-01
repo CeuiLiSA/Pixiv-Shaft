@@ -595,4 +595,8 @@
   <string name="string_426">탐색 모음의 초기 위치</string>
   <string name="string_427">마지막 마감 위치</string>
   <string name="string_428">성공적으로 설정</string>
+  <string name="string_429">로딩</string>
+  <string name="string_430">키워드 검색</string>
+  <string name="string_431">검색</string>
+  <string name="string_432">일러스트레이터</string>
 </resources>

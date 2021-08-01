@@ -19,12 +19,12 @@ public class SearchTypeUtil {
     private static final Pattern NUMBERIC_PATTERN = Pattern.compile("(?:\\b|\\D)([1-9]\\d{3,9})(?:\\b|\\D)");
 
     public static String[] SEARCH_TYPE_NAME = new String[]{
-            resources.getString(R.string.string_425),
+            resources.getString(R.string.string_430),
             resources.getString(R.string.string_150),
             resources.getString(R.string.string_152),
             resources.getString(R.string.string_153),
             resources.getString(R.string.string_341),
-            resources.getString(R.string.string_426)
+            resources.getString(R.string.string_431)
     };
 
     public static final int SEARCH_TYPE_DB_KEYWORD = 0;

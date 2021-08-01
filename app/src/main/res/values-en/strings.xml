@@ -595,4 +595,8 @@
   <string name="string_426">Initial position of the navigation bar</string>
   <string name="string_427">Last close position</string>
   <string name="string_428">Setting Success</string>
+  <string name="string_429">Loading</string>
+  <string name="string_430">Keyword search</string>
+  <string name="string_431">Search</string>
+  <string name="string_432">Illustrator</string>
 </resources>

@@ -76,7 +76,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                 getString(R.string.string_136),
                 getString(R.string.string_137),
                 getString(R.string.string_138),
-                getString(R.string.string_427)
+                getString(R.string.string_432)
         };
         baseBind.searchBox.setText(keyWord);
         baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager(), 0) {
@@ -200,7 +200,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                 else if(Common.isNumeric(keyword)){
                     QMUITipDialog tipDialog = new QMUITipDialog.Builder(mContext)
                             .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
-                            .setTipWord(getString(R.string.string_424))
+                            .setTipWord(getString(R.string.string_429))
                             .create();
                     tipDialog.show();
                     //先假定为作品id
