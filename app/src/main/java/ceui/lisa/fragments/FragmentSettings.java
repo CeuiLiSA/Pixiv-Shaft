@@ -1,5 +1,6 @@
 package ceui.lisa.fragments;
 
+import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
@@ -22,6 +23,7 @@ import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
+import com.tbruyelle.rxpermissions3.RxPermissions;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
@@ -29,7 +31,6 @@ import java.net.URLDecoder;
 import java.util.Arrays;
 import java.util.Locale;
 
-import androidx.navigation.Navigation;
 import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.Shaft;
@@ -934,6 +935,19 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
 
         baseBind.refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));
         baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
+
+        if (!Common.isAndroidQ()) {
+            new RxPermissions(this)
+                    .requestEachCombined(
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE
+                    )
+                    .subscribe(permission -> {
+                        if (!permission.granted) {
+                            Common.showToast(getString(R.string.access_denied));
+                            finish();
+                        }
+                    });
+        }
     }
 
     @Override
