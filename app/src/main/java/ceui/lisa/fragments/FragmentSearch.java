@@ -179,22 +179,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
         baseBind.more.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                new QMUIDialog.CheckableDialogBuilder(mContext)
-                        .setCheckedIndex(searchType)
-                        .setSkinManager(QMUISkinManager.defaultInstance(mContext))
-                        .addItems(SEARCH_TYPE, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                if (searchType != which) {
-                                    baseBind.inputBox.setHint(SEARCH_TYPE[which]);
-                                    searchType = which;
-                                    hasSwitchSearchType = true;
-                                }
-                                dialog.dismiss();
-                            }
-                        })
-                        .create()
-                        .show();
+                popUpSearchTypeSwitcher();
             }
         });
         baseBind.inputBox.setHint(SEARCH_TYPE[searchType]);
@@ -477,9 +462,55 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
             @Override
             public void run() {
                 String content = ClipBoardUtils.getClipboardContent(mContext);
-                searchType = SearchTypeUtil.getSuggestSearchType(content);
-                baseBind.inputBox.setHint(SearchTypeUtil.SEARCH_TYPE_NAME[searchType]);
+                String previousClipboardValue = Shaft.getMMKV().getString(Params.FRAGMENT_SEARCH_CLIPBOARD_VALUE, "");
+                // 如果之前确认过的剪贴板值和本次相同，不进行预测
+                if (!TextUtils.isEmpty(previousClipboardValue) && previousClipboardValue.equals(content)) {
+                    return;
+                }
+                int suggestSearchType = SearchTypeUtil.getSuggestSearchType(content);
+                // 预测类型和现在不同，进行切换并提示确认
+                if (suggestSearchType != searchType) {
+                    searchType = suggestSearchType;
+                    baseBind.inputBox.setHint(SearchTypeUtil.SEARCH_TYPE_NAME[searchType]);
+                    popUpSearchTypeSwitcher(true, content);
+                }
             }
         });
+    }
+
+    private void popUpSearchTypeSwitcher(){
+        popUpSearchTypeSwitcher(false, null);
+    }
+
+    private void popUpSearchTypeSwitcher(boolean fromClipboard, String clipboardContent) {
+        final String[] SEARCH_TYPE = SearchTypeUtil.SEARCH_TYPE_NAME;
+        new QMUIDialog.CheckableDialogBuilder(mContext)
+                .setTitle(fromClipboard ? R.string.string_425 : R.string.string_424)
+                .setCheckedIndex(searchType)
+                .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                .addItems(SEARCH_TYPE, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (searchType != which) {
+                            searchType = which;
+                            baseBind.inputBox.setHint(SEARCH_TYPE[which]);
+                        }
+                        // 只要选中过任何选项，就不再进行相同内容的剪贴板预测
+                        if (fromClipboard) {
+                            Shaft.getMMKV().putString(Params.FRAGMENT_SEARCH_CLIPBOARD_VALUE, clipboardContent);
+                        }
+                        // 对非标签搜索的，进行填充
+                        if (fromClipboard && searchType != SearchTypeUtil.defaultSearchType) {
+                            baseBind.inputBox.setText(clipboardContent);
+                        }
+                        dialog.dismiss();
+                    }
+                })
+                .create()
+                .show();
+        // 开启一次即不再开启
+        if (fromClipboard) {
+            hasSwitchSearchType = true;
+        }
     }
 }

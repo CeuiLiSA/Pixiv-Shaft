@@ -18,12 +18,14 @@ import ceui.lisa.core.Mapper;
 import ceui.lisa.core.PageData;
 import ceui.lisa.databinding.ActivityViewPagerBinding;
 import ceui.lisa.fragments.FragmentIllust;
+import ceui.lisa.fragments.FragmentImageDetail;
 import ceui.lisa.fragments.FragmentSingleIllust;
 import ceui.lisa.fragments.FragmentSingleUgora;
 import ceui.lisa.helper.DeduplicateArrayList;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListIllust;
+import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
@@ -55,13 +57,16 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                 @NonNull
                 @Override
                 public Fragment getItem(int position) {
-                    if (pageData.getList().get(position).isGif()) {
-                        return FragmentSingleUgora.newInstance(pageData.getList().get(position));
+                    IllustsBean illustsBean = pageData.getList().get(position);
+                    if (illustsBean.getId() == 0 || !illustsBean.isVisible()) {
+                        return FragmentImageDetail.newInstance(illustsBean.getImage_urls().getMaxImage());
+                    } else if (illustsBean.isGif()) {
+                        return FragmentSingleUgora.newInstance(illustsBean);
                     } else {
                         if (Shaft.sSettings.isUseFragmentIllust()) {
-                            return FragmentIllust.newInstance(pageData.getList().get(position));
+                            return FragmentIllust.newInstance(illustsBean);
                         } else {
-                            return FragmentSingleIllust.newInstance(pageData.getList().get(position));
+                            return FragmentSingleIllust.newInstance(illustsBean);
                         }
                     }
                 }

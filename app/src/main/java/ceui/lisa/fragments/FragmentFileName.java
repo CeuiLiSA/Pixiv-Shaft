@@ -74,7 +74,7 @@ public class FragmentFileName extends SwipeFragment<FragmentFileNameBinding> {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 Shaft.sSettings.setHasP0(isChecked);
-                Common.showToast("设置成功");
+                Common.showToast(getString(R.string.string_428));
                 Local.setSettings(Shaft.sSettings);
             }
         });
