@@ -192,6 +192,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                         Intent intent = new Intent(mContext, OutWakeActivity.class);
                         intent.setData(Uri.parse(keyword));
                         startActivity(intent);
+                        mActivity.finish();
                     } catch (Exception e) {
                         Common.showToast(e.toString());
                         e.printStackTrace();
@@ -209,6 +210,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                         public void doSomething(Void t) {
                             PixivOperate.insertSearchHistory(keyword, SearchTypeUtil.SEARCH_TYPE_DB_ILLUSTSID);
                             tipDialog.dismiss();
+                            mActivity.finish();
                         }
                     }, new Callback<Void>() {
                         @Override
@@ -217,6 +219,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                             Intent intent = new Intent(mContext, UserActivity.class);
                             intent.putExtra(Params.USER_ID, Integer.valueOf(keyword));
                             startActivity(intent);
+                            mActivity.finish();
                         }
                     });
                 }
