@@ -19,6 +19,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
+import androidx.lifecycle.Observer;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.bumptech.glide.Glide;
@@ -59,6 +60,7 @@ import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.ShareIllust;
+import ceui.lisa.viewmodel.AppLevelViewModel;
 import jp.wasabeef.glide.transformations.BlurTransformation;
 import rxhttp.wrapper.entity.Progress;
 
@@ -435,12 +437,11 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
         baseBind.follow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (illust.getUser().isIs_followed()) {
-                    baseBind.follow.setText(R.string.string_178);
+                Integer integerValue = Shaft.appViewModel.getFollowUserLiveData(illust.getUser().getId()).getValue();
+                if (AppLevelViewModel.FollowUserStatus.isFollowed(integerValue)) {
                     PixivOperate.postUnFollowUser(illust.getUser().getId());
                     illust.getUser().setIs_followed(false);
                 } else {
-                    baseBind.follow.setText(R.string.string_177);
                     PixivOperate.postFollowUser(illust.getUser().getId(), Params.TYPE_PUBLUC);
                     illust.getUser().setIs_followed(true);
                 }
@@ -448,8 +449,8 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
         });
 
         baseBind.follow.setOnLongClickListener(v1 -> {
-            if (!illust.getUser().isIs_followed()) {
-                baseBind.follow.setText(R.string.string_177);
+            Integer integerValue = Shaft.appViewModel.getFollowUserLiveData(illust.getUser().getId()).getValue();
+            if (!AppLevelViewModel.FollowUserStatus.isFollowed(integerValue)) {
                 illust.getUser().setIs_followed(true);
             }
             PixivOperate.postFollowUser(illust.getUser().getId(), Params.TYPE_PRIVATE);
@@ -509,14 +510,6 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
         baseBind.illustView.setText(String.valueOf(illust.getTotal_view()));
         baseBind.illustLike.setText(String.valueOf(illust.getTotal_bookmarks()));
 
-
-        if (illust.getUser().isIs_followed()) {
-            baseBind.follow.setText(R.string.string_177);
-        } else {
-            baseBind.follow.setText(R.string.string_178);
-        }
-
-
         SpannableString userString = new SpannableString(String.format("用户ID：%s",
                 String.valueOf(illust.getUser().getId())));
         userString.setSpan(new ForegroundColorSpan(R.attr.colorPrimary),
@@ -539,8 +532,14 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
                 Common.copy(mContext, String.valueOf(illust.getId()));
             }
         });
-    }
 
+        Shaft.appViewModel.getFollowUserLiveData(illust.getUser().getId()).observe(this, new Observer<Integer>() {
+            @Override
+            public void onChanged(Integer integer) {
+                updateFollowUserUI(integer);
+            }
+        });
+    }
 
     @Override
     public void vertical() {
@@ -557,5 +556,13 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
         ViewGroup.LayoutParams headParams = baseBind.head.getLayoutParams();
         headParams.height = Shaft.statusHeight * 3 / 5 + Shaft.toolbarHeight;
         baseBind.head.setLayoutParams(headParams);
+    }
+
+    private void updateFollowUserUI(int status){
+        if(AppLevelViewModel.FollowUserStatus.isFollowed(status)){
+            baseBind.follow.setText(R.string.string_177);
+        }else{
+            baseBind.follow.setText(R.string.string_178);
+        }
     }
 }

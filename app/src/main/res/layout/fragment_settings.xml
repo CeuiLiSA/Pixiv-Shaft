@@ -488,6 +488,30 @@
                         <View style="@style/half_divider" />
 
                         <RelativeLayout
+                            android:id="@+id/navigation_init_position_rela"
+                            style="@style/ripple_rela">
+
+                            <TextView
+                                style="@style/setting_text_left"
+                                android:text="@string/string_426" />
+
+                            <TextView
+                                android:id="@+id/navigation_init_position"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
+                                android:layout_centerVertical="true"
+                                android:text="@string/string_426"
+                                android:textColor="?attr/colorPrimary"
+                                android:textSize="14sp">
+                            </TextView>
+
+                        </RelativeLayout>
+
+                        <View style="@style/half_divider" />
+
+                        <RelativeLayout
                             android:id="@+id/illust_detail_user_new_rela"
                             style="@style/ripple_rela">
 

@@ -15,7 +15,6 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.RecyUserPreviewBinding;
-import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.interfaces.FullClickListener;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.NovelBean;

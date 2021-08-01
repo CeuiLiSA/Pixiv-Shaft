@@ -74,6 +74,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                         beforeFirstLoad(mResponseList);
                         int beforeLoadSize = getStartSize();
                         mModel.load(mResponseList, true);
+                        mModel.tidyAppViewModel();
                         allItems = mModel.getContent();
                         int afterLoadSize = getStartSize();
                         onFirstLoaded(mResponseList);
@@ -141,6 +142,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                         beforeNextLoad(mResponseList);
                         int beforeLoadSize = getStartSize();
                         mModel.load(mResponseList, false);
+                        mModel.tidyAppViewModel(mResponseList);
                         allItems = mModel.getContent();
                         int afterLoadSize = getStartSize();
                         onNextLoaded(mResponseList);
@@ -254,6 +256,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                                 beforeNextLoad(mResponse.getList());
                                 int beforeLoadSize = getStartSize();
                                 mModel.load(mResponse.getList(), false);
+                                mModel.tidyAppViewModel(mResponse.getList());
                                 allItems = mModel.getContent();
                                 int afterLoadSize = getStartSize();
                                 onNextLoaded(mResponse.getList());
