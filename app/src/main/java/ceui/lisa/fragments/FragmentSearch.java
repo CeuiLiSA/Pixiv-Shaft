@@ -61,7 +61,6 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
-import static ceui.lisa.utils.Common.isNumeric;
 
 public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
 
@@ -111,7 +110,13 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                     if (keys.size() > 0) {
                         fuck.onNext(keys.get(keys.size() - 1));
                     }
-                } else {
+                } else if(inputs.length() > 0 && searchType == 5 && !inputs.endsWith(" ") && fuck != null && !Common.isNumeric(inputs)){
+                    List<String> keys = Arrays.stream(inputs.split(" "))
+                            .filter(s -> !TextUtils.isEmpty(s)).collect(Collectors.toList());
+                    if (keys.size() > 0) {
+                        fuck.onNext(keys.get(keys.size() - 1));
+                    }
+                }  else {
                     baseBind.hintList.setVisibility(View.GONE);
                 }
             }
@@ -205,15 +210,15 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
             intent.putExtra(Params.INDEX, 0);
             startActivity(intent);
         } else if (searchType == 1) {
-            if (isNumeric(trimmedKeyword)) {
+            if (Common.isNumeric(trimmedKeyword)) {
                 PixivOperate.insertSearchHistory(trimmedKeyword, searchType);
                 PixivOperate.getIllustByID(sUserModel, Integer.valueOf(trimmedKeyword), mContext);
             } else {
                 Common.showToast(getString(R.string.string_154));
             }
         }  else if (searchType == 2) {
-            if (isNumeric(trimmedKeyword)) {
-                PixivOperate.insertSearchHistory(trimmedKeyword, searchType+1);
+            if (Common.isNumeric(trimmedKeyword)) {
+                PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_USERID);
                 Intent intent = new Intent(mContext, UserActivity.class);
                 intent.putExtra(Params.USER_ID, Integer.valueOf(trimmedKeyword));
                 startActivity(intent);
@@ -221,8 +226,8 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                 Common.showToast(getString(R.string.string_154));
             }
         } else if (searchType == 3) {
-            if (isNumeric(trimmedKeyword)) {
-                PixivOperate.insertSearchHistory(trimmedKeyword, searchType+1);
+            if (Common.isNumeric(trimmedKeyword)) {
+                PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_NOVELID);
                 PixivOperate.getNovelByID(sUserModel, Integer.valueOf(trimmedKeyword), mContext, null);
             } else {
                 Common.showToast(getString(R.string.string_154));
@@ -251,7 +256,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                     e.printStackTrace();
                 }
             }
-            else if(isNumeric(trimmedKeyword)){
+            else if(Common.isNumeric(trimmedKeyword)){
                 QMUITipDialog tipDialog = new QMUITipDialog.Builder(mContext)
                         .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
                         .setTipWord(getString(R.string.string_424))
@@ -261,7 +266,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                 PixivOperate.getIllustByID(sUserModel, Integer.valueOf(trimmedKeyword), mContext, new Callback<Void>() {
                     @Override
                     public void doSomething(Void t) {
-                        PixivOperate.insertSearchHistory(trimmedKeyword, searchType);
+                        PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_ILLUSTSID);
                         tipDialog.dismiss();
                     }
                 }, new Callback<Void>() {
@@ -428,29 +433,29 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
         baseBind.searchHistory.setOnTagClickListener(new TagFlowLayout.OnTagClickListener() {
             @Override
             public boolean onTagClick(View view, int position, FlowLayout parent) {
-                if (history.get(position).getSearchType() == 0) {
+                if (history.get(position).getSearchType() == SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD) {
                     baseBind.hintList.setVisibility(View.INVISIBLE);
                     Intent intent = new Intent(mContext, SearchActivity.class);
                     intent.putExtra(Params.KEY_WORD, history.get(position).getKeyword());
                     intent.putExtra(Params.INDEX, 0);
                     startActivity(intent);
-                } else if (history.get(position).getSearchType() == 1) {
+                } else if (history.get(position).getSearchType() == SearchTypeUtil.SEARCH_TYPE_DB_ILLUSTSID) {
                     history.get(position).setSearchTime(System.currentTimeMillis());
                     AppDatabase.getAppDatabase(mContext).searchDao().insert(history.get(position));
                     PixivOperate.getIllustByID(sUserModel, Integer.parseInt(history.get(position).getKeyword()), mContext);
-                } else if (history.get(position).getSearchType() == 2) {
+                } else if (history.get(position).getSearchType() == SearchTypeUtil.SEARCH_TYPE_DB_USERKEYWORD) {
                     baseBind.hintList.setVisibility(View.INVISIBLE);
                     Intent intent = new Intent(mContext, SearchActivity.class);
                     intent.putExtra(Params.KEY_WORD, history.get(position).getKeyword());
                     intent.putExtra(Params.INDEX, 0);
                     startActivity(intent);
-                } else if (history.get(position).getSearchType() == 3) {
+                } else if (history.get(position).getSearchType() == SearchTypeUtil.SEARCH_TYPE_DB_USERID) {
                     history.get(position).setSearchTime(System.currentTimeMillis());
                     AppDatabase.getAppDatabase(mContext).searchDao().insert(history.get(position));
                     Intent intent = new Intent(mContext, UserActivity.class);
                     intent.putExtra(Params.USER_ID, Integer.valueOf(history.get(position).getKeyword()));
                     startActivity(intent);
-                } else if (history.get(position).getSearchType() == 4) {
+                } else if (history.get(position).getSearchType() == SearchTypeUtil.SEARCH_TYPE_DB_NOVELID) {
                     history.get(position).setSearchTime(System.currentTimeMillis());
                     AppDatabase.getAppDatabase(mContext).searchDao().insert(history.get(position));
                     PixivOperate.getNovelByID(sUserModel, Integer.parseInt(history.get(position).getKeyword()), mContext, null);
