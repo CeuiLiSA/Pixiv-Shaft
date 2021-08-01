@@ -261,7 +261,7 @@ public class PixivOperate {
     public static void getIllustByID(UserModel userModel, int illustID, Context context) {
         QMUITipDialog tipDialog = new QMUITipDialog.Builder(context)
                 .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
-                .setTipWord(getString(R.string.string_424))
+                .setTipWord(getString(R.string.string_429))
                 .create();
         tipDialog.show();
         Retro.getAppApi().getIllustByID(userModel.getAccess_token(), illustID)
