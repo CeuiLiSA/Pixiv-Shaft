@@ -74,7 +74,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                                     public void doSomething(Void t) {
                                         finish();
                                     }
-                                });
+                                },null);
                                 // finish(); // wait for callback
                                 return;
                             }
@@ -131,7 +131,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                                     public void doSomething(Void t) {
                                         finish();
                                     }
-                                });
+                                },null);
                                 return;
                             } else if (uriString.contains(HOST_ME)) {
                                 Intent i = new Intent(mContext, TemplateActivity.class);
@@ -163,7 +163,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                                 public void doSomething(Void t) {
                                     finish();
                                 }
-                            });
+                            },null);
                             return;
                         }
 
@@ -263,7 +263,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                             if (host.contains("illusts")) {
                                 String path = uri.getPath();
                                 PixivOperate.getIllustByID(Shaft.sUserModel, Integer.valueOf(path.substring(1)),
-                                        mContext, t -> finish());
+                                        mContext, t -> finish(),null);
                                 return;
                             }
 
