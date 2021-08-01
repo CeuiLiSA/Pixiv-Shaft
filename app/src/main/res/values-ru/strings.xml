@@ -595,4 +595,8 @@
   <string name="string_426">Исходное положение панели навигации</string>
   <string name="string_427">Последняя закрытая позиция</string>
   <string name="string_428">установлен успешно</string>
+  <string name="string_429">загрузка</string>
+  <string name="string_430">Поиск по ключевым словам</string>
+  <string name="string_431">поиск</string>
+  <string name="string_432">иллюстратор</string>
 </resources>
