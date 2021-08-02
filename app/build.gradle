@@ -31,10 +31,20 @@ android {
         }
     }
 
+    signingConfigs {
+        release {
+            storeFile file("../keystore.jks")
+            storePassword "123456"
+            keyAlias 'CeuiLiSA'
+            keyPassword '123456'
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
 
