@@ -122,11 +122,9 @@ public class UAdapter extends BaseAdapter<UserPreviewsBean, RecyUserPreviewBindi
 
             @Override
             public void onItemLongClick(View v, int position, int viewType) {
-                if (!allIllust.get(position).getUser().isIs_followed()) {
-                    PixivOperate.postFollowUser(allIllust.get(position).getUser().getId(), Params.TYPE_PRIVATE);
-                    Button postFollow = ((Button) v);
-                    postFollow.setText(mContext.getString(R.string.post_unfollow));
-                }
+                PixivOperate.postFollowUser(allIllust.get(position).getUser().getId(), Params.TYPE_PRIVATE);
+                Button postFollow = ((Button) v);
+                postFollow.setText(mContext.getString(R.string.post_unfollow));
             }
         });
     }

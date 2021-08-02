@@ -34,6 +34,10 @@ public class AppLevelViewModel extends AndroidViewModel {
     public void updateFollowUserStatus(int userId, int status) {
         MutableLiveData<Integer> data = followUserStatus.get(userId);
         if (data != null) {
+            Integer currentValue = data.getValue();
+            if(FollowUserStatus.isPreciseFollow(currentValue) && status == FollowUserStatus.FOLLOWED){
+                return;
+            }
             data.setValue(status);
         } else {
             followUserStatus.put(userId, new MutableLiveData<Integer>(status));
@@ -67,6 +71,10 @@ public class AppLevelViewModel extends AndroidViewModel {
 
         public static boolean isFollowed(int status) {
             return status == FOLLOWED || status == FOLLOWED_PUBLIC || status == FOLLOWED_PRIVATE;
+        }
+
+        public static boolean isPreciseFollow(int status) {
+            return status == FOLLOWED_PUBLIC || status == FOLLOWED_PRIVATE;
         }
 
         public static boolean isPublicFollowed(int status) {
