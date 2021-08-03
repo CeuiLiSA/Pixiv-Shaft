@@ -354,6 +354,13 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                                 return false;
                             }
                         });
+                        baseBind.hotTags.setOnTagLongClickListener(new TagFlowLayout.OnTagLongClickListener() {
+                            @Override
+                            public boolean onTagLongClick(View view, int position, FlowLayout parent) {
+                                Common.copy(mContext, listTrendingtag.getList().get(position).getTag());
+                                return true;
+                            }
+                        });
                     }
                 });
     }
@@ -446,6 +453,13 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                     PixivOperate.getNovelByID(sUserModel, Integer.parseInt(history.get(position).getKeyword()), mContext, null);
                 }
                 return false;
+            }
+        });
+        baseBind.searchHistory.setOnTagLongClickListener(new TagFlowLayout.OnTagLongClickListener() {
+            @Override
+            public boolean onTagLongClick(View view, int position, FlowLayout parent) {
+                Common.copy(mContext, history.get(position).getKeyword());
+                return true;
             }
         });
     }
