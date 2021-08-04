@@ -44,7 +44,7 @@ import ceui.lisa.viewmodel.SearchModel;
 
 public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 
-    private final BaseFragment<?>[] allPages = new BaseFragment[]{null, null, null,null};
+    private final BaseFragment<?>[] allPages = new BaseFragment[]{null, null,null};
     private FragmentFilter fragmentFilter;
     private String keyWord = "";
     private SearchModel searchModel;
@@ -56,7 +56,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
         index = bundle.getInt(Params.INDEX);
         searchModel = new ViewModelProvider(this).get(SearchModel.class);
         searchModel.getKeyword().setValue(keyWord);
-        searchModel.getIsNovel().setValue(index == 2);
+        searchModel.getIsNovel().setValue(index == 1);
         searchModel.getNowGo().observe(this, new Observer<String>() {
             @Override
             public void onChanged(String s) {
@@ -74,7 +74,6 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
     protected void initView() {
         final String[] TITLES = new String[]{
                 getString(R.string.string_136),
-                getString(R.string.string_137),
                 getString(R.string.string_138),
                 getString(R.string.string_432)
         };
@@ -85,12 +84,10 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
             public Fragment getItem(int position) {
                 if (allPages[position] == null) {
                     if (position == 0) {
-                        allPages[position] = FragmentSearchIllust.newInstance(false);
-                    } else if (position == 1) {
-                        allPages[position] = FragmentSearchIllust.newInstance(true);
-                    } else if(position == 2){
+                        allPages[position] = FragmentSearchIllust.newInstance();
+                    } else if(position == 1){
                         allPages[position] = FragmentSearchNovel.newInstance();
-                    } else if(position == 3){
+                    } else if(position == 2){
                         allPages[position] = FragmentSearchUser.newInstance(keyWord);
                     }
                 }
@@ -118,9 +115,9 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
             public void onPageSelected(int position) {
                 // 通知更改 过滤器-关键字匹配 类型
                 if(fragmentFilter != null){
-                    if((position == 0 || position == 1) && searchModel.getIsNovel().getValue()){
+                    if((position == 0 ) && searchModel.getIsNovel().getValue()){
                         searchModel.getIsNovel().setValue(false);
-                    }else if(position == 2 && !searchModel.getIsNovel().getValue()){
+                    }else if(position == 1 && !searchModel.getIsNovel().getValue()){
                         searchModel.getIsNovel().setValue(true);
                     }
                 }

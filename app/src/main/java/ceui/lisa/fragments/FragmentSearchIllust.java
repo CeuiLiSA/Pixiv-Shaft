@@ -13,6 +13,7 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.IAdapter;
 import ceui.lisa.core.BaseRepo;
@@ -29,12 +30,18 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
 
     private SearchModel searchModel;
     private boolean isPopular = false;
+    private boolean isPremium = false;
 
     public static FragmentSearchIllust newInstance(boolean popular) {
         Bundle args = new Bundle();
-        args.putBoolean(Params.IS_POPULAR, popular);
+        //args.putBoolean(Params.IS_POPULAR, popular);
         FragmentSearchIllust fragment = new FragmentSearchIllust();
         fragment.setArguments(args);
+        return fragment;
+    }
+
+    public static FragmentSearchIllust newInstance() {
+        FragmentSearchIllust fragment = new FragmentSearchIllust();
         return fragment;
     }
 
@@ -58,7 +65,7 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
                 if(!Arrays.asList(PixivSearchParamUtil.TAG_MATCH_VALUE).contains(searchModel.getSearchType().getValue())){
                     return;
                 }
-                ((SearchIllustRepo) mRemoteRepo).update(searchModel, isPopular);
+                ((SearchIllustRepo) mRemoteRepo).update(searchModel, isPremium);
                 if (isPopular) {
                     if (TextUtils.isEmpty(searchModel.getKeyword().getValue())) {
                         mRefreshLayout.setEnableRefresh(false);
@@ -74,20 +81,21 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
         searchModel.getStarSize().observe(getViewLifecycleOwner(), new Observer<String>() {
             @Override
             public void onChanged(String s) {
-                ((SearchIllustRepo) mRemoteRepo).update(searchModel, isPopular);
+                ((SearchIllustRepo) mRemoteRepo).update(searchModel, isPremium);
             }
         });
         searchModel.getSearchType().observe(getViewLifecycleOwner(), new Observer<String>() {
             @Override
             public void onChanged(String s) {
-                ((SearchIllustRepo) mRemoteRepo).update(searchModel, isPopular);
+                ((SearchIllustRepo) mRemoteRepo).update(searchModel, isPremium);
             }
         });
     }
 
     @Override
     protected void initBundle(Bundle bundle) {
-        isPopular = bundle.getBoolean(Params.IS_POPULAR);
+        isPremium = Shaft.sUserModel.getUser().isIs_premium();
+        //isPopular = bundle.getBoolean(Params.IS_POPULAR);
     }
 
     @Override
@@ -102,7 +110,8 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
                 searchModel.getSortType().getValue(),
                 searchModel.getSearchType().getValue(),
                 searchModel.getStarSize().getValue(),
-                isPopular,
+                //isPopular,
+                isPremium,
                 searchModel.getStartDate().getValue(),
                 searchModel.getEndDate().getValue()
         );

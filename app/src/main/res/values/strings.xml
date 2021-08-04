@@ -621,4 +621,6 @@
     <string name="string_430">关键词搜索</string>
     <string name="string_431">搜索</string>
     <string name="string_432">画师</string>
+
+    <string name="string_64_1">热度排序(非会员仅显示部分)</string>
 </resources>
