@@ -108,7 +108,7 @@ public class SimpleUserAdapter extends BaseAdapter<UserBean, RecySimpleUserBindi
                     PixivOperate.unMuteUser(allIllust.get(position));
                     allIllust.remove(position);
                     notifyDataSetChanged();
-                } else if (viewType == 1 && !allIllust.get(position).isIs_followed()) {
+                } else if (viewType == 1) {
                     PixivOperate.postFollowUser(allIllust.get(position).getId(),
                             Params.TYPE_PRIVATE);
                     Button postFollow = ((Button) v);

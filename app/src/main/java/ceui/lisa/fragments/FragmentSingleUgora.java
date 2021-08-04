@@ -506,7 +506,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
         } else {
             baseBind.description.setVisibility(View.GONE);
         }
-        baseBind.illustDate.setText(illust.getCreate_date().substring(0, 16));
+        baseBind.illustDate.setText(Common.getLocalYYYYMMDDHHMMString(illust.getCreate_date()));
         baseBind.illustView.setText(String.valueOf(illust.getTotal_view()));
         baseBind.illustLike.setText(String.valueOf(illust.getTotal_bookmarks()));
 
