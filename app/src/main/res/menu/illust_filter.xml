@@ -3,8 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/action_filter"
+        android:icon="@drawable/ic_baseline_settings_24"
         android:orderInCategory="100"
-        android:icon="@drawable/ic_content_cut_black_24dp"
         android:title="@string/illust_filter"
         app:showAsAction="always" />
 </menu>

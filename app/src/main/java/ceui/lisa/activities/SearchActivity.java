@@ -2,6 +2,7 @@ package ceui.lisa.activities;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -11,6 +12,7 @@ import android.text.TextWatcher;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.webkit.URLUtil;
 import android.widget.TextView;
 
@@ -25,6 +27,9 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.blankj.utilcode.util.BarUtils;
 import com.mxn.soul.flowingdrawer_core.ElasticDrawer;
+import com.qmuiteam.qmui.skin.QMUISkinManager;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 
 import androidx.viewpager.widget.ViewPager;
@@ -131,6 +136,11 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
         baseBind.tabLayout.setupWithViewPager(baseBind.viewPager);
         if (index != 0) {
             baseBind.viewPager.setCurrentItem(index);
+        }
+
+        if (Shaft.getMMKV().decodeBool(Params.MMKV_KEY_ISSHOWTIPS_SEARCHSORT, true)) {
+            tipDialog(mContext);
+            baseBind.drawerlayout.openMenu(true);
         }
     }
 
@@ -241,5 +251,21 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                     .show(fragmentFilter)
                     .commitNowAllowingStateLoss();
         }
+    }
+
+    private void tipDialog(Context context){
+        QMUIDialog qmuiDialog = new QMUIDialog.MessageDialogBuilder(context)
+                .setTitle(context.getString(R.string.string_433))
+                .setMessage(context.getString(R.string.string_434))
+                .setSkinManager(QMUISkinManager.defaultInstance(context))
+                .addAction(context.getString(R.string.string_190), new QMUIDialogAction.ActionListener() {
+                    @Override
+                    public void onClick(QMUIDialog dialog, int index) {
+                        Shaft.getMMKV().encode(Params.MMKV_KEY_ISSHOWTIPS_SEARCHSORT, false);
+                        dialog.dismiss();
+                    }
+                })
+                .create();
+        qmuiDialog.show();
     }
 }
