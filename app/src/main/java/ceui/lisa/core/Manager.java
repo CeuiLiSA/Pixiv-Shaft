@@ -258,7 +258,7 @@ public class Manager {
                             }
                             return new File(uri.getPath());
                         }
-                    }.execute(context);
+                    }.execute();
 
                     safeDelete(bean);
                 }, throwable -> {
