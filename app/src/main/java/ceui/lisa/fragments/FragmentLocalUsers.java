@@ -109,8 +109,12 @@ public class FragmentLocalUsers extends BaseFragment<FragmentLocalUserBinding> {
         binding.loginTime.setText(TextUtils.isEmpty(userModel.getUser().getMail_address()) ?
                 "未绑定邮箱" : userModel.getUser().getMail_address());
         Glide.with(mContext).load(GlideUtil.getHead(userModel.getUser())).into(binding.userHead);
-        binding.currentUser.setVisibility(userModel.getUser().getId() ==
-                sUserModel.getUser().getId() ? View.VISIBLE : View.GONE);
+        if (sUserModel != null && sUserModel.getUser() != null && userModel.getUser().getId() ==
+                sUserModel.getUser().getId()) {
+            binding.currentUser.setVisibility(View.VISIBLE);
+        } else {
+            binding.currentUser.setVisibility(View.GONE);
+        }
         binding.exportUser.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

@@ -120,7 +120,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                     if (scheme.contains("http")) {
                         try {
                             String uriString = uri.toString();
-                            if (uriString.contains(HostManager.HOST_OLD)) {
+                            if (uriString.toLowerCase().contains(HostManager.HOST_OLD)) {
                                 int index = uriString.lastIndexOf("/");
                                 String end = uriString.substring(index + 1);
                                 String idString = end.split("_")[0];
@@ -133,7 +133,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                                     }
                                 },null);
                                 return;
-                            } else if (uriString.contains(HOST_ME)) {
+                            } else if (uriString.toLowerCase().contains(HOST_ME)) {
                                 Intent i = new Intent(mContext, TemplateActivity.class);
                                 i.putExtra(Params.URL, uriString);
                                 i.putExtra(Params.TITLE, HOST_ME);
@@ -141,7 +141,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                                 startActivity(i);
                                 finish();
                                 return;
-                            } else if (uriString.contains(HOST_PIXIVISION)) {
+                            } else if (uriString.toLowerCase().contains(HOST_PIXIVISION)) {
                                 Intent i = new Intent(mContext, TemplateActivity.class);
                                 i.putExtra(Params.URL, uriString);
                                 i.putExtra(Params.TITLE, getString(R.string.pixiv_special));

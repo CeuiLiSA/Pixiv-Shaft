@@ -244,7 +244,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
             else if(Common.isNumeric(trimmedKeyword)){
                 QMUITipDialog tipDialog = new QMUITipDialog.Builder(mContext)
                         .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
-                        .setTipWord(getString(R.string.string_424))
+                        .setTipWord(getString(R.string.string_429))
                         .create();
                 tipDialog.show();
                 //先假定为作品id
@@ -354,6 +354,13 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                                 return false;
                             }
                         });
+                        baseBind.hotTags.setOnTagLongClickListener(new TagFlowLayout.OnTagLongClickListener() {
+                            @Override
+                            public boolean onTagLongClick(View view, int position, FlowLayout parent) {
+                                Common.copy(mContext, listTrendingtag.getList().get(position).getTag());
+                                return true;
+                            }
+                        });
                     }
                 });
     }
@@ -448,6 +455,13 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                 return false;
             }
         });
+        baseBind.searchHistory.setOnTagLongClickListener(new TagFlowLayout.OnTagLongClickListener() {
+            @Override
+            public boolean onTagLongClick(View view, int position, FlowLayout parent) {
+                Common.copy(mContext, history.get(position).getKeyword());
+                return true;
+            }
+        });
     }
 
     private void predictSearchType(){
@@ -500,7 +514,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                             Shaft.getMMKV().putString(Params.FRAGMENT_SEARCH_CLIPBOARD_VALUE, clipboardContent);
                         }
                         // 对非标签搜索的，进行填充
-                        if (fromClipboard && searchType != SearchTypeUtil.defaultSearchType) {
+                        if (fromClipboard && searchType != SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD) {
                             baseBind.inputBox.setText(clipboardContent);
                         }
                         dialog.dismiss();
