@@ -106,6 +106,8 @@ public class Params {
     public static final String SHOW_LONG_DIALOG = "show long dialog";
     public static final String IS_MIGRATE = "IS_MIGRATE";
 
+    public static final String MMKV_KEY_ISSHOWTIPS_SEARCHSORT = "tips searchsort";
+
     public static final int REQUEST_CODE_CHOOSE = 10086;
     public static final String EXAMPLE_ILLUST = "{\n" +
             "    \"caption\":\"\",\n" +
