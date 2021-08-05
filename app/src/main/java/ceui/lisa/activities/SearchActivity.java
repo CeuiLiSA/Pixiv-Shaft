@@ -54,6 +54,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
     private String keyWord = "";
     private SearchModel searchModel;
     private int index = 0;
+    private int mPosition = 0;
 
     @Override
     protected void initBundle(Bundle bundle) {
@@ -113,13 +114,17 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
         });
         baseBind.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener(){
             @Override
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-            }
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) { }
 
             @Override
             public void onPageSelected(int position) {
                 // 通知更改 过滤器-关键字匹配 类型
                 if(fragmentFilter != null){
+                    mPosition = position;
+                    if (baseBind.drawerlayout.isMenuVisible()) {
+                        baseBind.drawerlayout.closeMenu(true);
+                    }
+
                     if((position == 0 ) && searchModel.getIsNovel().getValue()){
                         searchModel.getIsNovel().setValue(false);
                     }else if(position == 1 && !searchModel.getIsNovel().getValue()){
@@ -137,6 +142,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
         if (index != 0) {
             baseBind.viewPager.setCurrentItem(index);
         }
+
 
         if (Shaft.getMMKV().decodeBool(Params.MMKV_KEY_ISSHOWTIPS_SEARCHSORT, true)) {
             tipDialog(mContext);
@@ -158,11 +164,17 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
             public boolean onMenuItemClick(MenuItem item) {
                 if (item.getItemId() == R.id.action_filter) {
                     Common.hideKeyboard(mActivity);
-                    if (baseBind.drawerlayout.isMenuVisible()) {
-                        baseBind.drawerlayout.closeMenu(true);
-                    } else {
-                        baseBind.drawerlayout.openMenu(true);
+                    if(mPosition==0){
+                        if (baseBind.drawerlayout.isMenuVisible()) {
+                            baseBind.drawerlayout.closeMenu(true);
+                        } else {
+                            baseBind.drawerlayout.openMenu(true);
+                        }
                     }
+                    else{
+                        Common.showToast(getString(R.string.string_435));
+                    }
+
                     return true;
                 }
                 return false;
@@ -239,7 +251,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
             }
         });
 
-        baseBind.drawerlayout.setTouchMode(ElasticDrawer.TOUCH_MODE_BEZEL);
+        baseBind.drawerlayout.setTouchMode(ElasticDrawer.TOUCH_MODE_NONE);//禁用滑动
         fragmentFilter = new FragmentFilter();
         FragmentManager fragmentManager = getSupportFragmentManager();
         if (!fragmentFilter.isAdded()) {

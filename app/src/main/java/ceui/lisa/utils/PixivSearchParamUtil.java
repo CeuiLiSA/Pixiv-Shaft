@@ -17,7 +17,7 @@ public class PixivSearchParamUtil {
             "exact_match_for_tags", "text", "keyword"};
     public static final String[] ALL_SIZE_VALUE = new String[]{"", "500users入り", "1000users入り", "2000users入り",
             "5000users入り", "7500users入り", "10000users入り", "20000users入り", "50000users入り", "100000users入り"};
-    public static final String[] DATE_SORT_VALUE = new String[]{"date_desc", "date_asc"};
+    public static final String[] DATE_SORT_VALUE = new String[]{"date_desc", "date_asc","popular_desc"};
 
     public static String[] TAG_MATCH_NAME = new String[]{
             resources.getString(R.string.string_284),
@@ -46,7 +46,8 @@ public class PixivSearchParamUtil {
 
     public static String[] DATE_SORT_NAME = new String[]{
             resources.getString(R.string.string_287),
-            resources.getString(R.string.string_288)
+            resources.getString(R.string.string_288),
+            resources.getString(R.string.string_64_1)
     };
 
     public static final String POPULAR_SORT_VALUE = "popular_desc";

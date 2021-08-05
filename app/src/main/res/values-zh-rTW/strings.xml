@@ -235,7 +235,7 @@
   <string name="string_60">保存命名格式</string>  
   <string name="string_61">關鍵字匹配</string>  
   <string name="string_62">收藏數篩選</string>  
-  <string name="string_63">日期排序</string>  
+  <string name="string_63">排序方式</string>
   <string name="string_64">熱度排序（僅會員可用）</string>  
   <string name="string_65">查找結果</string>  
   <string name="string_66">布裡坦尼亞（羅德繫布裡頓人）的阿爾托里亞·賓龍</string>  
@@ -603,5 +603,6 @@
   <string name="string_432">畫師</string>
     <string name="string_64_1">熱度排序(非會員僅顯示部分)</string>
     <string name="string_433">按熱度排序去哪兒了？</string>
-    <string name="string_434">熱度排序現在位於右邊滑動欄的搜索選項中，你可以通過從右向左滑動（可能和全面屏手勢衝突）或者右上角的設置鍵進行設置。設置完畢後請保存。</string>
+    <string name="string_434">熱度排序現在位於右邊滑動欄的搜索選項/排序方式中，你可以通過右上角的設置鍵進行設置，設置完畢後請保存。熱度排序現在位於右邊滑動欄的搜索選項/排序方式中，你可以通過右上角的設置鍵進行設置，設置完畢後請保存。熱度排序現在位於右邊滑動欄的搜索選項/排序方式中，你可以通過右上角的設置鍵進行設置，設置完畢後請保存。</string>
+  <string name="string_435">搜索選項僅對插畫有效</string>
 </resources>

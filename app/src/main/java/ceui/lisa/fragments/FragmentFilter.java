@@ -126,12 +126,11 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
             }
         });
 
-        baseBind.popSwitch.setEnabled(true);
         /*if (Shaft.sUserModel.getUser().isIs_premium()) {
             baseBind.popSwitch.setEnabled(true);
         } else {
             baseBind.popSwitch.setEnabled(false);
-        }*/
+        }
         baseBind.popSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -141,7 +140,7 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
                     searchModel.getSortType().setValue("");
                 }
             }
-        });
+        });*/
     }
 
     private void initTagSpinner(boolean isNovel) {
