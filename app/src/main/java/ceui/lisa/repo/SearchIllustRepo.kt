@@ -6,6 +6,7 @@ import ceui.lisa.core.RemoteRepo
 import ceui.lisa.http.Retro
 import ceui.lisa.model.ListIllust
 import ceui.lisa.utils.PixivOperate
+import ceui.lisa.utils.PixivSearchParamUtil
 import ceui.lisa.viewmodel.SearchModel
 import io.reactivex.Observable
 import io.reactivex.functions.Function
@@ -15,7 +16,8 @@ class SearchIllustRepo(
     var sortType: String?,
     var searchType: String?,
     var starSize: String?,
-    var isPopular: Boolean,
+    //var isPopular: Boolean,
+    var isPremium: Boolean,
     var startDate: String?,
     var endDate: String?
 ) : RemoteRepo<ListIllust>() {
@@ -23,7 +25,7 @@ class SearchIllustRepo(
     private var filterMapper: FilterMapper? = null
 
     override fun initApi(): Observable<ListIllust> {
-        return if (isPopular) {
+        return if (sortType==PixivSearchParamUtil.POPULAR_SORT_VALUE&&(!isPremium)) {
             Retro.getAppApi().popularPreview(
                 token(),
                 keyword + if (TextUtils.isEmpty(starSize)) "" else " $starSize",
@@ -60,7 +62,8 @@ class SearchIllustRepo(
         sortType = searchModel.sortType.value
         searchType = searchModel.searchType.value
         starSize = searchModel.starSize.value
-        isPopular = pop
+        //isPopular = pop
+        isPremium = pop
         startDate = searchModel.startDate.value
         endDate = searchModel.endDate.value
 

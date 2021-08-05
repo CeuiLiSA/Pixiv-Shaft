@@ -126,16 +126,17 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
             }
         });
 
-        if (Shaft.sUserModel.getUser().isIs_premium()) {
+        baseBind.popSwitch.setEnabled(true);
+        /*if (Shaft.sUserModel.getUser().isIs_premium()) {
             baseBind.popSwitch.setEnabled(true);
         } else {
             baseBind.popSwitch.setEnabled(false);
-        }
+        }*/
         baseBind.popSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
-                    searchModel.getSortType().setValue("popular_desc");
+                    searchModel.getSortType().setValue(PixivSearchParamUtil.POPULAR_SORT_VALUE);
                 } else {
                     String lastSortType = searchModel.getLastSortType().getValue();
                     if (!TextUtils.isEmpty(lastSortType)) {

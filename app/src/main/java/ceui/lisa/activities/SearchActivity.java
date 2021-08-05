@@ -2,6 +2,7 @@ package ceui.lisa.activities;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -11,6 +12,7 @@ import android.text.TextWatcher;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.webkit.URLUtil;
 import android.widget.TextView;
 
@@ -25,6 +27,9 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.blankj.utilcode.util.BarUtils;
 import com.mxn.soul.flowingdrawer_core.ElasticDrawer;
+import com.qmuiteam.qmui.skin.QMUISkinManager;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 
 import androidx.viewpager.widget.ViewPager;
@@ -44,7 +49,7 @@ import ceui.lisa.viewmodel.SearchModel;
 
 public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 
-    private final BaseFragment<?>[] allPages = new BaseFragment[]{null, null, null,null};
+    private final BaseFragment<?>[] allPages = new BaseFragment[]{null, null,null};
     private FragmentFilter fragmentFilter;
     private String keyWord = "";
     private SearchModel searchModel;
@@ -56,7 +61,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
         index = bundle.getInt(Params.INDEX);
         searchModel = new ViewModelProvider(this).get(SearchModel.class);
         searchModel.getKeyword().setValue(keyWord);
-        searchModel.getIsNovel().setValue(index == 2);
+        searchModel.getIsNovel().setValue(index == 1);
         searchModel.getNowGo().observe(this, new Observer<String>() {
             @Override
             public void onChanged(String s) {
@@ -74,7 +79,6 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
     protected void initView() {
         final String[] TITLES = new String[]{
                 getString(R.string.string_136),
-                getString(R.string.string_137),
                 getString(R.string.string_138),
                 getString(R.string.string_432)
         };
@@ -85,12 +89,10 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
             public Fragment getItem(int position) {
                 if (allPages[position] == null) {
                     if (position == 0) {
-                        allPages[position] = FragmentSearchIllust.newInstance(false);
-                    } else if (position == 1) {
-                        allPages[position] = FragmentSearchIllust.newInstance(true);
-                    } else if(position == 2){
+                        allPages[position] = FragmentSearchIllust.newInstance();
+                    } else if(position == 1){
                         allPages[position] = FragmentSearchNovel.newInstance();
-                    } else if(position == 3){
+                    } else if(position == 2){
                         allPages[position] = FragmentSearchUser.newInstance(keyWord);
                     }
                 }
@@ -118,9 +120,9 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
             public void onPageSelected(int position) {
                 // 通知更改 过滤器-关键字匹配 类型
                 if(fragmentFilter != null){
-                    if((position == 0 || position == 1) && searchModel.getIsNovel().getValue()){
+                    if((position == 0 ) && searchModel.getIsNovel().getValue()){
                         searchModel.getIsNovel().setValue(false);
-                    }else if(position == 2 && !searchModel.getIsNovel().getValue()){
+                    }else if(position == 1 && !searchModel.getIsNovel().getValue()){
                         searchModel.getIsNovel().setValue(true);
                     }
                 }
@@ -134,6 +136,11 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
         baseBind.tabLayout.setupWithViewPager(baseBind.viewPager);
         if (index != 0) {
             baseBind.viewPager.setCurrentItem(index);
+        }
+
+        if (Shaft.getMMKV().decodeBool(Params.MMKV_KEY_ISSHOWTIPS_SEARCHSORT, true)) {
+            tipDialog(mContext);
+            baseBind.drawerlayout.openMenu(true);
         }
     }
 
@@ -245,5 +252,21 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                     .show(fragmentFilter)
                     .commitNowAllowingStateLoss();
         }
+    }
+
+    private void tipDialog(Context context){
+        QMUIDialog qmuiDialog = new QMUIDialog.MessageDialogBuilder(context)
+                .setTitle(context.getString(R.string.string_433))
+                .setMessage(context.getString(R.string.string_434))
+                .setSkinManager(QMUISkinManager.defaultInstance(context))
+                .addAction(context.getString(R.string.string_190), new QMUIDialogAction.ActionListener() {
+                    @Override
+                    public void onClick(QMUIDialog dialog, int index) {
+                        Shaft.getMMKV().encode(Params.MMKV_KEY_ISSHOWTIPS_SEARCHSORT, false);
+                        dialog.dismiss();
+                    }
+                })
+                .create();
+        qmuiDialog.show();
     }
 }

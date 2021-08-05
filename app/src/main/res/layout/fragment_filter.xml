@@ -231,7 +231,7 @@
 
             <TextView
                 android:layout_width="wrap_content"
-                android:text="@string/string_64"
+                android:text="@string/string_64_1"
                 android:textSize="16sp"
                 android:textColor="?attr/colorPrimary"
                 android:layout_margin="@dimen/sixteen_dp"

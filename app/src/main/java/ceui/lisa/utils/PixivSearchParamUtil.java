@@ -49,6 +49,8 @@ public class PixivSearchParamUtil {
             resources.getString(R.string.string_288)
     };
 
+    public static final String POPULAR_SORT_VALUE = "popular_desc";
+
     public static int getSizeIndex(String sizeFilterValue){
         int index = Arrays.asList(ALL_SIZE_VALUE).indexOf(sizeFilterValue);
         return Math.max(index, 0);
