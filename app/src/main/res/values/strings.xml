@@ -621,7 +621,6 @@
     <string name="string_430">关键词搜索</string>
     <string name="string_431">搜索</string>
     <string name="string_432">画师</string>
-
     <string name="string_64_1">热度排序(非会员仅显示部分)</string>
     <string name="string_433">按热度排序去哪儿了？</string>
     <string name="string_434">热度排序现在位于右边滑动栏的搜索选项中，你可以通过从右向左滑动（可能和全面屏手势冲突）或者右上角的设置键进行设置。设置完毕后请保存。</string>
