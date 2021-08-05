@@ -601,7 +601,7 @@
   <string name="string_430">關鍵詞搜索</string>
   <string name="string_431">搜索</string>
   <string name="string_432">畫師</string>
-    <string name="string_64_1">熱度排序(非會員僅顯示部分)</string>
-    <string name="string_433">按熱度排序去哪兒了？</string>
-    <string name="string_434">熱度排序現在位於右邊滑動欄的搜索選項中，你可以通過從右向左滑動（可能和全面屏手勢衝突）或者右上角的設置鍵進行設置。設置完畢後請保存。</string>
+  <string name="string_64_1">熱度排序(非會員僅顯示部分)</string>
+  <string name="string_433">按熱度排序去哪兒了？</string>
+  <string name="string_434">熱度排序現在位於右邊滑動欄的搜索選項中，你可以通過從右向左滑動（可能和全面屏手勢衝突）或者右上角的設置鍵進行設置。設置完畢後請保存。</string>
 </resources>
