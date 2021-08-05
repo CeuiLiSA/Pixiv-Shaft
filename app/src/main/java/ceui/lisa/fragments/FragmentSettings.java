@@ -12,7 +12,6 @@ import android.widget.CompoundButton;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.blankj.utilcode.util.FileIOUtils;
 import com.blankj.utilcode.util.FileUtils;
 import com.blankj.utilcode.util.LanguageUtils;
 import com.blankj.utilcode.util.UriUtils;
@@ -25,7 +24,6 @@ import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
 import com.tbruyelle.rxpermissions3.RxPermissions;
 
-import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.Arrays;
@@ -991,8 +989,8 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
         if (requestCode == Params.REQUEST_CODE_CHOOSE && resultCode == RESULT_OK && data != null) {
             try {
                 Uri uri = data.getData();
-                File file = UriUtils.uri2File(uri);
-                boolean restoreResult = BackupUtils.restoreBackups(mContext, FileIOUtils.readFile2String(file));
+                String fileString = new String(UriUtils.uri2Bytes(uri));
+                boolean restoreResult = BackupUtils.restoreBackups(mContext, fileString);
                 Common.showToast(restoreResult ? "还原成功" : "还原失败");
             } catch (Exception e) {
                 e.printStackTrace();

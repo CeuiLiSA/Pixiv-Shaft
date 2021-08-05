@@ -204,6 +204,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                     return false;
                 }
 
+
                 String keyword = baseBind.searchBox.getText().toString();
 
                 if (URLUtil.isValidUrl(keyword)) {
