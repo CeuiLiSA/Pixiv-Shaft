@@ -68,7 +68,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/') && github.repository == env.ORIGINAL_PROJECT
         run: |
           cp app/build/outputs/apk/release/app-release.apk app-release.apk
-          sha1=`sha1sum app-release.apk | awk '{ print $1 }'`
+          sha1=`sha1sum app-release.apk | awk '{ print toupper($1) }'`
           echo "APK_SHA1=$sha1" >> $GITHUB_ENV
 
       - name: Draft release
