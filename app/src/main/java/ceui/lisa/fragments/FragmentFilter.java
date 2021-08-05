@@ -138,10 +138,7 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
                 if (isChecked) {
                     searchModel.getSortType().setValue(PixivSearchParamUtil.POPULAR_SORT_VALUE);
                 } else {
-                    String lastSortType = searchModel.getLastSortType().getValue();
-                    if (!TextUtils.isEmpty(lastSortType)) {
-                        searchModel.getSortType().setValue(lastSortType);
-                    }
+                    searchModel.getSortType().setValue("");
                 }
             }
         });
