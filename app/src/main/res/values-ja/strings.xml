@@ -233,7 +233,7 @@
   <string name="string_60">名前付き書式を保存</string>  
   <string name="string_61">キーワードマッチ</string>  
   <string name="string_62">コレクション数フィルタ</string>  
-  <string name="string_63">日付のソート</string>  
+  <string name="string_63">並び替え</string>
   <string name="string_64">熱ソート(会員のみ使用可能)</string>  
   <string name="string_65">検索結果</string>  
   <string name="string_66">ブリタンニア(ルト系ブリトン人)の アルトリア・ペンドラゴン</string>  
@@ -601,5 +601,6 @@
   <string name="string_432">イラストレーター</string>
   <string name="string_64_1">熱ソート(非会員は一部のみを表示します)</string>
   <string name="string_433">人気順にどこに行きましたか？</string>
-  <string name="string_434">人気ランキングは、右側のスライドバーの検索オプションに表示されるようになりました。右から左にスワイプするか（フルスクリーンジェスチャと競合する可能性があります）、右上隅の設定ボタンで設定できます。 設定後保存してください。</string>
+    <string name="string_434">人気ランキングは、右上のスライドバーの検索オプション/ソート方法に表示されます。右上の設定ボタンで設定できます。設定後、保存してください。</string>
+  <string name="string_435">検索オプションはイラストにのみ有効です</string>
 </resources>

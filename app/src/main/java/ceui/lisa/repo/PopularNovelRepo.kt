@@ -8,7 +8,7 @@ import io.reactivex.Observable
 class PopularNovelRepo(private val word: String) : RemoteRepo<ListNovel>() {
 
     override fun initApi(): Observable<ListNovel> {
-        return Retro.getAppApi().popularNovelPreview(token(), word)
+        return Retro.getAppApi().popularNovelPreview(token(), word,null,null,null)
     }
 
     override fun initNextApi(): Observable<ListNovel> {

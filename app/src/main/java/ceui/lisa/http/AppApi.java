@@ -309,7 +309,10 @@ public interface AppApi {
 
     @GET("v1/search/popular-preview/novel?filter=for_android&include_translated_tag_results=true&merge_plain_keyword_results=true&search_target=exact_match_for_tags")
     Observable<ListNovel> popularNovelPreview(@Header("Authorization") String token,
-                                          @Query("word") String word);
+                                          @Query("word") String word,
+                                          @Query("start_date") String startDate,
+                                          @Query("end_date") String endDate,
+                                          @Query("search_target") String search_target);
 
 
     // v2/search/autocomplete?merge_plain_keyword_results=true&word=%E5%A5%B3%E4%BD%93 HTTP/1.1

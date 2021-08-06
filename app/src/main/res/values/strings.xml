@@ -255,7 +255,7 @@
     <string name="string_60">保存命名格式</string>
     <string name="string_61">关键字匹配</string>
     <string name="string_62">收藏数筛选</string>
-    <string name="string_63">日期排序</string>
+
     <string name="string_64">热度排序(仅会员可用)</string>
     <string name="string_65">查找结果</string>
     <string name="string_66">ブリタンニア(ルト系ブリトン人)の アルトリア・ペンドラゴン</string>
@@ -623,5 +623,8 @@
     <string name="string_432">画师</string>
     <string name="string_64_1">热度排序(非会员仅显示部分)</string>
     <string name="string_433">按热度排序去哪儿了？</string>
-    <string name="string_434">热度排序现在位于右边滑动栏的搜索选项中，你可以通过从右向左滑动（可能和全面屏手势冲突）或者右上角的设置键进行设置。设置完毕后请保存。</string>
+    <string name="string_434">热度排序现在位于右边滑动栏的搜索选项/排序方式中，你可以通过右上角的设置键进行设置，设置完毕后请保存。</string>
+    <string name="string_435">搜索选项仅对插画有效</string>
+    <string name="string_63">排序方式</string>
+
 </resources>
