@@ -599,8 +599,8 @@
   <string name="string_430">키워드 검색</string>
   <string name="string_431">검색</string>
   <string name="string_432">일러스트레이터</string>
-    <string name="string_64_1">열도 정렬 (회원 만 사용 가능)</string>
-    <string name="string_433">인기순 어디까지 가봤니?</string>
+  <string name="string_64_1">열도 정렬 (회원 만 사용 가능)</string>
+  <string name="string_433">인기순 어디까지 가봤니?</string>
   <string name="string_434">인기도 순위는 이제 우측 슬라이딩 바의 검색 옵션/정렬 방식에 위치하게 되었으며, 우측 상단의 설정 버튼을 통해 설정할 수 있으며, 설정 후 저장하시기 바랍니다.</string>
-  <string name="string_435">검색 옵션은 일러스트레이션에만 유효합니다.</string>
+  <string name="string_435">검색 옵션은 일러스트레이션/소설에만 유효합니다.</string>
 </resources>

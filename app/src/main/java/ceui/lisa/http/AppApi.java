@@ -307,7 +307,7 @@ public interface AppApi {
                                           @Query("end_date") String endDate,
                                           @Query("search_target") String search_target);
 
-    @GET("v1/search/popular-preview/novel?filter=for_android&include_translated_tag_results=true&merge_plain_keyword_results=true&search_target=exact_match_for_tags")
+    @GET("v1/search/popular-preview/novel?filter=for_android&include_translated_tag_results=true&merge_plain_keyword_results=true")
     Observable<ListNovel> popularNovelPreview(@Header("Authorization") String token,
                                           @Query("word") String word,
                                           @Query("start_date") String startDate,
