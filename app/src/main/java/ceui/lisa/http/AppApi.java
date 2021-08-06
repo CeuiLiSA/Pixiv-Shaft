@@ -496,4 +496,9 @@ public interface AppApi {
     @POST("v1/novel/marker/delete")
     Observable<NullResponse> postDeleteNovelMarker(@Header("Authorization") String token,
                                                 @Field("novel_id") int novel_id);
+
+    // 推荐用户
+    @GET("v1/user/related?filter=for_android")
+    Observable<ListUser> getRelatedUsers(@Header("Authorization") String token,
+                                             @Query("seed_user_id") int seed_user_id);
 }

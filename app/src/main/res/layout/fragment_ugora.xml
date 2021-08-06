@@ -157,7 +157,8 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="@dimen/twelve_dp"
                                 android:layout_marginTop="@dimen/twelve_dp"
-                                android:layout_marginEnd="@dimen/twelve_dp" />
+                                android:layout_marginEnd="@dimen/twelve_dp"
+                                android:textIsSelectable="true" />
 
                             <TextView
                                 android:id="@+id/user_id"

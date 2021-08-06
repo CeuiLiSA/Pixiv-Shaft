@@ -57,6 +57,7 @@ class FragmentUserRight : SwipeFragment<FragmentUserRightBinding>() {
             content.add("插画/漫画收藏：" + data.profile.total_illust_bookmarks_public)
         }
         content.add("小说收藏")
+        content.add("相关用户")
         baseBind.tagLayout.adapter = object : TagAdapter<String>(content) {
             override fun getView(parent: FlowLayout, position: Int, s: String?): View {
                 val binding: TagItemBinding = DataBindingUtil.inflate(
@@ -100,6 +101,9 @@ class FragmentUserRight : SwipeFragment<FragmentUserRightBinding>() {
                 }
                 content[position].contains("小说收藏") -> {
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说收藏")
+                }
+                content[position].contains("相关用户") -> {
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关用户")
                 }
             }
             startActivity(intent)

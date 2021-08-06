@@ -15,10 +15,10 @@
 
 
         <ImageView
-            android:layout_width="match_parent"
             android:id="@+id/bg_image"
-            android:scaleType="centerCrop"
-            android:layout_height="match_parent" />
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop" />
 
 
         <com.scwang.smartrefresh.layout.SmartRefreshLayout
@@ -172,7 +172,8 @@
                                 android:layout_marginEnd="@dimen/twelve_dp"
                                 android:layout_marginTop="@dimen/twelve_dp"
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
+                                android:layout_height="wrap_content"
+                                android:textIsSelectable="true" />
 
                             <TextView
                                 android:layout_width="wrap_content"
