@@ -19,8 +19,8 @@
   <string name="empty_list_6">Actually had nothing</string>  
   <string name="empty_list_7">Actually had nothing</string>  
   <string name="empty_list_8">Actually had nothing</string>  
-  <string name="post_follow">+ Subscribe</string>  
-  <string name="post_unfollow">Unsubscribe</string>  
+  <string name="post_follow">+ Follow</string>  
+  <string name="post_unfollow">UnFollow</string>  
   <string name="double_click_finish">Press again to exit</string>  
   <string name="delete_all">Remove all</string>  
   <string name="illust_filter">Filter</string>  
@@ -89,11 +89,11 @@
   <string name="has_download">Completed</string>  
   <string name="has_copyed">Copied to clipboard</string>  
   <string name="no_info">No Information</string>  
-  <string name="like_success_public">Subscribed ~ (public)</string>  
-  <string name="like_success_private">Subscribed ~ (non-public)</string>  
+  <string name="like_success_public">Followed ~ (public)</string>  
+  <string name="like_success_private">Followed ~ (non-public)</string>  
   <string name="like_novel_success_public">Bookmarked ~ (public)</string>  
   <string name="like_novel_success_private">Bookmarked ~ (non-public)</string>  
-  <string name="cancel_like">Un-subscribe ~</string>  
+  <string name="cancel_like">Un-Follow ~</string>  
   <string name="cancel_like_illust">Unfavorite</string>  
   <string name="like_illust_success">Bookmarked</string>  
   <string name="how_about_trending">Feed</string>  
@@ -175,7 +175,7 @@
   <string name="string_1">Mask Setting</string>  
   <string name="string_2">Developer Preview</string>  
   <string name="string_3">share</string>  
-  <string name="string_4">+ Subscribe</string>  
+  <string name="string_4">+ Follow</string>  
   <string name="string_5">Download</string>  
   <string name="string_6">Favourites</string>  
   <string name="string_7">Download Image</string>  
@@ -184,7 +184,7 @@
   <string name="string_10">Password</string>  
   <string name="string_11">Shaft</string>  
   <string name="string_12">User name (can be changed at any time)</string>  
-  <string name="string_13">+ Subscribe</string>  
+  <string name="string_13">+ Follow</string>  
   <string name="string_14">Add to</string>  
   <string name="string_15">Modify the background color</string>  
   <string name="string_16">Mask tags</string>  
@@ -239,7 +239,7 @@
   <string name="string_66">ブリタンニア(ルト系ブリトン人)の アルトリア・ペンドラゴン</string>  
   <string name="string_67">仮面みたいになっ</string>  
   <string name="string_68">2018年4月29日6点13分投递</string>  
-  <string name="string_69">+ Watch</string>  
+  <string name="string_69">+ Follow</string>  
   <string name="string_70">Views</string>  
   <string name="string_71">Favourites</string>  
   <string name="string_72">Download</string>  
@@ -255,7 +255,7 @@
   <string name="string_82">Save a local (that can be downloaded to view)</string>  
   <string name="string_83">Previous section</string>  
   <string name="string_84">The next chapter</string>  
-  <string name="string_85">+ Watch</string>  
+  <string name="string_85">+ Follow</string>  
   <string name="string_86">Switch</string>  
   <string name="string_87">search history</string>  
   <string name="string_88">Search found</string>  
@@ -274,11 +274,11 @@
   <string name="string_101">Clear image cache</string>  
   <string name="string_102">Clear gif cache</string>  
   <string name="string_103">Click to expand</string>  
-  <string name="string_104">+ Watch</string>  
+  <string name="string_104">+ Follow</string>  
   <string name="string_105">Click to expand</string>  
-  <string name="string_106">+ Watch</string>  
+  <string name="string_106">+ Follow</string>  
   <string name="string_107">--- END ---</string>  
-  <string name="string_108">Unsubscribe</string>  
+  <string name="string_108">UnFollow</string>  
   <string name="string_109">View comments</string>  
   <string name="string_110">Share works</string>  
   <string name="string_111">Mask setting</string>  
@@ -292,7 +292,7 @@
   <string name="string_120">copy</string>  
   <string name="string_121">display</string>  
   <string name="string_122">Collect</string>  
-  <string name="string_123">+ Watch</string>  
+  <string name="string_123">+ Follow</string>  
   <string name="string_124">Day list</string>  
   <string name="string_125">weekly</string>  
   <string name="string_126">per month</string>  
@@ -346,8 +346,8 @@
   <string name="string_174">View user</string>  
   <string name="string_175">comments</string>  
   <string name="string_176">Reply</string>  
-  <string name="string_177">Unsubscribe</string>  
-  <string name="string_178">+ Watch</string>  
+  <string name="string_177">UnFollow</string>  
+  <string name="string_178">+ Follow</string>  
   <string name="string_179">Unfavorite</string>  
   <string name="string_180">Collect</string>  
   <string name="string_181">Successfully saved</string>  
