@@ -50,12 +50,12 @@
   <string name="privacy">Privacy Policy</string>  
   <string name="about_app">About this app</string>  
   <string name="pixiv_special">PixiVision special edition</string>  
-  <string name="pixiv_problem">cFAQ</string>  
+  <string name="pixiv_problem">FAQ</string>  
   <string name="project_license">License</string>  
   <string name="select_inner_storage">Please select internal storage</string>  
   <string name="walkthrough">Gallery</string>  
   <string name="latest_work">Latest</string>  
-  <string name="search">Search for...</string>  
+  <string name="search">Search for</string>  
   <string name="develop">Developer Preview</string>  
   <string name="hello_blank_fragment">Hello blank fragment</string>  
   <string name="cannot_download">You lower your 🐴 it?</string>  
@@ -142,7 +142,7 @@
   <string name="gif_zip_path">GIF archive storage path</string>  
   <string name="gif_result_path">GIF path generation</string>  
   <string name="please_restart_app">Restart app for changed to take effect</string>  
-  <string name="finding_datas">RLoading resources</string>  
+  <string name="finding_datas">Loading resources</string>  
   <string name="dont_catch_me">1. This app is a third-party remake of the Android client of the Japanese illustration exchange website Pixiv.\n 2. The project has been open source and is only used for communication and learning, and may not be used for any commercial purposes. \n 3. The copyrights of all illustrations, comics, and novels in the APP belong to their authors or Pixiv\n 4. It is recommended to use the original Pixiv.</string>  
   <string name="clear">Clear</string>  
   <string name="daily_rank">Daily Rankings</string>  
@@ -237,8 +237,8 @@
   <string name="string_64">Sort by popularity (only available for members)</string>  
   <string name="string_65">Search Results</string>  
   <string name="string_66">ブリタンニア(ルト系ブリトン人)の アルトリア・ペンドラゴン</string>  
-  <string name="string_67">2018年4月29日6点13分投递</string>  
-  <string name="string_68">At 6:13 on April 29, 2018 delivery</string>  
+  <string name="string_67">仮面みたいになっ</string>  
+  <string name="string_68">2018年4月29日6点13分投递</string>  
   <string name="string_69">+ Watch</string>  
   <string name="string_70">Views</string>  
   <string name="string_71">Favourites</string>  
