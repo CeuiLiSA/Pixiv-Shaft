@@ -92,8 +92,8 @@ jobs:
             * 
             
             ```
-            SHA1: ${{ env.APK_SHA1 }}
-            SHA256: ${{ env.APK_SHA256 }}
+            SHA-1: ${{ env.APK_SHA1 }}
+            SHA-256: ${{ env.APK_SHA256 }}
             ```
           files: |
             app-release.apk
