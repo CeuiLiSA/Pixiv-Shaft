@@ -4,6 +4,8 @@ import android.text.TextUtils
 import ceui.lisa.core.RemoteRepo
 import ceui.lisa.http.Retro
 import ceui.lisa.model.ListNovel
+import ceui.lisa.utils.PixivOperate
+import ceui.lisa.utils.PixivSearchParamUtil
 import ceui.lisa.viewmodel.SearchModel
 import io.reactivex.Observable
 
@@ -12,19 +14,28 @@ class SearchNovelRepo(
     var sortType: String?,
     var searchType: String?,
     var starSize: String?,
+    var isPremium: Boolean?,
     var startDate: String?,
     var endDate: String?
 ) : RemoteRepo<ListNovel>() {
 
     override fun initApi(): Observable<ListNovel> {
-        return Retro.getAppApi().searchNovel(
-            token(),
-            keyword + if (TextUtils.isEmpty(starSize)) "" else " $starSize",
-            sortType,
-            startDate,
-            endDate,
-            searchType
-        )
+        return if (sortType== PixivSearchParamUtil.POPULAR_SORT_VALUE&&(!(isPremium?:false))) {
+            Retro.getAppApi().popularNovelPreview(token(),
+                    keyword + if (TextUtils.isEmpty(starSize)) "" else " $starSize",
+                    startDate,
+                    endDate,
+                    searchType)
+        } else {
+            Retro.getAppApi().searchNovel(
+                    token(),
+                    keyword + if (TextUtils.isEmpty(starSize)) "" else " $starSize",
+                    sortType,
+                    startDate,
+                    endDate,
+                    searchType
+            )
+        }
     }
 
     override fun initNextApi(): Observable<ListNovel> {
@@ -36,6 +47,7 @@ class SearchNovelRepo(
         sortType = searchModel.sortType.value
         searchType = searchModel.searchType.value
         starSize = searchModel.starSize.value
+        isPremium = searchModel.isPremium.value
         startDate = searchModel.startDate.value
         endDate = searchModel.endDate.value
     }

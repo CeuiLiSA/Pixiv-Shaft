@@ -17,7 +17,7 @@ class SearchIllustRepo(
     var searchType: String?,
     var starSize: String?,
     //var isPopular: Boolean,
-    var isPremium: Boolean,
+    var isPremium: Boolean?,
     var startDate: String?,
     var endDate: String?
 ) : RemoteRepo<ListIllust>() {
@@ -25,7 +25,7 @@ class SearchIllustRepo(
     private var filterMapper: FilterMapper? = null
 
     override fun initApi(): Observable<ListIllust> {
-        return if (sortType==PixivSearchParamUtil.POPULAR_SORT_VALUE&&(!isPremium)) {
+        return if (sortType==PixivSearchParamUtil.POPULAR_SORT_VALUE&&(!(isPremium?:false))) {
             Retro.getAppApi().popularPreview(
                 token(),
                 keyword + if (TextUtils.isEmpty(starSize)) "" else " $starSize",
@@ -57,13 +57,13 @@ class SearchIllustRepo(
         return this.filterMapper!!
     }
 
-    fun update(searchModel: SearchModel, pop: Boolean) {
+    fun update(searchModel: SearchModel) {
         keyword = searchModel.keyword.value
         sortType = searchModel.sortType.value
         searchType = searchModel.searchType.value
         starSize = searchModel.starSize.value
         //isPopular = pop
-        isPremium = pop
+        isPremium = searchModel.isPremium.value
         startDate = searchModel.startDate.value
         endDate = searchModel.endDate.value
 

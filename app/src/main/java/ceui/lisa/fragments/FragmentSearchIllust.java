@@ -30,7 +30,6 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
 
     private SearchModel searchModel;
     private boolean isPopular = false;
-    private boolean isPremium = false;
 
     public static FragmentSearchIllust newInstance(boolean popular) {
         Bundle args = new Bundle();
@@ -65,7 +64,7 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
                 if(!Arrays.asList(PixivSearchParamUtil.TAG_MATCH_VALUE).contains(searchModel.getSearchType().getValue())){
                     return;
                 }
-                ((SearchIllustRepo) mRemoteRepo).update(searchModel, isPremium);
+                ((SearchIllustRepo) mRemoteRepo).update(searchModel);
                 if (isPopular) {
                     if (TextUtils.isEmpty(searchModel.getKeyword().getValue())) {
                         mRefreshLayout.setEnableRefresh(false);
@@ -81,20 +80,19 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
         searchModel.getStarSize().observe(getViewLifecycleOwner(), new Observer<String>() {
             @Override
             public void onChanged(String s) {
-                ((SearchIllustRepo) mRemoteRepo).update(searchModel, isPremium);
+                ((SearchIllustRepo) mRemoteRepo).update(searchModel);
             }
         });
         searchModel.getSearchType().observe(getViewLifecycleOwner(), new Observer<String>() {
             @Override
             public void onChanged(String s) {
-                ((SearchIllustRepo) mRemoteRepo).update(searchModel, isPremium);
+                ((SearchIllustRepo) mRemoteRepo).update(searchModel);
             }
         });
     }
 
     @Override
     protected void initBundle(Bundle bundle) {
-        isPremium = Shaft.sUserModel.getUser().isIs_premium();
         //isPopular = bundle.getBoolean(Params.IS_POPULAR);
     }
 
@@ -111,7 +109,7 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
                 searchModel.getSearchType().getValue(),
                 searchModel.getStarSize().getValue(),
                 //isPopular,
-                isPremium,
+                searchModel.getIsPremium().getValue(),
                 searchModel.getStartDate().getValue(),
                 searchModel.getEndDate().getValue()
         );

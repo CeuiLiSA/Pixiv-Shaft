@@ -55,6 +55,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
     private SearchModel searchModel;
     private int index = 0;
     private int mPosition = 0;
+    private boolean isPremium = false;
 
     @Override
     protected void initBundle(Bundle bundle) {
@@ -63,6 +64,10 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
         searchModel = new ViewModelProvider(this).get(SearchModel.class);
         searchModel.getKeyword().setValue(keyWord);
         searchModel.getIsNovel().setValue(index == 1);
+
+        isPremium = Shaft.sUserModel.getUser().isIs_premium();
+        searchModel.getIsPremium().setValue(isPremium);
+
         searchModel.getNowGo().observe(this, new Observer<String>() {
             @Override
             public void onChanged(String s) {
@@ -121,7 +126,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                 // 通知更改 过滤器-关键字匹配 类型
                 if(fragmentFilter != null){
                     mPosition = position;
-                    if (baseBind.drawerlayout.isMenuVisible()) {
+                    if (baseBind.drawerlayout.isMenuVisible()&&mPosition==2) {
                         baseBind.drawerlayout.closeMenu(true);
                     }
 
@@ -164,7 +169,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
             public boolean onMenuItemClick(MenuItem item) {
                 if (item.getItemId() == R.id.action_filter) {
                     Common.hideKeyboard(mActivity);
-                    if(mPosition==0){
+                    if(mPosition==0||mPosition==1){
                         if (baseBind.drawerlayout.isMenuVisible()) {
                             baseBind.drawerlayout.closeMenu(true);
                         } else {
