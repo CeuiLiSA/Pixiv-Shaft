@@ -118,7 +118,7 @@
   <string name="account_manage">Account Management</string>  
   <string name="login_out">Sign out</string>  
   <string name="normal">Common</string>  
-  <string name="open_direct_connection">Direct open (or agents in the wall itself can be turned off)</string>  
+  <string name="open_direct_connection">Bypass GFW</string>  
   <string name="see_pixiv_ez">See Notsfsssf / Pix-EzViewer</string>  
   <string name="show_original_image">Use orginal image</string>  
   <string name="delete_star_illust">Filter favourites ones in search result</string>  
