@@ -362,7 +362,7 @@
   <string name="string_190">определение</string>  
   <string name="string_191">специальный сборник</string>  
   <string name="string_192">коллекция романов</string>  
-  <string name="string_193">размер работы: %dpx * %dpx</string>  
+  <string name="string_193">размер работы: %1$dpx * %2$dpx</string>
   <string name="string_194">идентификатор работы: %d</string>  
   <string name="string_195">ID рисователя: %d</string>  
   <string name="string_196">Романы подмандатных лиц</string>  

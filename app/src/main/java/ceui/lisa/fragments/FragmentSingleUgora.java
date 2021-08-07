@@ -308,7 +308,12 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
         baseBind.refreshLayout.setEnableLoadMore(true);
         baseBind.refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));
         baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
-        baseBind.toolbar.setTitle(illust.getTitle());
+        // baseBind.toolbar.setTitle(illust.getTitle());
+        baseBind.title.setText(illust.getTitle());
+        baseBind.title.setOnLongClickListener(v -> {
+            Common.copy(mContext, illust.getTitle());
+            return true;
+        });
 
         baseBind.toolbar.inflateMenu(R.menu.share);
         baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
@@ -463,10 +468,10 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
 
         baseBind.userName.setText(illust.getUser().getName());
 
-        SpannableString sizeString = new SpannableString(String.format("尺寸：%s",
-                illust.getSize()));
-        sizeString.setSpan(new ForegroundColorSpan(R.attr.colorPrimary),
-                3, illust.getSize().length() + 3, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        SpannableString sizeString = new SpannableString(getString(R.string.string_193, illust.getWidth(), illust.getHeight()));
+        int currentPrimaryColorId = Common.resolveThemeAttribute(mContext, R.attr.colorPrimary);
+        sizeString.setSpan(new ForegroundColorSpan(currentPrimaryColorId),
+                sizeString.length()-illust.getSize().length(), sizeString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         baseBind.illustPx.setText(sizeString);
 
         baseBind.illustTag.setAdapter(new TagAdapter<TagsBean>(illust.getTags()) {
@@ -510,10 +515,9 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
         baseBind.illustView.setText(String.valueOf(illust.getTotal_view()));
         baseBind.illustLike.setText(String.valueOf(illust.getTotal_bookmarks()));
 
-        SpannableString userString = new SpannableString(String.format("用户ID：%s",
-                String.valueOf(illust.getUser().getId())));
-        userString.setSpan(new ForegroundColorSpan(R.attr.colorPrimary),
-                5, String.valueOf(illust.getUser().getId()).length() + 5, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        SpannableString userString = new SpannableString(getString(R.string.string_195, illust.getUser().getId()));
+        userString.setSpan(new ForegroundColorSpan(currentPrimaryColorId),
+                userString.length()-String.valueOf(illust.getUser().getId()).length(), userString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         baseBind.userId.setText(userString);
         baseBind.userId.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -521,10 +525,9 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
                 Common.copy(mContext, String.valueOf(illust.getUser().getId()));
             }
         });
-        SpannableString illustString = new SpannableString(String.format("作品ID：%s",
-                String.valueOf(illust.getId())));
-        illustString.setSpan(new ForegroundColorSpan(R.attr.colorPrimary),
-                5, String.valueOf(illust.getId()).length() + 5, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        SpannableString illustString = new SpannableString(getString(R.string.string_194, illust.getId()));
+        illustString.setSpan(new ForegroundColorSpan(currentPrimaryColorId),
+                illustString.length()-String.valueOf(illust.getId()).length(), illustString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         baseBind.illustId.setText(illustString);
         baseBind.illustId.setOnClickListener(new View.OnClickListener() {
             @Override

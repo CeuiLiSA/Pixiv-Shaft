@@ -362,7 +362,7 @@
   <string name="string_190">を選択します</string>  
   <string name="string_191">特集</string>  
   <string name="string_192">小説コレクション</string>  
-  <string name="string_193">作品のサイズ: %dpx * %dpx</string>  
+  <string name="string_193">作品のサイズ: %1$dpx * %2$dpx</string>
   <string name="string_194">作品ID：%d</string>  
   <string name="string_195">アーティストID: %d</string>  
   <string name="string_196">注目者の小説</string>  

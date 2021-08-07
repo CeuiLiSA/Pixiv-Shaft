@@ -362,7 +362,7 @@
   <string name="string_190">확정 하 다.</string>  
   <string name="string_191">특집</string>  
   <string name="string_192">소설 을 수집 하 다.</string>  
-  <string name="string_193">작품 사이즈: %dpx * %dpx</string>  
+  <string name="string_193">작품 사이즈: %1$dpx * %2$dpx</string>
   <string name="string_194">작품 ID: %d</string>  
   <string name="string_195">화가 ID: %d</string>  
   <string name="string_196">주목 하 는 사람의 소설</string>  

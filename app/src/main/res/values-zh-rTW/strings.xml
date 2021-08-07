@@ -364,7 +364,7 @@
   <string name="string_190">確定</string>  
   <string name="string_191">特輯</string>  
   <string name="string_192">小說收藏</string>  
-  <string name="string_193">作品尺寸：%dpx * %dpx</string>  
+  <string name="string_193">作品尺寸：%1$dpx * %2$dpx</string>
   <string name="string_194">作品ID：%d</string>  
   <string name="string_195">畫師ID：%d</string>  
   <string name="string_196">關注者的小說</string>  
