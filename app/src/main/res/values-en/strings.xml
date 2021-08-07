@@ -148,8 +148,8 @@
   <string name="daily_rank">Daily Rankings</string>  
   <string name="weekly_rank">Weekly Rankings</string>  
   <string name="monthly_rank">Monthly Rankings</string>  
-  <string name="man_like">Popular among male users</string>  
-  <string name="woman_like">Popular among female users</string>  
+  <string name="man_like">For male</string>  
+  <string name="woman_like">For female</string>  
   <string name="self_done">Originals</string>  
   <string name="new_fish">NewFish</string>  
   <string name="r_eighteen">R-18</string>  
@@ -300,8 +300,8 @@
   <string name="string_128">R</string>  
   <string name="string_129">Day list</string>  
   <string name="string_130">weekly</string>  
-  <string name="string_131">Popular among male users</string>  
-  <string name="string_132">Popular among female users</string>  
+  <string name="string_131">For male</string>  
+  <string name="string_132">For female</string>  
   <string name="string_133">New personality</string>  
   <string name="string_134">R</string>  
   <string name="string_135">Operation Successful</string>  
