@@ -513,8 +513,8 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                         if (fromClipboard) {
                             Shaft.getMMKV().putString(Params.FRAGMENT_SEARCH_CLIPBOARD_VALUE, clipboardContent);
                         }
-                        // 对非标签搜索的，进行填充
-                        if (fromClipboard && searchType != SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD) {
+                        // 对非标签搜索且非综合搜索的，进行填充
+                        if (fromClipboard && (searchType != SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD && searchType != SearchTypeUtil.defaultSearchType)) {
                             baseBind.inputBox.setText(clipboardContent);
                         }
                         dialog.dismiss();
