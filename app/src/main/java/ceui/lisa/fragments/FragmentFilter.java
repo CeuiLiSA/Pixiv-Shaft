@@ -64,7 +64,7 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
         baseBind.submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                searchModel.getNowGo().setValue("search_now");
+                performSearch();
             }
         });
 
@@ -77,6 +77,7 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 searchModel.getStarSize().setValue(PixivSearchParamUtil.ALL_SIZE_VALUE[position]);
+                performSearch();
             }
 
             @Override
@@ -98,6 +99,7 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 searchModel.getSortType().setValue(PixivSearchParamUtil.DATE_SORT_VALUE[position]);
+                performSearch();
             }
 
             @Override
@@ -124,6 +126,7 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
             public void onClick(View v) {
                 searchModel.getStartDate().setValue(null);
                 searchModel.getEndDate().setValue(null);
+                performSearch();
             }
         });
 
@@ -153,7 +156,12 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
         baseBind.tagSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if(searchModel != null && searchModel.getSearchType().getValue() != null
+                        && searchModel.getSearchType().getValue().equals(values[position])){
+                    return;
+                }
                 searchModel.getSearchType().setValue(values[position]);
+                performSearch();
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
@@ -172,6 +180,7 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
             public void onDateSet(DatePickerDialog view, int year, int monthOfYear, int dayOfMonth) {
                 String date = LocalDate.of(year, monthOfYear + 1, dayOfMonth).toString();
                 dateData.setValue(date);
+                performSearch();
             }
         };
 
@@ -200,5 +209,9 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
         dpd.setAccentColor(Common.resolveThemeAttribute(mContext, R.attr.colorPrimary));
         dpd.setThemeDark(mContext.getResources().getBoolean(R.bool.is_night_mode));
         dpd.show(getParentFragmentManager(), "DatePickerDialog");
+    }
+
+    private void performSearch(){
+        searchModel.getNowGo().setValue("search_now");
     }
 }

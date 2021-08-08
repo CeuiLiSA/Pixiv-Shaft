@@ -267,7 +267,8 @@
             android:textColor="@color/rank_text_color"
             android:layout_gravity="end"
             android:layout_marginTop="@dimen/sixteen_dp"
-            android:text="@string/string_65" />
+            android:text="@string/string_65"
+            android:visibility="gone"/>
 
     </LinearLayout>
 

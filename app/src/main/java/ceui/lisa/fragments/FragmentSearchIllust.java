@@ -77,24 +77,24 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
             }
         });
         // 监测侧滑过滤器中的收藏数选项变化
-        searchModel.getStarSize().observe(getViewLifecycleOwner(), new Observer<String>() {
-            @Override
-            public void onChanged(String s) {
-                ((SearchIllustRepo) mRemoteRepo).update(searchModel);
-            }
-        });
-        searchModel.getSearchType().observe(getViewLifecycleOwner(), new Observer<String>() {
-            @Override
-            public void onChanged(String s) {
-                ((SearchIllustRepo) mRemoteRepo).update(searchModel);
-            }
-        });
-        searchModel.getSortType().observe(getViewLifecycleOwner(), new Observer<String>() {
-            @Override
-            public void onChanged(String s) {
-                ((SearchIllustRepo) mRemoteRepo).update(searchModel);
-            }
-        });
+//        searchModel.getStarSize().observe(getViewLifecycleOwner(), new Observer<String>() {
+//            @Override
+//            public void onChanged(String s) {
+//                ((SearchIllustRepo) mRemoteRepo).update(searchModel);
+//            }
+//        });
+//        searchModel.getSearchType().observe(getViewLifecycleOwner(), new Observer<String>() {
+//            @Override
+//            public void onChanged(String s) {
+//                ((SearchIllustRepo) mRemoteRepo).update(searchModel);
+//            }
+//        });
+//        searchModel.getSortType().observe(getViewLifecycleOwner(), new Observer<String>() {
+//            @Override
+//            public void onChanged(String s) {
+//                ((SearchIllustRepo) mRemoteRepo).update(searchModel);
+//            }
+//        });
     }
 
     @Override
