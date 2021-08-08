@@ -14,4 +14,8 @@ class WalkThroughRepo : RemoteRepo<ListIllust>() {
     override fun initNextApi(): Observable<ListIllust>? {
         return null
     }
+
+    override fun hasEffectiveUserFollowStatus(): Boolean {
+        return false
+    }
 }

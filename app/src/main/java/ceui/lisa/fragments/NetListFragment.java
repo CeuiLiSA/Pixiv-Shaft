@@ -74,7 +74,9 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                         beforeFirstLoad(mResponseList);
                         int beforeLoadSize = getStartSize();
                         mModel.load(mResponseList, true);
-                        mModel.tidyAppViewModel();
+                        if (mRemoteRepo.hasEffectiveUserFollowStatus()) {
+                            mModel.tidyAppViewModel();
+                        }
                         allItems = mModel.getContent();
                         int afterLoadSize = getStartSize();
                         onFirstLoaded(mResponseList);
@@ -142,7 +144,9 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                         beforeNextLoad(mResponseList);
                         int beforeLoadSize = getStartSize();
                         mModel.load(mResponseList, false);
-                        mModel.tidyAppViewModel(mResponseList);
+                        if (mRemoteRepo.hasEffectiveUserFollowStatus()) {
+                            mModel.tidyAppViewModel(mResponseList);
+                        }
                         allItems = mModel.getContent();
                         int afterLoadSize = getStartSize();
                         onNextLoaded(mResponseList);
@@ -252,14 +256,17 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                                 return;
                             }
                             mResponse = (Response) listIllust;
-                            if (!Common.isEmpty(mResponse.getList())) {
-                                beforeNextLoad(mResponse.getList());
+                            List<Item> mResponseList = mResponse.getList();
+                            if (!Common.isEmpty(mResponseList)) {
+                                beforeNextLoad(mResponseList);
                                 int beforeLoadSize = getStartSize();
-                                mModel.load(mResponse.getList(), false);
-                                mModel.tidyAppViewModel(mResponse.getList());
+                                mModel.load(mResponseList, false);
+                                if (mRemoteRepo.hasEffectiveUserFollowStatus()) {
+                                    mModel.tidyAppViewModel(mResponseList);
+                                }
                                 allItems = mModel.getContent();
                                 int afterLoadSize = getStartSize();
-                                onNextLoaded(mResponse.getList());
+                                onNextLoaded(mResponseList);
                                 mAdapter.notifyItemRangeInserted(beforeLoadSize, afterLoadSize - beforeLoadSize);
                             }
                             mRemoteRepo.setNextUrl(mResponse.getNextUrl());

@@ -142,7 +142,7 @@
                     android:shadowColor="@android:color/black"
                     android:shadowDx="1.5"
                     android:shadowDy="1.5"
-                    android:shadowRadius="1.5"
+                    android:shadowRadius="5"
                     android:textColor="@android:color/white"
                     android:textSize="13sp"
                     android:textStyle="bold" />
