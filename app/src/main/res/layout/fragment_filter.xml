@@ -116,13 +116,13 @@
 
 
             <androidx.appcompat.widget.AppCompatSpinner
+                android:id="@+id/sort_type_spinner"
                 android:layout_width="wrap_content"
-                android:id="@+id/date_spinner"
+                android:layout_height="wrap_content"
                 android:layout_below="@+id/date_s"
                 android:layout_marginStart="@dimen/sixteen_dp"
                 android:layout_marginEnd="@dimen/sixteen_dp"
-                android:layout_marginBottom="@dimen/sixteen_dp"
-                android:layout_height="wrap_content">
+                android:layout_marginBottom="@dimen/sixteen_dp">
 
 
             </androidx.appcompat.widget.AppCompatSpinner>

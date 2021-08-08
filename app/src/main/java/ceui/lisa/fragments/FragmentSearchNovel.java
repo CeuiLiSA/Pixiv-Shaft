@@ -71,6 +71,12 @@ public class FragmentSearchNovel extends NetListFragment<FragmentBaseListBinding
                 ((SearchNovelRepo) mRemoteRepo).update(searchModel);
             }
         });
+        searchModel.getSortType().observe(getViewLifecycleOwner(), new Observer<String>() {
+            @Override
+            public void onChanged(String s) {
+                ((SearchNovelRepo) mRemoteRepo).update(searchModel);
+            }
+        });
     }
 
     @Override

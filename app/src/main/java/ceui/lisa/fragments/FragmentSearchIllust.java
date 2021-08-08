@@ -89,6 +89,12 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
                 ((SearchIllustRepo) mRemoteRepo).update(searchModel);
             }
         });
+        searchModel.getSortType().observe(getViewLifecycleOwner(), new Observer<String>() {
+            @Override
+            public void onChanged(String s) {
+                ((SearchIllustRepo) mRemoteRepo).update(searchModel);
+            }
+        });
     }
 
     @Override

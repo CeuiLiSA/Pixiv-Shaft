@@ -91,10 +91,10 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
             }
         }
 
-        ArrayAdapter<String> dateAdapter = new ArrayAdapter<>(mContext,
+        ArrayAdapter<String> sortTypeAdapter = new ArrayAdapter<>(mContext,
                 R.layout.spinner_item, PixivSearchParamUtil.DATE_SORT_NAME);
-        baseBind.dateSpinner.setAdapter(dateAdapter);
-        baseBind.dateSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        baseBind.sortTypeSpinner.setAdapter(sortTypeAdapter);
+        baseBind.sortTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 searchModel.getSortType().setValue(PixivSearchParamUtil.DATE_SORT_VALUE[position]);
@@ -105,6 +105,7 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
 
             }
         });
+        baseBind.sortTypeSpinner.setSelection(sortTypeAdapter.getCount() - 1);
 
         baseBind.startDate.setOnClickListener(new View.OnClickListener() {
             @Override
