@@ -16,7 +16,7 @@ Badges from shields.io
 
 <br>
 
-> Replace <tag> with tag before use, <tag> --> v3.2.2
+> Replace <tag> with tag before use, <tag> --> v3.2.2, can be put in release template?
 - [ ] <tag> download counts: [![Download Counts by tags](https://img.shields.io/github/downloads/CeuiLiSA/Pixiv-Shaft/<tag>/total)](https://github.com/CeuiLiSA/Pixiv-Shaft/releases/tag/<tag>)
 
 ```
