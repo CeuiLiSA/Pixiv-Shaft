@@ -37,14 +37,14 @@ public class VAdapter extends BaseAdapter<String, FragmentSingleNovelBinding> {
             bindView.baseBind.chapter.setVisibility(View.GONE);
             bindView.baseBind.head.setVisibility(View.GONE);
         }
-        if (position == allIllust.size() - 1) {
+        if (position == allItems.size() - 1) {
             bindView.baseBind.bottom.setVisibility(View.VISIBLE);
             bindView.baseBind.endText.setVisibility(View.VISIBLE);
         } else {
             bindView.baseBind.bottom.setVisibility(View.GONE);
             bindView.baseBind.endText.setVisibility(View.GONE);
         }
-        if (allIllust.size() == 1) {
+        if (allItems.size() == 1) {
             bindView.baseBind.partIndex.setVisibility(View.GONE);
         } else {
             bindView.baseBind.partIndex.setVisibility(View.VISIBLE);

@@ -27,17 +27,17 @@ public class BookedTagAdapter extends BaseAdapter<TagsBean, RecyBookTagBinding> 
 
     @Override
     public void bindData(TagsBean target, ViewHolder<RecyBookTagBinding> bindView, int position) {
-        if (TextUtils.isEmpty(allIllust.get(position).getName())) {
+        if (TextUtils.isEmpty(allItems.get(position).getName())) {
             bindView.baseBind.starSize.setText(R.string.string_155);
         } else {
-            if (!TextUtils.isEmpty(allIllust.get(position).getTranslated_name())) {
-                bindView.baseBind.starSize.setText(String.format("#%s/%s", allIllust.get(position).getName(), allIllust.get(position).getTranslated_name()));
+            if (!TextUtils.isEmpty(allItems.get(position).getTranslated_name())) {
+                bindView.baseBind.starSize.setText(String.format("#%s/%s", allItems.get(position).getName(), allItems.get(position).getTranslated_name()));
             } else {
-                bindView.baseBind.starSize.setText(String.format("#%s", allIllust.get(position).getName()));
+                bindView.baseBind.starSize.setText(String.format("#%s", allItems.get(position).getName()));
             }
         }
 
-        if (allIllust.get(position).getCount() == -1) {
+        if (allItems.get(position).getCount() == -1) {
             bindView.baseBind.illustCount.setText("");
         } else {
             if (isMuted) {
@@ -49,7 +49,7 @@ public class BookedTagAdapter extends BaseAdapter<TagsBean, RecyBookTagBinding> 
                     }
                 });
             } else {
-                bindView.baseBind.illustCount.setText(mContext.getString(R.string.string_156, allIllust.get(position).getCount()));
+                bindView.baseBind.illustCount.setText(mContext.getString(R.string.string_156, allItems.get(position).getCount()));
             }
         }
         if (mOnItemClickListener != null) {

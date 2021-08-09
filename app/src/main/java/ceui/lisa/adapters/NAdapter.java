@@ -60,7 +60,7 @@ public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
                     @Override
                     public void onClick(View view) {
                         Intent intent = new Intent(mContext, TemplateActivity.class);
-                        intent.putExtra(Params.ID, allIllust.get(position).getSeries().getId());
+                        intent.putExtra(Params.ID, allItems.get(position).getSeries().getId());
                         intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说系列详情");
                         mContext.startActivity(intent);
                     }
@@ -134,7 +134,7 @@ public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
                     if (target.isIs_bookmarked()) {
 
                     } else {
-                        PixivOperate.postLikeNovel(allIllust.get(position), Shaft.sUserModel,
+                        PixivOperate.postLikeNovel(allItems.get(position), Shaft.sUserModel,
                                 Params.TYPE_PRIVATE, bindView.baseBind.like);
                     }
                     return true;
@@ -150,21 +150,21 @@ public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
             public void onItemClick(View v, int position, int viewType) {
                 if (viewType == 0) {
                     Intent intent = new Intent(mContext, TemplateActivity.class);
-                    intent.putExtra(Params.CONTENT, allIllust.get(position));
+                    intent.putExtra(Params.CONTENT, allItems.get(position));
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说详情");
                     intent.putExtra("hideStatusBar", true);
                     mContext.startActivity(intent);
                 } else if (viewType == 1) {
-                    PixivOperate.postLikeNovel(allIllust.get(position), Shaft.sUserModel,
+                    PixivOperate.postLikeNovel(allItems.get(position), Shaft.sUserModel,
                             Params.TYPE_PUBLUC, v);
                 } else if (viewType == 2) {
                     Intent intent = new Intent(mContext, TemplateActivity.class);
-                    intent.putExtra(Params.URL, allIllust.get(position).getImage_urls().getMaxImage());
+                    intent.putExtra(Params.URL, allItems.get(position).getImage_urls().getMaxImage());
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "图片详情");
                     mContext.startActivity(intent);
                 } else if (viewType == 3) {
                     Intent intent = new Intent(mContext, UserActivity.class);
-                    intent.putExtra(Params.USER_ID, allIllust.get(position).getUser().getId());
+                    intent.putExtra(Params.USER_ID, allItems.get(position).getUser().getId());
                     mContext.startActivity(intent);
                 }
             }

@@ -72,9 +72,9 @@ public class UAdapter extends BaseAdapter<UserPreviewsBean, RecyUserPreviewBindi
                     .into(views.get(i));
         }
 
-        Glide.with(mContext).load(GlideUtil.getUrl(allIllust.get(position)
+        Glide.with(mContext).load(GlideUtil.getUrl(allItems.get(position)
                 .getUser().getProfile_image_urls().getMedium())).error(R.drawable.no_profile).into(bindView.baseBind.userHead);
-        bindView.baseBind.postLikeUser.setText(allIllust.get(position).getUser().isIs_followed() ?
+        bindView.baseBind.postLikeUser.setText(allItems.get(position).getUser().isIs_followed() ?
                 mContext.getString(R.string.post_unfollow) : mContext.getString(R.string.post_follow));
 
         if (mFullClickListener != null) {
@@ -104,16 +104,16 @@ public class UAdapter extends BaseAdapter<UserPreviewsBean, RecyUserPreviewBindi
             @Override
             public void onItemClick(View v, int position, int viewType) {
                 if (viewType == 0) { //普通item
-                    Common.showUser(mContext, allIllust.get(position));
+                    Common.showUser(mContext, allItems.get(position));
                 } else if (viewType == 1) { //关注按钮
-                    if (allIllust.get(position).getUser().isIs_followed()) {
-                        PixivOperate.postUnFollowUser(allIllust.get(position).getUser().getId());
+                    if (allItems.get(position).getUser().isIs_followed()) {
+                        PixivOperate.postUnFollowUser(allItems.get(position).getUser().getId());
                         Button postFollow = ((Button) v);
-                        allIllust.get(position).getUser().setIs_followed(false);
+                        allItems.get(position).getUser().setIs_followed(false);
                         postFollow.setText(mContext.getString(R.string.post_follow));
                     } else {
-                        PixivOperate.postFollowUser(allIllust.get(position).getUser().getId(), Params.TYPE_PUBLUC);
-                        allIllust.get(position).getUser().setIs_followed(true);
+                        PixivOperate.postFollowUser(allItems.get(position).getUser().getId(), Params.TYPE_PUBLUC);
+                        allItems.get(position).getUser().setIs_followed(true);
                         Button postFollow = ((Button) v);
                         postFollow.setText(mContext.getString(R.string.post_unfollow));
                     }
@@ -122,7 +122,7 @@ public class UAdapter extends BaseAdapter<UserPreviewsBean, RecyUserPreviewBindi
 
             @Override
             public void onItemLongClick(View v, int position, int viewType) {
-                PixivOperate.postFollowUser(allIllust.get(position).getUser().getId(), Params.TYPE_PRIVATE);
+                PixivOperate.postFollowUser(allItems.get(position).getUser().getId(), Params.TYPE_PRIVATE);
                 Button postFollow = ((Button) v);
                 postFollow.setText(mContext.getString(R.string.post_unfollow));
             }
@@ -135,14 +135,14 @@ public class UAdapter extends BaseAdapter<UserPreviewsBean, RecyUserPreviewBindi
             return;
         }
 
-        if (allIllust == null || allIllust.size() == 0) {
+        if (allItems == null || allItems.size() == 0) {
             return;
         }
 
-        for (int i = 0; i < allIllust.size(); i++) {
-            if (allIllust.get(i).getUser().getId() == id) {
+        for (int i = 0; i < allItems.size(); i++) {
+            if (allItems.get(i).getUser().getId() == id) {
                 //设置这个用户为已关注状态
-                allIllust.get(i).getUser().setIs_followed(isLike);
+                allItems.get(i).getUser().setIs_followed(isLike);
                 if (headerSize() != 0) {//如果有header
                     notifyItemChanged(i + headerSize());
                 } else { //没有header

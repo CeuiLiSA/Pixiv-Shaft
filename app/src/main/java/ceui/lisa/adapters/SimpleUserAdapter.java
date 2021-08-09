@@ -12,7 +12,6 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.RecySimpleUserBinding;
-import ceui.lisa.fragments.FragmentLikeIllust;
 import ceui.lisa.interfaces.FullClickListener;
 import ceui.lisa.models.UserBean;
 import ceui.lisa.utils.Common;
@@ -44,10 +43,10 @@ public class SimpleUserAdapter extends BaseAdapter<UserBean, RecySimpleUserBindi
     public void bindData(UserBean target, ViewHolder<RecySimpleUserBinding> bindView, int position) {
         bindView.baseBind.userName.setText(target.getName());
         Glide.with(mContext)
-                .load(GlideUtil.getUrl(allIllust.get(position).getProfile_image_urls().getMedium()))
+                .load(GlideUtil.getUrl(allItems.get(position).getProfile_image_urls().getMedium()))
                 .error(R.drawable.no_profile)
                 .into(bindView.baseBind.userHead);
-        bindView.baseBind.postLikeUser.setText(allIllust.get(position).isIs_followed() ?
+        bindView.baseBind.postLikeUser.setText(allItems.get(position).isIs_followed() ?
                 mContext.getString(R.string.post_unfollow) : mContext.getString(R.string.post_follow));
 
         if (mFullClickListener != null) {
@@ -85,17 +84,17 @@ public class SimpleUserAdapter extends BaseAdapter<UserBean, RecySimpleUserBindi
             @Override
             public void onItemClick(View v, int position, int viewType) {
                 if (viewType == 0) { //普通item
-                    Common.showUser(mContext, allIllust.get(position));
+                    Common.showUser(mContext, allItems.get(position));
                 } else if (viewType == 1) { //关注按钮
-                    if (allIllust.get(position).isIs_followed()) {
-                        PixivOperate.postUnFollowUser(allIllust.get(position).getId());
+                    if (allItems.get(position).isIs_followed()) {
+                        PixivOperate.postUnFollowUser(allItems.get(position).getId());
                         Button postFollow = ((Button) v);
-                        allIllust.get(position).setIs_followed(false);
+                        allItems.get(position).setIs_followed(false);
                         postFollow.setText(mContext.getString(R.string.post_follow));
                     } else {
-                        PixivOperate.postFollowUser(allIllust.get(position).getId(),
+                        PixivOperate.postFollowUser(allItems.get(position).getId(),
                                 Params.TYPE_PUBLUC);
-                        allIllust.get(position).setIs_followed(true);
+                        allItems.get(position).setIs_followed(true);
                         Button postFollow = ((Button) v);
                         postFollow.setText(mContext.getString(R.string.post_unfollow));
                     }
@@ -105,11 +104,11 @@ public class SimpleUserAdapter extends BaseAdapter<UserBean, RecySimpleUserBindi
             @Override
             public void onItemLongClick(View v, int position, int viewType) {
                 if (isMuteUser && viewType == 0) {
-                    PixivOperate.unMuteUser(allIllust.get(position));
-                    allIllust.remove(position);
+                    PixivOperate.unMuteUser(allItems.get(position));
+                    allItems.remove(position);
                     notifyDataSetChanged();
                 } else if (viewType == 1) {
-                    PixivOperate.postFollowUser(allIllust.get(position).getId(),
+                    PixivOperate.postFollowUser(allItems.get(position).getId(),
                             Params.TYPE_PRIVATE);
                     Button postFollow = ((Button) v);
                     postFollow.setText(mContext.getString(R.string.post_unfollow));

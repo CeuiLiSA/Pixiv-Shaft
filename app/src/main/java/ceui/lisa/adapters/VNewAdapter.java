@@ -36,7 +36,7 @@ public class VNewAdapter extends BaseAdapter<NovelDetail.NovelChapterBean, Fragm
 
         bindView.baseBind.chapter.setText(target.getChapterName());
 
-        if (position == allIllust.size() - 1) {
+        if (position == allItems.size() - 1) {
             bindView.baseBind.bottom.setVisibility(View.VISIBLE);
             bindView.baseBind.endText.setVisibility(View.VISIBLE);
         } else {

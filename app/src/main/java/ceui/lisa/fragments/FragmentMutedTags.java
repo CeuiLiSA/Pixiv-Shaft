@@ -1,6 +1,7 @@
 package ceui.lisa.fragments;
 
 import android.text.InputType;
+import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
@@ -10,6 +11,7 @@ import androidx.appcompat.widget.Toolbar;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialogBuilder;
 
 import java.util.List;
 
@@ -63,10 +65,10 @@ public class FragmentMutedTags extends LocalListFragment<FragmentBaseListBinding
         });
     }
 
-    public void addMutedTag(String tagName) {
+    public void addMutedTag(String tagName, int filterMode) {
         boolean isExist = false;
-        for (TagsBean allItem : allItems) {
-            if (allItem.getName().equals(tagName)) {
+        for (TagsBean tagsBean : allItems) {
+            if (tagsBean.getName().equals(tagName) && tagsBean.getFilter_mode() == filterMode) {
                 isExist = true;
                 break;
             }
@@ -80,6 +82,7 @@ public class FragmentMutedTags extends LocalListFragment<FragmentBaseListBinding
 
             TagsBean tagsBean = new TagsBean();
             tagsBean.setName(tagName);
+            tagsBean.setFilter_mode(filterMode);
             PixivOperate.muteTag(tagsBean);
             allItems.add(0, tagsBean);
             mAdapter.notifyItemInserted(0);
@@ -130,18 +133,31 @@ public class FragmentMutedTags extends LocalListFragment<FragmentBaseListBinding
                     .setSkinManager(QMUISkinManager.defaultInstance(mContext))
                     .setPlaceholder(getString(R.string.string_211))
                     .setInputType(InputType.TYPE_CLASS_TEXT)
+                    .setActionContainerOrientation(QMUIDialogBuilder.VERTICAL)
                     .addAction(getString(R.string.string_212), new QMUIDialogAction.ActionListener() {
                         @Override
                         public void onClick(QMUIDialog dialog, int index) {
                             dialog.dismiss();
                         }
                     })
+                    .addAction(getString(R.string.string_437), new QMUIDialogAction.ActionListener() {
+                        @Override
+                        public void onClick(QMUIDialog dialog, int index) {
+                            CharSequence text = builder.getEditText().getText();
+                            if (!TextUtils.isEmpty(text)) {
+                                addMutedTag(text.toString(), 1);
+                                dialog.dismiss();
+                            } else {
+                                Toast.makeText(getActivity(), R.string.string_214, Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    })
                     .addAction(getString(R.string.string_213), new QMUIDialogAction.ActionListener() {
                         @Override
                         public void onClick(QMUIDialog dialog, int index) {
                             CharSequence text = builder.getEditText().getText();
-                            if (text != null && text.length() > 0) {
-                                addMutedTag(text.toString());
+                            if (!TextUtils.isEmpty(text)) {
+                                addMutedTag(text.toString(), 0);
                                 dialog.dismiss();
                             } else {
                                 Toast.makeText(getActivity(), R.string.string_214, Toast.LENGTH_SHORT).show();

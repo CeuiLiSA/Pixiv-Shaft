@@ -48,7 +48,7 @@ public class FileNameAdapter extends BaseAdapter<CustomFileNameCell, RecyFileNam
     }
 
     public void unCheckAll() {
-        for (CustomFileNameCell customFileNameCell : allIllust) {
+        for (CustomFileNameCell customFileNameCell : allItems) {
             customFileNameCell.setChecked(false);
         }
         notifyDataSetChanged();

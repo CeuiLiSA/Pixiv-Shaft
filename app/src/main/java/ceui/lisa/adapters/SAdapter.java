@@ -23,8 +23,8 @@ public class SAdapter extends BaseAdapter<TagsBean, RecySelectTagBinding> {
 
     @Override
     public void bindData(TagsBean target, ViewHolder<RecySelectTagBinding> bindView, int position) {
-        String tagName = allIllust.get(position).getName();
-        String translatedTagName = allIllust.get(position).getTranslated_name();
+        String tagName = allItems.get(position).getName();
+        String translatedTagName = allItems.get(position).getTranslated_name();
         String finalTagName = tagName;
         if (!TextUtils.isEmpty(translatedTagName)) {
             finalTagName = String.format("%s/%s", tagName, translatedTagName);
@@ -34,11 +34,11 @@ public class SAdapter extends BaseAdapter<TagsBean, RecySelectTagBinding> {
         bindView.baseBind.illustCount.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                allIllust.get(position).setSelectedLocalAndRemote(isChecked);
+                allItems.get(position).setSelectedLocalAndRemote(isChecked);
             }
         });
 
-        bindView.baseBind.illustCount.setChecked(allIllust.get(position).isSelectedLocalOrRemote());
+        bindView.baseBind.illustCount.setChecked(allItems.get(position).isSelectedLocalOrRemote());
         bindView.itemView.setOnClickListener(v -> bindView.baseBind.illustCount.performClick());
     }
 }

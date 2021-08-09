@@ -17,6 +17,7 @@ public class TagsBean implements Serializable {
 
     private int count;
     private boolean isSelected;
+    private int filter_mode = 0; //过滤模式：0普通，1正则
 
     public boolean isSelected() {
         return isSelected;
@@ -81,5 +82,13 @@ public class TagsBean implements Serializable {
     public void setSelectedLocalAndRemote(boolean selected) {
         isSelected = selected;
         is_registered = selected;
+    }
+
+    public int getFilter_mode() {
+        return filter_mode;
+    }
+
+    public void setFilter_mode(int filter_mode) {
+        this.filter_mode = filter_mode;
     }
 }

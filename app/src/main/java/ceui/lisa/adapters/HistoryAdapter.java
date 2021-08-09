@@ -53,7 +53,7 @@ public class HistoryAdapter extends BaseAdapter<IllustHistoryEntity, RecyViewHis
             params.width = illustImageSize;
             bindView.baseBind.illustImage.setLayoutParams(params);
 
-            IllustsBean current = Shaft.sGson.fromJson(allIllust.get(position).getIllustJson(), IllustsBean.class);
+            IllustsBean current = Shaft.sGson.fromJson(allItems.get(position).getIllustJson(), IllustsBean.class);
             Glide.with(mContext)
                     .load(GlideUtil.getMediumImg(current))
                     .placeholder(R.color.light_bg)
@@ -86,7 +86,7 @@ public class HistoryAdapter extends BaseAdapter<IllustHistoryEntity, RecyViewHis
             params.width = novelImageSize;
             bindView.baseBind.illustImage.setLayoutParams(params);
 
-            NovelBean current = Shaft.sGson.fromJson(allIllust.get(position).getIllustJson(), NovelBean.class);
+            NovelBean current = Shaft.sGson.fromJson(allItems.get(position).getIllustJson(), NovelBean.class);
             Glide.with(mContext)
                     .load(GlideUtil.getUrl(current.getImage_urls().getMedium()))
                     .placeholder(R.color.light_bg)
@@ -112,7 +112,7 @@ public class HistoryAdapter extends BaseAdapter<IllustHistoryEntity, RecyViewHis
             }
         }
 
-        bindView.baseBind.time.setText(mTime.format(allIllust.get(position).getTime()));
+        bindView.baseBind.time.setText(mTime.format(allItems.get(position).getTime()));
         bindView.baseBind.deleteItem.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

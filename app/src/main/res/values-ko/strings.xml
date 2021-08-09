@@ -604,4 +604,5 @@
   <string name="string_434">인기도 순위는 이제 우측 슬라이딩 바의 검색 옵션/정렬 방식에 위치하게 되었으며, 우측 상단의 설정 버튼을 통해 설정할 수 있으며, 설정 후 저장하시기 바랍니다.</string>
   <string name="string_435">검색 옵션은 일러스트레이션/소설에만 유효합니다.</string>
   <string name="string_436">관련 사용자</string>
+  <string name="string_437">정규식으로 추가</string>
 </resources>

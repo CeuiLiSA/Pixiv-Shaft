@@ -17,7 +17,6 @@ import java.util.Locale;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
-import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.database.MuteEntity;
 import ceui.lisa.databinding.RecyViewHistoryBinding;
 import ceui.lisa.models.IllustsBean;
@@ -57,7 +56,7 @@ public class MuteWorksAdapter extends BaseAdapter<MuteEntity, RecyViewHistoryBin
             params.width = illustImageSize;
             bindView.baseBind.illustImage.setLayoutParams(params);
 
-            IllustsBean current = Shaft.sGson.fromJson(allIllust.get(position).getTagJson(), IllustsBean.class);
+            IllustsBean current = Shaft.sGson.fromJson(allItems.get(position).getTagJson(), IllustsBean.class);
             Glide.with(mContext)
                     .load(GlideUtil.getMediumImg(current))
                     .apply(bitmapTransform(new BlurTransformation(25, 3)))
@@ -97,7 +96,7 @@ public class MuteWorksAdapter extends BaseAdapter<MuteEntity, RecyViewHistoryBin
             params.width = novelImageSize;
             bindView.baseBind.illustImage.setLayoutParams(params);
 
-            NovelBean current = Shaft.sGson.fromJson(allIllust.get(position).getTagJson(), NovelBean.class);
+            NovelBean current = Shaft.sGson.fromJson(allItems.get(position).getTagJson(), NovelBean.class);
             Glide.with(mContext)
                     .load(GlideUtil.getUrl(current.getImage_urls().getMedium()))
                     .placeholder(R.color.light_bg)
@@ -125,7 +124,7 @@ public class MuteWorksAdapter extends BaseAdapter<MuteEntity, RecyViewHistoryBin
             }
         }
 
-        bindView.baseBind.time.setText(mTime.format(allIllust.get(position).getSearchTime()));
+        bindView.baseBind.time.setText(mTime.format(allItems.get(position).getSearchTime()));
 
         //从-400 丝滑滑动到0
         ((SpringHolder) bindView).spring.setCurrentValue(-400);
