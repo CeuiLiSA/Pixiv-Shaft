@@ -35,8 +35,8 @@ public class EventAdapter extends BaseAdapter<IllustsBean, RecyUserEventBinding>
         params.height = imageSize * 2 / 3;
         params.width = imageSize;
         bindView.baseBind.illustImage.setLayoutParams(params);
-        bindView.baseBind.userName.setText(allIllust.get(position).getUser().getName());
-        bindView.baseBind.star.setText(allIllust.get(position).isIs_bookmarked() ?
+        bindView.baseBind.userName.setText(allItems.get(position).getUser().getName());
+        bindView.baseBind.star.setText(allItems.get(position).isIs_bookmarked() ?
                 mContext.getString(R.string.string_179) :
                 mContext.getString(R.string.string_180));
         if (!TextUtils.isEmpty(target.getCaption())) {
@@ -45,13 +45,13 @@ public class EventAdapter extends BaseAdapter<IllustsBean, RecyUserEventBinding>
         } else {
             bindView.baseBind.description.setVisibility(View.GONE);
         }
-        if (!TextUtils.isEmpty(allIllust.get(position).getCreate_date())) {
-            bindView.baseBind.postTime.setText(String.format("%s发布", allIllust.get(position).getCreate_date().substring(0, 16)));
+        if (!TextUtils.isEmpty(allItems.get(position).getCreate_date())) {
+            bindView.baseBind.postTime.setText(String.format("%s发布", allItems.get(position).getCreate_date().substring(0, 16)));
         }
 
-        Glide.with(mContext).load(GlideUtil.getUrl(allIllust.get(position)
+        Glide.with(mContext).load(GlideUtil.getUrl(allItems.get(position)
                 .getUser().getProfile_image_urls().getMedium())).into(bindView.baseBind.userHead);
-        Glide.with(mContext).load(GlideUtil.getLargeImage(allIllust.get(position)))
+        Glide.with(mContext).load(GlideUtil.getLargeImage(allItems.get(position)))
                 .placeholder(R.color.light_bg)
                 .into(bindView.baseBind.illustImage);
         if (mOnItemClickListener != null) {
@@ -60,7 +60,7 @@ public class EventAdapter extends BaseAdapter<IllustsBean, RecyUserEventBinding>
             bindView.baseBind.more.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 4));
             bindView.baseBind.download.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 2));
             bindView.baseBind.star.setOnClickListener(v -> {
-                bindView.baseBind.star.setText(allIllust.get(position).isIs_bookmarked() ?
+                bindView.baseBind.star.setText(allItems.get(position).isIs_bookmarked() ?
                         mContext.getString(R.string.string_180) :
                         mContext.getString(R.string.string_179));
                 mOnItemClickListener.onItemClick(v, position, 3);

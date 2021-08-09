@@ -20,9 +20,9 @@ class UserHAdapter(targetList: MutableList<UserPreviewsBean>, context: Context) 
         bindView: ViewHolder<RecyUserPreviewHorizontalBinding>,
         position: Int
     ) {
-        bindView.baseBind.userName.text = allIllust[position].user.name
+        bindView.baseBind.userName.text = allItems[position].user.name
         Glide.with(mContext)
-            .load(GlideUtil.getUrl(allIllust[position].user.profile_image_urls.medium))
+            .load(GlideUtil.getUrl(allItems[position].user.profile_image_urls.medium))
             .placeholder(R.color.light_bg)
             .error(R.drawable.no_profile)
             .into(bindView.baseBind.userHead)

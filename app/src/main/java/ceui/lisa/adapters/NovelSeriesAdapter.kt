@@ -26,7 +26,7 @@ class NovelSeriesAdapter(
         bindView.baseBind.title2.text = target.display_text
         bindView.itemView.setOnClickListener {
             val intent = Intent(mContext, TemplateActivity::class.java)
-            intent.putExtra(Params.ID, allIllust[position].id)
+            intent.putExtra(Params.ID, allItems[position].id)
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说系列详情")
             mContext.startActivity(intent)
         }

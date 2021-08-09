@@ -163,14 +163,14 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
 
     @Override
     public List<IllustsBean> getIllustList() {
-        return allIllust;
+        return allItems;
     }
 
     private void handleClick() {
         setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v, int position, int viewType) {
-                final PageData pageData = new PageData(uuid, nextUrl, allIllust);
+                final PageData pageData = new PageData(uuid, nextUrl, allItems);
                 Container.get().addPageToMap(pageData);
 
                 Intent intent = new Intent(mContext, VActivity.class);
@@ -185,7 +185,7 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
         setOnItemLongClickListener(new OnItemLongClickListener() {
             @Override
             public void onItemLongClick(View v, int position, int viewType) {
-                IllustsBean illust = allIllust.get(position);
+                IllustsBean illust = allItems.get(position);
                 View popView = View.inflate(mContext, R.layout.pop_window_2, null);
                 popView.findViewById(R.id.download_this_one).setVisibility(illust.isGif() ? View.GONE : View.VISIBLE);
 

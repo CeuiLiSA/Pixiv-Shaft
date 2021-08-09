@@ -44,7 +44,7 @@ public class MultiDownldAdapter extends BaseAdapter<IllustsBean, RecyMultiDownlo
         params.height = imageSize;
         params.width = imageSize;
         bindView.baseBind.illustImage.setLayoutParams(params);
-        final IllustsBean illustsBean = allIllust.get(position);
+        final IllustsBean illustsBean = allItems.get(position);
         Object tag = bindView.itemView.getTag(R.id.tag_image_url);
         if ((tag == null) || !(tag instanceof String) || !((String) tag).equals(illustsBean.getImage_urls().getMedium())) {
             Glide.with(mContext)
@@ -77,7 +77,7 @@ public class MultiDownldAdapter extends BaseAdapter<IllustsBean, RecyMultiDownlo
         bindView.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final PageData pageData = new PageData(allIllust);
+                final PageData pageData = new PageData(allItems);
                 Container.get().addPageToMap(pageData);
 
                 Intent intent = new Intent(mContext, VActivity.class);
@@ -104,7 +104,7 @@ public class MultiDownldAdapter extends BaseAdapter<IllustsBean, RecyMultiDownlo
 
     @Override
     public List<IllustsBean> getIllustList() {
-        return allIllust;
+        return allItems;
     }
 
     public void setCallback(Callback callback) {

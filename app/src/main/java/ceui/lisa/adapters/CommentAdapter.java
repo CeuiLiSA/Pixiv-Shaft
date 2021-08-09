@@ -39,15 +39,15 @@ public class CommentAdapter extends BaseAdapter<CommentsBean, RecyCommentListBin
 
     @Override
     public void bindData(CommentsBean target, ViewHolder<RecyCommentListBinding> bindView, int position) {
-        Glide.with(mContext).load(GlideUtil.getHead(allIllust.get(position).getUser()))
+        Glide.with(mContext).load(GlideUtil.getHead(allItems.get(position).getUser()))
                 .into(bindView.baseBind.userHead);
-        bindView.baseBind.userName.setText(allIllust.get(position).getUser().getName());
-        bindView.baseBind.time.setText(Common.getLocalYYYYMMDDHHMMSSString(allIllust.get(position).getDate()));
-        bindView.baseBind.content.setHtml(allIllust.get(position).getComment(),
+        bindView.baseBind.userName.setText(allItems.get(position).getUser().getName());
+        bindView.baseBind.time.setText(Common.getLocalYYYYMMDDHHMMSSString(allItems.get(position).getDate()));
+        bindView.baseBind.content.setHtml(allItems.get(position).getComment(),
                 new ImgGetter(bindView.baseBind.content));
 
-        if (allIllust.get(position).getParent_comment() != null &&
-                allIllust.get(position).getParent_comment().getUser() != null) {
+        if (allItems.get(position).getParent_comment() != null &&
+                allItems.get(position).getParent_comment().getUser() != null) {
             bindView.baseBind.replyComment.setVisibility(View.VISIBLE);
 
             ClickableSpan clickableSpan = new ClickableSpan() {
@@ -64,20 +64,20 @@ public class CommentAdapter extends BaseAdapter<CommentsBean, RecyCommentListBin
 
             SpannableString spannableString;
             //如果getParent_comment是一个包含表情的comment，就用fromHtml
-            if (allIllust.get(position).getParent_comment().getComment().contains("_2sgsdWB")) {
-                Common.showLog("Emoji.hasEmoji true " + position + allIllust.get(position).getParent_comment().getComment());
+            if (allItems.get(position).getParent_comment().getComment().contains("_2sgsdWB")) {
+                Common.showLog("Emoji.hasEmoji true " + position + allItems.get(position).getParent_comment().getComment());
                 spannableString = new SpannableString(Html.fromHtml(String.format("@%s：%s",
-                        allIllust.get(position).getParent_comment().getUser().getName(),
-                        allIllust.get(position).getParent_comment().getComment()),
+                        allItems.get(position).getParent_comment().getUser().getName(),
+                        allItems.get(position).getParent_comment().getComment()),
                         new ImgGetter(bindView.baseBind.replyContent), null));
             } else {
-                Common.showLog("Emoji.hasEmoji false " + position + allIllust.get(position).getParent_comment().getComment());
+                Common.showLog("Emoji.hasEmoji false " + position + allItems.get(position).getParent_comment().getComment());
                 spannableString = new SpannableString(String.format("@%s：%s",
-                        allIllust.get(position).getParent_comment().getUser().getName(),
-                        allIllust.get(position).getParent_comment().getComment()));
+                        allItems.get(position).getParent_comment().getUser().getName(),
+                        allItems.get(position).getParent_comment().getComment()));
             }
             spannableString.setSpan(clickableSpan,
-                    0, allIllust.get(position).getParent_comment().getUser().getName().length() + 1,
+                    0, allItems.get(position).getParent_comment().getUser().getName().length() + 1,
                     Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             bindView.baseBind.replyContent.setMovementMethod(LinkMovementMethod.getInstance());
             bindView.baseBind.replyContent.setText(spannableString);

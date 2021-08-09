@@ -4,6 +4,7 @@ import android.text.TextUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.AppDatabase;
@@ -49,7 +50,10 @@ public class IllustFilter {
         for (TagsBean bean : temp) {
             if (bean.isEffective()) {
                 String name = "*#" + bean.getName() + ",";
-                if (tagString.contains(name)) {
+                if (bean.getFilter_mode() == 0 && tagString.contains(name)) {
+                    illustsBean.setShield(true);
+                    return true;
+                } else if (bean.getFilter_mode() == 1 && Pattern.compile(bean.getName()).matcher(tagString).find()) {
                     illustsBean.setShield(true);
                     return true;
                 }

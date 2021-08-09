@@ -7,7 +7,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import androidx.databinding.DataBindingUtil;
 
@@ -52,13 +51,13 @@ public class DownloadedAdapter extends BaseAdapter<DownloadEntity, RecyDownloade
     public void bindData(DownloadEntity target,
                          ViewHolder<RecyDownloadedBinding> bindView, int position) {
 
-        String fileName = allIllust.get(position).getFileName();
+        String fileName = allItems.get(position).getFileName();
         if (!TextUtils.isEmpty(fileName) && fileName.contains(Params.NOVEL_KEY)) {
             ViewGroup.LayoutParams params = bindView.baseBind.illustImage.getLayoutParams();
             params.width = novelImageSize;
             bindView.baseBind.illustImage.setLayoutParams(params);
 
-            NovelBean current = Shaft.sGson.fromJson(allIllust.get(position).getIllustGson(), NovelBean.class);
+            NovelBean current = Shaft.sGson.fromJson(allItems.get(position).getIllustGson(), NovelBean.class);
             bindView.baseBind.illustImage.setScaleType(ImageView.ScaleType.CENTER_CROP);
             Glide.with(mContext)
                     .load(GlideUtil.getUrl(current.getImage_urls().getMedium()))
@@ -66,7 +65,7 @@ public class DownloadedAdapter extends BaseAdapter<DownloadEntity, RecyDownloade
                     .into(bindView.baseBind.illustImage);
             bindView.baseBind.title.setText(current.getTitle());
             bindView.baseBind.author.setText(String.format("by: %s", current.getUser().getName()));
-            bindView.baseBind.time.setText(mTime.format(allIllust.get(position).getDownloadTime()));
+            bindView.baseBind.time.setText(mTime.format(allItems.get(position).getDownloadTime()));
 
             bindView.baseBind.pSize.setText(R.string.string_171);
 
@@ -85,9 +84,9 @@ public class DownloadedAdapter extends BaseAdapter<DownloadEntity, RecyDownloade
             params.width = imageSize;
             bindView.baseBind.illustImage.setLayoutParams(params);
 
-            IllustsBean currentIllust = Shaft.sGson.fromJson(allIllust.get(position).getIllustGson(), IllustsBean.class);
-            if (!TextUtils.isEmpty(allIllust.get(position).getFileName()) &&
-                    allIllust.get(position).getFileName().contains(".zip")) {
+            IllustsBean currentIllust = Shaft.sGson.fromJson(allItems.get(position).getIllustGson(), IllustsBean.class);
+            if (!TextUtils.isEmpty(allItems.get(position).getFileName()) &&
+                    allItems.get(position).getFileName().contains(".zip")) {
                 bindView.baseBind.illustImage.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
                 Glide.with(mContext)
                         .load(R.mipmap.zip)
@@ -103,14 +102,14 @@ public class DownloadedAdapter extends BaseAdapter<DownloadEntity, RecyDownloade
                 } else {
                     bindView.baseBind.illustImage.setScaleType(ImageView.ScaleType.CENTER_CROP);
                     Glide.with(mContext)
-                            .load(allIllust.get(position).getFilePath())
+                            .load(allItems.get(position).getFilePath())
                             .placeholder(R.color.light_bg)
                             .into(bindView.baseBind.illustImage);
                 }
             }
-            bindView.baseBind.title.setText(allIllust.get(position).getFileName());
+            bindView.baseBind.title.setText(allItems.get(position).getFileName());
             bindView.baseBind.author.setText(String.format("by: %s", currentIllust.getUser().getName()));
-            bindView.baseBind.time.setText(mTime.format(allIllust.get(position).getDownloadTime()));
+            bindView.baseBind.time.setText(mTime.format(allItems.get(position).getDownloadTime()));
 
             if (currentIllust.getPage_count() == 1) {
                 bindView.baseBind.pSize.setVisibility(View.GONE);

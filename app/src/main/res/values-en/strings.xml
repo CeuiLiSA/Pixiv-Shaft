@@ -381,7 +381,7 @@
   <string name="string_210">Add mute tags</string>  
   <string name="string_211">Enter tag name</string>  
   <string name="string_212">Cancel</string>  
-  <string name="string_213">Add to</string>  
+  <string name="string_213">Add</string>
   <string name="string_214">Please fill in the tag</string>  
   <string name="string_215">There are currently no muting tags to be removed</string>  
   <string name="string_216">Shaft Tips</string>  
@@ -604,4 +604,5 @@
   <string name="string_434">Popularity ranking is now located in the search options/sorting method in the sliding bar on the right. You can set it through the setting button in the upper right corner. Please save after setting.</string>
   <string name="string_435">Search options are only valid for illustrations and novels</string>
   <string name="string_436">Related users</string>
+  <string name="string_437">Add as regex</string>
 </resources>

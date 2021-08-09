@@ -3,7 +3,6 @@ package ceui.lisa.adapters;
 import android.content.Context;
 import android.text.TextUtils;
 import android.view.View;
-import android.view.ViewGroup;
 
 import com.bumptech.glide.Glide;
 
@@ -36,23 +35,23 @@ public class TagAdapter extends BaseAdapter<ListTrendingtag.TrendTagsBean, RecyT
         if (position == 0) {
             bindView.baseBind.illustImage.setHeightRatio(HEADER_RATIO);
             Glide.with(mContext)
-                    .load(GlideUtil.getLargeImage(allIllust.get(position).getIllust()))
+                    .load(GlideUtil.getLargeImage(allItems.get(position).getIllust()))
                     .placeholder(R.color.light_bg)
                     .into(bindView.baseBind.illustImage);
         } else {
             bindView.baseBind.illustImage.setHeightRatio(CONTENT_RATIO);
             Glide.with(mContext)
-                    .load(GlideUtil.getMediumImg(allIllust.get(position).getIllust()))
+                    .load(GlideUtil.getMediumImg(allItems.get(position).getIllust()))
                     .placeholder(R.color.light_bg)
                     .into(bindView.baseBind.illustImage);
         }
 
-        if (TextUtils.isEmpty(allIllust.get(position).getTranslated_name())) {
+        if (TextUtils.isEmpty(allItems.get(position).getTranslated_name())) {
             bindView.baseBind.chineseTitle.setText("");
         } else {
-            bindView.baseBind.chineseTitle.setText(String.format("#%s", allIllust.get(position).getTranslated_name()));
+            bindView.baseBind.chineseTitle.setText(String.format("#%s", allItems.get(position).getTranslated_name()));
         }
-        bindView.baseBind.title.setText(String.format("#%s", allIllust.get(position).getTag()));
+        bindView.baseBind.title.setText(String.format("#%s", allItems.get(position).getTag()));
 
         bindView.itemView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -74,8 +73,8 @@ public class TagAdapter extends BaseAdapter<ListTrendingtag.TrendTagsBean, RecyT
     @Override
     public List<IllustsBean> getIllustList() {
         List<IllustsBean> tempList = new ArrayList<>();
-        for (int i = 0; i < allIllust.size(); i++) {
-            tempList.add(allIllust.get(i).getIllust());
+        for (int i = 0; i < allItems.size(); i++) {
+            tempList.add(allItems.get(i).getIllust());
         }
         return tempList;
     }
