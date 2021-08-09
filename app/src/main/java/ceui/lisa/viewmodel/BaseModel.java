@@ -9,6 +9,7 @@ import java.util.List;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.core.BaseRepo;
+import ceui.lisa.database.IllustHistoryEntity;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.UserBean;
 import ceui.lisa.models.UserPreviewsBean;
@@ -79,6 +80,14 @@ public class BaseModel<T> extends ViewModel{
                     int userId = userBean.getId();
                     int followUserStatus = userBean.isIs_followed() ? AppLevelViewModel.FollowUserStatus.FOLLOWED : AppLevelViewModel.FollowUserStatus.NOT_FOLLOW;
                     Shaft.appViewModel.updateFollowUserStatus(userId, followUserStatus);
+                }
+            } else if (list.get(0).getClass().equals(IllustHistoryEntity.class)) {
+                for (IllustHistoryEntity entity : (List<IllustHistoryEntity>) list) {
+                    IllustsBean illustsBean = Shaft.sGson.fromJson(entity.getIllustJson(), IllustsBean.class);
+                    UserBean userBean = illustsBean.getUser();
+                    int userId = userBean.getId();
+                    int followUserStatus = userBean.isIs_followed() ? AppLevelViewModel.FollowUserStatus.FOLLOWED : AppLevelViewModel.FollowUserStatus.NOT_FOLLOW;
+                    Shaft.appViewModel.updateFollowUserStatusIfAbsent(userId, followUserStatus);
                 }
             }
         }

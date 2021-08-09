@@ -22,6 +22,7 @@ public abstract class LocalListFragment<Layout extends ViewDataBinding, Item>
         if (!Common.isEmpty(firstList)) {
             if (mModel != null) {
                 mModel.load(firstList, true);
+                mModel.tidyAppViewModel();
                 allItems = mModel.getContent();
             }
             onFirstLoaded(firstList);
@@ -41,6 +42,7 @@ public abstract class LocalListFragment<Layout extends ViewDataBinding, Item>
         if (mLocalRepo.hasNext() && !Common.isEmpty(nextList)) {
             if (mModel != null) {
                 mModel.load(nextList, false);
+                mModel.tidyAppViewModel(nextList);
                 allItems = mModel.getContent();
             }
             onNextLoaded(nextList);

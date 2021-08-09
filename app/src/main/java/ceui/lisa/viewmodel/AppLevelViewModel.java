@@ -44,6 +44,18 @@ public class AppLevelViewModel extends AndroidViewModel {
         }
     }
 
+    public void updateFollowUserStatusIfAbsent(int userId, int status) {
+        MutableLiveData<Integer> data = followUserStatus.get(userId);
+        if (data != null) {
+            Integer currentValue = data.getValue();
+            if (currentValue != null && currentValue == FollowUserStatus.UNKNOWN) {
+                data.setValue(status);
+            }
+        } else {
+            followUserStatus.put(userId, new MutableLiveData<Integer>(status));
+        }
+    }
+
     public MutableLiveData<Integer> getStarIllustLiveData(int illustId) {
         MutableLiveData<Integer> data = starIllustStatus.get(illustId);
         if (data == null) {
