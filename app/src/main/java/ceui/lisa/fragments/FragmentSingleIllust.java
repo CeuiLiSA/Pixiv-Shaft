@@ -7,7 +7,10 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.Spanned;
+import android.text.TextPaint;
 import android.text.TextUtils;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
 import android.text.style.ForegroundColorSpan;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -162,7 +165,33 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
         baseBind.refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));
         baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
         // baseBind.toolbar.setTitle(illust.getTitle());
-        baseBind.title.setText(illust.getTitle());
+
+        if(illust.getSeries() != null && !TextUtils.isEmpty(illust.getSeries().getTitle())){
+            ClickableSpan clickableSpan = new ClickableSpan() {
+                @Override
+                public void onClick(View widget) {
+                    Intent intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "漫画系列详情");
+                    intent.putExtra(Params.ID, illust.getSeries().getId());
+                    startActivity(intent);
+                }
+
+                @Override
+                public void updateDrawState(TextPaint ds) {
+                    ds.setColor(Common.resolveThemeAttribute(mContext, R.attr.colorPrimary));
+                }
+            };
+            SpannableString spannableString;
+            String seriesString = getString(R.string.string_229);
+            spannableString = new SpannableString(String.format("@%s %s",
+                    seriesString, illust.getTitle()));
+            spannableString.setSpan(clickableSpan, 0, seriesString.length() + 1,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            baseBind.title.setMovementMethod(LinkMovementMethod.getInstance());
+            baseBind.title.setText(spannableString);
+        }else{
+            baseBind.title.setText(illust.getTitle());
+        }
         baseBind.title.setOnLongClickListener(v -> {
             Common.copy(mContext, illust.getTitle());
             return true;
