@@ -15,10 +15,10 @@
 
 
         <ImageView
-            android:layout_width="match_parent"
             android:id="@+id/bg_image"
-            android:scaleType="centerCrop"
-            android:layout_height="match_parent" />
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop" />
 
 
         <com.scwang.smartrefresh.layout.SmartRefreshLayout
@@ -172,7 +172,8 @@
                                 android:layout_marginEnd="@dimen/twelve_dp"
                                 android:layout_marginTop="@dimen/twelve_dp"
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
+                                android:layout_height="wrap_content"
+                                android:textIsSelectable="true" />
 
                             <TextView
                                 android:layout_width="wrap_content"
@@ -372,9 +373,21 @@
             android:layout_marginEnd="@dimen/forty_eight_dp"
             android:elevation="@dimen/six_dp"
             app:navigationIcon="@drawable/ic_baseline_arrow_back_ios_24"
-            app:title=" "
+            app:title=""
             app:titleTextColor="@android:color/white">
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/title"
+                android:textColor="@android:color/white"
+                android:shadowColor="@android:color/black"
+                android:shadowDx="1.5"
+                android:shadowDy="1.5"
+                android:shadowRadius="5"
+                android:textSize="18sp"
+                android:maxLines="1"
+                android:ellipsize="end"/>
         </androidx.appcompat.widget.Toolbar>
 
     </RelativeLayout>

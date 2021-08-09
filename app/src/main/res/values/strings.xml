@@ -384,7 +384,7 @@
     <string name="string_190">确定</string>
     <string name="string_191">特辑</string>
     <string name="string_192">小说收藏</string>
-    <string name="string_193">作品尺寸：%dpx * %dpx</string>
+    <string name="string_193">作品尺寸：%1$dpx * %2$dpx</string>
     <string name="string_194">作品ID：%d</string>
     <string name="string_195">画师ID：%d</string>
     <string name="string_196">关注者的小说</string>
@@ -625,4 +625,5 @@
     <string name="string_433">按热度排序去哪儿了？</string>
     <string name="string_434">热度排序现在位于右边滑动栏的搜索选项/排序方式中，你可以通过右上角的设置键进行设置，设置完毕后请保存。</string>
     <string name="string_435">搜索选项仅对插画/小说有效</string>
+    <string name="string_436">相关用户</string>
 </resources>

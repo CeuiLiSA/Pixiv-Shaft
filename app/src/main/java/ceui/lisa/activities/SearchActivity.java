@@ -69,12 +69,12 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
         isPremium = Shaft.sUserModel.getUser().isIs_premium();
         searchModel.getIsPremium().setValue(isPremium);
 
-        searchModel.getNowGo().observe(this, new Observer<String>() {
-            @Override
-            public void onChanged(String s) {
-                baseBind.drawerlayout.closeMenu(true);
-            }
-        });
+//        searchModel.getNowGo().observe(this, new Observer<String>() {
+//            @Override
+//            public void onChanged(String s) {
+//                baseBind.drawerlayout.closeMenu(true);
+//            }
+//        });
     }
 
     @Override

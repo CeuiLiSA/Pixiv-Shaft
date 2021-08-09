@@ -161,7 +161,12 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
         baseBind.refreshLayout.setEnableLoadMore(true);
         baseBind.refreshLayout.setRefreshHeader(new FalsifyHeader(mContext));
         baseBind.refreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
-        baseBind.toolbar.setTitle(illust.getTitle());
+        // baseBind.toolbar.setTitle(illust.getTitle());
+        baseBind.title.setText(illust.getTitle());
+        baseBind.title.setOnLongClickListener(v -> {
+            Common.copy(mContext, illust.getTitle());
+            return true;
+        });
 
         baseBind.toolbar.inflateMenu(R.menu.share);
         baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
@@ -316,7 +321,8 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
         baseBind.userName.setText(illust.getUser().getName());
 
         SpannableString sizeString = new SpannableString(getString(R.string.string_193, illust.getWidth(), illust.getHeight()));
-        sizeString.setSpan(new ForegroundColorSpan(R.attr.colorPrimary),
+        int currentPrimaryColorId = Common.resolveThemeAttribute(mContext, R.attr.colorPrimary);
+        sizeString.setSpan(new ForegroundColorSpan(currentPrimaryColorId),
                 sizeString.length()-illust.getSize().length(), sizeString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         baseBind.illustPx.setText(sizeString);
 
@@ -367,7 +373,7 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
         baseBind.recyclerView.addItemDecoration(new LinearItemDecorationNoLRTB(DensityUtil.dp2px(1.0f)));
 
         SpannableString userString = new SpannableString(getString(R.string.string_195, illust.getUser().getId()));
-        userString.setSpan(new ForegroundColorSpan(R.attr.colorPrimary),
+        userString.setSpan(new ForegroundColorSpan(currentPrimaryColorId),
                 userString.length()-String.valueOf(illust.getUser().getId()).length(), userString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         baseBind.userId.setText(userString);
         baseBind.userId.setOnClickListener(new View.OnClickListener() {
@@ -377,7 +383,7 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
             }
         });
         SpannableString illustString = new SpannableString(getString(R.string.string_194, illust.getId()));
-        illustString.setSpan(new ForegroundColorSpan(R.attr.colorPrimary),
+        illustString.setSpan(new ForegroundColorSpan(currentPrimaryColorId),
                 illustString.length()-String.valueOf(illust.getId()).length(), illustString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         baseBind.illustId.setText(illustString);
         baseBind.illustId.setOnClickListener(new View.OnClickListener() {

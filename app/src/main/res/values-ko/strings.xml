@@ -362,7 +362,7 @@
   <string name="string_190">확정 하 다.</string>  
   <string name="string_191">특집</string>  
   <string name="string_192">소설 을 수집 하 다.</string>  
-  <string name="string_193">작품 사이즈: %dpx * %dpx</string>  
+  <string name="string_193">작품 사이즈: %1$dpx * %2$dpx</string>
   <string name="string_194">작품 ID: %d</string>  
   <string name="string_195">화가 ID: %d</string>  
   <string name="string_196">주목 하 는 사람의 소설</string>  
@@ -603,4 +603,5 @@
   <string name="string_433">인기순 어디까지 가봤니?</string>
   <string name="string_434">인기도 순위는 이제 우측 슬라이딩 바의 검색 옵션/정렬 방식에 위치하게 되었으며, 우측 상단의 설정 버튼을 통해 설정할 수 있으며, 설정 후 저장하시기 바랍니다.</string>
   <string name="string_435">검색 옵션은 일러스트레이션/소설에만 유효합니다.</string>
+  <string name="string_436">관련 사용자</string>
 </resources>

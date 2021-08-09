@@ -362,7 +362,7 @@
   <string name="string_190">Confirm</string>  
   <string name="string_191">Special edition</string>  
   <string name="string_192">Novel Bookmarks</string>  
-  <string name="string_193">Artwork Res: %dpx * %dpx</string>  
+  <string name="string_193">Artwork Res: %1$dpx * %2$dpx</string>  
   <string name="string_194">Artwork ID: %d</string>  
   <string name="string_195">Artist ID: %d</string>  
   <string name="string_196">Novel of Followers</string>  
@@ -603,4 +603,5 @@
   <string name="string_433">Where is the order of popularity?</string>
   <string name="string_434">Popularity ranking is now located in the search options/sorting method in the sliding bar on the right. You can set it through the setting button in the upper right corner. Please save after setting.</string>
   <string name="string_435">Search options are only valid for illustrations and novels</string>
+  <string name="string_436">Related users</string>
 </resources>

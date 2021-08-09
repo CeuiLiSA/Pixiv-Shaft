@@ -52,4 +52,8 @@ public abstract class RemoteRepo<Response extends ListShow<?>> extends BaseRepo 
     public void setNextUrl(String nextUrl) {
         this.nextUrl = nextUrl;
     }
+
+    public boolean hasEffectiveUserFollowStatus() {
+        return true;
+    }
 }
