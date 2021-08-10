@@ -1,6 +1,6 @@
 # Shaft (Pixiv 第三方客户端)
-[![build status](https://img.shields.io/github/workflow/status/CeuiLiSA/Pixiv-Shaft/CI)](https://github.com/CeuiLiSA/Pixiv-Shaft/actions)
 [![release](https://img.shields.io/github/v/release/CeuiLiSA/Pixiv-Shaft)](https://github.com/CeuiLiSA/Pixiv-Shaft/releases/latest)
+[![build status](https://img.shields.io/github/workflow/status/CeuiLiSA/Pixiv-Shaft/CI)](https://github.com/CeuiLiSA/Pixiv-Shaft/actions)
 [![open issues](https://img.shields.io/github/issues/CeuiLiSA/Pixiv-Shaft?color=brightgreen)](https://github.com/CeuiLiSA/Pixiv-Shaft/issues?q=is%3Aopen+is%3Aissue)
 [![license](https://img.shields.io/github/license/CeuiLiSA/Pixiv-Shaft)](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/LICENSE)
 
