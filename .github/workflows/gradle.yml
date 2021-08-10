@@ -96,7 +96,7 @@ jobs:
             SHA-256: ${{ env.APK_SHA256 }}
             ```
           files: |
-            app-release.apk
+            PixShaft_${{ env.VERSION_TAG }}.apk
           draft: true
           prerelease: false
         env:
