@@ -190,13 +190,14 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
         String trimmedKeyword = keyWord.trim();
         if (searchType == 0) {
             baseBind.hintList.setVisibility(View.INVISIBLE);
+            PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD);
             Intent intent = new Intent(mContext, SearchActivity.class);
             intent.putExtra(Params.KEY_WORD, trimmedKeyword);
             intent.putExtra(Params.INDEX, 0);
             startActivity(intent);
         } else if (searchType == 1) {
             if (Common.isNumeric(trimmedKeyword)) {
-                PixivOperate.insertSearchHistory(trimmedKeyword, searchType);
+                PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_ILLUSTSID);
                 PixivOperate.getIllustByID(sUserModel, Integer.valueOf(trimmedKeyword), mContext);
             } else {
                 Common.showToast(getString(R.string.string_154));
@@ -220,6 +221,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
         } else if (searchType == 4) {
             if (!TextUtils.isEmpty(trimmedKeyword) && URLUtil.isValidUrl(trimmedKeyword)) {
                 try {
+                    PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_URL);
                     Intent intent = new Intent(mContext, OutWakeActivity.class);
                     intent.setData(Uri.parse(trimmedKeyword));
                     startActivity(intent);
@@ -233,6 +235,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
         } else if (searchType == 5) {
             if (URLUtil.isValidUrl(trimmedKeyword)) {
                 try {
+                    PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_URL);
                     Intent intent = new Intent(mContext, OutWakeActivity.class);
                     intent.setData(Uri.parse(trimmedKeyword));
                     startActivity(intent);
@@ -258,6 +261,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                     @Override
                     public void doSomething(Void t) {
                         tipDialog.dismiss();
+                        PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_USERID);
                         Intent intent = new Intent(mContext, UserActivity.class);
                         intent.putExtra(Params.USER_ID, Integer.valueOf(trimmedKeyword));
                         startActivity(intent);
@@ -266,6 +270,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
             }
             else{
                 baseBind.hintList.setVisibility(View.INVISIBLE);
+                PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD);
                 Intent intent = new Intent(mContext, SearchActivity.class);
                 intent.putExtra(Params.KEY_WORD, trimmedKeyword);
                 intent.putExtra(Params.INDEX, 0);
@@ -289,8 +294,10 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                             @Override
                             public void onItemClick(View v, int position, int viewType) {
                                 baseBind.hintList.setVisibility(View.INVISIBLE);
+                                String keyword = listTrendingtag.getList().get(position).getTag();
+                                PixivOperate.insertSearchHistory(keyword, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD);
                                 Intent intent = new Intent(mContext, SearchActivity.class);
-                                intent.putExtra(Params.KEY_WORD, listTrendingtag.getList().get(position).getTag());
+                                intent.putExtra(Params.KEY_WORD, keyword);
                                 intent.putExtra(Params.INDEX, 0);
                                 startActivity(intent);
                             }
@@ -347,8 +354,10 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                             @Override
                             public boolean onTagClick(View view, int position, FlowLayout parent) {
                                 baseBind.hintList.setVisibility(View.INVISIBLE);
+                                String keyword = listTrendingtag.getList().get(position).getTag();
+                                PixivOperate.insertSearchHistory(keyword, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD);
                                 Intent intent = new Intent(mContext, SearchActivity.class);
-                                intent.putExtra(Params.KEY_WORD, listTrendingtag.getList().get(position).getTag());
+                                intent.putExtra(Params.KEY_WORD, keyword);
                                 intent.putExtra(Params.INDEX, 0);
                                 startActivity(intent);
                                 return false;
@@ -451,6 +460,12 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                     history.get(position).setSearchTime(System.currentTimeMillis());
                     AppDatabase.getAppDatabase(mContext).searchDao().insert(history.get(position));
                     PixivOperate.getNovelByID(sUserModel, Integer.parseInt(history.get(position).getKeyword()), mContext, null);
+                } else if (history.get(position).getSearchType() == SearchTypeUtil.SEARCH_TYPE_DB_URL) {
+                    history.get(position).setSearchTime(System.currentTimeMillis());
+                    AppDatabase.getAppDatabase(mContext).searchDao().insert(history.get(position));
+                    Intent intent = new Intent(mContext, OutWakeActivity.class);
+                    intent.setData(Uri.parse(history.get(position).getKeyword()));
+                    startActivity(intent);
                 }
                 return false;
             }
