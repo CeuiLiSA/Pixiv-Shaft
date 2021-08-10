@@ -212,18 +212,17 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
         baseBind.searchBox.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (TextUtils.isEmpty(baseBind.searchBox.getText().toString()) && TextUtils.isEmpty(searchModel.getStarSize().getValue())) {
+                String trimmedKeyword = baseBind.searchBox.getText().toString().trim();
+                if (TextUtils.isEmpty(trimmedKeyword) && TextUtils.isEmpty(searchModel.getStarSize().getValue())) {
                     Common.showToast(getString(R.string.string_139));
                     return false;
                 }
 
-
-                String keyword = baseBind.searchBox.getText().toString();
-
-                if (URLUtil.isValidUrl(keyword)) {
+                if (URLUtil.isValidUrl(trimmedKeyword)) {
                     try {
+                        PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_URL);
                         Intent intent = new Intent(mContext, OutWakeActivity.class);
-                        intent.setData(Uri.parse(keyword));
+                        intent.setData(Uri.parse(trimmedKeyword));
                         startActivity(intent);
                         mActivity.finish();
                     } catch (Exception e) {
@@ -231,17 +230,17 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                         e.printStackTrace();
                     }
                 }
-                else if(Common.isNumeric(keyword)){
+                else if(Common.isNumeric(trimmedKeyword)){
                     QMUITipDialog tipDialog = new QMUITipDialog.Builder(mContext)
                             .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
                             .setTipWord(getString(R.string.string_429))
                             .create();
                     tipDialog.show();
                     //先假定为作品id
-                    PixivOperate.getIllustByID(sUserModel, Integer.valueOf(keyword), mContext, new Callback<Void>() {
+                    PixivOperate.getIllustByID(sUserModel, Integer.valueOf(trimmedKeyword), mContext, new Callback<Void>() {
                         @Override
                         public void doSomething(Void t) {
-                            PixivOperate.insertSearchHistory(keyword, SearchTypeUtil.SEARCH_TYPE_DB_ILLUSTSID);
+                            PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_ILLUSTSID);
                             tipDialog.dismiss();
                             mActivity.finish();
                         }
@@ -249,14 +248,16 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                         @Override
                         public void doSomething(Void t) {
                             tipDialog.dismiss();
+                            PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_USERID);
                             Intent intent = new Intent(mContext, UserActivity.class);
-                            intent.putExtra(Params.USER_ID, Integer.valueOf(keyword));
+                            intent.putExtra(Params.USER_ID, Integer.valueOf(trimmedKeyword));
                             startActivity(intent);
                             mActivity.finish();
                         }
                     });
                 }
                 else{
+                    PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD);
                     searchModel.getNowGo().setValue("search_now");
                     Common.hideKeyboard(mActivity);
                 }

@@ -32,6 +32,7 @@ public class SearchTypeUtil {
     public static final int SEARCH_TYPE_DB_USERKEYWORD = 2;//已经废弃、兼容历史版本
     public static final int SEARCH_TYPE_DB_USERID = 3;
     public static final int SEARCH_TYPE_DB_NOVELID = 4;
+    public static final int SEARCH_TYPE_DB_URL = 5;
 
 
     public static int getSuggestSearchType(String content){
