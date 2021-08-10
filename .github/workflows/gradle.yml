@@ -80,14 +80,14 @@ jobs:
           tag_name: ${{ env.VERSION_TAG }}
           name: ${{ env.VERSION_TAG }}
           body: |
-            ## 更新内容
-            #### 新增
+            # 更新内容
+            ### 新增
             * 
             * 
-            #### 修改
+            ### 修改
             * 
             * 
-            #### 修复
+            ### 修复
             * 
             * 
             
