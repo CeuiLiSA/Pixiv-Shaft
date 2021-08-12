@@ -75,6 +75,10 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 //                baseBind.drawerlayout.closeMenu(true);
 //            }
 //        });
+
+        if (!TextUtils.isEmpty(keyWord)) {
+            PixivOperate.insertSearchHistory(keyWord, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD);
+        }
     }
 
     @Override
