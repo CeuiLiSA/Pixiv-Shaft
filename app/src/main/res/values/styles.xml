@@ -14,6 +14,7 @@
         <item name="qmui_skin_support_dialog_bg">@color/fragment_center</item>
         <item name="qmui_skin_support_dialog_title_text_color">@color/rank_text_color</item>
         <item name="qmui_skin_support_dialog_menu_item_text_color">@color/rank_text_color</item>
+        <item name="qmui_skin_support_dialog_edit_text_color">@color/rank_text_color</item>
     </style>
 
     <style name="AppTheme.Default" parent="AppTheme">
