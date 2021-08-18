@@ -287,9 +287,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
             @Override
             public void onClick(View view) {
                 //需要下载txt文件
-                IllustDownload.downloadNovel((BaseActivity<?>) mContext, FileCreator.deleteSpecialWords(
-                        mNovelBean.getTitle() + "_" + mNovelBean.getId() + "_novel_tasks.txt"
-                ), novelDetail.getNovel_text(), new Callback<Uri>() {
+                IllustDownload.downloadNovel((BaseActivity<?>) mContext, mNovelBean, novelDetail, new Callback<Uri>() {
                     @Override
                     public void doSomething(Uri t) {
                         Common.showToast(getString(R.string.string_279), 2);
@@ -341,9 +339,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                     return true;
                 } else if (item.getItemId() == R.id.action_txt) {
                     //需要下载txt文件
-                    IllustDownload.downloadNovel((BaseActivity<?>) mContext, FileCreator.deleteSpecialWords(
-                            mNovelBean.getTitle() + "_" + mNovelBean.getId() + "_novel_tasks.txt"
-                    ), novelDetail.getNovel_text(), new Callback<Uri>() {
+                    IllustDownload.downloadNovel((BaseActivity<?>) mContext, mNovelBean, novelDetail, new Callback<Uri>() {
                         @Override
                         public void doSomething(Uri t) {
                             Common.showToast(getString(R.string.string_279), 2);
@@ -352,10 +348,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                     return true;
                 } else if (item.getItemId() == R.id.action_txt_and_share) {
                     //不需要下载txt文件
-                    IllustDownload.downloadNovel((BaseActivity<?>) mActivity,
-                            FileCreator.deleteSpecialWords(mNovelBean.getTitle() + "_" +
-                                    mNovelBean.getId() + "_novel_tasks.txt"),
-                            novelDetail.getNovel_text(), new Callback<Uri>() {
+                    IllustDownload.downloadNovel((BaseActivity<?>) mActivity, mNovelBean, novelDetail, new Callback<Uri>() {
                         @Override
                         public void doSomething(Uri uri) {
                             new Share2.Builder(mActivity)
