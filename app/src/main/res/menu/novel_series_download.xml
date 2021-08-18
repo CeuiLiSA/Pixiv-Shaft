@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/batch_download"
+        android:orderInCategory="100"
+        android:title="@string/string_113"
+        app:showAsAction="ifRoom" />
+
+</menu>
