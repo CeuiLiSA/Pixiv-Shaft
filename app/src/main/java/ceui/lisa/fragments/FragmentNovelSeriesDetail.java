@@ -1,25 +1,39 @@
 package ceui.lisa.fragments;
 
+import android.net.Uri;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 
+import androidx.appcompat.widget.Toolbar;
 import androidx.databinding.ViewDataBinding;
 
 import com.bumptech.glide.Glide;
 
 import ceui.lisa.R;
+import ceui.lisa.activities.BaseActivity;
+import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.NAdapter;
+import ceui.lisa.cache.Cache;
 import ceui.lisa.core.BaseRepo;
 import ceui.lisa.databinding.FragmentNovelSeriesBinding;
+import ceui.lisa.download.FileCreator;
+import ceui.lisa.download.IllustDownload;
+import ceui.lisa.http.NullCtrl;
+import ceui.lisa.http.Retro;
+import ceui.lisa.interfaces.Callback;
 import ceui.lisa.model.ListNovelOfSeries;
 import ceui.lisa.models.NovelBean;
+import ceui.lisa.models.NovelDetail;
 import ceui.lisa.models.UserBean;
 import ceui.lisa.repo.NovelSeriesDetailRepo;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 
 public class FragmentNovelSeriesDetail extends NetListFragment<FragmentNovelSeriesBinding,
         ListNovelOfSeries, NovelBean>{
@@ -37,6 +51,36 @@ public class FragmentNovelSeriesDetail extends NetListFragment<FragmentNovelSeri
     @Override
     public void initLayout() {
         mLayoutID = R.layout.fragment_novel_series;
+    }
+
+    @Override
+    public void initToolbar(Toolbar toolbar) {
+        super.initToolbar(toolbar);
+        toolbar.inflateMenu(R.menu.novel_series_download);
+        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                if (item.getItemId() == R.id.batch_download) {
+                    for (NovelBean novelBean : allItems) {
+                        if (novelBean.isLocalSaved()) {
+                            saveNovelToDownload(novelBean, Cache.get().getModel(Params.NOVEL_KEY + novelBean.getId(), NovelDetail.class));
+                        } else {
+                            Retro.getAppApi().getNovelDetail(Shaft.sUserModel.getAccess_token(), novelBean.getId())
+                                    .subscribeOn(Schedulers.newThread())
+                                    .observeOn(AndroidSchedulers.mainThread())
+                                    .subscribe(new NullCtrl<NovelDetail>() {
+
+                                        @Override
+                                        public void success(NovelDetail novelDetail) {
+                                            saveNovelToDownload(novelBean, novelDetail);
+                                        }
+                                    });
+                        }
+                    }
+                }
+                return true;
+            }
+        });
     }
 
     @Override
@@ -124,6 +168,17 @@ public class FragmentNovelSeriesDetail extends NetListFragment<FragmentNovelSeri
                             Params.TYPE_PRIVATE);
                 }
                 return true;
+            }
+        });
+    }
+
+    private void saveNovelToDownload(NovelBean novelBean, NovelDetail novelDetail) {
+        IllustDownload.downloadNovel((BaseActivity<?>) mContext, FileCreator.deleteSpecialWords(
+                novelBean.getTitle() + "_" + novelBean.getId() + "_novel_tasks.txt"
+        ), novelDetail.getNovel_text(), new Callback<Uri>() {
+            @Override
+            public void doSomething(Uri t) {
+                Common.showToast(getString(R.string.string_279), 2);
             }
         });
     }

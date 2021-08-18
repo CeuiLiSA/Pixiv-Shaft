@@ -190,7 +190,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
         String trimmedKeyword = keyWord.trim();
         if (searchType == 0) {
             baseBind.hintList.setVisibility(View.INVISIBLE);
-            PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD);
+            //PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD);
             Intent intent = new Intent(mContext, SearchActivity.class);
             intent.putExtra(Params.KEY_WORD, trimmedKeyword);
             intent.putExtra(Params.INDEX, 0);
@@ -270,7 +270,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
             }
             else{
                 baseBind.hintList.setVisibility(View.INVISIBLE);
-                PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD);
+                //PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD);
                 Intent intent = new Intent(mContext, SearchActivity.class);
                 intent.putExtra(Params.KEY_WORD, trimmedKeyword);
                 intent.putExtra(Params.INDEX, 0);
@@ -295,7 +295,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                             public void onItemClick(View v, int position, int viewType) {
                                 baseBind.hintList.setVisibility(View.INVISIBLE);
                                 String keyword = listTrendingtag.getList().get(position).getTag();
-                                PixivOperate.insertSearchHistory(keyword, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD);
+                                //PixivOperate.insertSearchHistory(keyword, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD);
                                 Intent intent = new Intent(mContext, SearchActivity.class);
                                 intent.putExtra(Params.KEY_WORD, keyword);
                                 intent.putExtra(Params.INDEX, 0);
@@ -355,7 +355,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                             public boolean onTagClick(View view, int position, FlowLayout parent) {
                                 baseBind.hintList.setVisibility(View.INVISIBLE);
                                 String keyword = listTrendingtag.getList().get(position).getTag();
-                                PixivOperate.insertSearchHistory(keyword, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD);
+                                //PixivOperate.insertSearchHistory(keyword, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD);
                                 Intent intent = new Intent(mContext, SearchActivity.class);
                                 intent.putExtra(Params.KEY_WORD, keyword);
                                 intent.putExtra(Params.INDEX, 0);
