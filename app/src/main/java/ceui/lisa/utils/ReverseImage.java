@@ -2,6 +2,7 @@ package ceui.lisa.utils;
 
 
 import java.io.File;
+import java.util.concurrent.TimeUnit;
 
 import ceui.lisa.http.IqdbApi;
 import ceui.lisa.http.Retro;
@@ -44,7 +45,7 @@ public class ReverseImage {
                 break;
             case "SauceNao":
                 formData = MultipartBody.Part.createFormData("file", "pixiv_image.png", requestBody);
-                observable = ((SauceNaoApi) o).query(formData);
+                observable = ((SauceNaoApi) o).query(formData).timeout(60, TimeUnit.SECONDS);
                 break;
             case "TinEye":
                 formData = MultipartBody.Part.createFormData("image", "pixiv_image.png", requestBody);
