@@ -96,7 +96,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 public void onClick(View widget) {
                     Intent intent = new Intent(mContext, TemplateActivity.class);
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "漫画系列详情");
-                    intent.putExtra(Params.ID, illust.getSeries().getId());
+                    intent.putExtra(Params.MANGA_SERIES_ID, illust.getSeries().getId());
                     startActivity(intent);
                 }
 

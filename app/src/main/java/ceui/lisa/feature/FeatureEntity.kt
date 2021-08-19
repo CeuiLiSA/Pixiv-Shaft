@@ -23,6 +23,7 @@ class FeatureEntity : Serializable {
     var name: String = ""
     var dataType: String = ""
     var illustJson: String = ""
+    var seriesId = 0
     @Ignore
     var allIllust: List<IllustsBean> = ArrayList()
     @Ignore

@@ -35,6 +35,7 @@ class FragmentFeature : LocalListFragment<FragmentBaseListBinding, FeatureEntity
                 intent.putExtra(Params.USER_ID, allItems[position].userID)
                 intent.putExtra(Params.ILLUST_ID, allItems[position].illustID)
                 intent.putExtra(Params.ILLUST_TITLE, allItems[position].illustTitle)
+                intent.putExtra(Params.MANGA_SERIES_ID, allItems[position].seriesId)
                 startActivity(intent)
             } else if (viewType == 1) {
                 MessageDialogBuilder(activity)
@@ -112,6 +113,19 @@ class FragmentFeature : LocalListFragment<FragmentBaseListBinding, FeatureEntity
 
     override fun onFirstLoaded(items: MutableList<FeatureEntity>) {
         super.onFirstLoaded(items)
+        handleFeatures(items)
+    }
+
+    override fun onNextLoaded(items: MutableList<FeatureEntity>) {
+        super.onNextLoaded(items)
+        handleFeatures(items)
+    }
+
+    override fun getToolbarTitle(): String {
+        return getString(R.string.string_249)
+    }
+
+    private fun handleFeatures(items: MutableList<FeatureEntity>) {
         for (item in items) {
             if (!TextUtils.isEmpty(item.illustJson)) {
                 if (item.dataType.equals("漫画系列作品")) {
@@ -127,9 +141,5 @@ class FragmentFeature : LocalListFragment<FragmentBaseListBinding, FeatureEntity
                 }
             }
         }
-    }
-
-    override fun getToolbarTitle(): String {
-        return getString(R.string.string_249)
     }
 }

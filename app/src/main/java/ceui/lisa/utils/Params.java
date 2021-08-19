@@ -45,6 +45,7 @@ public class Params {
     public static final String TAG_NAMES  = "tag names";
     public static final String MAIN_ACTIVITY_NAVIGATION_POSITION  = "main activity navigation position";
     public static final String FRAGMENT_SEARCH_CLIPBOARD_VALUE  = "fragment search clipboard value";
+    public static final String MANGA_SERIES_ID  = "manga series id";
 
 
     public static final String VIEW_PAGER_MUTED  = "muted history viewpager";
