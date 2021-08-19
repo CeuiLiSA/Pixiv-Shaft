@@ -8,6 +8,8 @@ import android.widget.ArrayAdapter;
 
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 
+import org.honorato.multistatetogglebutton.ToggleButton;
+
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -144,6 +146,16 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
                 }
             }
         });*/
+        baseBind.restrictionToggle.setElements(PixivSearchParamUtil.R18_RESTRICTION_NAME);
+        baseBind.restrictionToggle.setColors(Common.resolveThemeAttribute(mContext, R.attr.colorPrimary), getResources().getColor(R.color.fragment_center));
+        baseBind.restrictionToggle.setValue(0);
+        baseBind.restrictionToggle.setOnValueChangedListener(new ToggleButton.OnValueChangedListener() {
+            @Override
+            public void onValueChanged(int value) {
+                searchModel.getR18Restriction().setValue(value);
+                performSearch();
+            }
+        });
     }
 
     private void initTagSpinner(boolean isNovel) {

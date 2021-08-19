@@ -75,10 +75,6 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 //                baseBind.drawerlayout.closeMenu(true);
 //            }
 //        });
-
-        if (!TextUtils.isEmpty(keyWord)) {
-            PixivOperate.insertSearchHistory(keyWord, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD);
-        }
     }
 
     @Override
@@ -261,7 +257,6 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                     });
                 }
                 else{
-                    PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD);
                     searchModel.getNowGo().setValue("search_now");
                     Common.hideKeyboard(mActivity);
                 }

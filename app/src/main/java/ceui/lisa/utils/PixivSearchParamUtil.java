@@ -19,6 +19,7 @@ public class PixivSearchParamUtil {
     public static final String[] ALL_SIZE_VALUE = new String[]{"", "500users入り", "1000users入り", "2000users入り",
             "5000users入り", "7500users入り", "10000users入り", "20000users入り", "50000users入り", "100000users入り"};
     public static final String[] SORT_TYPE_VALUE = new String[]{"date_desc", "date_asc", POPULAR_SORT_VALUE};
+    public static final String[] R18_RESTRICTION_VALUE = new String[]{"", "-R-18", "R-18"};
 
     public static String[] TAG_MATCH_NAME = new String[]{
             resources.getString(R.string.string_284),
@@ -49,6 +50,12 @@ public class PixivSearchParamUtil {
             resources.getString(R.string.string_287),
             resources.getString(R.string.string_288),
             resources.getString(R.string.string_64_1)
+    };
+
+    public static final String[] R18_RESTRICTION_NAME = new String[]{
+            resources.getString(R.string.string_289),
+            resources.getString(R.string.string_440),
+            resources.getString(R.string.string_441)
     };
 
     public static int getSizeIndex(String sizeFilterValue){
