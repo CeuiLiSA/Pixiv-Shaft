@@ -10,6 +10,10 @@ import androidx.databinding.ViewDataBinding;
 
 import com.bumptech.glide.Glide;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.Shaft;
@@ -18,7 +22,6 @@ import ceui.lisa.adapters.NAdapter;
 import ceui.lisa.cache.Cache;
 import ceui.lisa.core.BaseRepo;
 import ceui.lisa.databinding.FragmentNovelSeriesBinding;
-import ceui.lisa.download.FileCreator;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
@@ -26,6 +29,7 @@ import ceui.lisa.interfaces.Callback;
 import ceui.lisa.model.ListNovelOfSeries;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.NovelDetail;
+import ceui.lisa.models.NovelSeriesItem;
 import ceui.lisa.models.UserBean;
 import ceui.lisa.repo.NovelSeriesDetailRepo;
 import ceui.lisa.utils.Common;
@@ -36,7 +40,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
 public class FragmentNovelSeriesDetail extends NetListFragment<FragmentNovelSeriesBinding,
-        ListNovelOfSeries, NovelBean>{
+        ListNovelOfSeries, NovelBean> {
 
     private int seriesID;
 
@@ -73,6 +77,39 @@ public class FragmentNovelSeriesDetail extends NetListFragment<FragmentNovelSeri
                                         @Override
                                         public void success(NovelDetail novelDetail) {
                                             saveNovelToDownload(novelBean, novelDetail);
+                                        }
+                                    });
+                        }
+                    }
+                } else if (item.getItemId() == R.id.batch_download_as_one) {
+                    Map<Integer, String> taskContainer = new HashMap<>();
+                    String lineSeparator = System.lineSeparator();
+                    for (NovelBean novelBean : allItems) {
+                        if (novelBean.isLocalSaved()) {
+                            StringBuilder sb = new StringBuilder();
+                            sb.append(lineSeparator).append(novelBean.getId()).append("-").append(novelBean.getTitle()).append(lineSeparator);
+                            sb.append(Cache.get().getModel(Params.NOVEL_KEY + novelBean.getId(), NovelDetail.class).getNovel_text());
+                            taskContainer.put(novelBean.getId(), sb.toString());
+                            if (taskContainer.size() == allItems.size()) {
+                                String content = taskContainer.entrySet().stream().sorted(Map.Entry.comparingByKey()).map(Map.Entry::getValue).collect(Collectors.joining(lineSeparator));
+                                saveNovelSeriesToDownload(mResponse.getNovel_series_detail(), content);
+                            }
+                        } else {
+                            Retro.getAppApi().getNovelDetail(Shaft.sUserModel.getAccess_token(), novelBean.getId())
+                                    .subscribeOn(Schedulers.newThread())
+                                    .observeOn(AndroidSchedulers.mainThread())
+                                    .subscribe(new NullCtrl<NovelDetail>() {
+
+                                        @Override
+                                        public void success(NovelDetail novelDetail) {
+                                            StringBuilder sb = new StringBuilder();
+                                            sb.append(lineSeparator).append(novelBean.getId()).append("-").append(novelBean.getTitle()).append(lineSeparator);
+                                            sb.append(novelDetail.getNovel_text());
+                                            taskContainer.put(novelBean.getId(), sb.toString());
+                                            if (taskContainer.size() == allItems.size()) {
+                                                String content = taskContainer.entrySet().stream().sorted(Map.Entry.comparingByKey()).map(Map.Entry::getValue).collect(Collectors.joining(lineSeparator));
+                                                saveNovelSeriesToDownload(mResponse.getNovel_series_detail(), content);
+                                            }
                                         }
                                     });
                         }
@@ -114,7 +151,7 @@ public class FragmentNovelSeriesDetail extends NetListFragment<FragmentNovelSeri
                     listNovelOfSeries.getNovel_series_detail().getContent_count(),
                     listNovelOfSeries.getNovel_series_detail().getTotal_character_count(),
                     (int) Math.floor(minute / 60),
-                    ((int)minute) % 60));
+                    ((int) minute) % 60));
             if (listNovelOfSeries.getList() != null && listNovelOfSeries.getList().size() != 0) {
                 NovelBean bean = listNovelOfSeries.getList().get(0);
                 UserBean userBean = bean.getUser();
@@ -173,9 +210,16 @@ public class FragmentNovelSeriesDetail extends NetListFragment<FragmentNovelSeri
     }
 
     private void saveNovelToDownload(NovelBean novelBean, NovelDetail novelDetail) {
-        IllustDownload.downloadNovel((BaseActivity<?>) mContext, FileCreator.deleteSpecialWords(
-                novelBean.getTitle() + "_" + novelBean.getId() + "_novel_tasks.txt"
-        ), novelDetail.getNovel_text(), new Callback<Uri>() {
+        IllustDownload.downloadNovel((BaseActivity<?>) mContext, novelBean, novelDetail, new Callback<Uri>() {
+            @Override
+            public void doSomething(Uri t) {
+                Common.showToast(getString(R.string.string_279), 2);
+            }
+        });
+    }
+
+    private void saveNovelSeriesToDownload(NovelSeriesItem novelSeriesItem, String content) {
+        IllustDownload.downloadNovel((BaseActivity<?>) mContext, novelSeriesItem, content, new Callback<Uri>() {
             @Override
             public void doSomething(Uri t) {
                 Common.showToast(getString(R.string.string_279), 2);

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
 
@@ -39,11 +40,9 @@
                 android:layout_width="wrap_content"
                 android:id="@+id/tag_spinner"
                 android:layout_below="@+id/tag_s"
-                android:layout_marginEnd="@dimen/sixteen_dp"
-                android:layout_marginStart="@dimen/sixteen_dp"
+                android:layout_marginHorizontal="@dimen/sixteen_dp"
                 android:layout_marginBottom="@dimen/sixteen_dp"
                 android:layout_height="wrap_content">
-
 
             </androidx.appcompat.widget.AppCompatSpinner>
 
@@ -56,8 +55,6 @@
             android:layout_marginStart="@dimen/sixteen_dp"
             android:layout_marginEnd="@dimen/sixteen_dp"
             android:layout_height="1dp">
-
-
         </View>
 
 
@@ -79,12 +76,9 @@
                 android:layout_width="wrap_content"
                 android:id="@+id/star_size_spinner"
                 android:layout_below="@+id/star_s"
-                android:layout_marginEnd="@dimen/sixteen_dp"
-                android:layout_marginStart="@dimen/sixteen_dp"
+                android:layout_marginHorizontal="@dimen/sixteen_dp"
                 android:layout_marginBottom="@dimen/sixteen_dp"
                 android:layout_height="wrap_content">
-
-
             </androidx.appcompat.widget.AppCompatSpinner>
 
         </RelativeLayout>
@@ -96,8 +90,6 @@
             android:layout_marginStart="@dimen/sixteen_dp"
             android:layout_marginEnd="@dimen/sixteen_dp"
             android:layout_height="1dp">
-
-
         </View>
 
 
@@ -120,11 +112,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/date_s"
-                android:layout_marginStart="@dimen/sixteen_dp"
-                android:layout_marginEnd="@dimen/sixteen_dp"
+                android:layout_marginHorizontal="@dimen/sixteen_dp"
                 android:layout_marginBottom="@dimen/sixteen_dp">
-
-
             </androidx.appcompat.widget.AppCompatSpinner>
 
         </RelativeLayout>
@@ -160,7 +149,7 @@
                 android:layout_alignTop="@id/start_end_date_s"
                 android:layout_alignBottom="@id/start_end_date_s"
                 android:src="@drawable/met_ic_clear"
-                android:tint="?attr/colorPrimary">
+                app:tint="?attr/colorPrimary">
 
             </ImageView>
 
@@ -248,6 +237,30 @@
 
         </RelativeLayout>-->
 
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:text="@string/string_128"
+                android:textSize="13sp"
+                android:textColor="?attr/colorPrimary"
+                android:id="@+id/restriction_label"
+                android:layout_margin="@dimen/sixteen_dp"
+                android:layout_height="wrap_content" />
+
+
+            <org.honorato.multistatetogglebutton.MultiStateToggleButton
+                android:id="@+id/restriction_toggle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/restriction_label"
+                android:layout_marginHorizontal="@dimen/sixteen_dp"
+                android:layout_marginBottom="@dimen/sixteen_dp">
+            </org.honorato.multistatetogglebutton.MultiStateToggleButton>
+
+        </RelativeLayout>
 
         <View
             android:layout_width="match_parent"
@@ -255,8 +268,6 @@
             android:layout_marginStart="@dimen/sixteen_dp"
             android:layout_marginEnd="@dimen/sixteen_dp"
             android:layout_height="1dp">
-
-
         </View>
 
         <Button

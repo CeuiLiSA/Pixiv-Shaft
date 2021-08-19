@@ -81,6 +81,11 @@ object OutPut {
     }
 
     @JvmStatic
+    fun outPutFile(context: Context, from: File, fileName: String) {
+        outPutToDownload(context, from, "ShaftFiles", fileName)
+    }
+
+    @JvmStatic
     fun outPutToDownload(context: Context, from: File, path: String, fileName: String) {
         if (Common.isAndroidQ()) {
             val relativePath = PathUtils.join(Environment.DIRECTORY_DOWNLOADS, path)

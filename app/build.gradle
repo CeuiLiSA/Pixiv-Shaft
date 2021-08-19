@@ -14,8 +14,8 @@ android {
         applicationId "ceui.lisa.pixiv"
         minSdkVersion 21
         targetSdkVersion 30
-        versionCode 204
-        versionName "3.2.4"
+        versionCode 205
+        versionName "3.2.5"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         javaCompileOptions {
@@ -195,6 +195,7 @@ dependencies {
 
     implementation "androidx.documentfile:documentfile:1.0.1"
     implementation 'com.billy.android:smart-swipe:1.1.2'
+    implementation 'org.honorato.multistatetogglebutton:multistatetogglebutton:0.2.2'
 
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
 

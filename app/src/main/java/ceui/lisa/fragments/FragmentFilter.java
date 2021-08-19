@@ -5,9 +5,10 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.CompoundButton;
 
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
+
+import org.honorato.multistatetogglebutton.ToggleButton;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -93,12 +94,12 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
         }
 
         ArrayAdapter<String> sortTypeAdapter = new ArrayAdapter<>(mContext,
-                R.layout.spinner_item, PixivSearchParamUtil.DATE_SORT_NAME);
+                R.layout.spinner_item, PixivSearchParamUtil.SORT_TYPE_NAME);
         baseBind.sortTypeSpinner.setAdapter(sortTypeAdapter);
         baseBind.sortTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                searchModel.getSortType().setValue(PixivSearchParamUtil.DATE_SORT_VALUE[position]);
+                searchModel.getSortType().setValue(PixivSearchParamUtil.SORT_TYPE_VALUE[position]);
                 performSearch();
             }
 
@@ -107,7 +108,7 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
 
             }
         });
-        baseBind.sortTypeSpinner.setSelection(sortTypeAdapter.getCount() - 1);
+        baseBind.sortTypeSpinner.setSelection(PixivSearchParamUtil.getSortTypeIndex(Shaft.sSettings.getSearchDefaultSortType()));
 
         baseBind.startDate.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -145,6 +146,16 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
                 }
             }
         });*/
+        baseBind.restrictionToggle.setElements(PixivSearchParamUtil.R18_RESTRICTION_NAME);
+        baseBind.restrictionToggle.setColors(Common.resolveThemeAttribute(mContext, R.attr.colorPrimary), getResources().getColor(R.color.fragment_center));
+        baseBind.restrictionToggle.setValue(0);
+        baseBind.restrictionToggle.setOnValueChangedListener(new ToggleButton.OnValueChangedListener() {
+            @Override
+            public void onValueChanged(int value) {
+                searchModel.getR18Restriction().setValue(value);
+                performSearch();
+            }
+        });
     }
 
     private void initTagSpinner(boolean isNovel) {

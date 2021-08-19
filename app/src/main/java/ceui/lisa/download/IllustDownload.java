@@ -36,6 +36,9 @@ import ceui.lisa.interfaces.FeedBack;
 import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.ImageUrlsBean;
+import ceui.lisa.models.NovelBean;
+import ceui.lisa.models.NovelDetail;
+import ceui.lisa.models.NovelSeriesItem;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
@@ -200,6 +203,40 @@ public class IllustDownload {
             public void next(GifResponse gifResponse) {
                 Cache.get().saveModel(Params.ILLUST_ID + "_" + illustsBean.getId(), gifResponse);
                 downloadGif(gifResponse, illustsBean, true, (BaseActivity<?>) activity);
+            }
+        });
+    }
+
+    public static void downloadNovel(BaseActivity<?> activity, NovelSeriesItem novelSeriesItem, String content, Callback<Uri> targetCallback) {
+        String displayName = FileCreator.deleteSpecialWords("NovelSeries_" + novelSeriesItem.getId() + "_Chapter_1~" + novelSeriesItem.getContent_count() + "_" + novelSeriesItem.getTitle() + ".txt");
+        downloadNovel(activity, displayName, content, targetCallback);
+    }
+
+    public static void downloadNovel(BaseActivity<?> activity, NovelBean novelBean, NovelDetail novelDetail, Callback<Uri> targetCallback) {
+        String displayName = FileCreator.deleteSpecialWords("Novel_" + novelBean.getId() + "_" + novelBean.getTitle() + ".txt");
+        String content = novelDetail.getNovel_text();
+        downloadNovel(activity, displayName, content, targetCallback);
+    }
+
+    public static void downloadFile(BaseActivity<?> activity, String displayName, String content, Callback<Uri> targetCallback) {
+        check(activity, new FeedBack() {
+            @Override
+            public void doSomething() {
+                File textFile = new LegacyFile().textFile(activity, displayName);
+                try {
+                    OutputStream outStream = new FileOutputStream(textFile);
+                    outStream.write(content.getBytes());
+                    outStream.close();
+                    Common.showLog("downloadFile displayName " + displayName);
+                    OutPut.outPutFile(activity, textFile, displayName);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                Uri fileURI = FileProvider.getUriForFile(activity,
+                        activity.getApplicationContext().getPackageName() + ".provider", textFile);
+                if (targetCallback != null) {
+                    targetCallback.doSomething(fileURI);
+                }
             }
         });
     }

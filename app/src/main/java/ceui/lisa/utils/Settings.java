@@ -177,6 +177,8 @@ public class Settings {
     private transient boolean r18FilterTempEnableInited = false;
     private transient boolean r18FilterTempEnable = false; // 临时开启R18内容过滤
 
+    private String searchDefaultSortType = ""; // 搜索结果默认排序方式
+
     private String navigationInitPosition = NavigationLocationHelper.TUIJIAN; // 主页底部导航栏初始化位置
 
     public String getAppLanguage() {
@@ -591,5 +593,13 @@ public class Settings {
 
     public void setNavigationInitPosition(String navigationInitPosition) {
         this.navigationInitPosition = navigationInitPosition;
+    }
+
+    public String getSearchDefaultSortType() {
+        return TextUtils.isEmpty(searchDefaultSortType) ? PixivSearchParamUtil.POPULAR_SORT_VALUE : searchDefaultSortType;
+    }
+
+    public void setSearchDefaultSortType(String searchDefaultSortType) {
+        this.searchDefaultSortType = searchDefaultSortType;
     }
 }

@@ -7,6 +7,7 @@ import ceui.lisa.http.Retro
 import ceui.lisa.model.ListIllust
 import ceui.lisa.utils.PixivOperate
 import ceui.lisa.utils.PixivSearchParamUtil
+import ceui.lisa.utils.SearchTypeUtil
 import ceui.lisa.viewmodel.SearchModel
 import io.reactivex.Observable
 import io.reactivex.functions.Function
@@ -19,25 +20,34 @@ class SearchIllustRepo(
     //var isPopular: Boolean,
     var isPremium: Boolean?,
     var startDate: String?,
-    var endDate: String?
+    var endDate: String?,
+    var r18Restriction: Int?
 ) : RemoteRepo<ListIllust>() {
 
     private var filterMapper: FilterMapper? = null
 
     override fun initApi(): Observable<ListIllust> {
+        PixivOperate.insertSearchHistory(keyword, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD)
+        val assembledKeyword: String = keyword + when {
+            TextUtils.isEmpty(starSize) -> ""
+            else -> " $starSize"
+        } + when (r18Restriction) {
+            null -> ""
+            else -> " ${PixivSearchParamUtil.R18_RESTRICTION_VALUE[r18Restriction!!]}"
+        }
+
         return if (sortType==PixivSearchParamUtil.POPULAR_SORT_VALUE&&(!(isPremium?:false))) {
             Retro.getAppApi().popularPreview(
                 token(),
-                keyword + if (TextUtils.isEmpty(starSize)) "" else " $starSize",
+                assembledKeyword,
                 startDate,
                 endDate,
                 searchType
             )
         } else {
-            PixivOperate.insertSearchHistory(keyword, 0)
             Retro.getAppApi().searchIllust(
                 token(),
-                keyword + if (TextUtils.isEmpty(starSize)) "" else " $starSize",
+                assembledKeyword,
                 sortType,
                 startDate,
                 endDate,
@@ -66,6 +76,7 @@ class SearchIllustRepo(
         isPremium = searchModel.isPremium.value
         startDate = searchModel.startDate.value
         endDate = searchModel.endDate.value
+        r18Restriction = searchModel.r18Restriction.value
 
         this.filterMapper?.updateStarSizeLimit(this.getStarSizeLimit())
     }

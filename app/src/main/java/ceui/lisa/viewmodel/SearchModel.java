@@ -28,6 +28,8 @@ public class SearchModel extends ViewModel {
 
     private MutableLiveData<Boolean> isPremium = new MutableLiveData<>();
 
+    private MutableLiveData<Integer> r18Restriction = new MutableLiveData<>();
+
     public MutableLiveData<String> getKeyword() {
         return keyword;
     }
@@ -68,5 +70,9 @@ public class SearchModel extends ViewModel {
 
     public MutableLiveData<Boolean> getIsPremium() {
         return isPremium;
+    }
+
+    public MutableLiveData<Integer> getR18Restriction() {
+        return r18Restriction;
     }
 }
