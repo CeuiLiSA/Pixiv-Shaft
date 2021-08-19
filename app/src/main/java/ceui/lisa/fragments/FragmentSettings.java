@@ -289,7 +289,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 @Override
                 public void onClick(View v) {
                     new QMUIDialog.CheckableDialogBuilder(mContext)
-                            .setCheckedIndex(PixivSearchParamUtil.getSizeIndex(searchFilter))
+                            .setCheckedIndex(PixivSearchParamUtil.getSizeIndex(Shaft.sSettings.getSearchFilter()))
                             .setSkinManager(QMUISkinManager.defaultInstance(mContext))
                             .addItems(PixivSearchParamUtil.ALL_SIZE_NAME, new DialogInterface.OnClickListener() {
                                 @Override
@@ -298,6 +298,30 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                                     Common.showToast(getString(R.string.string_428), 2);
                                     Local.setSettings(Shaft.sSettings);
                                     baseBind.searchFilter.setText(PixivSearchParamUtil.ALL_SIZE_NAME[which]);
+                                    dialog.dismiss();
+                                }
+                            })
+                            .create()
+                            .show();
+                }
+            });
+
+            // 搜索结果默认排序方式
+            final String searchDefaultSortType = Shaft.sSettings.getSearchDefaultSortType();
+            baseBind.searchDefaultSortType.setText(PixivSearchParamUtil.getSortTypeName(searchDefaultSortType));
+            baseBind.searchDefaultSortTypeRela.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    new QMUIDialog.CheckableDialogBuilder(mContext)
+                            .setCheckedIndex(PixivSearchParamUtil.getSortTypeIndex(Shaft.sSettings.getSearchDefaultSortType()))
+                            .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                            .addItems(PixivSearchParamUtil.SORT_TYPE_NAME, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Shaft.sSettings.setSearchDefaultSortType(PixivSearchParamUtil.SORT_TYPE_VALUE[which]);
+                                    Common.showToast(getString(R.string.string_428), 2);
+                                    Local.setSettings(Shaft.sSettings);
+                                    baseBind.searchDefaultSortType.setText(PixivSearchParamUtil.SORT_TYPE_NAME[which]);
                                     dialog.dismiss();
                                 }
                             })

@@ -5,7 +5,6 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.CompoundButton;
 
 import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 
@@ -93,12 +92,12 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
         }
 
         ArrayAdapter<String> sortTypeAdapter = new ArrayAdapter<>(mContext,
-                R.layout.spinner_item, PixivSearchParamUtil.DATE_SORT_NAME);
+                R.layout.spinner_item, PixivSearchParamUtil.SORT_TYPE_NAME);
         baseBind.sortTypeSpinner.setAdapter(sortTypeAdapter);
         baseBind.sortTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                searchModel.getSortType().setValue(PixivSearchParamUtil.DATE_SORT_VALUE[position]);
+                searchModel.getSortType().setValue(PixivSearchParamUtil.SORT_TYPE_VALUE[position]);
                 performSearch();
             }
 
@@ -107,7 +106,7 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
 
             }
         });
-        baseBind.sortTypeSpinner.setSelection(sortTypeAdapter.getCount() - 1);
+        baseBind.sortTypeSpinner.setSelection(PixivSearchParamUtil.getSortTypeIndex(Shaft.sSettings.getSearchDefaultSortType()));
 
         baseBind.startDate.setOnClickListener(new View.OnClickListener() {
             @Override

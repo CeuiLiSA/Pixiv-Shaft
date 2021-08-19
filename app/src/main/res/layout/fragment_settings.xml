@@ -373,7 +373,31 @@
                                 android:layout_alignParentEnd="true"
                                 android:layout_marginEnd="@dimen/sixteen_dp"
                                 android:layout_centerVertical="true"
-                                android:text="@string/string_96"
+                                android:text=""
+                                android:textColor="?attr/colorPrimary"
+                                android:textSize="14sp">
+                            </TextView>
+
+                        </RelativeLayout>
+
+                        <View style="@style/half_divider" />
+
+                        <RelativeLayout
+                            android:id="@+id/search_default_sort_type_rela"
+                            style="@style/ripple_rela">
+
+                            <TextView
+                                style="@style/setting_text_left"
+                                android:text="@string/string_439" />
+
+                            <TextView
+                                android:id="@+id/search_default_sort_type"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
+                                android:layout_centerVertical="true"
+                                android:text=""
                                 android:textColor="?attr/colorPrimary"
                                 android:textSize="14sp">
                             </TextView>
