@@ -29,21 +29,25 @@
         </View>
 
         <TextView
-            android:layout_width="wrap_content"
             android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_alignBottom="@+id/illust_image"
-            android:textColor="@color/white"
-            android:text="@string/string_114"
-            android:textSize="13sp"
             android:layout_toStartOf="@+id/download"
-            android:paddingTop="@dimen/six_dp"
-            android:maxLines="2"
             android:ellipsize="end"
             android:gravity="center_vertical"
+            android:maxLines="2"
             android:paddingStart="@dimen/twelve_dp"
+            android:paddingTop="@dimen/six_dp"
             android:paddingEnd="@dimen/twelve_dp"
             android:paddingBottom="@dimen/eight_dp"
-            android:layout_height="wrap_content">
+            android:shadowColor="@android:color/black"
+            android:shadowDx="2"
+            android:shadowDy="2"
+            android:shadowRadius="2"
+            android:text="@string/string_114"
+            android:textColor="@color/white"
+            android:textSize="13sp">
 
         </TextView>
 
