@@ -25,7 +25,6 @@ import ceui.lisa.interfaces.Callback;
 import ceui.lisa.model.Holder;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
-import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
@@ -138,6 +137,7 @@ public class Manager {
             Common.showLog("Manager 正在下载中，不用多次start");
             return;
         }
+        isRunning = true;
         loop(context);
     }
 
@@ -147,7 +147,10 @@ public class Manager {
             Common.showLog("Manager 已经全部下载完成");
             return;
         }
-        isRunning = true;
+        if(!isRunning){
+            return;
+        }
+
         DownloadItem item = getFirstOne();
         if (item != null) {
             downloadOne(context, item);
@@ -319,8 +322,8 @@ public class Manager {
             handle.dispose();
         }
         Common.showLog("已经停止");
-        Shaft.sSettings.setCurrentProgress(nonius);
-        Local.setSettings(Shaft.sSettings);
+        //Shaft.sSettings.setCurrentProgress(nonius);
+        //Local.setSettings(Shaft.sSettings);
     }
 
     public void clear() {
