@@ -46,8 +46,7 @@ public class FragmentSAF extends BaseFragment<FragmentSafBinding> {
             @Override
             public void onClick(View v) {
                 IllustsBean illustsBean = Shaft.sGson.fromJson(Params.EXAMPLE_ILLUST, IllustsBean.class);
-                DocumentFile childFile = SAFile.getDocument(mContext, illustsBean, 0);
-
+                DocumentFile childFile = SAFile.getDocument(mContext, illustsBean, 0, true);
             }
         });
     }

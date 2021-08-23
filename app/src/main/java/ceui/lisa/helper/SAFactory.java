@@ -23,6 +23,8 @@ public class SAFactory extends UriFactory {
     public SAFactory(@NotNull Context context, DownloadItem item) {
         super(context);
         this.mItem = item;
+        DocumentFile file = SAFile.getDocument(getContext(), mItem.getIllust(), mItem.getIndex(), mItem.getTransferredBytes()==0);
+        mUri = file.getUri();
     }
 
     @Nullable
@@ -34,8 +36,6 @@ public class SAFactory extends UriFactory {
     @NotNull
     @Override
     public Uri insert(@NotNull Response response) {
-        DocumentFile file = SAFile.getDocument(getContext(), mItem.getIllust(), mItem.getIndex());
-        mUri = file.getUri();
         return mUri;
     }
 
