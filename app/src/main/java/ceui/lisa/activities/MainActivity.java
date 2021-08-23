@@ -31,6 +31,8 @@ import com.google.android.material.navigation.NavigationView;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.tbruyelle.rxpermissions3.RxPermissions;
 
+import java.io.File;
+
 import ceui.lisa.R;
 import ceui.lisa.core.Manager;
 import ceui.lisa.databinding.ActivityCoverBinding;
@@ -366,12 +368,14 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         if (requestCode == Params.REQUEST_CODE_CHOOSE && resultCode == RESULT_OK) {
             try {
                 Uri imageUri = data.getData();
+                File innerImageFile = UriUtils.uri2File(imageUri);
+                Uri innerImageFileUri = Uri.fromFile(innerImageFile);
                 if (!ReverseImage.isFileSizeOkToSearch(imageUri, ReverseImage.DEFAULT_ENGINE)) {
                     Common.showToast(getString(R.string.string_410));
                     return;
                 }
-                ReverseImage.reverse(imageUri,
-                        ReverseImage.DEFAULT_ENGINE, new ReverseWebviewCallback(this, imageUri));
+                ReverseImage.reverse(innerImageFileUri,
+                        ReverseImage.DEFAULT_ENGINE, new ReverseWebviewCallback(this, innerImageFileUri));
             } catch (Exception e) {
                 e.printStackTrace();
             }
