@@ -53,6 +53,7 @@ public final class RubySSLSocketFactory extends SSLSocketFactory {
         InetAddress inetAddress = paramSocket.getInetAddress();
         Intrinsics.checkExpressionValueIsNotNull(inetAddress, "address");
         Log.d("createSocket address1", inetAddress.getHostAddress());
+        // okhttp3 4.5.0 版本引入修改，okhttp3.internal.connection.RealConnection->isHealthy中，检查了rawSocket.isClosed状态，如果需要更新到高版本依然可用，注释下方2行
         if (paramBoolean)
             paramSocket.close();
         SocketFactory socketFactory = SSLCertificateSocketFactory.getDefault(0);

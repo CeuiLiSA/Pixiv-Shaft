@@ -15,7 +15,7 @@ import ceui.lisa.utils.Common;
 
 public class SAFile {
 
-    public static DocumentFile getDocument(Context context, IllustsBean illust, int index) {
+    public static DocumentFile getDocument(Context context, IllustsBean illust, int index, boolean deleteOld) {
         DocumentFile root = rootFolder(context);
         String displayName = FileCreator.customFileName(illust, index);
         String id = DocumentsContract.getTreeDocumentId(root.getUri());
@@ -32,10 +32,14 @@ public class SAFile {
         Uri childrenUri = DocumentsContract.buildDocumentUriUsingTree(root.getUri(), id);
         DocumentFile realFile = DocumentFile.fromSingleUri(context, childrenUri);
         if (realFile != null && realFile.exists()) {
-            try {
-                DocumentsContract.deleteDocument(context.getContentResolver(), realFile.getUri());
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (deleteOld) {
+                try {
+                    DocumentsContract.deleteDocument(context.getContentResolver(), realFile.getUri());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else {
+                return realFile;
             }
         }
 

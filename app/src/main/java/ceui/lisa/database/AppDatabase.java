@@ -2,10 +2,13 @@ package ceui.lisa.database;
 
 import android.content.Context;
 
+import androidx.annotation.NonNull;
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
+import androidx.room.migration.Migration;
+import androidx.sqlite.db.SupportSQLiteDatabase;
 import ceui.lisa.feature.FeatureEntity;
 
 @Database(
@@ -21,8 +24,7 @@ import ceui.lisa.feature.FeatureEntity;
                 FeatureEntity.class, //记录用户收藏的精华列表
                 DownloadingEntity.class //记录用户正在下载中的列表
         },
-        version = 23,
-        exportSchema = false
+        version = 24
 )
 public abstract class AppDatabase extends RoomDatabase {
 
@@ -30,14 +32,22 @@ public abstract class AppDatabase extends RoomDatabase {
 
     private static AppDatabase INSTANCE;
 
+    private static final Migration MIGRATION_23_24 = new Migration(23, 24) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE feature_table ADD COLUMN seriesId INTEGER NOT NULL DEFAULT 0");
+        }
+    };
+
     public static AppDatabase getAppDatabase(Context context) {
         if (INSTANCE == null) {
             INSTANCE =
                     Room.databaseBuilder(context.getApplicationContext(), AppDatabase.class, DATABASE_NAME)
                             // allow queries on the main thread.
                             // Don't do this on a real app! See PersistenceBasicSample for an example.
-                            .fallbackToDestructiveMigration()
+                            //.fallbackToDestructiveMigration()
                             .allowMainThreadQueries()
+                            .addMigrations(MIGRATION_23_24)
                             .build();
         }
         return INSTANCE;

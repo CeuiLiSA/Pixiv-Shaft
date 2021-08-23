@@ -1,9 +1,6 @@
 package ceui.lisa.core;
 
-import android.net.Uri;
 import android.text.TextUtils;
-
-import androidx.documentfile.provider.DocumentFile;
 
 import java.io.Serializable;
 import java.util.UUID;
@@ -23,6 +20,7 @@ public class DownloadItem implements Serializable {
     private final IllustsBean illust;
     private int index;
     private boolean autoSave = true;
+    private long transferredBytes = 0;
 
     public DownloadItem(IllustsBean illustsBean, int index) {
         this.illust = illustsBean;
@@ -101,5 +99,13 @@ public class DownloadItem implements Serializable {
         return next != null &&
                 TextUtils.equals(name, next.name) &&
                 TextUtils.equals(url, next.url);
+    }
+
+    public long getTransferredBytes() {
+        return transferredBytes;
+    }
+
+    public void setTransferredBytes(long transferredBytes) {
+        this.transferredBytes = transferredBytes;
     }
 }

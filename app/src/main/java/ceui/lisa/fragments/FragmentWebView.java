@@ -44,6 +44,7 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.Toolbar;
 import ceui.lisa.R;
 import ceui.lisa.activities.OutWakeActivity;
 import ceui.lisa.databinding.FragmentWebviewBinding;
@@ -53,6 +54,8 @@ import ceui.lisa.utils.ClipBoardUtils;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
+import ceui.lisa.utils.ReverseImage;
+import ceui.lisa.utils.ReverseWebviewCallback;
 import ceui.lisa.view.ContextMenuTitleView;
 
 public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
@@ -77,6 +80,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
     private WebViewClickHandler handler = new WebViewClickHandler();
     private HttpDns httpDns = HttpDns.getInstance();
     private String mLongClickLinkText;
+    private Uri reverseSearchImageUri;
 
     @Override
     public void initBundle(Bundle bundle) {
@@ -87,6 +91,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
         encoding = bundle.getString(Params.ENCODING);
         historyUrl = bundle.getString(Params.HISTORY_URL);
         preferPreserve = bundle.getBoolean(Params.PREFER_PRESERVE);
+        reverseSearchImageUri = bundle.getParcelable(Params.REVERSE_SEARCH_IMAGE_URI);
     }
 
     public static FragmentWebView newInstance(String title, String url) {
@@ -108,8 +113,9 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
         return fragment;
     }
 
+    // 反向搜索
     public static FragmentWebView newInstance(String title, String url, String response,
-                                              String mime, String encoding, String history_url) {
+                                              String mime, String encoding, String history_url, Uri imageUri) {
         Bundle args = new Bundle();
         args.putString(Params.TITLE, title);
         args.putString(Params.URL, url);
@@ -117,6 +123,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
         args.putString(Params.MIME, mime);
         args.putString(Params.ENCODING, encoding);
         args.putString(Params.HISTORY_URL, history_url);
+        args.putParcelable(Params.REVERSE_SEARCH_IMAGE_URI, imageUri);
         FragmentWebView fragment = new FragmentWebView();
         fragment.setArguments(args);
         return fragment;
@@ -131,6 +138,26 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
     public void initView() {
         baseBind.toolbarTitle.setText(title);
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
+        if (reverseSearchImageUri != null) {
+            baseBind.toolbar.inflateMenu(R.menu.web_reverse_image_search);
+            baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(MenuItem item) {
+                    if (reverseSearchImageUri == null) {
+                        return true;
+                    }
+                    if (item.getItemId() == R.id.saucenao) {
+                        ReverseImage.reverse(reverseSearchImageUri,
+                                ReverseImage.ReverseProvider.SauceNao, new ReverseWebviewCallback(mActivity, reverseSearchImageUri));
+
+                    } else if (item.getItemId() == R.id.ascii2d) {
+                        ReverseImage.reverse(reverseSearchImageUri,
+                                ReverseImage.ReverseProvider.Ascii2D, new ReverseWebviewCallback(mActivity, reverseSearchImageUri));
+                    }
+                    return true;
+                }
+            });
+        }
     }
 
     @Override

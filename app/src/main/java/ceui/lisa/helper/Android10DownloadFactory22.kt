@@ -22,6 +22,10 @@ class Android10DownloadFactory22 constructor(
     lateinit var fileUri: Uri
 
     override fun query(): Uri? {
+        if (item.illust.isGif) {
+            val file = LegacyFile().gifZipFile(context, item.illust)
+            return Uri.fromFile(file)
+        }
         if (Common.isAndroidQ()) {
             val relativePath: String = FileStorageHelper.getIllustRelativePathQ(item.illust)
             return MediaStore.Images.Media.EXTERNAL_CONTENT_URI.query(
@@ -39,6 +43,9 @@ class Android10DownloadFactory22 constructor(
         // gif全部用File操作
         if (item.illust.isGif) {
             val file = LegacyFile().gifZipFile(context, item.illust)
+            if(file != null && file.exists() && file.length() > 0 && item.transferredBytes == 0L){
+                FileUtils.delete(file)
+            }
             fileUri = Uri.fromFile(file)
             return fileUri
         } else {
@@ -47,11 +54,14 @@ class Android10DownloadFactory22 constructor(
                 val relativePath: String = FileStorageHelper.getIllustRelativePathQ(item.illust)
                 val uri = query()
                 if (uri != null) {
-                    val outputStream: OutputStream =
-                        context.contentResolver.openOutputStream(uri, "rwt")!!
-                    outputStream.write(ByteArray(0))
-                    outputStream.flush()
-                    outputStream.close()
+                    // 新下载文件时删除旧文件
+                    if (item.transferredBytes == 0L) {
+                        val outputStream: OutputStream =
+                            context.contentResolver.openOutputStream(uri, "rwt")!!
+                        outputStream.write(ByteArray(0))
+                        outputStream.flush()
+                        outputStream.close()
+                    }
                     fileUri = uri
                     return fileUri
                 }
@@ -77,17 +87,11 @@ class Android10DownloadFactory22 constructor(
                     parentFile.mkdirs()
                 }
                 val imageFile = File(parentFile, item.name)
-                if (imageFile.exists() && imageFile.length() > 0) {
+                if (imageFile.exists() && imageFile.length() > 0 && item.transferredBytes == 0L) {
                     FileUtils.delete(imageFile)
                 } else {
                     imageFile.createNewFile()
                 }
-
-//                object : ImageSaver() {
-//                    override fun whichFile(): File {
-//                        return imageFile
-//                    }
-//                }.execute(context)
 
                 fileUri = Uri.fromFile(imageFile)
                 return fileUri

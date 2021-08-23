@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/saucenao"
+        android:orderInCategory="100"
+        android:title="SauceNao"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/ascii2d"
+        android:orderInCategory="200"
+        android:title="Ascii2D"
+        app:showAsAction="never" />
+
+</menu>

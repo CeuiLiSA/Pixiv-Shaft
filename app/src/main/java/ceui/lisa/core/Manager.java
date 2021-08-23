@@ -5,8 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 
-import com.blankj.utilcode.util.FileUtils;
-
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.io.File;
@@ -18,14 +16,12 @@ import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.database.DownloadingEntity;
 import ceui.lisa.download.ImageSaver;
-import ceui.lisa.file.LegacyFile;
 import ceui.lisa.helper.Android10DownloadFactory22;
 import ceui.lisa.helper.SAFactory;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.model.Holder;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
-import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
@@ -35,18 +31,19 @@ import io.reactivex.rxjava3.functions.Consumer;
 import rxhttp.RxHttp;
 import rxhttp.wrapper.callback.UriFactory;
 import rxhttp.wrapper.entity.Progress;
+import rxhttp.wrapper.utils.UriUtil;
 
 public class Manager {
 
     private List<DownloadItem> content = new ArrayList<>();
     private Disposable handle = null;
-    private long nonius;
+    //private long nonius;
 
     private boolean isRunning = false;
 
     private Manager() {
         currentIllustID = 0;
-        nonius = 0L;
+        //nonius = 0L;
     }
 
     public void restore(Context context) {
@@ -138,6 +135,7 @@ public class Manager {
             Common.showLog("Manager 正在下载中，不用多次start");
             return;
         }
+        isRunning = true;
         loop(context);
     }
 
@@ -147,7 +145,10 @@ public class Manager {
             Common.showLog("Manager 已经全部下载完成");
             return;
         }
-        isRunning = true;
+        if(!isRunning){
+            return;
+        }
+
         DownloadItem item = getFirstOne();
         if (item != null) {
             downloadOne(context, item);
@@ -169,26 +170,23 @@ public class Manager {
         UriFactory factory;
         if (Shaft.sSettings.getDownloadWay() == 0 || bean.getIllust().isGif()) {
             factory = new Android10DownloadFactory22(context, bean);
-            // 考虑到有暂停继续功能，仅重新下载时移除因异常中断导致的部分文件
-            if (bean.getIllust().isGif() && nonius == 0) {
-                File file = new LegacyFile().gifZipFile(context, bean.getIllust());
-                if (file != null && file.exists() && file.length() > 0) {
-                    FileUtils.delete(file);
-                }
-            }
         } else {
             factory = new SAFactory(context, bean);
         }
         currentIllustID = bean.getIllust().getId();
-        Common.showLog("Manager 下载单个 当前进度" + nonius);
+        Common.showLog("Manager 下载单个 当前进度" + bean.getTransferredBytes());
         uuid = bean.getUuid();
+        long beanSize = bean.getTransferredBytes();
+        long fileSize = UriUtil.length(factory.query(), context);
+        long passSize = (beanSize != 0 && fileSize >= 0) ? fileSize : 0;
+        //Common.showLog("Resume Size: beanSize=" + beanSize + ",fileSize=" + fileSize + ",uri="+factory.query());
         handle = RxHttp.get(bean.getUrl())
                 .addHeader(Params.MAP_KEY, Params.IMAGE_REFERER)
-                .setRangeHeader(nonius, true)
+                .setRangeHeader(passSize, true)
                 .asDownload(factory, AndroidSchedulers.mainThread(), new Consumer<Progress>() {
                     @Override
                     public void accept(Progress progress) {
-                        nonius = progress.getCurrentSize();
+                        bean.setTransferredBytes(progress.getCurrentSize());
                         currentProgress = progress.getProgress();
                         Common.showLog("currentProgress " + currentProgress);
                         try {
@@ -206,7 +204,7 @@ public class Manager {
                         //下载完成，处理相关逻辑
                         currentIllustID = 0;
                         currentProgress = 0;
-                        nonius = 0L;
+                        //nonius = 0L;
                         loop(context);
                         Common.showLog("doFinally ");
                     }
@@ -262,6 +260,7 @@ public class Manager {
 
                     safeDelete(bean);
                 }, throwable -> {
+                    bean.setTransferredBytes(0);
                     //下载失败，处理相关逻辑
                     throwable.printStackTrace();
                     if (!Dev.isDev) {
@@ -319,8 +318,8 @@ public class Manager {
             handle.dispose();
         }
         Common.showLog("已经停止");
-        Shaft.sSettings.setCurrentProgress(nonius);
-        Local.setSettings(Shaft.sSettings);
+        //Shaft.sSettings.setCurrentProgress(nonius);
+        //Local.setSettings(Shaft.sSettings);
     }
 
     public void clear() {
