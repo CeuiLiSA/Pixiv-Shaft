@@ -6,6 +6,8 @@ import android.os.Bundle;
 
 import com.blankj.utilcode.util.UriUtils;
 
+import java.io.File;
+
 import ceui.lisa.R;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.ReverseImage;
@@ -22,13 +24,15 @@ public class OutReversActivity extends OutWakeActivity {
                     Bundle bundle = getIntent().getExtras();
                     if (bundle != null) {
                         Uri imageUri = getIntent().getParcelableExtra(Intent.EXTRA_STREAM);
+                        File innerImageFile = UriUtils.uri2File(imageUri);
+                        Uri innerImageFileUri = Uri.fromFile(innerImageFile);
                         if (!ReverseImage.isFileSizeOkToSearch(imageUri, ReverseImage.DEFAULT_ENGINE)) {
                             Common.showToast(getString(R.string.string_410));
                             finish();
                             return;
                         }
-                        ReverseImage.reverse(imageUri,
-                                ReverseImage.DEFAULT_ENGINE, new ReverseWebviewCallback(this, imageUri));
+                        ReverseImage.reverse(innerImageFileUri,
+                                ReverseImage.DEFAULT_ENGINE, new ReverseWebviewCallback(this, innerImageFileUri));
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
