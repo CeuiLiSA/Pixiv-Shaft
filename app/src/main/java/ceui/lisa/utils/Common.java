@@ -423,14 +423,14 @@ public class Common {
      * @param uri 文件地址
      * @return 大小是否可搜索
      */
-    public static boolean isFileSizeOkToReverseSearch(Uri uri) {
+    public static boolean isFileSizeOkToReverseSearch(Uri uri, long maxImageSize) {
         Cursor cursor = Shaft.getContext().getContentResolver().query(uri, null, null, null, null);
         if (cursor == null) {
             return false;
         }
         int sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE);
         cursor.moveToFirst();
-        boolean ret = cursor.getLong(sizeIndex) <= ReverseImage.IMAGE_MAX_SIZE;
+        boolean ret = cursor.getLong(sizeIndex) <= maxImageSize;
         cursor.close();
         return ret;
     }

@@ -366,12 +366,12 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         if (requestCode == Params.REQUEST_CODE_CHOOSE && resultCode == RESULT_OK) {
             try {
                 Uri imageUri = data.getData();
-                if (!Common.isFileSizeOkToReverseSearch(imageUri)) {
+                if (!ReverseImage.isFileSizeOkToSearch(imageUri, ReverseImage.DEFAULT_ENGINE)) {
                     Common.showToast(getString(R.string.string_410));
                     return;
                 }
-                ReverseImage.reverse(UriUtils.uri2Bytes(imageUri),
-                        ReverseImage.ReverseProvider.SauceNao, new ReverseWebviewCallback(this));
+                ReverseImage.reverse(imageUri,
+                        ReverseImage.DEFAULT_ENGINE, new ReverseWebviewCallback(this, imageUri));
             } catch (Exception e) {
                 e.printStackTrace();
             }

@@ -22,13 +22,13 @@ public class OutReversActivity extends OutWakeActivity {
                     Bundle bundle = getIntent().getExtras();
                     if (bundle != null) {
                         Uri imageUri = getIntent().getParcelableExtra(Intent.EXTRA_STREAM);
-                        if (!Common.isFileSizeOkToReverseSearch(imageUri)) {
+                        if (!ReverseImage.isFileSizeOkToSearch(imageUri, ReverseImage.DEFAULT_ENGINE)) {
                             Common.showToast(getString(R.string.string_410));
                             finish();
                             return;
                         }
-                        ReverseImage.reverse(UriUtils.uri2Bytes(imageUri),
-                                ReverseImage.ReverseProvider.SauceNao, new ReverseWebviewCallback(this));
+                        ReverseImage.reverse(imageUri,
+                                ReverseImage.DEFAULT_ENGINE, new ReverseWebviewCallback(this, imageUri));
                     }
                 } catch (Exception e) {
                     e.printStackTrace();

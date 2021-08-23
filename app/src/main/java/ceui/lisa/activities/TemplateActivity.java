@@ -1,6 +1,7 @@
 package ceui.lisa.activities;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.KeyEvent;
@@ -114,8 +115,9 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return FragmentSearchUser.newInstance(keyword);
                 }
                 case "以图搜图":
-                    ReverseResult result = intent.getParcelableExtra("result");
-                    return FragmentWebView.newInstance(result.getTitle(), result.getUrl(), result.getResponseBody(), result.getMime(), result.getEncoding(), result.getHistory_url());
+                    ReverseResult result = intent.getParcelableExtra(Params.REVERSE_SEARCH_RESULT);
+                    Uri imageUri = intent.getParcelableExtra(Params.REVERSE_SEARCH_IMAGE_URI);
+                    return FragmentWebView.newInstance(result.getTitle(), result.getUrl(), result.getResponseBody(), result.getMime(), result.getEncoding(), result.getHistory_url(), imageUri);
                 case "相关评论": {
                     int id = intent.getIntExtra(Params.ILLUST_ID, 0);
                     String title = intent.getStringExtra(Params.ILLUST_TITLE);
