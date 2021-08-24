@@ -24,7 +24,6 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
-import com.blankj.utilcode.util.UriUtils;
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
@@ -368,7 +367,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         if (requestCode == Params.REQUEST_CODE_CHOOSE && resultCode == RESULT_OK) {
             try {
                 Uri imageUri = data.getData();
-                File innerImageFile = UriUtils.uri2File(imageUri);
+                File innerImageFile = Common.copyUri2Cache(imageUri);
                 Uri innerImageFileUri = Uri.fromFile(innerImageFile);
                 if (!ReverseImage.isFileSizeOkToSearch(imageUri, ReverseImage.DEFAULT_ENGINE)) {
                     Common.showToast(getString(R.string.string_410));

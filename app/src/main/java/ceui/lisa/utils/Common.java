@@ -19,6 +19,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
+import com.blankj.utilcode.util.FileIOUtils;
 import com.blankj.utilcode.util.Utils;
 import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
@@ -28,7 +29,10 @@ import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 import java.time.ZoneId;
@@ -433,5 +437,31 @@ public class Common {
         boolean ret = cursor.getLong(sizeIndex) <= maxImageSize;
         cursor.close();
         return ret;
+    }
+
+    /**
+     *  复制资源Uri到内部缓存，from com.blankj.utilcode.util.UriUtils
+     * @param uri
+     * @return cached file
+     */
+    public static File copyUri2Cache(Uri uri) {
+        InputStream is = null;
+        try {
+            is = Utils.getApp().getContentResolver().openInputStream(uri);
+            File file = new File(Utils.getApp().getCacheDir(), "" + System.currentTimeMillis());
+            FileIOUtils.writeFileFromIS(file.getAbsolutePath(), is);
+            return file;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 }

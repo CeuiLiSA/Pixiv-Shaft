@@ -24,7 +24,7 @@ public class OutReversActivity extends OutWakeActivity {
                     Bundle bundle = getIntent().getExtras();
                     if (bundle != null) {
                         Uri imageUri = getIntent().getParcelableExtra(Intent.EXTRA_STREAM);
-                        File innerImageFile = UriUtils.uri2File(imageUri);
+                        File innerImageFile = Common.copyUri2Cache(imageUri);
                         Uri innerImageFileUri = Uri.fromFile(innerImageFile);
                         if (!ReverseImage.isFileSizeOkToSearch(imageUri, ReverseImage.DEFAULT_ENGINE)) {
                             Common.showToast(getString(R.string.string_410));
