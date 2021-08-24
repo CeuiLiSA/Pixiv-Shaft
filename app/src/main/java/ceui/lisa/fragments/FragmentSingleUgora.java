@@ -41,6 +41,7 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UserActivity;
 import ceui.lisa.cache.Cache;
+import ceui.lisa.core.DownloadItem;
 import ceui.lisa.core.Manager;
 import ceui.lisa.databinding.FragmentUgoraBinding;
 import ceui.lisa.dialogs.MuteDialog;
@@ -242,23 +243,21 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
                         baseBind.progress.setVisibility(View.INVISIBLE);
                         Cache.get().saveModel(Params.ILLUST_ID + "_" + illust.getId(), gifResponse);
                         Common.showToast("下载GIF文件");
-                        IllustDownload.downloadGif(gifResponse, illust, (BaseActivity<?>) mContext);
-                        if (illust.getId() == Manager.get().getCurrentIllustID()) {
-                            Manager.get().setCallback(new Callback<Progress>() {
-                                @Override
-                                public void doSomething(Progress t) {
-                                    try {
-                                        if (illust.getId() == Manager.get().getCurrentIllustID()) {
-                                            baseBind.playGif.setVisibility(View.INVISIBLE);
-                                            baseBind.progressLayout.donutProgress.setVisibility(View.VISIBLE);
-                                            baseBind.progressLayout.donutProgress.setProgress(t.getProgress());
-                                        }
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
+                        DownloadItem downloadItem = IllustDownload.downloadGif(gifResponse, illust, (BaseActivity<?>) mContext);
+                        Manager.get().setCallback(downloadItem.getUuid(), new Callback<Progress>() {
+                            @Override
+                            public void doSomething(Progress t) {
+                                try {
+                                    if (illust.getId() == Manager.get().getCurrentIllustID()) {
+                                        baseBind.playGif.setVisibility(View.INVISIBLE);
+                                        baseBind.progressLayout.donutProgress.setVisibility(View.VISIBLE);
+                                        baseBind.progressLayout.donutProgress.setProgress(t.getProgress());
                                     }
+                                } catch (Exception e) {
+                                    e.printStackTrace();
                                 }
-                            });
-                        }
+                            }
+                        });
                     }
                 });
             }

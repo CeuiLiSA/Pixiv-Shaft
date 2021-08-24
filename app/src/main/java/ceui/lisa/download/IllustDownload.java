@@ -29,7 +29,6 @@ import ceui.lisa.feature.HostManager;
 import ceui.lisa.file.LegacyFile;
 import ceui.lisa.file.OutPut;
 import ceui.lisa.file.SAFile;
-import ceui.lisa.helper.SAFactory;
 import ceui.lisa.http.ErrorCtrl;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.interfaces.FeedBack;
@@ -54,7 +53,7 @@ public class IllustDownload {
                 item.setUrl(getUrl(illust, 0));
                 item.setShowUrl(getShowUrl(illust, 0));
                 Common.showToast(1 + "个任务已经加入下载队列");
-                Manager.get().addTask(item, activity);
+                Manager.get().addTask(item);
             }
         });
     }
@@ -66,7 +65,7 @@ public class IllustDownload {
                 item.setUrl(getUrl(illust, 0, imageResolution));
                 item.setShowUrl(getShowUrl(illust, 0));
                 Common.showToast(1 + "个任务已经加入下载队列");
-                Manager.get().addTask(item, activity);
+                Manager.get().addTask(item);
             }
         });
     }
@@ -77,7 +76,7 @@ public class IllustDownload {
             item.setUrl(getUrl(illust, 0));
             item.setShowUrl(getShowUrl(illust, 0));
             Common.showToast(1 + "个任务已经加入下载队列");
-            Manager.get().addTask(item, context);
+            Manager.get().addTask(item);
         }
     }
 
@@ -90,7 +89,7 @@ public class IllustDownload {
                 item.setUrl(getUrl(illust, index));
                 item.setShowUrl(getShowUrl(illust, index));
                 Common.showToast(1 + "个任务已经加入下载队列");
-                Manager.get().addTask(item, activity);
+                Manager.get().addTask(item);
             }
         });
     }
@@ -182,16 +181,17 @@ public class IllustDownload {
         });
     }
 
-    public static void downloadGif(GifResponse response, IllustsBean illust, BaseActivity<?> activity) {
-        downloadGif(response, illust, false, activity);
+    public static DownloadItem downloadGif(GifResponse response, IllustsBean illust, BaseActivity<?> activity) {
+        return downloadGif(response, illust, false, activity);
     }
 
-    public static void downloadGif(GifResponse response, IllustsBean illust, boolean autoSave, BaseActivity<?> activity) {
+    public static DownloadItem downloadGif(GifResponse response, IllustsBean illust, boolean autoSave, BaseActivity<?> activity) {
         DownloadItem item = new DownloadItem(illust, 0);
         item.setAutoSave(autoSave);
         item.setUrl(HostManager.get().replaceUrl(response.getUgoira_metadata().getZip_urls().getMedium()));
         item.setShowUrl(HostManager.get().replaceUrl(illust.getImage_urls().getMedium()));
-        Manager.get().addTask(item, activity);
+        Manager.get().addTask(item);
+        return item;
     }
 
     public static void downloadGif(IllustsBean illustsBean, BaseActivity<?> activity){

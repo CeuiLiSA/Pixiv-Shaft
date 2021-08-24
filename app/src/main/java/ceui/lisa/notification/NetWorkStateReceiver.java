@@ -10,6 +10,6 @@ public class NetWorkStateReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         System.out.println("网络状态发生变化");
-        Manager.get().stop();
+        Manager.get().stopAll();
     }
 }

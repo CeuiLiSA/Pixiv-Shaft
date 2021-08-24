@@ -54,16 +54,16 @@ public class FragmentDownloading extends LocalListFragment<FragmentBaseListBindi
     public void onAdapterPrepared() {
         super.onAdapterPrepared();
         IntentFilter intentFilter = new IntentFilter();
-        mReceiver = new DownloadReceiver<>((Callback<Holder>) entity -> {
-            if (entity.getCode() == Params.DOWNLOAD_FAILED) {
-                final DownloadItem item = entity.getDownloadItem();
-                allItems.remove(item);
+        mReceiver = new DownloadReceiver<>((Callback<Holder>) holder -> {
+            if (holder.getCode() == Params.DOWNLOAD_FAILED) {
+                final DownloadItem item = holder.getDownloadItem();
+//                allItems.remove(item);
                 item.setProcessed(true);
-                allItems.add(item);
-                mAdapter.notifyDataSetChanged();
+//                allItems.add(item);
+                mAdapter.notifyItemChanged(holder.getIndex());
                 Common.showLog("收到了失败提醒");
-            } else if(entity.getCode() == Params.DOWNLOAD_SUCCESS) {
-                int position = entity.getIndex();
+            } else if(holder.getCode() == Params.DOWNLOAD_SUCCESS) {
+                int position = holder.getIndex();
                 if (position < allItems.size()) {
                     allItems.remove(position);
                     mAdapter.notifyItemRemoved(position);
@@ -85,6 +85,6 @@ public class FragmentDownloading extends LocalListFragment<FragmentBaseListBindi
         if (mReceiver != null) {
             LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mReceiver);
         }
-        Manager.get().setCallback(null);
+        Manager.get().clearCallback();
     }
 }

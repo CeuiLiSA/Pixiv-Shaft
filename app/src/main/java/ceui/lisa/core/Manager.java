@@ -9,7 +9,10 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.AppDatabase;
@@ -35,6 +38,7 @@ import rxhttp.wrapper.utils.UriUtil;
 
 public class Manager {
 
+    private Context mContext = Shaft.getContext();
     private List<DownloadItem> content = new ArrayList<>();
     private Disposable handle = null;
     //private long nonius;
@@ -46,8 +50,8 @@ public class Manager {
         //nonius = 0L;
     }
 
-    public void restore(Context context) {
-        List<DownloadingEntity> downloadingEntities = AppDatabase.getAppDatabase(context).downloadDao().getAllDownloading();
+    public void restore() {
+        List<DownloadingEntity> downloadingEntities = AppDatabase.getAppDatabase(mContext).downloadDao().getAllDownloading();
         if (!Common.isEmpty(downloadingEntities)) {
             Common.showLog("downloadingEntities " + downloadingEntities.size());
             if (content != null) {
@@ -69,7 +73,7 @@ public class Manager {
         private static final Manager INSTANCE = new Manager();
     }
 
-    public void addTask(DownloadItem bean, Context context) {
+    public void addTask(DownloadItem bean) {
         synchronized (this) {
             if (content == null) {
                 content = new ArrayList<>();
@@ -83,7 +87,7 @@ public class Manager {
             if (!isTaskExist) {
                 safeAdd(bean);
             }
-            start(context);
+            startAll();
         }
     }
 
@@ -102,33 +106,35 @@ public class Manager {
     }
 
     private void safeDelete(DownloadItem item, boolean isDownloadSuccess) {
-        content.remove(item);
         if (isDownloadSuccess) {
+            content.remove(item);
             DownloadingEntity entity = new DownloadingEntity();
             entity.setFileName(item.getName());
             entity.setUuid(item.getUuid());
             entity.setTaskGson(Shaft.sGson.toJson(item));
-            AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().deleteDownloading(entity);
+            AppDatabase.getAppDatabase(mContext).downloadDao().deleteDownloading(entity);
             Common.showToast(item.getName() + "已下载完成");
         } else {
             item.setProcessed(true);
             //加到队列尾部
-            content.add(item);
+            //content.add(item);
         }
     }
 
     public void addTasks(List<DownloadItem> list, Context context) {
         if (!Common.isEmpty(list)) {
             for (DownloadItem item : list) {
-                addTask(item, context);
+                addTask(item);
             }
         }
     }
 
-    public void start(Context context) {
+    public void startAll() {
         if (!Common.isEmpty(content)) {
             for (DownloadItem item : content) {
                 item.setProcessed(false);
+                item.setState(DownloadItem.DownloadState.INIT);
+                item.setPaused(false);
             }
         }
         if (isRunning) {
@@ -136,11 +142,30 @@ public class Manager {
             return;
         }
         isRunning = true;
-        loop(context);
+        loop();
     }
 
-    private void loop(Context context) {
-        if (Common.isEmpty(content)) {
+    public void startOne(Context context, String uuid) {
+        for (int i = 0; i < content.size(); i++) {
+            DownloadItem downloadItem = content.get(i);
+            if (downloadItem != null && downloadItem.getUuid().equals(uuid)) {
+                downloadItem.setProcessed(false);
+                downloadItem.setPaused(false);
+                Common.showLog("已开始 " + uuid);
+                break;
+            }
+        }
+
+        if (isRunning) {
+            Common.showLog("Manager 正在下载中，不用多次start");
+            return;
+        }
+        isRunning = true;
+        loop();
+    }
+
+    private void loop() {
+        if (Common.isEmpty(content.stream().filter(it->!it.isPaused()).collect(Collectors.toList()))) {
             isRunning = false;
             Common.showLog("Manager 已经全部下载完成");
             return;
@@ -151,47 +176,50 @@ public class Manager {
 
         DownloadItem item = getFirstOne();
         if (item != null) {
-            downloadOne(context, item);
+            downloadOne(mContext, item);
         } else {
-            stop();
+            stopAll();
         }
     }
 
     private DownloadItem getFirstOne() {
         for (int i = 0; i < content.size(); i++) {
-            if (!content.get(i).isProcessed()) {
-                return content.get(i);
+            DownloadItem downloadItem = content.get(i);
+            if (!downloadItem.isProcessed() && !downloadItem.isPaused()) {
+                return downloadItem;
             }
         }
         return null;
     }
 
-    private void downloadOne(Context context, DownloadItem bean) {
+    private void downloadOne(Context context, DownloadItem downloadItem) {
         UriFactory factory;
-        if (Shaft.sSettings.getDownloadWay() == 0 || bean.getIllust().isGif()) {
-            factory = new Android10DownloadFactory22(context, bean);
+        if (Shaft.sSettings.getDownloadWay() == 0 || downloadItem.getIllust().isGif()) {
+            factory = new Android10DownloadFactory22(context, downloadItem);
         } else {
-            factory = new SAFactory(context, bean);
+            factory = new SAFactory(context, downloadItem);
         }
-        currentIllustID = bean.getIllust().getId();
-        Common.showLog("Manager 下载单个 当前进度" + bean.getTransferredBytes());
-        uuid = bean.getUuid();
-        long beanSize = bean.getTransferredBytes();
+        currentIllustID = downloadItem.getIllust().getId();
+        Common.showLog("Manager 下载单个 当前进度" + downloadItem.getNonius());
+        uuid = downloadItem.getUuid();
+        // long beanSize = downloadItem.getTransferredBytes();
         long fileSize = UriUtil.length(factory.query(), context);
-        long passSize = (beanSize != 0 && fileSize >= 0) ? fileSize : 0;
+        long passSize = (downloadItem.getNonius() != 0 && fileSize >= 0) ? fileSize : 0;
         //Common.showLog("Resume Size: beanSize=" + beanSize + ",fileSize=" + fileSize + ",uri="+factory.query());
-        handle = RxHttp.get(bean.getUrl())
+        handle = RxHttp.get(downloadItem.getUrl())
                 .addHeader(Params.MAP_KEY, Params.IMAGE_REFERER)
                 .setRangeHeader(passSize, true)
                 .asDownload(factory, AndroidSchedulers.mainThread(), new Consumer<Progress>() {
                     @Override
                     public void accept(Progress progress) {
-                        bean.setTransferredBytes(progress.getCurrentSize());
+                        //downloadItem.setTransferredBytes(progress.getCurrentSize());
                         currentProgress = progress.getProgress();
+                        downloadItem.setNonius(currentProgress);
                         Common.showLog("currentProgress " + currentProgress);
                         try {
-                            if (mCallback != null) {
-                                mCallback.doSomething(progress);
+                            Callback<Progress> c = getCallback(uuid);
+                            if (c != null) {
+                                c.doSomething(progress);
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -205,16 +233,16 @@ public class Manager {
                         currentIllustID = 0;
                         currentProgress = 0;
                         //nonius = 0L;
-                        loop(context);
+                        loop();
                         Common.showLog("doFinally ");
                     }
                 })
                 .subscribe(s -> {//s为String类型，这里为文件存储路径
                     Common.showLog("downloadOne " + s);
 
-                    if(bean.getIllust().isGif()){
-                        Shaft.getMMKV().encode(Params.ILLUST_ID + "_" + bean.getIllust().getId(), true);
-                        PixivOperate.unzipAndePlay(context, bean.getIllust(), bean.isAutoSave());
+                    if(downloadItem.getIllust().isGif()){
+                        Shaft.getMMKV().encode(Params.ILLUST_ID + "_" + downloadItem.getIllust().getId(), true);
+                        PixivOperate.unzipAndePlay(context, downloadItem.getIllust(), downloadItem.isAutoSave());
                     }
 
                     //通知 DOWNLOAD_ING 下载完成
@@ -222,8 +250,8 @@ public class Manager {
                         Intent intent = new Intent(Params.DOWNLOAD_ING);
                         Holder holder = new Holder();
                         holder.setCode(Params.DOWNLOAD_SUCCESS);
-                        holder.setIndex(0);
-                        holder.setDownloadItem(bean);
+                        holder.setIndex(content.indexOf(downloadItem));
+                        holder.setDownloadItem(downloadItem);
                         intent.putExtra(Params.CONTENT, holder);
                         LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
                     }
@@ -231,8 +259,8 @@ public class Manager {
                     //通知 DOWNLOAD_FINISH 下载完成
                     {
                         DownloadEntity downloadEntity = new DownloadEntity();
-                        downloadEntity.setIllustGson(Shaft.sGson.toJson(bean.getIllust()));
-                        downloadEntity.setFileName(bean.getName());
+                        downloadEntity.setIllustGson(Shaft.sGson.toJson(downloadItem.getIllust()));
+                        downloadEntity.setFileName(downloadItem.getName());
                         downloadEntity.setDownloadTime(System.currentTimeMillis());
                         if (factory instanceof SAFactory) {
                             downloadEntity.setFilePath(((SAFactory) factory).getUri().toString());
@@ -258,23 +286,26 @@ public class Manager {
                         }
                     }.execute();
 
-                    safeDelete(bean);
+                    // remove callback
+                    setCallback(uuid, null);
+
+                    safeDelete(downloadItem);
                 }, throwable -> {
-                    bean.setTransferredBytes(0);
+                    downloadItem.setNonius(0);
                     //下载失败，处理相关逻辑
                     throwable.printStackTrace();
                     if (!Dev.isDev) {
                         Common.showToast("下载失败，原因：" + throwable.toString());
                     }
                     Common.showLog("下载失败，原因：" + throwable.toString());
-                    safeDelete(bean, false);
+                    safeDelete(downloadItem, false);
                     {
                         //通知 DOWNLOAD_ING 有一项下载失败
                         Intent intent = new Intent(Params.DOWNLOAD_ING);
                         Holder holder = new Holder();
                         holder.setCode(Params.DOWNLOAD_FAILED);
-                        holder.setIndex(0);
-                        holder.setDownloadItem(bean);
+                        holder.setIndex(content.indexOf(downloadItem));
+                        holder.setDownloadItem(downloadItem);
                         intent.putExtra(Params.CONTENT, holder);
                         LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
                     }
@@ -298,33 +329,55 @@ public class Manager {
         return uuid;
     }
 
-    private Callback<Progress> mCallback;
+    private Map<String, Callback<Progress>> mCallback = new HashMap<>();
 
-    public Callback<Progress> getCallback() {
-        return mCallback;
+    public Callback<Progress> getCallback(String uuid) {
+        return mCallback.getOrDefault(uuid, null);
+    }
+
+    public void clearCallback() {
+        mCallback.clear();
     }
 
     public void setCallback(Callback<Progress> callback) {
-        mCallback = callback;
+        mCallback.put("", callback);
+    }
+
+    public void setCallback(String uuid, Callback<Progress> callback) {
+        mCallback.put(uuid, callback);
     }
 
     public List<DownloadItem> getContent() {
         return content;
     }
 
-    public void stop() {
+    public void stopAll() {
+        for (DownloadItem item : getContent()) {
+            item.setPaused(true);
+        }
         isRunning = false;
         if (handle != null) {
             handle.dispose();
         }
         Common.showLog("已经停止");
-        //Shaft.sSettings.setCurrentProgress(nonius);
-        //Local.setSettings(Shaft.sSettings);
+    }
+
+    public void stopOne(String uuid){
+        for (DownloadItem item : getContent()) {
+            if(item.getUuid().equals(uuid)){
+                item.setPaused(true);
+                Common.showLog("已暂停 " + uuid);
+                break;
+            }
+        }
+        if(this.uuid.equals(uuid) && handle != null){
+            handle.dispose();
+        }
     }
 
     public void clear() {
-        stop();
-        AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().deleteAllDownloading();
+        stopAll();
+        AppDatabase.getAppDatabase(mContext).downloadDao().deleteAllDownloading();
         content.clear();
     }
 }

@@ -212,7 +212,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         });
         baseBind.viewPager.setOffscreenPageLimit(baseFragments.length - 1);
         baseBind.viewPager.setCurrentItem(getNavigationInitPosition());
-        Manager.get().restore(mContext);
+        Manager.get().restore();
     }
 
     @Override
@@ -404,7 +404,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 builder.setPositiveButton(mContext.getString(R.string.sure), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        Manager.get().stop();
+                        Manager.get().stopAll();
                         finish();
                     }
                 });

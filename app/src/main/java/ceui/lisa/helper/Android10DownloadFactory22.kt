@@ -43,7 +43,7 @@ class Android10DownloadFactory22 constructor(
         // gif全部用File操作
         if (item.illust.isGif) {
             val file = LegacyFile.gifZipFile(context, item.illust)
-            if(file != null && file.exists() && file.length() > 0 && item.transferredBytes == 0L){
+            if(file != null && file.exists() && file.length() > 0 && item.nonius == 0){
                 FileUtils.delete(file)
             }
             fileUri = Uri.fromFile(file)
@@ -55,7 +55,7 @@ class Android10DownloadFactory22 constructor(
                 val uri = query()
                 if (uri != null) {
                     // 新下载文件时删除旧文件
-                    if (item.transferredBytes == 0L) {
+                    if (item.nonius == 0) {
                         val outputStream: OutputStream =
                             context.contentResolver.openOutputStream(uri, "rwt")!!
                         outputStream.write(ByteArray(0))
@@ -87,7 +87,7 @@ class Android10DownloadFactory22 constructor(
                     parentFile.mkdirs()
                 }
                 val imageFile = File(parentFile, item.name)
-                if (imageFile.exists() && imageFile.length() > 0 && item.transferredBytes == 0L) {
+                if (imageFile.exists() && imageFile.length() > 0 && item.nonius == 0) {
                     FileUtils.delete(imageFile)
                 } else {
                     imageFile.createNewFile()
