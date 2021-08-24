@@ -115,7 +115,7 @@ public class DownloadedAdapter extends BaseAdapter<DownloadEntity, RecyDownloade
                 bindView.baseBind.pSize.setVisibility(View.GONE);
             } else {
                 bindView.baseBind.pSize.setVisibility(View.VISIBLE);
-                bindView.baseBind.pSize.setText(String.format("%dP", currentIllust.getPage_count()));
+                bindView.baseBind.pSize.setText(String.format(Locale.getDefault(), "%dP", currentIllust.getPage_count()));
             }
 
             if (mOnItemClickListener != null) {

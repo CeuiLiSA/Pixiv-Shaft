@@ -29,6 +29,8 @@ import com.zhy.view.flowlayout.FlowLayout;
 import com.zhy.view.flowlayout.TagAdapter;
 import com.zhy.view.flowlayout.TagFlowLayout;
 
+import java.util.Locale;
+
 import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.SearchActivity;
@@ -428,7 +430,7 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
             baseBind.illustList.open();
         } else {
             baseBind.pSize.setVisibility(View.VISIBLE);
-            baseBind.pSize.setText(String.format("%dP", illust.getPage_count()));
+            baseBind.pSize.setText(String.format(Locale.getDefault(), "%dP", illust.getPage_count()));
             baseBind.darkBlank.setVisibility(View.VISIBLE);
             baseBind.seeAll.setVisibility(View.VISIBLE);
             baseBind.illustList.close();

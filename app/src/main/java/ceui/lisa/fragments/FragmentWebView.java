@@ -1,5 +1,6 @@
 package ceui.lisa.fragments;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.net.SSLCertificateSocketFactory;
 import android.net.Uri;
@@ -534,7 +535,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
         return code >= 300 && code < 400;
     }
 
-    class WebviewTlsSniSocketFactory extends SSLSocketFactory {
+    static class WebviewTlsSniSocketFactory extends SSLSocketFactory {
         private final String TAG = WebviewTlsSniSocketFactory.class.getSimpleName();
         HostnameVerifier hostnameVerifier = HttpsURLConnection.getDefaultHostnameVerifier();
         private final HttpsURLConnection conn;
@@ -593,7 +594,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
             }
             // create and connect SSL socket, but don't do hostname/certificate verification yet
             SSLCertificateSocketFactory sslSocketFactory = (SSLCertificateSocketFactory) SSLCertificateSocketFactory.getDefault(0);
-            SSLSocket ssl = (SSLSocket) sslSocketFactory.createSocket(address, port);
+            @SuppressLint("SSLCertificateSocketFactoryCreateSocket") SSLSocket ssl = (SSLSocket) sslSocketFactory.createSocket(address, port);
 
             // enable TLSv1.1/1.2 if available
             ssl.setEnabledProtocols(ssl.getSupportedProtocols());

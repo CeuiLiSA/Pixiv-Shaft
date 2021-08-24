@@ -231,12 +231,12 @@
                                     android:layout_width="wrap_content"
                                     android:id="@+id/illust_date"
                                     android:drawablePadding="2dp"
-                                    android:drawableEnd="@drawable/ic_edit_black_24dp"
                                     android:textSize="14sp"
-                                    android:drawableTint="?attr/colorPrimary"
                                     android:layout_marginStart="@dimen/sixteen_dp"
                                     android:layout_marginBottom="10dp"
-                                    android:layout_height="wrap_content" />
+                                    android:layout_height="wrap_content"
+                                    app:drawableEndCompat="@drawable/ic_edit_black_24dp"
+                                    app:drawableTint="?attr/colorPrimary" />
 
                                 <TextView
                                     android:layout_width="wrap_content"
@@ -245,11 +245,11 @@
                                     android:gravity="center"
                                     android:drawablePadding="2dp"
                                     android:textStyle="bold"
-                                    android:drawableEnd="@drawable/ic_remove_red_eye_black_24dp"
-                                    android:drawableTint="?attr/colorPrimary"
                                     android:layout_marginStart="@dimen/eight_dp"
                                     android:layout_marginBottom="10dp"
-                                    android:layout_height="wrap_content" />
+                                    android:layout_height="wrap_content"
+                                    app:drawableEndCompat="@drawable/ic_remove_red_eye_black_24dp"
+                                    app:drawableTint="?attr/colorPrimary" />
 
 
                                 <TextView
@@ -259,12 +259,12 @@
                                     android:gravity="center"
                                     android:textStyle="bold"
                                     android:drawablePadding="2dp"
-                                    android:drawableEnd="@drawable/ic_favorite_black_24dp"
-                                    android:drawableTint="?attr/colorPrimary"
                                     android:layout_marginStart="@dimen/eight_dp"
                                     android:layout_marginBottom="10dp"
                                     android:layout_marginEnd="@dimen/sixteen_dp"
-                                    android:layout_height="wrap_content" />
+                                    android:layout_height="wrap_content"
+                                    app:drawableEndCompat="@drawable/ic_favorite_black_24dp"
+                                    app:drawableTint="?attr/colorPrimary" />
 
 
                             </LinearLayout>
@@ -293,8 +293,6 @@
                                 android:id="@+id/download"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:layout_alignParentEnd="true"
-                                android:layout_alignParentBottom="true"
                                 android:layout_marginStart="@dimen/twelve_dp"
                                 android:layout_marginTop="@dimen/eight_dp"
                                 android:layout_marginEnd="@dimen/twelve_dp"

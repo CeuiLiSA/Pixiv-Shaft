@@ -6,7 +6,7 @@
         android:orderInCategory="100"
         android:icon="@drawable/ic_baseline_bookmark_24"
         android:title="@string/string_245"
-        app:showAsAction="always" />
+        app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/action_add"

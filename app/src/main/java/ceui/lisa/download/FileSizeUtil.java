@@ -131,16 +131,16 @@ public class FileSizeUtil {
         double fileSizeLong = 0;
         switch (sizeType) {
             case SIZETYPE_B:
-                fileSizeLong = Double.valueOf(df.format((double) fileS));
+                fileSizeLong = Double.parseDouble(df.format((double) fileS));
                 break;
             case SIZETYPE_KB:
-                fileSizeLong = Double.valueOf(df.format((double) fileS / 1024));
+                fileSizeLong = Double.parseDouble(df.format((double) fileS / 1024));
                 break;
             case SIZETYPE_MB:
-                fileSizeLong = Double.valueOf(df.format((double) fileS / 1048576));
+                fileSizeLong = Double.parseDouble(df.format((double) fileS / 1048576));
                 break;
             case SIZETYPE_GB:
-                fileSizeLong = Double.valueOf(df.format((double) fileS / 1073741824));
+                fileSizeLong = Double.parseDouble(df.format((double) fileS / 1073741824));
                 break;
             default:
                 break;

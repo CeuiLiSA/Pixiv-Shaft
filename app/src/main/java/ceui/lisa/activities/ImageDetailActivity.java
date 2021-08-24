@@ -15,6 +15,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.ActivityImageDetailBinding;
@@ -82,7 +83,7 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
                 @Override
                 public void onPageSelected(int i) {
                     checkDownload(i);
-                    currentPage.setText(String.format("第 %d/%d P", i + 1, mIllustsBean.getPage_count()));
+                    currentPage.setText(String.format(Locale.getDefault(), "第 %d/%d P", i + 1, mIllustsBean.getPage_count()));
                 }
 
                 @Override
@@ -93,7 +94,7 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
             if(mIllustsBean.getPage_count() == 1){
                 currentPage.setVisibility(View.INVISIBLE);
             }else{
-                currentPage.setText(String.format("第 %d/%d P", index + 1, mIllustsBean.getPage_count()));
+                currentPage.setText(String.format(Locale.getDefault(), "第 %d/%d P", index + 1, mIllustsBean.getPage_count()));
             }
 
         } else if ("下载详情".equals(dataType)) {

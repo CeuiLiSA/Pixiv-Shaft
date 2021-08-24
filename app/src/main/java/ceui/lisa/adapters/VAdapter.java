@@ -4,6 +4,7 @@ import android.content.Context;
 import android.view.View;
 
 import java.util.List;
+import java.util.Locale;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.FragmentSingleNovelBinding;
@@ -48,7 +49,7 @@ public class VAdapter extends BaseAdapter<String, FragmentSingleNovelBinding> {
             bindView.baseBind.partIndex.setVisibility(View.GONE);
         } else {
             bindView.baseBind.partIndex.setVisibility(View.VISIBLE);
-            bindView.baseBind.partIndex.setText(String.format(" --- Part %d --- ", position + 1));
+            bindView.baseBind.partIndex.setText(String.format(Locale.getDefault(), " --- Part %d --- ", position + 1));
         }
         bindView.baseBind.novelDetail.setText(target);
     }

@@ -40,8 +40,7 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
     }
 
     public static FragmentSearchIllust newInstance() {
-        FragmentSearchIllust fragment = new FragmentSearchIllust();
-        return fragment;
+        return new FragmentSearchIllust();
     }
 
     @Override

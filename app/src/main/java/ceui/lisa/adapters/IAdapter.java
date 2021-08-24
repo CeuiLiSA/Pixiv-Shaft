@@ -20,6 +20,7 @@ import com.qmuiteam.qmui.widget.popup.QMUIPopup;
 import com.qmuiteam.qmui.widget.popup.QMUIPopups;
 
 import java.util.List;
+import java.util.Locale;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
@@ -127,7 +128,7 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
             bindView.baseBind.pSize.setVisibility(View.GONE);
         } else {
             bindView.baseBind.pSize.setVisibility(View.VISIBLE);
-            bindView.baseBind.pSize.setText(String.format("%dP", target.getPage_count()));
+            bindView.baseBind.pSize.setText(String.format(Locale.getDefault(), "%dP", target.getPage_count()));
         }
         bindView.baseBind.pGif.setVisibility(target.isGif() ? View.VISIBLE : View.GONE);
         bindView.itemView.setOnClickListener(view -> {

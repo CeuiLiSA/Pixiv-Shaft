@@ -231,10 +231,6 @@ public class Common {
         qmuiDialog.show();
     }
 
-    public static void createLoginHintDialog(Context context){
-
-    }
-
     public static String getResponseBody(Response response) {
 
         Charset UTF8 = StandardCharsets.UTF_8;
@@ -245,7 +241,7 @@ public class Common {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        Buffer buffer = source.buffer();
+        Buffer buffer = source.getBuffer();
 
         Charset charset = UTF8;
         MediaType contentType = responseBody.contentType();
@@ -327,8 +323,8 @@ public class Common {
      */
     public static String removeFSReservedChars(String s){
         try {
-            for (int i = 0; i < safeReplacer.length; i++){
-                s = s.replace(safeReplacer[i][0], safeReplacer[i][1]);
+            for (String[] strings : safeReplacer) {
+                s = s.replace(strings[0], strings[1]);
             }
         } catch (Exception e) {
             e.printStackTrace();

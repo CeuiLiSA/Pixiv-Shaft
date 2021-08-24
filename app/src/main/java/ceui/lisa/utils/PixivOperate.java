@@ -76,8 +76,8 @@ import static com.blankj.utilcode.util.StringUtils.getString;
 
 public class PixivOperate {
 
-    private static final Map<Integer,Back> sBack =  new HashMap<Integer,Back>();
-    private static final Map<Integer, Long> gifEncodingWorkSet = new HashMap<Integer, Long>();
+    private static final Map<Integer,Back> sBack = new HashMap<>();
+    private static final Map<Integer, Long> gifEncodingWorkSet = new HashMap<>();
     private static final long reEncodeTimeThresholdMillis = 60 * 1000;
 
     public static void refreshUserData(UserModel userModel, Callback<UserModel> callback) {
@@ -574,8 +574,8 @@ public class PixivOperate {
                 Collections.sort(allFiles, new Comparator<File>() {
                     @Override
                     public int compare(File o1, File o2) {
-                        if (Integer.valueOf(o1.getName().substring(0, o1.getName().length() - 4)) >
-                                Integer.valueOf(o2.getName().substring(0, o2.getName().length() - 4))) {
+                        if (Integer.parseInt(o1.getName().substring(0, o1.getName().length() - 4)) >
+                                Integer.parseInt(o2.getName().substring(0, o2.getName().length() - 4))) {
                             return 1;
                         } else {
                             return -1;
@@ -670,8 +670,8 @@ public class PixivOperate {
                 Collections.sort(allFiles, new Comparator<File>() {
                     @Override
                     public int compare(File o1, File o2) {
-                        if (Integer.valueOf(o1.getName().substring(0, o1.getName().length() - 4)) >
-                                Integer.valueOf(o2.getName().substring(0, o2.getName().length() - 4))) {
+                        if (Integer.parseInt(o1.getName().substring(0, o1.getName().length() - 4)) >
+                                Integer.parseInt(o2.getName().substring(0, o2.getName().length() - 4))) {
                             return 1;
                         } else {
                             return -1;

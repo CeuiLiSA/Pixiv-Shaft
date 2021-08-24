@@ -42,11 +42,7 @@ public class DrawerLayoutHelper {
                 }
             });
 
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
+        } catch (NoSuchFieldException | IllegalArgumentException | IllegalAccessException e) {
             e.printStackTrace();
         }
     }

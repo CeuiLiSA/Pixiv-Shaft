@@ -69,7 +69,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                             List<String> pathArray = uri.getPathSegments();
                             String illustID = pathArray.get(pathArray.size() - 1);
                             if (!TextUtils.isEmpty(illustID)) {
-                                PixivOperate.getIllustByID(Shaft.sUserModel, Integer.valueOf(illustID), mContext, new Callback<Void>() {
+                                PixivOperate.getIllustByID(Shaft.sUserModel, Integer.parseInt(illustID), mContext, new Callback<Void>() {
                                     @Override
                                     public void doSomething(Void t) {
                                         finish();
@@ -93,7 +93,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                                 List<String> pathArray = uri.getPathSegments();
                                 novelId = pathArray.get(pathArray.size() - 1);
                             }
-                            PixivOperate.getNovelByID(sUserModel, Integer.valueOf(novelId), mContext, new Callback<Void>() {
+                            PixivOperate.getNovelByID(sUserModel, Integer.parseInt(novelId), mContext, new Callback<Void>() {
                                 @Override
                                 public void doSomething(Void t) {
                                     finish();
@@ -262,14 +262,14 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
 
                             if (host.contains("illusts")) {
                                 String path = uri.getPath();
-                                PixivOperate.getIllustByID(Shaft.sUserModel, Integer.valueOf(path.substring(1)),
+                                PixivOperate.getIllustByID(Shaft.sUserModel, Integer.parseInt(path.substring(1)),
                                         mContext, t -> finish(),null);
                                 return;
                             }
 
                             if (host.contains("novels")) {
                                 String path = uri.getPath();
-                                PixivOperate.getNovelByID(Shaft.sUserModel, Integer.valueOf(path.substring(1)),
+                                PixivOperate.getNovelByID(Shaft.sUserModel, Integer.parseInt(path.substring(1)),
                                         mContext, t -> finish());
                                 return;
                             }

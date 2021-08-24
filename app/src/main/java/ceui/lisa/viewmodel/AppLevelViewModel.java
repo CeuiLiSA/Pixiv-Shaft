@@ -25,7 +25,7 @@ public class AppLevelViewModel extends AndroidViewModel {
     public MutableLiveData<Integer> getFollowUserLiveData(int userId) {
         MutableLiveData<Integer> data = followUserStatus.get(userId);
         if (data == null) {
-            data = new MutableLiveData<Integer>(FollowUserStatus.UNKNOWN);
+            data = new MutableLiveData<>(FollowUserStatus.UNKNOWN);
             followUserStatus.put(userId, data);
         }
         return data;
@@ -40,7 +40,7 @@ public class AppLevelViewModel extends AndroidViewModel {
             }
             data.setValue(status);
         } else {
-            followUserStatus.put(userId, new MutableLiveData<Integer>(status));
+            followUserStatus.put(userId, new MutableLiveData<>(status));
         }
     }
 
@@ -52,14 +52,14 @@ public class AppLevelViewModel extends AndroidViewModel {
                 data.setValue(status);
             }
         } else {
-            followUserStatus.put(userId, new MutableLiveData<Integer>(status));
+            followUserStatus.put(userId, new MutableLiveData<>(status));
         }
     }
 
     public MutableLiveData<Integer> getStarIllustLiveData(int illustId) {
         MutableLiveData<Integer> data = starIllustStatus.get(illustId);
         if (data == null) {
-            data = new MutableLiveData<Integer>(StarIllustStatus.UNKNOWN);
+            data = new MutableLiveData<>(StarIllustStatus.UNKNOWN);
             starIllustStatus.put(illustId, data);
         }
         return data;
@@ -70,7 +70,7 @@ public class AppLevelViewModel extends AndroidViewModel {
         if (data != null) {
             data.setValue(status);
         } else {
-            starIllustStatus.put(illustId, new MutableLiveData<Integer>(status));
+            starIllustStatus.put(illustId, new MutableLiveData<>(status));
         }
     }
 

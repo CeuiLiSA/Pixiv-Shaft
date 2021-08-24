@@ -20,16 +20,16 @@ public class DeduplicateArrayList<E extends Deduplicatable> extends ArrayList<E>
 
     public DeduplicateArrayList(int initialCapacity) {
         super(initialCapacity);
-        innerSet = new HashSet<Object>();
+        innerSet = new HashSet<>();
     }
 
     public DeduplicateArrayList() {
-        innerSet = new HashSet<Object>();
+        innerSet = new HashSet<>();
     }
 
     public DeduplicateArrayList(@NonNull Collection<? extends E> c) {
         super(c);
-        innerSet = new HashSet<Object>();
+        innerSet = new HashSet<>();
         List<E> removeList = new ArrayList<>();
         for (int i = 0; i < size(); i++) {
             E e = get(i);
