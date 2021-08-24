@@ -32,7 +32,7 @@ import ceui.lisa.view.LinearItemDecoration;
 public class FragmentFileName extends SwipeFragment<FragmentFileNameBinding> {
 
     private IllustsBean illust;
-    private List<CustomFileNameCell> allItems = new ArrayList<>();
+    private final List<CustomFileNameCell> allItems = new ArrayList<>();
     private FileNameAdapter mAdapter;
 
     public static FragmentFileName newInstance() {

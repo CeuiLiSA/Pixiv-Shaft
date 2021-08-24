@@ -1,5 +1,6 @@
 package ceui.lisa.adapters;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.view.LayoutInflater;
@@ -29,7 +30,7 @@ import ceui.lisa.utils.Params;
 public class HistoryAdapter extends BaseAdapter<IllustHistoryEntity, RecyViewHistoryBinding> {
 
     private int illustImageSize = 0, novelImageSize = 0;
-    private SimpleDateFormat mTime = new SimpleDateFormat(
+    private final SimpleDateFormat mTime = new SimpleDateFormat(
             mContext.getResources().getString(R.string.string_350),
             Locale.getDefault());
 
@@ -45,6 +46,7 @@ public class HistoryAdapter extends BaseAdapter<IllustHistoryEntity, RecyViewHis
         mLayoutID = R.layout.recy_view_history;
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     public void bindData(IllustHistoryEntity target, ViewHolder<RecyViewHistoryBinding> bindView, int position) {
         if (target.getType() == 0) {
@@ -69,7 +71,7 @@ public class HistoryAdapter extends BaseAdapter<IllustHistoryEntity, RecyViewHis
                     bindView.baseBind.pSize.setVisibility(View.GONE);
                 } else {
                     bindView.baseBind.pSize.setVisibility(View.VISIBLE);
-                    bindView.baseBind.pSize.setText(String.format("%dP", current.getPage_count()));
+                    bindView.baseBind.pSize.setText(String.format(Locale.getDefault(), "%dP", current.getPage_count()));
                 }
             }
 

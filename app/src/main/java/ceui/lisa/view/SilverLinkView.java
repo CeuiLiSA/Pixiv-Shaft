@@ -22,8 +22,8 @@ public class SilverLinkView extends View implements GestureDetector.OnGestureLis
     private Context mContext;
     private Canvas mCanvas;
     private float centerX, centerY;
-    private Handler mHandler = new Handler();
-    private HashMap<Integer, Integer> mHashMap = new HashMap<>();
+    private final Handler mHandler = new Handler();
+    private final HashMap<Integer, Integer> mHashMap = new HashMap<>();
     private GestureDetector mGestureDetector;
     private Paint mPaint;
     private final int[] colors = new int[]{
@@ -198,7 +198,7 @@ public class SilverLinkView extends View implements GestureDetector.OnGestureLis
     }
 
 
-    private Runnable mRunnable = new Runnable() {
+    private final Runnable mRunnable = new Runnable() {
         @Override
         public void run() {
             Common.showLog("SilverLinkView Runnable");

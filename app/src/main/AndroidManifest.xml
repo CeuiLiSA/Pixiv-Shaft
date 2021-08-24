@@ -40,7 +40,8 @@
 
         <activity
             android:name=".activities.MainActivity"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation">
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -71,7 +72,8 @@
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation" />
         <activity
             android:name=".activities.OutWakeActivity"
-            android:label="@string/string_310">
+            android:label="@string/string_310"
+            android:exported="true">
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
 
@@ -172,7 +174,8 @@
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation" />
         <activity
             android:name=".activities.OutReversActivity"
-            android:label="@string/string_311">
+            android:label="@string/string_311"
+            android:exported="true">
 
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />

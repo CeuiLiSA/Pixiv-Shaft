@@ -37,7 +37,7 @@ jobs:
         uses: eskatos/gradle-command-action@v1
         with:
           arguments: assembleDebug
-          wrapper-cache-enabled: true
+          distributions-cache-enabled: true
           dependencies-cache-enabled: true
           configuration-cache-enabled: true
 
@@ -63,7 +63,7 @@ jobs:
         uses: eskatos/gradle-command-action@v1
         with:
           arguments: assembleRelease
-          wrapper-cache-enabled: true
+          distributions-cache-enabled: true
           dependencies-cache-enabled: true
           configuration-cache-enabled: true
 

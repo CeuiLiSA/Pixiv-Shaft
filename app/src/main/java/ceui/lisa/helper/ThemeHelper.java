@@ -17,7 +17,7 @@ public class ThemeHelper {
         DARK_MODE(2, R.string.string_300);
 
         public int themeTypeIndex;
-        private int themeTypeNameResId;
+        private final int themeTypeNameResId;
 
         ThemeType(int themeTypeIndex, int themeTypeNameResId) {
             this.themeTypeIndex = themeTypeIndex;

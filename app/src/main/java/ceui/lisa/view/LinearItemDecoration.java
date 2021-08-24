@@ -6,7 +6,7 @@ import android.view.View;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class LinearItemDecoration extends RecyclerView.ItemDecoration {
-    private int space;
+    private final int space;
 
     public LinearItemDecoration(int space) {
         this.space = space;

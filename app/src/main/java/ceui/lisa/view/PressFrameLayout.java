@@ -25,23 +25,23 @@ import ceui.lisa.utils.DensityUtil;
 public class PressFrameLayout extends RelativeLayout {
     private int width = 0;//父布局宽度
     private int height = 0;//父布局高度
-    private int padding;//为阴影和按压变形预留位置
-    private int cornerRadius;//控件圆角
-    private float shadeOffset;//阴影偏移
+    private final int padding;//为阴影和按压变形预留位置
+    private final int cornerRadius;//控件圆角
+    private final float shadeOffset;//阴影偏移
     Paint paintBg = new Paint(Paint.ANTI_ALIAS_FLAG);
     Camera camera = new Camera();
     float cameraX = 0f;//触摸点x轴方向偏移比例
     float cameraY = 0f;//触摸点y轴方向偏移比例
     private int colorBg;//背景色
-    private int shadeAlpha = 0xaa000000;//背景阴影透明度
+    private final int shadeAlpha = 0xaa000000;//背景阴影透明度
 
     private float touchProgress = 1f;//按压缩放动画控制
     private float cameraProgress = 0f;//相机旋转（按压偏移）动画控制
     TouchArea pressArea = new TouchArea(0,0,0,0);//按压效果区域
 
     boolean isInPressArea = true;//按压位置是在内圈还是外圈
-    private int maxAngle = 5;//倾斜时的相机最大倾斜角度，deg
-    private float scale = 0.98f;//整体按压时的形变控制
+    private final int maxAngle = 5;//倾斜时的相机最大倾斜角度，deg
+    private final float scale = 0.98f;//整体按压时的形变控制
 
     private long pressTime = 0;//计算按压时间，小于500毫秒响应onClick()
     Bitmap bitmap;//background为图片时

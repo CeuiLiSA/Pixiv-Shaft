@@ -23,7 +23,7 @@ class Android10DownloadFactory22 constructor(
 
     override fun query(): Uri? {
         if (item.illust.isGif) {
-            val file = LegacyFile().gifZipFile(context, item.illust)
+            val file = LegacyFile.gifZipFile(context, item.illust)
             return Uri.fromFile(file)
         }
         if (Common.isAndroidQ()) {
@@ -42,7 +42,7 @@ class Android10DownloadFactory22 constructor(
     override fun insert(response: Response): Uri {
         // gif全部用File操作
         if (item.illust.isGif) {
-            val file = LegacyFile().gifZipFile(context, item.illust)
+            val file = LegacyFile.gifZipFile(context, item.illust)
             if(file != null && file.exists() && file.length() > 0 && item.transferredBytes == 0L){
                 FileUtils.delete(file)
             }

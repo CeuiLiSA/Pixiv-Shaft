@@ -5,5 +5,5 @@ import java.util.Map;
 
 public class ObjectLocal<T> {
 
-    private Map<T, Object> map = new HashMap<>();
+    private final Map<T, Object> map = new HashMap<>();
 }

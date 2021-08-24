@@ -19,7 +19,7 @@ import ceui.lisa.utils.GlideUtil;
 
 public class NineAdapter extends BaseAdapter<GlideUrl, RecyNineBinding> {
 
-    private IllustsBean illust;
+    private final IllustsBean illust;
 
     public NineAdapter(@Nullable List<GlideUrl> targetList,
                        Context context, IllustsBean illust) {

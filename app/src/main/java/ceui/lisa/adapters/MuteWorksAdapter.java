@@ -1,5 +1,6 @@
 package ceui.lisa.adapters;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.view.LayoutInflater;
@@ -32,7 +33,7 @@ import static com.bumptech.glide.request.RequestOptions.bitmapTransform;
 public class MuteWorksAdapter extends BaseAdapter<MuteEntity, RecyViewHistoryBinding> {
 
     private int illustImageSize = 0, novelImageSize = 0;
-    private SimpleDateFormat mTime = new SimpleDateFormat(
+    private final SimpleDateFormat mTime = new SimpleDateFormat(
             mContext.getResources().getString(R.string.string_350),
             Locale.getDefault());
 
@@ -48,6 +49,7 @@ public class MuteWorksAdapter extends BaseAdapter<MuteEntity, RecyViewHistoryBin
         mLayoutID = R.layout.recy_view_history;
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     public void bindData(MuteEntity target, ViewHolder<RecyViewHistoryBinding> bindView, int position) {
         if (target.getType() == 1) {
@@ -73,7 +75,7 @@ public class MuteWorksAdapter extends BaseAdapter<MuteEntity, RecyViewHistoryBin
                     bindView.baseBind.pSize.setVisibility(View.GONE);
                 } else {
                     bindView.baseBind.pSize.setVisibility(View.VISIBLE);
-                    bindView.baseBind.pSize.setText(String.format("%dP", current.getPage_count()));
+                    bindView.baseBind.pSize.setText(String.format(Locale.getDefault(), "%dP", current.getPage_count()));
                 }
             }
 

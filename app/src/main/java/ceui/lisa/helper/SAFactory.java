@@ -17,7 +17,7 @@ import rxhttp.wrapper.callback.UriFactory;
 
 public class SAFactory extends UriFactory {
 
-    private DownloadItem mItem;
+    private final DownloadItem mItem;
     private Uri mUri;
 
     public SAFactory(@NotNull Context context, DownloadItem item) {

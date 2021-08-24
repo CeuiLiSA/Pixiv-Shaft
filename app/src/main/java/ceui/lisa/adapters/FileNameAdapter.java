@@ -28,11 +28,7 @@ public class FileNameAdapter extends BaseAdapter<CustomFileNameCell, RecyFileNam
         bindView.baseBind.title.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    target.setChecked(true);
-                } else {
-                    target.setChecked(false);
-                }
+                target.setChecked(isChecked);
             }
         });
 

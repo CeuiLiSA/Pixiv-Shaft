@@ -1,5 +1,6 @@
 package ceui.lisa.fragments;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.net.SSLCertificateSocketFactory;
 import android.net.Uri;
@@ -77,8 +78,8 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
     private AgentWeb mAgentWeb;
     private WebView mWebView;
     private String mIntentUrl;
-    private WebViewClickHandler handler = new WebViewClickHandler();
-    private HttpDns httpDns = HttpDns.getInstance();
+    private final WebViewClickHandler handler = new WebViewClickHandler();
+    private final HttpDns httpDns = HttpDns.getInstance();
     private String mLongClickLinkText;
     private Uri reverseSearchImageUri;
 
@@ -427,13 +428,9 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
      * @return
      */
     private boolean isBinaryRes(String mime) {
-        if (mime.startsWith("image")
+        return mime.startsWith("image")
                 || mime.startsWith("audio")
-                || mime.startsWith("video")) {
-            return true;
-        } else {
-            return false;
-        }
+                || mime.startsWith("video");
     }
 
     /**
@@ -538,10 +535,10 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
         return code >= 300 && code < 400;
     }
 
-    class WebviewTlsSniSocketFactory extends SSLSocketFactory {
+    static class WebviewTlsSniSocketFactory extends SSLSocketFactory {
         private final String TAG = WebviewTlsSniSocketFactory.class.getSimpleName();
         HostnameVerifier hostnameVerifier = HttpsURLConnection.getDefaultHostnameVerifier();
-        private HttpsURLConnection conn;
+        private final HttpsURLConnection conn;
 
         public WebviewTlsSniSocketFactory(HttpsURLConnection conn) {
             this.conn = conn;
@@ -553,12 +550,12 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
         }
 
         @Override
-        public Socket createSocket(String host, int port) throws IOException, UnknownHostException {
+        public Socket createSocket(String host, int port) throws IOException {
             return null;
         }
 
         @Override
-        public Socket createSocket(String host, int port, InetAddress localHost, int localPort) throws IOException, UnknownHostException {
+        public Socket createSocket(String host, int port, InetAddress localHost, int localPort) throws IOException {
             return null;
         }
 
@@ -597,7 +594,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
             }
             // create and connect SSL socket, but don't do hostname/certificate verification yet
             SSLCertificateSocketFactory sslSocketFactory = (SSLCertificateSocketFactory) SSLCertificateSocketFactory.getDefault(0);
-            SSLSocket ssl = (SSLSocket) sslSocketFactory.createSocket(address, port);
+            @SuppressLint("SSLCertificateSocketFactoryCreateSocket") SSLSocket ssl = (SSLSocket) sslSocketFactory.createSocket(address, port);
 
             // enable TLSv1.1/1.2 if available
             ssl.setEnabledProtocols(ssl.getSupportedProtocols());

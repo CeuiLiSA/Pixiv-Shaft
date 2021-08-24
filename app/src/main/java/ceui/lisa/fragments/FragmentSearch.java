@@ -198,7 +198,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
         } else if (searchType == 1) {
             if (Common.isNumeric(trimmedKeyword)) {
                 PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_ILLUSTSID);
-                PixivOperate.getIllustByID(sUserModel, Integer.valueOf(trimmedKeyword), mContext);
+                PixivOperate.getIllustByID(sUserModel, Integer.parseInt(trimmedKeyword), mContext);
             } else {
                 Common.showToast(getString(R.string.string_154));
             }
@@ -214,7 +214,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
         } else if (searchType == 3) {
             if (Common.isNumeric(trimmedKeyword)) {
                 PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_NOVELID);
-                PixivOperate.getNovelByID(sUserModel, Integer.valueOf(trimmedKeyword), mContext, null);
+                PixivOperate.getNovelByID(sUserModel, Integer.parseInt(trimmedKeyword), mContext, null);
             } else {
                 Common.showToast(getString(R.string.string_154));
             }
@@ -251,7 +251,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                         .create();
                 tipDialog.show();
                 //先假定为作品id
-                PixivOperate.getIllustByID(sUserModel, Integer.valueOf(trimmedKeyword), mContext, new Callback<Void>() {
+                PixivOperate.getIllustByID(sUserModel, Integer.parseInt(trimmedKeyword), mContext, new Callback<Void>() {
                     @Override
                     public void doSomething(Void t) {
                         PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_ILLUSTSID);

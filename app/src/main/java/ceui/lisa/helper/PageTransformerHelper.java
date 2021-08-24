@@ -80,9 +80,9 @@ public class PageTransformerHelper {
 
     private static class TransformerType {
 
-        private int typeId;
+        private final int typeId;
         private int nameResId;
-        private Class<? extends ABaseTransformer> pageTransformer;
+        private final Class<? extends ABaseTransformer> pageTransformer;
 
         public TransformerType(int typeId, Class<? extends ABaseTransformer> pageTransformer) {
             this.typeId = typeId;

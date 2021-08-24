@@ -122,9 +122,8 @@ public abstract class BaseActivity<Layout extends ViewDataBinding> extends AppCo
             if (treeUri != null) {
                 Common.showLog(className + "onActivityResult " + treeUri.toString());
                 Shaft.sSettings.setRootPathUri(treeUri.toString());
-                final int takeFlags = data.getFlags()
-                        & (Intent.FLAG_GRANT_READ_URI_PERMISSION
-                        | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                final int takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        | Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
                 mContext.getContentResolver().takePersistableUriPermission(treeUri,takeFlags);
                 Common.showToast("授权成功！");
                 Local.setSettings(Shaft.sSettings);

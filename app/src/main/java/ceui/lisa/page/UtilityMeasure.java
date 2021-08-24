@@ -113,12 +113,12 @@ public class UtilityMeasure {
         testWordRect = null;
         final String[] arrWrapContent = bookChapter.getNovel_text().split("\n");
         Common.showLog("arrWrapContent " + arrWrapContent.length);
-        for (int i = 0; i < arrWrapContent.length; i++) {
+        for (String s : arrWrapContent) {
 
             start = 0;
             for (int linePosition = 0; ; linePosition++) {
                 // 换行
-                if (TextUtils.isEmpty(arrWrapContent[i])) {
+                if (TextUtils.isEmpty(s)) {
                     textModel = new TextModel();
                     textModel.textSize = contentTextSize;
                     textModel.height = getTestWordHeight(textModel);
@@ -128,7 +128,7 @@ public class UtilityMeasure {
                 }
 
                 // 正常数据
-                textModel = getShowLines(arrWrapContent[i], contentTextSize, false, start, settingInfo, ctContent);
+                textModel = getShowLines(s, contentTextSize, false, start, settingInfo, ctContent);
                 if (textModel == null || textModel.textLength <= 0) {
                     break;
                 }
@@ -342,7 +342,7 @@ public class UtilityMeasure {
                 if (content.length() <= beginIndex) {
                     break;
                 } else {
-                    sb.append(content.substring(beginIndex, beginIndex + 1));
+                    sb.append(content.charAt(beginIndex));
                 }
             } else {
                 break;

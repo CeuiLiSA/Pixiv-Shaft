@@ -26,7 +26,7 @@ import ceui.lisa.utils.PixivOperate;
 
 public class UAdapter extends BaseAdapter<UserPreviewsBean, RecyUserPreviewBinding> {
 
-    private int imageSize;
+    private final int imageSize;
     private FullClickListener mFullClickListener;
 
     public UAdapter(List<UserPreviewsBean> targetList, Context context) {

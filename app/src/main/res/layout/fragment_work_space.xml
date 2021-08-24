@@ -54,6 +54,7 @@
 
                             <EditText
                                 android:id="@+id/computer"
+                                android:inputType="text"
                                 style="@style/AboutUserRightDarkText"/>
 
                         </LinearLayout>
@@ -75,6 +76,7 @@
 
                             <EditText
                                 android:id="@+id/monitor"
+                                android:inputType="text"
                                 style="@style/AboutUserRightDarkText"/>
 
                         </LinearLayout>
@@ -110,6 +112,7 @@
 
                         <EditText
                             android:id="@+id/app"
+                            android:inputType="text"
                             style="@style/AboutUserRightDarkText"/>
 
                     </LinearLayout>
@@ -131,6 +134,7 @@
 
                         <EditText
                             android:id="@+id/scanner"
+                            android:inputType="text"
                             style="@style/AboutUserRightDarkText"/>
 
                     </LinearLayout>
@@ -152,6 +156,7 @@
 
                         <EditText
                             android:id="@+id/draw_board"
+                            android:inputType="text"
                             style="@style/AboutUserRightDarkText"/>
 
                     </LinearLayout>
@@ -187,6 +192,7 @@
 
                         <EditText
                             android:id="@+id/mouse"
+                            android:inputType="text"
                             style="@style/AboutUserRightDarkText"/>
 
                     </LinearLayout>
@@ -208,6 +214,7 @@
 
                         <EditText
                             android:id="@+id/printer"
+                            android:inputType="text"
                             style="@style/AboutUserRightDarkText"/>
 
                     </LinearLayout>
@@ -229,6 +236,7 @@
 
                         <EditText
                             android:id="@+id/table_objects"
+                            android:inputType="text"
                             style="@style/AboutUserRightDarkText"/>
 
                     </LinearLayout>
@@ -250,6 +258,7 @@
 
                         <EditText
                             android:id="@+id/like_music"
+                            android:inputType="text"
                             style="@style/AboutUserRightDarkText"/>
 
                     </LinearLayout>
@@ -285,6 +294,7 @@
 
                         <EditText
                             android:id="@+id/table"
+                            android:inputType="text"
                             style="@style/AboutUserRightDarkText"/>
 
                     </LinearLayout>
@@ -306,6 +316,7 @@
 
                         <EditText
                             android:id="@+id/chair"
+                            android:inputType="text"
                             style="@style/AboutUserRightDarkText"/>
 
                     </LinearLayout>
@@ -327,6 +338,7 @@
 
                         <EditText
                             android:id="@+id/other_text"
+                            android:inputType="text"
                             style="@style/AboutUserRightDarkText"/>
 
                     </LinearLayout>

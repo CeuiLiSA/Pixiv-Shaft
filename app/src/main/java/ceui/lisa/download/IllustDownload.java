@@ -202,7 +202,7 @@ public class IllustDownload {
             @Override
             public void next(GifResponse gifResponse) {
                 Cache.get().saveModel(Params.ILLUST_ID + "_" + illustsBean.getId(), gifResponse);
-                downloadGif(gifResponse, illustsBean, true, (BaseActivity<?>) activity);
+                downloadGif(gifResponse, illustsBean, true, activity);
             }
         });
     }
@@ -222,7 +222,7 @@ public class IllustDownload {
         check(activity, new FeedBack() {
             @Override
             public void doSomething() {
-                File textFile = new LegacyFile().textFile(activity, displayName);
+                File textFile = LegacyFile.textFile(activity, displayName);
                 try {
                     OutputStream outStream = new FileOutputStream(textFile);
                     outStream.write(content.getBytes());
@@ -245,7 +245,7 @@ public class IllustDownload {
         check(activity, new FeedBack() {
             @Override
             public void doSomething() {
-                File textFile = new LegacyFile().textFile(activity, displayName);
+                File textFile = LegacyFile.textFile(activity, displayName);
                 try {
                     OutputStream outStream = new FileOutputStream(textFile);
                     outStream.write(content.getBytes());
@@ -268,7 +268,7 @@ public class IllustDownload {
         check(activity, new FeedBack() {
             @Override
             public void doSomething() {
-                File textFile = new LegacyFile().textFile(activity, displayName);
+                File textFile = LegacyFile.textFile(activity, displayName);
                 try {
                     OutputStream outStream = new FileOutputStream(textFile);
                     outStream.write(content.getBytes());

@@ -19,6 +19,8 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
+import com.blankj.utilcode.util.AppUtils;
+import com.blankj.utilcode.util.FileIOUtils;
 import com.blankj.utilcode.util.Utils;
 import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
@@ -28,8 +30,12 @@ import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -48,6 +54,7 @@ import ceui.lisa.activities.UserActivity;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
 import ceui.lisa.download.FileCreator;
+import ceui.lisa.file.LegacyFile;
 import ceui.lisa.file.SAFile;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.UserContainer;
@@ -224,13 +231,9 @@ public class Common {
         qmuiDialog.show();
     }
 
-    public static void createLoginHintDialog(Context context){
-
-    }
-
     public static String getResponseBody(Response response) {
 
-        Charset UTF8 = Charset.forName("UTF-8");
+        Charset UTF8 = StandardCharsets.UTF_8;
         ResponseBody responseBody = response.body();
         BufferedSource source = responseBody.source();
         try {
@@ -238,7 +241,7 @@ public class Common {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        Buffer buffer = source.buffer();
+        Buffer buffer = source.getBuffer();
 
         Charset charset = UTF8;
         MediaType contentType = responseBody.contentType();
@@ -320,8 +323,8 @@ public class Common {
      */
     public static String removeFSReservedChars(String s){
         try {
-            for (int i = 0; i < safeReplacer.length; i++){
-                s = s.replace(safeReplacer[i][0], safeReplacer[i][1]);
+            for (String[] strings : safeReplacer) {
+                s = s.replace(strings[0], strings[1]);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -433,5 +436,31 @@ public class Common {
         boolean ret = cursor.getLong(sizeIndex) <= maxImageSize;
         cursor.close();
         return ret;
+    }
+
+    /**
+     *  复制资源Uri到内部缓存，from com.blankj.utilcode.util.UriUtils
+     * @param uri
+     * @return cached file
+     */
+    public static File copyUriToImageCacheFolder(Uri uri) {
+        InputStream is = null;
+        try {
+            is = Utils.getApp().getContentResolver().openInputStream(uri);
+            File file = new File(LegacyFile.imageCacheFolder(Utils.getApp()), String.valueOf(System.currentTimeMillis()));
+            FileIOUtils.writeFileFromIS(file.getAbsolutePath(), is);
+            return file;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 }

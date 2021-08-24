@@ -102,7 +102,7 @@ public class Emoji {
         return origin.replace(emoji, "");
     }
 
-    private static Map<String, String> map = new HashMap<>();
+    private static final Map<String, String> map = new HashMap<>();
     private static final String HEAD = "<img class=\"_2sgsdWB\" width=\"24\" height=\"24\" src=\"";
     private static final String OFF = "\">";
 

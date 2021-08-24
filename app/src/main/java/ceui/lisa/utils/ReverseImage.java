@@ -52,7 +52,7 @@ public class ReverseImage {
                 break;
             case "SauceNao":
                 formData = MultipartBody.Part.createFormData("file", "pixiv_image.png", requestBody);
-                observable = ((SauceNaoApi) o).query(formData).timeout(60, TimeUnit.SECONDS);
+                observable = ((SauceNaoApi) o).query(formData).timeout(30, TimeUnit.SECONDS);
                 break;
             case "TinEye":
                 formData = MultipartBody.Part.createFormData("image", "pixiv_image.png", requestBody);
@@ -60,7 +60,7 @@ public class ReverseImage {
                 break;
             case "Ascii2D":
                 formData = MultipartBody.Part.createFormData("file", "pixiv_image.png", requestBody);
-                observable = ((Ascii2DApi) o).query(formData);
+                observable = ((Ascii2DApi) o).query(formData).timeout(30, TimeUnit.SECONDS);
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + reverseProvider.name());

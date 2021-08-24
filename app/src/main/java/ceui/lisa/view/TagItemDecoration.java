@@ -7,9 +7,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 public class TagItemDecoration extends RecyclerView.ItemDecoration {
 
-    private int spanCount;
-    private int spacing;
-    private boolean includeEdge;
+    private final int spanCount;
+    private final int spacing;
+    private final boolean includeEdge;
 
     public TagItemDecoration(int spanCount, int spacing, boolean includeEdge) {
         this.spanCount = spanCount;

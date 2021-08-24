@@ -77,10 +77,7 @@ public class FragmentSearchUser extends NetListFragment<FragmentBaseListBinding,
     @Override
     public boolean showToolbar() {
         Activity mActivity = getActivity();
-        if(mActivity  instanceof TemplateActivity){
-            return true;
-        }
-        return false;
+        return mActivity instanceof TemplateActivity;
     }
 
     /*@Override

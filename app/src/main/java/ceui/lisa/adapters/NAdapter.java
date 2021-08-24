@@ -13,6 +13,7 @@ import com.zhy.view.flowlayout.TagAdapter;
 import com.zhy.view.flowlayout.TagFlowLayout;
 
 import java.util.List;
+import java.util.Locale;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.SearchActivity;
@@ -70,7 +71,7 @@ public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
             bindView.baseBind.series.setVisibility(View.GONE);
         }
         if (showShop) {
-            bindView.baseBind.title.setText(String.format("#%d %s", position + 1, target.getTitle()));
+            bindView.baseBind.title.setText(String.format(Locale.getDefault(), "#%d %s", position + 1, target.getTitle()));
         } else {
             bindView.baseBind.title.setText(target.getTitle());
         }
@@ -95,7 +96,7 @@ public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
             }
         });
         bindView.baseBind.author.setText(target.getUser().getName());
-        bindView.baseBind.howManyWord.setText(String.format("%d字", target.getText_length()));
+        bindView.baseBind.howManyWord.setText(String.format(Locale.getDefault(), "%d字", target.getText_length()));
         Glide.with(mContext).load(GlideUtil.getUrl(target.getImage_urls().getMaxImage())).into(bindView.baseBind.cover);
         Glide.with(mContext).load(GlideUtil.getHead(target.getUser())).into(bindView.baseBind.userHead);
         if (target.isIs_bookmarked()) {

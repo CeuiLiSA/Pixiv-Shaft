@@ -8,7 +8,7 @@ import ceui.lisa.models.IllustsBean;
 
 public class PageData implements IDWithList<IllustsBean>{
 
-    private String uuid;
+    private final String uuid;
     private String nextUrl;
     private final List<IllustsBean> illustList;
 

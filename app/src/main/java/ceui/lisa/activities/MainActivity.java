@@ -24,12 +24,13 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
-import com.blankj.utilcode.util.UriUtils;
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.tbruyelle.rxpermissions3.RxPermissions;
+
+import java.io.File;
 
 import ceui.lisa.R;
 import ceui.lisa.core.Manager;
@@ -366,12 +367,14 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         if (requestCode == Params.REQUEST_CODE_CHOOSE && resultCode == RESULT_OK) {
             try {
                 Uri imageUri = data.getData();
+                File innerImageFile = Common.copyUriToImageCacheFolder(imageUri);
+                Uri innerImageFileUri = Uri.fromFile(innerImageFile);
                 if (!ReverseImage.isFileSizeOkToSearch(imageUri, ReverseImage.DEFAULT_ENGINE)) {
                     Common.showToast(getString(R.string.string_410));
                     return;
                 }
-                ReverseImage.reverse(imageUri,
-                        ReverseImage.DEFAULT_ENGINE, new ReverseWebviewCallback(this, imageUri));
+                ReverseImage.reverse(innerImageFileUri,
+                        ReverseImage.DEFAULT_ENGINE, new ReverseWebviewCallback(this, innerImageFileUri));
             } catch (Exception e) {
                 e.printStackTrace();
             }

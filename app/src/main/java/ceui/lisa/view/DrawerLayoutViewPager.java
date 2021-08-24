@@ -37,12 +37,8 @@ public class DrawerLayoutViewPager extends ViewPager {
             startX = ev.getX();
             startY = ev.getY();
             // 如果触发边缘触摸，交给 DrawerLayout 处理
-            if (startX < leftThreshold) {
-                getParent().requestDisallowInterceptTouchEvent(false);
-            } else {
-                // 其他情况不允许 DrawerLayout 拦截事件，除非后面判断可以交给其消费
-                getParent().requestDisallowInterceptTouchEvent(true);
-            }
+            // 其他情况不允许 DrawerLayout 拦截事件，除非后面判断可以交给其消费
+            getParent().requestDisallowInterceptTouchEvent(!(startX < leftThreshold));
         }
         return super.dispatchTouchEvent(ev);
     }

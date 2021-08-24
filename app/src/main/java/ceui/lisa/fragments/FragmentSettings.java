@@ -191,11 +191,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             baseBind.firstDetailOrigin.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    if (isChecked) {
-                        Shaft.sSettings.setUsePixivCat(true);
-                    } else {
-                        Shaft.sSettings.setUsePixivCat(false);
-                    }
+                    Shaft.sSettings.setUsePixivCat(isChecked);
                     Common.showToast(getString(R.string.string_428));
                     Local.setSettings(Shaft.sSettings);
                 }
@@ -247,11 +243,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             baseBind.saveHistory.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    if (isChecked) {
-                        Shaft.sSettings.setSaveViewHistory(true);
-                    } else {
-                        Shaft.sSettings.setSaveViewHistory(false);
-                    }
+                    Shaft.sSettings.setSaveViewHistory(isChecked);
                     Common.showToast(getString(R.string.string_428), 2);
                     Local.setSettings(Shaft.sSettings);
                 }
@@ -267,11 +259,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             baseBind.deleteStarIllust.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    if (isChecked) {
-                        Shaft.sSettings.setDeleteStarIllust(true);
-                    } else {
-                        Shaft.sSettings.setDeleteStarIllust(false);
-                    }
+                    Shaft.sSettings.setDeleteStarIllust(isChecked);
                     Common.showToast(getString(R.string.string_428), 2);
                     Local.setSettings(Shaft.sSettings);
                 }
@@ -335,11 +323,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             baseBind.filterComment.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    if (isChecked) {
-                        Shaft.sSettings.setFilterComment(true);
-                    } else {
-                        Shaft.sSettings.setFilterComment(false);
-                    }
+                    Shaft.sSettings.setFilterComment(isChecked);
                     Common.showToast(getString(R.string.string_428), 2);
                     Local.setSettings(Shaft.sSettings);
                 }
@@ -423,11 +407,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             baseBind.illustDetailUserNew.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    if (isChecked) {
-                        Shaft.sSettings.setUseFragmentIllust(true);
-                    } else {
-                        Shaft.sSettings.setUseFragmentIllust(false);
-                    }
+                    Shaft.sSettings.setUseFragmentIllust(isChecked);
                     Common.showToast(getString(R.string.string_428), 2);
                     Local.setSettings(Shaft.sSettings);
                 }
@@ -884,23 +864,23 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
 
         // 缓存
         {
-            baseBind.imageCacheSize.setText(FileUtils.getSize(new LegacyFile().imageCacheFolder(mContext)));
+            baseBind.imageCacheSize.setText(FileUtils.getSize(LegacyFile.imageCacheFolder(mContext)));
             baseBind.clearImageCache.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    FileUtils.deleteAllInDir(new LegacyFile().imageCacheFolder(mContext));
+                    FileUtils.deleteAllInDir(LegacyFile.imageCacheFolder(mContext));
                     Common.showToast("图片缓存清除成功！");
-                    baseBind.imageCacheSize.setText(FileUtils.getSize(new LegacyFile().imageCacheFolder(mContext)));
+                    baseBind.imageCacheSize.setText(FileUtils.getSize(LegacyFile.imageCacheFolder(mContext)));
                 }
             });
 
-            baseBind.gifCacheSize.setText(FileUtils.getSize(new LegacyFile().gifCacheFolder(mContext)));
+            baseBind.gifCacheSize.setText(FileUtils.getSize(LegacyFile.gifCacheFolder(mContext)));
             baseBind.clearGifCache.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    FileUtils.deleteAllInDir(new LegacyFile().gifCacheFolder(mContext));
+                    FileUtils.deleteAllInDir(LegacyFile.gifCacheFolder(mContext));
                     Common.showToast("GIF缓存清除成功！", 2);
-                    baseBind.gifCacheSize.setText(FileUtils.getSize(new LegacyFile().gifCacheFolder(mContext)));
+                    baseBind.gifCacheSize.setText(FileUtils.getSize(LegacyFile.gifCacheFolder(mContext)));
                 }
             });
         }

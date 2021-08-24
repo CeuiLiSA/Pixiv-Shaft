@@ -6,7 +6,7 @@ import android.content.Intent;
 
 public class FilterReceiver extends BroadcastReceiver {
 
-    private BaseReceiver.CallBack mCallBack;
+    private final BaseReceiver.CallBack mCallBack;
 
     public FilterReceiver(BaseReceiver.CallBack callBack) {
         mCallBack = callBack;

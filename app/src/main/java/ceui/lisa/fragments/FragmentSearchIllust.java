@@ -29,7 +29,7 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
         IllustsBean> {
 
     private SearchModel searchModel;
-    private boolean isPopular = false;
+    private final boolean isPopular = false;
 
     public static FragmentSearchIllust newInstance(boolean popular) {
         Bundle args = new Bundle();
@@ -40,8 +40,7 @@ public class FragmentSearchIllust extends NetListFragment<FragmentBaseListBindin
     }
 
     public static FragmentSearchIllust newInstance() {
-        FragmentSearchIllust fragment = new FragmentSearchIllust();
-        return fragment;
+        return new FragmentSearchIllust();
     }
 
     @Override

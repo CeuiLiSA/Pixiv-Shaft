@@ -119,9 +119,8 @@ public class ScreenUtils {
     }
 
     public static DisplayMetrics getDisplayMetrics() {
-        DisplayMetrics metrics = Shaft.getContext()
+        return Shaft.getContext()
                 .getResources()
                 .getDisplayMetrics();
-        return metrics;
     }
 }
