@@ -20,7 +20,10 @@ public class DownloadItem implements Serializable {
     private final IllustsBean illust;
     private int index;
     private boolean autoSave = true;
-    private long transferredBytes = 0;
+    //private long transferredBytes = 0;
+    private int state = DownloadState.INIT;
+    private boolean paused = false;
+    private int nonius = 0;
 
     public DownloadItem(IllustsBean illustsBean, int index) {
         this.illust = illustsBean;
@@ -101,11 +104,46 @@ public class DownloadItem implements Serializable {
                 TextUtils.equals(url, next.url);
     }
 
-    public long getTransferredBytes() {
-        return transferredBytes;
+//    public long getTransferredBytes() {
+//        return transferredBytes;
+//    }
+//
+//    public void setTransferredBytes(long transferredBytes) {
+//        this.transferredBytes = transferredBytes;
+//    }
+
+    public int getState() {
+        if(this.paused){
+            return DownloadState.PAUSED;
+        }
+        return state;
     }
 
-    public void setTransferredBytes(long transferredBytes) {
-        this.transferredBytes = transferredBytes;
+    public void setState(int state) {
+        this.state = state;
+    }
+
+    public void setPaused(boolean paused) {
+        this.paused = paused;
+    }
+
+    public boolean isPaused(){
+        return this.paused;
+    }
+
+    public int getNonius() {
+        return nonius;
+    }
+
+    public void setNonius(int nonius) {
+        this.nonius = nonius;
+    }
+
+    public static class DownloadState {
+        public static final int INIT = 0;
+        public static final int DOWNLOADING = 1;
+        public static final int SUCCESS = 2;
+        public static final int FAILED = 3;
+        public static final int PAUSED = 4;
     }
 }

@@ -55,42 +55,47 @@ public class DownloadingAdapter extends BaseAdapter<DownloadItem, RecyDownloadTa
                     .load(GlideUtil.getUrl(target.getShowUrl()))
                     .into(bindView.baseBind.illustImage);
         }
-        if (position == 0) {
-            bindView.baseBind.progress.setProgress(Manager.get().getCurrentProgress());
-            Manager.get().setCallback(new Callback<Progress>() {
-                @Override
-                public void doSomething(Progress t) {
-                    if (Manager.get().getUuid().equals(bindView.baseBind.progress.getTag())) {
-                        bindView.baseBind.progress.setProgress(t.getProgress());
-                        bindView.baseBind.state.setText("正在下载");
-                        bindView.baseBind.currentSize.setText(String.format("%s / %s",
-                                FileSizeUtil.formatFileSize(t.getCurrentSize()),
-                                FileSizeUtil.formatFileSize(t.getTotalSize())));
-                    } else {
-                        bindView.baseBind.progress.setProgress(0);
-                        if (target.isProcessed()) {
-                            bindView.baseBind.state.setText("已失败");
-                        } else {
-                            bindView.baseBind.state.setText("未开始");
-                        }
-                        bindView.baseBind.currentSize.setText(mContext.getString(R.string.string_115));
-                    }
+
+        final Manager manager = Manager.get();
+        // 回调
+        manager.setCallback(target.getUuid(), new Callback<Progress>() {
+            @Override
+            public void doSomething(Progress t) {
+                if (manager.getUuid().equals(target.getUuid())) {
+                    bindView.baseBind.progress.setProgress(t.getProgress());
+                    bindView.baseBind.currentSize.setText(String.format("%s / %s",
+                            FileSizeUtil.formatFileSize(t.getCurrentSize()),
+                            FileSizeUtil.formatFileSize(t.getTotalSize())));
+                    bindView.baseBind.state.setText("正在下载");
                 }
-            });
-        } else {
-            bindView.baseBind.progress.setProgress(0);
-            bindView.baseBind.currentSize.setText(mContext.getString(R.string.string_115));
-        }
-        if (target.isProcessed()) {
+            }
+        });
+
+        setDefaultView(target, bindView, position);
+
+        bindView.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (target.isPaused()) {
+                    manager.startOne(mContext, target.getUuid());
+                    bindView.baseBind.state.setText("未开始");
+                } else {
+                    manager.stopOne(target.getUuid());
+                    bindView.baseBind.state.setText("已暂停");
+                }
+            }
+        });
+    }
+
+    private void setDefaultView(DownloadItem target, ViewHolder<RecyDownloadTaskBinding> bindView, int position) {
+        bindView.baseBind.progress.setProgress(target.getNonius());
+        bindView.baseBind.currentSize.setText(mContext.getString(R.string.string_115));
+        if (target.isPaused() && !target.isProcessed()) {
+            bindView.baseBind.state.setText("已暂停");
+        } else if (target.isProcessed()) {
             bindView.baseBind.state.setText("已失败");
         } else {
             bindView.baseBind.state.setText("未开始");
         }
-        bindView.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Manager.get().start(mContext);
-            }
-        });
     }
 }

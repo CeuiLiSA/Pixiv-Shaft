@@ -1,6 +1,5 @@
 package ceui.lisa.fragments;
 
-import android.content.DialogInterface;
 import android.view.MenuItem;
 
 import androidx.annotation.Nullable;
@@ -10,7 +9,6 @@ import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import com.ToxicBakery.viewpager.transforms.DrawerTransformer;
-import com.blankj.utilcode.util.BarUtils;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
@@ -75,9 +73,15 @@ public class FragmentDownload extends BaseFragment<ViewpagerWithTablayoutBinding
                     }
                     return true;
                 } else if (item.getItemId() == R.id.action_start) {
-                    Manager.get().start(mContext);
+                    Manager.get().startAll();
+                    if(allPages[0] instanceof FragmentDownloading){
+                        ((FragmentDownloading) allPages[0]).mAdapter.notifyDataSetChanged();
+                    }
                 } else if (item.getItemId() == R.id.action_stop) {
-                    Manager.get().stop();
+                    Manager.get().stopAll();
+                    if(allPages[0] instanceof FragmentDownloading){
+                        ((FragmentDownloading) allPages[0]).mAdapter.notifyDataSetChanged();
+                    }
                 } else if (item.getItemId() == R.id.action_clear) {
                     if (allPages[0] instanceof FragmentDownloading &&
                             ((FragmentDownloading) allPages[0]).getCount() > 0) {
