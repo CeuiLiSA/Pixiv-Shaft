@@ -103,7 +103,7 @@ public class BottomSlideLayout extends LinearLayout {
                 break;
             case MotionEvent.ACTION_MOVE:
                 int endY = (int) event.getY();
-                int dy = (int) (endY - downY);
+                int dy = endY - downY;
                 int toScroll = getScrollY() - dy;
                 if(toScroll < 0){
                     toScroll = 0;

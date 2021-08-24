@@ -18,7 +18,7 @@ public class UserContentBehavior extends CoordinatorLayout.Behavior<View> {
     private View centerView, toolbarTitleView;
     private OverScroller scroller;
     private int toolbarHeight;
-    private Runnable scrollRunnable = new Runnable() {
+    private final Runnable scrollRunnable = new Runnable() {
         @Override
         public void run() {
             if (scroller != null) {

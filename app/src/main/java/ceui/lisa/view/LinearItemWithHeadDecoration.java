@@ -6,7 +6,7 @@ import android.view.View;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class LinearItemWithHeadDecoration extends RecyclerView.ItemDecoration {
-    private int space;
+    private final int space;
 
     public LinearItemWithHeadDecoration(int space) {
         this.space = space;

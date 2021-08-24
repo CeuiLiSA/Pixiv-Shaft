@@ -32,8 +32,8 @@ import ceui.lisa.utils.Params;
 public class FragmentDownloadFinish extends LocalListFragment<FragmentBaseListBinding,
         DownloadEntity> {
 
-    private List<IllustsBean> all = new ArrayList<>();
-    private List<String> filePaths = new ArrayList<>();
+    private final List<IllustsBean> all = new ArrayList<>();
+    private final List<String> filePaths = new ArrayList<>();
     private DownloadReceiver<?> mReceiver;
 
     @Override

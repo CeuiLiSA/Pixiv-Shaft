@@ -6,7 +6,7 @@ import android.content.Intent;
 
 public class CallBackReceiver extends BroadcastReceiver {
 
-    private BaseReceiver.CallBack mCallBack;
+    private final BaseReceiver.CallBack mCallBack;
 
     public CallBackReceiver(BaseReceiver.CallBack callBack) {
         mCallBack = callBack;

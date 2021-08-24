@@ -36,7 +36,7 @@ class SearchIllustRepo(
             else -> " ${PixivSearchParamUtil.R18_RESTRICTION_VALUE[r18Restriction!!]}"
         }
 
-        return if (sortType==PixivSearchParamUtil.POPULAR_SORT_VALUE&&(!(isPremium?:false))) {
+        return if (sortType==PixivSearchParamUtil.POPULAR_SORT_VALUE&&(isPremium != true)) {
             Retro.getAppApi().popularPreview(
                 token(),
                 assembledKeyword,

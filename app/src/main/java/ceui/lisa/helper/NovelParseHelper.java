@@ -12,8 +12,8 @@ import ceui.lisa.models.NovelDetail;
 
 public class NovelParseHelper {
 
-    private static final Pattern PAGE_PATTERN = Pattern.compile("\\[newpage\\]");
-    private static final Pattern CHAPTER_PATTERN = Pattern.compile("\\[chapter:(.+)\\]");
+    private static final Pattern PAGE_PATTERN = Pattern.compile("\\[newpage]");
+    private static final Pattern CHAPTER_PATTERN = Pattern.compile("\\[chapter:(.+)]");
 
     public static List<NovelDetail.NovelChapterBean> tryParseChapters(String content) {
         if (TextUtils.isEmpty(content)) {

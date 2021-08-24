@@ -15,7 +15,7 @@ import ceui.lisa.fragments.FragmentViewPager;
 import ceui.lisa.utils.Params;
 
 public class NavigationLocationHelper {
-    private static Resources resources = Shaft.getContext().getResources();
+    private static final Resources resources = Shaft.getContext().getResources();
 
     public static final String LATEST = "LATEST"; // 上次位置
     public static final String TUIJIAN = "TUIJIAN";
@@ -43,9 +43,9 @@ public class NavigationLocationHelper {
     };
 
     public static class NavigationItem {
-        private int titleResId;
-        private int iconResId;
-        private Class instanceClass;
+        private final int titleResId;
+        private final int iconResId;
+        private final Class instanceClass;
 
         public NavigationItem(int titleResId, int iconResId, Class instanceClass) {
             this.titleResId = titleResId;

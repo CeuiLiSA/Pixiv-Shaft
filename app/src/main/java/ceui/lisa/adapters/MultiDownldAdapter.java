@@ -46,7 +46,7 @@ public class MultiDownldAdapter extends BaseAdapter<IllustsBean, RecyMultiDownlo
         bindView.baseBind.illustImage.setLayoutParams(params);
         final IllustsBean illustsBean = allItems.get(position);
         Object tag = bindView.itemView.getTag(R.id.tag_image_url);
-        if ((tag == null) || !(tag instanceof String) || !((String) tag).equals(illustsBean.getImage_urls().getMedium())) {
+        if ((tag == null) || !(tag instanceof String) || !tag.equals(illustsBean.getImage_urls().getMedium())) {
             Glide.with(mContext)
                     .load(GlideUtil.getMediumImg(illustsBean))
                     .placeholder(R.color.light_bg)
@@ -58,20 +58,12 @@ public class MultiDownldAdapter extends BaseAdapter<IllustsBean, RecyMultiDownlo
         bindView.baseBind.checkbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    illustsBean.setChecked(true);
-                } else {
-                    illustsBean.setChecked(false);
-                }
+                illustsBean.setChecked(isChecked);
                 mCallback.doSomething(null);
             }
         });
 
-        if (illustsBean.isChecked()) {
-            bindView.baseBind.checkbox.setChecked(true);
-        } else {
-            bindView.baseBind.checkbox.setChecked(false);
-        }
+        bindView.baseBind.checkbox.setChecked(illustsBean.isChecked());
 
 //        bindView.itemView.setOnClickListener(v -> bindView.baseBind.checkbox.performClick());
         bindView.itemView.setOnClickListener(new View.OnClickListener() {

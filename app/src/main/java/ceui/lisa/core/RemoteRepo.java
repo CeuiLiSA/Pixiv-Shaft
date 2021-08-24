@@ -10,7 +10,7 @@ import io.reactivex.schedulers.Schedulers;
 public abstract class RemoteRepo<Response extends ListShow<?>> extends BaseRepo {
 
     private Observable<? extends Response> mApi;
-    private Function<? super Response, Response> mFunction;
+    private final Function<? super Response, Response> mFunction;
     protected String nextUrl = "";
 
     public RemoteRepo() {

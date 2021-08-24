@@ -19,6 +19,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
+import com.blankj.utilcode.util.AppUtils;
 import com.blankj.utilcode.util.FileIOUtils;
 import com.blankj.utilcode.util.Utils;
 import com.facebook.rebound.SimpleSpringListener;
@@ -34,6 +35,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -52,6 +54,7 @@ import ceui.lisa.activities.UserActivity;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.UserEntity;
 import ceui.lisa.download.FileCreator;
+import ceui.lisa.file.LegacyFile;
 import ceui.lisa.file.SAFile;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.UserContainer;
@@ -234,7 +237,7 @@ public class Common {
 
     public static String getResponseBody(Response response) {
 
-        Charset UTF8 = Charset.forName("UTF-8");
+        Charset UTF8 = StandardCharsets.UTF_8;
         ResponseBody responseBody = response.body();
         BufferedSource source = responseBody.source();
         try {
@@ -444,11 +447,11 @@ public class Common {
      * @param uri
      * @return cached file
      */
-    public static File copyUri2Cache(Uri uri) {
+    public static File copyUriToImageCacheFolder(Uri uri) {
         InputStream is = null;
         try {
             is = Utils.getApp().getContentResolver().openInputStream(uri);
-            File file = new File(Utils.getApp().getCacheDir(), "" + System.currentTimeMillis());
+            File file = new File(LegacyFile.imageCacheFolder(Utils.getApp()), String.valueOf(System.currentTimeMillis()));
             FileIOUtils.writeFileFromIS(file.getAbsolutePath(), is);
             return file;
         } catch (FileNotFoundException e) {

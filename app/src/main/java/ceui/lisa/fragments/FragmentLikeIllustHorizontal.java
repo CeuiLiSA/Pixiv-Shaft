@@ -40,7 +40,7 @@ import static ceui.lisa.fragments.ListFragment.animateDuration;
 
 public class FragmentLikeIllustHorizontal extends BaseFragment<FragmentLikeIllustHorizontalBinding> {
 
-    private List<IllustsBean> allItems = new ArrayList<>();
+    private final List<IllustsBean> allItems = new ArrayList<>();
     private UserDetailResponse mUserDetailResponse;
     private LAdapter mAdapter;
     private int type; // 1插画收藏    2插画作品     3漫画作品

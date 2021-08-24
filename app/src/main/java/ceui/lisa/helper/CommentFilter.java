@@ -84,8 +84,8 @@ public class CommentFilter {
         private static final int REGEX_MATCH = 1; // 根据正则过滤
         private static final int LIST_ALL_REGEX_MATCH = 2; // 列表正则全匹配过滤
 
-        private int ruleType;
-        private String ruleValue;
+        private final int ruleType;
+        private final String ruleValue;
         private List<Pattern> mPatterns;
 
         public CommentFilterRule(int ruleType, String ruleValue) {

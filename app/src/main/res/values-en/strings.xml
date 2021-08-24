@@ -120,7 +120,7 @@
   <string name="normal">Common</string>  
   <string name="open_direct_connection">Bypass GFW</string>  
   <string name="see_pixiv_ez">See Notsfsssf / Pix-EzViewer</string>  
-  <string name="show_original_image">Use orginal image</string>  
+  <string name="show_original_image">Use original image</string>
   <string name="delete_star_illust">Filter out bookmarked in search result</string>  
   <string name="save_view_history">Save browsing history</string>  
   <string name="single_download_task">Keeping a job in the download (download order to ensure)</string>  
@@ -503,7 +503,7 @@
   <string name="string_337">Download Again</string>  
   <string name="string_338">R18 works download to another directory</string>  
   <string name="string_339">Download this work</string>  
-  <string name="string_0">Load orginal image</string>  
+  <string name="string_0">Load original image</string>
   <string name="string_340">Please log out and log in again</string>  
   <string name="string_341">Smart redirection of website</string>  
   <string name="string_342">Tab order at the bottom of app</string>  

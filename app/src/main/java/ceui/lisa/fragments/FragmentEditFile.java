@@ -350,7 +350,8 @@ public class FragmentEditFile extends SwipeFragment<FragmentEditFileBinding> imp
     }
 
     private String sex = "", address = "", job = "", country = "", birthday = "";
-    private boolean isGlobal = false, isDeleteProfileImage = false;
+    private boolean isGlobal = false;
+    private final boolean isDeleteProfileImage = false;
 
     @Override
     public SmartRefreshLayout getSmartRefreshLayout() {

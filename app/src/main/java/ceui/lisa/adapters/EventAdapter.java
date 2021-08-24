@@ -17,7 +17,7 @@ import ceui.lisa.utils.GlideUtil;
 //你所关注用户的动态
 public class EventAdapter extends BaseAdapter<IllustsBean, RecyUserEventBinding> {
 
-    private int imageSize;
+    private final int imageSize;
 
     public EventAdapter(List<IllustsBean> targetList, Context context) {
         super(targetList, context);

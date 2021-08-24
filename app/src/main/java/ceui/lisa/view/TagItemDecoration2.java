@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 public class TagItemDecoration2 extends RecyclerView.ItemDecoration {
 
-    private int spacing;
+    private final int spacing;
 
     public TagItemDecoration2(int spacing) {
         this.spacing = spacing;

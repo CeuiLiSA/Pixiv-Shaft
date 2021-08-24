@@ -58,7 +58,7 @@ public class FragmentLogin extends BaseFragment<ActivityLoginBinding> {
     private static final String SIGN_HEAD = "https://app-api.pixiv.net/web/v1/provisional-accounts/create?code_challenge=";
     private static final String SIGN_END = "&code_challenge_method=S256&client=pixiv-android";
     private static final int TAPS_TO_BE_A_DEVELOPER = 7;
-    private SpringSystem springSystem = SpringSystem.create();
+    private final SpringSystem springSystem = SpringSystem.create();
     private Spring rotate;
     private int mHitCountDown;//
     private Toast mHitToast;

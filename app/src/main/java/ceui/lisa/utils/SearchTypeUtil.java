@@ -12,7 +12,7 @@ import ceui.lisa.activities.Shaft;
 
 public class SearchTypeUtil {
 
-    private static Resources resources = Shaft.getContext().getResources();
+    private static final Resources resources = Shaft.getContext().getResources();
     public static final int defaultSearchType = 5;
 
     private static final Pattern WEB_URL_PATTERN = Patterns.WEB_URL;

@@ -20,7 +20,7 @@ import ceui.lisa.utils.GlideUtil;
 
 public class LiveAdapter extends BaseAdapter<Live, RecyItemLiveBinding> {
 
-    private int imageSize;
+    private final int imageSize;
 
     public LiveAdapter(@Nullable List<Live> targetList, Context context) {
         super(targetList, context);

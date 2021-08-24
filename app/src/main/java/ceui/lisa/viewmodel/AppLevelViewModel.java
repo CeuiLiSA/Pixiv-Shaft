@@ -11,9 +11,9 @@ import androidx.lifecycle.MutableLiveData;
 
 public class AppLevelViewModel extends AndroidViewModel {
 
-    private ConcurrentMap<Integer, MutableLiveData<Integer>> followUserStatus;
-    private ConcurrentMap<Integer, MutableLiveData<Integer>> starIllustStatus;
-    private ConcurrentMap<Integer, MutableLiveData<Integer>> starNovelStatus;
+    private final ConcurrentMap<Integer, MutableLiveData<Integer>> followUserStatus;
+    private final ConcurrentMap<Integer, MutableLiveData<Integer>> starIllustStatus;
+    private final ConcurrentMap<Integer, MutableLiveData<Integer>> starNovelStatus;
 
     public AppLevelViewModel(@NonNull Application application) {
         super(application);

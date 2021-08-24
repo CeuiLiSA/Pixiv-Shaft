@@ -20,7 +20,7 @@ class SearchNovelRepo(
 ) : RemoteRepo<ListNovel>() {
 
     override fun initApi(): Observable<ListNovel> {
-        return if (sortType== PixivSearchParamUtil.POPULAR_SORT_VALUE&&(!(isPremium?:false))) {
+        return if (sortType== PixivSearchParamUtil.POPULAR_SORT_VALUE&&(isPremium != true)) {
             Retro.getAppApi().popularNovelPreview(token(),
                     keyword + if (TextUtils.isEmpty(starSize)) "" else " $starSize",
                     startDate,

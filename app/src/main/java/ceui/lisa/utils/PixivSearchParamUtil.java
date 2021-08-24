@@ -9,7 +9,7 @@ import ceui.lisa.activities.Shaft;
 
 public class PixivSearchParamUtil {
 
-    private static Resources resources = Shaft.getContext().getResources();
+    private static final Resources resources = Shaft.getContext().getResources();
 
     public static final String POPULAR_SORT_VALUE = "popular_desc";
     public static final String[] TAG_MATCH_VALUE = new String[]{"partial_match_for_tags",

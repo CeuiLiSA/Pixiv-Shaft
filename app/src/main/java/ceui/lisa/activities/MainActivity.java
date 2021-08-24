@@ -367,7 +367,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         if (requestCode == Params.REQUEST_CODE_CHOOSE && resultCode == RESULT_OK) {
             try {
                 Uri imageUri = data.getData();
-                File innerImageFile = Common.copyUri2Cache(imageUri);
+                File innerImageFile = Common.copyUriToImageCacheFolder(imageUri);
                 Uri innerImageFileUri = Uri.fromFile(innerImageFile);
                 if (!ReverseImage.isFileSizeOkToSearch(imageUri, ReverseImage.DEFAULT_ENGINE)) {
                     Common.showToast(getString(R.string.string_410));

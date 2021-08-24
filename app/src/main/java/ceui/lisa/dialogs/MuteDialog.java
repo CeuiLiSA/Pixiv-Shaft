@@ -26,8 +26,8 @@ import ceui.lisa.utils.PixivOperate;
 public class MuteDialog extends BaseDialog<DialogMuteTagBinding> {
 
     private IllustsBean mIllust;
-    private List<TagsBean> selected = new ArrayList<>();
-    private List<Boolean> muteNotEffect = new ArrayList<>();
+    private final List<TagsBean> selected = new ArrayList<>();
+    private final List<Boolean> muteNotEffect = new ArrayList<>();
 
     public static MuteDialog newInstance(IllustsBean illustsBean) {
         Bundle args = new Bundle();

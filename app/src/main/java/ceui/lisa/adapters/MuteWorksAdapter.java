@@ -32,7 +32,7 @@ import static com.bumptech.glide.request.RequestOptions.bitmapTransform;
 public class MuteWorksAdapter extends BaseAdapter<MuteEntity, RecyViewHistoryBinding> {
 
     private int illustImageSize = 0, novelImageSize = 0;
-    private SimpleDateFormat mTime = new SimpleDateFormat(
+    private final SimpleDateFormat mTime = new SimpleDateFormat(
             mContext.getResources().getString(R.string.string_350),
             Locale.getDefault());
 

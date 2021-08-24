@@ -17,6 +17,6 @@ class SearchUserRepo(private var word: String?) : RemoteRepo<ListUser>() {
     }
 
     fun update(keyWord: String){
-        word=keyWord;
+        word=keyWord
     }
 }

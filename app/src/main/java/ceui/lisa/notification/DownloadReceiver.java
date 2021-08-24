@@ -12,8 +12,8 @@ import ceui.lisa.utils.Params;
 
 public class DownloadReceiver<T> extends BroadcastReceiver {
 
-    private Callback<T> mCallback;
-    private int type; // 0是通知FragmentDownloading, 1是通知FragmentDownloadFinish
+    private final Callback<T> mCallback;
+    private final int type; // 0是通知FragmentDownloading, 1是通知FragmentDownloadFinish
     public static final int NOTIFY_FRAGMENT_DOWNLOADING = 0;
     public static final int NOTIFY_FRAGMENT_DOWNLOAD_FINISH = 1;
 

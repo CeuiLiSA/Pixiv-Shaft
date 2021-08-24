@@ -28,7 +28,7 @@ import ceui.lisa.utils.MyOnTabSelectedListener;
  */
 public class FragmentDownload extends BaseFragment<ViewpagerWithTablayoutBinding> {
 
-    private Fragment[] allPages = new Fragment[]{new FragmentDownloading(), new FragmentDownloadFinish()};
+    private final Fragment[] allPages = new Fragment[]{new FragmentDownloading(), new FragmentDownloadFinish()};
 
     @Override
     public void initLayout() {

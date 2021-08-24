@@ -342,7 +342,7 @@ public class UtilityMeasure {
                 if (content.length() <= beginIndex) {
                     break;
                 } else {
-                    sb.append(content.substring(beginIndex, beginIndex + 1));
+                    sb.append(content.charAt(beginIndex));
                 }
             } else {
                 break;

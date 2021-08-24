@@ -72,7 +72,7 @@ public class FragmentViewPager extends BaseFragment<ViewpagerWithTablayoutBindin
                 @NonNull
                 @Override
                 public Fragment getItem(int position) {
-                    return (Fragment) mFragments[position];
+                    return mFragments[position];
                 }
 
                 @Override

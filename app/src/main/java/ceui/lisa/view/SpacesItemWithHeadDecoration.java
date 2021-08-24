@@ -10,7 +10,7 @@ import ceui.lisa.activities.Shaft;
 
 public class SpacesItemWithHeadDecoration extends RecyclerView.ItemDecoration {
 
-    private int space;
+    private final int space;
 
     public SpacesItemWithHeadDecoration(int space) {
         this.space = space;

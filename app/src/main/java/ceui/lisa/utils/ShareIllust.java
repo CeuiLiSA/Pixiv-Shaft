@@ -13,8 +13,8 @@ import ceui.lisa.models.IllustsBean;
 public abstract class ShareIllust implements IExecutor {
 
     public static final String URL_Head = "https://www.pixiv.net/artworks/";
-    private IllustsBean mIllustsBean;
-    private Context mContext;
+    private final IllustsBean mIllustsBean;
+    private final Context mContext;
 
     public ShareIllust(Context context, IllustsBean illustsBean) {
         mContext = context;

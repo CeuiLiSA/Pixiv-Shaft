@@ -30,9 +30,9 @@ import ceui.lisa.utils.Params;
 //已下载
 public class DownloadedAdapter extends BaseAdapter<DownloadEntity, RecyDownloadedBinding> {
 
-    private int imageSize;
-    private int novelImageSize;
-    private SimpleDateFormat mTime = new SimpleDateFormat(
+    private final int imageSize;
+    private final int novelImageSize;
+    private final SimpleDateFormat mTime = new SimpleDateFormat(
             mContext.getResources().getString(R.string.string_350),
             Locale.getDefault());
 

@@ -13,8 +13,8 @@ import com.bumptech.glide.request.transition.Transition;
 
 public class UniformScaleTransformation extends ImageViewTarget<Bitmap> {
 
-    private ImageView target;
-    private boolean changeSize;
+    private final ImageView target;
+    private final boolean changeSize;
 
     public UniformScaleTransformation(ImageView target, boolean c) {
         super(target);

@@ -43,10 +43,10 @@ import me.jessyan.progressmanager.body.ProgressInfo;
 
 public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDetailBinding>> {
 
-    private int maxHeight;
-    private FragmentActivity mActivity;
-    private Fragment mFragment;
-    private static boolean longPressDownload = Shaft.sSettings.isIllustLongPressDownload();
+    private final int maxHeight;
+    private final FragmentActivity mActivity;
+    private final Fragment mFragment;
+    private static final boolean longPressDownload = Shaft.sSettings.isIllustLongPressDownload();
 
     public IllustAdapter(FragmentActivity activity, Fragment fragment, IllustsBean illustsBean, int maxHeight, boolean isForceOriginal) {
         Common.showLog("IllustAdapter maxHeight " + maxHeight);

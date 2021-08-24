@@ -76,8 +76,8 @@ import static com.blankj.utilcode.util.StringUtils.getString;
 
 public class PixivOperate {
 
-    private static Map<Integer,Back> sBack =  new HashMap<Integer,Back>();
-    private static Map<Integer, Long> gifEncodingWorkSet = new HashMap<Integer, Long>();
+    private static final Map<Integer,Back> sBack =  new HashMap<Integer,Back>();
+    private static final Map<Integer, Long> gifEncodingWorkSet = new HashMap<Integer, Long>();
     private static final long reEncodeTimeThresholdMillis = 60 * 1000;
 
     public static void refreshUserData(UserModel userModel, Callback<UserModel> callback) {
@@ -583,7 +583,7 @@ public class PixivOperate {
                     }
                 });
 
-                File gifFile = new LegacyFile().gifResultFile(context, illustsBean);
+                File gifFile = LegacyFile.gifResultFile(context, illustsBean);
                 Common.showLog("gifFile " + gifFile.getPath());
 
                 GifEncoder gifEncoder = new GifEncoder();
@@ -679,7 +679,7 @@ public class PixivOperate {
                     }
                 });
 
-                File gifFile = new LegacyFile().gifResultFile(context, illustsBean);
+                File gifFile = LegacyFile.gifResultFile(context, illustsBean);
                 Common.showLog("gifFile " + gifFile.getPath());
 
                 AnimatedGifEncoder animatedGifEncoder = new AnimatedGifEncoder();
@@ -758,9 +758,8 @@ public class PixivOperate {
 
     public static void unzipAndePlay(Context context, IllustsBean illustsBean, boolean autoSave) {
         try {
-            LegacyFile legacyFile = new LegacyFile();
-            File fromZip = legacyFile.gifZipFile(context, illustsBean);
-            File toFolder = legacyFile.gifUnzipFolder(context, illustsBean);
+            File fromZip = LegacyFile.gifZipFile(context, illustsBean);
+            File toFolder = LegacyFile.gifUnzipFolder(context, illustsBean);
             justUnzipFile(fromZip, toFolder);
             // encodeGif(context, toFolder, illustsBean);
             // 速度快一点，效果待观察

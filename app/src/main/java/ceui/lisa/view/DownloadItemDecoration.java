@@ -7,8 +7,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 public class DownloadItemDecoration extends RecyclerView.ItemDecoration {
 
-    private int spanCount;
-    private int spacing;
+    private final int spanCount;
+    private final int spacing;
 
     public DownloadItemDecoration(int spanCount, int spacing) {
         this.spanCount = spanCount;

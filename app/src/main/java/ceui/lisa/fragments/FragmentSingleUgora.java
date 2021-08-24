@@ -209,7 +209,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
     }
 
     public void nowPlayGif() {
-        File gifFile = new LegacyFile().gifResultFile(mContext, illust);
+        File gifFile = LegacyFile.gifResultFile(mContext, illust);
         PixivOperate.setBack(illust.getId(), new Back() {
             @Override
             public void invoke(float progress) {
@@ -228,7 +228,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
                     .into(baseBind.illustImage);
         } else {
             boolean hasDownload = Shaft.getMMKV().decodeBool(Params.ILLUST_ID + "_" + illust.getId());
-            File zipFile = new LegacyFile().gifZipFile(mContext, illust);
+            File zipFile = LegacyFile.gifZipFile(mContext, illust);
             if (hasDownload && zipFile.exists() && zipFile.length() > 1024) {
                 baseBind.playGif.setVisibility(View.INVISIBLE);
                 baseBind.progressLayout.donutProgress.setVisibility(View.VISIBLE);
@@ -348,7 +348,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
         });
 
         baseBind.download.setOnClickListener(v -> {
-            File gifFile = new LegacyFile().gifResultFile(mContext, illust);
+            File gifFile = LegacyFile.gifResultFile(mContext, illust);
             if (gifFile.exists() && gifFile.length() > 1024) {
                 OutPut.outPutGif(mContext, gifFile, illust);
                 if(Shaft.sSettings.isAutoPostLikeWhenDownload() && !illust.isIs_bookmarked()){

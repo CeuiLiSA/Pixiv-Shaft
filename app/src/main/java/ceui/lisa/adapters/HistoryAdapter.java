@@ -29,7 +29,7 @@ import ceui.lisa.utils.Params;
 public class HistoryAdapter extends BaseAdapter<IllustHistoryEntity, RecyViewHistoryBinding> {
 
     private int illustImageSize = 0, novelImageSize = 0;
-    private SimpleDateFormat mTime = new SimpleDateFormat(
+    private final SimpleDateFormat mTime = new SimpleDateFormat(
             mContext.getResources().getString(R.string.string_350),
             Locale.getDefault());
 

@@ -22,7 +22,7 @@ import ceui.lisa.utils.PixivOperate;
 public class SimpleUserAdapter extends BaseAdapter<UserBean, RecySimpleUserBinding> {
 
     private FullClickListener mFullClickListener;
-    private boolean isMuteUser;
+    private final boolean isMuteUser;
 
     public SimpleUserAdapter(@Nullable List<UserBean> targetList, Context context) {
         this(targetList, context, false);

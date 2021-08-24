@@ -77,8 +77,8 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
     private AgentWeb mAgentWeb;
     private WebView mWebView;
     private String mIntentUrl;
-    private WebViewClickHandler handler = new WebViewClickHandler();
-    private HttpDns httpDns = HttpDns.getInstance();
+    private final WebViewClickHandler handler = new WebViewClickHandler();
+    private final HttpDns httpDns = HttpDns.getInstance();
     private String mLongClickLinkText;
     private Uri reverseSearchImageUri;
 
@@ -427,13 +427,9 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
      * @return
      */
     private boolean isBinaryRes(String mime) {
-        if (mime.startsWith("image")
+        return mime.startsWith("image")
                 || mime.startsWith("audio")
-                || mime.startsWith("video")) {
-            return true;
-        } else {
-            return false;
-        }
+                || mime.startsWith("video");
     }
 
     /**
@@ -541,7 +537,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
     class WebviewTlsSniSocketFactory extends SSLSocketFactory {
         private final String TAG = WebviewTlsSniSocketFactory.class.getSimpleName();
         HostnameVerifier hostnameVerifier = HttpsURLConnection.getDefaultHostnameVerifier();
-        private HttpsURLConnection conn;
+        private final HttpsURLConnection conn;
 
         public WebviewTlsSniSocketFactory(HttpsURLConnection conn) {
             this.conn = conn;
@@ -553,12 +549,12 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
         }
 
         @Override
-        public Socket createSocket(String host, int port) throws IOException, UnknownHostException {
+        public Socket createSocket(String host, int port) throws IOException {
             return null;
         }
 
         @Override
-        public Socket createSocket(String host, int port, InetAddress localHost, int localPort) throws IOException, UnknownHostException {
+        public Socket createSocket(String host, int port, InetAddress localHost, int localPort) throws IOException {
             return null;
         }
 

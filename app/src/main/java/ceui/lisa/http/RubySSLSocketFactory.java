@@ -23,7 +23,7 @@ import kotlin.jvm.internal.Intrinsics;
 
 public final class RubySSLSocketFactory extends SSLSocketFactory {
 
-    private HostnameVerifier hostnameVerifier = HttpsURLConnection.getDefaultHostnameVerifier();
+    private final HostnameVerifier hostnameVerifier = HttpsURLConnection.getDefaultHostnameVerifier();
 
     @Nullable
     public Socket createSocket(@Nullable String paramString, int paramInt) {

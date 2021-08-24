@@ -15,7 +15,7 @@ import ceui.lisa.utils.GlideUtil;
 //特辑
 public class ArticleAdapter extends BaseAdapter<SpotlightArticlesBean, RecyArticalBinding> {
 
-    private int imageSize;
+    private final int imageSize;
 
     public ArticleAdapter(List<SpotlightArticlesBean> targetList, Context context) {
         super(targetList, context);
