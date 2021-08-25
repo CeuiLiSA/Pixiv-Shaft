@@ -351,9 +351,9 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
         baseBind.comment.setChangeAlphaWhenPress(true);
         baseBind.download.setOnClickListener(v -> {
             if (illust.getPage_count() == 1) {
-                IllustDownload.downloadIllust(illust, (BaseActivity<?>) mContext);
+                IllustDownload.downloadIllustFirstPage(illust, (BaseActivity<?>) mContext);
             } else {
-                IllustDownload.downloadAllIllust(illust, (BaseActivity<?>) mContext);
+                IllustDownload.downloadIllustAllPages(illust, (BaseActivity<?>) mContext);
             }
             checkDownload();
             if(Shaft.sSettings.isAutoPostLikeWhenDownload() && !illust.isIs_bookmarked()){
@@ -382,9 +382,9 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 if (illust.getPage_count() == 1) {
-                                    IllustDownload.downloadIllust(illust, IMG_RESOLUTION[which], (BaseActivity<?>) mContext);
+                                    IllustDownload.downloadIllustFirstPageWithResolution(illust, IMG_RESOLUTION[which], (BaseActivity<?>) mContext);
                                 } else {
-                                    IllustDownload.downloadAllIllust(illust, IMG_RESOLUTION[which], (BaseActivity<?>) mContext);
+                                    IllustDownload.downloadIllustAllPagesWithResolution(illust, IMG_RESOLUTION[which], (BaseActivity<?>) mContext);
                                 }
                                 dialog.dismiss();
                             }

@@ -233,9 +233,9 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
 
         baseBind.download.setOnClickListener(v -> {
             if (illust.getPage_count() == 1) {
-                IllustDownload.downloadIllust(illust, (BaseActivity<?>) mContext);
+                IllustDownload.downloadIllustFirstPage(illust, (BaseActivity<?>) mContext);
             } else {
-                IllustDownload.downloadAllIllust(illust, (BaseActivity<?>) mContext);
+                IllustDownload.downloadIllustAllPages(illust, (BaseActivity<?>) mContext);
             }
             if(Shaft.sSettings.isAutoPostLikeWhenDownload() && !illust.isIs_bookmarked()){
                 PixivOperate.postLikeDefaultStarType(illust);

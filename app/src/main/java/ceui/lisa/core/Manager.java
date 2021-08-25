@@ -118,7 +118,7 @@ public class Manager {
         }
     }
 
-    public void addTasks(List<DownloadItem> list, Context context) {
+    public void addTasks(List<DownloadItem> list) {
         if (!Common.isEmpty(list)) {
             for (DownloadItem item : list) {
                 addTask(item);

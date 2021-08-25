@@ -13,7 +13,7 @@
         android:paddingEnd="24dp"
         android:paddingTop="@dimen/twelve_dp"
         android:paddingBottom="@dimen/six_dp"
-        android:id="@+id/not_interested"
+        android:id="@+id/mute_setting"
         android:layout_height="wrap_content">
 
         <ImageView

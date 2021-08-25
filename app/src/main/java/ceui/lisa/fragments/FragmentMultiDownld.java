@@ -32,7 +32,6 @@ import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DataChannel;
 import ceui.lisa.utils.DensityUtil;
-import ceui.lisa.utils.Params;
 import ceui.lisa.view.DownloadItemDecoration;
 import gdut.bsx.share2.Share2;
 import gdut.bsx.share2.ShareContentType;
@@ -134,7 +133,7 @@ public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownload
         baseBind.startDownload.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                IllustDownload.downloadAllIllust(allItems, (BaseActivity<?>) mContext);
+                IllustDownload.downloadCheckedIllustAllPages(allItems, (BaseActivity<?>) mContext);
             }
         });
 
