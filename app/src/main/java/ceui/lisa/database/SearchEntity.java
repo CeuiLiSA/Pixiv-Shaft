@@ -11,6 +11,7 @@ public final class SearchEntity {
     private String keyword;
     private long searchTime;
     private int searchType;
+    private boolean pinned;
 
     public long getSearchTime() {
         return searchTime;
@@ -27,6 +28,7 @@ public final class SearchEntity {
                 ", keyword='" + keyword + '\'' +
                 ", searchTime=" + searchTime +
                 ", searchType=" + searchType +
+                ", pinned=" + pinned +
                 '}';
     }
 
@@ -54,5 +56,11 @@ public final class SearchEntity {
         this.searchType = searchType;
     }
 
+    public boolean isPinned() {
+        return pinned;
+    }
 
+    public void setPinned(boolean pinned) {
+        this.pinned = pinned;
+    }
 }

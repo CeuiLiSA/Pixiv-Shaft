@@ -22,7 +22,7 @@ public interface SearchDao {
     void deleteAll();
 
 
-    @Query("SELECT * FROM search_table ORDER BY searchTime DESC LIMIT :limit")
+    @Query("SELECT * FROM search_table ORDER BY pinned DESC, searchTime DESC LIMIT :limit")
     List<SearchEntity> getAll(int limit);
 
     @Query("SELECT * FROM search_table")

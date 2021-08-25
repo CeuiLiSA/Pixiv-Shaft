@@ -142,19 +142,19 @@
 
                     </RelativeLayout>
 
-
-
-                    <com.zhy.view.flowlayout.TagFlowLayout
+                    <ceui.lisa.view.NestMax
                         android:layout_width="match_parent"
-                        android:layout_marginStart="@dimen/twelve_dp"
-                        android:layout_marginEnd="@dimen/four_dp"
-                        android:id="@+id/search_history"
                         android:layout_height="wrap_content">
 
+                        <com.zhy.view.flowlayout.TagFlowLayout
+                            android:layout_width="match_parent"
+                            android:layout_marginStart="@dimen/twelve_dp"
+                            android:layout_marginEnd="@dimen/four_dp"
+                            android:id="@+id/search_history"
+                            android:layout_height="wrap_content">
+                        </com.zhy.view.flowlayout.TagFlowLayout>
 
-                    </com.zhy.view.flowlayout.TagFlowLayout>
-
-
+                    </ceui.lisa.view.NestMax>
 
                     <TextView
                         android:layout_width="wrap_content"
