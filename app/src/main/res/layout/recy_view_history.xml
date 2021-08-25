@@ -70,14 +70,14 @@
                 android:maxLines="1" />
 
             <ImageView
-                android:layout_width="28dp"
-                android:layout_alignParentEnd="true"
-                android:layout_alignBottom="@+id/illust_image"
-                android:padding="@dimen/four_dp"
                 android:id="@+id/delete_item"
-                android:layout_marginBottom="3dp"
-                android:src="@drawable/ic_delete_black_24dp"
+                android:layout_width="28dp"
                 android:layout_height="28dp"
+                android:layout_alignBottom="@+id/illust_image"
+                android:layout_alignParentEnd="true"
+                android:layout_marginBottom="3dp"
+                android:padding="@dimen/four_dp"
+                android:src="@drawable/ic_delete_black_24dp"
                 app:tint="#999999">
 
             </ImageView>

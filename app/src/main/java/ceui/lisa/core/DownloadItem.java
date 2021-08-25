@@ -16,11 +16,9 @@ public class DownloadItem implements Serializable {
     private String url;
     private String showUrl;
     private String uuid;
-    private boolean isProcessed;
     private final IllustsBean illust;
     private int index;
     private boolean autoSave = true;
-    //private long transferredBytes = 0;
     private int state = DownloadState.INIT;
     private boolean paused = false;
     private int nonius = 0;
@@ -35,14 +33,6 @@ public class DownloadItem implements Serializable {
         }
         this.index = index;
         Common.showLog("随机生成一个UUID");
-    }
-
-    public boolean isProcessed() {
-        return isProcessed;
-    }
-
-    public void setProcessed(boolean processed) {
-        isProcessed = processed;
     }
 
     public int getIndex() {
@@ -104,14 +94,6 @@ public class DownloadItem implements Serializable {
                 TextUtils.equals(url, next.url);
     }
 
-//    public long getTransferredBytes() {
-//        return transferredBytes;
-//    }
-//
-//    public void setTransferredBytes(long transferredBytes) {
-//        this.transferredBytes = transferredBytes;
-//    }
-
     public int getState() {
         if(this.paused){
             return DownloadState.PAUSED;
@@ -137,6 +119,10 @@ public class DownloadItem implements Serializable {
 
     public void setNonius(int nonius) {
         this.nonius = nonius;
+    }
+
+    public boolean shouldStartNewDownload() {
+        return this.state == DownloadState.INIT || this.state == DownloadState.FAILED;
     }
 
     public static class DownloadState {

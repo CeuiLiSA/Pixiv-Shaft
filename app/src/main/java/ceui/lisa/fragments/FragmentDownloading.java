@@ -57,9 +57,7 @@ public class FragmentDownloading extends LocalListFragment<FragmentBaseListBindi
         mReceiver = new DownloadReceiver<>((Callback<Holder>) holder -> {
             if (holder.getCode() == Params.DOWNLOAD_FAILED) {
                 final DownloadItem item = holder.getDownloadItem();
-//                allItems.remove(item);
-                item.setProcessed(true);
-//                allItems.add(item);
+                item.setState(DownloadItem.DownloadState.FAILED);
                 mAdapter.notifyItemChanged(holder.getIndex());
                 Common.showLog("收到了失败提醒");
             } else if(holder.getCode() == Params.DOWNLOAD_SUCCESS) {

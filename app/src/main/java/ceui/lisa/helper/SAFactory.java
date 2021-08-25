@@ -23,7 +23,7 @@ public class SAFactory extends UriFactory {
     public SAFactory(@NotNull Context context, DownloadItem item) {
         super(context);
         this.mItem = item;
-        DocumentFile file = SAFile.getDocument(getContext(), mItem.getIllust(), mItem.getIndex(), mItem.getNonius()==0);
+        DocumentFile file = SAFile.getDocument(getContext(), mItem.getIllust(), mItem.getIndex(), mItem.shouldStartNewDownload());
         mUri = file.getUri();
     }
 
