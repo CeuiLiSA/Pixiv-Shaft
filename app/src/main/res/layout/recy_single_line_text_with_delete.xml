@@ -1,40 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <data>
-
-    </data>
-
     <LinearLayout
         android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_margin="@dimen/four_dp"
         android:background="@drawable/normal_bg"
-        android:foreground="?android:attr/selectableItemBackground"
         android:clickable="true"
-        android:layout_height="wrap_content">
+        android:focusable="true"
+        android:foreground="?android:attr/selectableItemBackground"
+        android:padding="@dimen/eight_dp">
+
+        <ImageView
+            android:id="@+id/fixed"
+            android:layout_width="@dimen/sixteen_dp"
+            android:layout_height="@dimen/sixteen_dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginEnd="@dimen/four_dp"
+            android:src="@drawable/ic_fix_black_24dp"
+            android:visibility="gone" />
 
         <TextView
             android:id="@+id/tag_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="13sp"
-            android:paddingStart="@dimen/twelve_dp"
-            android:text="哈哈哈哈"
-            android:paddingTop="@dimen/eight_dp"
-            android:paddingBottom="@dimen/eight_dp"
-            android:textColor="@color/second_text_color" />
+            android:text=""
+            android:textColor="@color/second_text_color"
+            android:textSize="13sp" />
 
         <ImageView
             android:id="@+id/delete_item"
+            android:layout_width="@dimen/sixteen_dp"
+            android:layout_height="@dimen/sixteen_dp"
             android:layout_gravity="center_vertical"
-            android:padding="@dimen/six_dp"
-            android:layout_marginEnd="@dimen/four_dp"
-            android:src="@drawable/ic_cancel_black_24dp"
-            android:layout_width="28dp"
-            android:layout_height="28dp">
+            android:layout_marginStart="@dimen/four_dp"
+            android:src="@drawable/ic_cancel_black_24dp" />
 
-        </ImageView>
+
+
     </LinearLayout>
 
+    <data>
+
+    </data>
 
 </layout>

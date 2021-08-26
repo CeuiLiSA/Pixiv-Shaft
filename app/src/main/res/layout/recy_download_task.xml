@@ -29,7 +29,8 @@
                 android:layout_marginTop="@dimen/six_dp"
                 android:layout_marginStart="@dimen/six_dp"
                 android:textColor="@color/dark_text"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                />
 
 
             <ProgressBar
@@ -61,11 +62,21 @@
                 android:layout_marginStart="@dimen/sixteen_dp"
                 android:textSize="12sp"
                 android:textColor="@color/dark_text"
-                android:layout_alignParentEnd="true"
-                android:layout_marginEnd="@dimen/sixteen_dp"
+                android:layout_alignEnd="@+id/progress"
                 android:id="@+id/state"
                 android:layout_above="@+id/progress"
                 android:layout_height="wrap_content" />
+
+            <ImageView
+                android:id="@+id/delete_item"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_above="@+id/state"
+                android:layout_alignEnd="@+id/state"
+                android:padding="@dimen/two_dp"
+                android:src="@drawable/ic_delete_black_24dp"
+                app:tint="#999999">
+            </ImageView>
 
         </RelativeLayout>
 

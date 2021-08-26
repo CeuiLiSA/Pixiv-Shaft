@@ -188,7 +188,6 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
             public void onItemLongClick(View v, int position, int viewType) {
                 IllustsBean illust = allItems.get(position);
                 View popView = View.inflate(mContext, R.layout.pop_window_2, null);
-                popView.findViewById(R.id.download_this_one).setVisibility(illust.isGif() ? View.GONE : View.VISIBLE);
 
                 QMUIPopup mNormalPopup = QMUIPopups.popup(mContext)
                         .preferredDirection(QMUIPopup.DIRECTION_BOTTOM)
@@ -208,7 +207,7 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
                         })
                         .show(v);
 
-                popView.findViewById(R.id.not_interested).setOnClickListener(new View.OnClickListener() {
+                popView.findViewById(R.id.mute_setting).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         MuteDialog muteDialog = MuteDialog.newInstance(illust);
@@ -226,7 +225,7 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
                 popView.findViewById(R.id.download_this_one).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        IllustDownload.downloadAllIllust(illust, mContext);
+                        IllustDownload.downloadIllustAllPages(illust);
                         if(Shaft.sSettings.isAutoPostLikeWhenDownload() && !illust.isIs_bookmarked()){
                             PixivOperate.postLikeDefaultStarType(illust);
                         }

@@ -1,6 +1,5 @@
 package ceui.lisa.download;
 
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
@@ -46,109 +45,107 @@ import static android.provider.DocumentsContract.EXTRA_INITIAL_URI;
 
 public class IllustDownload {
 
-    public static void downloadIllust(IllustsBean illust, BaseActivity<?> activity) {
-        check(activity, () -> {
-            if (illust.getPage_count() == 1) {
-                DownloadItem item = new DownloadItem(illust, 0);
-                item.setUrl(getUrl(illust, 0));
-                item.setShowUrl(getShowUrl(illust, 0));
-                Common.showToast(1 + "个任务已经加入下载队列");
-                Manager.get().addTask(item);
-            }
-        });
+    private static DownloadItem buildDownloadItem(IllustsBean illust, int index) {
+        return buildDownloadItem(illust, index, Params.IMAGE_RESOLUTION_ORIGINAL);
     }
 
-    public static void downloadIllust(IllustsBean illust, String imageResolution, BaseActivity<?> activity) {
-        check(activity, () -> {
-            if (illust.getPage_count() == 1) {
-                DownloadItem item = new DownloadItem(illust, 0);
-                item.setUrl(getUrl(illust, 0, imageResolution));
-                item.setShowUrl(getShowUrl(illust, 0));
-                Common.showToast(1 + "个任务已经加入下载队列");
-                Manager.get().addTask(item);
-            }
-        });
-    }
-
-    public static void downloadIllust(IllustsBean illust, Context context) {
-        if (illust.getPage_count() == 1) {
+    private static DownloadItem buildDownloadItem(IllustsBean illust, int index, String imageResolution) {
+        if (illust.isGif()) {
+            return null;
+        } else if (illust.getPage_count() == 1) {
             DownloadItem item = new DownloadItem(illust, 0);
-            item.setUrl(getUrl(illust, 0));
+            item.setUrl(getUrl(illust, 0, imageResolution));
             item.setShowUrl(getShowUrl(illust, 0));
+            return item;
+        } else {
+            DownloadItem item = new DownloadItem(illust, index);
+            item.setUrl(getUrl(illust, index, imageResolution));
+            item.setShowUrl(getShowUrl(illust, index));
+            return item;
+        }
+    }
+
+    public static void downloadIllustFirstPage(IllustsBean illust, BaseActivity<?> activity) {
+        check(activity, () -> {
+            downloadIllustFirstPage(illust);
+        });
+    }
+
+    public static void downloadIllustFirstPageWithResolution(IllustsBean illust, String imageResolution, BaseActivity<?> activity) {
+        check(activity, () -> {
+            if (illust.getPage_count() == 1) {
+                DownloadItem item = buildDownloadItem(illust, 0, imageResolution);
+                Common.showToast(1 + "个任务已经加入下载队列");
+                Manager.get().addTask(item);
+            }
+        });
+    }
+
+    public static void downloadIllustFirstPage(IllustsBean illust) {
+        downloadIllustFirstPageWithResolution(illust, Params.IMAGE_RESOLUTION_ORIGINAL);
+    }
+
+    public static void downloadIllustFirstPageWithResolution(IllustsBean illust, String imageResolution) {
+        if (illust.getPage_count() == 1) {
+            DownloadItem item = buildDownloadItem(illust, 0, imageResolution);
             Common.showToast(1 + "个任务已经加入下载队列");
             Manager.get().addTask(item);
         }
     }
 
-    public static void downloadIllust(IllustsBean illust, int index, BaseActivity<?> activity) {
+    public static void downloadIllustCertainPage(IllustsBean illust, int index, BaseActivity<?> activity) {
         check(activity, () -> {
             if (illust.getPage_count() == 1) {
-                downloadIllust(illust, activity);
+                // index!=0 时不合理
+                downloadIllustFirstPage(illust);
             } else {
-                DownloadItem item = new DownloadItem(illust, index);
-                item.setUrl(getUrl(illust, index));
-                item.setShowUrl(getShowUrl(illust, index));
+                DownloadItem item = buildDownloadItem(illust, index);
                 Common.showToast(1 + "个任务已经加入下载队列");
                 Manager.get().addTask(item);
             }
         });
     }
 
+    public static void downloadIllustAllPages(IllustsBean illust, BaseActivity<?> activity) {
+        check(activity, () -> {
+            downloadIllustAllPages(illust);
+        });
+    }
 
-    public static void downloadAllIllust(IllustsBean illust, BaseActivity<?> activity) {
+    public static void downloadIllustAllPagesWithResolution(IllustsBean illust, String imageResolution, BaseActivity<?> activity) {
         check(activity, () -> {
             if (illust.getPage_count() == 1) {
-                downloadIllust(illust, activity);
+                downloadIllustFirstPage(illust, activity);
             } else {
                 List<DownloadItem> tempList = new ArrayList<>();
                 for (int i = 0; i < illust.getPage_count(); i++) {
-                    DownloadItem item = new DownloadItem(illust, i);
-                    item.setUrl(getUrl(illust, i));
-                    item.setShowUrl(getShowUrl(illust, i));
+                    DownloadItem item = buildDownloadItem(illust, i, imageResolution);
                     tempList.add(item);
                 }
                 Common.showToast(tempList.size() + "个任务已经加入下载队列");
-                Manager.get().addTasks(tempList, activity);
+                Manager.get().addTasks(tempList);
             }
         });
     }
 
-    public static void downloadAllIllust(IllustsBean illust, String imageResolution, BaseActivity<?> activity) {
-        check(activity, () -> {
-            if (illust.getPage_count() == 1) {
-                downloadIllust(illust, activity);
-            } else {
-                List<DownloadItem> tempList = new ArrayList<>();
-                for (int i = 0; i < illust.getPage_count(); i++) {
-                    DownloadItem item = new DownloadItem(illust, i);
-                    item.setUrl(getUrl(illust, i, imageResolution));
-                    item.setShowUrl(getShowUrl(illust, i));
-                    tempList.add(item);
-                }
-                Common.showToast(tempList.size() + "个任务已经加入下载队列");
-                Manager.get().addTasks(tempList, activity);
-            }
-        });
-    }
-
-    public static void downloadAllIllust(IllustsBean illust, Context context) {
-        if (illust.getPage_count() == 1) {
-            downloadIllust(illust, context);
+    public static void downloadIllustAllPages(IllustsBean illust) {
+        if (illust.isGif()){
+            downloadGif(illust);
+        } else if (illust.getPage_count() == 1) {
+            downloadIllustFirstPage(illust);
         } else {
             List<DownloadItem> tempList = new ArrayList<>();
             for (int i = 0; i < illust.getPage_count(); i++) {
-                DownloadItem item = new DownloadItem(illust, i);
-                item.setUrl(getUrl(illust, i));
-                item.setShowUrl(getShowUrl(illust, i));
+                DownloadItem item = buildDownloadItem(illust, i);
                 tempList.add(item);
             }
             Common.showToast(tempList.size() + "个任务已经加入下载队列");
-            Manager.get().addTasks(tempList, context);
+            Manager.get().addTasks(tempList);
         }
     }
 
 
-    public static void downloadAllIllust(List<IllustsBean> beans, BaseActivity<?> activity) {
+    public static void downloadCheckedIllustAllPages(List<IllustsBean> beans, BaseActivity<?> activity) {
         check(activity, () -> {
             List<DownloadItem> tempList = new ArrayList<>();
             int taskCount = 0;
@@ -157,7 +154,7 @@ public class IllustDownload {
                     final IllustsBean illust = beans.get(i);
 
                     if(illust.isGif()){
-                        downloadGif(illust, activity);
+                        downloadGif(illust);
                         taskCount++;
                     } else if (illust.getPage_count() == 1) {
                         DownloadItem item = new DownloadItem(illust, 0);
@@ -177,15 +174,15 @@ public class IllustDownload {
                 }
             }
             Common.showToast(taskCount + "个任务已经加入下载队列");
-            Manager.get().addTasks(tempList, activity);
+            Manager.get().addTasks(tempList);
         });
     }
 
-    public static DownloadItem downloadGif(GifResponse response, IllustsBean illust, BaseActivity<?> activity) {
-        return downloadGif(response, illust, false, activity);
+    public static DownloadItem downloadGif(GifResponse response, IllustsBean illust) {
+        return downloadGif(response, illust, false);
     }
 
-    public static DownloadItem downloadGif(GifResponse response, IllustsBean illust, boolean autoSave, BaseActivity<?> activity) {
+    public static DownloadItem downloadGif(GifResponse response, IllustsBean illust, boolean autoSave) {
         DownloadItem item = new DownloadItem(illust, 0);
         item.setAutoSave(autoSave);
         item.setUrl(HostManager.get().replaceUrl(response.getUgoira_metadata().getZip_urls().getMedium()));
@@ -194,7 +191,7 @@ public class IllustDownload {
         return item;
     }
 
-    public static void downloadGif(IllustsBean illustsBean, BaseActivity<?> activity){
+    public static void downloadGif(IllustsBean illustsBean){
         if(!illustsBean.isGif()){
             return;
         }
@@ -202,7 +199,7 @@ public class IllustDownload {
             @Override
             public void next(GifResponse gifResponse) {
                 Cache.get().saveModel(Params.ILLUST_ID + "_" + illustsBean.getId(), gifResponse);
-                downloadGif(gifResponse, illustsBean, true, activity);
+                downloadGif(gifResponse, illustsBean, true);
             }
         });
     }
@@ -218,7 +215,7 @@ public class IllustDownload {
         downloadNovel(activity, displayName, content, targetCallback);
     }
 
-    public static void downloadFile(BaseActivity<?> activity, String displayName, String content, Callback<Uri> targetCallback) {
+    public static void downloadNovel(BaseActivity<?> activity, String displayName, String content, Callback<Uri> targetCallback) {
         check(activity, new FeedBack() {
             @Override
             public void doSomething() {
@@ -227,8 +224,8 @@ public class IllustDownload {
                     OutputStream outStream = new FileOutputStream(textFile);
                     outStream.write(content.getBytes());
                     outStream.close();
-                    Common.showLog("downloadFile displayName " + displayName);
-                    OutPut.outPutFile(activity, textFile, displayName);
+                    Common.showLog("downloadNovel displayName " + displayName);
+                    OutPut.outPutNovel(activity, textFile, displayName);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -241,7 +238,7 @@ public class IllustDownload {
         });
     }
 
-    public static void downloadNovel(BaseActivity<?> activity, String displayName, String content, Callback<Uri> targetCallback) {
+    public static void downloadFile(BaseActivity<?> activity, String displayName, String content, Callback<Uri> targetCallback) {
         check(activity, new FeedBack() {
             @Override
             public void doSomething() {
@@ -250,8 +247,8 @@ public class IllustDownload {
                     OutputStream outStream = new FileOutputStream(textFile);
                     outStream.write(content.getBytes());
                     outStream.close();
-                    Common.showLog("downloadNovel displayName " + displayName);
-                    OutPut.outPutNovel(activity, textFile, displayName);
+                    Common.showLog("downloadFile displayName " + displayName);
+                    OutPut.outPutFile(activity, textFile, displayName);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

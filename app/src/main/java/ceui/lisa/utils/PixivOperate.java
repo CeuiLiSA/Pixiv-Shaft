@@ -515,6 +515,10 @@ public class PixivOperate {
         searchEntity.setSearchTime(System.currentTimeMillis());
         searchEntity.setId(searchEntity.getKeyword().hashCode() + searchEntity.getSearchType());
         Common.showLog("insertSearchHistory " + searchType + " " + searchEntity.getId());
+        SearchEntity existEntity = AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().getSearchEntity(searchEntity.getId());
+        if (existEntity != null) {
+            searchEntity.setPinned(existEntity.isPinned());
+        }
         AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().insert(searchEntity);
     }
 

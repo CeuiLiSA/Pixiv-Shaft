@@ -20,13 +20,13 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.RelativeLayout;
 
-import com.google.android.material.snackbar.Snackbar;
 import com.just.agentweb.AgentWeb;
 import com.just.agentweb.WebViewClient;
 import android.util.Base64;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
@@ -34,7 +34,7 @@ import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.UnknownHostException;
+import java.net.URLEncoder;
 import java.util.Map;
 
 import javax.net.ssl.HostnameVerifier;
@@ -312,7 +312,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
             menu.add(Menu.NONE, WebViewClickHandler.OPEN_IN_BROWSER, 0, R.string.webview_handler_open_in_browser).setOnMenuItemClickListener(handler);
             menu.add(Menu.NONE, WebViewClickHandler.COPY_LINK_ADDRESS, 1, R.string.webview_handler_copy_link_addr).setOnMenuItemClickListener(handler);
             menu.add(Menu.NONE, WebViewClickHandler.COPY_LINK_TEXT, 1, R.string.webview_handler_copy_link_text).setOnMenuItemClickListener(handler);
-            menu.add(Menu.NONE, WebViewClickHandler.DOWNLOAD_LINK, 1, R.string.webview_handler_download_link).setOnMenuItemClickListener(handler);
+            //menu.add(Menu.NONE, WebViewClickHandler.DOWNLOAD_LINK, 1, R.string.webview_handler_download_link).setOnMenuItemClickListener(handler);
             menu.add(Menu.NONE, WebViewClickHandler.SHARE_LINK, 1, R.string.webview_handler_share).setOnMenuItemClickListener(handler);
         }
 
@@ -323,10 +323,9 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
             //menu.setHeaderTitle(mIntentUrl);
             menu.add(Menu.NONE, WebViewClickHandler.OPEN_IN_BROWSER, 0, R.string.webview_handler_open_in_browser).setOnMenuItemClickListener(handler);
             menu.add(Menu.NONE, WebViewClickHandler.OPEN_IMAGE, 1, R.string.webview_handler_open_image).setOnMenuItemClickListener(handler);
-            menu.add(Menu.NONE, WebViewClickHandler.DOWNLOAD_LINK, 2, R.string.webview_handler_download_link).setOnMenuItemClickListener(handler);
+            //menu.add(Menu.NONE, WebViewClickHandler.DOWNLOAD_LINK, 2, R.string.webview_handler_download_link).setOnMenuItemClickListener(handler);
             menu.add(Menu.NONE, WebViewClickHandler.SEARCH_GOOGLE, 2, R.string.webview_handler_search_with_ggl).setOnMenuItemClickListener(handler);
             menu.add(Menu.NONE, WebViewClickHandler.SHARE_LINK, 2, R.string.webview_handler_share).setOnMenuItemClickListener(handler);
-
         }
     }
 
@@ -363,21 +362,29 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                 }
                 case COPY_LINK_ADDRESS: {
                     ClipBoardUtils.putTextIntoClipboard(mContext, mIntentUrl);
-                    Snackbar.make(rootView, R.string.copy_to_clipboard, Snackbar.LENGTH_SHORT).show();
+                    //Snackbar.make(rootView, R.string.copy_to_clipboard, Snackbar.LENGTH_SHORT).show();
                     break;
                 }
                 case COPY_LINK_TEXT: {
                     ClipBoardUtils.putTextIntoClipboard(mContext, mLongClickLinkText);
-                    Snackbar.make(rootView, R.string.copy_to_clipboard, Snackbar.LENGTH_SHORT).show();
+                    //Snackbar.make(rootView, R.string.copy_to_clipboard, Snackbar.LENGTH_SHORT).show();
                     break;
                 }
                 case SEARCH_GOOGLE: {
-                    mWebView.loadUrl("https://www.google.com/searchbyimage?image_url=" + mIntentUrl);
+                    String encodeUrl = mIntentUrl;
+                    try {
+                        encodeUrl = URLEncoder.encode(mIntentUrl, "utf-8");
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
+                    mWebView.loadUrl("https://www.google.com/searchbyimage?image_url=" + encodeUrl);
                     break;
                 }
                 case SHARE_LINK: {
-                    Intent intent = new Intent(Intent.ACTION_SEND, Uri.parse(mIntentUrl));
-                    mActivity.startActivity(intent);
+                    Intent intent = new Intent(Intent.ACTION_SEND);
+                    intent.setType("text/plain");
+                    intent.putExtra(Intent.EXTRA_TEXT, mIntentUrl);
+                    mActivity.startActivity(Intent.createChooser(intent, mContext.getString(R.string.share)));
                     break;
                 }
             }

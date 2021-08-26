@@ -28,14 +28,12 @@ import com.zhy.view.flowlayout.TagFlowLayout;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.OutWakeActivity;
 import ceui.lisa.activities.SearchActivity;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UserActivity;
 import ceui.lisa.adapters.SearchHintAdapter;
 import ceui.lisa.database.AppDatabase;
@@ -382,13 +380,20 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
     }
 
     private void loadHistory() {
-        List<SearchEntity> history = AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().getAll(15);
+        List<SearchEntity> history = AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().getAll(50);
         baseBind.searchHistory.setAdapter(new TagAdapter<SearchEntity>(history) {
             @Override
             public View getView(FlowLayout parent, int position, SearchEntity searchEntity) {
                 RecySingleLineTextWithDeleteBinding binding = DataBindingUtil.inflate(
                         LayoutInflater.from(mContext), R.layout.recy_single_line_text_with_delete,
                         parent, false);
+                if (searchEntity.isPinned()) {
+                    binding.fixed.setVisibility(View.VISIBLE);
+                    binding.deleteItem.setVisibility(View.GONE);
+                } else {
+                    binding.fixed.setVisibility(View.GONE);
+                    binding.deleteItem.setVisibility(View.VISIBLE);
+                }
                 binding.tagTitle.setText(searchEntity.getKeyword());
                 binding.deleteItem.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -419,7 +424,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                             .addAction(0, getString(R.string.string_141), QMUIDialogAction.ACTION_PROP_NEGATIVE, new QMUIDialogAction.ActionListener() {
                                 @Override
                                 public void onClick(QMUIDialog dialog, int index) {
-                                    AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().deleteAll();
+                                    AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().deleteAllUnpinned();
                                     Common.showToast(getString(R.string.string_140));
                                     dialog.dismiss();
                                     onResume();
@@ -473,7 +478,34 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
         baseBind.searchHistory.setOnTagLongClickListener(new TagFlowLayout.OnTagLongClickListener() {
             @Override
             public boolean onTagLongClick(View view, int position, FlowLayout parent) {
-                Common.copy(mContext, history.get(position).getKeyword());
+                final SearchEntity searchEntity = history.get(position);
+                new QMUIDialog.MessageDialogBuilder(mContext)
+                        .setTitle(R.string.string_87)
+                        .setMessage(searchEntity.getKeyword())
+                        .setSkinManager(QMUISkinManager.defaultInstance(mActivity))
+                        .addAction(getString(R.string.string_142), new QMUIDialogAction.ActionListener() {
+                            @Override
+                            public void onClick(QMUIDialog dialog, int index) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .addAction(searchEntity.isPinned() ? getString(R.string.string_443) : getString(R.string.string_442), new QMUIDialogAction.ActionListener() {
+                            @Override
+                            public void onClick(QMUIDialog dialog, int index) {
+                                searchEntity.setPinned(!searchEntity.isPinned());
+                                AppDatabase.getAppDatabase(mContext).searchDao().insert(searchEntity);
+                                baseBind.searchHistory.getAdapter().notifyDataChanged();
+                                dialog.dismiss();
+                            }
+                        })
+                        .addAction(getString(R.string.string_120), new QMUIDialogAction.ActionListener() {
+                            @Override
+                            public void onClick(QMUIDialog dialog, int index) {
+                                Common.copy(mContext, searchEntity.getKeyword());
+                                dialog.dismiss();
+                            }
+                        })
+                        .show();
                 return true;
             }
         });

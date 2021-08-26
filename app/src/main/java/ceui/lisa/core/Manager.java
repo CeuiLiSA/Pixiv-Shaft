@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import ceui.lisa.activities.Shaft;
@@ -38,16 +39,14 @@ import rxhttp.wrapper.utils.UriUtil;
 
 public class Manager {
 
-    private Context mContext = Shaft.getContext();
+    private final Context mContext = Shaft.getContext();
     private List<DownloadItem> content = new ArrayList<>();
     private Disposable handle = null;
-    //private long nonius;
-
     private boolean isRunning = false;
 
     private Manager() {
+        uuid = "";
         currentIllustID = 0;
-        //nonius = 0L;
     }
 
     public void restore() {
@@ -101,13 +100,12 @@ public class Manager {
         AppDatabase.getAppDatabase(Shaft.getContext()).downloadDao().insertDownloading(entity);
     }
 
-    private void safeDelete(DownloadItem item) {
-        safeDelete(item, true);
-    }
-
-    private void safeDelete(DownloadItem item, boolean isDownloadSuccess) {
+    private void complete(DownloadItem item, boolean isDownloadSuccess) {
         if (isDownloadSuccess) {
+            item.setState(DownloadItem.DownloadState.SUCCESS);
+            setCallback(uuid, null);
             content.remove(item);
+
             DownloadingEntity entity = new DownloadingEntity();
             entity.setFileName(item.getName());
             entity.setUuid(item.getUuid());
@@ -115,13 +113,12 @@ public class Manager {
             AppDatabase.getAppDatabase(mContext).downloadDao().deleteDownloading(entity);
             Common.showToast(item.getName() + "已下载完成");
         } else {
-            item.setProcessed(true);
-            //加到队列尾部
-            //content.add(item);
+            item.setNonius(0);
+            item.setState(DownloadItem.DownloadState.FAILED);
         }
     }
 
-    public void addTasks(List<DownloadItem> list, Context context) {
+    public void addTasks(List<DownloadItem> list) {
         if (!Common.isEmpty(list)) {
             for (DownloadItem item : list) {
                 addTask(item);
@@ -132,7 +129,7 @@ public class Manager {
     public void startAll() {
         if (!Common.isEmpty(content)) {
             for (DownloadItem item : content) {
-                item.setProcessed(false);
+                //item.setProcessed(false);
                 item.setState(DownloadItem.DownloadState.INIT);
                 item.setPaused(false);
             }
@@ -149,7 +146,7 @@ public class Manager {
         for (int i = 0; i < content.size(); i++) {
             DownloadItem downloadItem = content.get(i);
             if (downloadItem != null && downloadItem.getUuid().equals(uuid)) {
-                downloadItem.setProcessed(false);
+                //downloadItem.setProcessed(false);
                 downloadItem.setPaused(false);
                 Common.showLog("已开始 " + uuid);
                 break;
@@ -162,6 +159,50 @@ public class Manager {
         }
         isRunning = true;
         loop();
+    }
+
+    public void stopAll() {
+        for (DownloadItem item : getContent()) {
+            item.setPaused(true);
+        }
+        isRunning = false;
+        if (handle != null) {
+            handle.dispose();
+        }
+        Common.showLog("已经停止");
+    }
+
+    public void stopOne(String uuid){
+        for (DownloadItem item : getContent()) {
+            if(item.getUuid().equals(uuid)){
+                item.setPaused(true);
+                Common.showLog("已暂停 " + uuid);
+                break;
+            }
+        }
+        if(this.uuid.equals(uuid) && handle != null){
+            handle.dispose();
+        }
+    }
+
+    public void clearAll() {
+        stopAll();
+        AppDatabase.getAppDatabase(mContext).downloadDao().deleteAllDownloading();
+        content.clear();
+    }
+
+    public void clearOne(String uuid) {
+        stopOne(uuid);
+        Optional<DownloadItem> item = content.stream().filter(it -> it.getUuid().equals(uuid)).findFirst();
+        if (item.isPresent()) {
+            DownloadItem downloadItem = item.get();
+            DownloadingEntity entity = new DownloadingEntity();
+            entity.setFileName(downloadItem.getName());
+            entity.setUuid(downloadItem.getUuid());
+            entity.setTaskGson(Shaft.sGson.toJson(downloadItem));
+            AppDatabase.getAppDatabase(mContext).downloadDao().deleteDownloading(entity);
+            content.remove(downloadItem);
+        }
     }
 
     private void loop() {
@@ -185,7 +226,7 @@ public class Manager {
     private DownloadItem getFirstOne() {
         for (int i = 0; i < content.size(); i++) {
             DownloadItem downloadItem = content.get(i);
-            if (!downloadItem.isProcessed() && !downloadItem.isPaused()) {
+            if (downloadItem.getState() == DownloadItem.DownloadState.INIT || downloadItem.getState() == DownloadItem.DownloadState.DOWNLOADING) {
                 return downloadItem;
             }
         }
@@ -204,7 +245,7 @@ public class Manager {
         uuid = downloadItem.getUuid();
         // long beanSize = downloadItem.getTransferredBytes();
         long fileSize = UriUtil.length(factory.query(), context);
-        long passSize = (downloadItem.getNonius() != 0 && fileSize >= 0) ? fileSize : 0;
+        long passSize = (!downloadItem.shouldStartNewDownload() && fileSize >= 0) ? fileSize : 0;
         //Common.showLog("Resume Size: beanSize=" + beanSize + ",fileSize=" + fileSize + ",uri="+factory.query());
         handle = RxHttp.get(downloadItem.getUrl())
                 .addHeader(Params.MAP_KEY, Params.IMAGE_REFERER)
@@ -213,8 +254,9 @@ public class Manager {
                     @Override
                     public void accept(Progress progress) {
                         //downloadItem.setTransferredBytes(progress.getCurrentSize());
-                        currentProgress = progress.getProgress();
+                        final int currentProgress = progress.getProgress();
                         downloadItem.setNonius(currentProgress);
+                        downloadItem.setState(DownloadItem.DownloadState.DOWNLOADING);
                         Common.showLog("currentProgress " + currentProgress);
                         try {
                             Callback<Progress> c = getCallback(uuid);
@@ -231,13 +273,12 @@ public class Manager {
                     public void run() throws Throwable {
                         //下载完成，处理相关逻辑
                         currentIllustID = 0;
-                        currentProgress = 0;
-                        //nonius = 0L;
                         loop();
                         Common.showLog("doFinally ");
                     }
                 })
-                .subscribe(s -> {//s为String类型，这里为文件存储路径
+                .subscribe(s -> {
+                    //s为String类型，这里为文件存储路径
                     Common.showLog("downloadOne " + s);
 
                     if(downloadItem.getIllust().isGif()){
@@ -286,19 +327,15 @@ public class Manager {
                         }
                     }.execute();
 
-                    // remove callback
-                    setCallback(uuid, null);
-
-                    safeDelete(downloadItem);
+                    complete(downloadItem, true);
                 }, throwable -> {
-                    downloadItem.setNonius(0);
                     //下载失败，处理相关逻辑
                     throwable.printStackTrace();
                     if (!Dev.isDev) {
                         Common.showToast("下载失败，原因：" + throwable.toString());
                     }
                     Common.showLog("下载失败，原因：" + throwable.toString());
-                    safeDelete(downloadItem, false);
+                    complete(downloadItem, false);
                     {
                         //通知 DOWNLOAD_ING 有一项下载失败
                         Intent intent = new Intent(Params.DOWNLOAD_ING);
@@ -312,12 +349,6 @@ public class Manager {
                 });
     }
 
-    private int currentProgress;
-
-    public int getCurrentProgress() {
-        return currentProgress;
-    }
-
     private String uuid;
     private int currentIllustID;
 
@@ -329,7 +360,7 @@ public class Manager {
         return uuid;
     }
 
-    private Map<String, Callback<Progress>> mCallback = new HashMap<>();
+    private final Map<String, Callback<Progress>> mCallback = new HashMap<>();
 
     public Callback<Progress> getCallback(String uuid) {
         return mCallback.getOrDefault(uuid, null);
@@ -349,35 +380,5 @@ public class Manager {
 
     public List<DownloadItem> getContent() {
         return content;
-    }
-
-    public void stopAll() {
-        for (DownloadItem item : getContent()) {
-            item.setPaused(true);
-        }
-        isRunning = false;
-        if (handle != null) {
-            handle.dispose();
-        }
-        Common.showLog("已经停止");
-    }
-
-    public void stopOne(String uuid){
-        for (DownloadItem item : getContent()) {
-            if(item.getUuid().equals(uuid)){
-                item.setPaused(true);
-                Common.showLog("已暂停 " + uuid);
-                break;
-            }
-        }
-        if(this.uuid.equals(uuid) && handle != null){
-            handle.dispose();
-        }
-    }
-
-    public void clear() {
-        stopAll();
-        AppDatabase.getAppDatabase(mContext).downloadDao().deleteAllDownloading();
-        content.clear();
     }
 }

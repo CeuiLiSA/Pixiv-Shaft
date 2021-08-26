@@ -35,7 +35,6 @@ import com.zhy.view.flowlayout.TagFlowLayout;
 import java.io.File;
 
 import ceui.lisa.R;
-import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.SearchActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
@@ -243,7 +242,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
                         baseBind.progress.setVisibility(View.INVISIBLE);
                         Cache.get().saveModel(Params.ILLUST_ID + "_" + illust.getId(), gifResponse);
                         Common.showToast("下载GIF文件");
-                        DownloadItem downloadItem = IllustDownload.downloadGif(gifResponse, illust, (BaseActivity<?>) mContext);
+                        DownloadItem downloadItem = IllustDownload.downloadGif(gifResponse, illust);
                         Manager.get().setCallback(downloadItem.getUuid(), new Callback<Progress>() {
                             @Override
                             public void doSomething(Progress t) {

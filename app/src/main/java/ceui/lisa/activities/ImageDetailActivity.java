@@ -7,10 +7,6 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
-import com.ToxicBakery.viewpager.transforms.CubeOutTransformer;
-import com.blankj.utilcode.util.BarUtils;
-import com.blankj.utilcode.util.ColorUtils;
-
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -71,7 +67,7 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
             downloadSingle.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    IllustDownload.downloadIllust(mIllustsBean, baseBind.viewPager.getCurrentItem(), (BaseActivity<?>) mContext);
+                    IllustDownload.downloadIllustCertainPage(mIllustsBean, baseBind.viewPager.getCurrentItem(), (BaseActivity<?>) mContext);
                 }
             });
             baseBind.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {

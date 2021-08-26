@@ -1,6 +1,5 @@
 package ceui.lisa.adapters;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,7 +11,6 @@ import androidx.annotation.Nullable;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestManager;
@@ -27,13 +25,10 @@ import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.RecyIllustDetailBinding;
 import ceui.lisa.download.IllustDownload;
-import ceui.lisa.feature.HostManager;
-import ceui.lisa.interfaces.FeedBack;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.transformer.LargeBitmapScaleTransformer;
 import ceui.lisa.transformer.UniformScaleTransformation;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUrlChild;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
@@ -72,7 +67,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
         super.onBindViewHolder(holder, position);
         if(longPressDownload && mActivity instanceof BaseActivity<?>){
             holder.itemView.setOnLongClickListener(v -> {
-                IllustDownload.downloadIllust(allIllust, position, (BaseActivity<?>) mActivity);
+                IllustDownload.downloadIllustCertainPage(allIllust, position, (BaseActivity<?>) mActivity);
                 if(Shaft.sSettings.isAutoPostLikeWhenDownload() && !allIllust.isIs_bookmarked()){
                     PixivOperate.postLikeDefaultStarType(allIllust);
                 }

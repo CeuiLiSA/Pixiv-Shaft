@@ -24,7 +24,7 @@ import ceui.lisa.feature.FeatureEntity;
                 FeatureEntity.class, //记录用户收藏的精华列表
                 DownloadingEntity.class //记录用户正在下载中的列表
         },
-        version = 24
+        version = 25
 )
 public abstract class AppDatabase extends RoomDatabase {
 
@@ -39,6 +39,13 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
+    private static final Migration MIGRATION_24_25 = new Migration(24, 25) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE search_table ADD COLUMN pinned INTEGER NOT NULL DEFAULT 0");
+        }
+    };
+
     public static AppDatabase getAppDatabase(Context context) {
         if (INSTANCE == null) {
             INSTANCE =
@@ -48,6 +55,7 @@ public abstract class AppDatabase extends RoomDatabase {
                             //.fallbackToDestructiveMigration()
                             .allowMainThreadQueries()
                             .addMigrations(MIGRATION_23_24)
+                            .addMigrations(MIGRATION_24_25)
                             .build();
         }
         return INSTANCE;

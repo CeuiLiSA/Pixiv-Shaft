@@ -15,14 +15,19 @@ public interface SearchDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insert(SearchEntity searchEntity);
 
+    @Query("SELECT * FROM search_table WHERE id = :id LIMIT 1")
+    SearchEntity getSearchEntity(int id);
+
     @Delete
     void deleteSearchEntity(SearchEntity searchEntity);
 
     @Query("DELETE FROM search_table")
     void deleteAll();
 
+    @Query("DELETE FROM search_table WHERE pinned = 0")
+    void deleteAllUnpinned();
 
-    @Query("SELECT * FROM search_table ORDER BY searchTime DESC LIMIT :limit")
+    @Query("SELECT * FROM search_table ORDER BY pinned DESC, searchTime DESC LIMIT :limit")
     List<SearchEntity> getAll(int limit);
 
     @Query("SELECT * FROM search_table")
