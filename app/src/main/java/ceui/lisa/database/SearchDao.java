@@ -24,6 +24,9 @@ public interface SearchDao {
     @Query("DELETE FROM search_table")
     void deleteAll();
 
+    @Query("DELETE FROM search_table WHERE pinned = 0")
+    void deleteAllUnpinned();
+
     @Query("SELECT * FROM search_table ORDER BY pinned DESC, searchTime DESC LIMIT :limit")
     List<SearchEntity> getAll(int limit);
 

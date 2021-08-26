@@ -387,7 +387,13 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                 RecySingleLineTextWithDeleteBinding binding = DataBindingUtil.inflate(
                         LayoutInflater.from(mContext), R.layout.recy_single_line_text_with_delete,
                         parent, false);
-                binding.fixed.setVisibility(searchEntity.isPinned() ? View.VISIBLE : View.GONE);
+                if (searchEntity.isPinned()) {
+                    binding.fixed.setVisibility(View.VISIBLE);
+                    binding.deleteItem.setVisibility(View.GONE);
+                } else {
+                    binding.fixed.setVisibility(View.GONE);
+                    binding.deleteItem.setVisibility(View.VISIBLE);
+                }
                 binding.tagTitle.setText(searchEntity.getKeyword());
                 binding.deleteItem.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -418,7 +424,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                             .addAction(0, getString(R.string.string_141), QMUIDialogAction.ACTION_PROP_NEGATIVE, new QMUIDialogAction.ActionListener() {
                                 @Override
                                 public void onClick(QMUIDialog dialog, int index) {
-                                    AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().deleteAll();
+                                    AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().deleteAllUnpinned();
                                     Common.showToast(getString(R.string.string_140));
                                     dialog.dismiss();
                                     onResume();
