@@ -16,9 +16,9 @@
             android:id="@+id/illust_image"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:scaleType="centerCrop"
             app:riv_border_width="0dp"
-            app:riv_corner_radius="@dimen/twelve_dp"
-            android:scaleType="centerCrop" />
+            app:riv_corner_radius="@dimen/twelve_dp" />
 
         <View
             android:layout_width="match_parent"
@@ -33,10 +33,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignBottom="@+id/illust_image"
-            android:layout_toStartOf="@+id/download"
             android:ellipsize="end"
             android:gravity="center_vertical"
-            android:maxLines="2"
+            android:maxLines="3"
             android:paddingStart="@dimen/twelve_dp"
             android:paddingTop="@dimen/six_dp"
             android:paddingEnd="@dimen/twelve_dp"
@@ -45,7 +44,6 @@
             android:shadowDx="2"
             android:shadowDy="2"
             android:shadowRadius="2"
-            android:text="@string/string_114"
             android:textColor="@color/white"
             android:textSize="13sp">
 
