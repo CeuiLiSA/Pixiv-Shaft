@@ -470,7 +470,7 @@
   <string name="string_299">デイモード（ライト）</string>  
   <string name="string_300">ダークモード（暗いです）</string>  
   <string name="string_310">Shaftを使って見る</string>  
-  <string name="string_311">Shaftを使ってソース検索を行います。</string>  
+  <string name="string_311">Shaftを用いて逆画像検索</string>
   <string name="string_312">設定に行きます</string>  
   <string name="string_313">ファイルをダウンロードするには権限を要求する必要はありませんが、ファイルを保存するディレクトリフォルダを設定する必要があります。</string>  
   <string name="string_314">エクスポートTXT</string>  
