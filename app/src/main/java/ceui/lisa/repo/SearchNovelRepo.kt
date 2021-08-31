@@ -4,19 +4,18 @@ import android.text.TextUtils
 import ceui.lisa.core.RemoteRepo
 import ceui.lisa.http.Retro
 import ceui.lisa.model.ListNovel
-import ceui.lisa.utils.PixivOperate
 import ceui.lisa.utils.PixivSearchParamUtil
 import ceui.lisa.viewmodel.SearchModel
 import io.reactivex.Observable
 
 class SearchNovelRepo(
     var keyword: String?,
-    var sortType: String?,
+    private var sortType: String?,
     var searchType: String?,
     var starSize: String?,
-    var isPremium: Boolean?,
-    var startDate: String?,
-    var endDate: String?
+    private var isPremium: Boolean?,
+    private var startDate: String?,
+    private var endDate: String?
 ) : RemoteRepo<ListNovel>() {
 
     override fun initApi(): Observable<ListNovel> {

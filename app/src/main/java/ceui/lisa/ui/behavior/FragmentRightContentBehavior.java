@@ -8,9 +8,7 @@ import android.widget.OverScroller;
 import androidx.annotation.NonNull;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.view.ViewCompat;
-
 import ceui.lisa.R;
-import ceui.lisa.utils.Common;
 
 public class FragmentRightContentBehavior extends CoordinatorLayout.Behavior<View> {
 

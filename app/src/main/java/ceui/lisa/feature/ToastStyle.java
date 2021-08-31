@@ -2,9 +2,7 @@ package ceui.lisa.feature;
 
 import android.content.Context;
 
-import com.hjq.toast.style.BaseToastStyle;
 import com.hjq.toast.style.ToastAliPayStyle;
-import com.hjq.toast.style.ToastQQStyle;
 
 public class ToastStyle extends ToastAliPayStyle {
 

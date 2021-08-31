@@ -3,8 +3,6 @@ package ceui.lisa.fragments;
 import android.view.MenuItem;
 import android.view.View;
 
-import androidx.appcompat.widget.Toolbar;
-
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
@@ -12,19 +10,16 @@ import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.appcompat.widget.Toolbar;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
-import ceui.lisa.adapters.MuteWorksAdapter;
 import ceui.lisa.adapters.SimpleUserAdapter;
 import ceui.lisa.core.LocalRepo;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.MuteEntity;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecySimpleUserBinding;
-import ceui.lisa.databinding.RecyViewHistoryBinding;
-import ceui.lisa.helper.IllustFilter;
-import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.UserBean;
 import ceui.lisa.utils.Common;
 

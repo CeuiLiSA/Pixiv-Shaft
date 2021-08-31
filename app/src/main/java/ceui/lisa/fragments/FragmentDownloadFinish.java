@@ -21,7 +21,6 @@ import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyDownloadedBinding;
-import ceui.lisa.databinding.RecyViewHistoryBinding;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.IllustsBean;

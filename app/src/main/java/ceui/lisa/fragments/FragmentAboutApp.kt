@@ -85,22 +85,27 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
             MenuDialogBuilder(mActivity)
                 .addItems(choices) { dialog, which ->
                     val intent = Intent()
-                    if (which == 0) {
-                        intent.data = Uri.parse(
-                            "mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + "_RMaPSgL-eB-JZPMFdXGJTSqIqtgCn5G"
-                        )
-                    } else if (which == 1) {
-                        intent.data = Uri.parse(
-                            "mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + "t4_EApMhD08yaYtdTQ40TmrjIx-uuWsk"
-                        )
-                    } else if (which == 2) {
-                        intent.data = Uri.parse(
-                            "mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + "wP7NEZdMl11ijJgm0IDQMjZ3kaPQPio6"
-                        )
-                    } else if (which == 3) {
-                        intent.data = Uri.parse(
-                            "mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + "8WwEAkjbS4yOYMtNR17TS-Wghwv8xjNK"
-                        )
+                    when (which) {
+                        0 -> {
+                            intent.data = Uri.parse(
+                                "mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + "_RMaPSgL-eB-JZPMFdXGJTSqIqtgCn5G"
+                            )
+                        }
+                        1 -> {
+                            intent.data = Uri.parse(
+                                "mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + "t4_EApMhD08yaYtdTQ40TmrjIx-uuWsk"
+                            )
+                        }
+                        2 -> {
+                            intent.data = Uri.parse(
+                                "mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + "wP7NEZdMl11ijJgm0IDQMjZ3kaPQPio6"
+                            )
+                        }
+                        3 -> {
+                            intent.data = Uri.parse(
+                                "mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + "8WwEAkjbS4yOYMtNR17TS-Wghwv8xjNK"
+                            )
+                        }
                     }
                     try {
                         startActivity(intent)

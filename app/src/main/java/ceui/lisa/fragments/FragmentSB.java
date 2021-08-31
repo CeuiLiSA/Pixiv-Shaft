@@ -3,14 +3,9 @@ package ceui.lisa.fragments;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.InputType;
-import android.text.TextUtils;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import androidx.appcompat.widget.Toolbar;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
-import com.bumptech.glide.RequestManager;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
@@ -19,6 +14,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import androidx.appcompat.widget.Toolbar;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
@@ -27,10 +24,8 @@ import ceui.lisa.core.BaseRepo;
 import ceui.lisa.databinding.FragmentSelectTagBinding;
 import ceui.lisa.databinding.RecySelectTagBinding;
 import ceui.lisa.http.ErrorCtrl;
-import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListBookmarkTag;
-import ceui.lisa.model.ListTag;
 import ceui.lisa.models.NullResponse;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.repo.SelectTagRepo;

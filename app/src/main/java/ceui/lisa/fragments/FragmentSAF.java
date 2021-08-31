@@ -3,20 +3,16 @@ package ceui.lisa.fragments;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
-import android.provider.DocumentsContract;
-import android.provider.DocumentsProvider;
 import android.text.TextUtils;
 import android.view.View;
 
 import androidx.documentfile.provider.DocumentFile;
-
 import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.FragmentSafBinding;
 import ceui.lisa.file.SAFile;
 import ceui.lisa.models.IllustsBean;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 
 import static android.provider.DocumentsContract.EXTRA_INITIAL_URI;

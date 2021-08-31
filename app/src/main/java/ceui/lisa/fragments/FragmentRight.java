@@ -5,16 +5,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import androidx.appcompat.widget.Toolbar;
-import androidx.core.view.GravityCompat;
-import androidx.databinding.ViewDataBinding;
-import androidx.fragment.app.FragmentTransaction;
-
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GravityCompat;
+import androidx.databinding.ViewDataBinding;
+import androidx.fragment.app.FragmentTransaction;
 import ceui.lisa.R;
 import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;
@@ -37,10 +36,6 @@ import ceui.lisa.utils.Params;
 import ceui.lisa.view.OnCheckChangeListener;
 import ceui.lisa.viewmodel.BaseModel;
 import ceui.lisa.viewmodel.DynamicIllustModel;
-import io.reactivex.Observable;
-import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
 
 public class FragmentRight extends NetListFragment<FragmentNewRightBinding, ListIllust, IllustsBean> {
 

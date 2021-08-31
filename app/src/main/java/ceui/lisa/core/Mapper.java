@@ -6,7 +6,6 @@ import java.util.List;
 import ceui.lisa.helper.IllustFilter;
 import ceui.lisa.interfaces.ListShow;
 import ceui.lisa.models.IllustsBean;
-import ceui.lisa.utils.Common;
 import io.reactivex.functions.Function;
 
 /**

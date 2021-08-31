@@ -1,12 +1,8 @@
 package ceui.lisa.fragments;
 
 import android.os.Bundle;
-import android.text.InputType;
 import android.text.TextUtils;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -14,16 +10,9 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
-
-import com.qmuiteam.qmui.skin.QMUISkinManager;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
-
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.database.AppDatabase;
 import ceui.lisa.databinding.ViewpagerWithTablayoutBinding;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.MyOnTabSelectedListener;
 import ceui.lisa.utils.Params;

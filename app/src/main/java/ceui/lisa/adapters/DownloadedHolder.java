@@ -6,7 +6,6 @@ import com.facebook.rebound.SpringConfig;
 import com.facebook.rebound.SpringSystem;
 
 import ceui.lisa.databinding.RecyDownloadedBinding;
-import ceui.lisa.databinding.RecyViewHistoryBinding;
 
 class DownloadedHolder extends ViewHolder<RecyDownloadedBinding> {
 

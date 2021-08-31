@@ -15,11 +15,9 @@ import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.animation.DecelerateInterpolator;
-import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 
 import androidx.annotation.Nullable;
-
 import ceui.lisa.utils.DensityUtil;
 
 public class PressFrameLayout extends RelativeLayout {

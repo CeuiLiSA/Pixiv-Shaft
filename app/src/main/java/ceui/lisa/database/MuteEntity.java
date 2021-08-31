@@ -1,7 +1,6 @@
 package ceui.lisa.database;
 
 import androidx.room.Entity;
-import androidx.room.PrimaryKey;
 
 @Entity(tableName = "tag_mute_table", primaryKeys = {"id", "type"})
 public final class MuteEntity {

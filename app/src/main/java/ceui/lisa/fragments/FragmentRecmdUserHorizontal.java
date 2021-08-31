@@ -3,11 +3,10 @@ package ceui.lisa.fragments;
 import android.content.Intent;
 import android.view.View;
 
-import androidx.recyclerview.widget.LinearLayoutManager;
-
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.recyclerview.widget.LinearLayoutManager;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.UserActivity;
@@ -16,7 +15,6 @@ import ceui.lisa.adapters.UserHAdapter;
 import ceui.lisa.core.BaseRepo;
 import ceui.lisa.core.RxRun;
 import ceui.lisa.core.RxRunnable;
-import ceui.lisa.core.TimeRecord;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustRecmdEntity;
 import ceui.lisa.databinding.FragmentUserHorizontalBinding;
@@ -27,16 +25,9 @@ import ceui.lisa.model.ListUser;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.UserPreviewsBean;
 import ceui.lisa.repo.RecmdUserRepo;
-import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
-import io.reactivex.Observable;
-import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.annotations.NonNull;
-import io.reactivex.functions.Function;
-import io.reactivex.schedulers.Schedulers;
 import jp.wasabeef.recyclerview.animators.BaseItemAnimator;
 import jp.wasabeef.recyclerview.animators.FadeInLeftAnimator;
 

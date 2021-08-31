@@ -14,14 +14,14 @@ import io.reactivex.functions.Function
 
 class SearchIllustRepo(
     var keyword: String?,
-    var sortType: String?,
+    private var sortType: String?,
     var searchType: String?,
     var starSize: String?,
     //var isPopular: Boolean,
-    var isPremium: Boolean?,
-    var startDate: String?,
-    var endDate: String?,
-    var r18Restriction: Int?
+    private var isPremium: Boolean?,
+    private var startDate: String?,
+    private var endDate: String?,
+    private var r18Restriction: Int?
 ) : RemoteRepo<ListIllust>() {
 
     private var filterMapper: FilterMapper? = null
@@ -81,7 +81,7 @@ class SearchIllustRepo(
         this.filterMapper?.updateStarSizeLimit(this.getStarSizeLimit())
     }
 
-    fun getStarSizeLimit(): Int {
+    private fun getStarSizeLimit(): Int {
         if (TextUtils.isEmpty(this.starSize)) {
             return 0
         }

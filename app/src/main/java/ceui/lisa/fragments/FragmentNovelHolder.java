@@ -11,8 +11,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
 
-import androidx.appcompat.widget.Toolbar;
-
 import com.blankj.utilcode.util.BarUtils;
 import com.blankj.utilcode.util.PathUtils;
 import com.bumptech.glide.Glide;
@@ -25,6 +23,7 @@ import com.zhy.view.flowlayout.TagFlowLayout;
 import java.util.Arrays;
 import java.util.Collections;
 
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
@@ -38,7 +37,6 @@ import ceui.lisa.cache.Cache;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.DownloadEntity;
 import ceui.lisa.databinding.FragmentNovelHolderBinding;
-import ceui.lisa.download.FileCreator;
 import ceui.lisa.download.IllustDownload;
 import ceui.lisa.helper.NovelParseHelper;
 import ceui.lisa.http.NullCtrl;

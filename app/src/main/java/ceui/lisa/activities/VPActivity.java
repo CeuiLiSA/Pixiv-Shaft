@@ -2,26 +2,21 @@ package ceui.lisa.activities;
 
 import android.text.TextUtils;
 import android.view.View;
-import android.view.ViewGroup;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentPagerAdapter;
-import androidx.viewpager.widget.ViewPager;
 
 import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringConfig;
 import com.facebook.rebound.SpringSystem;
 
-import java.util.UUID;
-
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.viewpager.widget.ViewPager;
 import ceui.lisa.R;
 import ceui.lisa.databinding.ActivityMultiViewPagerTestBinding;
 import ceui.lisa.feature.ScaleTrans;
 import ceui.lisa.fragments.TestFragment;
-import ceui.lisa.utils.Common;
 
 public class VPActivity extends BaseActivity<ActivityMultiViewPagerTestBinding> {
 

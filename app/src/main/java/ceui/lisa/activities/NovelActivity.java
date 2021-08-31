@@ -5,7 +5,6 @@ import android.os.Handler;
 import android.view.View;
 
 import ceui.lisa.R;
-import ceui.lisa.cache.Cache;
 import ceui.lisa.databinding.ActivityNovelBinding;
 import ceui.lisa.models.NovelDetail;
 import ceui.lisa.page.PageLoader;

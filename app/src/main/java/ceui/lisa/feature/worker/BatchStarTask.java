@@ -10,7 +10,6 @@ import ceui.lisa.http.Retro;
 import ceui.lisa.models.NullResponse;
 import ceui.lisa.utils.Params;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
 import static ceui.lisa.activities.Shaft.sUserModel;

@@ -1,25 +1,18 @@
 package ceui.lisa.adapters;
 
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
 import android.view.View;
 
-import androidx.annotation.Nullable;
-
-import com.blankj.utilcode.util.Utils;
-
 import java.util.List;
 
+import androidx.annotation.Nullable;
 import ceui.lisa.R;
-import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.databinding.RecyColorBinding;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ColorItem;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Local;
 
 import static com.blankj.utilcode.util.StringUtils.getString;

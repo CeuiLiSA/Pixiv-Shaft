@@ -240,9 +240,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
         if (response == null) {
             mAgentWeb = ready.go(url);
             baseBind.ibMenu.setVisibility(View.VISIBLE);
-            baseBind.ibMenu.setOnClickListener(v -> {
-                mActivity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(mWebView.getUrl())));
-            });
+            baseBind.ibMenu.setOnClickListener(v -> mActivity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(mWebView.getUrl()))));
         } else {
             baseBind.ibMenu.setVisibility(View.GONE);
             mAgentWeb = ready.get();

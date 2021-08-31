@@ -26,16 +26,16 @@ class Android10DownloadFactory22 constructor(
             val file = LegacyFile.gifZipFile(context, item.illust)
             return Uri.fromFile(file)
         }
-        if (Common.isAndroidQ()) {
+        return if (Common.isAndroidQ()) {
             val relativePath: String = FileStorageHelper.getIllustRelativePathQ(item.illust)
-            return MediaStore.Images.Media.EXTERNAL_CONTENT_URI.query(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI.query(
                 context,
                 item.name,
                 relativePath
             )
         } else {
             val file = File(FileStorageHelper.getIllustFileFullNameUnderQ(item))
-            return Uri.fromFile(file)
+            Uri.fromFile(file)
         }
     }
 
@@ -82,7 +82,7 @@ class Android10DownloadFactory22 constructor(
                 return fileUri
             } else {
                 // 低于 android 10， 使用 File 操作
-                val parentFile: File = File(FileStorageHelper.getIllustAbsolutePath(item.illust))
+                val parentFile = File(FileStorageHelper.getIllustAbsolutePath(item.illust))
                 if (!parentFile.exists()) {
                     parentFile.mkdirs()
                 }
