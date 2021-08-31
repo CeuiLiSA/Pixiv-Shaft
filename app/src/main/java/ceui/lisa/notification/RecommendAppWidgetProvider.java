@@ -26,6 +26,7 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.VActivity;
 import ceui.lisa.core.Container;
 import ceui.lisa.core.PageData;
+import ceui.lisa.helper.AppLevelViewModelHelper;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.model.ListIllust;
@@ -52,7 +53,9 @@ public class RecommendAppWidgetProvider extends AppWidgetProvider {
                 IllustsBean illustsBean = (IllustsBean) serializable;
                 Intent illustIntent = new Intent(context, VActivity.class);
                 illustIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                final PageData pageData = new PageData(Collections.singletonList(illustsBean));
+                List<IllustsBean> illustList = Collections.singletonList(illustsBean);
+                AppLevelViewModelHelper.fill(illustList);
+                final PageData pageData = new PageData(illustList);
                 Container.get().addPageToMap(pageData);
                 illustIntent.putExtra(Params.POSITION, 0);
                 illustIntent.putExtra(Params.PAGE_UUID, pageData.getUUID());
