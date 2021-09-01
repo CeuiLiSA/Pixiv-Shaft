@@ -9,7 +9,6 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.blankj.utilcode.util.BarUtils;
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
@@ -24,7 +23,6 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.core.GlideApp;
 import ceui.lisa.databinding.FragmentImageDetailBinding;
 import ceui.lisa.download.IllustDownload;
-import ceui.lisa.feature.HostManager;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUrlChild;

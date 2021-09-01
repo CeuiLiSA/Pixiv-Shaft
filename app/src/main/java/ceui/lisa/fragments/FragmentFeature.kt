@@ -50,7 +50,7 @@ class FragmentFeature : LocalListFragment<FragmentBaseListBinding, FeatureEntity
                     ) { dialog, _ ->
                         AppDatabase.getAppDatabase(mContext).downloadDao()
                             .deleteFeature(allItems[position])
-                        Common.showToast<String>(getString(R.string.string_220))
+                        Common.showToast(getString(R.string.string_220))
                         dialog.dismiss()
                         allItems.removeAt(position)
                         mAdapter.notifyItemRemoved(position)
@@ -82,7 +82,7 @@ class FragmentFeature : LocalListFragment<FragmentBaseListBinding, FeatureEntity
                             QMUIDialogAction.ACTION_PROP_NEGATIVE
                         ) { dialog, _ ->
                             AppDatabase.getAppDatabase(mContext).downloadDao().deleteAllFeature()
-                            Common.showToast<String>(getString(R.string.string_220))
+                            Common.showToast(getString(R.string.string_220))
                             dialog.dismiss()
                             mAdapter.clear()
                             emptyRela.visibility = View.VISIBLE
@@ -128,13 +128,13 @@ class FragmentFeature : LocalListFragment<FragmentBaseListBinding, FeatureEntity
     private fun handleFeatures(items: MutableList<FeatureEntity>) {
         for (item in items) {
             if (!TextUtils.isEmpty(item.illustJson)) {
-                if (item.dataType.equals("漫画系列作品")) {
-                    item.allMangaSeries = Shaft.sGson.fromJson<List<MangaSeriesItem>>(
+                if (item.dataType == "漫画系列作品") {
+                    item.allMangaSeries = Shaft.sGson.fromJson(
                         item.illustJson,
                         object : TypeToken<List<MangaSeriesItem>>() {}.type
                     )
                 } else {
-                    item.allIllust = Shaft.sGson.fromJson<List<IllustsBean>>(
+                    item.allIllust = Shaft.sGson.fromJson(
                         item.illustJson,
                         object : TypeToken<List<IllustsBean>>() {}.type
                     )

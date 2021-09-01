@@ -2,12 +2,9 @@ package ceui.lisa.activities;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
-import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
@@ -19,10 +16,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 import androidx.databinding.ViewDataBinding;
 import androidx.fragment.app.FragmentActivity;
-
 import ceui.lisa.R;
 import ceui.lisa.interfaces.FeedBack;
-import ceui.lisa.notification.NetWorkStateReceiver;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 

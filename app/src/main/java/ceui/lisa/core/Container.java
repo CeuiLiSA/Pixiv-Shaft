@@ -2,14 +2,9 @@ package ceui.lisa.core;
 
 import android.text.TextUtils;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
-import ceui.lisa.model.ListIllust;
-import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
-import ceui.lisa.utils.GlideUrlChild;
 
 public class Container {
 

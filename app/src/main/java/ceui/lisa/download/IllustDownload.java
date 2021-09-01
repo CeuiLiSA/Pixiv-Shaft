@@ -66,9 +66,7 @@ public class IllustDownload {
     }
 
     public static void downloadIllustFirstPage(IllustsBean illust, BaseActivity<?> activity) {
-        check(activity, () -> {
-            downloadIllustFirstPage(illust);
-        });
+        check(activity, () -> downloadIllustFirstPage(illust));
     }
 
     public static void downloadIllustFirstPageWithResolution(IllustsBean illust, String imageResolution, BaseActivity<?> activity) {
@@ -107,9 +105,7 @@ public class IllustDownload {
     }
 
     public static void downloadIllustAllPages(IllustsBean illust, BaseActivity<?> activity) {
-        check(activity, () -> {
-            downloadIllustAllPages(illust);
-        });
+        check(activity, () -> downloadIllustAllPages(illust));
     }
 
     public static void downloadIllustAllPagesWithResolution(IllustsBean illust, String imageResolution, BaseActivity<?> activity) {

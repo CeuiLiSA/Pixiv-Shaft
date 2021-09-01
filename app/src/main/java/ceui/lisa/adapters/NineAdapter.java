@@ -3,19 +3,16 @@ package ceui.lisa.adapters;
 import android.content.Context;
 import android.view.ViewGroup;
 
-import androidx.annotation.Nullable;
-import androidx.recyclerview.widget.GridLayoutManager;
-
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.model.GlideUrl;
 
 import java.util.List;
 
+import androidx.annotation.Nullable;
 import ceui.lisa.R;
 import ceui.lisa.databinding.RecyNineBinding;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.DensityUtil;
-import ceui.lisa.utils.GlideUtil;
 
 public class NineAdapter extends BaseAdapter<GlideUrl, RecyNineBinding> {
 

@@ -1,7 +1,5 @@
 package ceui.lisa.activities;
 
-import static ceui.lisa.activities.Shaft.sUserModel;
-
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -12,9 +10,14 @@ import android.text.TextWatcher;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
 import android.webkit.URLUtil;
 import android.widget.TextView;
+
+import com.mxn.soul.flowingdrawer_core.ElasticDrawer;
+import com.qmuiteam.qmui.skin.QMUISkinManager;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
+import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -23,20 +26,11 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
-
-import com.blankj.utilcode.util.BarUtils;
-import com.mxn.soul.flowingdrawer_core.ElasticDrawer;
-import com.qmuiteam.qmui.skin.QMUISkinManager;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
-import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
-import com.qmuiteam.qmui.widget.dialog.QMUITipDialog;
-
 import androidx.viewpager.widget.ViewPager;
 import ceui.lisa.R;
-import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.databinding.FragmentNewSearchBinding;
+import ceui.lisa.fragments.BaseFragment;
 import ceui.lisa.fragments.FragmentFilter;
 import ceui.lisa.fragments.FragmentSearchIllust;
 import ceui.lisa.fragments.FragmentSearchNovel;
@@ -47,6 +41,8 @@ import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.SearchTypeUtil;
 import ceui.lisa.viewmodel.SearchModel;
+
+import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
 

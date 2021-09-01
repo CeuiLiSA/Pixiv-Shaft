@@ -7,7 +7,6 @@ import android.view.View;
 import androidx.recyclerview.widget.GridLayoutManager;
 
 import ceui.lisa.activities.SearchActivity;
-import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.TagAdapter;
 import ceui.lisa.core.RemoteRepo;
@@ -17,7 +16,6 @@ import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.ListTrendingtag;
 import ceui.lisa.repo.HotTagRepo;
 import ceui.lisa.utils.DensityUtil;
-import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.TagItemDecoration;
 

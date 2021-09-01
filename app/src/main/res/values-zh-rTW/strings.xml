@@ -472,7 +472,7 @@
   <string name="string_299">白天模式（淺色）</string>  
   <string name="string_300">黑暗模式（深色）</string>  
   <string name="string_310">使用Shaft查看</string>  
-  <string name="string_311">使用Shaft以圖搜源搜尋</string>  
+  <string name="string_311">Shaft以圖搜源</string>
   <string name="string_312">前往設定</string>  
   <string name="string_313">下載檔案不需要請求許可權，但是需要設定保存檔案的目錄資料夾</string>  
   <string name="string_314">匯出TXT</string>  
@@ -611,6 +611,7 @@
   <string name="string_439">搜索結果排序方式</string>
   <string name="string_440">全年齡</string>
   <string name="string_441">R-18</string>
-  <string name="string_443">解除固定</string>
   <string name="string_442">固定</string>
+  <string name="string_443">解除固定</string>
+  <string name="string_444">投稿</string>
 </resources>

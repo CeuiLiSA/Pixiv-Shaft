@@ -123,7 +123,7 @@
                         android:layout_marginStart="@dimen/tweenty_four_dp"
                         android:layout_marginTop="@dimen/four_dp"
                         android:layout_marginEnd="@dimen/tweenty_four_dp"
-                        android:layout_marginBottom="@dimen/eight_dp"
+                        android:layout_marginBottom="@dimen/six_dp"
                         android:orientation="vertical"
                         app:qmui_backgroundColor="?attr/colorPrimaryDark"
                         app:qmui_borderWidth="0dp"
@@ -224,16 +224,16 @@
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:baselineAligned="false">
+                            android:baselineAligned="false"
+                            android:paddingTop="@dimen/six_dp"
+                            android:paddingBottom="@dimen/six_dp">
 
                             <RelativeLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:clickable="true"
-                                android:foreground="?attr/selectableItemBackground"
-                                android:paddingTop="@dimen/eight_dp"
-                                android:paddingBottom="@dimen/eight_dp">
+                                android:foreground="?attr/selectableItemBackground">
 
                                 <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
                                     android:id="@+id/left_rela"
@@ -250,7 +250,6 @@
                                         android:padding="@dimen/twelve_dp"
                                         android:src="@drawable/ic_remove_red_eye_black_24dp"
                                         app:tint="?attr/colorPrimary">
-
 
                                     </ImageView>
 
@@ -291,9 +290,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:clickable="true"
-                                android:foreground="?attr/selectableItemBackground"
-                                android:paddingTop="@dimen/eight_dp"
-                                android:paddingBottom="@dimen/eight_dp">
+                                android:foreground="?attr/selectableItemBackground">
 
                                 <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
                                     android:id="@+id/right_rela"
@@ -466,22 +463,22 @@
                 android:layout_height="0.5dp"
                 android:layout_marginStart="@dimen/tweenty_four_dp"
                 android:layout_marginEnd="@dimen/tweenty_four_dp"
-                android:layout_marginBottom="@dimen/eight_dp"
                 android:background="@color/settings_divider">
 
             </View>
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:paddingTop="@dimen/six_dp"
+                android:paddingBottom="@dimen/six_dp">
 
                 <com.qmuiteam.qmui.alpha.QMUIAlphaImageButton
                     android:id="@+id/comment"
                     android:layout_width="0dp"
-                    android:layout_height="45dp"
+                    android:layout_height="40dp"
                     android:layout_marginStart="@dimen/tweenty_four_dp"
                     android:layout_marginEnd="@dimen/six_dp"
-                    android:layout_marginBottom="@dimen/eight_dp"
                     android:layout_weight="1"
                     android:background="@drawable/button_stroke_new"
                     android:src="@drawable/ic_chat_black_24dp"
@@ -490,10 +487,9 @@
                 <com.qmuiteam.qmui.alpha.QMUIAlphaImageButton
                     android:id="@+id/related"
                     android:layout_width="0dp"
-                    android:layout_height="45dp"
+                    android:layout_height="40dp"
                     android:layout_marginStart="@dimen/six_dp"
                     android:layout_marginEnd="@dimen/six_dp"
-                    android:layout_marginBottom="@dimen/eight_dp"
                     android:layout_weight="1"
                     android:background="@drawable/button_stroke_new"
                     android:src="@drawable/ic_equalizer_black_24dp"
@@ -503,10 +499,9 @@
                 <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
                     android:id="@+id/download"
                     android:layout_width="0dp"
-                    android:layout_height="45dp"
+                    android:layout_height="40dp"
                     android:layout_marginStart="@dimen/six_dp"
                     android:layout_marginEnd="@dimen/tweenty_four_dp"
-                    android:layout_marginBottom="@dimen/eight_dp"
                     android:layout_weight="2"
                     android:text="@string/string_72"
                     android:textColor="@color/white"

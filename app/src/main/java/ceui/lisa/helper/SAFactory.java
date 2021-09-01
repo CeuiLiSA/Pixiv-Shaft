@@ -3,13 +3,10 @@ package ceui.lisa.helper;
 import android.content.Context;
 import android.net.Uri;
 
-import androidx.documentfile.provider.DocumentFile;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
-
+import androidx.documentfile.provider.DocumentFile;
 import ceui.lisa.core.DownloadItem;
 import ceui.lisa.file.SAFile;
 import okhttp3.Response;

@@ -1,15 +1,11 @@
 package ceui.lisa.http;
 
-import android.content.Intent;
-import android.text.TextUtils;
-
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
-import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.fragments.FragmentLogin;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.utils.Common;

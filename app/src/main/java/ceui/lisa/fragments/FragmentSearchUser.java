@@ -8,10 +8,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
-
-import java.util.Arrays;
-
-import ceui.lisa.R;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.UAdapter;
@@ -20,10 +16,8 @@ import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyUserPreviewBinding;
 import ceui.lisa.model.ListUser;
 import ceui.lisa.models.UserPreviewsBean;
-import ceui.lisa.repo.SearchNovelRepo;
 import ceui.lisa.repo.SearchUserRepo;
 import ceui.lisa.utils.Params;
-import ceui.lisa.utils.PixivSearchParamUtil;
 import ceui.lisa.viewmodel.SearchModel;
 
 /**

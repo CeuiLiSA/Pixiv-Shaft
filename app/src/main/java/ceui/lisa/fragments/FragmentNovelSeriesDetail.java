@@ -86,10 +86,9 @@ public class FragmentNovelSeriesDetail extends NetListFragment<FragmentNovelSeri
                     String lineSeparator = System.lineSeparator();
                     for (NovelBean novelBean : allItems) {
                         if (novelBean.isLocalSaved()) {
-                            StringBuilder sb = new StringBuilder();
-                            sb.append(lineSeparator).append(novelBean.getId()).append("-").append(novelBean.getTitle()).append(lineSeparator);
-                            sb.append(Cache.get().getModel(Params.NOVEL_KEY + novelBean.getId(), NovelDetail.class).getNovel_text());
-                            taskContainer.put(novelBean.getId(), sb.toString());
+                            String sb = lineSeparator + novelBean.getId() + "-" + novelBean.getTitle() + lineSeparator +
+                                    Cache.get().getModel(Params.NOVEL_KEY + novelBean.getId(), NovelDetail.class).getNovel_text();
+                            taskContainer.put(novelBean.getId(), sb);
                             if (taskContainer.size() == allItems.size()) {
                                 String content = taskContainer.entrySet().stream().sorted(Map.Entry.comparingByKey()).map(Map.Entry::getValue).collect(Collectors.joining(lineSeparator));
                                 saveNovelSeriesToDownload(mResponse.getNovel_series_detail(), content);
@@ -102,10 +101,9 @@ public class FragmentNovelSeriesDetail extends NetListFragment<FragmentNovelSeri
 
                                         @Override
                                         public void success(NovelDetail novelDetail) {
-                                            StringBuilder sb = new StringBuilder();
-                                            sb.append(lineSeparator).append(novelBean.getId()).append("-").append(novelBean.getTitle()).append(lineSeparator);
-                                            sb.append(novelDetail.getNovel_text());
-                                            taskContainer.put(novelBean.getId(), sb.toString());
+                                            String sb = lineSeparator + novelBean.getId() + "-" + novelBean.getTitle() + lineSeparator +
+                                                    novelDetail.getNovel_text();
+                                            taskContainer.put(novelBean.getId(), sb);
                                             if (taskContainer.size() == allItems.size()) {
                                                 String content = taskContainer.entrySet().stream().sorted(Map.Entry.comparingByKey()).map(Map.Entry::getValue).collect(Collectors.joining(lineSeparator));
                                                 saveNovelSeriesToDownload(mResponse.getNovel_series_detail(), content);

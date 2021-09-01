@@ -32,9 +32,7 @@ public abstract class ImageSaver {
             mime[0] = "image/png";
         }
         MediaScannerConnection.scanFile(
-                Shaft.getContext(), path, mime, (path1, uri) -> {
-                    Common.showLog("ImageSaver path1 " + path1 + " uri " + uri);
-                }
+                Shaft.getContext(), path, mime, (path1, uri) -> Common.showLog("ImageSaver path1 " + path1 + " uri " + uri)
         );
 
         // MediaStore.Images.Media.insertImage(context.getContentResolver(), BitmapFactory.decodeFile(file.getAbsolutePath()), file.getName(), null);

@@ -12,7 +12,6 @@ import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import com.ToxicBakery.viewpager.transforms.DrawerTransformer;
-import com.blankj.utilcode.util.BarUtils;
 
 import java.util.Arrays;
 import java.util.HashSet;

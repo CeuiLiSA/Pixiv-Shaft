@@ -494,7 +494,7 @@
     <string name="string_299">白天模式（浅色）</string>
     <string name="string_300">黑暗模式（深色）</string>
     <string name="string_310">使用Shaft查看</string>
-    <string name="string_311">使用Shaft以图搜源搜索</string>
+    <string name="string_311">Shaft以图搜源</string>
     <string name="string_312">前往设定</string>
     <string name="string_313">下载文件不需要请求权限，但是需要设定保存文件的目录文件夹</string>
     <string name="string_314">导出TXT</string>
@@ -633,4 +633,5 @@
     <string name="string_441">R-18</string>
     <string name="string_442">固定</string>
     <string name="string_443">解除固定</string>
+    <string name="string_444">投稿</string>
 </resources>

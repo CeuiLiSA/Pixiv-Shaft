@@ -1,9 +1,6 @@
 package ceui.lisa.feature;
 
-import android.os.Build;
 import android.util.Base64;
-
-import androidx.annotation.RequiresApi;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;

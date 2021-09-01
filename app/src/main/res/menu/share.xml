@@ -3,6 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/action_share"
+        android:orderInCategory="100"
+        android:icon="@drawable/ic_share_white_with_shadow"
+        android:title="@string/string_3"
+        app:showAsAction="ifRoom" />
+
+    <item
         android:id="@+id/action_copy_link"
         android:orderInCategory="100"
         android:title="@string/string_355_2"
@@ -26,10 +33,4 @@
         android:title="@string/string_0"
         app:showAsAction="never" />
 
-    <item
-        android:id="@+id/action_share"
-        android:orderInCategory="100"
-        android:icon="@drawable/ic_share_white_with_shadow"
-        android:title="@string/string_3"
-        app:showAsAction="always" />
 </menu>

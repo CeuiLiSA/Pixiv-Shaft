@@ -14,9 +14,9 @@ class LikeNovelRepo(
 
     override fun initApi(): Observable<ListNovel> {
         return if (TextUtils.isEmpty(tag)) {
-            return Retro.getAppApi().getUserLikeNovel(token(), userID, starType)
+            Retro.getAppApi().getUserLikeNovel(token(), userID, starType)
         } else {
-            return Retro.getAppApi().getUserLikeNovel(token(), userID, starType, tag)
+            Retro.getAppApi().getUserLikeNovel(token(), userID, starType, tag)
         }
     }
 

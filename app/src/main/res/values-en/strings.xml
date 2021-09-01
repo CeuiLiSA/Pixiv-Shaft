@@ -470,7 +470,7 @@
   <string name="string_299">Day mode (light)</string>  
   <string name="string_300">Dark mode (dark)</string>  
   <string name="string_310">View with shaft</string>  
-  <string name="string_311">Reverse image search using Shaft</string>  
+  <string name="string_311">Reverse image search with Shaft</string>
   <string name="string_312">Go to settings</string>  
   <string name="string_313">You do not need to request permission to download a file, but you need to set the directory folder to save the file</string>  
   <string name="string_314">Export as TXT</string>  
@@ -611,4 +611,5 @@
   <string name="string_441">R-18</string>
   <string name="string_442">Pin</string>
   <string name="string_443">Unpin</string>
+  <string name="string_444">Post work</string>
 </resources>

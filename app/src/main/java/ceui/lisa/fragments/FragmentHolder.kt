@@ -34,12 +34,12 @@ class FragmentHolder : BaseFragment<FragmentHolderBinding>() {
     override fun initView() {
         val data = mUserViewModel.user.value ?: return
 
-        var TITLES: Array<String>
+        val titles: Array<String>
 
-        if (data.userId == Shaft.sUserModel.user.id) {
-            TITLES = arrayOf("收藏", "其他")
+        titles = if (data.userId == Shaft.sUserModel.user.id) {
+            arrayOf("收藏", "其他")
         } else {
-            TITLES = arrayOf("插画", "其他")
+            arrayOf("插画", "其他")
         }
 
         val items = arrayOf<Fragment>(
@@ -58,11 +58,11 @@ class FragmentHolder : BaseFragment<FragmentHolderBinding>() {
             }
 
             override fun getCount(): Int {
-                return TITLES.size
+                return titles.size
             }
 
-            override fun getPageTitle(position: Int): CharSequence? {
-                return TITLES[position]
+            override fun getPageTitle(position: Int): CharSequence {
+                return titles[position]
             }
         }
         baseBind.tabLayout.setupWithViewPager(baseBind.viewPager)

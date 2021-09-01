@@ -46,7 +46,7 @@ public class MultiDownldAdapter extends BaseAdapter<IllustsBean, RecyMultiDownlo
         bindView.baseBind.illustImage.setLayoutParams(params);
         final IllustsBean illustsBean = allItems.get(position);
         Object tag = bindView.itemView.getTag(R.id.tag_image_url);
-        if ((tag == null) || !(tag instanceof String) || !tag.equals(illustsBean.getImage_urls().getMedium())) {
+        if (!(tag instanceof String) || !tag.equals(illustsBean.getImage_urls().getMedium())) {
             Glide.with(mContext)
                     .load(GlideUtil.getMediumImg(illustsBean))
                     .placeholder(R.color.light_bg)

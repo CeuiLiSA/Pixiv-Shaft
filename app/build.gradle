@@ -14,8 +14,8 @@ android {
         applicationId "ceui.lisa.pixiv"
         minSdkVersion 21
         targetSdkVersion 30
-        versionCode 207
-        versionName "3.2.7"
+        versionCode 208
+        versionName "3.2.8"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         javaCompileOptions {
@@ -140,7 +140,8 @@ dependencies {
     implementation 'com.github.ybq:Android-SpinKit:1.4.0'
     implementation 'androidx.room:room-runtime:2.3.0'
     annotationProcessor 'androidx.room:room-compiler:2.3.0'
-    implementation 'com.just.agentweb:agentweb:4.1.4'
+    implementation 'com.github.Justson.AgentWeb:agentweb-core:v4.1.9-androidx'
+    implementation 'com.github.Justson.AgentWeb:agentweb-filechooser:v4.1.9-androidx'
     implementation 'com.facebook.rebound:rebound:0.3.8'
 //    implementation 'com.github.chrisbanes:PhotoView:2.3.0'
     implementation 'org.sufficientlysecure:html-textview:3.9'
@@ -156,7 +157,7 @@ dependencies {
     implementation 'com.github.skydoves:transformationlayout:1.1.0'
     implementation 'com.blankj:utilcodex:1.30.6'
     implementation 'com.safframework.log:saf-logginginterceptor:1.4.6'
-    implementation 'com.google.firebase:firebase-analytics:19.0.0'
+    implementation 'com.google.firebase:firebase-analytics:19.0.1'
     implementation 'com.google.firebase:firebase-crashlytics:18.2.1'
 
     implementation 'com.afollestad:drag-select-recyclerview:2.4.0'

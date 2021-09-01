@@ -1,6 +1,7 @@
 package ceui.lisa.fragments;
 
 import android.annotation.SuppressLint;
+import android.content.ClipData;
 import android.content.Intent;
 import android.net.SSLCertificateSocketFactory;
 import android.net.Uri;
@@ -15,12 +16,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.webkit.SslErrorHandler;
+import android.webkit.ValueCallback;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.RelativeLayout;
 
 import com.just.agentweb.AgentWeb;
+import com.just.agentweb.WebChromeClient;
 import com.just.agentweb.WebViewClient;
 import android.util.Base64;
 
@@ -45,6 +48,7 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import ceui.lisa.R;
 import ceui.lisa.activities.OutWakeActivity;
@@ -58,6 +62,8 @@ import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseImage;
 import ceui.lisa.utils.ReverseWebviewCallback;
 import ceui.lisa.view.ContextMenuTitleView;
+
+import static android.app.Activity.RESULT_OK;
 
 public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
 
@@ -82,6 +88,8 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
     private final HttpDns httpDns = HttpDns.getInstance();
     private String mLongClickLinkText;
     private Uri reverseSearchImageUri;
+    private ValueCallback<Uri> uploadMessage;
+    private ValueCallback<Uri[]> uploadMessageAboveL;
 
     @Override
     public void initBundle(Bundle bundle) {
@@ -185,7 +193,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
                             String destiny = request.getUrl().toString();
                             Common.showLog(className + "destiny " + destiny);
                             if (destiny.contains(PIXIV_HEAD)) {
-                                if (destiny.contains("logout.php") || destiny.contains("settings.php")) {
+                                if (destiny.contains("logout.php") || destiny.contains("settings.php") || destiny.contains("upload.php")) {
                                     return false;
                                 } else {
                                     try {
@@ -240,9 +248,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
         if (response == null) {
             mAgentWeb = ready.go(url);
             baseBind.ibMenu.setVisibility(View.VISIBLE);
-            baseBind.ibMenu.setOnClickListener(v -> {
-                mActivity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(mWebView.getUrl())));
-            });
+            baseBind.ibMenu.setOnClickListener(v -> mActivity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(mWebView.getUrl()))));
         } else {
             baseBind.ibMenu.setVisibility(View.GONE);
             mAgentWeb = ready.get();
@@ -261,6 +267,14 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
             final Message message = handler.obtainMessage();
             mWebView.requestFocusNodeHref(message);
             return false;
+        });
+        mWebView.setWebChromeClient(new WebChromeClient(){
+            @Override
+            public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
+                uploadMessageAboveL = filePathCallback;
+                openImageChooserActivity();
+                return true;
+            }
         });
     }
 
@@ -641,5 +655,50 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void openImageChooserActivity() {
+        Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+        i.addCategory(Intent.CATEGORY_OPENABLE);
+        i.setType("image/*");
+        startActivityForResult(Intent.createChooser(i, "Image Chooser"), Params.REQUEST_CODE_CHOOSE);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable @org.jetbrains.annotations.Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == Params.REQUEST_CODE_CHOOSE) {
+            if (null == uploadMessage && null == uploadMessageAboveL) return;
+            Uri result = data == null || resultCode != RESULT_OK ? null : data.getData();
+            if (uploadMessageAboveL != null) {
+                onActivityResultAboveL(requestCode, resultCode, data);
+            } else if (uploadMessage != null) {
+                uploadMessage.onReceiveValue(result);
+                uploadMessage = null;
+            }
+        }
+    }
+
+    private void onActivityResultAboveL(int requestCode, int resultCode, Intent intent) {
+        if (requestCode != Params.REQUEST_CODE_CHOOSE || uploadMessageAboveL == null)
+            return;
+        Uri[] results = null;
+        if (resultCode == RESULT_OK) {
+            if (intent != null) {
+                String dataString = intent.getDataString();
+                ClipData clipData = intent.getClipData();
+                if (clipData != null) {
+                    results = new Uri[clipData.getItemCount()];
+                    for (int i = 0; i < clipData.getItemCount(); i++) {
+                        ClipData.Item item = clipData.getItemAt(i);
+                        results[i] = item.getUri();
+                    }
+                }
+                if (dataString != null)
+                    results = new Uri[]{Uri.parse(dataString)};
+            }
+        }
+        uploadMessageAboveL.onReceiveValue(results);
+        uploadMessageAboveL = null;
     }
 }

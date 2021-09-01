@@ -2,17 +2,13 @@ package ceui.lisa.feature;
 
 
 import android.net.Uri;
-import android.os.Build;
 import android.text.TextUtils;
-
-import androidx.annotation.RequiresApi;
 
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.http.CloudFlareDNSResponse;
 import ceui.lisa.http.CloudFlareDNSService;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
-import ceui.lisa.utils.Params;
 import retrofit2.Call;
 import retrofit2.Callback;
 

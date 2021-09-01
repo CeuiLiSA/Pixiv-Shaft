@@ -470,7 +470,7 @@
   <string name="string_299">Дневной режим (свет)</string>  
   <string name="string_300">Режим Dark (темный)</string>  
   <string name="string_310">Используйте Shaf для просмотра</string>  
-  <string name="string_311">Использовать вал для поиска Поиск Поиск</string>  
+  <string name="string_311">Обратный поиск изображений с помощью Shaft</string>
   <string name="string_312">поставить</string>  
   <string name="string_313">для загрузки файлов не требуется прав на запрос, но необходимо установить папку для сохранения файлов</string>  
   <string name="string_314">экспорт TXT</string>  
@@ -609,6 +609,7 @@
   <string name="string_439">Тип сортировки результатов поиска</string>
   <string name="string_440">Все возраста</string>
   <string name="string_441">R-18</string>
-  <string name="string_443">Открепить</string>
   <string name="string_442">Исправлена</string>
+  <string name="string_443">Открепить</string>
+  <string name="string_444">опубликовать работу</string>
 </resources>

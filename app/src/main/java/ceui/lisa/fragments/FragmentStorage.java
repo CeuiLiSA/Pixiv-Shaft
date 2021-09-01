@@ -1,10 +1,6 @@
 package ceui.lisa.fragments;
 
-import android.content.Intent;
-import android.net.Uri;
 import android.view.View;
-
-import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,9 +11,6 @@ import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.IllustRecmdEntity;
 import ceui.lisa.databinding.FragmentStorageBinding;
 import ceui.lisa.models.IllustsBean;
-import ceui.lisa.utils.Local;
-
-import static android.app.Activity.RESULT_OK;
 
 public class FragmentStorage extends BaseFragment<FragmentStorageBinding> {
 
