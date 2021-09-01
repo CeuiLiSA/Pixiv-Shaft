@@ -7,7 +7,6 @@ import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.IBinder;
 import android.widget.RemoteViews;
 
@@ -21,6 +20,7 @@ import java.util.List;
 import java.util.Random;
 
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.VActivity;
@@ -80,11 +80,7 @@ public class RecommendAppWidgetProvider extends AppWidgetProvider {
         super.onUpdate(context, appWidgetManager, appWidgetIds);
         Intent intent = new Intent(context, RecommendAppWidgetService.class);
         intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.startForegroundService(intent);
-        } else {
-            context.startService(intent);
-        }
+        ContextCompat.startForegroundService(context, intent);
     }
 
     @Override
