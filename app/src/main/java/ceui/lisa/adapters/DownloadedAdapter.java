@@ -77,6 +77,7 @@ public class DownloadedAdapter extends BaseAdapter<DownloadEntity, RecyDownloade
                     intent.putExtra("hideStatusBar", true);
                     mContext.startActivity(intent);
                 });
+                bindView.baseBind.deleteItem.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 2));
             }
         } else {
             ViewGroup.LayoutParams params = bindView.baseBind.illustImage.getLayoutParams();
@@ -125,6 +126,7 @@ public class DownloadedAdapter extends BaseAdapter<DownloadEntity, RecyDownloade
                     bindView.baseBind.author.setTag(currentIllust.getUser().getId());
                     mOnItemClickListener.onItemClick(bindView.baseBind.author, position, 1);
                 });
+                bindView.baseBind.deleteItem.setOnClickListener(v -> mOnItemClickListener.onItemClick(v, position, 2));
             }
         }
         //从-400 丝滑滑动到0

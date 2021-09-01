@@ -51,6 +51,11 @@ public class FragmentDownloadFinish extends LocalListFragment<FragmentBaseListBi
                     Intent intent = new Intent(mContext, UserActivity.class);
                     intent.putExtra(Params.USER_ID, all.get(position).getUser().getId());
                     startActivity(intent);
+                } else if (viewType == 2) {
+                    AppDatabase.getAppDatabase(mContext).downloadDao().delete(allItems.get(position));
+                    allItems.remove(position);
+                    mAdapter.notifyItemRemoved(position);
+                    mAdapter.notifyItemRangeChanged(position, allItems.size() - position);
                 }
             }
         });

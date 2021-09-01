@@ -31,15 +31,15 @@
             <TextView
                 android:id="@+id/title"
                 android:layout_width="match_parent"
-                android:layout_toEndOf="@+id/illust_image"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="@dimen/six_dp"
                 android:layout_marginTop="@dimen/four_dp"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                android:textColor="@color/view_history_title"
+                android:layout_marginEnd="@dimen/sixteen_dp"
                 android:layout_marginBottom="@dimen/four_dp"
-                android:layout_marginEnd="@dimen/sixteen_dp"/>
+                android:layout_toEndOf="@+id/illust_image"
+                android:textColor="@color/view_history_title"
+                android:textSize="13sp"
+                android:textStyle="bold" />
 
 
             <TextView
@@ -56,15 +56,14 @@
 
             <TextView
                 android:id="@+id/time"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_alignStart="@+id/title"
                 android:layout_alignBottom="@+id/illust_image"
-                android:layout_marginStart="@dimen/eight_dp"
-                android:layout_toStartOf="@+id/p_size"
                 android:layout_marginTop="@dimen/eight_dp"
                 android:layout_marginEnd="@dimen/eight_dp"
                 android:layout_marginBottom="@dimen/four_dp"
-                android:layout_toEndOf="@+id/illust_image"
+                android:layout_toStartOf="@+id/p_size"
                 android:ellipsize="end"
                 android:maxLines="1" />
 
@@ -74,17 +73,24 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignBottom="@+id/illust_image"
-                android:layout_alignParentEnd="true"
-                android:layout_marginEnd="7dp"
-                android:layout_marginBottom="@dimen/eight_dp"
+                android:layout_marginBottom="@dimen/four_dp"
+                android:layout_toStartOf="@+id/delete_item"
                 android:background="@drawable/btn_follow"
-                android:paddingStart="@dimen/four_dp"
-                android:paddingTop="2dp"
-                android:paddingEnd="@dimen/four_dp"
-                android:paddingBottom="2dp"
+                android:paddingHorizontal="@dimen/four_dp"
+                android:paddingVertical="@dimen/two_dp"
                 android:textColor="@android:color/white"
                 android:textSize="12sp" />
 
+            <ImageView
+                android:id="@+id/delete_item"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_alignParentEnd="true"
+                android:layout_alignBottom="@+id/illust_image"
+                android:padding="@dimen/two_dp"
+                android:src="@drawable/ic_delete_black_24dp"
+                app:tint="#999999">
+            </ImageView>
 
         </RelativeLayout>
     </androidx.cardview.widget.CardView>
