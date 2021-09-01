@@ -1,5 +1,8 @@
 package ceui.lisa.notification;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.appwidget.AppWidgetManager;
@@ -7,6 +10,7 @@ import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.IBinder;
 import android.widget.RemoteViews;
 
@@ -22,6 +26,7 @@ import java.util.List;
 import java.util.Random;
 
 import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
@@ -106,6 +111,21 @@ public class RecommendAppWidgetProvider extends AppWidgetProvider {
 
         @Override
         public int onStartCommand(Intent intent, int flags, int startId) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                String channelId = "app_widget_service";
+                String channelName = "App Widget Service";
+                NotificationChannel chan = new NotificationChannel(channelId,channelName, NotificationManager.IMPORTANCE_NONE);
+                chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+                NotificationManager service = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+                service.createNotificationChannel(chan);
+
+                NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, channelId);
+                Notification notification = notificationBuilder
+                        .setOngoing(true)
+                        .setCategory(Notification.CATEGORY_SERVICE)
+                        .build();
+                startForeground(1, notification);
+            }
             Retro.getAppApi().getRecmdIllust(Shaft.sUserModel.getAccess_token())
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
@@ -147,7 +167,7 @@ public class RecommendAppWidgetProvider extends AppWidgetProvider {
                         }
                     });
 
-            return super.onStartCommand(intent, flags, startId);
+            return START_STICKY;
         }
     }
 }
