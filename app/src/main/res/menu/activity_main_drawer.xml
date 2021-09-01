@@ -26,7 +26,7 @@
 
         <item
             android:id="@+id/nav_manage"
-            android:icon="@drawable/ic_menu_manage"
+            android:icon="@drawable/ic_baseline_settings_24"
             android:title="@string/app_settings" />
     </group>
 
@@ -51,6 +51,11 @@
                 android:id="@+id/nav_fans"
                 android:icon="@mipmap/fans"
                 android:title="@string/string_322" />
+
+            <item
+                android:id="@+id/new_work"
+                android:icon="@drawable/ic_baseline_post_work_48"
+                android:title="@string/string_444" />
         </menu>
 
     </item>

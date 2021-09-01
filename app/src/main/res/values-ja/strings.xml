@@ -609,6 +609,7 @@
   <string name="string_439">検索結果のソートタイプ</string>
   <string name="string_440">全年齢</string>
   <string name="string_441">R-18</string>
-  <string name="string_443">固定を解除</string>
   <string name="string_442">固定</string>
+  <string name="string_443">固定を解除</string>
+  <string name="string_444">投稿</string>
 </resources>

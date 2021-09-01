@@ -310,6 +310,13 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "我的关注");
                 intent.putExtra("hideStatusBar", false);
                 break;
+            case R.id.new_work:
+                intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
+                intent.putExtra(Params.URL, "https://www.pixiv.net/upload.php");
+                intent.putExtra(Params.TITLE, getString(R.string.string_444));
+                intent.putExtra(Params.PREFER_PRESERVE, true);
+                break;
             default:
                 break;
         }
