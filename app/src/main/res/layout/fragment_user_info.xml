@@ -155,7 +155,7 @@
 
                 <View
                     android:layout_width="match_parent"
-                    android:layout_marginTop="@dimen/tweenty_four_dp"
+                    android:layout_marginTop="@dimen/twenty_four_dp"
                     android:background="@color/about_user_divider"
                     android:layout_height="1dp">
 
@@ -207,7 +207,7 @@
 
                 <View
                     android:layout_width="match_parent"
-                    android:layout_marginTop="@dimen/tweenty_four_dp"
+                    android:layout_marginTop="@dimen/twenty_four_dp"
                     android:background="@color/about_user_divider"
                     android:layout_height="1dp">
 
@@ -278,7 +278,7 @@
 
                 <View
                     android:layout_width="match_parent"
-                    android:layout_marginTop="@dimen/tweenty_four_dp"
+                    android:layout_marginTop="@dimen/twenty_four_dp"
                     android:background="@color/about_user_divider"
                     android:layout_height="1dp">
 
@@ -370,7 +370,7 @@
 
                 <View
                     android:layout_width="match_parent"
-                    android:layout_marginTop="@dimen/tweenty_four_dp"
+                    android:layout_marginTop="@dimen/twenty_four_dp"
                     android:background="@color/about_user_divider"
                     android:layout_height="1dp">
 

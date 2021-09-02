@@ -3,10 +3,10 @@
 
     <solid android:color="?attr/colorPrimary" />
 
-    <corners android:topLeftRadius="@dimen/tweenty_four_dp"
-        android:topRightRadius="@dimen/tweenty_four_dp"
-        android:bottomRightRadius="@dimen/tweenty_four_dp"
-        android:bottomLeftRadius="@dimen/tweenty_four_dp" />
+    <corners android:topLeftRadius="@dimen/twenty_four_dp"
+        android:topRightRadius="@dimen/twenty_four_dp"
+        android:bottomRightRadius="@dimen/twenty_four_dp"
+        android:bottomLeftRadius="@dimen/twenty_four_dp" />
     <!--圆角矩形白色背景-->
 </shape>
 

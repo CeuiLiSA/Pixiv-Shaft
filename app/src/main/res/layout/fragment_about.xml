@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
@@ -123,6 +124,21 @@
                         android:layout_height="wrap_content">
 
                         <View style="@style/full_divider" />
+
+                        <RelativeLayout
+                            android:id="@+id/faq"
+                            style="@style/ripple_rela">
+
+                            <TextView
+                                style="@style/setting_text_left"
+                                android:text="FAQ"
+                                tools:ignore="HardcodedText" />
+
+                            <TextView style="@style/setting_right_arrow" />
+
+                        </RelativeLayout>
+
+                        <View style="@style/half_divider" />
 
                         <RelativeLayout
                             android:id="@+id/rate_this_app"
