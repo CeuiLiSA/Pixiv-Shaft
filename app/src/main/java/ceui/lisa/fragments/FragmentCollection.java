@@ -57,7 +57,7 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
         if (type == 0) {
             allPages = new Fragment[]{
                     FragmentLikeIllust.newInstance(sUserModel.getUser().getId(),
-                            Params.TYPE_PUBLUC),
+                            Params.TYPE_PUBLIC),
                     FragmentLikeIllust.newInstance(sUserModel.getUser().getId(),
                             Params.TYPE_PRIVATE)
             };
@@ -68,7 +68,7 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
         } else if (type == 1) {
             allPages = new Fragment[]{
                     FragmentLikeNovel.newInstance(sUserModel.getUser().getId(),
-                            Params.TYPE_PUBLUC, false),
+                            Params.TYPE_PUBLIC, false),
                     FragmentLikeNovel.newInstance(sUserModel.getUser().getId(),
                             Params.TYPE_PRIVATE, false)
             };
@@ -79,7 +79,7 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
         } else if (type == 2) {
             allPages = new Fragment[]{
                     FragmentFollowUser.newInstance(sUserModel.getUser().getId(),
-                            Params.TYPE_PUBLUC, false),
+                            Params.TYPE_PUBLIC, false),
                     FragmentFollowUser.newInstance(sUserModel.getUser().getId(),
                             Params.TYPE_PRIVATE, false)
             };
@@ -103,7 +103,7 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
                 if (baseBind.viewPager.getCurrentItem() == 0) {
                     Intent intent = new Intent(mContext, TemplateActivity.class);
                     intent.putExtra(TemplateActivity.EXTRA_KEYWORD,
-                            Params.TYPE_PUBLUC);
+                            Params.TYPE_PUBLIC);
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签筛选");
                     intent.putExtra(Params.DATA_TYPE, type);
                     startActivity(intent);

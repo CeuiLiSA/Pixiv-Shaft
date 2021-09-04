@@ -89,7 +89,7 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
                 if (Shaft.sSettings.isPrivateStar()) {
                     PixivOperate.postLike(target, Params.TYPE_PRIVATE, showRelated, (position + 2));
                 } else {
-                    PixivOperate.postLike(target, Params.TYPE_PUBLUC, showRelated, (position + 2));
+                    PixivOperate.postLike(target, Params.TYPE_PUBLIC, showRelated, (position + 2));
                 }
             }
         });

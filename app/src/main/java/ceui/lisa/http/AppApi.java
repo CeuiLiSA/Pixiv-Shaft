@@ -474,7 +474,7 @@ public interface AppApi {
                                                      @Url String next_url);
 
     @GET
-    Observable<ListArticle> getNextArticals(@Header("Authorization") String token,
+    Observable<ListArticle> getNextArticles(@Header("Authorization") String token,
                                             @Url String next_url);
 
 

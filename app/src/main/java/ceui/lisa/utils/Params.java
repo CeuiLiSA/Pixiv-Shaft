@@ -97,7 +97,7 @@ public class Params {
     public static final String URL_R18_SETTING  = "https://www.pixiv.net/settings.php?mode=age-check";
     public static final String URL_PREMIUM_SETTING  = "https://www.pixiv.net/premium.php#premium-payment";
 
-    public static final String TYPE_PUBLUC = "public";
+    public static final String TYPE_PUBLIC = "public";
     public static final String TYPE_PRIVATE = "private";
     public static final String TYPE_ALL = "all";
 

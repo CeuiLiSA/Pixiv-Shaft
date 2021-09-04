@@ -44,7 +44,7 @@ class FragmentHolder : BaseFragment<FragmentHolderBinding>() {
 
         val items = arrayOf<Fragment>(
             if (data.userId == Shaft.sUserModel.user.id) {
-                FragmentLikeIllust.newInstance(data.userId, Params.TYPE_PUBLUC)
+                FragmentLikeIllust.newInstance(data.userId, Params.TYPE_PUBLIC)
             } else {
                 FragmentUserIllust.newInstance(data.userId, false)
             },

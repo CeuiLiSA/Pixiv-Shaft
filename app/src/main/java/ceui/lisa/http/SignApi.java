@@ -48,7 +48,7 @@ public interface SignApi {
                                                    @Field("new_password") String new_password);
 
     /**
-     * 改密码还改pixivid
+     * 改密码还改pixiv id
      *
      * @param token
      * @param new_user_account

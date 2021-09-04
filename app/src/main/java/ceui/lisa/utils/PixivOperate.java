@@ -104,7 +104,7 @@ public class PixivOperate {
                         intent.putExtra(Params.IS_LIKED, true);
                         LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
 
-                        if (followType.equals(Params.TYPE_PUBLUC)) {
+                        if (followType.equals(Params.TYPE_PUBLIC)) {
                             Shaft.appViewModel.updateFollowUserStatus(userID, AppLevelViewModel.FollowUserStatus.FOLLOWED_PUBLIC);
                             Common.showToast(getString(R.string.like_success_public));
                         } else {
@@ -138,7 +138,7 @@ public class PixivOperate {
         if(Shaft.sSettings.isPrivateStar()){
             postLike(illustsBean, Params.TYPE_PRIVATE, false, 0);
         }else{
-            postLike(illustsBean, Params.TYPE_PUBLUC, false, 0);
+            postLike(illustsBean, Params.TYPE_PUBLIC, false, 0);
         }
     }
 
@@ -180,7 +180,7 @@ public class PixivOperate {
                             intent.putExtra(Params.IS_LIKED, true);
                             LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
 
-                            if (Params.TYPE_PUBLUC.equals(starType)) {
+                            if (Params.TYPE_PUBLIC.equals(starType)) {
                                 Common.showToast(getString(R.string.like_novel_success_public));
                             } else {
                                 Common.showToast(getString(R.string.like_novel_success_private));
@@ -248,7 +248,7 @@ public class PixivOperate {
                             if(view instanceof Button){
                                 ((Button) view).setText(getString(R.string.string_179));
                             }
-                            if (Params.TYPE_PUBLUC.equals(starType)) {
+                            if (Params.TYPE_PUBLIC.equals(starType)) {
                                 Common.showToast(getString(R.string.like_novel_success_public));
                             } else {
                                 Common.showToast(getString(R.string.like_novel_success_private));
@@ -756,11 +756,11 @@ public class PixivOperate {
         }, new TryCatchObserverImpl<>());
     }
 
-    public static void unzipAndePlay(Context context, IllustsBean illustsBean) {
-        unzipAndePlay(context, illustsBean, false);
+    public static void unzipAndPlay(Context context, IllustsBean illustsBean) {
+        unzipAndPlay(context, illustsBean, false);
     }
 
-    public static void unzipAndePlay(Context context, IllustsBean illustsBean, boolean autoSave) {
+    public static void unzipAndPlay(Context context, IllustsBean illustsBean, boolean autoSave) {
         try {
             File fromZip = LegacyFile.gifZipFile(context, illustsBean);
             File toFolder = LegacyFile.gifUnzipFolder(context, illustsBean);

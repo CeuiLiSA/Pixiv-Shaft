@@ -19,7 +19,7 @@ open class PivisionRepo(
         if (isHorizontal) {
             return null
         }
-        return Retro.getAppApi().getNextArticals(token(), nextUrl)
+        return Retro.getAppApi().getNextArticles(token(), nextUrl)
     }
 
     override fun localData(): Boolean {

@@ -38,7 +38,7 @@ import ceui.lisa.fragments.FragmentLogin;
 import ceui.lisa.fragments.FragmentMangaSeries;
 import ceui.lisa.fragments.FragmentMangaSeriesDetail;
 import ceui.lisa.fragments.FragmentMarkdown;
-import ceui.lisa.fragments.FragmentMultiDownld;
+import ceui.lisa.fragments.FragmentMultiDownload;
 import ceui.lisa.fragments.FragmentNew;
 import ceui.lisa.fragments.FragmentNewNovel;
 import ceui.lisa.fragments.FragmentNewNovels;
@@ -137,13 +137,13 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "关于软件":
                     return new FragmentAboutApp();
                 case "批量下载":
-                    return new FragmentMultiDownld();
+                    return new FragmentMultiDownload();
                 case "画廊":
                     return new FragmentWalkThrough();
                 case "正在关注":
                     return FragmentFollowUser.newInstance(
                             getIntent().getIntExtra(Params.USER_ID, 0),
-                            Params.TYPE_PUBLUC, true);
+                            Params.TYPE_PUBLIC, true);
                 case "好P友":
                     return new FragmentNiceFriend();
                 case "搜索":
@@ -166,7 +166,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                             true);
                 case "插画/漫画收藏":
                     return FragmentLikeIllust.newInstance(intent.getIntExtra(Params.USER_ID, 0),
-                            Params.TYPE_PUBLUC, true);
+                            Params.TYPE_PUBLIC, true);
                 case "下载管理":
                     return new FragmentDownload();
                 case "推荐漫画":
@@ -177,7 +177,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return new FragmentNewNovel();
                 case "小说收藏":
                     return FragmentLikeNovel.newInstance(intent.getIntExtra(Params.USER_ID, 0),
-                            Params.TYPE_PUBLUC, true);
+                            Params.TYPE_PUBLIC, true);
                 case "小说作品":
                     return FragmentUserNovel.newInstance(intent.getIntExtra(Params.USER_ID, 0));
                 case "小说详情":

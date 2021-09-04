@@ -157,7 +157,7 @@ public class UActivity extends BaseActivity<ActivityNewUserBinding> implements D
                         PixivOperate.postUnFollowUser(data.getUser().getId());
                         data.getUser().setIs_followed(false);
                     } else {
-                        PixivOperate.postFollowUser(data.getUser().getId(), Params.TYPE_PUBLUC);
+                        PixivOperate.postFollowUser(data.getUser().getId(), Params.TYPE_PUBLIC);
                         data.getUser().setIs_followed(true);
                     }
                 }

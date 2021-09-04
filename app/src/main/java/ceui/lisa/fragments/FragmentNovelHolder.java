@@ -130,7 +130,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
             public void onClick(View v) {
                 Common.showLog(className + "getNovel 111");
                 PixivOperate.postLikeNovel(mNovelBean, Shaft.sUserModel,
-                        Params.TYPE_PUBLUC, baseBind.like);
+                        Params.TYPE_PUBLIC, baseBind.like);
             }
         });
 

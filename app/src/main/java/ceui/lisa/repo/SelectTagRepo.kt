@@ -17,7 +17,7 @@ class SelectTagRepo(
 
     override fun initApi(): Observable<ListBookmarkTag> {
         val api1 = Retro.getAppApi().getIllustBookmarkTags(token(), illustID)
-        val api2 = Retro.getAppApi().getBookmarkTags(token(), currentUserID(), Params.TYPE_PUBLUC)
+        val api2 = Retro.getAppApi().getBookmarkTags(token(), currentUserID(), Params.TYPE_PUBLIC)
         return api2.flatMap(
             fun(listTag: ListTag): Observable<ListBookmarkTag> {
                 this.listTag = listTag

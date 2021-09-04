@@ -32,7 +32,7 @@ public class BatchStarTask extends AbstractTask {
     @Override
     public void run(IEnd end) {
         if (starType == 0) {
-            Retro.getAppApi().postLike(Shaft.sUserModel.getAccess_token(), illustID, Params.TYPE_PUBLUC)
+            Retro.getAppApi().postLike(Shaft.sUserModel.getAccess_token(), illustID, Params.TYPE_PUBLIC)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {
