@@ -185,7 +185,7 @@
                 android:background="@android:color/transparent"
                 app:titleTextColor="@color/white"
                 app:title=" "
-                app:navigationIcon="@drawable/ic_baseline_arrow_back_ios_24"
+                app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
                 app:popupTheme="@style/AppTheme.PopupOverlay" />
 
             <CheckBox

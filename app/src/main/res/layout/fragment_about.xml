@@ -20,7 +20,7 @@
             android:fitsSystemWindows="true"
             android:background="?attr/colorPrimary"
             android:elevation="@dimen/six_dp"
-            app:navigationIcon="@drawable/ic_baseline_arrow_back_ios_24"
+            app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
             app:titleTextColor="@android:color/white">
 
             <TextView

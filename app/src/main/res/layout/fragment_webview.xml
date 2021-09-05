@@ -19,7 +19,7 @@
             android:background="?attr/colorPrimary"
             app:titleTextColor="@android:color/white"
             android:fitsSystemWindows="true"
-            app:navigationIcon="@drawable/ic_baseline_arrow_back_ios_24"
+            app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
             android:elevation="@dimen/six_dp"
             android:layout_height="wrap_content">
 
