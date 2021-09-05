@@ -174,7 +174,7 @@ public class Settings {
 
     private boolean r18FilterDefaultEnable = false; // 默认开启R18内容过滤
 
-    private transient boolean r18FilterTempEnableInited = false;
+    private transient boolean r18FilterTempEnableInitialed = false;
     private transient boolean r18FilterTempEnable = false; // 临时开启R18内容过滤
 
     private String searchDefaultSortType = ""; // 搜索结果默认排序方式
@@ -576,9 +576,9 @@ public class Settings {
     }
 
     public boolean isR18FilterTempEnable() {
-        if (!r18FilterTempEnableInited) {
+        if (!r18FilterTempEnableInitialed) {
             r18FilterTempEnable = r18FilterDefaultEnable;
-            r18FilterTempEnableInited = true;
+            r18FilterTempEnableInitialed = true;
         }
         return r18FilterTempEnable;
     }

@@ -54,7 +54,7 @@
                     android:layout_width="wrap_content"
                     android:text="标题"
                     android:textSize="40sp"
-                    android:layout_margin="@dimen/tweenty_four_dp"
+                    android:layout_margin="@dimen/twenty_four_dp"
                     android:textColor="@color/white"
                     android:layout_height="wrap_content">
 
@@ -84,7 +84,7 @@
                     android:layout_width="wrap_content"
                     android:text="新标题"
                     android:textSize="40sp"
-                    android:layout_margin="@dimen/tweenty_four_dp"
+                    android:layout_margin="@dimen/twenty_four_dp"
                     android:textColor="@color/white"
                     android:layout_height="wrap_content">
 

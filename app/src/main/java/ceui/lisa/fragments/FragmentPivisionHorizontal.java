@@ -65,7 +65,7 @@ public class FragmentPivisionHorizontal extends NetListFragment<FragmentPivision
         layoutParams.width = MATCH_PARENT;
         layoutParams.height =
                 mContext.getResources().getDimensionPixelSize(R.dimen.article_horizontal_height) +
-                mContext.getResources().getDimensionPixelSize(R.dimen.tweenty_four_dp);
+                mContext.getResources().getDimensionPixelSize(R.dimen.twenty_four_dp);
         baseBind.recyclerView.setLayoutParams(layoutParams);
     }
 

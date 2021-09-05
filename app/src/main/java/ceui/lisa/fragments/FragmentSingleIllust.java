@@ -330,7 +330,7 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
                     PixivOperate.postUnFollowUser(illust.getUser().getId());
                     illust.getUser().setIs_followed(false);
                 } else {
-                    PixivOperate.postFollowUser(illust.getUser().getId(), Params.TYPE_PUBLUC);
+                    PixivOperate.postFollowUser(illust.getUser().getId(), Params.TYPE_PUBLIC);
                     illust.getUser().setIs_followed(true);
                 }
             }

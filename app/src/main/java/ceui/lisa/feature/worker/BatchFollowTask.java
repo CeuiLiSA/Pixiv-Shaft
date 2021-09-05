@@ -33,7 +33,7 @@ public class BatchFollowTask extends AbstractTask {
     public void run(IEnd end) {
         if (starType == 0) {
             Retro.getAppApi().postFollow(
-                    sUserModel.getAccess_token(), userID, Params.TYPE_PUBLUC)
+                    sUserModel.getAccess_token(), userID, Params.TYPE_PUBLIC)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {

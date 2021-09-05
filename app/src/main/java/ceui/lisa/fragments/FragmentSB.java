@@ -96,7 +96,7 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
             boolean isPrivate = baseBind.isPrivate.isChecked();
             String toastMsg = isPrivate ? getString(R.string.like_novel_success_private) : getString(R.string.like_novel_success_public);
             Retro.getAppApi().postLike(Shaft.sUserModel.getAccess_token(), illustID,
-                    isPrivate ? Params.TYPE_PRIVATE : Params.TYPE_PUBLUC)
+                    isPrivate ? Params.TYPE_PRIVATE : Params.TYPE_PUBLIC)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {
@@ -113,7 +113,7 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
             tempList.toArray(strings);
 
             Retro.getAppApi().postLike(Shaft.sUserModel.getAccess_token(), illustID,
-                    isPrivate ? Params.TYPE_PRIVATE : Params.TYPE_PUBLUC, strings)
+                    isPrivate ? Params.TYPE_PRIVATE : Params.TYPE_PUBLIC, strings)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {

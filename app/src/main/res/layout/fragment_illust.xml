@@ -100,8 +100,8 @@
                     <TextView
                         android:id="@+id/title"
                         android:layout_width="match_parent"
-                        android:layout_height="@dimen/tweenty_four_dp"
-                        android:layout_marginStart="@dimen/tweenty_four_dp"
+                        android:layout_height="@dimen/twenty_four_dp"
+                        android:layout_marginStart="@dimen/twenty_four_dp"
                         android:layout_marginEnd="56dp"
                         android:gravity="start|bottom"
                         android:ellipsize="end"
@@ -120,9 +120,9 @@
                     <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="@dimen/tweenty_four_dp"
+                        android:layout_marginStart="@dimen/twenty_four_dp"
                         android:layout_marginTop="@dimen/four_dp"
-                        android:layout_marginEnd="@dimen/tweenty_four_dp"
+                        android:layout_marginEnd="@dimen/twenty_four_dp"
                         android:layout_marginBottom="@dimen/six_dp"
                         android:orientation="vertical"
                         app:qmui_backgroundColor="?attr/colorPrimaryDark"
@@ -205,8 +205,8 @@
                     android:id="@+id/view_divider"
                     android:layout_width="match_parent"
                     android:layout_height="0.5dp"
-                    android:layout_marginStart="@dimen/tweenty_four_dp"
-                    android:layout_marginEnd="@dimen/tweenty_four_dp"
+                    android:layout_marginStart="@dimen/twenty_four_dp"
+                    android:layout_marginEnd="@dimen/twenty_four_dp"
                     android:background="@color/settings_divider">
 
                 </View>
@@ -239,7 +239,7 @@
                                     android:id="@+id/left_rela"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:layout_marginStart="@dimen/tweenty_four_dp"
+                                    android:layout_marginStart="@dimen/twenty_four_dp"
                                     app:qmui_backgroundColor="#e8e8f2"
                                     app:qmui_borderWidth="0dp"
                                     app:qmui_radius="@dimen/six_dp">
@@ -358,9 +358,9 @@
                             android:id="@+id/description"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/tweenty_four_dp"
+                            android:layout_marginStart="@dimen/twenty_four_dp"
                             android:layout_marginTop="@dimen/six_dp"
-                            android:layout_marginEnd="@dimen/tweenty_four_dp"
+                            android:layout_marginEnd="@dimen/twenty_four_dp"
                             android:layout_marginBottom="@dimen/four_dp"
                             android:gravity="start"
                             android:textColor="#9b9bb1"
@@ -372,9 +372,9 @@
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/tweenty_four_dp"
+                            android:layout_marginStart="@dimen/twenty_four_dp"
                             android:layout_marginTop="@dimen/eight_dp"
-                            android:layout_marginEnd="@dimen/tweenty_four_dp"
+                            android:layout_marginEnd="@dimen/twenty_four_dp"
                             android:orientation="horizontal">
 
                             <TextView
@@ -406,9 +406,9 @@
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/tweenty_four_dp"
+                            android:layout_marginStart="@dimen/twenty_four_dp"
                             android:layout_marginTop="@dimen/four_dp"
-                            android:layout_marginEnd="@dimen/tweenty_four_dp"
+                            android:layout_marginEnd="@dimen/twenty_four_dp"
                             android:layout_marginBottom="@dimen/eight_dp"
                             android:orientation="horizontal">
 
@@ -461,8 +461,8 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="0.5dp"
-                android:layout_marginStart="@dimen/tweenty_four_dp"
-                android:layout_marginEnd="@dimen/tweenty_four_dp"
+                android:layout_marginStart="@dimen/twenty_four_dp"
+                android:layout_marginEnd="@dimen/twenty_four_dp"
                 android:background="@color/settings_divider">
 
             </View>
@@ -477,7 +477,7 @@
                     android:id="@+id/comment"
                     android:layout_width="0dp"
                     android:layout_height="40dp"
-                    android:layout_marginStart="@dimen/tweenty_four_dp"
+                    android:layout_marginStart="@dimen/twenty_four_dp"
                     android:layout_marginEnd="@dimen/six_dp"
                     android:layout_weight="1"
                     android:background="@drawable/button_stroke_new"
@@ -501,7 +501,7 @@
                     android:layout_width="0dp"
                     android:layout_height="40dp"
                     android:layout_marginStart="@dimen/six_dp"
-                    android:layout_marginEnd="@dimen/tweenty_four_dp"
+                    android:layout_marginEnd="@dimen/twenty_four_dp"
                     android:layout_weight="2"
                     android:text="@string/string_72"
                     android:textColor="@color/white"
@@ -521,7 +521,7 @@
             android:background="@android:color/transparent"
             android:elevation="@dimen/six_dp"
             android:theme="@style/AppTheme.AppBarOverlay"
-            app:navigationIcon="@drawable/ic_baseline_arrow_back_ios_24"
+            app:navigationIcon="@drawable/ic_arrow_back_white_shadow"
             app:popupTheme="@style/AppTheme.PopupOverlay"
             app:title=" "
             app:titleTextColor="@android:color/white">

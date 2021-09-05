@@ -67,8 +67,8 @@
                             android:id="@+id/login"
                             android:clickable="true"
                             android:foreground="?attr/selectableItemBackground"
-                            android:layout_marginStart="@dimen/tweenty_four_dp"
-                            android:layout_marginEnd="@dimen/tweenty_four_dp"
+                            android:layout_marginStart="@dimen/twenty_four_dp"
+                            android:layout_marginEnd="@dimen/twenty_four_dp"
                             android:layout_marginBottom="@dimen/sixteen_dp"
                             app:cardBackgroundColor="?attr/colorPrimary">
 
@@ -156,8 +156,8 @@
                         android:layout_centerInParent="true"
                         android:clickable="true"
                         android:foreground="?attr/selectableItemBackground"
-                        android:layout_marginStart="@dimen/tweenty_four_dp"
-                        android:layout_marginEnd="@dimen/tweenty_four_dp"
+                        android:layout_marginStart="@dimen/twenty_four_dp"
+                        android:layout_marginEnd="@dimen/twenty_four_dp"
                         android:layout_marginBottom="@dimen/sixteen_dp"
                         app:cardBackgroundColor="?attr/colorPrimary">
 

@@ -18,7 +18,7 @@ import androidx.recyclerview.widget.SimpleItemAnimator;
 import ceui.lisa.R;
 import ceui.lisa.activities.BaseActivity;
 import ceui.lisa.adapters.BaseAdapter;
-import ceui.lisa.adapters.MultiDownldAdapter;
+import ceui.lisa.adapters.MultiDownloadAdapter;
 import ceui.lisa.core.BaseRepo;
 import ceui.lisa.core.LocalRepo;
 import ceui.lisa.databinding.FragmentMultiDownloadBinding;
@@ -36,7 +36,7 @@ import ceui.lisa.view.DownloadItemDecoration;
 import gdut.bsx.share2.Share2;
 import gdut.bsx.share2.ShareContentType;
 
-public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownloadBinding,
+public class FragmentMultiDownload extends LocalListFragment<FragmentMultiDownloadBinding,
         IllustsBean> {
 
     private DragSelectTouchListener dragSelectTouchListener;
@@ -177,7 +177,7 @@ public class FragmentMultiDownld extends LocalListFragment<FragmentMultiDownload
 
     @Override
     public BaseAdapter<IllustsBean, RecyMultiDownloadBinding> adapter() {
-        MultiDownldAdapter adapter = new MultiDownldAdapter(allItems, mContext);
+        MultiDownloadAdapter adapter = new MultiDownloadAdapter(allItems, mContext);
         adapter.setCallback(new Callback() {
             @Override
             public void doSomething(Object t) {

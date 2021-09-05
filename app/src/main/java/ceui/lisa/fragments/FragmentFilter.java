@@ -204,14 +204,14 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
                     listener,
                     Integer.parseInt(t[0]), // Initial year selection
                     Integer.parseInt(t[1]) - 1, // Initial month selection
-                    Integer.parseInt(t[2]) // Inital day selection
+                    Integer.parseInt(t[2]) // Initial day selection
             );
         } else {
             dpd = DatePickerDialog.newInstance(
                     listener,
                     now.get(Calendar.YEAR), // Initial year selection
                     now.get(Calendar.MONTH), // Initial month selection
-                    now.get(Calendar.DAY_OF_MONTH) // Inital day selection
+                    now.get(Calendar.DAY_OF_MONTH) // Initial day selection
             );
         }
         start.set(1970, 0, 1);

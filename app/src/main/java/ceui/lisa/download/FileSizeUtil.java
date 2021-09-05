@@ -31,7 +31,7 @@ public class FileSizeUtil {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return FormetFileSize(blockSize, sizeType);
+        return FormatFileSize(blockSize, sizeType);
     }
 
     public static double getFileOrFilesSize(File file, int sizeType) {
@@ -45,7 +45,7 @@ public class FileSizeUtil {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return FormetFileSize(blockSize, sizeType);
+        return FormatFileSize(blockSize, sizeType);
     }
 
     /**
@@ -126,7 +126,7 @@ public class FileSizeUtil {
     /**
      * 转换文件大小,指定转换的类型
      */
-    private static double FormetFileSize(long fileS, int sizeType) {
+    private static double FormatFileSize(long fileS, int sizeType) {
         DecimalFormat df = new DecimalFormat("#.00");
         double fileSizeLong = 0;
         switch (sizeType) {

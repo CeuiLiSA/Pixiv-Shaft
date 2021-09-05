@@ -126,7 +126,7 @@ public class HostManager {
         if (pkceItem == null) {
             try {
                 final String verify = PkceUtil.generateCodeVerifier();
-                final String challenge = PkceUtil.generateCodeChallange(verify);
+                final String challenge = PkceUtil.generateCodeChallenge(verify);
                 pkceItem = new PKCEItem(verify, challenge);
             } catch (Exception e) {
                 e.printStackTrace();

@@ -91,7 +91,7 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
             startActivity(intent);
         });
         baseBind.glareLayout.setListener(new OnCheckChangeListener() {
-            final String[] types = {Params.TYPE_ALL, Params.TYPE_PUBLUC, Params.TYPE_PRIVATE};
+            final String[] types = {Params.TYPE_ALL, Params.TYPE_PUBLIC, Params.TYPE_PRIVATE};
             @Override
             public void onSelect(int index, View view) {
                 Common.showLog("glareLayout onSelect " + index);

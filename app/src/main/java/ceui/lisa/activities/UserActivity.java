@@ -190,7 +190,7 @@ public class UserActivity extends BaseActivity<ActicityUserBinding> implements D
                         baseBind.send.setImageResource(R.drawable.ic_favorite_accent_24dp);
                         currentUser.getUser().setIs_followed(true);
                         PixivOperate.postFollowUser(currentUser.getUser().getId(),
-                                Params.TYPE_PUBLUC);
+                                Params.TYPE_PUBLIC);
                     }
                 }
             });

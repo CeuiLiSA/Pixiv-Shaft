@@ -327,14 +327,14 @@ public class FragmentEditFile extends SwipeFragment<FragmentEditFileBinding> imp
                                             FragmentEditFile.this,
                                             Integer.parseInt(t[0]), // Initial year selection
                                             Integer.parseInt(t[1]) - 1, // Initial month selection
-                                            Integer.parseInt(t[2]) // Inital day selection
+                                            Integer.parseInt(t[2]) // Initial day selection
                                     );
                                 } else {
                                     dpd = DatePickerDialog.newInstance(
                                             FragmentEditFile.this,
                                             now.get(Calendar.YEAR) - 18, // Initial year selection
                                             0, // Initial month selection
-                                            1 // Inital day selection
+                                            1 // Initial day selection
                                     );
                                 }
                                 start.set(now.get(Calendar.YEAR) - 100, 0, 1);

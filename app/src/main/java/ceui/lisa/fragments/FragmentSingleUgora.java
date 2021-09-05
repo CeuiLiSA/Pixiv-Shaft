@@ -232,7 +232,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
             if (hasDownload && zipFile.exists() && zipFile.length() > 1024) {
                 baseBind.playGif.setVisibility(View.INVISIBLE);
                 baseBind.progressLayout.donutProgress.setVisibility(View.VISIBLE);
-                PixivOperate.unzipAndePlay(mContext, illust);
+                PixivOperate.unzipAndPlay(mContext, illust);
             } else {
                 Common.showToast("获取GIF信息");
                 baseBind.progress.setVisibility(View.VISIBLE);
@@ -445,7 +445,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
                     PixivOperate.postUnFollowUser(illust.getUser().getId());
                     illust.getUser().setIs_followed(false);
                 } else {
-                    PixivOperate.postFollowUser(illust.getUser().getId(), Params.TYPE_PUBLUC);
+                    PixivOperate.postFollowUser(illust.getUser().getId(), Params.TYPE_PUBLIC);
                     illust.getUser().setIs_followed(true);
                 }
             }

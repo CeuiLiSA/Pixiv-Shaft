@@ -283,7 +283,7 @@ public class Manager {
 
                     if(downloadItem.getIllust().isGif()){
                         Shaft.getMMKV().encode(Params.ILLUST_ID + "_" + downloadItem.getIllust().getId(), true);
-                        PixivOperate.unzipAndePlay(context, downloadItem.getIllust(), downloadItem.isAutoSave());
+                        PixivOperate.unzipAndPlay(context, downloadItem.getIllust(), downloadItem.isAutoSave());
                     }
 
                     //通知 DOWNLOAD_ING 下载完成

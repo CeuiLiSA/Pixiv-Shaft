@@ -21,12 +21,12 @@ import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 
-public class MultiDownldAdapter extends BaseAdapter<IllustsBean, RecyMultiDownloadBinding> implements MultiDownload {
+public class MultiDownloadAdapter extends BaseAdapter<IllustsBean, RecyMultiDownloadBinding> implements MultiDownload {
 
     private int imageSize = 0;
     private Callback mCallback;
 
-    public MultiDownldAdapter(List<IllustsBean> targetList, Context context) {
+    public MultiDownloadAdapter(List<IllustsBean> targetList, Context context) {
         super(targetList, context);
         imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
                 mContext.getResources().getDimensionPixelSize(R.dimen.two_dp)) / 3;

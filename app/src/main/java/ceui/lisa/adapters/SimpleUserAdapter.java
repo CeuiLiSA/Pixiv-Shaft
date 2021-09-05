@@ -93,7 +93,7 @@ public class SimpleUserAdapter extends BaseAdapter<UserBean, RecySimpleUserBindi
                         postFollow.setText(mContext.getString(R.string.post_follow));
                     } else {
                         PixivOperate.postFollowUser(allItems.get(position).getId(),
-                                Params.TYPE_PUBLUC);
+                                Params.TYPE_PUBLIC);
                         allItems.get(position).setIs_followed(true);
                         Button postFollow = ((Button) v);
                         postFollow.setText(mContext.getString(R.string.post_unfollow));
