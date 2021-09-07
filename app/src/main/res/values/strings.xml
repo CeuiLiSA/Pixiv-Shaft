@@ -634,4 +634,7 @@
     <string name="string_442">固定</string>
     <string name="string_443">解除固定</string>
     <string name="string_444">投稿</string>
+    <string name="string_445">禁用</string>
+    <string name="string_446">画师昵称</string>
+    <string name="string_447">画师ID</string>
 </resources>

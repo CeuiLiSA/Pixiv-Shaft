@@ -749,9 +749,17 @@
                                 style="@style/setting_text_left"
                                 android:text="@string/string_407" />
 
-                            <androidx.appcompat.widget.SwitchCompat
+                            <TextView
                                 android:id="@+id/save_for_separate_author"
-                                style="@style/setting_right_switch"/>
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
+                                android:layout_centerVertical="true"
+                                android:textColor="?attr/colorPrimary"
+                                android:textSize="14sp">
+
+                            </TextView>
 
                         </RelativeLayout>
 

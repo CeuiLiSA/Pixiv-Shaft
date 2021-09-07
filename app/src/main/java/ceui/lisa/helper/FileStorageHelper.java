@@ -11,6 +11,7 @@ import ceui.lisa.core.DownloadItem;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.UserBean;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.UserFolderNameUtil;
 
 public class FileStorageHelper {
 
@@ -80,10 +81,6 @@ public class FileStorageHelper {
     }
 
     public static String getAuthorDirectoryName(UserBean userBean){
-        return Shaft.sSettings.isSaveForSeparateAuthor() ? getCleanAuthorDirectoryName(userBean) : "";
-    }
-
-    private static String getCleanAuthorDirectoryName(UserBean userBean){
-        return Common.removeFSReservedChars(userBean.getName() + "_" + userBean.getId());
+        return Common.removeFSReservedChars(UserFolderNameUtil.getFolderNameForUser(userBean));
     }
 }
