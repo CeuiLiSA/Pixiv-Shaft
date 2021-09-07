@@ -108,6 +108,12 @@ public class FragmentRight extends NetListFragment<FragmentNewRightBinding, List
                 forceRefresh();
             }
         });
+        baseBind.dynamicTitleLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                scrollToTop();
+            }
+        });
     }
 
     @Override
