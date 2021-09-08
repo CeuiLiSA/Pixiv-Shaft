@@ -612,4 +612,7 @@
   <string name="string_442">固定</string>
   <string name="string_443">固定を解除</string>
   <string name="string_444">投稿</string>
+  <string name="string_445">無効</string>
+  <string name="string_446">アーティストのニックネーム</string>
+  <string name="string_447">アーティストのID</string>
 </resources>

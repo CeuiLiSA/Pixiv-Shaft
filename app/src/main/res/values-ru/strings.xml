@@ -612,4 +612,7 @@
   <string name="string_442">Исправлена</string>
   <string name="string_443">Открепить</string>
   <string name="string_444">опубликовать работу</string>
+  <string name="string_445">Отключено</string>
+  <string name="string_446">Псевдоним художника</string>
+  <string name="string_447">ID художника</string>
 </resources>

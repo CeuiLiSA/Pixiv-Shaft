@@ -129,6 +129,7 @@
                     android:layout_height="wrap_content">
 
                     <RelativeLayout
+                        android:id="@+id/dynamic_title_layout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content">
 

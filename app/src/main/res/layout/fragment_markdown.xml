@@ -18,7 +18,9 @@
             android:layout_marginHorizontal="16dp"
             android:paddingBottom="@dimen/twenty_four_dp"
             android:lineSpacingExtra="2dp"
-            android:textSize="16sp" />
+            android:textSize="16sp"
+            android:textColor="@color/dark_text" />
+
     </ScrollView>
 
 </layout>

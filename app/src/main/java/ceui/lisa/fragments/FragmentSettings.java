@@ -47,6 +47,7 @@ import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivSearchParamUtil;
 import ceui.lisa.utils.Settings;
+import ceui.lisa.utils.UserFolderNameUtil;
 
 import static android.app.Activity.RESULT_OK;
 import static android.provider.DocumentsContract.EXTRA_INITIAL_URI;
@@ -637,13 +638,27 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 }
             });
 
-            baseBind.saveForSeparateAuthor.setChecked(Shaft.sSettings.isSaveForSeparateAuthor());
-            baseBind.saveForSeparateAuthor.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            baseBind.saveForSeparateAuthor.setText(UserFolderNameUtil.getCurrentStatusName());
+            baseBind.saveForSeparateAuthor.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    Shaft.sSettings.setSaveForSeparateAuthor(isChecked);
-                    Common.showToast(getString(R.string.string_428), 2);
-                    Local.setSettings(Shaft.sSettings);
+                public void onClick(View v) {
+                    new QMUIDialog.CheckableDialogBuilder(mActivity)
+                            .setCheckedIndex(Shaft.sSettings.getSaveForSeparateAuthorStatus())
+                            .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                            .addItems(UserFolderNameUtil.USER_FOLDER_NAME_NAMES, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    if (which == Shaft.sSettings.getSaveForSeparateAuthorStatus()) {
+                                        Common.showLog("什么也不做");
+                                    } else {
+                                        Shaft.sSettings.setSaveForSeparateAuthorStatus(which);
+                                        baseBind.saveForSeparateAuthor.setText(UserFolderNameUtil.getCurrentStatusName());
+                                        Local.setSettings(Shaft.sSettings);
+                                    }
+                                    dialog.dismiss();
+                                }
+                            })
+                            .show();
                 }
             });
             baseBind.saveForSeparateAuthorRela.setOnClickListener(new View.OnClickListener() {

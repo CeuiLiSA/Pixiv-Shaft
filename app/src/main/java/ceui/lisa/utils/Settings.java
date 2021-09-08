@@ -168,7 +168,7 @@ public class Settings {
 
     private boolean illustDetailShowNavbar = true; // 插画二级详情显示导航栏
 
-    private boolean saveForSeparateAuthor = false; // 不同作者单独保存
+    private int saveForSeparateAuthorStatus = 0; // 不同作者单独保存
 
     private boolean autoPostLikeWhenDownload = false; // 下载时自动收藏
 
@@ -543,14 +543,6 @@ public class Settings {
         this.illustDetailShowNavbar = illustDetailShowNavbar;
     }
 
-    public boolean isSaveForSeparateAuthor() {
-        return saveForSeparateAuthor;
-    }
-
-    public void setSaveForSeparateAuthor(boolean saveForSeparateAuthor) {
-        this.saveForSeparateAuthor = saveForSeparateAuthor;
-    }
-
     public boolean isAutoPostLikeWhenDownload() {
         return autoPostLikeWhenDownload;
     }
@@ -601,5 +593,13 @@ public class Settings {
 
     public void setSearchDefaultSortType(String searchDefaultSortType) {
         this.searchDefaultSortType = searchDefaultSortType;
+    }
+
+    public int getSaveForSeparateAuthorStatus() {
+        return saveForSeparateAuthorStatus;
+    }
+
+    public void setSaveForSeparateAuthorStatus(int saveForSeparateAuthorStatus) {
+        this.saveForSeparateAuthorStatus = saveForSeparateAuthorStatus;
     }
 }
