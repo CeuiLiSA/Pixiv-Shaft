@@ -12,6 +12,9 @@ import androidx.fragment.app.FragmentManager;
 
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import ceui.lisa.R;
 import ceui.lisa.databinding.ActivityFragmentBinding;
 import ceui.lisa.fragments.FragmentAboutApp;
@@ -70,6 +73,7 @@ import ceui.lisa.fragments.FragmentWorkSpace;
 import ceui.lisa.helper.BackHandlerHelper;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.NovelBean;
+import ceui.lisa.models.UserPreviewsBean;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseResult;
@@ -108,7 +112,13 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "设置":
                     return new FragmentSettings();
                 case "推荐用户":
-                    return new FragmentRecmdUser();
+                    Bundle bundleExtra = intent.getBundleExtra(Params.USER_MODEL);
+                    if (bundleExtra == null) {
+                        return new FragmentRecmdUser();
+                    }
+                    List<UserPreviewsBean> userPreviewsBeans = (ArrayList<UserPreviewsBean>) bundleExtra.getSerializable(Params.USER_MODEL);
+                    String nextUrl = intent.getStringExtra(Params.URL);
+                    return new FragmentRecmdUser(userPreviewsBeans, nextUrl);
                 case "特辑":
                     return new FragmentPv();
                 case "搜索用户": {
