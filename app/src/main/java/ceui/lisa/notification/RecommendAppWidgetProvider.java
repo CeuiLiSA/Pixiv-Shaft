@@ -40,6 +40,7 @@ import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
+import ceui.lisa.viewmodel.AppLevelViewModel;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
@@ -61,7 +62,7 @@ public class RecommendAppWidgetProvider extends AppWidgetProvider {
                 Intent illustIntent = new Intent(context, VActivity.class);
                 illustIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 List<IllustsBean> illustList = Collections.singletonList(illustsBean);
-                AppLevelViewModelHelper.fill(illustList);
+                AppLevelViewModelHelper.updateFollowUserStatus(illustsBean.getUser(), AppLevelViewModel.UpdateMethod.IF_ABSENT);
                 final PageData pageData = new PageData(illustList);
                 Container.get().addPageToMap(pageData);
                 illustIntent.putExtra(Params.POSITION, 0);
