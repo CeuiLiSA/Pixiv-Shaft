@@ -135,11 +135,13 @@ public class RecommendAppWidgetProvider extends AppWidgetProvider {
                         public void success(ListIllust listIllust) {
                             items.clear();
                             items.addAll(listIllust.getList());
+                            Collections.shuffle(items);
 
                             AppWidgetManager manager = AppWidgetManager.getInstance(RecommendAppWidgetService.this);
                             int[] idLs = intent.getIntArrayExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS);
-                            for (int appID : idLs) {
-                                IllustsBean randomIllust = items.get(new Random().nextInt(items.size()));
+                            for (int i = 0; i < idLs.length; i++) {
+                                int appID = idLs[i];
+                                IllustsBean randomIllust = items.get(i % items.size());
                                 RemoteViews views = new RemoteViews(RecommendAppWidgetService.this.getPackageName(), R.layout.recommend_illust_appwidget);
 
                                 Intent refreshIntent = new Intent();
