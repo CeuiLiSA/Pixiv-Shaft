@@ -28,13 +28,13 @@ class SearchIllustRepo(
 
     override fun initApi(): Observable<ListIllust> {
         PixivOperate.insertSearchHistory(keyword, SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD)
-        val assembledKeyword: String = keyword + when {
+        val assembledKeyword: String = (keyword + when {
             TextUtils.isEmpty(starSize) -> ""
             else -> " $starSize"
         } + when (r18Restriction) {
             null -> ""
             else -> " ${PixivSearchParamUtil.R18_RESTRICTION_VALUE[r18Restriction!!]}"
-        }.trim()
+        }).trim()
 
         return if (sortType == PixivSearchParamUtil.POPULAR_SORT_VALUE && (isPremium != true)) {
             Retro.getAppApi().popularPreview(
