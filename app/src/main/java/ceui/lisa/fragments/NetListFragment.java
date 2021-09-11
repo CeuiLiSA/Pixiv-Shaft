@@ -24,6 +24,7 @@ import ceui.lisa.adapters.IAdapter;
 import ceui.lisa.adapters.NAdapter;
 import ceui.lisa.adapters.SimpleUserAdapter;
 import ceui.lisa.adapters.UAdapter;
+import ceui.lisa.adapters.UserHAdapter;
 import ceui.lisa.core.Container;
 import ceui.lisa.core.PageData;
 import ceui.lisa.core.RemoteRepo;
@@ -207,7 +208,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                 addPageLoadReceiver();
                 addPageScrollReceiver();
             }
-        } else if (mAdapter instanceof UAdapter || mAdapter instanceof SimpleUserAdapter) {
+        } else if (mAdapter instanceof UAdapter || mAdapter instanceof UserHAdapter || mAdapter instanceof SimpleUserAdapter) {
             IntentFilter intentFilter = new IntentFilter();
             mReceiver = new CommonReceiver((BaseAdapter<Starable, ?>) mAdapter);
             intentFilter.addAction(Params.LIKED_USER);
