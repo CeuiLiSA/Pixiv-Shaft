@@ -21,19 +21,19 @@ public class AppLevelViewModelHelper {
             if (list.get(0).getClass().equals(IllustsBean.class)) {
                 for (IllustsBean illustsBean : (List<IllustsBean>) list) {
                     int userId = illustsBean.getUser().getId();
-                    int followUserStatus = illustsBean.getUser().isIs_followed() ? AppLevelViewModel.FollowUserStatus.FOLLOWED : AppLevelViewModel.FollowUserStatus.NOT_FOLLOW;
+                    int followUserStatus = getFollowUserStatus(illustsBean.getUser());
                     Shaft.appViewModel.updateFollowUserStatus(userId, followUserStatus);
                 }
             } else if (list.get(0).getClass().equals(UserPreviewsBean.class)) {
                 for (UserPreviewsBean userPreviewsBean : (List<UserPreviewsBean>) list) {
                     int userId = userPreviewsBean.getUser().getId();
-                    int followUserStatus = userPreviewsBean.getUser().isIs_followed() ? AppLevelViewModel.FollowUserStatus.FOLLOWED : AppLevelViewModel.FollowUserStatus.NOT_FOLLOW;
+                    int followUserStatus = getFollowUserStatus(userPreviewsBean.getUser());
                     Shaft.appViewModel.updateFollowUserStatus(userId, followUserStatus);
                 }
             } else if (list.get(0).getClass().equals(UserBean.class)) {
                 for (UserBean userBean : (List<UserBean>) list) {
                     int userId = userBean.getId();
-                    int followUserStatus = userBean.isIs_followed() ? AppLevelViewModel.FollowUserStatus.FOLLOWED : AppLevelViewModel.FollowUserStatus.NOT_FOLLOW;
+                    int followUserStatus = getFollowUserStatus(userBean);
                     Shaft.appViewModel.updateFollowUserStatus(userId, followUserStatus);
                 }
             } else if (list.get(0).getClass().equals(IllustHistoryEntity.class)) {
@@ -41,10 +41,18 @@ public class AppLevelViewModelHelper {
                     IllustsBean illustsBean = Shaft.sGson.fromJson(entity.getIllustJson(), IllustsBean.class);
                     UserBean userBean = illustsBean.getUser();
                     int userId = userBean.getId();
-                    int followUserStatus = userBean.isIs_followed() ? AppLevelViewModel.FollowUserStatus.FOLLOWED : AppLevelViewModel.FollowUserStatus.NOT_FOLLOW;
-                    Shaft.appViewModel.updateFollowUserStatusIfAbsent(userId, followUserStatus);
+                    int followUserStatus = getFollowUserStatus(userBean);
+                    Shaft.appViewModel.updateFollowUserStatus(userId, followUserStatus, AppLevelViewModel.UpdateMethod.IF_ABSENT);
                 }
             }
         }
+    }
+
+    private static int getFollowUserStatus(UserBean user) {
+        return user.isIs_followed() ? AppLevelViewModel.FollowUserStatus.FOLLOWED : AppLevelViewModel.FollowUserStatus.NOT_FOLLOW;
+    }
+
+    public static void updateFollowUserStatus(UserBean user, int method) {
+        Shaft.appViewModel.updateFollowUserStatus(user.getId(), getFollowUserStatus(user), method);
     }
 }

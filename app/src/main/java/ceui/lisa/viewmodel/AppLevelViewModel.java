@@ -32,27 +32,40 @@ public class AppLevelViewModel extends AndroidViewModel {
     }
 
     public void updateFollowUserStatus(int userId, int status) {
-        MutableLiveData<Integer> data = followUserStatus.get(userId);
-        if (data != null) {
-            Integer currentValue = data.getValue();
-            if(FollowUserStatus.isPreciseFollow(currentValue) && status == FollowUserStatus.FOLLOWED){
-                return;
-            }
-            data.setValue(status);
-        } else {
-            followUserStatus.put(userId, new MutableLiveData<>(status));
-        }
+        updateFollowUserStatus(userId, status, UpdateMethod.NORMAL);
     }
 
-    public void updateFollowUserStatusIfAbsent(int userId, int status) {
+    public void updateFollowUserStatus(int userId, int status, int method) {
         MutableLiveData<Integer> data = followUserStatus.get(userId);
-        if (data != null) {
-            Integer currentValue = data.getValue();
-            if (currentValue != null && currentValue == FollowUserStatus.UNKNOWN) {
-                data.setValue(status);
-            }
-        } else {
-            followUserStatus.put(userId, new MutableLiveData<>(status));
+        switch (method) {
+            case UpdateMethod.IF_ABSENT:
+                if (data != null) {
+                    Integer currentValue = data.getValue();
+                    if (currentValue != null && currentValue == FollowUserStatus.UNKNOWN) {
+                        data.setValue(status);
+                    }
+                } else {
+                    followUserStatus.put(userId, new MutableLiveData<>(status));
+                }
+                break;
+            case UpdateMethod.FORCE_REPLACE:
+                if (data != null) {
+                    data.setValue(status);
+                } else {
+                    followUserStatus.put(userId, new MutableLiveData<>(status));
+                }
+                break;
+            default:
+                if (data != null) {
+                    Integer currentValue = data.getValue();
+                    if (FollowUserStatus.isPreciseFollow(currentValue) && status == FollowUserStatus.FOLLOWED) {
+                        return;
+                    }
+                    data.setValue(status);
+                } else {
+                    followUserStatus.put(userId, new MutableLiveData<>(status));
+                }
+                break;
         }
     }
 
@@ -116,5 +129,11 @@ public class AppLevelViewModel extends AndroidViewModel {
         public static boolean isPrivateStarred(int status) {
             return status == STARRED_PRIVATE;
         }
+    }
+
+    public static class UpdateMethod {
+        public static final int NORMAL = 0;
+        public static final int IF_ABSENT = 1;
+        public static final int FORCE_REPLACE = 2;
     }
 }

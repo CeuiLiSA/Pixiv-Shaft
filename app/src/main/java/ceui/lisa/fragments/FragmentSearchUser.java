@@ -2,6 +2,7 @@ package ceui.lisa.fragments;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -42,8 +43,11 @@ public class FragmentSearchUser extends NetListFragment<FragmentBaseListBinding,
         searchModel.getNowGo().observe(getViewLifecycleOwner(), new Observer<String>() {
             @Override
             public void onChanged(String s) {
-                ((SearchUserRepo) mRemoteRepo).update(searchModel.getKeyword().getValue());
-                mRefreshLayout.autoRefresh();
+                String keyWord = searchModel.getKeyword().getValue();
+                if (!TextUtils.isEmpty(keyWord)) {
+                    ((SearchUserRepo) mRemoteRepo).update(keyWord);
+                    mRefreshLayout.autoRefresh();
+                }
             }
         });
     }

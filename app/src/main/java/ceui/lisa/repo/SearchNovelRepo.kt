@@ -15,24 +15,33 @@ class SearchNovelRepo(
     var starSize: String?,
     private var isPremium: Boolean?,
     private var startDate: String?,
-    private var endDate: String?
+    private var endDate: String?,
+    private var r18Restriction: Int?
 ) : RemoteRepo<ListNovel>() {
 
     override fun initApi(): Observable<ListNovel> {
-        return if (sortType== PixivSearchParamUtil.POPULAR_SORT_VALUE&&(isPremium != true)) {
+        val assembledKeyword: String = (keyword + when {
+            TextUtils.isEmpty(starSize) -> ""
+            else -> " $starSize"
+        } + when (r18Restriction) {
+            null -> ""
+            else -> " ${PixivSearchParamUtil.R18_RESTRICTION_VALUE[r18Restriction!!]}"
+        }).trim()
+
+        return if (sortType == PixivSearchParamUtil.POPULAR_SORT_VALUE && (isPremium != true)) {
             Retro.getAppApi().popularNovelPreview(token(),
-                    keyword + if (TextUtils.isEmpty(starSize)) "" else " $starSize",
-                    startDate,
-                    endDate,
-                    searchType)
+                assembledKeyword,
+                startDate,
+                endDate,
+                searchType)
         } else {
             Retro.getAppApi().searchNovel(
-                    token(),
-                    keyword + if (TextUtils.isEmpty(starSize)) "" else " $starSize",
-                    sortType,
-                    startDate,
-                    endDate,
-                    searchType
+                token(),
+                assembledKeyword,
+                sortType,
+                startDate,
+                endDate,
+                searchType
             )
         }
     }
@@ -49,5 +58,6 @@ class SearchNovelRepo(
         isPremium = searchModel.isPremium.value
         startDate = searchModel.startDate.value
         endDate = searchModel.endDate.value
+        r18Restriction = searchModel.r18Restriction.value
     }
 }
