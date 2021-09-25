@@ -35,21 +35,33 @@ class FragmentHolder : BaseFragment<FragmentHolderBinding>() {
         val data = mUserViewModel.user.value ?: return
 
         val titles: Array<String>
+        val items: Array<Fragment>
 
-        titles = if (data.userId == Shaft.sUserModel.user.id) {
-            arrayOf("收藏", "其他")
-        } else {
-            arrayOf("插画", "其他")
+        when {
+            data.userId == Shaft.sUserModel.user.id -> {
+                titles = arrayOf("收藏", "其他")
+                items = arrayOf<Fragment>(
+                        FragmentLikeIllust.newInstance(data.userId, Params.TYPE_PUBLIC),
+                        FragmentUserRight()
+                )
+            }
+            data.profile.total_manga > 0 -> {
+                titles = arrayOf("插画", "漫画", "其他")
+                items = arrayOf<Fragment>(
+                        FragmentUserIllust.newInstance(data.userId, false),
+                        FragmentUserManga.newInstance(data.userId, false),
+                        FragmentUserRight()
+                )
+            }
+            else -> {
+                titles = arrayOf("插画", "其他")
+                items = arrayOf<Fragment>(
+                        FragmentUserIllust.newInstance(data.userId, false),
+                        FragmentUserRight()
+                )
+            }
         }
 
-        val items = arrayOf<Fragment>(
-            if (data.userId == Shaft.sUserModel.user.id) {
-                FragmentLikeIllust.newInstance(data.userId, Params.TYPE_PUBLIC)
-            } else {
-                FragmentUserIllust.newInstance(data.userId, false)
-            },
-            FragmentUserRight()
-        )
         @Suppress("DEPRECATION")
         baseBind.viewPager.adapter = object : FragmentPagerAdapter(childFragmentManager) {
 
