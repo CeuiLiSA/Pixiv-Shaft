@@ -130,7 +130,9 @@ public class Manager {
         if (!Common.isEmpty(content)) {
             for (DownloadItem item : content) {
                 //item.setProcessed(false);
-                item.setState(DownloadItem.DownloadState.INIT);
+                if (item.getState() != DownloadItem.DownloadState.PAUSED) {
+                    item.setState(DownloadItem.DownloadState.INIT);
+                }
                 item.setPaused(false);
             }
         }
