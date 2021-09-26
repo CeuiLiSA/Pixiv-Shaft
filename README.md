@@ -64,7 +64,7 @@
 
 ## 6.常见问题 FAQ
 
-[FAQ](../master/FAQ.md)
+[FAQ](./FAQ.md)
 
 
 ### 开源许可
