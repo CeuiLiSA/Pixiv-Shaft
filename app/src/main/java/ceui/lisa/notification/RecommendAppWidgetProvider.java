@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
@@ -134,7 +135,7 @@ public class RecommendAppWidgetProvider extends AppWidgetProvider {
                         @Override
                         public void success(ListIllust listIllust) {
                             items.clear();
-                            items.addAll(listIllust.getList());
+                            items.addAll(listIllust.getList().stream().filter(it -> !it.isR18File()).collect(Collectors.toList()));
                             Collections.shuffle(items);
 
                             AppWidgetManager manager = AppWidgetManager.getInstance(RecommendAppWidgetService.this);
