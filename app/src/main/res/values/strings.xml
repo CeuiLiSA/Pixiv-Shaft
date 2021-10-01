@@ -637,4 +637,5 @@
     <string name="string_445">禁用</string>
     <string name="string_446">画师昵称</string>
     <string name="string_447">画师ID</string>
+    <string name="string_448">仅通过 Wifi 下载</string>
 </resources>

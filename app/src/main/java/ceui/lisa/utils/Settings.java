@@ -181,6 +181,8 @@ public class Settings {
 
     private String navigationInitPosition = NavigationLocationHelper.TUIJIAN; // 主页底部导航栏初始化位置
 
+    private boolean isDownloadOnlyUseWiFi = false; // 仅通过 Wifi 下载
+
     public String getAppLanguage() {
         if(!TextUtils.isEmpty(appLanguage)){
             return appLanguage;
@@ -601,5 +603,13 @@ public class Settings {
 
     public void setSaveForSeparateAuthorStatus(int saveForSeparateAuthorStatus) {
         this.saveForSeparateAuthorStatus = saveForSeparateAuthorStatus;
+    }
+
+    public boolean isDownloadOnlyUseWiFi() {
+        return isDownloadOnlyUseWiFi;
+    }
+
+    public void setDownloadOnlyUseWiFi(boolean downloadOnlyUseWiFi) {
+        isDownloadOnlyUseWiFi = downloadOnlyUseWiFi;
     }
 }

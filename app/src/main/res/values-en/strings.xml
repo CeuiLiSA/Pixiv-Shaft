@@ -615,4 +615,5 @@
   <string name="string_445">Disabled</string>
   <string name="string_446">Artist\'s nickname</string>
   <string name="string_447">Artist\'s ID</string>
+  <string name="string_448">Download via Wifi only</string>
 </resources>

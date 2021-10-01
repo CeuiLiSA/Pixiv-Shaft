@@ -684,6 +684,22 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 }
             });
 
+            baseBind.downloadOnlyUseWifi.setChecked(Shaft.sSettings.isDownloadOnlyUseWiFi());
+            baseBind.downloadOnlyUseWifi.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    Shaft.sSettings.setDownloadOnlyUseWiFi(isChecked);
+                    Common.showToast(getString(R.string.string_428));
+                    Local.setSettings(Shaft.sSettings);
+                }
+            });
+            baseBind.downloadOnlyUseWifiRela.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    baseBind.downloadOnlyUseWifi.performClick();
+                }
+            });
+
             // 下载模式
             String[] downloadWays = new String[]{
                     getString(R.string.string_363),

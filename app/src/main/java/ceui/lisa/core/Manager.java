@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 
+import com.blankj.utilcode.util.NetworkUtils;
+
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.io.File;
@@ -236,6 +238,12 @@ public class Manager {
     }
 
     private void downloadOne(Context context, DownloadItem downloadItem) {
+        // check network status, if setting don't download when mobile data, stop all task
+        if(!NetworkUtils.isWifiConnected() && Shaft.sSettings.isDownloadOnlyUseWiFi()){
+            stopAll();
+            return;
+        }
+
         UriFactory factory;
         if (Shaft.sSettings.getDownloadWay() == 0 || downloadItem.getIllust().isGif()) {
             factory = new Android10DownloadFactory22(context, downloadItem);
