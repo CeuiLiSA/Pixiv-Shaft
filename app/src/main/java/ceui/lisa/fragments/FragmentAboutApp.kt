@@ -85,7 +85,7 @@ class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
                             }
                             2 -> {
                                 intent.data = Uri.parse(
-                                    "mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + "wP7NEZdMl11ijJgm0IDQMjZ3kaPQPio6"
+                                    "mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D" + "w0SMWZx3anocpwrHSC9ZRFHAmfJrC9Nt"
                                 )
                             }
                             3 -> {
