@@ -173,7 +173,8 @@
                                 android:layout_marginTop="@dimen/twelve_dp"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:textIsSelectable="true" />
+                                android:textIsSelectable="true"
+                                android:textColorLink="?attr/colorPrimary" />
 
                             <TextView
                                 android:layout_width="wrap_content"
