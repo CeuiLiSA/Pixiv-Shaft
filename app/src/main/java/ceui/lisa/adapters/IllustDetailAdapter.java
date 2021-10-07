@@ -9,12 +9,14 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
@@ -30,6 +32,8 @@ import static com.bumptech.glide.load.resource.bitmap.BitmapTransitionOptions.wi
  */
 public class IllustDetailAdapter extends AbstractIllustAdapter<RecyclerView.ViewHolder> {
 
+    private Fragment mFragment;
+
     public IllustDetailAdapter(IllustsBean list, Context context, boolean isForceOriginal) {
         mContext = context;
         allIllust = list;
@@ -40,6 +44,15 @@ public class IllustDetailAdapter extends AbstractIllustAdapter<RecyclerView.View
 
     public IllustDetailAdapter(IllustsBean list, Context context) {
         this(list, context, false);
+    }
+
+    public IllustDetailAdapter(Fragment fragment, IllustsBean list) {
+        mFragment = fragment;
+        mContext = fragment.requireContext();
+        allIllust = list;
+        this.isForceOriginal = false;
+        imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
+                2 * mContext.getResources().getDimensionPixelSize(R.dimen.twelve_dp));
     }
 
     @NonNull
@@ -57,12 +70,13 @@ public class IllustDetailAdapter extends AbstractIllustAdapter<RecyclerView.View
         final TagHolder currentOne = (TagHolder) holder;
         Common.showLog("IllustDetailAdapter onBindViewHolder 000");
         boolean isLoadOriginalImage = Shaft.sSettings.isShowOriginalPreviewImage() || isForceOriginal;
+        RequestManager requestManager = this.mFragment != null ? Glide.with(this.mFragment) : Glide.with(mContext);
         if (position == 0) {
             ViewGroup.LayoutParams params = currentOne.illust.getLayoutParams();
             params.height = imageSize * allIllust.getHeight() / allIllust.getWidth();
             params.width = imageSize;
             currentOne.illust.setLayoutParams(params);
-            Glide.with(mContext)
+            requestManager
                     .asDrawable()
                     .load(isLoadOriginalImage ?
                             GlideUtil.getOriginalImage(allIllust, position) :
@@ -75,7 +89,7 @@ public class IllustDetailAdapter extends AbstractIllustAdapter<RecyclerView.View
                         }
                     });
         } else {
-            Glide.with(mContext)
+            requestManager
                     .asBitmap()
                     .load(isLoadOriginalImage ?
                             GlideUtil.getOriginalImage(allIllust, position) :
