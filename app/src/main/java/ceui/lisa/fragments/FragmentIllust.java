@@ -356,7 +356,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                 IllustDownload.downloadIllustAllPages(illust, (BaseActivity<?>) mContext);
             }
             checkDownload();
-            if(Shaft.sSettings.isAutoPostLikeWhenDownload() && !illust.isIs_bookmarked()){
+            if (Shaft.sSettings.isAutoPostLikeWhenDownload() && !illust.isIs_bookmarked()) {
                 PixivOperate.postLikeDefaultStarType(illust);
             }
         });
