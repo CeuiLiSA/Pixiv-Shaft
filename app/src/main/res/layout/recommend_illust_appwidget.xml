@@ -11,11 +11,11 @@
 
     <Button
         android:id="@+id/btn_refresh"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
-        android:background="@drawable/ic_baseline_refresh_48"
-        android:visibility="gone" />
+        android:backgroundTint="#40ffffff"
+        android:background="@drawable/ic_baseline_refresh_48" />
 
 </RelativeLayout>
