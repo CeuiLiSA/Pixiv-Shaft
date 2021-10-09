@@ -7,7 +7,6 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
@@ -52,6 +51,8 @@ public class RecommendAppWidgetProvider extends AppWidgetProvider {
     private static final String WIDGET_CLICK_TYPE_IMAGE = "ceui.lisa.pixiv.widget.click.type.image";
     private static final String WIDGET_CLICK_TYPE_BTN = "ceui.lisa.pixiv.widget.click.type.btn";
     private static final String EXTRA_ILLUST_BEAN = "app.widget.extra:illust.bean";
+    private static final String SERVICE_NOTIFICATION_CHANNEL_ID = "app_widget_service";
+    private static final String SERVICE_NOTIFICATION_CHANNEL_NAME = "App Widget Service";
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -70,15 +71,9 @@ public class RecommendAppWidgetProvider extends AppWidgetProvider {
                 illustIntent.putExtra(Params.PAGE_UUID, pageData.getUUID());
                 context.startActivity(illustIntent);
             } else if (WIDGET_CLICK_TYPE_BTN.equals(intent.getStringExtra(WIDGET_CLICK_TYPE))) {
-                RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.recommend_illust_appwidget);
-                views.setImageViewResource(R.id.image_square, R.drawable.avatar);
-                AppWidgetManager manager = AppWidgetManager.getInstance(context);
-                int intExtra = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, 0);
-                //Common.showToast(intExtra);
-                if (intExtra != 0) {
-                    manager.updateAppWidget(intExtra, views);
-                } else {
-                    manager.updateAppWidget(new ComponentName(context, RecommendAppWidgetProvider.class), views);
+                int appWidgetID = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, 0);
+                if (appWidgetID != 0) {
+                    startService(context, new int[]{appWidgetID});
                 }
             }
         }
@@ -87,9 +82,7 @@ public class RecommendAppWidgetProvider extends AppWidgetProvider {
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         super.onUpdate(context, appWidgetManager, appWidgetIds);
-        Intent intent = new Intent(context, RecommendAppWidgetService.class);
-        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds);
-        ContextCompat.startForegroundService(context, intent);
+        startService(context, appWidgetIds);
     }
 
     @Override
@@ -98,6 +91,12 @@ public class RecommendAppWidgetProvider extends AppWidgetProvider {
         //关闭服务
         Intent intent = new Intent(context, RecommendAppWidgetService.class);
         context.stopService(intent);
+    }
+
+    private void startService(Context context, int[] appWidgetIds) {
+        Intent intent = new Intent(context, RecommendAppWidgetService.class);
+        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, appWidgetIds);
+        ContextCompat.startForegroundService(context, intent);
     }
 
     public static class RecommendAppWidgetService extends Service {
@@ -114,14 +113,12 @@ public class RecommendAppWidgetProvider extends AppWidgetProvider {
         @Override
         public int onStartCommand(Intent intent, int flags, int startId) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                String channelId = "app_widget_service";
-                String channelName = "App Widget Service";
-                NotificationChannel chan = new NotificationChannel(channelId,channelName, NotificationManager.IMPORTANCE_NONE);
+                NotificationChannel chan = new NotificationChannel(SERVICE_NOTIFICATION_CHANNEL_ID, SERVICE_NOTIFICATION_CHANNEL_NAME, NotificationManager.IMPORTANCE_NONE);
                 chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
                 NotificationManager service = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
                 service.createNotificationChannel(chan);
 
-                NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, channelId);
+                NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, SERVICE_NOTIFICATION_CHANNEL_ID);
                 Notification notification = notificationBuilder
                         .setOngoing(true)
                         .setCategory(Notification.CATEGORY_SERVICE)
@@ -150,14 +147,14 @@ public class RecommendAppWidgetProvider extends AppWidgetProvider {
                                 refreshIntent.setAction(WIDGET_CLICK_ACTION);
                                 refreshIntent.putExtra(WIDGET_CLICK_TYPE, WIDGET_CLICK_TYPE_BTN);
                                 refreshIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appID);
-                                views.setOnClickPendingIntent(R.id.btn_refresh, PendingIntent.getBroadcast(RecommendAppWidgetService.this, appID, refreshIntent, PendingIntent.FLAG_UPDATE_CURRENT));
+                                views.setOnClickPendingIntent(R.id.btn_refresh, PendingIntent.getBroadcast(RecommendAppWidgetService.this, getRandomRequestCode(), refreshIntent, PendingIntent.FLAG_UPDATE_CURRENT));
 
                                 Intent illustIntent = new Intent();
                                 illustIntent.setClass(RecommendAppWidgetService.this, RecommendAppWidgetProvider.class);
                                 illustIntent.setAction(WIDGET_CLICK_ACTION);
                                 illustIntent.putExtra(WIDGET_CLICK_TYPE, WIDGET_CLICK_TYPE_IMAGE);
                                 illustIntent.putExtra(EXTRA_ILLUST_BEAN, randomIllust);
-                                views.setOnClickPendingIntent(R.id.image_square, PendingIntent.getBroadcast(RecommendAppWidgetService.this, appID, illustIntent, PendingIntent.FLAG_UPDATE_CURRENT));
+                                views.setOnClickPendingIntent(R.id.image_square, PendingIntent.getBroadcast(RecommendAppWidgetService.this, getRandomRequestCode(), illustIntent, PendingIntent.FLAG_UPDATE_CURRENT));
 
                                 AppWidgetTarget target = new AppWidgetTarget(RecommendAppWidgetService.this, R.id.image_square, views, appID);
                                 Glide.with(RecommendAppWidgetService.this)
@@ -172,6 +169,10 @@ public class RecommendAppWidgetProvider extends AppWidgetProvider {
                     });
 
             return START_STICKY;
+        }
+
+        private int getRandomRequestCode(){
+            return new Random().nextInt(Integer.MAX_VALUE) + 1;
         }
     }
 }

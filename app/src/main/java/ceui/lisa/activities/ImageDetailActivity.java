@@ -21,6 +21,7 @@ import ceui.lisa.fragments.FragmentLocalImageDetail;
 import ceui.lisa.helper.PageTransformerHelper;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.PixivOperate;
 
 /**
  * 图片二级详情
@@ -68,6 +69,9 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
                 @Override
                 public void onClick(View v) {
                     IllustDownload.downloadIllustCertainPage(mIllustsBean, baseBind.viewPager.getCurrentItem(), (BaseActivity<?>) mContext);
+                    if (Shaft.sSettings.isAutoPostLikeWhenDownload() && !mIllustsBean.isIs_bookmarked()) {
+                        PixivOperate.postLikeDefaultStarType(mIllustsBean);
+                    }
                 }
             });
             baseBind.viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {

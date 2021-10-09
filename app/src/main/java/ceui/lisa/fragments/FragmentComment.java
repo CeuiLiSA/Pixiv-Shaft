@@ -33,7 +33,7 @@ import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.EmojiItem;
 import ceui.lisa.model.ListComment;
 import ceui.lisa.models.CommentHolder;
-import ceui.lisa.models.CommentsBean;
+import ceui.lisa.models.ReplyCommentBean;
 import ceui.lisa.repo.CommentRepo;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Emoji;
@@ -46,7 +46,7 @@ import io.reactivex.schedulers.Schedulers;
 import static ceui.lisa.activities.Shaft.sUserModel;
 
 public class FragmentComment extends NetListFragment<FragmentCommentBinding,
-        ListComment, CommentsBean> implements FragmentBackHandler {
+        ListComment, ReplyCommentBean> implements FragmentBackHandler {
 
     private String[] OPTIONS;
     private int illustID;
@@ -93,7 +93,7 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
     }
 
     @Override
-    public BaseAdapter<CommentsBean, RecyCommentListBinding> adapter() {
+    public BaseAdapter<ReplyCommentBean, RecyCommentListBinding> adapter() {
         return new CommentAdapter(allItems, mContext).setOnItemClickListener((v, position, viewType) -> {
             if (viewType == 0) {
                 new QMUIDialog.MenuDialogBuilder(mActivity)
@@ -164,38 +164,38 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
     }
 
     @Override
-    public void beforeFirstLoad(List<CommentsBean> items) {
-        for (CommentsBean allItem : items) {
-            String comment = allItem.getComment();
+    public void beforeFirstLoad(List<ReplyCommentBean> items) {
+        for (ReplyCommentBean replyCommentBean : items) {
+            String comment = replyCommentBean.getComment();
             if (Emoji.hasEmoji(comment)) {
                 String newComment = Emoji.transform(comment);
-                allItem.setComment(newComment);
+                replyCommentBean.setCommentWithConvertedEmoji(newComment);
             }
 
-            if (allItem.getParent_comment() != null) {
-                String parentComment = allItem.getParent_comment().getComment();
+            if (replyCommentBean.getParent_comment() != null) {
+                String parentComment = replyCommentBean.getParent_comment().getComment();
                 if (Emoji.hasEmoji(parentComment)) {
                     String newComment = Emoji.transform(parentComment);
-                    allItem.getParent_comment().setComment(newComment);
+                    replyCommentBean.getParent_comment().setCommentWithConvertedEmoji(newComment);
                 }
             }
         }
     }
 
     @Override
-    public void beforeNextLoad(List<CommentsBean> items) {
-        for (CommentsBean allItem : items) {
+    public void beforeNextLoad(List<ReplyCommentBean> items) {
+        for (ReplyCommentBean allItem : items) {
             String comment = allItem.getComment();
             if (Emoji.hasEmoji(comment)) {
                 String newComment = Emoji.transform(comment);
-                allItem.setComment(newComment);
+                allItem.setCommentWithConvertedEmoji(newComment);
             }
 
             if (allItem.getParent_comment() != null) {
                 String parentComment = allItem.getParent_comment().getComment();
                 if (Emoji.hasEmoji(parentComment)) {
                     String newComment = Emoji.transform(parentComment);
-                    allItem.getParent_comment().setComment(newComment);
+                    allItem.getParent_comment().setCommentWithConvertedEmoji(newComment);
                 }
             }
         }
@@ -252,12 +252,13 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
                         emptyRela.setVisibility(View.INVISIBLE);
                     }
 
-                    if (Emoji.hasEmoji(commentHolder.getComment().getComment())) {
-                        commentHolder.getComment().setComment(
-                                Emoji.transform(commentHolder.getComment().getComment()));
-                        allItems.add(0, commentHolder.getComment());
+                    ReplyCommentBean replyCommentBean = commentHolder.getComment();
+                    if (Emoji.hasEmoji(replyCommentBean.getComment())) {
+                        replyCommentBean.setCommentWithConvertedEmoji(
+                                Emoji.transform(replyCommentBean.getComment()));
+                        allItems.add(0, replyCommentBean);
                     } else {
-                        allItems.add(0, commentHolder.getComment());
+                        allItems.add(0, replyCommentBean);
                     }
                     mAdapter.notifyItemInserted(0);
                     baseBind.recyclerView.scrollToPosition(0);

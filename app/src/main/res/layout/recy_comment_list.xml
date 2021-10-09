@@ -73,7 +73,8 @@
             android:layout_alignStart="@+id/user_name"
             android:layout_marginTop="@dimen/eight_dp"
             android:textColor="@color/comment_content"
-            android:textSize="14sp" />
+            android:textSize="14sp"
+            android:textIsSelectable="true" />
 
 
         <RelativeLayout
@@ -100,7 +101,8 @@
                 android:paddingEnd="@dimen/six_dp"
                 android:paddingBottom="@dimen/six_dp"
                 android:textColor="#808080"
-                android:textSize="14sp" />
+                android:textSize="14sp"
+                android:textIsSelectable="true" />
         </RelativeLayout>
 
         <View

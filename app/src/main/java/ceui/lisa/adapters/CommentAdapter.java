@@ -17,7 +17,7 @@ import java.util.List;
 import ceui.lisa.R;
 import ceui.lisa.core.ImgGetter;
 import ceui.lisa.databinding.RecyCommentListBinding;
-import ceui.lisa.models.CommentsBean;
+import ceui.lisa.models.ReplyCommentBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
 
@@ -25,10 +25,10 @@ import ceui.lisa.utils.GlideUtil;
  * 评论列表
  */
 
-public class CommentAdapter extends BaseAdapter<CommentsBean, RecyCommentListBinding> {
+public class CommentAdapter extends BaseAdapter<ReplyCommentBean, RecyCommentListBinding> {
 
 
-    public CommentAdapter(List<CommentsBean> targetList, Context context) {
+    public CommentAdapter(List<ReplyCommentBean> targetList, Context context) {
         super(targetList, context);
     }
 
@@ -38,12 +38,12 @@ public class CommentAdapter extends BaseAdapter<CommentsBean, RecyCommentListBin
     }
 
     @Override
-    public void bindData(CommentsBean target, ViewHolder<RecyCommentListBinding> bindView, int position) {
+    public void bindData(ReplyCommentBean target, ViewHolder<RecyCommentListBinding> bindView, int position) {
         Glide.with(mContext).load(GlideUtil.getHead(allItems.get(position).getUser()))
                 .into(bindView.baseBind.userHead);
         bindView.baseBind.userName.setText(allItems.get(position).getUser().getName());
         bindView.baseBind.time.setText(Common.getLocalYYYYMMDDHHMMSSString(allItems.get(position).getDate()));
-        bindView.baseBind.content.setHtml(allItems.get(position).getComment(),
+        bindView.baseBind.content.setHtml(allItems.get(position).getCommentWithConvertedEmoji(),
                 new ImgGetter(bindView.baseBind.content));
 
         if (allItems.get(position).getParent_comment() != null &&
@@ -64,11 +64,11 @@ public class CommentAdapter extends BaseAdapter<CommentsBean, RecyCommentListBin
 
             SpannableString spannableString;
             //如果getParent_comment是一个包含表情的comment，就用fromHtml
-            if (allItems.get(position).getParent_comment().getComment().contains("_2sgsdWB")) {
-                Common.showLog("Emoji.hasEmoji true " + position + allItems.get(position).getParent_comment().getComment());
+            if (allItems.get(position).getParent_comment().getCommentWithConvertedEmoji().contains("_2sgsdWB")) {
+                Common.showLog("Emoji.hasEmoji true " + position + allItems.get(position).getParent_comment().getCommentWithConvertedEmoji());
                 spannableString = new SpannableString(Html.fromHtml(String.format("@%s：%s",
                         allItems.get(position).getParent_comment().getUser().getName(),
-                        allItems.get(position).getParent_comment().getComment()),
+                        allItems.get(position).getParent_comment().getCommentWithConvertedEmoji()),
                         new ImgGetter(bindView.baseBind.replyContent), null));
             } else {
                 Common.showLog("Emoji.hasEmoji false " + position + allItems.get(position).getParent_comment().getComment());

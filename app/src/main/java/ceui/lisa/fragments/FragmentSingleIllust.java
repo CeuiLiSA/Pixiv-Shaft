@@ -104,8 +104,7 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
                 break;
         }
 
-
-        mDetailAdapter = new IllustDetailAdapter(illust, mContext);
+        mDetailAdapter = new IllustDetailAdapter(FragmentSingleIllust.this, illust);
         baseBind.recyclerView.setAdapter(mDetailAdapter);
     }
 
