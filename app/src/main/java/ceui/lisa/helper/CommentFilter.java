@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
-import ceui.lisa.models.CommentsBean;
+import ceui.lisa.models.ReplyCommentBean;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.ResponseBody;
@@ -26,7 +26,7 @@ public class CommentFilter {
         updateRules();
     }
 
-    public static boolean judge(CommentsBean commentsBean) {
+    public static boolean judge(ReplyCommentBean commentsBean) {
         return rules.stream()
                 .anyMatch(rule -> rule.judge(commentsBean.getComment()) ||
                         ((commentsBean.getParent_comment().getId() > 0) && rule.judge(commentsBean.getParent_comment().getComment()))

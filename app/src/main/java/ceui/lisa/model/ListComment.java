@@ -3,18 +3,18 @@ package ceui.lisa.model;
 import java.util.List;
 
 import ceui.lisa.interfaces.ListShow;
-import ceui.lisa.models.CommentsBean;
+import ceui.lisa.models.ReplyCommentBean;
 
-public class ListComment implements ListShow<CommentsBean> {
-    private List<CommentsBean> comments;
+public class ListComment implements ListShow<ReplyCommentBean> {
+    private List<ReplyCommentBean> comments;
     private String next_url;
     private int total_comments;
 
-    public List<CommentsBean> getComments() {
+    public List<ReplyCommentBean> getComments() {
         return this.comments;
     }
 
-    public void setComments(List<CommentsBean> paramList) {
+    public void setComments(List<ReplyCommentBean> paramList) {
         this.comments = paramList;
     }
 
@@ -35,7 +35,7 @@ public class ListComment implements ListShow<CommentsBean> {
     }
 
     @Override
-    public List<CommentsBean> getList() {
+    public List<ReplyCommentBean> getList() {
         return comments;
     }
 
