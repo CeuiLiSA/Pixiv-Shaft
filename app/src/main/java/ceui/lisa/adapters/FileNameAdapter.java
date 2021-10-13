@@ -10,6 +10,7 @@ import java.util.List;
 
 import ceui.lisa.R;
 import ceui.lisa.databinding.RecyFileNameBinding;
+import ceui.lisa.download.FileCreator;
 import ceui.lisa.model.CustomFileNameCell;
 
 public class FileNameAdapter extends BaseAdapter<CustomFileNameCell, RecyFileNameBinding> {
@@ -29,6 +30,9 @@ public class FileNameAdapter extends BaseAdapter<CustomFileNameCell, RecyFileNam
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 target.setChecked(isChecked);
+                if (mOnItemClickListener != null) {
+                    mOnItemClickListener.onItemClick(bindView.itemView, position, 0);
+                }
             }
         });
 
@@ -41,6 +45,10 @@ public class FileNameAdapter extends BaseAdapter<CustomFileNameCell, RecyFileNam
                 bindView.baseBind.title.performClick();
             }
         });
+
+        boolean enabled = target.getCode() != FileCreator.ILLUST_ID && target.getCode() != FileCreator.P_SIZE;
+        bindView.baseBind.title.setEnabled(enabled);
+        bindView.itemView.setEnabled(enabled);
     }
 
     public void unCheckAll() {

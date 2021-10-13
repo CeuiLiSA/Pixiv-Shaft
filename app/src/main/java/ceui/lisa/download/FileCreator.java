@@ -47,6 +47,7 @@ public class FileCreator {
     public static final int USER_ID = 4;
     public static final int USER_NAME = 5;
     public static final int ILLUST_SIZE = 6;
+    public static final int CREATE_TIME = 7;
 
     public static String customFileName(IllustsBean illustsBean, int index) {
         List<CustomFileNameCell> result;
@@ -146,6 +147,14 @@ public class FileCreator {
                             fileName = illustsBean.getWidth() + "px*" + illustsBean.getHeight() + "px";
                         }
                         break;
+                    case CREATE_TIME:
+                        String createDate = Common.getLocalYYYYMMDDHHMMSSString(illustsBean.getCreate_date());
+                        if (!TextUtils.isEmpty(fileName)) {
+                            fileName = fileName + "_" + createDate;
+                        } else {
+                            fileName = createDate;
+                        }
+                        break;
                     default:
                         break;
                 }
@@ -162,6 +171,7 @@ public class FileCreator {
         cells.add(new CustomFileNameCell("画师ID", "画师ID，可选项", 4, false));
         cells.add(new CustomFileNameCell("画师昵称", "画师昵称，可选项", 5, false));
         cells.add(new CustomFileNameCell("作品尺寸", "显示当前图片的尺寸信息，可选项", 6, false));
+        cells.add(new CustomFileNameCell("创作时间", "创作时间，可选项", 7, false));
         return cells;
     }
 }
