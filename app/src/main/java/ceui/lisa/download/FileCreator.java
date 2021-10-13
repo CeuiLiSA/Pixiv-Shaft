@@ -148,7 +148,7 @@ public class FileCreator {
                         }
                         break;
                     case CREATE_TIME:
-                        String createDate = Common.getLocalYYYYMMDDHHMMSSString(illustsBean.getCreate_date());
+                        String createDate = Common.getLocalYYYYMMDDHHMMSSFileString(illustsBean.getCreate_date());
                         if (!TextUtils.isEmpty(fileName)) {
                             fileName = fileName + "_" + createDate;
                         } else {
