@@ -39,6 +39,7 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Emoji;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.EditTextWithSelection;
+import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
@@ -49,15 +50,27 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
         ListComment, ReplyCommentBean> implements FragmentBackHandler {
 
     private String[] OPTIONS;
-    private int illustID;
+    private int workId;
+    private String dataType;
     private String title;
     private int parentCommentID;
     private PanelSwitchHelper mHelper;
     private int selection = 0;
 
-    public static FragmentComment newInstance(int id, String title) {
+    public static FragmentComment newIllustInstance(int id, String title) {
         Bundle args = new Bundle();
-        args.putInt(Params.ILLUST_ID, id);
+        args.putInt(Params.ID, id);
+        args.putString(Params.DATA_TYPE, Params.TYPE_ILLUST);
+        args.putString(Params.ILLUST_TITLE, title);
+        FragmentComment fragment = new FragmentComment();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    public static FragmentComment newNovelInstance(int id, String title) {
+        Bundle args = new Bundle();
+        args.putInt(Params.ID, id);
+        args.putString(Params.DATA_TYPE, Params.TYPE_NOVEL);
         args.putString(Params.ILLUST_TITLE, title);
         FragmentComment fragment = new FragmentComment();
         fragment.setArguments(args);
@@ -66,7 +79,8 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
 
     @Override
     public void initBundle(Bundle bundle) {
-        illustID = bundle.getInt(Params.ILLUST_ID);
+        workId = bundle.getInt(Params.ID);
+        dataType = bundle.getString(Params.DATA_TYPE);
         title = bundle.getString(Params.ILLUST_TITLE);
     }
 
@@ -89,7 +103,7 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
 
     @Override
     public RemoteRepo<ListComment> repository() {
-        return new CommentRepo(illustID);
+        return new CommentRepo(workId, dataType);
     }
 
     @Override
@@ -269,19 +283,10 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
                     baseBind.progress.setVisibility(View.GONE);
                 }
             };
-            if (parentCommentID != 0) {
-                Retro.getAppApi().postComment(sUserModel.getAccess_token(), illustID,
-                        baseBind.inputBox.getText().toString(), parentCommentID)
-                        .subscribeOn(Schedulers.newThread())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(nullCtrl);
-            } else {
-                Retro.getAppApi().postComment(sUserModel.getAccess_token(), illustID,
-                        baseBind.inputBox.getText().toString())
-                        .subscribeOn(Schedulers.newThread())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(nullCtrl);
-            }
+            getCommentHolder()
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(nullCtrl);
         });
         baseBind.clear.setOnClickListener(v -> {
             if (baseBind.inputBox.getText().toString().length() != 0) {
@@ -336,5 +341,21 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
     public boolean onBackPressed() {
         boolean childResult = BackHandlerHelper.handleBackPress(this);
         return childResult || mHelper.hookSystemBackByPanelSwitcher();
+    }
+
+    private Observable<CommentHolder> getCommentHolder() {
+        if (dataType == Params.TYPE_ILLUST) {
+            return parentCommentID != 0 ?
+                    Retro.getAppApi().postIllustComment(sUserModel.getAccess_token(), workId,
+                            baseBind.inputBox.getText().toString(), parentCommentID) :
+                    Retro.getAppApi().postIllustComment(sUserModel.getAccess_token(), workId,
+                            baseBind.inputBox.getText().toString());
+        } else {
+            return parentCommentID != 0 ?
+                    Retro.getAppApi().postNovelComment(sUserModel.getAccess_token(), workId,
+                            baseBind.inputBox.getText().toString(), parentCommentID) :
+                    Retro.getAppApi().postNovelComment(sUserModel.getAccess_token(), workId,
+                            baseBind.inputBox.getText().toString());
+        }
     }
 }

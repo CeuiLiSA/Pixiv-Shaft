@@ -52,27 +52,27 @@
                         android:layout_height="wrap_content">
 
                         <de.hdodenhof.circleimageview.CircleImageView
+                            android:id="@+id/user_head"
                             android:layout_width="45dp"
-                            app:civ_border_color="#DDDDDD"
-                            app:civ_border_width="1dp"
+                            android:layout_height="45dp"
                             android:layout_marginStart="@dimen/twelve_dp"
                             android:layout_marginTop="@dimen/eight_dp"
                             android:layout_marginBottom="@dimen/eight_dp"
-                            android:id="@+id/user_head"
-                            android:layout_height="45dp" />
+                            app:civ_border_color="#DDDDDD"
+                            app:civ_border_width="1dp" />
 
                         <TextView
-                            android:layout_width="match_parent"
                             android:id="@+id/user_name"
-                            android:layout_marginEnd="@dimen/eight_dp"
-                            android:textStyle="bold"
-                            android:layout_toStartOf="@+id/save_novel_txt"
-                            android:textSize="16sp"
-                            android:layout_marginStart="@dimen/eight_dp"
-                            android:layout_toEndOf="@+id/user_head"
-                            android:textColor="@color/always_white"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
                             android:layout_centerVertical="true"
-                            android:layout_height="wrap_content" />
+                            android:layout_marginStart="@dimen/eight_dp"
+                            android:layout_marginEnd="@dimen/eight_dp"
+                            android:layout_toStartOf="@+id/save_novel_txt"
+                            android:layout_toEndOf="@+id/user_head"
+                            android:textColor="@color/white_to_gray"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
 
                         <Button
                             style="@android:style/Widget.DeviceDefault.Button.Borderless.Small"
@@ -129,59 +129,120 @@
 
 
                         <TextView
-                            android:layout_width="wrap_content"
                             android:id="@+id/novel_title"
-                            android:textColor="@color/always_white"
-                            android:textSize="15sp"
-                            android:layout_marginBottom="@dimen/sixteen_dp"
-                            android:layout_marginEnd="@dimen/sixteen_dp"
-                            android:maxLines="3"
-                            android:text="哈哈哈哈哈"
-                            android:ellipsize="end"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
                             android:layout_marginStart="@dimen/sixteen_dp"
                             android:layout_marginTop="@dimen/sixteen_dp"
-                            android:layout_height="wrap_content">
+                            android:layout_marginEnd="@dimen/sixteen_dp"
+                            android:layout_marginBottom="@dimen/sixteen_dp"
+                            android:ellipsize="end"
+                            android:maxLines="3"
+                            android:text="标题"
+                            android:textColor="@color/white_to_gray"
+                            android:textSize="15sp">
 
                         </TextView>
 
                         <TextView
-                            android:layout_width="wrap_content"
                             android:id="@+id/novel_series"
-                            android:textColor="@color/white_to_gray"
-                            android:layout_marginEnd="@dimen/sixteen_dp"
-                            android:textSize="15sp"
-                            android:text="哈哈哈哈哈"
-                            android:textStyle="bold"
-                            android:maxLines="2"
-                            android:layout_marginBottom="@dimen/eight_dp"
-                            android:ellipsize="end"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
                             android:layout_below="@+id/novel_title"
                             android:layout_marginStart="@dimen/sixteen_dp"
-                            android:layout_height="wrap_content">
+                            android:layout_marginEnd="@dimen/sixteen_dp"
+                            android:layout_marginBottom="@dimen/eight_dp"
+                            android:ellipsize="end"
+                            android:maxLines="2"
+                            android:text="系列"
+                            android:textColor="@color/white_to_gray"
+                            android:textSize="15sp"
+                            android:textStyle="bold">
 
                         </TextView>
 
 
                     </RelativeLayout>
 
-
-                    <RelativeLayout
+                    <com.zhy.view.flowlayout.TagFlowLayout
+                        android:id="@+id/hot_tags"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/twelve_dp"
+                        android:layout_marginTop="@dimen/four_dp"
+                        android:layout_marginEnd="@dimen/four_dp"
+                        android:layout_marginBottom="@dimen/four_dp">
+                    </com.zhy.view.flowlayout.TagFlowLayout>
 
-                        <com.zhy.view.flowlayout.TagFlowLayout
-                            android:layout_width="match_parent"
-                            android:layout_marginTop="@dimen/four_dp"
-                            android:layout_marginStart="@dimen/twelve_dp"
-                            android:layout_marginEnd="@dimen/four_dp"
-                            android:layout_marginBottom="@dimen/four_dp"
-                            android:id="@+id/hot_tags"
-                            android:layout_height="wrap_content">
+                    <org.sufficientlysecure.htmltextview.HtmlTextView
+                        android:id="@+id/description"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="@dimen/sixteen_dp"
+                        android:textSize="11sp"
+                        android:textColor="@color/white_to_gray"
+                        android:textColorLink="@color/white_to_gray" />
 
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="@dimen/sixteen_dp"
+                        android:paddingVertical="@dimen/four_dp">
 
-                        </com.zhy.view.flowlayout.TagFlowLayout>
+                        <TextView
+                            android:id="@+id/publish_time"
+                            android:layout_width="wrap_content"
+                            android:layout_height="@dimen/twenty_dp"
+                            android:gravity="center"
+                            android:text=""
+                            android:textSize="11sp"
+                            android:includeFontPadding="false"
+                            android:textColor="@color/white_to_gray" />
 
-                    </RelativeLayout>
+                        <ImageView
+                            android:layout_width="@dimen/sixteen_dp"
+                            android:layout_height="@dimen/sixteen_dp"
+                            android:src="@drawable/ic_remove_red_eye_black_24dp"
+                            android:layout_marginStart="@dimen/six_dp"
+                            android:layout_gravity="center_vertical"
+                            app:tint="@color/white_to_gray" />
+
+                        <TextView
+                            android:id="@+id/view_count"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/four_dp"
+                            android:gravity="center"
+                            android:text=""
+                            android:textColor="@color/white_to_gray" />
+
+                        <ImageView
+                            android:layout_width="@dimen/sixteen_dp"
+                            android:layout_height="@dimen/sixteen_dp"
+                            android:layout_marginStart="@dimen/six_dp"
+                            android:src="@drawable/ic_favorite_black_24dp"
+                            android:layout_gravity="center_vertical"
+                            app:tint="@color/white_to_gray" />
+
+                        <TextView
+                            android:id="@+id/bookmark_count"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/four_dp"
+                            android:gravity="center"
+                            android:text=""
+                            android:textColor="@color/white_to_gray" />
+
+                        <TextView
+                            android:id="@+id/comment"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center_vertical|end"
+                            android:text="@string/string_109"
+                            android:textColor="@color/white_to_gray" />
+
+                    </LinearLayout>
 
                     <RelativeLayout
                         android:layout_width="match_parent"
@@ -202,14 +263,14 @@
 
 
                         <Button
+                            android:id="@+id/like"
                             style="@style/Widget.AppCompat.Button.Borderless"
                             android:layout_width="wrap_content"
-                            android:id="@+id/like"
-                            android:textSize="15sp"
-                            android:textStyle="bold"
                             android:layout_height="wrap_content"
                             android:layout_centerHorizontal="true"
-                            android:textColor="@color/always_white">
+                            android:textColor="@color/white_to_gray"
+                            android:textSize="15sp"
+                            android:textStyle="bold">
 
                         </Button>
 

@@ -13,14 +13,18 @@ import com.google.gson.reflect.TypeToken;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.FileNameAdapter;
 import ceui.lisa.databinding.FragmentFileNameBinding;
 import ceui.lisa.download.FileCreator;
+import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.model.CustomFileNameCell;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
@@ -61,11 +65,13 @@ public class FragmentFileName extends SwipeFragment<FragmentFileNameBinding> {
                 saveSettings();
             }
         });
-        baseBind.removeAll.setOnClickListener(new View.OnClickListener() {
+        baseBind.reset.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (mAdapter != null) {
-                    mAdapter.unCheckAll();
+                    allItems.clear();
+                    allItems.addAll(FileCreator.defaultFileCells());
+                    mAdapter.notifyDataSetChanged();
                 }
             }
         });
@@ -83,12 +89,16 @@ public class FragmentFileName extends SwipeFragment<FragmentFileNameBinding> {
     @Override
     protected void initData() {
         allItems.clear();
+        List<CustomFileNameCell> defaultFileCells = FileCreator.defaultFileCells();
         if (TextUtils.isEmpty(Shaft.sSettings.getFileNameJson())) {
-            allItems.addAll(FileCreator.defaultFileCells());
+            allItems.addAll(defaultFileCells);
         } else {
-            allItems.addAll(Shaft.sGson.fromJson(Shaft.sSettings.getFileNameJson(),
+            Collection<? extends CustomFileNameCell> customFileNameCells = Shaft.sGson.fromJson(Shaft.sSettings.getFileNameJson(),
                     new TypeToken<List<CustomFileNameCell>>() {
-                    }.getType()));
+                    }.getType());
+            allItems.addAll(customFileNameCells);
+            Set<Integer> set = allItems.stream().map(CustomFileNameCell::getCode).collect(Collectors.toSet());
+            allItems.addAll(defaultFileCells.stream().filter(it -> !set.contains(it.getCode())).collect(Collectors.toList()));
         }
 
         mAdapter = new FileNameAdapter(allItems, mContext);
@@ -120,8 +130,15 @@ public class FragmentFileName extends SwipeFragment<FragmentFileNameBinding> {
                 super.onMoved(recyclerView, viewHolder, fromPos, target, toPos, x, y);
                 mAdapter.notifyItemMoved(viewHolder.getAdapterPosition(), target
                         .getAdapterPosition());
+                showPreview();
             }
         }).attachToRecyclerView(baseBind.recyclerView);
+        mAdapter.setOnItemClickListener(new OnItemClickListener() {
+            @Override
+            public void onItemClick(View v, int position, int viewType) {
+                showPreview();
+            }
+        });
 
         showPreview();
     }

@@ -26,15 +26,15 @@
                 android:layout_height="match_parent">
 
                 <TextView
-                    android:layout_width="wrap_content"
-                    android:textSize="15sp"
                     android:id="@+id/now_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/sixteen_dp"
                     android:layout_marginTop="@dimen/sixteen_dp"
                     android:layout_marginBottom="@dimen/twelve_dp"
                     android:text="@string/string_56"
-                    android:layout_height="wrap_content">
-
+                    android:textSize="15sp"
+                    android:textColor="@color/dark_text">
                 </TextView>
 
                 <TextView
@@ -88,7 +88,7 @@
                 android:layout_height="wrap_content">
 
                 <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
-                    android:id="@+id/remove_all"
+                    android:id="@+id/reset"
                     android:layout_width="0dp"
                     android:layout_marginTop="@dimen/eight_dp"
                     android:layout_height="45dp"
@@ -96,8 +96,8 @@
                     android:layout_marginEnd="@dimen/six_dp"
                     android:layout_marginBottom="@dimen/eight_dp"
                     android:layout_weight="1"
-                    android:text="@string/string_58"
-                    android:textColor="#9f9fb4"
+                    android:text="@string/string_449"
+                    android:textColor="@color/black"
                     app:qmui_backgroundColor="@color/white"
                     app:qmui_borderColor="#eaebf9"
                     app:qmui_radius="@dimen/eight_dp">
@@ -117,7 +117,8 @@
                     android:textColor="#9f9fb4"
                     app:qmui_backgroundColor="@color/white"
                     app:qmui_borderColor="#eaebf9"
-                    app:qmui_radius="@dimen/eight_dp">
+                    app:qmui_radius="@dimen/eight_dp"
+                    android:visibility="gone">
 
                 </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton>
 
