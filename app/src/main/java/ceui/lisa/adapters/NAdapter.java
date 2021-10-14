@@ -90,7 +90,7 @@ public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
             public boolean onTagClick(View view, int position, FlowLayout parent) {
                 Intent intent = new Intent(mContext, SearchActivity.class);
                 intent.putExtra(Params.KEY_WORD, target.getTags().get(position).getName());
-                intent.putExtra(Params.INDEX, 2);
+                intent.putExtra(Params.INDEX, 1);
                 mContext.startActivity(intent);
                 return true;
             }
