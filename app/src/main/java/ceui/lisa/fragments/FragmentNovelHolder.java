@@ -195,6 +195,25 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                 }
             });
         }
+        if (TextUtils.isEmpty(mNovelBean.getCaption())) {
+            baseBind.description.setVisibility(View.GONE);
+        } else {
+            baseBind.description.setVisibility(View.VISIBLE);
+            baseBind.description.setHtml(mNovelBean.getCaption());
+        }
+        baseBind.publishTime.setText(Common.getLocalYYYYMMDDHHMMString(mNovelBean.getCreate_date()));
+        baseBind.viewCount.setText(String.valueOf(mNovelBean.getTotal_view()));
+        baseBind.bookmarkCount.setText(String.valueOf(mNovelBean.getTotal_bookmarks()));
+        baseBind.comment.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(Params.NOVEL_ID, mNovelBean.getId());
+                intent.putExtra(Params.ILLUST_TITLE, mNovelBean.getTitle());
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关评论");
+                startActivity(intent);
+            }
+        });
         Glide.with(mContext).load(GlideUtil.getHead(mNovelBean.getUser())).into(baseBind.userHead);
 
         PixivOperate.insertNovelViewHistory(novelBean);

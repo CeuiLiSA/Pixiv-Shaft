@@ -238,9 +238,12 @@ public interface AppApi {
 
 
     @GET("v1/illust/comments")
-    Observable<ListComment> getComment(@Header("Authorization") String token,
-                                       @Query("illust_id") int illust_id);
+    Observable<ListComment> getIllustComment(@Header("Authorization") String token,
+                                             @Query("illust_id") int illust_id);
 
+    @GET("v1/novel/comments")
+    Observable<ListComment> getNovelComment(@Header("Authorization") String token,
+                                       @Query("novel_id") int novel_id);
 
     @GET
     Observable<ListComment> getNextComment(@Header("Authorization") String token,
@@ -249,14 +252,27 @@ public interface AppApi {
 
     @FormUrlEncoded
     @POST("v1/illust/comment/add")
-    Observable<CommentHolder> postComment(@Header("Authorization") String token,
-                                          @Field("illust_id") int illust_id,
-                                          @Field("comment") String comment);
+    Observable<CommentHolder> postIllustComment(@Header("Authorization") String token,
+                                                @Field("illust_id") int illust_id,
+                                                @Field("comment") String comment);
 
     @FormUrlEncoded
     @POST("v1/illust/comment/add")
-    Observable<CommentHolder> postComment(@Header("Authorization") String token,
-                                          @Field("illust_id") int illust_id,
+    Observable<CommentHolder> postIllustComment(@Header("Authorization") String token,
+                                                @Field("illust_id") int illust_id,
+                                                @Field("comment") String comment,
+                                                @Field("parent_comment_id") int parent_comment_id);
+
+    @FormUrlEncoded
+    @POST("v1/novel/comment/add")
+    Observable<CommentHolder> postNovelComment(@Header("Authorization") String token,
+                                          @Field("novel_id") int novel_id,
+                                          @Field("comment") String comment);
+
+    @FormUrlEncoded
+    @POST("v1/novel/comment/add")
+    Observable<CommentHolder> postNovelComment(@Header("Authorization") String token,
+                                          @Field("novel_id") int novel_id,
                                           @Field("comment") String comment,
                                           @Field("parent_comment_id") int parent_comment_id);
 

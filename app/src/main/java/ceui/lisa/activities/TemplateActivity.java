@@ -130,9 +130,13 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     Uri imageUri = intent.getParcelableExtra(Params.REVERSE_SEARCH_IMAGE_URI);
                     return FragmentWebView.newInstance(result.getTitle(), result.getUrl(), result.getResponseBody(), result.getMime(), result.getEncoding(), result.getHistory_url(), imageUri);
                 case "相关评论": {
-                    int id = intent.getIntExtra(Params.ILLUST_ID, 0);
                     String title = intent.getStringExtra(Params.ILLUST_TITLE);
-                    return FragmentComment.newInstance(id, title);
+                    int workId = intent.getIntExtra(Params.ILLUST_ID, 0);
+                    if(workId == 0){
+                        workId = intent.getIntExtra(Params.NOVEL_ID, 0);
+                        return FragmentComment.newNovelInstance(workId, title);
+                    }
+                    return FragmentComment.newIllustInstance(workId, title);
                 }
                 case "账号管理":
                     return new FragmentLocalUsers();

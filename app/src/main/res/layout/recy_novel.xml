@@ -53,11 +53,11 @@
                     android:id="@+id/title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:maxLines="2"
-                    android:ellipsize="end"
+                    android:layout_marginStart="@dimen/eight_dp"
                     android:layout_marginTop="@dimen/eight_dp"
                     android:layout_marginBottom="@dimen/eight_dp"
-                    android:layout_marginStart="@dimen/eight_dp"
+                    android:ellipsize="end"
+                    android:maxLines="2"
                     android:textColor="@color/rank_text_color"
                     android:textSize="16sp">
 
@@ -140,10 +140,7 @@
                     android:ellipsize="end"
                     android:maxLines="1"
                     android:shadowColor="@android:color/black"
-                    android:shadowDx="1.5"
-                    android:shadowDy="1.5"
-                    android:shadowRadius="5"
-                    android:textColor="@android:color/white"
+                    android:textColor="@color/rank_text_color"
                     android:textSize="13sp"
                     android:textStyle="bold" />
 
