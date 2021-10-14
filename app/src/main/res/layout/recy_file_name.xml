@@ -26,7 +26,6 @@
 
             </ImageButton>
 
-
             <CheckBox
                 android:id="@+id/title"
                 android:layout_width="wrap_content"
@@ -38,9 +37,7 @@
                 android:layout_toEndOf="@+id/change_position"
                 android:buttonTint="?attr/colorPrimary"
                 android:text="@string/string_116"
-                android:textSize="15sp">
-
-            </CheckBox>
+                android:textSize="15sp" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -50,13 +47,11 @@
                 android:gravity="end"
                 android:id="@+id/description"
                 android:text="@string/string_117"
+                android:textColor="@color/dark_text"
                 android:layout_marginEnd="@dimen/sixteen_dp"
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
-                android:layout_height="wrap_content">
-
-
-            </TextView>
+                android:layout_height="wrap_content" />
 
         </RelativeLayout>
 

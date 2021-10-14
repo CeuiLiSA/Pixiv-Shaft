@@ -26,15 +26,15 @@
                 android:layout_height="match_parent">
 
                 <TextView
-                    android:layout_width="wrap_content"
-                    android:textSize="15sp"
                     android:id="@+id/now_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/sixteen_dp"
                     android:layout_marginTop="@dimen/sixteen_dp"
                     android:layout_marginBottom="@dimen/twelve_dp"
                     android:text="@string/string_56"
-                    android:layout_height="wrap_content">
-
+                    android:textSize="15sp"
+                    android:textColor="@color/dark_text">
                 </TextView>
 
                 <TextView
@@ -97,7 +97,7 @@
                     android:layout_marginBottom="@dimen/eight_dp"
                     android:layout_weight="1"
                     android:text="@string/string_449"
-                    android:textColor="#9f9fb4"
+                    android:textColor="@color/black"
                     app:qmui_backgroundColor="@color/white"
                     app:qmui_borderColor="#eaebf9"
                     app:qmui_radius="@dimen/eight_dp">
