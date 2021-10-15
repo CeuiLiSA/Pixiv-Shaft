@@ -23,7 +23,7 @@ class NovelSeriesAdapter(
         position: Int
     ) {
         bindView.baseBind.title.text = target.title
-        bindView.baseBind.title2.text = target.display_text
+        bindView.baseBind.description.text = target.display_text
         bindView.itemView.setOnClickListener {
             val intent = Intent(mContext, TemplateActivity::class.java)
             intent.putExtra(Params.ID, allItems[position].id)
