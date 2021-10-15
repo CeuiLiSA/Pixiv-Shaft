@@ -353,7 +353,8 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
                     PixivOperate.postLikeDefaultStarType(illust);
                 }
             } else {
-                Common.showToast("请先播放后下载");
+                IllustDownload.downloadGif(illust);
+                Common.showToast("已经加入下载队列");
             }
         });
         baseBind.userName.setOnLongClickListener(new View.OnLongClickListener() {
