@@ -143,7 +143,7 @@ public class FragmentNovelSeriesDetail extends NetListFragment<FragmentNovelSeri
         try {
             baseBind.cardPixiv.setVisibility(View.VISIBLE);
             baseBind.seriesTitle.setText(String.format("系列名称：%s", listNovelOfSeries.getNovel_series_detail().getTitle()));
-            baseBind.seriesDescription.setHtml(listNovelOfSeries.getNovel_series_detail().getCaption());
+            baseBind.seriesDescription.setHtml(listNovelOfSeries.getNovel_series_detail().getDisplay_text());
             //每分钟五百字
             float minute = listNovelOfSeries.getNovel_series_detail().getTotal_character_count() / 500.0f;
             baseBind.seriesDetail.setText(String.format(getString(R.string.how_many_novels),
