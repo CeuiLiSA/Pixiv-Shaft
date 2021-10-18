@@ -1,5 +1,6 @@
 package ceui.lisa.file;
 
+import ceui.lisa.download.FileCreator;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
 
@@ -19,6 +20,6 @@ public class FileName implements FileNameProxy {
 
     @Override
     public String gifName(IllustsBean illust) {
-        return Common.removeFSReservedChars(illust.getTitle()) + DASH + illust.getId() + ".gif";
+        return FileCreator.customGifFileName(illust);
     }
 }

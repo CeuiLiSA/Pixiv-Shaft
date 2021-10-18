@@ -51,10 +51,11 @@ public class FileCreator {
 
     public static String customFileName(IllustsBean illustsBean, int index) {
         List<CustomFileNameCell> result;
-        if (TextUtils.isEmpty(Shaft.sSettings.getFileNameJson())) {
+        String sSettingsFileNameJson = Shaft.sSettings.getFileNameJson();
+        if (TextUtils.isEmpty(sSettingsFileNameJson)) {
             result = defaultFileCells();
         } else {
-            result = new ArrayList<>(Shaft.sGson.fromJson(Shaft.sSettings.getFileNameJson(),
+            result = new ArrayList<>(Shaft.sGson.fromJson(sSettingsFileNameJson,
                     new TypeToken<List<CustomFileNameCell>>() {}.getType()));
         }
         String fileUrl;
@@ -65,6 +66,18 @@ public class FileCreator {
         }
         return deleteSpecialWords(illustToFileName(illustsBean, result, index) +
                 "." + getMimeTypeFromUrl(fileUrl));
+    }
+
+    public static String customGifFileName(IllustsBean illustsBean){
+        List<CustomFileNameCell> result;
+        String sSettingsFileNameJson = Shaft.sSettings.getFileNameJson();
+        if (TextUtils.isEmpty(sSettingsFileNameJson)) {
+            result = defaultFileCells();
+        } else {
+            result = new ArrayList<>(Shaft.sGson.fromJson(sSettingsFileNameJson,
+                    new TypeToken<List<CustomFileNameCell>>() {}.getType()));
+        }
+        return Common.removeFSReservedChars(illustToFileName(illustsBean, result, 0) + ".gif");
     }
 
     public static String getMimeTypeFromUrl(String url) {
