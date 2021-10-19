@@ -16,7 +16,7 @@ public class HostManager {
 
     public static final String HOST_OLD = "i.pximg.net";
 //    public static final String HOST_OLD = "app-api.pixiv.net";
-    public static final String HOST_NEW = "i.pixiv.cat";
+    public static final String HOST_NEW = "i.pixiv.re";
     private static final String HTTP_HEAD = "http://";
     private PKCEItem pkceItem;
 
