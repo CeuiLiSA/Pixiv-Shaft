@@ -30,6 +30,7 @@ import com.bumptech.glide.Glide;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.zhy.view.flowlayout.FlowLayout;
 import com.zhy.view.flowlayout.TagAdapter;
@@ -42,6 +43,7 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UserActivity;
 import ceui.lisa.adapters.IllustAdapter;
+import ceui.lisa.database.SearchEntity;
 import ceui.lisa.databinding.FragmentIllustBinding;
 import ceui.lisa.dialogs.MuteDialog;
 import ceui.lisa.download.IllustDownload;
@@ -57,6 +59,7 @@ import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.ShareIllust;
 import ceui.lisa.viewmodel.AppLevelViewModel;
 
+import static ceui.lisa.utils.SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD;
 import static ceui.lisa.utils.ShareIllust.URL_Head;
 
 
@@ -209,7 +212,30 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
         baseBind.illustTag.setOnTagLongClickListener(new TagFlowLayout.OnTagLongClickListener(){
             @Override
             public boolean onTagLongClick(View view, int position, FlowLayout parent) {
-                Common.copy(mContext, illust.getTags().get(position).getName());
+                // 弹出菜单：固定+复制
+                String tagName = illust.getTags().get(position).getName();
+                SearchEntity searchEntity = PixivOperate.getSearchHistory(tagName, SEARCH_TYPE_DB_KEYWORD);
+                boolean isPinned = searchEntity != null && searchEntity.isPinned();
+                new QMUIDialog.MessageDialogBuilder(mContext)
+                        .setTitle(tagName)
+                        .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                        .addAction(isPinned ? getString(R.string.string_443) : getString(R.string.string_442), new QMUIDialogAction.ActionListener() {
+                            @Override
+                            public void onClick(QMUIDialog dialog, int index) {
+                                PixivOperate.insertPinnedSearchHistory(tagName, SEARCH_TYPE_DB_KEYWORD, !isPinned);
+                                Common.showToast(R.string.operate_success);
+                                dialog.dismiss();
+                            }
+                        })
+                        .addAction(getString(R.string.string_120), new QMUIDialogAction.ActionListener() {
+                            @Override
+                            public void onClick(QMUIDialog dialog, int index) {
+                                Common.copy(mContext, tagName);
+                                dialog.dismiss();
+                            }
+                        })
+                        .create()
+                        .show();
                 return true;
             }
         });

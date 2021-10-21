@@ -522,6 +522,26 @@ public class PixivOperate {
         AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().insert(searchEntity);
     }
 
+    public static void insertPinnedSearchHistory(String key, int searchType, boolean pinned) {
+        if(TextUtils.isEmpty(key)){
+            return;
+        }
+        SearchEntity searchEntity = new SearchEntity();
+        searchEntity.setKeyword(key);
+        searchEntity.setSearchType(searchType);
+        searchEntity.setSearchTime(System.currentTimeMillis());
+        searchEntity.setId(searchEntity.getKeyword().hashCode() + searchEntity.getSearchType());
+        searchEntity.setPinned(pinned);
+        Common.showLog("insertSearchHistory " + searchType + " " + searchEntity.getId());
+        SearchEntity existEntity = AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().getSearchEntity(searchEntity.getId());
+        AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().insert(searchEntity);
+    }
+
+    public static SearchEntity getSearchHistory(String key, int searchType){
+        int id = key.hashCode() + searchType;
+        return AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().getSearchEntity(id);
+    }
+
     //筛选作品，只留下未收藏的作品
     public static List<IllustsBean> getListWithoutBooked(ListIllust response) {
         List<IllustsBean> result = new ArrayList<>();
