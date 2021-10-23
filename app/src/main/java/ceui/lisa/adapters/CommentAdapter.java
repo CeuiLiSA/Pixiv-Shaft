@@ -48,7 +48,7 @@ public class CommentAdapter extends BaseAdapter<ReplyCommentBean, RecyCommentLis
 
         if (allItems.get(position).getParent_comment() != null &&
                 allItems.get(position).getParent_comment().getUser() != null) {
-            bindView.baseBind.replyComment.setVisibility(View.VISIBLE);
+            bindView.baseBind.replyContent.setVisibility(View.VISIBLE);
 
             ClickableSpan clickableSpan = new ClickableSpan() {
                 @Override
@@ -82,7 +82,7 @@ public class CommentAdapter extends BaseAdapter<ReplyCommentBean, RecyCommentLis
             bindView.baseBind.replyContent.setMovementMethod(LinkMovementMethod.getInstance());
             bindView.baseBind.replyContent.setText(spannableString);
         } else {
-            bindView.baseBind.replyComment.setVisibility(View.GONE);
+            bindView.baseBind.replyContent.setVisibility(View.GONE);
         }
 
 

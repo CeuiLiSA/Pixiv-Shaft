@@ -69,6 +69,7 @@
             android:layout_height="wrap_content"
             android:clickable="false"
             android:textColorLink="?attr/colorPrimary"
+            android:textColorHighlight="?attr/colorPrimary"
             android:layout_below="@+id/user_head"
             android:layout_alignStart="@+id/user_name"
             android:layout_marginTop="@dimen/eight_dp"
@@ -76,37 +77,25 @@
             android:textSize="14sp"
             android:textIsSelectable="true" />
 
-
-        <RelativeLayout
-            android:id="@+id/reply_comment"
+        <org.sufficientlysecure.htmltextview.HtmlTextView
+            android:id="@+id/reply_content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@+id/content"
-            android:clickable="true"
-            android:foreground="?attr/selectableItemBackground"
             android:layout_alignStart="@id/user_name"
             android:layout_marginTop="@dimen/eight_dp"
-            android:background="@color/light_bg">
-
-
-            <org.sufficientlysecure.htmltextview.HtmlTextView
-                android:id="@+id/reply_content"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:lineSpacingExtra="@dimen/four_dp"
-                android:clickable="false"
-                android:paddingStart="@dimen/six_dp"
-                android:textColorLink="?attr/colorPrimary"
-                android:paddingTop="@dimen/six_dp"
-                android:paddingEnd="@dimen/six_dp"
-                android:paddingBottom="@dimen/six_dp"
-                android:textColor="#808080"
-                android:textSize="14sp"
-                android:textIsSelectable="true" />
-        </RelativeLayout>
+            android:background="@color/light_bg"
+            android:lineSpacingExtra="@dimen/four_dp"
+            android:clickable="false"
+            android:padding="@dimen/six_dp"
+            android:textColorLink="?attr/colorPrimary"
+            android:textColorHighlight="?attr/colorPrimary"
+            android:textColor="#808080"
+            android:textSize="14sp"
+            android:textIsSelectable="true" />
 
         <View
-            android:layout_below="@+id/reply_comment"
+            android:layout_below="@+id/reply_content"
             android:layout_alignStart="@id/user_name"
             android:layout_marginTop="@dimen/eight_dp"
             android:layout_marginStart="0dp"
