@@ -152,6 +152,18 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
     }
 
     @Override
+    public void onDestroyView() {
+        try {
+            if (baseBind != null && baseBind.recyclerView != null) {
+                baseBind.recyclerView.setAdapter(null);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        super.onDestroyView();
+    }
+
+    @Override
     public void initView() {
         if (illust == null) {
             return;
