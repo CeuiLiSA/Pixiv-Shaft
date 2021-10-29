@@ -73,6 +73,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
     private static final String PIXIV_HEAD = "https://www.pixiv.net/";
     private static final String ACCOUNT_URL = "intent://account/";
     private static final String PIXIVISION_HEAD = "https://www.pixivision.net/";
+    private static final String LOGIN_SIGN_HEAD = "https://app-api.pixiv.net/web";
     private static final String TAG = "FragmentWebView";
     private String title;
     private String url;
@@ -248,7 +249,10 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
         if (response == null) {
             mAgentWeb = ready.go(url);
             baseBind.ibMenu.setVisibility(View.VISIBLE);
-            baseBind.ibMenu.setOnClickListener(v -> mActivity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(mWebView.getUrl()))));
+            baseBind.ibMenu.setOnClickListener(v -> {
+                String jumpUrl = url.contains(LOGIN_SIGN_HEAD) ? url : mWebView.getUrl();
+                mActivity.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(jumpUrl)));
+            });
         } else {
             baseBind.ibMenu.setVisibility(View.GONE);
             mAgentWeb = ready.get();

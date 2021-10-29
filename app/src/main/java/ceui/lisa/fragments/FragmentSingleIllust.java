@@ -23,6 +23,9 @@ import androidx.lifecycle.Observer;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.bumptech.glide.Glide;
+import com.qmuiteam.qmui.skin.QMUISkinManager;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 import com.scwang.smartrefresh.layout.header.FalsifyHeader;
 import com.zhy.view.flowlayout.FlowLayout;
@@ -38,6 +41,7 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.activities.UserActivity;
 import ceui.lisa.adapters.IllustDetailAdapter;
+import ceui.lisa.database.SearchEntity;
 import ceui.lisa.databinding.FragmentSingleIllustBinding;
 import ceui.lisa.dialogs.MuteDialog;
 import ceui.lisa.download.FileCreator;
@@ -57,6 +61,7 @@ import ceui.lisa.view.ScrollChange;
 import ceui.lisa.viewmodel.AppLevelViewModel;
 import jp.wasabeef.glide.transformations.BlurTransformation;
 
+import static ceui.lisa.utils.SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD;
 import static ceui.lisa.utils.ShareIllust.URL_Head;
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 import static com.bumptech.glide.request.RequestOptions.bitmapTransform;
@@ -144,6 +149,18 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
             LocalBroadcastManager.getInstance(mContext).unregisterReceiver(mReceiver);
         }
         super.onDestroy();
+    }
+
+    @Override
+    public void onDestroyView() {
+        try {
+            if (baseBind != null && baseBind.recyclerView != null) {
+                baseBind.recyclerView.setAdapter(null);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        super.onDestroyView();
     }
 
     @Override
@@ -382,7 +399,30 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
         baseBind.illustTag.setOnTagLongClickListener(new TagFlowLayout.OnTagLongClickListener() {
             @Override
             public boolean onTagLongClick(View view, int position, FlowLayout parent) {
-                Common.copy(mContext, illust.getTags().get(position).getName());
+                // 弹出菜单：固定+复制
+                String tagName = illust.getTags().get(position).getName();
+                SearchEntity searchEntity = PixivOperate.getSearchHistory(tagName, SEARCH_TYPE_DB_KEYWORD);
+                boolean isPinned = searchEntity != null && searchEntity.isPinned();
+                new QMUIDialog.MessageDialogBuilder(mContext)
+                        .setTitle(tagName)
+                        .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                        .addAction(isPinned ? getString(R.string.string_443) : getString(R.string.string_442), new QMUIDialogAction.ActionListener() {
+                            @Override
+                            public void onClick(QMUIDialog dialog, int index) {
+                                PixivOperate.insertPinnedSearchHistory(tagName, SEARCH_TYPE_DB_KEYWORD, !isPinned);
+                                Common.showToast(R.string.operate_success);
+                                dialog.dismiss();
+                            }
+                        })
+                        .addAction(getString(R.string.string_120), new QMUIDialogAction.ActionListener() {
+                            @Override
+                            public void onClick(QMUIDialog dialog, int index) {
+                                Common.copy(mContext, tagName);
+                                dialog.dismiss();
+                            }
+                        })
+                        .create()
+                        .show();
                 return true;
             }
         });
