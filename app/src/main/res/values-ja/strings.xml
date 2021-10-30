@@ -162,7 +162,7 @@
   <string name="never_show_again">表示しない</string>  
   <string name="add">追加</string>  
   <string name="fullscreen_layout">フルスクリーンレイアウト</string>  
-  <string name="how_many_novels">%d個の作品、%d個の字を読み終わったら、%d時間%d分かかります。</string>  
+  <string name="how_many_novels">%d部 / %d文字 %d時間%dほどで読めます。</string>  
   <string name="scroll_behavior">ceui.lisa.pixiv.ScrollBehavior</string>  
   <string name="head_behavior">ceui.lisa.pixiv.HeadBehavior</string>  
   <string name="title_activity_splash">飛沫</string>  
@@ -396,7 +396,7 @@
   <string name="string_225">QQグループ</string>  
   <string name="string_226">まだグループがありません。グループを作成した場合は、管理者に連絡してください。</string>  
   <string name="string_227">QQがインストールされていないか、サポートされていないバージョンがインストールされています。</string>  
-  <string name="string_228">エクスポートTXT</string>  
+  <string name="string_228">ダウンロード</string>  
   <string name="string_229">シリーズ</string>  
   <string name="string_230">漫画シリーズ</string>  
   <string name="string_231">関連作品</string>  
@@ -424,10 +424,10 @@
   <string name="string_253">すべてのレコードを削除することを確認しますか?</string>  
   <string name="string_254">削除できるレコードがありません。</string>  
   <string name="string_255">これはローカルブラウズ履歴をすべて削除します。</string>  
-  <string name="string_256">小説シリーズの閲覧はまだサポートされていません。</string>  
-  <string name="string_257">小説シリーズ</string>  
+  <string name="string_256">シリーズ小説の閲覧はまだサポートされていません。</string>  
+  <string name="string_257">シリーズ小説</string>  
   <string name="string_258">あなたはまだ何も変わりません。</string>  
-  <string name="string_259">写真は5 Mより大きくしてはいけません。この写真のサイズ：</string>  
+  <string name="string_259">5MBより大きな画像は使用できません。この画像のサイズ：</string>  
   <string name="string_260">あなたはまだログインしていません</string>  
   <string name="string_261">修正成功!</string>  
   <string name="string_262">画像の選択に失敗しました</string>  
@@ -445,9 +445,9 @@
   <string name="string_274">P友のイラスト/漫画作品</string>  
   <string name="string_275">良いP友の小説作品</string>  
   <string name="string_276">/storage/emulated/0/Shaft/SingleNovels</string>  
-  <string name="string_277">TXTとしてエクスポート(フォルダから表示可能)</string>
-  <string name="string_278">TXTとしてエクスポートして共有</string>
-  <string name="string_279">エクスポート成功</string>  
+  <string name="string_277">TXTとしてダウンロード</string>
+  <string name="string_278">TXTとして共有</string>
+  <string name="string_279">ダウンロードに成功しました</string>  
   <string name="string_280">オリジナル（オリジナル）</string>  
   <string name="string_281">大きい方（大）</string>  
   <string name="string_282">図（中）で</string>  
@@ -473,7 +473,7 @@
   <string name="string_311">Shaftを用いて逆画像検索</string>
   <string name="string_312">設定を開く</string>  
   <string name="string_313">ファイルのダウンロードに権限は必要ありませんが、ファイルを保存するフォルダを設定する必要があります。</string>  
-  <string name="string_314">エクスポートTXT</string>  
+  <string name="string_314">ダウンロード</string>  
   <string name="string_315">一括操作</string>  
   <string name="string_316">全てをすき!する</string>
   <string name="string_317">全てのすき!を解除</string>
@@ -534,7 +534,7 @@
   <string name="string_365">ファイルの作成に失敗しました。許可されたダウンロードフォルダが存在しませんでした。</string>  
   <string name="string_366">再認証</string>  
   <string name="string_367">統計情報をFirebaseに送信することを許可する</string>  
-  <string name="string_368">%dページにブックマークを追加</string>  
+  <string name="string_368">現在のページをブックマークをしました(p%d)</string>  
   <string name="string_369">ブックマークが削除されました</string>  
   <string name="string_370">パーソナライズ</string>
   <string name="string_371">すき!一覧ページですきボタンを表示しない</string>
@@ -605,7 +605,7 @@
   <string name="string_435">検索オプションはイラスト/小説にのみ有効です</string>
   <string name="string_436">関連ユーザー</string>
   <string name="string_437">正規表現として追加</string>
-  <string name="string_438">1つのファイルとしてバッチダウンロード</string>
+  <string name="string_438">1つのファイルとしてダウンロード</string>
   <string name="string_439">検索結果の並び順</string>
   <string name="string_440">全年齢</string>
   <string name="string_441">R-18</string>
