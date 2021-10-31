@@ -132,10 +132,10 @@ public class Manager {
         if (!Common.isEmpty(content)) {
             for (DownloadItem item : content) {
                 //item.setProcessed(false);
-                if (item.getState() != DownloadItem.DownloadState.PAUSED) {
+                item.setPaused(false);
+                if (item.getState() == DownloadItem.DownloadState.FAILED) {
                     item.setState(DownloadItem.DownloadState.INIT);
                 }
-                item.setPaused(false);
             }
         }
         if (isRunning) {
@@ -146,12 +146,15 @@ public class Manager {
         loop();
     }
 
-    public void startOne(Context context, String uuid) {
+    public void startOne(String uuid) {
         for (int i = 0; i < content.size(); i++) {
             DownloadItem downloadItem = content.get(i);
             if (downloadItem != null && downloadItem.getUuid().equals(uuid)) {
                 //downloadItem.setProcessed(false);
                 downloadItem.setPaused(false);
+                if(downloadItem.getState() == DownloadItem.DownloadState.FAILED){
+                    downloadItem.setState(DownloadItem.DownloadState.INIT);
+                }
                 Common.showLog("已开始 " + uuid);
                 break;
             }

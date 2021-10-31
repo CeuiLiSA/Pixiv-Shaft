@@ -27,6 +27,7 @@ import ceui.lisa.download.IllustDownload;
 import ceui.lisa.feature.worker.BatchStarTask;
 import ceui.lisa.feature.worker.Worker;
 import ceui.lisa.interfaces.Callback;
+import ceui.lisa.interfaces.FeedBack;
 import ceui.lisa.interfaces.OnItemLongClickListener;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
@@ -108,6 +109,12 @@ public class FragmentMultiDownload extends LocalListFragment<FragmentMultiDownlo
                                 allItem.getId(), 0);
                         Worker.get().addTask(task);
                     }
+                    Worker.get().setFinalFeedBack(new FeedBack() {
+                        @Override
+                        public void doSomething() {
+                            Common.showToast("全部收藏成功");
+                        }
+                    });
                     Worker.get().start();
                 } else if (item.getItemId() == R.id.action_5) {
                     for (IllustsBean allItem : allItems) {
@@ -115,6 +122,12 @@ public class FragmentMultiDownload extends LocalListFragment<FragmentMultiDownlo
                                 allItem.getId(), 1);
                         Worker.get().addTask(task);
                     }
+                    Worker.get().setFinalFeedBack(new FeedBack() {
+                        @Override
+                        public void doSomething() {
+                            Common.showToast("全部取消收藏成功");
+                        }
+                    });
                     Worker.get().start();
                 } else if (item.getItemId() == R.id.action_6) {
                     for (int i = 0; i < allItems.size(); i++) {

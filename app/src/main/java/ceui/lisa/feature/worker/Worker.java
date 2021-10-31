@@ -9,9 +9,10 @@ import ceui.lisa.interfaces.FeedBack;
 public class Worker {
 
     private ArrayList<AbstractTask> runningTask = new ArrayList<>();
-    private final Thread workThread = new Thread(this::execute);
+    //private final Thread workThread = new Thread(this::execute);
     private static final Handler handler = new Handler();
     private FeedBack mFeedBack;
+    private FeedBack mFinalFeedBack;
 
     private Worker() {
     }
@@ -62,7 +63,7 @@ public class Worker {
     public void start() {
         if (!isRunning) {
             isRunning = true;
-            workThread.start();
+            new Thread(this::execute).start();
         }
     }
 
@@ -90,6 +91,12 @@ public class Worker {
                 if (mFeedBack != null) {
                     mFeedBack.doSomething();
                 }
+                if(runningTask == null || runningTask.size() == 0){
+                    if(mFinalFeedBack != null){
+                        mFinalFeedBack.doSomething();
+                        mFinalFeedBack = null;
+                    }
+                }
                 execute();
             }
         });
@@ -105,5 +112,13 @@ public class Worker {
 
     public void setFeedBack(FeedBack feedBack) {
         mFeedBack = feedBack;
+    }
+
+    public FeedBack getFinalFeedBack() {
+        return mFinalFeedBack;
+    }
+
+    public void setFinalFeedBack(FeedBack mFinalFeedBack) {
+        this.mFinalFeedBack = mFinalFeedBack;
     }
 }

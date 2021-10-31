@@ -77,7 +77,7 @@ public class DownloadingAdapter extends BaseAdapter<DownloadItem, RecyDownloadTa
             @Override
             public void onClick(View v) {
                 if (target.isPaused()) {
-                    manager.startOne(mContext, target.getUuid());
+                    manager.startOne(target.getUuid());
                     bindView.baseBind.state.setText("未开始");
                 } else {
                     manager.stopOne(target.getUuid());

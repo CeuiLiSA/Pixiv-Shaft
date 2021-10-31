@@ -22,9 +22,9 @@
 
         <TextView
             android:id="@+id/tag_title"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text=""
+            android:layout_weight="1"
             android:textColor="@color/second_text_color"
             android:textSize="13sp" />
 
@@ -35,8 +35,6 @@
             android:layout_gravity="center_vertical"
             android:layout_marginStart="@dimen/four_dp"
             android:src="@drawable/ic_cancel_black_24dp" />
-
-
 
     </LinearLayout>
 
