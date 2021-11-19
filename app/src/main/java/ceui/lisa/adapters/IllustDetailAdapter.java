@@ -10,6 +10,7 @@ import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestManager;
+import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
@@ -47,10 +48,14 @@ public class IllustDetailAdapter extends AbstractIllustAdapter<RecyclerView.View
     }
 
     public IllustDetailAdapter(Fragment fragment, IllustsBean list) {
+        this(fragment, list, false);
+    }
+
+    public IllustDetailAdapter(Fragment fragment, IllustsBean list, boolean isForceOriginal) {
         mFragment = fragment;
         mContext = fragment.requireContext();
         allIllust = list;
-        this.isForceOriginal = false;
+        this.isForceOriginal = isForceOriginal;
         imageSize = (mContext.getResources().getDisplayMetrics().widthPixels -
                 2 * mContext.getResources().getDimensionPixelSize(R.dimen.twelve_dp));
     }
@@ -70,6 +75,8 @@ public class IllustDetailAdapter extends AbstractIllustAdapter<RecyclerView.View
         final TagHolder currentOne = (TagHolder) holder;
         Common.showLog("IllustDetailAdapter onBindViewHolder 000");
         boolean isLoadOriginalImage = Shaft.sSettings.isShowOriginalPreviewImage() || isForceOriginal;
+        final GlideUrl imageUrl = isLoadOriginalImage ? GlideUtil.getOriginalImage(allIllust, position) :
+                GlideUtil.getLargeImage(allIllust, position);
         RequestManager requestManager = this.mFragment != null ? Glide.with(this.mFragment) : Glide.with(mContext);
         if (position == 0) {
             ViewGroup.LayoutParams params = currentOne.illust.getLayoutParams();
@@ -78,22 +85,21 @@ public class IllustDetailAdapter extends AbstractIllustAdapter<RecyclerView.View
             currentOne.illust.setLayoutParams(params);
             requestManager
                     .asDrawable()
-                    .load(isLoadOriginalImage ?
-                            GlideUtil.getOriginalImage(allIllust, position) :
-                            GlideUtil.getLargeImage(allIllust, position))
+                    .load(imageUrl)
                     .transition(DrawableTransitionOptions.withCrossFade())
                     .into(new SimpleTarget<Drawable>() {
                         @Override
                         public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
                             currentOne.illust.setImageDrawable(resource);
+                            if(isLoadOriginalImage){
+                                Shaft.getMMKV().encode(imageUrl.toStringUrl(), true);
+                            }
                         }
                     });
         } else {
             requestManager
                     .asBitmap()
-                    .load(isLoadOriginalImage ?
-                            GlideUtil.getOriginalImage(allIllust, position) :
-                            GlideUtil.getLargeImage(allIllust, position))
+                    .load(imageUrl)
                     .transition(withCrossFade())
                     .into(new SimpleTarget<Bitmap>() {
                         @Override
@@ -103,6 +109,9 @@ public class IllustDetailAdapter extends AbstractIllustAdapter<RecyclerView.View
                             params.height = imageSize * resource.getHeight() / resource.getWidth();
                             currentOne.illust.setLayoutParams(params);
                             currentOne.illust.setImageBitmap(resource);
+                            if(isLoadOriginalImage){
+                                Shaft.getMMKV().encode(imageUrl.toStringUrl(), true);
+                            }
                         }
                     });
         }

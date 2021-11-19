@@ -72,7 +72,6 @@ import static com.bumptech.glide.request.RequestOptions.bitmapTransform;
 public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBinding> {
 
     private IllustsBean illust;
-    private IllustDetailAdapter mDetailAdapter;
     private CallBackReceiver mReceiver;
 
     public static FragmentSingleIllust newInstance(IllustsBean illust) {
@@ -109,8 +108,7 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
                 break;
         }
 
-        mDetailAdapter = new IllustDetailAdapter(FragmentSingleIllust.this, illust);
-        baseBind.recyclerView.setAdapter(mDetailAdapter);
+        baseBind.recyclerView.setAdapter(new IllustDetailAdapter(FragmentSingleIllust.this, illust));
     }
 
     @Override
@@ -236,8 +234,7 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
                     Common.copy(mContext, url);
                     return true;
                 } else if (menuItem.getItemId() == R.id.action_show_original) {
-//                    baseBind.recyclerView.setAdapter(new IllustAdapter(mContext, illust,
-//                            recyHeight, true));
+                    baseBind.recyclerView.setAdapter(new IllustDetailAdapter(FragmentSingleIllust.this, illust, true));
                     return true;
                 } else if (menuItem.getItemId() == R.id.action_mute_illust) {
                     PixivOperate.muteIllust(illust);
