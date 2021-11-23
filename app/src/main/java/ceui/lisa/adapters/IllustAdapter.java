@@ -131,7 +131,8 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
             }
         });
         final String imageUrl;
-        if (Shaft.sSettings.isShowOriginalPreviewImage() || isForceOriginal) {
+        boolean isLoadOriginalImage = Shaft.sSettings.isShowOriginalPreviewImage() || isForceOriginal;
+        if (isLoadOriginalImage) {
             imageUrl = IllustDownload.getUrl(allIllust, position, Params.IMAGE_RESOLUTION_ORIGINAL);
         } else {
             imageUrl = IllustDownload.getUrl(allIllust, position, Params.IMAGE_RESOLUTION_LARGE);
@@ -170,7 +171,7 @@ public class IllustAdapter extends AbstractIllustAdapter<ViewHolder<RecyIllustDe
                     public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
                         holder.baseBind.reload.setVisibility(View.GONE);
                         holder.baseBind.progressLayout.donutProgress.setVisibility(View.INVISIBLE);
-                        if (isForceOriginal) {
+                        if (isLoadOriginalImage) {
                             Shaft.getMMKV().encode(imageUrl, true);
                         }
                         return false;

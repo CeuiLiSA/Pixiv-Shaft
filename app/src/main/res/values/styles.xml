@@ -10,7 +10,7 @@
         <item name="android:windowContentTransitions">true</item>
         <item name="android:windowAllowEnterTransitionOverlap">true</item>
         <item name="android:windowAllowReturnTransitionOverlap">true</item>
-        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimary</item>
+        <item name="android:statusBarColor" tools:targetApi="l">@android:color/transparent</item>
         <item name="qmui_skin_support_dialog_bg">@color/fragment_center</item>
         <item name="qmui_skin_support_dialog_title_text_color">@color/rank_text_color</item>
         <item name="qmui_skin_support_dialog_menu_item_text_color">@color/rank_text_color</item>

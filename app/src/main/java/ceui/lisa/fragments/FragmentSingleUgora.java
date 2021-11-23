@@ -319,6 +319,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
         });
 
         baseBind.toolbar.inflateMenu(R.menu.share);
+        baseBind.toolbar.getMenu().findItem(R.id.action_show_original).setVisible(false);
         baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem menuItem) {
