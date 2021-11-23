@@ -36,6 +36,7 @@ public class HostManager {
     public void init() {
         if (Dev.isDev) {
             host = "210.140.92.139";
+            updateHost();
         } else {
             host = randomHost();
             updateHost();
@@ -59,20 +60,24 @@ public class HostManager {
     }
 
     private void updateHost() {
-        CloudFlareDNSService.Companion.invoke().query(HOST_OLD, "application/dns-json", "A")
+        CloudFlareDNSService.Companion.invoke(CloudFlareDNSService.Companion.getCLOUDFLARE_DOH_POINT()).query(HOST_OLD, "A")
                 .enqueue(new Callback<CloudFlareDNSResponse>() {
                     @Override
                     public void onResponse(Call<CloudFlareDNSResponse> call, retrofit2.Response<CloudFlareDNSResponse> response) {
-                        try {
-                            CloudFlareDNSResponse cloudFlareDNSResponse = response.body();
-                            if (cloudFlareDNSResponse != null) {
-                                if (!Common.isEmpty(cloudFlareDNSResponse.getAnswer())) {
-                                    int position = Common.flatRandom(cloudFlareDNSResponse.getAnswer().size());
-                                    host = cloudFlareDNSResponse.getAnswer().get(position).getData();
-                                }
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                        boolean success = updateHostByResponse(response);
+                        if(!success){
+                            CloudFlareDNSService.Companion.invoke(CloudFlareDNSService.Companion.getDNSSB_DOH_POINT()).query(HOST_OLD, "A")
+                                    .enqueue(new Callback<CloudFlareDNSResponse>() {
+                                        @Override
+                                        public void onResponse(Call<CloudFlareDNSResponse> call2, retrofit2.Response<CloudFlareDNSResponse> response2) {
+                                            updateHostByResponse(response2);
+                                        }
+
+                                        @Override
+                                        public void onFailure(Call<CloudFlareDNSResponse> call2, Throwable t2) {
+                                            Common.showLog("CloudFlareDNSService onFailure " + t2.toString());
+                                        }
+                                    });
                         }
                     }
 
@@ -81,6 +86,22 @@ public class HostManager {
                         Common.showLog("CloudFlareDNSService onFailure " + t.toString());
                     }
                 });
+    }
+
+    private boolean updateHostByResponse(retrofit2.Response<CloudFlareDNSResponse> response) {
+        try {
+            CloudFlareDNSResponse cloudFlareDNSResponse = response.body();
+            if (cloudFlareDNSResponse != null) {
+                if (!Common.isEmpty(cloudFlareDNSResponse.getAnswer())) {
+                    int position = Common.flatRandom(cloudFlareDNSResponse.getAnswer().size());
+                    host = cloudFlareDNSResponse.getAnswer().get(position).getData();
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     public String replaceUrl(String before) {
