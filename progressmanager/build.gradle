@@ -25,5 +25,5 @@ android {
 }
 
 dependencies {
-    compileOnly 'com.squareup.okhttp3:okhttp:4.4.0'
+    compileOnly 'com.squareup.okhttp3:okhttp:4.4.1'
 }

@@ -94,7 +94,7 @@ public class FragmentComment extends NetListFragment<FragmentCommentBinding,
         super.onStart();
         if (mHelper == null) {
             mHelper = new PanelSwitchHelper.Builder(this)
-                    .contentCanScrollOutside(false)    //可选模式，默认true，当面板实现时内容区域是否往上滑动
+                    .contentScrollOutsideEnable(false)    //可选模式，默认true，当面板实现时内容区域是否往上滑动
                     .logTrack(true)
                     //可选，默认false，是否开启log信息输出
                     .build(false);              //可选，默认false，是否默认打开输入法
