@@ -90,6 +90,9 @@ public class Settings {
     //使用pixiv cat 代理 展示图片
     private boolean usePixivCat = false;
 
+    //缩略图图片显示大图
+    private boolean showLargeThumbnailImage = false;
+
     //一级详情FragmentIllust 图片显示原图
     private boolean showOriginalPreviewImage = false;
 
@@ -611,5 +614,13 @@ public class Settings {
 
     public void setDownloadOnlyUseWiFi(boolean downloadOnlyUseWiFi) {
         isDownloadOnlyUseWiFi = downloadOnlyUseWiFi;
+    }
+
+    public boolean isShowLargeThumbnailImage() {
+        return showLargeThumbnailImage;
+    }
+
+    public void setShowLargeThumbnailImage(boolean showLargeThumbnailImage) {
+        this.showLargeThumbnailImage = showLargeThumbnailImage;
     }
 }
