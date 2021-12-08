@@ -21,9 +21,8 @@ public class FileCreator {
 
     public static boolean isExist(IllustsBean illust, int index) {
         String fileName = illust.isGif() ? new FileName().gifName(illust) : customFileName(illust, index);
-        File file = new File(FileStorageHelper.getIllustAbsolutePath(illust, false), fileName);
-        File fileR18 = new File(FileStorageHelper.getIllustAbsolutePath(illust, true), fileName);
-        return file.exists() || fileR18.exists();
+        File file = new File(FileStorageHelper.getIllustAbsolutePath(illust), fileName);
+        return file.exists();
     }
 
     public static String deleteSpecialWords(String before) {
