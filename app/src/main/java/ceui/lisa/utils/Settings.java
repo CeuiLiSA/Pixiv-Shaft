@@ -186,6 +186,8 @@ public class Settings {
 
     private boolean isDownloadOnlyUseWiFi = false; // 仅通过 Wifi 下载
 
+    private boolean illustDetailKeepScreenOn = false; //插画二级详情保持屏幕常亮
+
     public String getAppLanguage() {
         if(!TextUtils.isEmpty(appLanguage)){
             return appLanguage;
@@ -622,5 +624,13 @@ public class Settings {
 
     public void setShowLargeThumbnailImage(boolean showLargeThumbnailImage) {
         this.showLargeThumbnailImage = showLargeThumbnailImage;
+    }
+
+    public boolean isIllustDetailKeepScreenOn() {
+        return illustDetailKeepScreenOn;
+    }
+
+    public void setIllustDetailKeepScreenOn(boolean illustDetailKeepScreenOn) {
+        this.illustDetailKeepScreenOn = illustDetailKeepScreenOn;
     }
 }

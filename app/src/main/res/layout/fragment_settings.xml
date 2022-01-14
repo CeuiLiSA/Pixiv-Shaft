@@ -1049,6 +1049,22 @@
                         <View style="@style/half_divider" />
 
                         <RelativeLayout
+                            android:id="@+id/illust_detail_keep_screen_on_rela"
+                            style="@style/ripple_rela">
+
+                            <TextView
+                                style="@style/setting_text_left"
+                                android:text="@string/string_451" />
+
+                            <androidx.appcompat.widget.SwitchCompat
+                                android:id="@+id/illust_detail_keep_screen_on"
+                                style="@style/setting_right_switch"/>
+
+                        </RelativeLayout>
+
+                        <View style="@style/half_divider" />
+
+                        <RelativeLayout
                             android:id="@+id/is_firebase_enable_rela"
                             style="@style/ripple_rela">
 

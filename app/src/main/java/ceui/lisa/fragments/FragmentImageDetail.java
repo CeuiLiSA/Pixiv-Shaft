@@ -96,6 +96,11 @@ public class FragmentImageDetail extends BaseFragment<FragmentImageDetailBinding
                 adjustAutoScale();
             }
         });
+
+        //插画二级详情保持屏幕常亮
+        if (Shaft.sSettings.isIllustDetailKeepScreenOn()) {
+            baseBind.getRoot().setKeepScreenOn(true);
+        }
     }
 
     @Override
