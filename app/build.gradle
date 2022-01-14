@@ -91,8 +91,8 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
-    implementation 'androidx.appcompat:appcompat:1.4.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.2'
+    implementation 'androidx.appcompat:appcompat:1.4.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.3'
 
     //=============== lifecycle
     def lifecycle_version = '2.4.0'
@@ -138,8 +138,8 @@ dependencies {
     implementation 'jp.wasabeef:glide-transformations:4.3.0'
     implementation 'de.hdodenhof:circleimageview:3.1.0'
     implementation 'com.github.ybq:Android-SpinKit:1.4.0'
-    implementation 'androidx.room:room-runtime:2.3.0'
-    kapt 'androidx.room:room-compiler:2.3.0'
+    implementation 'androidx.room:room-runtime:2.4.1'
+    kapt 'androidx.room:room-compiler:2.4.1'
     implementation 'com.github.Justson.AgentWeb:agentweb-core:v4.1.9-androidx'
     implementation 'com.github.Justson.AgentWeb:agentweb-filechooser:v4.1.9-androidx'
     implementation 'com.facebook.rebound:rebound:0.3.8'
@@ -153,10 +153,10 @@ dependencies {
     implementation 'jp.wasabeef:recyclerview-animators:4.0.2'
     implementation 'gdut.bsx:share2:0.9.3'
     implementation 'com.github.skydoves:transformationlayout:1.1.1'
-    implementation 'com.blankj:utilcodex:1.30.6'
+    implementation 'com.blankj:utilcodex:1.31.0'
     implementation 'com.safframework.log:saf-logginginterceptor:1.6.0'
-    implementation 'com.google.firebase:firebase-analytics:20.0.0'
-    implementation 'com.google.firebase:firebase-crashlytics:18.2.5'
+    implementation 'com.google.firebase:firebase-analytics:20.0.2'
+    implementation 'com.google.firebase:firebase-crashlytics:18.2.6'
 
     implementation 'com.afollestad:drag-select-recyclerview:2.4.0'
 
