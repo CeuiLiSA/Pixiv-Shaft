@@ -10,12 +10,17 @@ import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.MuteEntity;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.utils.Common;
 
-public class IllustFilter {
+public class IllustNovelFilter {
 
     public static boolean judge(IllustsBean illust) {
+        return judgeID(illust) || judgeTag(illust) || judgeUserID(illust) ;
+    }
+
+    public static boolean judge(NovelBean illust) {
         return judgeID(illust) || judgeTag(illust) || judgeUserID(illust) ;
     }
 
@@ -33,7 +38,28 @@ public class IllustFilter {
         return isBanned;
     }
 
+    public static boolean judgeID(NovelBean illust) {
+        List<MuteEntity> temp = AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().getMutedIllusts();
+        boolean isBanned = false;
+        if (!Common.isEmpty(temp)) {
+            for (MuteEntity muteEntity : temp) {
+                if (muteEntity.getId() == illust.getId()) {
+                    isBanned = true;
+                    break;
+                }
+            }
+        }
+        return isBanned;
+    }
+
     public static boolean judgeUserID(IllustsBean illust) {
+        MuteEntity temp = AppDatabase.getAppDatabase(Shaft.getContext())
+                .searchDao()
+                .getMuteEntityByID(illust.getUser().getUserId());
+        return temp != null;
+    }
+
+    public static boolean judgeUserID(NovelBean illust) {
         MuteEntity temp = AppDatabase.getAppDatabase(Shaft.getContext())
                 .searchDao()
                 .getMuteEntityByID(illust.getUser().getUserId());
@@ -62,6 +88,28 @@ public class IllustFilter {
         return false;
     }
 
+    public static boolean judgeTag(NovelBean illustsBean) {
+        String tagString = illustsBean.getTagString();
+        if (TextUtils.isEmpty(tagString)) {
+            return false;
+        }
+
+        List<TagsBean> temp = getMutedTags();
+        for (TagsBean bean : temp) {
+            if (bean.isEffective()) {
+                String name = "*#" + bean.getName() + ",";
+                if (bean.getFilter_mode() == 0 && tagString.contains(name)) {
+//                    illustsBean.setShield(true);
+                    return true;
+                } else if (bean.getFilter_mode() == 1 && Pattern.compile(bean.getName()).matcher(tagString).find()) {
+//                    illustsBean.setShield(true);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     public static boolean judgeR18Filter(IllustsBean illustsBean) {
         if (!Shaft.sSettings.isR18FilterTempEnable()) {
             return false;
@@ -69,6 +117,16 @@ public class IllustFilter {
         String tagString = illustsBean.getTagString();
         boolean isHit = tagString.contains("*#R-18,") || tagString.contains("*#R-18G,");
         illustsBean.setShield(isHit);
+        return isHit;
+    }
+
+    public static boolean judgeR18Filter(NovelBean illustsBean) {
+        if (!Shaft.sSettings.isR18FilterTempEnable()) {
+            return false;
+        }
+        String tagString = illustsBean.getTagString();
+        boolean isHit = tagString.contains("*#R-18,") || tagString.contains("*#R-18G,");
+//        illustsBean.setShield(isHit);
         return isHit;
     }
 

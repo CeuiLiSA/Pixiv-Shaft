@@ -285,4 +285,17 @@ public class NovelBean implements Serializable, Starable {
     public void setDisplay_text(String display_text) {
         this.display_text = display_text;
     }
+
+    public String getTagString() {
+        String result = "";
+        if (tags == null || tags.size() == 0) {
+            return result;
+        }
+
+        for (int i = 0; i < tags.size(); i++) {
+            result = result + "*#" + tags.get(i).getName() + ",";
+        }
+
+        return result;
+    }
 }
