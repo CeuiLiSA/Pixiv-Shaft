@@ -184,7 +184,9 @@ public class Settings {
 
     private String navigationInitPosition = NavigationLocationHelper.TUIJIAN; // 主页底部导航栏初始化位置
 
-    private boolean isDownloadOnlyUseWiFi = false; // 仅通过 Wifi 下载
+//    private boolean isDownloadOnlyUseWiFi = false; // 仅通过 Wifi 下载
+
+    private int downloadLimitType = 0; // 下载限制类型 0:无限制 1:仅Wifi下自动下载 2:不自动下载
 
     private boolean illustDetailKeepScreenOn = false; //插画二级详情保持屏幕常亮
 
@@ -610,12 +612,12 @@ public class Settings {
         this.saveForSeparateAuthorStatus = saveForSeparateAuthorStatus;
     }
 
-    public boolean isDownloadOnlyUseWiFi() {
-        return isDownloadOnlyUseWiFi;
+    public int getDownloadLimitType() {
+        return downloadLimitType;
     }
 
-    public void setDownloadOnlyUseWiFi(boolean downloadOnlyUseWiFi) {
-        isDownloadOnlyUseWiFi = downloadOnlyUseWiFi;
+    public void setDownloadLimitType(int downloadLimitType) {
+        this.downloadLimitType = downloadLimitType;
     }
 
     public boolean isShowLargeThumbnailImage() {

@@ -43,6 +43,7 @@ import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.utils.BackupUtils;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.DownloadLimitTypeUtil;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivSearchParamUtil;
@@ -656,6 +657,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 }
             });
 
+            //按作者保存到单独文件夹
             baseBind.saveForSeparateAuthor.setText(UserFolderNameUtil.getCurrentStatusName());
             baseBind.saveForSeparateAuthor.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -686,6 +688,7 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 }
             });
 
+            //插画详情长按下载
             baseBind.illustLongPressDownload.setChecked(Shaft.sSettings.isIllustLongPressDownload());
             baseBind.illustLongPressDownload.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
@@ -702,19 +705,35 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 }
             });
 
-            baseBind.downloadOnlyUseWifi.setChecked(Shaft.sSettings.isDownloadOnlyUseWiFi());
-            baseBind.downloadOnlyUseWifi.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    Shaft.sSettings.setDownloadOnlyUseWiFi(isChecked);
-                    Common.showToast(getString(R.string.string_428));
-                    Local.setSettings(Shaft.sSettings);
-                }
-            });
-            baseBind.downloadOnlyUseWifiRela.setOnClickListener(new View.OnClickListener() {
+            //下载限制类型
+            baseBind.downloadLimitType.setText(DownloadLimitTypeUtil.getCurrentStatusName());
+            baseBind.downloadLimitType.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    baseBind.downloadOnlyUseWifi.performClick();
+                    new QMUIDialog.CheckableDialogBuilder(mActivity)
+                            .setCheckedIndex(Shaft.sSettings.getDownloadLimitType())
+                            .setSkinManager(QMUISkinManager.defaultInstance(mContext))
+                            .addItems(DownloadLimitTypeUtil.DOWNLOAD_START_TYPE_NAMES, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    if (which == Shaft.sSettings.getDownloadLimitType()) {
+                                        Common.showLog("什么也不做");
+                                    } else {
+                                        Shaft.sSettings.setDownloadLimitType(which);
+                                        baseBind.downloadLimitType.setText(DownloadLimitTypeUtil.getCurrentStatusName());
+                                        Common.showToast(getString(R.string.string_428));
+                                        Local.setSettings(Shaft.sSettings);
+                                    }
+                                    dialog.dismiss();
+                                }
+                            })
+                            .show();
+                }
+            });
+            baseBind.downloadLimitTypeRela.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    baseBind.downloadLimitType.performClick();
                 }
             });
 

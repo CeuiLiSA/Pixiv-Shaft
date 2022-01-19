@@ -619,4 +619,6 @@
   <string name="string_449">Reset</string>
   <string name="string_450">Thumbnail display large image</string>
   <string name="string_451">Keep screen on in illust detail</string>
+  <string name="string_452">Download limit type</string>
+  <string name="string_453">Do not auto start</string>
 </resources>

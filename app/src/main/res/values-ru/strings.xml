@@ -619,4 +619,6 @@
   <string name="string_449">Сброс</string>
   <string name="string_450">Миниатюры отображают большое изображение</string>
   <string name="string_451">Держите экран включенным в деталях иллюстраций</string>
+  <string name="string_452">Тип лимита загрузки</string>
+  <string name="string_453">Не автозапуск</string>
 </resources>
