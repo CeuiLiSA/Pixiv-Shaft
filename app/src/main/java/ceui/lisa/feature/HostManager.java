@@ -105,28 +105,19 @@ public class HostManager {
     }
 
     public String replaceUrl(String before) {
-        if (Dev.show_url_detail) {
-            Common.showLog("HostManager before " + before);
-            if (Shaft.sSettings.isUsePixivCat() && !TextUtils.isEmpty(before) && before.contains(HOST_OLD)) {
-                String finalUrl = before.replace(HOST_OLD, HOST_NEW);
-                Common.showLog("HostManager after0 " + finalUrl);
-                return finalUrl;
-            } else if (Shaft.sSettings.isAutoFuckChina()) {
-                String result = resizeUrl(before);
-                Common.showLog("HostManager after1 " + result);
-                return result;
-            } else {
-                Common.showLog("HostManager after1 " + before);
-                return before;
-            }
+        boolean showDetail = Dev.show_url_detail;
+        if(showDetail) Common.showLog("HostManager before " + before);
+        if (Shaft.sSettings.isUsePixivCat() && !TextUtils.isEmpty(before) && before.contains(HOST_OLD)) {
+            String finalUrl = before.replace(HOST_OLD, HOST_NEW);
+            if(showDetail) Common.showLog("HostManager after0 " + finalUrl);
+            return finalUrl;
+        } else if (Shaft.sSettings.isAutoFuckChina() && before.contains(HOST_OLD)) { //此处修改为只替换i.pximg.net地址，s.pximg.net不替换
+            String result = resizeUrl(before);
+            if(showDetail) Common.showLog("HostManager after1 " + result);
+            return result;
         } else {
-            if (Shaft.sSettings.isUsePixivCat() && !TextUtils.isEmpty(before) && before.contains(HOST_OLD)) {
-                return before.replace(HOST_OLD, HOST_NEW);
-            } else if (Shaft.sSettings.isAutoFuckChina()) {
-                return resizeUrl(before);
-            } else {
-                return before;
-            }
+            if(showDetail) Common.showLog("HostManager after1 " + before);
+            return before;
         }
     }
 
