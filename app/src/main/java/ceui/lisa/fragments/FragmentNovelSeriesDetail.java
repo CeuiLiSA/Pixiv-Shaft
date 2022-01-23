@@ -86,7 +86,7 @@ public class FragmentNovelSeriesDetail extends NetListFragment<FragmentNovelSeri
                     String lineSeparator = System.lineSeparator();
                     for (NovelBean novelBean : allItems) {
                         if (novelBean.isLocalSaved()) {
-                            String sb = lineSeparator + novelBean.getId() + "-" + novelBean.getTitle() + lineSeparator +
+                            String sb = lineSeparator + novelBean.getTitle() + " - " + novelBean.getId() + lineSeparator +
                                     Cache.get().getModel(Params.NOVEL_KEY + novelBean.getId(), NovelDetail.class).getNovel_text();
                             taskContainer.put(novelBean.getId(), sb);
                             if (taskContainer.size() == allItems.size()) {
@@ -101,7 +101,7 @@ public class FragmentNovelSeriesDetail extends NetListFragment<FragmentNovelSeri
 
                                         @Override
                                         public void success(NovelDetail novelDetail) {
-                                            String sb = lineSeparator + novelBean.getId() + "-" + novelBean.getTitle() + lineSeparator +
+                                            String sb = lineSeparator + novelBean.getTitle() + " - " + novelBean.getId() + lineSeparator +
                                                     novelDetail.getNovel_text();
                                             taskContainer.put(novelBean.getId(), sb);
                                             if (taskContainer.size() == allItems.size()) {
