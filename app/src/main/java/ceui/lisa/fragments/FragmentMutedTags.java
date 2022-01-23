@@ -21,7 +21,7 @@ import ceui.lisa.adapters.MutedTagAdapter;
 import ceui.lisa.core.LocalRepo;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.databinding.FragmentBaseListBinding;
-import ceui.lisa.helper.IllustFilter;
+import ceui.lisa.helper.IllustNovelFilter;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.utils.Common;
@@ -35,7 +35,7 @@ public class FragmentMutedTags extends LocalListFragment<FragmentBaseListBinding
         return new LocalRepo<List<TagsBean>>() {
             @Override
             public List<TagsBean> first() {
-                return IllustFilter.getMutedTags();
+                return IllustNovelFilter.getMutedTags();
             }
 
             @Override

@@ -16,7 +16,7 @@ import java.util.Set;
 import ceui.lisa.R;
 import ceui.lisa.activities.TemplateActivity;
 import ceui.lisa.databinding.DialogMuteTagBinding;
-import ceui.lisa.helper.IllustFilter;
+import ceui.lisa.helper.IllustNovelFilter;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.utils.Common;
@@ -45,7 +45,7 @@ public class MuteDialog extends BaseDialog<DialogMuteTagBinding> {
     @Override
     void initView(View v) {
         // 计算 tag 状态
-        List<TagsBean> muted = IllustFilter.getMutedTags();
+        List<TagsBean> muted = IllustNovelFilter.getMutedTags();
         List<TagsBean> illustTags = mIllust.getTags();
         Set<Integer> selectedIndex = new HashSet<>();
         for (int i = 0; i < illustTags.size(); i++) {

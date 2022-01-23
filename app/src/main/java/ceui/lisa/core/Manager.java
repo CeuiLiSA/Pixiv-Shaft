@@ -5,8 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 
-import com.blankj.utilcode.util.NetworkUtils;
-
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import java.io.File;
@@ -28,6 +26,7 @@ import ceui.lisa.interfaces.Callback;
 import ceui.lisa.model.Holder;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
+import ceui.lisa.utils.DownloadLimitTypeUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
@@ -88,7 +87,9 @@ public class Manager {
             if (!isTaskExist) {
                 safeAdd(bean);
             }
-            startAll();
+            if(DownloadLimitTypeUtil.startTaskWhenCreate()){
+                startAll();
+            }
         }
     }
 
@@ -242,7 +243,7 @@ public class Manager {
 
     private void downloadOne(Context context, DownloadItem downloadItem) {
         // check network status, if setting don't download when mobile data, stop all task
-        if(!NetworkUtils.isWifiConnected() && Shaft.sSettings.isDownloadOnlyUseWiFi()){
+        if(!DownloadLimitTypeUtil.canDownloadNow()){
             stopAll();
             return;
         }

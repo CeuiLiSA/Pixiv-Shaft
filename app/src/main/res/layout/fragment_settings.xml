@@ -249,12 +249,43 @@
                         <View style="@style/half_divider" />
 
                         <RelativeLayout
+                            android:id="@+id/show_large_thumbnail_image_rela"
+                            style="@style/ripple_rela">
+
+                            <TextView
+                                android:id="@+id/show_large_thumbnail_image_mark"
+                                style="@style/setting_text_left"
+                                android:layout_marginBottom="@dimen/six_dp"
+                                android:text="@string/string_450" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_toStartOf="@+id/show_large_thumbnail_image"
+                                android:layout_height="wrap_content"
+                                android:layout_below="@+id/show_large_thumbnail_image_mark"
+                                android:layout_marginStart="@dimen/sixteen_dp"
+                                android:layout_marginBottom="@dimen/twelve_dp"
+                                android:textColor="?attr/colorPrimary"
+                                android:ellipsize="start"
+                                android:singleLine="true"
+                                android:text="@string/string_334"
+                                android:textSize="12sp" />
+
+                            <androidx.appcompat.widget.SwitchCompat
+                                android:id="@+id/show_large_thumbnail_image"
+                                style="@style/setting_right_switch"/>
+
+                        </RelativeLayout>
+
+                        <View style="@style/half_divider" />
+
+                        <RelativeLayout
                             android:id="@+id/show_original_preview_image_rela"
                             style="@style/ripple_rela">
 
                             <TextView
-                                style="@style/setting_text_left"
                                 android:id="@+id/show_original_preview_image_mark"
+                                style="@style/setting_text_left"
                                 android:layout_marginBottom="@dimen/six_dp"
                                 android:text="@string/string_413" />
 
@@ -782,16 +813,24 @@
                         <View style="@style/half_divider" />
 
                         <RelativeLayout
-                            android:id="@+id/download_only_use_wifi_rela"
+                            android:id="@+id/download_limit_type_rela"
                             style="@style/ripple_rela">
 
                             <TextView
                                 style="@style/setting_text_left"
-                                android:text="@string/string_448" />
+                                android:text="@string/string_452" />
 
-                            <androidx.appcompat.widget.SwitchCompat
-                                android:id="@+id/download_only_use_wifi"
-                                style="@style/setting_right_switch"/>
+                            <TextView
+                                android:id="@+id/download_limit_type"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentEnd="true"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
+                                android:layout_centerVertical="true"
+                                android:textColor="?attr/colorPrimary"
+                                android:textSize="14sp">
+
+                            </TextView>
 
                         </RelativeLayout>
 
@@ -1011,6 +1050,22 @@
 
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/download_auto_post_like"
+                                style="@style/setting_right_switch"/>
+
+                        </RelativeLayout>
+
+                        <View style="@style/half_divider" />
+
+                        <RelativeLayout
+                            android:id="@+id/illust_detail_keep_screen_on_rela"
+                            style="@style/ripple_rela">
+
+                            <TextView
+                                style="@style/setting_text_left"
+                                android:text="@string/string_451" />
+
+                            <androidx.appcompat.widget.SwitchCompat
+                                android:id="@+id/illust_detail_keep_screen_on"
                                 style="@style/setting_right_switch"/>
 
                         </RelativeLayout>

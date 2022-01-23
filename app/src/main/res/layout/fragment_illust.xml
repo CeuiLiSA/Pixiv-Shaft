@@ -118,6 +118,7 @@
                     </TextView>
 
                     <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
+                        android:id="@+id/rela_illust_brief"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="@dimen/twenty_four_dp"
@@ -153,8 +154,8 @@
                             android:layout_toStartOf="@+id/follow"
                             android:layout_toEndOf="@+id/user_head"
                             android:ellipsize="end"
-                            android:maxLines="1"
                             android:includeFontPadding="false"
+                            android:maxLines="1"
                             android:text="@string/string_67"
                             android:textColor="@color/white"
                             android:textSize="16sp"

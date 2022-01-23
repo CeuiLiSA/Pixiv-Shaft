@@ -26,26 +26,26 @@
 
 
         <RelativeLayout
+            android:id="@+id/awesome_card_con"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/awesome_card_con">
+            android:layout_height="match_parent">
 
             <androidx.cardview.widget.CardView
+                android:id="@+id/awesome_card"
                 android:layout_width="match_parent"
-                app:cardCornerRadius="@dimen/four_dp"
-                app:cardBackgroundColor="?attr/colorPrimary"
-                app:cardElevation="@dimen/four_dp"
+                android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
                 android:layout_marginStart="@dimen/sixteen_dp"
                 android:layout_marginEnd="@dimen/sixteen_dp"
-                android:id="@+id/awesome_card"
-                android:layout_height="wrap_content">
+                app:cardBackgroundColor="?attr/colorPrimary"
+                app:cardCornerRadius="@dimen/four_dp"
+                app:cardElevation="@dimen/four_dp">
 
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:orientation="vertical"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
 
                     <RelativeLayout
                         android:layout_width="match_parent"
@@ -75,44 +75,44 @@
                             android:textStyle="bold" />
 
                         <Button
+                            android:id="@+id/save_novel_txt"
                             style="@android:style/Widget.DeviceDefault.Button.Borderless.Small"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_marginEnd="@dimen/six_dp"
+                            android:layout_toStartOf="@+id/save_novel"
                             android:gravity="center"
                             android:paddingStart="@dimen/eight_dp"
-                            android:layout_toStartOf="@+id/save_novel"
                             android:paddingEnd="@dimen/eight_dp"
-                            android:textSize="13sp"
-                            android:id="@+id/save_novel_txt"
-                            android:layout_marginEnd="@dimen/six_dp"
                             android:text="@string/string_314"
-                            android:layout_centerVertical="true"
-                            android:textColor="@color/white_to_gray">
+                            android:textColor="@color/white_to_gray"
+                            android:textSize="13sp">
 
                         </Button>
 
 
-    <!--                    <Button-->
-    <!--                        style="@android:style/Widget.DeviceDefault.Button.Borderless.Small"-->
-    <!--                        android:layout_width="wrap_content"-->
-    <!--                        android:layout_height="wrap_content"-->
-    <!--                        android:layout_alignParentEnd="true"-->
-    <!--                        android:gravity="center"-->
-    <!--                        android:paddingStart="@dimen/eight_dp"-->
-    <!--                        android:paddingEnd="@dimen/eight_dp"-->
-    <!--                        android:textSize="13sp"-->
-    <!--                        android:id="@+id/save_novel"-->
-    <!--                        android:layout_marginEnd="@dimen/six_dp"-->
-    <!--                        android:text="@string/string_104"-->
-    <!--                        android:layout_centerVertical="true"-->
-    <!--                        android:textColor="@color/white_to_gray">-->
+<!--                        <Button-->
+<!--                            style="@android:style/Widget.DeviceDefault.Button.Borderless.Small"-->
+<!--                            android:layout_width="wrap_content"-->
+<!--                            android:layout_height="wrap_content"-->
+<!--                            android:layout_alignParentEnd="true"-->
+<!--                            android:gravity="center"-->
+<!--                            android:paddingStart="@dimen/eight_dp"-->
+<!--                            android:paddingEnd="@dimen/eight_dp"-->
+<!--                            android:textSize="13sp"-->
+<!--                            android:id="@+id/save_novel"-->
+<!--                            android:layout_marginEnd="@dimen/six_dp"-->
+<!--                            android:text="@string/string_104"-->
+<!--                            android:layout_centerVertical="true"-->
+<!--                            android:textColor="@color/white_to_gray">-->
 
-    <!--                    </Button>-->
+<!--                        </Button>-->
 
                         <ImageView
+                            android:id="@+id/save_novel"
                             android:layout_width="36dp"
                             android:layout_height="36dp"
-                            android:id="@+id/save_novel"
                             android:layout_alignParentEnd="true"
                             android:layout_marginTop="@dimen/twelve_dp"
                             android:layout_marginEnd="@dimen/eight_dp"
@@ -171,17 +171,17 @@
                         android:layout_marginStart="@dimen/twelve_dp"
                         android:layout_marginTop="@dimen/four_dp"
                         android:layout_marginEnd="@dimen/four_dp"
-                        android:layout_marginBottom="@dimen/four_dp">
-                    </com.zhy.view.flowlayout.TagFlowLayout>
+                        android:layout_marginBottom="@dimen/four_dp"></com.zhy.view.flowlayout.TagFlowLayout>
 
                     <org.sufficientlysecure.htmltextview.HtmlTextView
                         android:id="@+id/description"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:maxHeight="250dp"
                         android:paddingHorizontal="@dimen/sixteen_dp"
-                        android:textSize="11sp"
                         android:textColor="@color/white_to_gray"
-                        android:textColorLink="@color/white_to_gray" />
+                        android:textColorLink="@color/white_to_gray"
+                        android:textSize="11sp" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -194,17 +194,17 @@
                             android:layout_width="wrap_content"
                             android:layout_height="@dimen/twenty_dp"
                             android:gravity="center"
-                            android:text=""
-                            android:textSize="11sp"
                             android:includeFontPadding="false"
-                            android:textColor="@color/white_to_gray" />
+                            android:text=""
+                            android:textColor="@color/white_to_gray"
+                            android:textSize="11sp" />
 
                         <ImageView
                             android:layout_width="@dimen/sixteen_dp"
                             android:layout_height="@dimen/sixteen_dp"
-                            android:src="@drawable/ic_remove_red_eye_black_24dp"
-                            android:layout_marginStart="@dimen/six_dp"
                             android:layout_gravity="center_vertical"
+                            android:layout_marginStart="@dimen/six_dp"
+                            android:src="@drawable/ic_remove_red_eye_black_24dp"
                             app:tint="@color/white_to_gray" />
 
                         <TextView
@@ -219,9 +219,9 @@
                         <ImageView
                             android:layout_width="@dimen/sixteen_dp"
                             android:layout_height="@dimen/sixteen_dp"
+                            android:layout_gravity="center_vertical"
                             android:layout_marginStart="@dimen/six_dp"
                             android:src="@drawable/ic_favorite_black_24dp"
-                            android:layout_gravity="center_vertical"
                             app:tint="@color/white_to_gray" />
 
                         <TextView
@@ -249,13 +249,13 @@
                         android:layout_height="wrap_content">
 
                         <Button
+                            android:id="@+id/show_prev"
                             style="@style/Widget.AppCompat.Button.Borderless"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:id="@+id/show_prev"
-                            android:drawableStart="@drawable/ic_chevron_left_black_24dp"
                             android:layout_marginStart="@dimen/six_dp"
+                            android:drawableStart="@drawable/ic_chevron_left_black_24dp"
+                            android:gravity="center_vertical"
                             android:text="@string/string_83"
                             android:textColor="@color/white_to_gray">
 
@@ -276,14 +276,14 @@
 
 
                         <Button
+                            android:id="@+id/show_next"
                             style="@style/Widget.AppCompat.Button.Borderless"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:drawableEnd="@drawable/ic_chevron_right_black_24dp"
                             android:layout_alignParentEnd="true"
-                            android:gravity="center_vertical"
-                            android:id="@+id/show_next"
                             android:layout_marginEnd="@dimen/six_dp"
+                            android:drawableEnd="@drawable/ic_chevron_right_black_24dp"
+                            android:gravity="center_vertical"
                             android:text="@string/string_84"
                             android:textColor="@color/white_to_gray">
 

@@ -8,14 +8,14 @@ apply plugin: 'org.jmailen.kotlinter'
 apply plugin: "androidx.navigation.safeargs"
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 31
 
     defaultConfig {
         applicationId "ceui.lisa.pixiv"
         minSdkVersion 21
         targetSdkVersion 30
-        versionCode 220
-        versionName "3.2.20"
+        versionCode 221
+        versionName "3.2.21"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         javaCompileOptions {
@@ -24,7 +24,7 @@ android {
                         //必须，告知RxHttp你依赖的okhttp版本，目前已适配 v3.12.0 - v4.9.1版本  (v4.3.0除外)
                         rxhttp_okhttp : '4.4.1',
                         //使用asXxx方法时必须，告知RxHttp你依赖的rxjava版本，可传入rxjava2、rxjava3或具体的版本号
-                        rxhttp_rxjava : '3.1.2',
+                        rxhttp_rxjava : '3.1.3',
                         rxhttp_package: 'rxhttp'   //非必须，指定RxHttp类包名
                 ]
             }
@@ -91,11 +91,11 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
-    implementation 'androidx.appcompat:appcompat:1.4.0-alpha03'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.1'
+    implementation 'androidx.appcompat:appcompat:1.4.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.3'
 
     //=============== lifecycle
-    def lifecycle_version = "2.3.1"
+    def lifecycle_version = '2.4.0'
 
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
@@ -110,7 +110,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation "androidx.core:core-ktx:1.6.0"
+    implementation 'androidx.core:core-ktx:1.7.0'
 
     api 'com.squareup.retrofit2:retrofit:2.9.0'
     api 'com.squareup.retrofit2:converter-gson:2.9.0'
@@ -129,8 +129,8 @@ dependencies {
     implementation 'com.github.lzyzsd:circleprogress:1.2.1'
 
 
-    api 'com.scwang.smartrefresh:SmartRefreshLayout:1.1.2'
-    api 'com.scwang.smartrefresh:SmartRefreshHeader:1.1.2'
+    api 'com.scwang.smartrefresh:SmartRefreshLayout:1.1.3'
+    api 'com.scwang.smartrefresh:SmartRefreshHeader:1.1.3'
 
     // okhttp3系列组件版本最高到 4.4.1，参看 RubySSLSocketFactory
     implementation 'com.squareup.okhttp3:logging-interceptor:4.4.1'
@@ -138,8 +138,8 @@ dependencies {
     implementation 'jp.wasabeef:glide-transformations:4.3.0'
     implementation 'de.hdodenhof:circleimageview:3.1.0'
     implementation 'com.github.ybq:Android-SpinKit:1.4.0'
-    implementation 'androidx.room:room-runtime:2.3.0'
-    kapt 'androidx.room:room-compiler:2.3.0'
+    implementation 'androidx.room:room-runtime:2.4.1'
+    kapt 'androidx.room:room-compiler:2.4.1'
     implementation 'com.github.Justson.AgentWeb:agentweb-core:v4.1.9-androidx'
     implementation 'com.github.Justson.AgentWeb:agentweb-filechooser:v4.1.9-androidx'
     implementation 'com.facebook.rebound:rebound:0.3.8'
@@ -152,11 +152,11 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
     implementation 'jp.wasabeef:recyclerview-animators:4.0.2'
     implementation 'gdut.bsx:share2:0.9.3'
-    implementation 'com.github.skydoves:transformationlayout:1.1.0'
-    implementation 'com.blankj:utilcodex:1.30.6'
-    implementation 'com.safframework.log:saf-logginginterceptor:1.4.6'
-    implementation 'com.google.firebase:firebase-analytics:19.0.2'
-    implementation 'com.google.firebase:firebase-crashlytics:18.2.3'
+    implementation 'com.github.skydoves:transformationlayout:1.1.1'
+    implementation 'com.blankj:utilcodex:1.31.0'
+    implementation 'com.safframework.log:saf-logginginterceptor:1.6.0'
+    implementation 'com.google.firebase:firebase-analytics:20.0.2'
+    implementation 'com.google.firebase:firebase-crashlytics:18.2.7'
 
     implementation 'com.afollestad:drag-select-recyclerview:2.4.0'
 
@@ -164,18 +164,18 @@ dependencies {
     implementation 'com.jaredrummler:colorpicker:1.1.0'
 
 
-    implementation 'com.effective.android:panelSwitchHelper-androidx:1.3.1'
+    implementation 'com.effective.android:panelSwitchHelper-androidx:1.3.13'
     implementation 'com.makeramen:roundedimageview:2.3.0'
 
 
-    implementation 'com.github.liujingxing.rxhttp:rxhttp:2.6.8'
+    implementation 'com.github.liujingxing.rxhttp:rxhttp:2.8.0'
     // okhttp3系列组件版本最高到 4.4.1，参看 RubySSLSocketFactory
     implementation 'com.squareup.okhttp3:okhttp:4.4.1'
-    kapt 'com.github.liujingxing.rxhttp:rxhttp-compiler:2.6.8'
+    kapt 'com.github.liujingxing.rxhttp:rxhttp-compiler:2.8.0'
 
-    implementation 'io.reactivex.rxjava3:rxjava:3.1.2'
+    implementation 'io.reactivex.rxjava3:rxjava:3.1.3'
     implementation 'io.reactivex.rxjava3:rxandroid:3.0.0'
-    implementation 'com.github.liujingxing.rxlife:rxlife-rxjava3:2.1.0'
+    implementation 'com.github.liujingxing.rxlife:rxlife-rxjava3:2.2.1'
 
     implementation 'xyz.zpayh:hdimageview:3.0.2'
 
@@ -183,7 +183,7 @@ dependencies {
     implementation project(path: ':progressmanager')
     implementation project(path: ':flowlayout-lib')
     implementation 'com.waynejo:androidndkgif:0.3.3'
-    implementation 'com.tencent:mmkv-static:1.2.10'
+    implementation 'com.tencent:mmkv-static:1.2.12'
     implementation 'com.github.tbruyelle:rxpermissions:0.12'
 
     implementation 'androidx.webkit:webkit:1.4.0'

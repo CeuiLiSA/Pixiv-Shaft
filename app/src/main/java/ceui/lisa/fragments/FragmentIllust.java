@@ -322,22 +322,16 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
         } else {
             baseBind.description.setVisibility(View.GONE);
         }
-        baseBind.userHead.setOnClickListener(new View.OnClickListener() {
+        View.OnClickListener toUserActivityListener = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, UserActivity.class);
                 intent.putExtra(Params.USER_ID, illust.getUser().getId());
                 startActivity(intent);
             }
-        });
-        baseBind.userName.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(mContext, UserActivity.class);
-                intent.putExtra(Params.USER_ID, illust.getUser().getId());
-                startActivity(intent);
-            }
-        });
+        };
+        baseBind.relaIllustBrief.setOnClickListener(toUserActivityListener);
+        baseBind.userName.setOnClickListener(toUserActivityListener);
         baseBind.userName.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {

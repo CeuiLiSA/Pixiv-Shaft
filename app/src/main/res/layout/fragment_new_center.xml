@@ -126,10 +126,10 @@
                                     android:id="@+id/novel"
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
-                                    android:scaleType="centerCrop"
-                                    android:src="@drawable/main_manga"
                                     android:background="@drawable/shape_round_outline"
-                                    android:outlineProvider="background" />
+                                    android:outlineProvider="background"
+                                    android:scaleType="centerCrop"
+                                    android:src="@drawable/main_manga" />
 
                                 <TextView
                                     android:layout_width="wrap_content"

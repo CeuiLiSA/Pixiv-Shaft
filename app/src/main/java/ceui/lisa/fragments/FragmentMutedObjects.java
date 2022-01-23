@@ -19,7 +19,7 @@ import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.MuteEntity;
 import ceui.lisa.databinding.FragmentBaseListBinding;
 import ceui.lisa.databinding.RecyViewHistoryBinding;
-import ceui.lisa.helper.IllustFilter;
+import ceui.lisa.helper.IllustNovelFilter;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.utils.Common;
 
@@ -31,7 +31,7 @@ public class FragmentMutedObjects extends LocalListFragment<FragmentBaseListBind
         return new LocalRepo<List<MuteEntity>>() {
             @Override
             public List<MuteEntity> first() {
-                return IllustFilter.getMutedWorks();
+                return IllustNovelFilter.getMutedWorks();
             }
 
             @Override

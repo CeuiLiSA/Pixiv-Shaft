@@ -619,4 +619,8 @@
   <string name="string_447">畫師ID</string>
   <string name="string_448">僅通過 Wi-Fi 下載</string>
   <string name="string_449">重置</string>
+  <string name="string_450">縮略圖顯示大圖</string>
+  <string name="string_451">插畫二級詳情保持屏幕常亮</string>
+  <string name="string_452">下載限制類型</string>
+  <string name="string_453">不自動下載</string>
 </resources>

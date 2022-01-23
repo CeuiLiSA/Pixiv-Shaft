@@ -58,9 +58,9 @@
             <com.effective.android.panel.view.content.RelativeContentContainer
                 android:id="@+id/content_view"
                 android:layout_width="match_parent"
-                app:relative_auto_reset_enable="true"
+                app:auto_reset_enable="true"
                 android:layout_height="match_parent"
-                app:relative_edit_view="@id/input_box">
+                app:edit_view="@id/input_box">
 
 
 

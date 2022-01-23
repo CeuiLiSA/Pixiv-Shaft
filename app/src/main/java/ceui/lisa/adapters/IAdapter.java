@@ -13,6 +13,7 @@ import androidx.fragment.app.FragmentActivity;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestBuilder;
+import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.bumptech.glide.request.target.Target;
 import com.qmuiteam.qmui.util.QMUIDisplayHelper;
@@ -105,8 +106,9 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
             }
         });
 
+        GlideUrl imgUrl = Shaft.sSettings.isShowLargeThumbnailImage() ? GlideUtil.getLargeImage(target) : GlideUtil.getMediumImg(target);
         RequestBuilder<Drawable> requestBuilder = Glide.with(mContext)
-                .load(GlideUtil.getMediumImg(target));
+                .load(imgUrl);
         if (ratio == MIN_HEIGHT_RATIO || ratio == MAX_HEIGHT_RATIO) {
             requestBuilder
                     .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)

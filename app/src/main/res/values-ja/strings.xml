@@ -617,4 +617,8 @@
   <string name="string_447">ユーザーID</string>
   <string name="string_448">Wi-Fi接続時のみダウンロード</string>
   <string name="string_449">リセット</string>
+  <string name="string_450">サムネイル表示大画像</string>
+  <string name="string_451">イラストの詳細を画面に表示したままにする</string>
+  <string name="string_452">ダウンロード限界タイプ</string>
+  <string name="string_453">自動起動しない</string>
 </resources>
