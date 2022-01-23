@@ -156,7 +156,7 @@ dependencies {
     implementation 'com.blankj:utilcodex:1.31.0'
     implementation 'com.safframework.log:saf-logginginterceptor:1.6.0'
     implementation 'com.google.firebase:firebase-analytics:20.0.2'
-    implementation 'com.google.firebase:firebase-crashlytics:18.2.6'
+    implementation 'com.google.firebase:firebase-crashlytics:18.2.7'
 
     implementation 'com.afollestad:drag-select-recyclerview:2.4.0'
 
@@ -183,7 +183,7 @@ dependencies {
     implementation project(path: ':progressmanager')
     implementation project(path: ':flowlayout-lib')
     implementation 'com.waynejo:androidndkgif:0.3.3'
-    implementation 'com.tencent:mmkv-static:1.2.11'
+    implementation 'com.tencent:mmkv-static:1.2.12'
     implementation 'com.github.tbruyelle:rxpermissions:0.12'
 
     implementation 'androidx.webkit:webkit:1.4.0'
