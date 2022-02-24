@@ -137,10 +137,12 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
         baseBind.like.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                if (!mNovelBean.isIs_bookmarked()) {
-                    PixivOperate.postLikeNovel(mNovelBean, Shaft.sUserModel,
-                            Params.TYPE_PRIVATE, baseBind.like);
-                }
+                Intent intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(Params.ILLUST_ID, mNovelBean.getId());
+                intent.putExtra(Params.DATA_TYPE, Params.TYPE_NOVEL);
+                intent.putExtra(Params.TAG_NAMES, mNovelBean.getTagNames());
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏");
+                mContext.startActivity(intent);
                 return true;
             }
         });

@@ -298,4 +298,8 @@ public class NovelBean implements Serializable, Starable {
 
         return result;
     }
+
+    public String[] getTagNames(){
+        return tags.stream().map(TagsBean::getName).toArray(String[]::new);
+    }
 }

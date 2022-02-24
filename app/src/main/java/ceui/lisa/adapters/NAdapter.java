@@ -133,12 +133,12 @@ public class NAdapter extends BaseAdapter<NovelBean, RecyNovelBinding> {
             bindView.baseBind.like.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    if (target.isIs_bookmarked()) {
-
-                    } else {
-                        PixivOperate.postLikeNovel(allItems.get(position), Shaft.sUserModel,
-                                Params.TYPE_PRIVATE, bindView.baseBind.like);
-                    }
+                    Intent intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(Params.ILLUST_ID, target.getId());
+                    intent.putExtra(Params.DATA_TYPE, Params.TYPE_NOVEL);
+                    intent.putExtra(Params.TAG_NAMES, target.getTagNames());
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏");
+                    mContext.startActivity(intent);
                     return true;
                 }
             });

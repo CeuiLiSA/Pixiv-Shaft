@@ -311,6 +311,7 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
             public boolean onLongClick(View v) {
                 Intent intent = new Intent(mContext, TemplateActivity.class);
                 intent.putExtra(Params.ILLUST_ID, illust.getId());
+                intent.putExtra(Params.DATA_TYPE, Params.TYPE_ILLUST);
                 intent.putExtra(Params.TAG_NAMES, illust.getTagNames());
                 intent.putExtra(Params.LAST_CLASS, getClass().getSimpleName());
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏");
