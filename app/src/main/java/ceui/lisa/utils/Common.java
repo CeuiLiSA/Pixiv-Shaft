@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.OpenableColumns;
@@ -21,6 +22,7 @@ import android.widget.LinearLayout;
 
 import com.blankj.utilcode.util.AppUtils;
 import com.blankj.utilcode.util.FileIOUtils;
+import com.blankj.utilcode.util.FileUtils;
 import com.blankj.utilcode.util.Utils;
 import com.facebook.rebound.SimpleSpringListener;
 import com.facebook.rebound.Spring;
@@ -32,6 +34,7 @@ import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
@@ -46,6 +49,8 @@ import java.util.Random;
 import java.util.stream.IntStream;
 
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
+
 import ceui.lisa.R;
 import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;
@@ -475,5 +480,23 @@ public class Common {
                 }
             }
         }
+    }
+
+    public static Uri copyBitmapToImageCacheFolder(Bitmap bitmap, String fileName){
+        try {
+            // shared_images
+            File cachePath = new File(Utils.getApp().getExternalCacheDir(), "images");
+            cachePath.mkdirs();
+            File file = new File(cachePath, fileName);
+            FileOutputStream fileOutputStream = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream);
+            fileOutputStream.close();
+            return FileProvider.getUriForFile(Utils.getApp(), "ceui.lisa.pixiv.provider", file);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
