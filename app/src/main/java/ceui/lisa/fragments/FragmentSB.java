@@ -179,7 +179,8 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
 
     public void addTag(String tag) {
         boolean isExist = false;
-        for (int i = 0; i < allItems.size(); i++) {
+        int i = 0;
+        for (; i < allItems.size(); i++) {
             if (allItems.get(i).getName().equals(tag)) {
                 isExist = true;
                 break;
@@ -187,7 +188,9 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
         }
 
         if (isExist) {
-            Common.showToast("该标签已存在");
+            // Common.showToast("该标签已存在");
+            allItems.get(i).setSelected(true);
+            mAdapter.notifyItemChanged(i);
             return;
         }
 
