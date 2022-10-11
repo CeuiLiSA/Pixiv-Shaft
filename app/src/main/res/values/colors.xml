@@ -109,5 +109,29 @@
     <color name="novel_marker_add">#ff445b</color>
     <color name="novel_marker_none">#eaeaea</color>
 
+    <color name="colorWhite">#FFFFFFFF</color>
+    <color name="colorWhite06">#0AFFFFFF</color>
+    <color name="colorWhite08">#14FFFFFF</color>
+    <color name="colorWhite10">#1AFFFFFF</color>
+    <color name="colorWhite20">#33FFFFFF</color>
+    <color name="colorWhite12">#1FFFFFFF</color>
+    <color name="colorWhite15">#26FFFFFF</color>
+    <color name="colorWhite25">#40FFFFFF</color>
+    <color name="colorWhite30">#4CFFFFFF</color>
+    <color name="colorWhite40">#66FFFFFF</color>
+    <color name="colorWhite50">#80FFFFFF</color>
+    <color name="colorWhite60">#99FFFFFF</color>
+    <color name="colorWhite80">#CCFFFFFF</color>
+    <color name="colorWhite85">#D9FFFFFF</color>
+    <color name="colorBlack">#000000</color>
+    <color name="colorBlack10">#1A000000</color>
+    <color name="colorBlack30">#4C000000</color>
+    <color name="colorBlack40">#66000000</color>
+    <color name="colorBlack50">#80000000</color>
+    <color name="colorBlack60">#99000000</color>
+    <color name="colorBlack80">#CC000000</color>
+    <color name="colorBlack90">#E6000000</color>
+    <color name="colorBlack95">#F3000000</color>
+    <color name="colorBlack08">#14000000</color>
 </resources>
 

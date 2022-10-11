@@ -643,4 +643,8 @@
     <string name="string_451">插画二级详情保持屏幕常亮</string>
     <string name="string_452">下载限制类型</string>
     <string name="string_453">不自动下载</string>
+    <string name="terms_of_service">服务条款</string>
+    <string name="privacy_policy">隐私政策</string>
+    <string name="landing_terms_base">欢迎使用！继续即表示你同意 Shaft 的 %s 并且确认已阅读我们的 %s.</string>
+    <string name="read_agreement">请先阅读协议</string>
 </resources>

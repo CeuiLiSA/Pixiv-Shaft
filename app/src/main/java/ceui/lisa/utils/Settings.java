@@ -83,7 +83,7 @@ public class Settings {
     private boolean deleteStarIllust = false;
 
     //是否自动添加DNS，true开启直连  false自行代理
-    private boolean autoFuckChina = true;
+    private boolean autoFuckChina = false;
 
     private boolean relatedIllustNoLimit = true;
 
