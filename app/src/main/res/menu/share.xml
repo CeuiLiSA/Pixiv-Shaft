@@ -16,6 +16,12 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/action_share_image"
+        android:orderInCategory="100"
+        android:title="@string/string_454"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_dislike"
         android:orderInCategory="100"
         android:title="@string/string_1"

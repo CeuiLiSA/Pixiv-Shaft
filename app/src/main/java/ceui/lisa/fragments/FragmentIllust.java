@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.SpannableString;
@@ -26,8 +28,15 @@ import androidx.lifecycle.Observer;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.blankj.utilcode.util.FileIOUtils;
+import com.blankj.utilcode.util.FileUtils;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.hjq.toast.ToastUtils;
 import com.qmuiteam.qmui.skin.QMUISkinManager;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
@@ -47,12 +56,14 @@ import ceui.lisa.database.SearchEntity;
 import ceui.lisa.databinding.FragmentIllustBinding;
 import ceui.lisa.dialogs.MuteDialog;
 import ceui.lisa.download.IllustDownload;
+import ceui.lisa.feature.HostManager;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.notification.BaseReceiver;
 import ceui.lisa.notification.CallBackReceiver;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.DensityUtil;
+import ceui.lisa.utils.GlideUrlChild;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
@@ -139,6 +150,31 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                         }
                     }.execute();
                     return true;
+                } else if (menuItem.getItemId() == R.id.action_share_image) {
+                    Glide.with(mContext)
+                            .asBitmap()
+                            .load(new GlideUrlChild(IllustDownload.getUrl(illust, 0, Params.IMAGE_RESOLUTION_LARGE)))
+                            .listener(new RequestListener<Bitmap>() {
+                                @Override
+                                public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {
+                                    return false;
+                                }
+
+                                @Override
+                                public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
+                                    Uri uri = Common.copyBitmapToImageCacheFolder(resource, illust.getId() + ".png");
+                                    if(uri != null){
+                                        Intent shareIntent = new Intent();
+                                        shareIntent.setAction(Intent.ACTION_SEND);
+                                        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                                        shareIntent.setDataAndType(uri, mContext.getContentResolver().getType(uri));
+                                        shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
+                                        startActivity(Intent.createChooser(shareIntent, getString(R.string.share)));
+                                    }
+                                    return true;
+                                }
+                            }).submit();
+
                 } else if (menuItem.getItemId() == R.id.action_dislike) {
                     MuteDialog muteDialog = MuteDialog.newInstance(illust);
                     muteDialog.show(getChildFragmentManager(), "MuteDialog");
@@ -179,6 +215,7 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
             public boolean onLongClick(View v) {
                 Intent intent = new Intent(mContext, TemplateActivity.class);
                 intent.putExtra(Params.ILLUST_ID, illust.getId());
+                intent.putExtra(Params.DATA_TYPE, Params.TYPE_ILLUST);
                 intent.putExtra(Params.TAG_NAMES, illust.getTagNames());
                 intent.putExtra(Params.LAST_CLASS, getClass().getSimpleName());
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "按标签收藏");

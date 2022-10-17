@@ -153,7 +153,7 @@ public class PixivOperate {
 
         if (illustsBean.isIs_bookmarked()) { //已收藏
             illustsBean.setIs_bookmarked(false);
-            Retro.getAppApi().postDislike(sUserModel.getAccess_token(), illustsBean.getId())
+            Retro.getAppApi().postDislikeIllust(sUserModel.getAccess_token(), illustsBean.getId())
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {
@@ -169,7 +169,7 @@ public class PixivOperate {
                     });
         } else { //没有收藏
             illustsBean.setIs_bookmarked(true);
-            Retro.getAppApi().postLike(sUserModel.getAccess_token(), illustsBean.getId(), starType)
+            Retro.getAppApi().postLikeIllust(sUserModel.getAccess_token(), illustsBean.getId(), starType)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {

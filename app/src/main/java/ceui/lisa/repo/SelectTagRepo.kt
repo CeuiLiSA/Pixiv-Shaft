@@ -9,19 +9,33 @@ import io.reactivex.Observable
 import io.reactivex.functions.Function
 
 class SelectTagRepo(
-    private val illustID: Int,
-    private val tagNames: List<String>,
+        private val id: Int,
+        private val type: String,
+        private val tagNames: List<String>,
 ) : RemoteRepo<ListBookmarkTag>() {
 
     var listTag: ListTag? = null
 
     override fun initApi(): Observable<ListBookmarkTag> {
-        val api1 = Retro.getAppApi().getIllustBookmarkTags(token(), illustID)
-        val api2 = Retro.getAppApi().getBookmarkTags(token(), currentUserID(), Params.TYPE_PUBLIC)
-        return api2.flatMap(
+
+        var api1: Observable<ListBookmarkTag>? = null
+        var api2: Observable<ListTag>? = null
+
+        when(type){
+            Params.TYPE_ILLUST -> {
+                api1 = Retro.getAppApi().getIllustBookmarkTags(token(), id)
+                api2 = Retro.getAppApi().getAllIllustBookmarkTags(token(), currentUserID(), Params.TYPE_PUBLIC)
+            }
+            Params.TYPE_NOVEL -> {
+                api1 = Retro.getAppApi().getNovelBookmarkTags(token(), id)
+                api2 = Retro.getAppApi().getAllNovelBookmarkTags(token(), currentUserID(), Params.TYPE_PUBLIC)
+            }
+        }
+
+        return api2!!.flatMap(
             fun(listTag: ListTag): Observable<ListBookmarkTag> {
                 this.listTag = listTag
-                return api1
+                return api1!!
             }
         )
     }

@@ -13,6 +13,7 @@ import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import androidx.appcompat.widget.Toolbar;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -39,6 +40,7 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
 
     private int illustID;
     private String lastClass = "";
+    private String type;
     private List<String> tagNames = new ArrayList<>();
 
     public static FragmentSB newInstance(int illustID) {
@@ -58,10 +60,21 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
         return fragment;
     }
 
+    public static FragmentSB newInstance(int illustID, String type, String[] tagNames) {
+        Bundle args = new Bundle();
+        args.putInt(Params.ILLUST_ID, illustID);
+        args.putString(Params.DATA_TYPE, type);
+        args.putStringArray(Params.TAG_NAMES, tagNames);
+        FragmentSB fragment = new FragmentSB();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
     @Override
     public void initBundle(Bundle bundle) {
         illustID = bundle.getInt(Params.ILLUST_ID);
-        tagNames = Arrays.asList(bundle.getStringArray(Params.TAG_NAMES));
+        type = bundle.getString(Params.DATA_TYPE, Params.TYPE_ILLUST);
+        tagNames = Arrays.asList(Objects.requireNonNull(bundle.getStringArray(Params.TAG_NAMES)));
     }
 
     @Override
@@ -81,7 +94,7 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
 
     @Override
     public BaseRepo repository() {
-        return new SelectTagRepo(illustID, tagNames);
+        return new SelectTagRepo(illustID, type, tagNames);
     }
 
     private void submitStar() {
@@ -95,40 +108,69 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
         if (tempList.size() == 0) {
             boolean isPrivate = baseBind.isPrivate.isChecked();
             String toastMsg = isPrivate ? getString(R.string.like_novel_success_private) : getString(R.string.like_novel_success_public);
-            Retro.getAppApi().postLike(Shaft.sUserModel.getAccess_token(), illustID,
-                    isPrivate ? Params.TYPE_PRIVATE : Params.TYPE_PUBLIC)
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new ErrorCtrl<NullResponse>() {
-                        @Override
-                        public void next(NullResponse nullResponse) {
-                            Common.showToast(toastMsg);
-                            setFollowed();
-                        }
-                    });
+            if(type.equals(Params.TYPE_ILLUST)){
+                Retro.getAppApi().postLikeIllust(Shaft.sUserModel.getAccess_token(), illustID,
+                        isPrivate ? Params.TYPE_PRIVATE : Params.TYPE_PUBLIC)
+                        .subscribeOn(Schedulers.newThread())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new ErrorCtrl<NullResponse>() {
+                            @Override
+                            public void next(NullResponse nullResponse) {
+                                Common.showToast(toastMsg);
+                                setFollowed();
+                            }
+                        });
+            }else if(type.equals(Params.TYPE_NOVEL)){
+                Retro.getAppApi().postLikeNovel(Shaft.sUserModel.getAccess_token(), illustID,
+                        isPrivate ? Params.TYPE_PRIVATE : Params.TYPE_PUBLIC)
+                        .subscribeOn(Schedulers.newThread())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new ErrorCtrl<NullResponse>() {
+                            @Override
+                            public void next(NullResponse nullResponse) {
+                                Common.showToast(toastMsg);
+                                setFollowed();
+                            }
+                        });
+            }
         } else {
             boolean isPrivate = baseBind.isPrivate.isChecked();
             String toastMsg = isPrivate ? getString(R.string.like_novel_success_private) : getString(R.string.like_novel_success_public);
             String[] strings = new String[tempList.size()];
             tempList.toArray(strings);
 
-            Retro.getAppApi().postLike(Shaft.sUserModel.getAccess_token(), illustID,
-                    isPrivate ? Params.TYPE_PRIVATE : Params.TYPE_PUBLIC, strings)
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new ErrorCtrl<NullResponse>() {
-                        @Override
-                        public void next(NullResponse nullResponse) {
-                            Common.showToast(toastMsg);
-                            setFollowed();
-                        }
-                    });
+            if(type.equals(Params.TYPE_ILLUST)){
+                Retro.getAppApi().postLikeIllustWithTags(Shaft.sUserModel.getAccess_token(), illustID,
+                        isPrivate ? Params.TYPE_PRIVATE : Params.TYPE_PUBLIC, strings)
+                        .subscribeOn(Schedulers.newThread())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new ErrorCtrl<NullResponse>() {
+                            @Override
+                            public void next(NullResponse nullResponse) {
+                                Common.showToast(toastMsg);
+                                setFollowed();
+                            }
+                        });
+            }else if(type.equals(Params.TYPE_NOVEL)){
+                Retro.getAppApi().postLikeNovelWithTags(Shaft.sUserModel.getAccess_token(), illustID,
+                        isPrivate ? Params.TYPE_PRIVATE : Params.TYPE_PUBLIC, strings)
+                        .subscribeOn(Schedulers.newThread())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new ErrorCtrl<NullResponse>() {
+                            @Override
+                            public void next(NullResponse nullResponse) {
+                                Common.showToast(toastMsg);
+                                setFollowed();
+                            }
+                        });
+            }
         }
     }
 
     private void setFollowed() {
         //通知其他页面刷新，设置这个作品为已收藏
-        Intent intent = new Intent(Params.LIKED_ILLUST);
+        String intentString = type.equals(Params.TYPE_ILLUST) ? Params.LIKED_ILLUST : Params.LIKED_NOVEL;
+        Intent intent = new Intent(intentString);
         intent.putExtra(Params.ID, illustID);
         intent.putExtra(Params.IS_LIKED, true);
         LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);
@@ -137,7 +179,8 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
 
     public void addTag(String tag) {
         boolean isExist = false;
-        for (int i = 0; i < allItems.size(); i++) {
+        int i = 0;
+        for (; i < allItems.size(); i++) {
             if (allItems.get(i).getName().equals(tag)) {
                 isExist = true;
                 break;
@@ -145,7 +188,9 @@ public class FragmentSB extends NetListFragment<FragmentSelectTagBinding,
         }
 
         if (isExist) {
-            Common.showToast("该标签已存在");
+            // Common.showToast("该标签已存在");
+            allItems.get(i).setSelected(true);
+            mAdapter.notifyItemChanged(i);
             return;
         }
 
