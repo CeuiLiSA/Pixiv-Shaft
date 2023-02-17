@@ -80,8 +80,9 @@ public interface AppApi {
     @GET("v1/novel/recommended?include_privacy_policy=true&filter=for_android&include_ranking_novels=true")
     Observable<ListNovel> getRecmdNovel(@Header("Authorization") String token);
 
-    @GET("v1/novel/follow?restrict=public")
-    Observable<ListNovel> getBookedUserSubmitNovel(@Header("Authorization") String token);
+    @GET("v1/novel/follow")
+    Observable<ListNovel> getBookedUserSubmitNovel(@Header("Authorization") String token,
+                                                   @Query("restrict") String restrict);
 
 
     @GET("v1/trending-tags/{type}?filter=for_android&include_translated_tag_results=true")
@@ -278,9 +279,9 @@ public interface AppApi {
 
     @FormUrlEncoded
     @POST("v2/illust/bookmark/add")
-    Observable<NullResponse> postLike(@Header("Authorization") String token,
-                                      @Field("illust_id") int illust_id,
-                                      @Field("restrict") String restrict);
+    Observable<NullResponse> postLikeIllust(@Header("Authorization") String token,
+                                            @Field("illust_id") int illust_id,
+                                            @Field("restrict") String restrict);
 
     @FormUrlEncoded
     @POST("v2/novel/bookmark/add")
@@ -290,15 +291,22 @@ public interface AppApi {
 
     @FormUrlEncoded
     @POST("v2/illust/bookmark/add")
-    Observable<NullResponse> postLike(@Header("Authorization") String token,
-                                      @Field("illust_id") int illust_id,
-                                      @Field("restrict") String restrict,
-                                      @Field("tags[]") String... tags);
+    Observable<NullResponse> postLikeIllustWithTags(@Header("Authorization") String token,
+                                                    @Field("illust_id") int illust_id,
+                                                    @Field("restrict") String restrict,
+                                                    @Field("tags[]") String... tags);
+
+    @FormUrlEncoded
+    @POST("v2/novel/bookmark/add")
+    Observable<NullResponse> postLikeNovelWithTags(@Header("Authorization") String token,
+                                                    @Field("novel_id") int novel_id,
+                                                    @Field("restrict") String restrict,
+                                                    @Field("tags[]") String... tags);
 
     @FormUrlEncoded
     @POST("v1/illust/bookmark/delete")
-    Observable<NullResponse> postDislike(@Header("Authorization") String token,
-                                         @Field("illust_id") int illust_id);
+    Observable<NullResponse> postDislikeIllust(@Header("Authorization") String token,
+                                               @Field("illust_id") int illust_id);
 
     @FormUrlEncoded
     @POST("v1/novel/bookmark/delete")
@@ -338,35 +346,40 @@ public interface AppApi {
 
 
     /**
-     * 获取插画收藏的标签
+     * 获取所有插画收藏的标签
      */
     //GET v1/user/bookmark-tags/illust?user_id=41531382&restrict=public HTTP/1.1
     @GET("v1/user/bookmark-tags/illust")
-    Observable<ListTag> getBookmarkTags(@Header("Authorization") String token,
-                                        @Query("user_id") int user_id,
-                                        @Query("restrict") String restrict);
+    Observable<ListTag> getAllIllustBookmarkTags(@Header("Authorization") String token,
+                                                 @Query("user_id") int user_id,
+                                                 @Query("restrict") String restrict);
 
     /**
-     * 获取小说收藏的标签
+     * 获取所有小说收藏的标签
      */
     //GET v1/user/bookmark-tags/novel?user_id=41531382&restrict=public HTTP/1.1
     @GET("v1/user/bookmark-tags/novel")
-    Observable<ListTag> getNovelBookmarkTags(@Header("Authorization") String token,
-                                        @Query("user_id") int user_id,
-                                        @Query("restrict") String restrict);
+    Observable<ListTag> getAllNovelBookmarkTags(@Header("Authorization") String token,
+                                                @Query("user_id") int user_id,
+                                                @Query("restrict") String restrict);
 
 
     @GET
     Observable<ListTag> getNextTags(@Header("Authorization") String token,
                                     @Url String nextUrl);
 
-
-    // GET v2/illust/bookmark/detail?illust_id=72878894 HTTP/1.1
-
-
+    /**
+     * 获取单个插画收藏的标签
+     */
     @GET("v2/illust/bookmark/detail")
     Observable<ListBookmarkTag> getIllustBookmarkTags(@Header("Authorization") String token,
                                                       @Query("illust_id") int illust_id);
+    /**
+     * 获取单个小说收藏的标签
+     */
+    @GET("v2/novel/bookmark/detail")
+    Observable<ListBookmarkTag> getNovelBookmarkTags(@Header("Authorization") String token,
+                                                      @Query("novel_id") int novel_id);
 
 
     /**
