@@ -1,21 +1,23 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-    ext.kotlin_version = '1.5.32'
+    ext.kotlin_version = '1.8.0'
     repositories {
         maven { url "https://jitpack.io" }
+        maven { url "https://repo.spring.io/release" }
+        maven { url "https://repository.jboss.org/maven2" }
         maven { url "https://plugins.gradle.org/m2/" }
         mavenCentral()
         google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.2.2'
+        classpath 'com.android.tools.build:gradle:7.4.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'com.google.gms:google-services:4.3.10'
-        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.8.1'
+        classpath 'com.google.gms:google-services:4.3.15'
+        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.4'
         classpath "org.jmailen.gradle:kotlinter-gradle:3.7.0"
 
-        def nav_version = "2.3.5"
+        def nav_version = '2.4.1'
         classpath "androidx.navigation:navigation-safe-args-gradle-plugin:$nav_version"
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -29,6 +31,8 @@ plugins {
 allprojects {
     repositories {
         maven { url "https://jitpack.io" }
+        maven { url "https://repo.spring.io/release" }
+        maven { url "https://repository.jboss.org/maven2" }
         maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
         maven { url "https://oss.jfrog.org/libs-snapshot" }
         maven { url "https://plugins.gradle.org/m2/" }
