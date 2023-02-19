@@ -49,6 +49,7 @@ import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseImage;
 import ceui.lisa.utils.ReverseWebviewCallback;
 import ceui.lisa.view.DrawerLayoutViewPager;
+import ceui.loxia.test.ListActivity;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
@@ -235,10 +236,11 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                         });
             }
         } else {
-            Intent intent = new Intent(mContext, TemplateActivity.class);
-            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "登录注册");
-            startActivity(intent);
-            finish();
+//            Intent intent = new Intent(mContext, TemplateActivity.class);
+//            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "登录注册");
+//            startActivity(intent);
+//            finish();
+            startActivity(new Intent(this, ListActivity.class));
         }
     }
 

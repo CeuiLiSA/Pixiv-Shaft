@@ -17,18 +17,25 @@
 
     <dist:module dist:instant="true" />
 
+    <queries>
+        <package android:name="com.sina.weibo" />
+    </queries>
+
     <application
         android:name=".activities.Shaft"
         android:allowBackup="true"
         android:fullBackupOnly="true"
+        android:hardwareAccelerated="true"
         android:icon="@mipmap/logo_final"
         android:label="@string/app_name"
         android:networkSecurityConfig="@xml/network_security_config"
         android:roundIcon="@mipmap/logo_final_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
-        android:hardwareAccelerated="true"
         tools:ignore="UnusedAttribute">
+        <activity
+            android:name="ceui.loxia.test.ListActivity"
+            android:exported="false" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -74,8 +81,8 @@
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation" />
         <activity
             android:name=".activities.OutWakeActivity"
-            android:label="@string/string_310"
-            android:exported="true">
+            android:exported="true"
+            android:label="@string/string_310">
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
 
@@ -87,21 +94,19 @@
                 <data android:host="www.pixiv.net" />
                 <data android:host="touch.pixiv.net" />
                 <data android:host="pixiv.net" />
-                <data android:pathPrefix="/member_illust.php"/>
-                <data android:pathPrefix="/novel/show.php"/>
-                <data android:pathPrefix="/novel/member.php"/>
-                <data android:pathPrefix="/member.php"/>
-                <data android:pathPrefix="/premium/android"/>
-                <data android:pathPrefix="/artworks/"/>
-                <data android:pathPrefix="/en/artworks/"/>
-                <data android:pathPrefix="/users/"/>
-                <data android:pathPrefix="/en/users/"/>
-                <data android:pathPrefix="/i/"/>
-                <data android:pathPrefix="/u/"/>
-                <data android:pathPrefix="/n/"/>
-
+                <data android:pathPrefix="/member_illust.php" />
+                <data android:pathPrefix="/novel/show.php" />
+                <data android:pathPrefix="/novel/member.php" />
+                <data android:pathPrefix="/member.php" />
+                <data android:pathPrefix="/premium/android" />
+                <data android:pathPrefix="/artworks/" />
+                <data android:pathPrefix="/en/artworks/" />
+                <data android:pathPrefix="/users/" />
+                <data android:pathPrefix="/en/users/" />
+                <data android:pathPrefix="/i/" />
+                <data android:pathPrefix="/u/" />
+                <data android:pathPrefix="/n/" />
             </intent-filter>
-
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
 
@@ -110,10 +115,8 @@
 
                 <data android:scheme="http" />
                 <data android:scheme="https" />
-
                 <data android:host="i.pximg.net" />
             </intent-filter>
-
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
 
@@ -122,11 +125,9 @@
 
                 <data android:scheme="http" />
                 <data android:scheme="https" />
-
                 <data android:host="www.pixiv.me" />
                 <data android:host="pixiv.me" />
             </intent-filter>
-
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
 
@@ -135,7 +136,6 @@
 
                 <data android:scheme="pixiv" />
             </intent-filter>
-
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
 
@@ -144,7 +144,6 @@
 
                 <data android:scheme="shaftintent" />
             </intent-filter>
-
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
 
@@ -153,7 +152,6 @@
 
                 <data android:scheme="http" />
                 <data android:scheme="https" />
-
                 <data android:host="www.pixivision.net" />
             </intent-filter>
         </activity>
@@ -164,40 +162,42 @@
         <meta-data
             android:name="notch.config"
             android:value="portrait|landscape" />
-
         <meta-data
             android:name="ceui.lisa.core.GlideConfiguration"
             android:value="GlideModule" />
 
         <activity android:name=".activities.UserActivity" />
-        <activity android:name=".activities.SearchActivity"
+        <activity
+            android:name=".activities.SearchActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation" />
         <activity android:name=".activities.VActivity" />
-        <activity android:name=".activities.UActivity"
+        <activity
+            android:name=".activities.UActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation" />
         <activity
             android:name=".activities.OutReversActivity"
-            android:label="@string/string_311"
-            android:exported="true">
-
+            android:exported="true"
+            android:label="@string/string_311">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
+
                 <category android:name="android.intent.category.DEFAULT" />
+
                 <data android:mimeType="image/*" />
             </intent-filter>
-
         </activity>
         <activity android:name=".activities.VPActivity" />
         <activity android:name=".activities.NovelActivity" />
         <activity android:name=".jetpack.NavActivity" />
 
         <receiver
-            android:label="@string/recommend_illust"
             android:name=".notification.RecommendAppWidgetProvider"
-            android:exported="false">
+            android:exported="false"
+            android:label="@string/recommend_illust">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
+
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/recommend_appwidget_provider_info" />
@@ -207,11 +207,6 @@
             android:name=".notification.RecommendAppWidgetProvider$RecommendAppWidgetService"
             android:exported="false"
             android:permission="android.permission.BIND_REMOTEVIEWS" />
-
     </application>
-
-    <queries>
-        <package android:name="com.sina.weibo" />
-    </queries>
 
 </manifest>
