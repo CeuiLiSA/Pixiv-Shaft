@@ -1,5 +1,6 @@
 package ceui.refactor
 
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
@@ -8,7 +9,6 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import ceui.lisa.R
 import ceui.lisa.databinding.CellNoneBinding
 import ceui.lisa.databinding.FragmentItemAaaaBinding
 import ceui.lisa.databinding.FragmentItemBbbbBinding
@@ -46,10 +46,12 @@ class CommonAdapter(private val lifecycleOwner: LifecycleOwner) :
         holder: ListItemViewHolder<ViewDataBinding, ListItemHolder>,
         position: Int
     ) {
+        val item = getItem(position)
         holder.binding.lifecycleOwner = lifecycleOwner
         holder.binding.root.setOnClick {
+            item.retrieveListener()(it)
         }
-        holder.onBindViewHolder(getItem(position), position)
+        holder.onBindViewHolder(item, position)
     }
 
     override fun getItemViewType(position: Int): Int {
@@ -58,6 +60,10 @@ class CommonAdapter(private val lifecycleOwner: LifecycleOwner) :
 }
 
 open class ListItemHolder {
+
+    private var onItemClickListener: (View) -> Unit = {
+        Log.d("ListItemHolder", "OnItemClick: ${this.javaClass.simpleName}, view: ${it.javaClass.simpleName}")
+    }
 
     open fun areItemsTheSame(other: ListItemHolder): Boolean {
         return this == other
@@ -69,6 +75,15 @@ open class ListItemHolder {
 
     fun getItemViewType(): Int {
         return this::class.java.hashCode()
+    }
+
+    fun onItemClick(block: (View) -> Unit) : ListItemHolder {
+        this.onItemClickListener = block
+        return this
+    }
+
+    fun retrieveListener(): ((View) -> Unit) {
+        return onItemClickListener
     }
 }
 
