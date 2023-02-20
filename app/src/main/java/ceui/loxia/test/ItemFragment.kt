@@ -1,34 +1,35 @@
 package ceui.loxia.test
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
-import ceui.loxia.test.placeholder.PlaceholderContent
+import ceui.lisa.databinding.FragmentItemList2Binding
+import ceui.refactor.*
 
 /**
  * A fragment representing a list of Items.
  */
-class ItemFragment : Fragment() {
+class ItemFragment : Fragment(R.layout.fragment_item_list2) {
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        val view = inflater.inflate(R.layout.fragment_item_list2, container, false)
+    private val binding by viewBinding(FragmentItemList2Binding::bind)
 
-        // Set the adapter
-        if (view is RecyclerView) {
-            with(view) {
-                layoutManager = LinearLayoutManager(context)
-                adapter = MyItemRecyclerViewAdapter(PlaceholderContent.ITEMS)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        with(binding.list) {
+            val a = CommonAdapter()
+            layoutManager = LinearLayoutManager(context)
+            adapter = a
+            val list = mutableListOf<ListItemHolder>()
+            for (index in 0..100) {
+                if (index % 2 == 0) {
+                    list.add(AAAAHolder(index.toString(), "我是AA第${index}个数据"))
+                } else {
+                    list.add(BBBBHolder(index.toString(), "我是BB第${index}个数据"))
+                }
             }
+            a.submitList(list)
         }
-        return view
     }
 }

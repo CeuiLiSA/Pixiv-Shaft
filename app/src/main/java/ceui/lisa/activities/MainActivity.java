@@ -236,11 +236,10 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                         });
             }
         } else {
-//            Intent intent = new Intent(mContext, TemplateActivity.class);
-//            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "登录注册");
-//            startActivity(intent);
-//            finish();
-            startActivity(new Intent(this, ListActivity.class));
+            Intent intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "登录注册");
+            startActivity(intent);
+            finish();
         }
     }
 
