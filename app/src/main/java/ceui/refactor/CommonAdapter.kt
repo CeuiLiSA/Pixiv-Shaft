@@ -1,8 +1,10 @@
 package ceui.refactor
 
+import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.databinding.ViewDataBinding
+import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -29,7 +31,7 @@ val listItemHolderDiffUtil = object :
 }
 
 
-class CommonAdapter :
+class CommonAdapter(private val lifecycleOwner: LifecycleOwner) :
     ListAdapter<ListItemHolder, ListItemViewHolder<ViewDataBinding, ListItemHolder>>(
         listItemHolderDiffUtil
     ) {
@@ -44,6 +46,9 @@ class CommonAdapter :
         holder: ListItemViewHolder<ViewDataBinding, ListItemHolder>,
         position: Int
     ) {
+        holder.binding.lifecycleOwner = lifecycleOwner
+        holder.binding.root.setOnClick {
+        }
         holder.onBindViewHolder(getItem(position), position)
     }
 

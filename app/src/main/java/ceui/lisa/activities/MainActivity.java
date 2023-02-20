@@ -220,7 +220,8 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     protected void initData() {
         if (sUserModel != null && sUserModel.getUser() != null && sUserModel.getUser().isIs_login()) {
             if (Common.isAndroidQ()) {
-                initFragment();
+//                initFragment();
+                startActivity(new Intent(this, ListActivity.class));
             } else {
                 new RxPermissions(mActivity)
                         .requestEachCombined(

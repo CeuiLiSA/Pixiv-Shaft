@@ -18,7 +18,7 @@ class ItemFragment : Fragment(R.layout.fragment_item_list2) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         with(binding.list) {
-            val a = CommonAdapter()
+            val a = CommonAdapter(viewLifecycleOwner)
             layoutManager = LinearLayoutManager(context)
             adapter = a
             val list = mutableListOf<ListItemHolder>()
