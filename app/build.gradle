@@ -216,6 +216,8 @@ dependencies {
     implementation 'org.honorato.multistatetogglebutton:multistatetogglebutton:0.2.2'
     implementation "io.noties.markwon:core:4.6.2"
 
+    implementation 'com.davemorrissey.labs:subsampling-scale-image-view-androidx:3.10.0'
+
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.2'
 
     configurations {

@@ -125,6 +125,9 @@ public class RecommendAppWidgetProvider extends AppWidgetProvider {
                         .build();
                 startForeground(1, notification);
             }
+            if (Shaft.sUserModel == null) {
+                return START_STICKY;
+            }
             Retro.getAppApi().getRecmdIllust(Shaft.sUserModel.getAccess_token())
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())

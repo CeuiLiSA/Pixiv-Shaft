@@ -77,6 +77,7 @@ import ceui.lisa.models.UserPreviewsBean;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseResult;
+import ceui.loxia.ImageFragment;
 
 public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> implements ColorPickerDialogListener {
 
@@ -198,7 +199,7 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "小说详情":
                     return FragmentNovelHolder.newInstance((NovelBean) intent.getSerializableExtra(Params.CONTENT));
                 case "图片详情":
-                    return FragmentImageDetail.newInstance(intent.getStringExtra(Params.URL));
+                    return ImageFragment.Companion.newInstance(intent.getStringExtra(Params.URL));
                 case "绑定邮箱":
                     return new FragmentEditAccount();
                 case "编辑个人资料":

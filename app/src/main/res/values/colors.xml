@@ -133,5 +133,33 @@
     <color name="colorBlack90">#E6000000</color>
     <color name="colorBlack95">#F3000000</color>
     <color name="colorBlack08">#14000000</color>
+    <color name="voice_record_track_color">#33FFFFFF</color>
+    <color name="colorTextBlue">#FF34A6FF</color>
+    <color name="colorButtonBlue">#FF34A6FF</color>
+    <color name="congratsTextYellow">#FFFFE430</color>
+
+    <color name="buttonTextGreen">#FF94FFDE</color>
+    <color name="buttonTextBlue">#00E6FF</color>
+    <color name="buttonTextRed">#FF3E65</color>
+    <color name="buttonSmallStrokeGreen">#FF0DFFCC</color>
+    <color name="buttonSmallStrokeBlue">#00E6FF</color>
+    <color name="buttonSmallStrokeRed">#FF5A7E</color>
+    <color name="buttonTextYellow">#FFD21E</color>
+    <color name="buttonYellowStroke">#9AFFD21E</color>
+    <color name="buttonYellowBackground">#29CF4200</color>
+    <color name="buttonTextPurple">#744EFF</color>
+
+    <color name="cyan">#00FFFF</color>
+    <color name="alphaBlack">#66000000</color>
+    <color name="alphaGreen">#66008000</color>
+    <color name="alphaWhite">#66FFFFFF</color>
+    <color name="defaultText">#8A000000</color>
+    <color name="green_shadow_color">#00A88C</color>
+    <color name="blue_shadow_color">#0088A8</color>
+    <color name="red_shadow_color">#A7002A</color>
+    <color name="green_mark_text_color">#00CFA5</color>
+    <color name="green_mark_shadow_color">#009262</color>
+
+    <color name="red_button_shadow_color">#A7002A</color>
 </resources>
 

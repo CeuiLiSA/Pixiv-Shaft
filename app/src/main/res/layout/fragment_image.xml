@@ -6,19 +6,25 @@
 
     </data>
 
-    <androidx.cardview.widget.CardView
+    <FrameLayout
         android:layout_width="match_parent"
-        app:cardCornerRadius="@dimen/four_dp"
-        app:cardElevation="@dimen/four_dp"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="@color/black">
 
-        <ImageView
+        <com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
+            android:id="@+id/big_image"
             android:layout_width="match_parent"
-            android:id="@+id/illust_image"
-            android:scaleType="centerCrop"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent" />
 
-        </ImageView>
-    </androidx.cardview.widget.CardView>
-
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/progress_circular_small"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            app:indicatorColor="@color/white"
+            app:indicatorSize="30dp"
+            app:trackColor="@color/voice_record_track_color"
+            app:trackCornerRadius="4dp"
+            app:trackThickness="5dp" />
+    </FrameLayout>
 </layout>
