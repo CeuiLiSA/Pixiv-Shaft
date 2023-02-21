@@ -7,10 +7,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.databinding.ViewDataBinding;
 
-import com.scwang.smartrefresh.layout.SmartRefreshLayout;
-import com.scwang.smartrefresh.layout.api.RefreshHeader;
-import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
-import com.scwang.smartrefresh.layout.header.FalsifyHeader;
+import com.scwang.smart.refresh.header.FalsifyFooter;
+import com.scwang.smart.refresh.header.FalsifyHeader;
+import com.scwang.smart.refresh.layout.SmartRefreshLayout;
+import com.scwang.smart.refresh.layout.api.RefreshHeader;
 
 public abstract class SwipeFragment<T extends ViewDataBinding>
         extends BaseLazyFragment<T> implements Swipe {

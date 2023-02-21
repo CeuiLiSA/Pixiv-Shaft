@@ -6,8 +6,8 @@ import ceui.lisa.interfaces.Display
 import ceui.lisa.models.UserDetailResponse
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.Params
-import com.scwang.smartrefresh.layout.footer.FalsifyFooter
-import com.scwang.smartrefresh.layout.header.FalsifyHeader
+import com.scwang.smart.refresh.header.FalsifyFooter
+import com.scwang.smart.refresh.header.FalsifyHeader
 
 class FragmentUserInfo : BaseFragment<FragmentUserInfoBinding>(), Display<UserDetailResponse> {
 

@@ -21,7 +21,9 @@ import ceui.lisa.fragments.FragmentLocalImageDetail;
 import ceui.lisa.helper.PageTransformerHelper;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
+import ceui.loxia.ImageFragment;
 
 /**
  * 图片二级详情
@@ -55,7 +57,11 @@ public class ImageDetailActivity extends BaseActivity<ActivityImageDetailBinding
             baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getSupportFragmentManager()) {
                 @Override
                 public Fragment getItem(int i) {
-                    return FragmentImageDetail.newInstance(mIllustsBean, i);
+                    if (mIllustsBean.getPage_count() > 1) {
+                        return ImageFragment.Companion.newInstance(mIllustsBean.getMeta_pages().get(i).getImage_urls().getMaxImage());
+                    } else {
+                        return ImageFragment.Companion.newInstance(mIllustsBean.getMeta_single_page().getOriginal());
+                    }
                 }
 
                 @Override

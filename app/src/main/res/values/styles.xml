@@ -242,6 +242,61 @@
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
     </style>
+
+    <declare-styleable name="ProgressTextButton">
+        <attr name="ptb_progress_width" format="dimension" />
+        <attr name="ptb_progress_stroke_width" format="dimension" />
+    </declare-styleable>
+
+    <declare-styleable name="ProgressImageButton">
+        <attr name="pib_progress_width" format="dimension" />
+        <attr name="pib_progress_stroke_width" format="dimension" />
+    </declare-styleable>
+
+    <style name="GreenShiningButton">
+        <item name="android:textColor">@color/buttonTextGreen</item>
+        <item name="android:shadowColor">@color/green_shadow_color</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">2</item>
+        <item name="android:shadowRadius">10</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:gravity">center</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:background">@drawable/round_corner_shining_btn_green</item>
+        <item name="android:stateListAnimator">@animator/button_press_alpha</item>
+    </style>
+
+    <style name="BlueShiningButton">
+        <item name="android:textColor">@color/buttonTextBlue</item>
+        <item name="android:shadowColor">@color/blue_shadow_color</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">2</item>
+        <item name="android:shadowRadius">10</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:gravity">center</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:background">@drawable/round_corner_shining_btn_blue</item>
+        <item name="android:stateListAnimator">@animator/button_press_alpha</item>
+    </style>
+
+    <style name="RedShiningButton">
+        <item name="android:textColor">@color/buttonTextRed</item>
+        <item name="android:shadowColor">@color/red_shadow_color</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">2</item>
+        <item name="android:shadowRadius">10</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:gravity">center</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:background">@drawable/round_corner_shining_btn_red</item>
+        <item name="android:stateListAnimator">@animator/button_press_alpha</item>
+    </style>
 </resources>
 
 

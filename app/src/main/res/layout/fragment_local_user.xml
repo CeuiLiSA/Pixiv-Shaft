@@ -14,7 +14,7 @@
             android:id="@+id/toolbar"
             layout="@layout/toolbar_layout" />
 
-        <com.scwang.smartrefresh.layout.SmartRefreshLayout
+        <com.scwang.smart.refresh.layout.SmartRefreshLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:id="@+id/refreshLayout"
@@ -70,7 +70,7 @@
 
             </androidx.core.widget.NestedScrollView>
 
-        </com.scwang.smartrefresh.layout.SmartRefreshLayout>
+        </com.scwang.smart.refresh.layout.SmartRefreshLayout>
 
         <ProgressBar
             android:id="@+id/progress"

@@ -14,7 +14,7 @@
             android:id="@+id/toolbar"
             layout="@layout/toolbar_layout" />
 
-        <com.scwang.smartrefresh.layout.SmartRefreshLayout
+        <com.scwang.smart.refresh.layout.SmartRefreshLayout
             android:layout_width="match_parent"
             android:id="@+id/refreshLayout"
             android:layout_above="@+id/submit_linear"
@@ -63,7 +63,7 @@
             </RelativeLayout>
 
 
-        </com.scwang.smartrefresh.layout.SmartRefreshLayout>
+        </com.scwang.smart.refresh.layout.SmartRefreshLayout>
 
         <LinearLayout
             android:layout_width="match_parent"

@@ -1,8 +1,9 @@
 package ceui.lisa.fragments;
 
-import com.scwang.smartrefresh.layout.SmartRefreshLayout;
-import com.scwang.smartrefresh.layout.api.RefreshHeader;
-import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
+
+import com.scwang.smart.refresh.header.FalsifyFooter;
+import com.scwang.smart.refresh.layout.SmartRefreshLayout;
+import com.scwang.smart.refresh.layout.api.RefreshHeader;
 
 public interface Swipe {
 

@@ -6,7 +6,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -16,6 +15,9 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.databinding.ViewDataBinding;
 import androidx.fragment.app.FragmentTransaction;
+
+import com.scwang.smart.refresh.header.FalsifyFooter;
+
 import ceui.lisa.R;
 import ceui.lisa.activities.MainActivity;
 import ceui.lisa.activities.Shaft;

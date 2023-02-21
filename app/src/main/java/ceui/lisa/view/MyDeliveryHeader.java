@@ -1,11 +1,10 @@
 package ceui.lisa.view;
 
 import android.content.Context;
-import com.scwang.smartrefresh.header.DeliveryHeader;
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 
-public class MyDeliveryHeader extends DeliveryHeader{
+public class MyDeliveryHeader extends DeliveryHeader {
 
     // protected static is guilty
     // run one time to change default color

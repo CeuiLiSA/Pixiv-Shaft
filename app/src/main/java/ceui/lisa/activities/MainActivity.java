@@ -49,6 +49,7 @@ import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseImage;
 import ceui.lisa.utils.ReverseWebviewCallback;
 import ceui.lisa.view.DrawerLayoutViewPager;
+import ceui.loxia.test.ListActivity;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 
@@ -220,6 +221,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         if (sUserModel != null && sUserModel.getUser() != null && sUserModel.getUser().isIs_login()) {
             if (Common.isAndroidQ()) {
                 initFragment();
+//                startActivity(new Intent(this, ListActivity.class));
             } else {
                 new RxPermissions(mActivity)
                         .requestEachCombined(

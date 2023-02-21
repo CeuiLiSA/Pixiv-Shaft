@@ -12,7 +12,7 @@ import ceui.lisa.interfaces.Display
 import ceui.lisa.models.NullResponse
 import ceui.lisa.models.UserDetailResponse
 import ceui.lisa.utils.Common
-import com.scwang.smartrefresh.layout.SmartRefreshLayout
+import com.scwang.smart.refresh.layout.SmartRefreshLayout
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 

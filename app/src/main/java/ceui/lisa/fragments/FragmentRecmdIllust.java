@@ -9,7 +9,7 @@ import android.os.Bundle;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
-import com.scwang.smartrefresh.layout.footer.FalsifyFooter;
+import com.scwang.smart.refresh.header.FalsifyFooter;
 
 import java.util.ArrayList;
 import java.util.List;
