@@ -14,7 +14,7 @@
 
         <include layout="@layout/toolbar_layout" />
 
-        <com.scwang.smartrefresh.layout.SmartRefreshLayout
+        <com.scwang.smart.refresh.layout.SmartRefreshLayout
             android:layout_width="match_parent"
             android:id="@+id/refreshLayout"
             android:layout_below="@+id/toolbar"
@@ -30,7 +30,7 @@
 
             </androidx.recyclerview.widget.RecyclerView>
 
-        </com.scwang.smartrefresh.layout.SmartRefreshLayout>
+        </com.scwang.smart.refresh.layout.SmartRefreshLayout>
 
         <include
             android:layout_width="wrap_content"

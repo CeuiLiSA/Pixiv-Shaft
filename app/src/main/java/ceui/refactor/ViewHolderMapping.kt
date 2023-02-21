@@ -31,13 +31,13 @@ object ViewHolderMapping {
                 )
             ) as ListItemViewHolder<ViewDataBinding, ListItemHolder>
         } else {
-            return NoneViewHolder(
+            return ListItemViewHolder(
                 CellNoneBinding.inflate(
                     LayoutInflater.from(parent.context),
                     parent,
                     false
                 )
-            ) as ListItemViewHolder<ViewDataBinding, ListItemHolder>
+            )
         }
     }
 }

@@ -226,7 +226,7 @@
                 </LinearLayout>
 
 
-                <com.scwang.smartrefresh.layout.SmartRefreshLayout
+                <com.scwang.smart.refresh.layout.SmartRefreshLayout
                     android:layout_width="match_parent"
                     android:id="@+id/smart_refresh_layout"
                     android:layout_height="wrap_content">
@@ -239,7 +239,7 @@
 
                     </androidx.recyclerview.widget.RecyclerView>
 
-                </com.scwang.smartrefresh.layout.SmartRefreshLayout>
+                </com.scwang.smart.refresh.layout.SmartRefreshLayout>
 
 
 

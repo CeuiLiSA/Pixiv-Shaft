@@ -11,7 +11,7 @@ import ceui.lisa.utils.PackageUtils
 import ceui.lisa.utils.Params
 import com.qmuiteam.qmui.skin.QMUISkinManager
 import com.qmuiteam.qmui.widget.dialog.QMUIDialog.MenuDialogBuilder
-import com.scwang.smartrefresh.layout.SmartRefreshLayout
+import com.scwang.smart.refresh.layout.SmartRefreshLayout
 
 class FragmentAboutApp : SwipeFragment<FragmentAboutBinding>() {
 

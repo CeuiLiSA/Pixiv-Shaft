@@ -2,8 +2,8 @@ package ceui.lisa.core;
 
 import android.content.Context;
 
-import com.scwang.smartrefresh.layout.api.RefreshFooter;
-import com.scwang.smartrefresh.layout.api.RefreshHeader;
+import com.scwang.smart.refresh.layout.api.RefreshFooter;
+import com.scwang.smart.refresh.layout.api.RefreshHeader;
 
 public interface DataView {
 

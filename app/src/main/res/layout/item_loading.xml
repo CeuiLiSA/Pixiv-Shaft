@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+
+    </data>
+
+    <FrameLayout
+        android:id="@+id/progress_frame"
+        android:layout_gravity="center"
+        android:layout_marginHorizontal="40dp"
+        android:layout_width="match_parent"
+        android:layout_height="180dp">
+
+        <LinearLayout
+            android:id="@+id/loading_frame"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ceui.loxia.ProgressImageButton
+                android:id="@+id/progress_circular"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/now_loading"
+                android:textColor="@color/colorWhite80"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/empty_frame"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <Button
+                android:id="@+id/empty_action_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/refresh_button_background"
+                android:gravity="center"
+                android:minHeight="0dp"
+                android:paddingHorizontal="20dp"
+                android:paddingVertical="8dp"
+                android:stateListAnimator="@animator/button_press_alpha"
+                android:text="@string/refresh"
+                android:textAllCaps="false"
+                android:textColor="@color/colorWhite60"
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/empty_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:ellipsize="end"
+                android:gravity="center"
+                android:maxLines="5"
+                android:minLines="1"
+                android:text="@string/empty_content_here"
+                android:textAlignment="center"
+                android:textColor="@color/colorWhite60"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+    </FrameLayout>
+</layout>

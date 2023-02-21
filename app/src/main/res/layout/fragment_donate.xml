@@ -33,7 +33,7 @@
 
         </androidx.appcompat.widget.Toolbar>
 
-        <com.scwang.smartrefresh.layout.SmartRefreshLayout
+        <com.scwang.smart.refresh.layout.SmartRefreshLayout
             android:layout_width="match_parent"
             android:layout_below="@+id/toolbar"
             android:id="@+id/refreshLayout"
@@ -47,7 +47,7 @@
 
 
 
-        </com.scwang.smartrefresh.layout.SmartRefreshLayout>
+        </com.scwang.smart.refresh.layout.SmartRefreshLayout>
 
     </RelativeLayout>
 </layout>

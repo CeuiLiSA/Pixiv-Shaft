@@ -242,6 +242,16 @@
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
     </style>
+
+    <declare-styleable name="ProgressTextButton">
+        <attr name="ptb_progress_width" format="dimension" />
+        <attr name="ptb_progress_stroke_width" format="dimension" />
+    </declare-styleable>
+
+    <declare-styleable name="ProgressImageButton">
+        <attr name="pib_progress_width" format="dimension" />
+        <attr name="pib_progress_stroke_width" format="dimension" />
+    </declare-styleable>
 </resources>
 
 

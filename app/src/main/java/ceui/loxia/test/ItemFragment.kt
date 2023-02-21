@@ -1,38 +1,28 @@
 package ceui.loxia.test
 
 import android.os.Bundle
-import android.util.Log
 import android.view.View
-import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
-import ceui.lisa.databinding.FragmentItemList2Binding
+import ceui.lisa.databinding.FragmentSlinkyListBinding
+import ceui.loxia.SlinkyListFragment
+import ceui.loxia.setUpSlinkyList
+import ceui.loxia.slinkyListVMCustom
 import ceui.refactor.*
 
 /**
  * A fragment representing a list of Items.
  */
-class ItemFragment : Fragment(R.layout.fragment_item_list2) {
+class ItemFragment : SlinkyListFragment(R.layout.fragment_slinky_list) {
 
-    private val binding by viewBinding(FragmentItemList2Binding::bind)
+    private val binding by viewBinding(FragmentSlinkyListBinding::bind)
+    private val viewModel by slinkyListVMCustom {
+        ItemRepository()
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        with(binding.list) {
-            val a = CommonAdapter(viewLifecycleOwner)
-            layoutManager = LinearLayoutManager(context)
-            adapter = a
-            val list = mutableListOf<ListItemHolder>()
-            for (index in 0..100) {
-                if (index % 2 == 0) {
-                    list.add(AAAAHolder(index.toString(), "我是AA第${index}个数据").onItemClick { sender ->
-                    })
-                } else {
-                    list.add(BBBBHolder(index.toString(), "我是BB第${index}个数据").onItemClick { sender ->
-                    })
-                }
-            }
-            a.submitList(list)
-        }
+        binding.listView.layoutManager = LinearLayoutManager(requireContext())
+        setUpSlinkyList(binding.listView, binding.refreshLayout, binding.itemLoading, viewModel)
     }
 }

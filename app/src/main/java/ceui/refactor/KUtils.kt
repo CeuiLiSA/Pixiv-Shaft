@@ -1,6 +1,7 @@
 package ceui.refactor
 
 import android.animation.AnimatorInflater
+import android.content.res.Resources
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.findFragment
@@ -54,3 +55,13 @@ inline fun<reified ActionReceiverT> View.findActionReceiver(): ActionReceiverT {
     val fragment = this.findFragment<Fragment>()
     return fragment.findActionReceiverOrNull<ActionReceiverT>()!!
 }
+
+
+internal val Int.ppppx: Int
+    get() = (this * Resources.getSystem().displayMetrics.density).toInt()
+
+internal val screenWidth: Int
+    get() = Resources.getSystem().displayMetrics.widthPixels
+
+internal val screenHeight: Int
+    get() = Resources.getSystem().displayMetrics.heightPixels

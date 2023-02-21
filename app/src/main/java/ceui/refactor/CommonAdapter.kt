@@ -141,21 +141,3 @@ class BBBBViewHolder(binding: FragmentItemBbbbBinding) :
         contentView.text = (holder as? BBBBHolder)?.content
     }
 }
-
-class NoneHolder(val id: String): ListItemHolder() {
-
-    override fun areItemsTheSame(other: ListItemHolder): Boolean {
-        return id == (other as? NoneHolder)?.id
-    }
-
-    override fun areContentsTheSame(other: ListItemHolder): Boolean {
-        return id == (other as? NoneHolder)?.id
-    }
-}
-
-class NoneViewHolder(binding: CellNoneBinding) :
-    ListItemViewHolder<CellNoneBinding, NoneHolder>(binding) {
-
-    override fun onBindViewHolder(holder: NoneHolder, position: Int) {
-    }
-}

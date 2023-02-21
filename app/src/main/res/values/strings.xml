@@ -648,4 +648,10 @@
     <string name="privacy_policy">隐私政策</string>
     <string name="landing_terms_base">欢迎使用！继续即表示你同意 Shaft 的 %s 并且确认已阅读我们的 %s.</string>
     <string name="read_agreement">请先阅读协议</string>
+    <string name="empty_content_here">这里好像空空的</string>
+    <string name="refresh">刷新</string>
+    <string name="now_loading">加载中…</string>
+    <string name="retry">重试</string>
+    <string name="connection_error">Connection Error</string>
+    <string name="unknown_error_message">Unknown Error</string>
 </resources>

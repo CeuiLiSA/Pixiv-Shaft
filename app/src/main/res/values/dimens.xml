@@ -18,4 +18,7 @@
     <dimen name="forty_eight_dp">96dp</dimen>
     <dimen name="twenty_dp">20dp</dimen>
     <dimen name="text_margin">16dp</dimen>
+    <dimen name="middle_progress_width">3.5dp</dimen>
+    <dimen name="middle_progress_radius">10dp</dimen>
+    <dimen name="hair_line_width">0.6dp</dimen>
 </resources>
