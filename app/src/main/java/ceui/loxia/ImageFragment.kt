@@ -6,6 +6,7 @@ import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
+import ceui.lisa.activities.Shaft
 import ceui.lisa.core.GlideApp
 import ceui.lisa.databinding.FragmentImageBinding
 import ceui.refactor.viewBinding
@@ -48,6 +49,11 @@ class ImageFragment : NavFragment(R.layout.fragment_image) {
                     image.setImage(ImageSource.bitmap(bitmap))
                 }
             }
+        }
+
+        //插画二级详情保持屏幕常亮
+        if (Shaft.sSettings.isIllustDetailKeepScreenOn) {
+            binding.root.keepScreenOn = true
         }
     }
 
