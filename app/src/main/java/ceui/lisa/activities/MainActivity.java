@@ -442,11 +442,6 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
             initDrawerHeader();
             Dev.refreshUser = false;
         }
-
-        if (Dev.isDev) {
-            Intent intent = new Intent(mContext, NavActivity.class);
-            startActivity(intent);
-        }
     }
 
     @Override
