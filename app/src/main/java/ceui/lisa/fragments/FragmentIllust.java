@@ -66,6 +66,7 @@ import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.utils.ShareIllust;
 import ceui.lisa.viewmodel.AppLevelViewModel;
+import ceui.loxia.test.ListActivity;
 
 import static ceui.lisa.utils.SearchTypeUtil.SEARCH_TYPE_DB_KEYWORD;
 import static ceui.lisa.utils.ShareIllust.URL_Head;
@@ -186,6 +187,9 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                     return true;
                 } else if (menuItem.getItemId() == R.id.action_mute_illust) {
                     PixivOperate.muteIllust(illust);
+                    return true;
+                } else if (menuItem.getItemId() == R.id.action_flag_illust) {
+                    startActivity(new Intent(mContext, ListActivity.class));
                     return true;
                 }
                 return false;

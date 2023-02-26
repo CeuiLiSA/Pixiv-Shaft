@@ -654,4 +654,10 @@
     <string name="retry">重试</string>
     <string name="connection_error">Connection Error</string>
     <string name="unknown_error_message">Unknown Error</string>
+    <string name="flag_post">举报这个作品</string>
+    <string name="flag_send_successfully">举报成功</string>
+    <string name="contains_excessive_sexual">过度的性描写</string>
+    <string name="contains_excessive_grotesque">过度的怪异描写</string>
+    <string name="infringes_on_copyrights">违反著作权</string>
+    <string name="violated_other_rules">违反其他服务条款</string>
 </resources>
