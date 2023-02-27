@@ -189,7 +189,9 @@ public class FragmentIllust extends SwipeFragment<FragmentIllustBinding> {
                     PixivOperate.muteIllust(illust);
                     return true;
                 } else if (menuItem.getItemId() == R.id.action_flag_illust) {
-                    startActivity(new Intent(mContext, ListActivity.class));
+                    Intent intent = new Intent(mContext, TemplateActivity.class);
+                    intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "举报插画");
+                    startActivity(intent);
                     return true;
                 }
                 return false;

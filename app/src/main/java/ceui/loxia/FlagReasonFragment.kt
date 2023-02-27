@@ -1,15 +1,15 @@
 package ceui.loxia
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
+import ceui.lisa.activities.TemplateActivity
 import ceui.lisa.databinding.CellFlagReasonBinding
 import ceui.lisa.databinding.FragmentSlinkyListBinding
-import ceui.refactor.ListItemHolder
-import ceui.refactor.ListItemViewHolder
-import ceui.refactor.viewBinding
-import kotlinx.coroutines.delay
+import ceui.lisa.utils.Params
+import ceui.refactor.*
 
 object FlagReason {
 
@@ -39,8 +39,17 @@ class FlagReasonFragment : SlinkyListFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        binding.toolbar.toolbar.setNavigationOnClickListener { requireActivity().finish() }
+        binding.toolbar.toolbarTitle.text = getString(R.string.violated_rule)
         binding.listView.layoutManager = LinearLayoutManager(requireContext())
         setUpSlinkyList(binding.listView, binding.refreshLayout, binding.itemLoading, viewModel)
+    }
+
+    fun onHolderClick(holder: FlagReasonHolder) {
+        startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
+            putExtra(TemplateActivity.EXTRA_FRAGMENT, "填写举报详细信息")
+            putExtra(Params.ID, holder.id)
+        })
     }
 }
 
@@ -48,7 +57,6 @@ class FlagReasonRepository : Repository<FlagReasonFragment>() {
 
     override suspend fun refresh(fragment: FlagReasonFragment) {
         with(fragment) {
-            delay(500L)
             val list = mutableListOf<ListItemHolder>()
             list.add(
                 FlagReasonHolder(
@@ -105,5 +113,8 @@ class FlagReasonViewHolder(binding: CellFlagReasonBinding) :
 
     override fun onBindViewHolder(holder: FlagReasonHolder, position: Int) {
         binding.flagReasonTv.text = holder.content
+        binding.root.setOnClick {
+            it.findFragmentOrNull<FlagReasonFragment>()?.onHolderClick(holder)
+        }
     }
 }

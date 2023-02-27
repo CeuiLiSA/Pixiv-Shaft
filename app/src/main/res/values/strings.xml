@@ -660,4 +660,5 @@
     <string name="contains_excessive_grotesque">过度的怪异描写</string>
     <string name="infringes_on_copyrights">违反著作权</string>
     <string name="violated_other_rules">违反其他服务条款</string>
+    <string name="violated_rule">违规原因</string>
 </resources>
