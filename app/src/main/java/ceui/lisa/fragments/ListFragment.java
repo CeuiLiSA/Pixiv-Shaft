@@ -153,6 +153,10 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
         }
     }
 
+    public void refresh() {
+        mRefreshLayout.autoRefresh();
+    }
+
     @Override
     public void lazyData() {
         //进页面主动刷新

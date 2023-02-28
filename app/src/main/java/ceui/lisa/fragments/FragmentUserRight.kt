@@ -67,16 +67,19 @@ class FragmentUserRight : SwipeFragment<FragmentUserRightBinding>() {
                 return binding.root
             }
         }
-        val entity = AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().getMuteEntityByID(data.userId)
-        baseBind.banUser.isChecked = entity != null
-        baseBind.banUser.setOnCheckedChangeListener { buttonView, isChecked ->
-            if (isChecked) {
-                PixivOperate.muteUser(data.user)
-            } else {
-                PixivOperate.unMuteUser(data.user)
-            }
-        }
-        baseBind.banUserRela.setOnClickListener { baseBind.banUser.performClick() }
+//        baseBind.banUser.setOnCheckedChangeListener { buttonView, isChecked ->
+//            if (isChecked) {
+//                PixivOperate.muteUser(data.user)
+//                mUserViewModel.isUserMuted.postValue(true)
+//            } else {
+//                PixivOperate.unMuteUser(data.user)
+//                mUserViewModel.isUserMuted.postValue(false)
+//            }
+//        }
+//        mUserViewModel.isUserMuted.observe(viewLifecycleOwner) { isMuted ->
+//            baseBind.banUser.isChecked = isMuted == true
+//        }
+//        baseBind.banUserRela.setOnClickListener { baseBind.banUser.performClick() }
         baseBind.tagLayout.setOnTagClickListener { _, position, _ ->
             val intent = Intent(mContext, TemplateActivity::class.java)
             intent.putExtra(Params.USER_ID, data.user.userId)

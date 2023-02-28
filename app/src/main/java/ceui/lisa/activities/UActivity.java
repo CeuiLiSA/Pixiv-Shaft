@@ -13,8 +13,12 @@ import androidx.lifecycle.ViewModelProvider;
 import com.bumptech.glide.Glide;
 import com.github.ybq.android.spinkit.style.Wave;
 import com.google.android.material.appbar.AppBarLayout;
+import com.qmuiteam.qmui.skin.QMUISkinManager;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
 
 import ceui.lisa.R;
+import ceui.lisa.database.AppDatabase;
+import ceui.lisa.database.MuteEntity;
 import ceui.lisa.databinding.ActivityNewUserBinding;
 import ceui.lisa.fragments.FragmentHolder;
 import ceui.lisa.http.NullCtrl;
@@ -28,6 +32,7 @@ import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.viewmodel.AppLevelViewModel;
 import ceui.lisa.viewmodel.UserViewModel;
+import ceui.loxia.Event;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
@@ -86,6 +91,12 @@ public class UActivity extends BaseActivity<ActivityNewUserBinding> implements D
                 invoke(userDetailResponse);
             }
         });
+        final MuteEntity entity = AppDatabase.getAppDatabase(this).searchDao().getMuteEntityByID(userID);
+        mUserViewModel.isUserMuted.setValue(entity != null);
+
+        final MuteEntity block = AppDatabase.getAppDatabase(this).searchDao().getBlockMuteEntityByID(userID);
+        mUserViewModel.isUserBlocked.setValue(block != null);
+
         Shaft.appViewModel.getFollowUserLiveData(userID).observe(this, new Observer<Integer>() {
             @Override
             public void onChanged(Integer integer) {
@@ -146,8 +157,35 @@ public class UActivity extends BaseActivity<ActivityNewUserBinding> implements D
 
         if (userID == Shaft.sUserModel.getUserId()) {
             baseBind.starUser.setVisibility(View.INVISIBLE);
+            baseBind.moreAction.setVisibility(View.GONE);
         } else {
             baseBind.starUser.setVisibility(View.VISIBLE);
+            baseBind.moreAction.setVisibility(View.VISIBLE);
+            baseBind.moreAction.setOnClickListener(v -> {
+                final boolean isMuted = Boolean.TRUE.equals(mUserViewModel.isUserMuted.getValue());
+                String[] OPTIONS = new String[] {
+                        isMuted ? getString(R.string.cancel_block_this_users_work) : getString(R.string.block_this_users_work),
+//                        getString(R.string.add_user_to_blacklist)
+                };
+                new QMUIDialog.MenuDialogBuilder(mActivity)
+                        .setSkinManager(QMUISkinManager.defaultInstance(mActivity))
+                        .addItems(OPTIONS, (dialog, which) -> {
+                            if (which == 0) {
+                                if (isMuted) {
+                                    PixivOperate.unMuteUser(data.getUser());
+                                    mUserViewModel.isUserMuted.setValue(false);
+                                } else  {
+                                    PixivOperate.muteUser(data.getUser());
+                                    mUserViewModel.isUserMuted.setValue(true);
+                                }
+                                mUserViewModel.refreshEvent.setValue(new Event<>(100, 0L));
+                            } else if (which == 1) {
+
+                            }
+                            dialog.dismiss();
+                        })
+                        .show();
+            });
 
             baseBind.starUser.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -189,7 +227,7 @@ public class UActivity extends BaseActivity<ActivityNewUserBinding> implements D
                 Common.copy(mContext, String.valueOf(data.getUser().getId()));
             }
         });
-        baseBind.userName.setOnLongClickListener(new View.OnLongClickListener(){
+        baseBind.userName.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
                 Common.copy(mContext, data.getUser().getName());
@@ -225,15 +263,15 @@ public class UActivity extends BaseActivity<ActivityNewUserBinding> implements D
         baseBind.followS.setOnClickListener(follow);
     }
 
-    private void updateFollowUserUI(int status){
-        if(AppLevelViewModel.FollowUserStatus.isFollowed(status)){
+    private void updateFollowUserUI(int status) {
+        if (AppLevelViewModel.FollowUserStatus.isFollowed(status)) {
             baseBind.starUser.setText(R.string.string_177);
-            if(AppLevelViewModel.FollowUserStatus.isPrivateFollowed(status)){
+            if (AppLevelViewModel.FollowUserStatus.isPrivateFollowed(status)) {
                 baseBind.starUser.setBackgroundResource(R.drawable.follow_button_stroke_new_dotted);
-            }else{
+            } else {
                 baseBind.starUser.setBackgroundResource(R.drawable.follow_button_stroke_new);
             }
-        }else{
+        } else {
             baseBind.starUser.setText(R.string.string_178);
             baseBind.starUser.setBackgroundResource(R.drawable.follow_button_stroke_new);
         }

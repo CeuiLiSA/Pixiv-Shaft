@@ -175,23 +175,39 @@
 
                     </TextView>
 
-                    <TextView
+
+                    <LinearLayout
+                        android:orientation="horizontal"
                         android:layout_width="wrap_content"
-                        android:text="@string/string_177"
-                        android:visibility="invisible"
-                        android:textSize="12sp"
-                        android:textColor="@color/white"
-                        android:paddingStart="@dimen/twelve_dip"
-                        android:paddingEnd="@dimen/twelve_dip"
-                        android:paddingTop="@dimen/six_dp"
-                        android:paddingBottom="@dimen/six_dp"
-                        android:background="@drawable/follow_button_stroke_new"
-                        android:layout_marginEnd="@dimen/eight_dp"
+                        android:gravity="center_vertical"
                         android:layout_gravity="end|center_vertical"
-                        android:id="@+id/star_user"
                         android:layout_height="wrap_content">
 
-                    </TextView>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:text="@string/string_177"
+                            android:visibility="invisible"
+                            android:textSize="12sp"
+                            android:textColor="@color/white"
+                            android:paddingStart="@dimen/twelve_dip"
+                            android:paddingEnd="@dimen/twelve_dip"
+                            android:paddingTop="@dimen/six_dp"
+                            android:paddingBottom="@dimen/six_dp"
+                            android:background="@drawable/follow_button_stroke_new"
+                            android:layout_marginEnd="@dimen/eight_dp"
+                            android:id="@+id/star_user"
+                            android:layout_height="wrap_content">
+
+                        </TextView>
+
+                        <ImageView
+                            android:id="@+id/more_action"
+                            android:layout_width="44dp"
+                            android:padding="9dp"
+                            android:src="@drawable/ic_more_vert_black_24dp"
+                            android:layout_height="44dp"/>
+                    </LinearLayout>
+
 
                 </androidx.appcompat.widget.Toolbar>
 

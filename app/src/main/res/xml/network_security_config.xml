@@ -2,4 +2,14 @@
 <network-security-config xmlns:tools="http://schemas.android.com/tools">
     <base-config cleartextTrafficPermitted="true"
         tools:ignore="InsecureBaseConfiguration" />
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">pixiv.net</domain>
+        <domain includeSubdomains="true">pximg.net</domain>
+        <domain includeSubdomains="true">126.net</domain>
+        <domain includeSubdomains="true">192.243.123.124</domain>
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </domain-config>
 </network-security-config>

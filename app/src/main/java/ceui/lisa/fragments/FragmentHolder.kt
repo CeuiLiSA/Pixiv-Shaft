@@ -11,6 +11,7 @@ import ceui.lisa.databinding.FragmentHolderBinding
 import ceui.lisa.utils.MyOnTabSelectedListener
 import ceui.lisa.utils.Params
 import ceui.lisa.viewmodel.UserViewModel
+import ceui.loxia.observeEvent
 
 class FragmentHolder : BaseFragment<FragmentHolderBinding>() {
 
@@ -61,7 +62,15 @@ class FragmentHolder : BaseFragment<FragmentHolderBinding>() {
                 )
             }
         }
-
+        mUserViewModel.refreshEvent.observeEvent(viewLifecycleOwner) {
+            if (it > 0) {
+                items.forEach { frag ->
+                    if (frag is NetListFragment<*, *, *>) {
+                        frag.refresh()
+                    }
+                }
+            }
+        }
         @Suppress("DEPRECATION")
         baseBind.viewPager.adapter = object : FragmentPagerAdapter(childFragmentManager) {
 

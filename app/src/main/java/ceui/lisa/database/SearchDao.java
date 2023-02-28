@@ -68,6 +68,9 @@ public interface SearchDao {
     @Query("SELECT * FROM tag_mute_table WHERE type = 3 AND id = :userID LIMIT 1")
     MuteEntity getMuteEntityByID(int userID);
 
+    @Query("SELECT * FROM tag_mute_table WHERE type = 4 AND id = :userID LIMIT 1")
+    MuteEntity getBlockMuteEntityByID(int userID);
+
     @Query("SELECT * FROM tag_mute_table")
     List<MuteEntity> getAllMuteEntities();
 

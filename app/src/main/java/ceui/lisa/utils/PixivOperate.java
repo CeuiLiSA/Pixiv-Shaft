@@ -134,23 +134,6 @@ public class PixivOperate {
                 });
     }
 
-    public static void postFlagIllust(
-            int illustId,
-            String flagReason,
-            String flagDesc
-    ) {
-        Retro.getAppApi().postFlagIllust(
-                        sUserModel.getAccess_token(), illustId, flagReason, flagDesc)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new ErrorCtrl<NullResponse>() {
-                    @Override
-                    public void next(NullResponse nullResponse) {
-                        Common.showToast(getString(R.string.flag_send_successfully));
-                    }
-                });
-    }
-
     public static void postLikeDefaultStarType(IllustsBean illustsBean) {
         if(Shaft.sSettings.isPrivateStar()){
             postLike(illustsBean, Params.TYPE_PRIVATE, false, 0);
@@ -442,6 +425,26 @@ public class PixivOperate {
     public static void unMuteUser(UserBean userBean) {
         MuteEntity muteEntity = new MuteEntity();
         muteEntity.setType(Params.MUTE_USER);
+        muteEntity.setId(userBean.getId());
+        muteEntity.setTagJson(Shaft.sGson.toJson(userBean));
+        muteEntity.setSearchTime(System.currentTimeMillis());
+        AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().unMuteTag(muteEntity);
+        Common.showToast(Shaft.getContext().getString(R.string.string_383));
+    }
+
+    public static void blockUser(UserBean userBean) {
+        MuteEntity muteEntity = new MuteEntity();
+        muteEntity.setType(Params.BLOCK_USER);
+        muteEntity.setId(userBean.getId());
+        muteEntity.setTagJson(Shaft.sGson.toJson(userBean));
+        muteEntity.setSearchTime(System.currentTimeMillis());
+        AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().insertMuteTag(muteEntity);
+        Common.showToast(Shaft.getContext().getString(R.string.string_382));
+    }
+
+    public static void unBlockUser(UserBean userBean) {
+        MuteEntity muteEntity = new MuteEntity();
+        muteEntity.setType(Params.BLOCK_USER);
         muteEntity.setId(userBean.getId());
         muteEntity.setTagJson(Shaft.sGson.toJson(userBean));
         muteEntity.setSearchTime(System.currentTimeMillis());
