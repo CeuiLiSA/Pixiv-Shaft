@@ -33,6 +33,7 @@ object FlagReason {
 class FlagReasonFragment : SlinkyListFragment() {
 
     private val binding by viewBinding(FragmentSlinkyListBinding::bind)
+    private val safeArgs by threadSafeArgs<FlagReasonFragmentArgs>()
     private val viewModel by slinkyListVMCustom {
         FlagReasonRepository()
     }
@@ -48,8 +49,31 @@ class FlagReasonFragment : SlinkyListFragment() {
     fun onHolderClick(holder: FlagReasonHolder) {
         startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
             putExtra(TemplateActivity.EXTRA_FRAGMENT, "填写举报详细信息")
-            putExtra(Params.ID, holder.id)
+            putExtra(FlagDescFragment.FlagReasonIdKey, holder.id)
+            putExtra(FlagDescFragment.FlagObjectIdKey, safeArgs.flagObjectId)
+            putExtra(FlagDescFragment.FlagObjectTypeKey, safeArgs.flagObjectType)
         })
+    }
+
+    companion object {
+        fun newInstance(flagObjectId: Int, flagObjectType: Int): FlagReasonFragment {
+            val fragment = FlagReasonFragment()
+            fragment.arguments = Bundle().apply {
+                putInt(FlagDescFragment.FlagObjectIdKey, flagObjectId)
+                putInt(FlagDescFragment.FlagObjectTypeKey, flagObjectType)
+            }
+            return fragment
+        }
+
+        var shouldAutoFinish = false
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (shouldAutoFinish) {
+            shouldAutoFinish = false
+            requireActivity().finish()
+        }
     }
 }
 
@@ -57,36 +81,28 @@ class FlagReasonRepository : Repository<FlagReasonFragment>() {
 
     override suspend fun refresh(fragment: FlagReasonFragment) {
         with(fragment) {
-            val list = mutableListOf<ListItemHolder>()
-            list.add(
+            holderList.value = listOf(
                 FlagReasonHolder(
                     FlagReason.ContainsExcessiveSexualId,
                     getString(R.string.contains_excessive_sexual),
                     FlagReason.ContainsExcessiveSexualContent
-                )
-            )
-            list.add(
+                ),
                 FlagReasonHolder(
                     FlagReason.ContainsExcessiveGrotesqueId,
                     getString(R.string.contains_excessive_grotesque),
                     FlagReason.ContainsExcessiveGrotesqueContent
-                )
-            )
-            list.add(
+                ),
                 FlagReasonHolder(
                     FlagReason.InfringesOnCopyrightsId,
                     getString(R.string.infringes_on_copyrights),
                     FlagReason.InfringesOnCopyrights
-                )
-            )
-            list.add(
+                ),
                 FlagReasonHolder(
                     FlagReason.ViolatedOtherRulesId,
                     getString(R.string.violated_other_rules),
                     FlagReason.ViolatedOtherRules
                 )
             )
-            holderList.value = list
             refreshState.value = RefreshState.LOADED(hasContent = true, hasNext = false)
         }
     }

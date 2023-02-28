@@ -8,8 +8,10 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:background="@drawable/cell_background"
-        android:layout_height="70dp">
+        android:background="?android:attr/selectableItemBackground"
+        android:clickable="true"
+        android:layout_height="70dp"
+        android:focusable="true">
 
         <TextView
             android:id="@+id/flag_reason_tv"
@@ -21,6 +23,12 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            style="@style/setting_right_arrow" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

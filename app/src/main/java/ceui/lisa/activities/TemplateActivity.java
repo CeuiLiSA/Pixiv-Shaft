@@ -79,6 +79,7 @@ import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseResult;
 import ceui.loxia.FlagDescFragment;
 import ceui.loxia.FlagReasonFragment;
+import ceui.loxia.ObjectSpec;
 
 public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> implements ColorPickerDialogListener {
 
@@ -240,9 +241,16 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                 case "测试测试":
                     return new FragmentSAF();
                 case "举报插画":
-                    return new FlagReasonFragment();
+                    return FlagReasonFragment.Companion.newInstance(
+                        intent.getIntExtra(FlagDescFragment.FlagObjectIdKey, 0),
+                        intent.getIntExtra(FlagDescFragment.FlagObjectTypeKey, 0)
+                    );
                 case "填写举报详细信息":
-                    return new FlagDescFragment();
+                    return FlagDescFragment.Companion.newInstance(
+                        intent.getIntExtra(FlagDescFragment.FlagReasonIdKey, 0),
+                        intent.getIntExtra(FlagDescFragment.FlagObjectIdKey, 0),
+                        intent.getIntExtra(FlagDescFragment.FlagObjectTypeKey, 0)
+                    );
                 case "相关用户":
                     return FragmentRelatedUser.newInstance(intent.getIntExtra(Params.USER_ID, 0));
                 case "Markdown":

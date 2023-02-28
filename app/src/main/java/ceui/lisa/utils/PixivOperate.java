@@ -134,23 +134,6 @@ public class PixivOperate {
                 });
     }
 
-    public static void postFlagIllust(
-            int illustId,
-            String flagReason,
-            String flagDesc
-    ) {
-        Retro.getAppApi().postFlagIllust(
-                        sUserModel.getAccess_token(), illustId, flagReason, flagDesc)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new ErrorCtrl<NullResponse>() {
-                    @Override
-                    public void next(NullResponse nullResponse) {
-                        Common.showToast(getString(R.string.flag_send_successfully));
-                    }
-                });
-    }
-
     public static void postLikeDefaultStarType(IllustsBean illustsBean) {
         if(Shaft.sSettings.isPrivateStar()){
             postLike(illustsBean, Params.TYPE_PRIVATE, false, 0);

@@ -217,12 +217,6 @@ public interface AppApi {
     Observable<UserFollowDetail> getFollowDetail(@Header("Authorization") String token,
                                                  @Query("user_id") int user_id);
 
-    @FormUrlEncoded
-    @POST("v1/illust/report")
-    Observable<NullResponse> postFlagIllust(@Header("Authorization") String token,
-                                        @Field("illust_id") int illust_id,
-                                        @Field("type_of_problem") String type_of_problem,
-                                        @Field("message") String message);
 
     /**
      * 获取userid 所关注的人

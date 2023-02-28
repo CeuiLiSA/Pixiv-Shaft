@@ -27,6 +27,7 @@ import ceui.lisa.feature.HostManager;
 import ceui.lisa.feature.ToastStyle;
 import ceui.lisa.helper.ShortcutHelper;
 import ceui.lisa.helper.ThemeHelper;
+import ceui.lisa.http.AppApi;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.notification.NetWorkStateReceiver;
 import ceui.lisa.utils.DensityUtil;
@@ -34,12 +35,13 @@ import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Settings;
 import ceui.lisa.view.MyDeliveryHeader;
 import ceui.lisa.viewmodel.AppLevelViewModel;
+import ceui.loxia.ServicesProvider;
 import me.jessyan.progressmanager.ProgressManager;
 import okhttp3.OkHttpClient;
 
 import static ceui.lisa.utils.Local.LOCAL_DATA;
 
-public class Shaft extends Application {
+public class Shaft extends Application implements ServicesProvider {
 
     public static UserModel sUserModel;
     public static Settings sSettings;

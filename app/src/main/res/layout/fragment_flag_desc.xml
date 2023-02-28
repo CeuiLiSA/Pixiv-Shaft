@@ -1,32 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    android:layout_width="match_parent"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_height="match_parent">
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <include
-        android:id="@+id/toolbar"
-        layout="@layout/toolbar_layout"/>
+    <data>
 
-    <LinearLayout
-        android:layout_below="@+id/toolbar"
-        android:orientation="vertical"
-        android:layout_margin="16dp"
+        <variable
+            name="viewModel"
+            type="ceui.loxia.FlagDescViewModel" />
+    </data>
+
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:text="@string/violated_rule"
-            android:layout_height="wrap_content"/>
+        <include
+            android:id="@+id/toolbar"
+            layout="@layout/toolbar_layout" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:text="@string/violated_rule"
-            android:layout_height="wrap_content"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/toolbar"
+            android:layout_margin="16dp"
+            android:orientation="vertical">
 
-    </LinearLayout>
+            <TextView
+                android:id="@+id/flag_type"
+                android:textStyle="bold"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/violated_other_rules"
+                android:textSize="16sp" />
+
+            <EditText
+                android:id="@+id/input_box"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_marginTop="30dp"
+                android:background="@drawable/round_corner_white05_r8"
+                android:gravity="top"
+                android:hint="@string/flag_hint"
+                android:padding="10dp"
+                android:text="@={viewModel.desc}"
+                android:textColor="@color/black"
+                android:textSize="17sp" />
+
+            <ceui.loxia.ProgressTextButton
+                android:id="@+id/submit_flag"
+                style="@style/RedShiningButton"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="60dp"
+                android:text="@string/submit_flag" />
+
+        </LinearLayout>
 
 
-
-</RelativeLayout>
+    </RelativeLayout>
+</layout>

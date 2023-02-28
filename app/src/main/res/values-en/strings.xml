@@ -622,4 +622,19 @@
   <string name="string_452">Download limit type</string>
   <string name="string_453">Do not auto start</string>
   <string name="string_454">Share first image</string>
+  <string name="refresh">Refresh</string>
+  <string name="now_loading">Loading…</string>
+  <string name="retry">Retry</string>
+  <string name="connection_error">Connection Error</string>
+  <string name="unknown_error_message">Unknown Error</string>
+  <string name="flag_post">Flag this Post</string>
+  <string name="flag_send_successfully">Flag Successfully</string>
+  <string name="contains_excessive_sexual">Excessive Sexuality</string>
+  <string name="contains_excessive_grotesque">Overly Weird Description</string>
+  <string name="infringes_on_copyrights">Violation of Copyright</string>
+  <string name="violated_other_rules">Violation of other Terms of Service</string>
+  <string name="violated_rule">Violation Type</string>
+  <string name="flag_desc">Violation description</string>
+  <string name="flag_hint">Please tell us more details</string>
+  <string name="submit_flag">Submit a report</string>
 </resources>
