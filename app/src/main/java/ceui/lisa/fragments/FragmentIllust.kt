@@ -17,11 +17,18 @@ import android.view.View.OnLongClickListener
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import android.widget.TextView
 import androidx.appcompat.widget.Toolbar
+import androidx.core.view.isVisible
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
 import ceui.lisa.activities.*
 import ceui.lisa.adapters.IllustAdapter
+import ceui.lisa.database.AppDatabase
+import ceui.lisa.database.MuteEntity
 import ceui.lisa.databinding.FragmentIllustBinding
 import ceui.lisa.dialogs.MuteDialog
 import ceui.lisa.download.IllustDownload
@@ -33,6 +40,8 @@ import ceui.lisa.utils.*
 import ceui.lisa.viewmodel.AppLevelViewModel.FollowUserStatus
 import ceui.loxia.FlagDescFragment
 import ceui.loxia.ObjectPool
+import ceui.loxia.combineLatest
+import ceui.refactor.setOnClick
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
@@ -46,10 +55,20 @@ import com.qmuiteam.qmui.widget.dialog.QMUIDialog.MessageDialogBuilder
 import com.scwang.smart.refresh.layout.SmartRefreshLayout
 import com.zhy.view.flowlayout.FlowLayout
 import com.zhy.view.flowlayout.TagAdapter
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+class IllustViewModel : ViewModel() {
+
+    private val muteEntity = MutableLiveData<MuteEntity>()
+}
 
 class FragmentIllust : SwipeFragment<FragmentIllustBinding?>() {
 
     private lateinit var illust: IllustsBean
+    private val viewModel by viewModels<IllustViewModel>()
 
     public override fun initBundle(bundle: Bundle) {
         illust = bundle.getSerializable(Params.CONTENT) as IllustsBean
@@ -65,6 +84,61 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding?>() {
             Handler().postDelayed({ finish() }, 1000)
             return
         }
+        baseBind.leave.setOnClick {
+            viewLifecycleOwner.lifecycleScope.launch {
+                it.showProgress()
+                delay(600L)
+                requireActivity().finish()
+                it.hideProgress()
+            }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            val dao = AppDatabase.getAppDatabase(requireContext()).searchDao()
+            val downloadDao = AppDatabase.getAppDatabase(requireContext()).downloadDao()
+            val muteIllust = withContext(Dispatchers.IO) {
+                dao.getIllustMuteEntityByID(illust.id)
+            }
+            val muteUser = withContext(Dispatchers.IO) {
+                dao.getUserMuteEntityByIDLiveData((illust.user?.userId ?: 0))
+            }
+            combineLatest(muteIllust, muteUser).observe(viewLifecycleOwner) {
+                val illustEntity = it.first
+                val userEntity = it.second
+                if (illustEntity == null && userEntity == null) {
+                    baseBind.contentFrame.isVisible = true
+                    baseBind.abandonedFrame.isVisible = false
+                } else {
+                    baseBind.contentFrame.isVisible = false
+                    baseBind.abandonedFrame.isVisible = true
+                    baseBind.cancelMuteIllust.isVisible = illustEntity != null
+                    baseBind.cancelMuteUser.isVisible = userEntity != null
+
+                    if (illustEntity != null) {
+                        baseBind.cancelMuteIllust.setOnClick {
+                            viewLifecycleOwner.lifecycleScope.launch {
+                                it.showProgress()
+                                delay(600L)
+                                downloadDao.deleteMuteEntity(illustEntity)
+                                it.hideProgress()
+                            }
+                        }
+                    }
+                    if (userEntity != null) {
+                        baseBind.cancelMuteUser.setOnClick {
+                            viewLifecycleOwner.lifecycleScope.launch {
+                                it.showProgress()
+                                delay(600L)
+                                downloadDao.deleteMuteEntity(userEntity)
+                                it.hideProgress()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+
         ObjectPool.get<IllustsBean>(illust.id.toLong()).observe(viewLifecycleOwner) { illust ->
             Common.showLog("ObjectPoolTest " + illust.title)
         }

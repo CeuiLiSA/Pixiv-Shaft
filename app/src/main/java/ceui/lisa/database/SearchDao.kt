@@ -1,91 +1,88 @@
-package ceui.lisa.database;
+package ceui.lisa.database
 
-import androidx.room.Dao;
-import androidx.room.Delete;
-import androidx.room.Insert;
-import androidx.room.OnConflictStrategy;
-import androidx.room.Query;
-import androidx.room.Update;
-
-import java.util.List;
+import androidx.lifecycle.LiveData
+import androidx.room.*
 
 @Dao
-public interface SearchDao {
-
+interface SearchDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insert(SearchEntity searchEntity);
+    fun insert(searchEntity: SearchEntity)
 
     @Query("SELECT * FROM search_table WHERE id = :id LIMIT 1")
-    SearchEntity getSearchEntity(int id);
+    fun getSearchEntity(id: Int): SearchEntity
 
     @Delete
-    void deleteSearchEntity(SearchEntity searchEntity);
+    fun deleteSearchEntity(searchEntity: SearchEntity)
 
     @Query("DELETE FROM search_table")
-    void deleteAll();
+    fun deleteAll()
 
     @Query("DELETE FROM search_table WHERE pinned = 0")
-    void deleteAllUnpinned();
+    fun deleteAllUnpinned()
 
     @Query("SELECT * FROM search_table ORDER BY pinned DESC, searchTime DESC LIMIT :limit")
-    List<SearchEntity> getAll(int limit);
+    fun getAll(limit: Int): List<SearchEntity>
 
-    @Query("SELECT * FROM search_table")
-    List<SearchEntity> getAllSearchEntities();
+    @get:Query("SELECT * FROM search_table")
+    val allSearchEntities: List<SearchEntity>
 
     //添加一个屏蔽标签
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insertMuteTag(MuteEntity muteEntity);
+    fun insertMuteTag(muteEntity: MuteEntity)
 
     @Update
-    void updateMuteTag(MuteEntity muteEntity);
+    fun updateMuteTag(muteEntity: MuteEntity)
 
     //删除所有屏蔽的标签
     @Query("DELETE FROM tag_mute_table WHERE type = 0")
-    void deleteAllMutedTags();
+    fun deleteAllMutedTags()
 
     @Query("DELETE FROM tag_mute_table WHERE type = 3")
-    void deleteAllMutedUsers();
+    fun deleteAllMutedUsers()
 
     @Query("DELETE FROM tag_mute_table WHERE type = 1 OR type = 2")
-    void deleteMutedWorks();
+    fun deleteMutedWorks()
 
     @Query("DELETE FROM tag_mute_table WHERE type = 3")
-    void deleteMutedUser();
+    fun deleteMutedUser()
 
-    @Query("SELECT * FROM tag_mute_table WHERE type = 0 ORDER BY searchTime DESC ")
-    List<MuteEntity> getAllMutedTags();
+    @get:Query("SELECT * FROM tag_mute_table WHERE type = 0 ORDER BY searchTime DESC ")
+    val allMutedTags: List<MuteEntity>
 
-    @Query("SELECT * FROM tag_mute_table WHERE type = 1 OR type = 2 ORDER BY searchTime DESC ")
-    List<MuteEntity> getMutedWorks();
+    @get:Query("SELECT * FROM tag_mute_table WHERE type = 1 OR type = 2 ORDER BY searchTime DESC ")
+    val mutedWorks: List<MuteEntity>
 
-    @Query("SELECT * FROM tag_mute_table WHERE type = 1 ORDER BY searchTime DESC ")
-    List<MuteEntity> getMutedIllusts();
+    @get:Query("SELECT * FROM tag_mute_table WHERE type = 1 ORDER BY searchTime DESC ")
+    val mutedIllusts: List<MuteEntity>
 
     @Query("SELECT * FROM tag_mute_table WHERE type = 3 ORDER BY searchTime DESC LIMIT :limit OFFSET :offset")
-    List<MuteEntity> getMutedUser(int limit, int offset);
+    fun getMutedUser(limit: Int, offset: Int): List<MuteEntity>
 
     @Query("SELECT * FROM tag_mute_table WHERE type = 3 AND id = :userID LIMIT 1")
-    MuteEntity getMuteEntityByID(int userID);
+    fun getUserMuteEntityByID(userID: Int): MuteEntity
+
+    @Query("SELECT * FROM tag_mute_table WHERE type = 3 AND id = :userID LIMIT 1")
+    fun getUserMuteEntityByIDLiveData(userID: Int): LiveData<MuteEntity>
+
+    @Query("SELECT * FROM tag_mute_table WHERE type = 1 AND id = :illustId LIMIT 1")
+    fun getIllustMuteEntityByID(illustId: Int): LiveData<MuteEntity>
 
     @Query("SELECT * FROM tag_mute_table WHERE type = 4 AND id = :userID LIMIT 1")
-    MuteEntity getBlockMuteEntityByID(int userID);
+    fun getBlockMuteEntityByID(userID: Int): MuteEntity
 
-    @Query("SELECT * FROM tag_mute_table")
-    List<MuteEntity> getAllMuteEntities();
+    @get:Query("SELECT * FROM tag_mute_table")
+    val allMuteEntities: List<MuteEntity>
 
     @Delete
-    void unMuteTag(MuteEntity userEntity);
-
+    fun unMuteTag(userEntity: MuteEntity)
 
     /**
      * 添加一个列表记录
      * @param uuidEntity
      */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insertListWithUUID(UUIDEntity uuidEntity);
-
+    fun insertListWithUUID(uuidEntity: UUIDEntity)
 
     @Query("SELECT * FROM uuid_list_table WHERE uuid = :paramUUID LIMIT 1")
-    UUIDEntity getListByUUID(String paramUUID);
+    fun getListByUUID(paramUUID: String): UUIDEntity
 }

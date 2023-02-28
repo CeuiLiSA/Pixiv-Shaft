@@ -11,12 +11,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <FrameLayout
-            android:id="@+id/abandoned_frame"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-        </FrameLayout>
 
         <RelativeLayout
             android:id="@+id/content_frame"
@@ -542,6 +536,52 @@
             </androidx.appcompat.widget.Toolbar>
 
         </RelativeLayout>
+
+
+        <FrameLayout
+            android:id="@+id/abandoned_frame"
+            android:visibility="gone"
+            android:background="@color/black"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_gravity="center"
+                android:gravity="center_horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <ceui.loxia.ProgressTextButton
+                    android:id="@+id/cancel_mute_illust"
+                    android:text="取消屏蔽该作品"
+                    style="@style/BlueShiningButton"
+                    android:paddingHorizontal="20dp"
+                    android:layout_marginBottom="20dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="45dp"/>
+
+                <ceui.loxia.ProgressTextButton
+                    android:id="@+id/cancel_mute_user"
+                    android:text="取消屏蔽该用户"
+                    style="@style/BlueShiningButton"
+                    android:paddingHorizontal="20dp"
+                    android:layout_marginBottom="20dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="45dp"/>
+
+                <ceui.loxia.ProgressTextButton
+                    android:id="@+id/leave"
+                    android:text="离开当前页面"
+                    style="@style/RedShiningButton"
+                    android:paddingHorizontal="20dp"
+                    android:layout_marginBottom="20dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="45dp"/>
+            </LinearLayout>
+
+
+        </FrameLayout>
 
     </FrameLayout>
 

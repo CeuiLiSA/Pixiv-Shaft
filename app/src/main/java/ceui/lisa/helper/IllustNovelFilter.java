@@ -55,14 +55,14 @@ public class IllustNovelFilter {
     public static boolean judgeUserID(IllustsBean illust) {
         MuteEntity temp = AppDatabase.getAppDatabase(Shaft.getContext())
                 .searchDao()
-                .getMuteEntityByID(illust.getUser().getUserId());
+                .getUserMuteEntityByID(illust.getUser().getUserId());
         return temp != null;
     }
 
     public static boolean judgeUserID(NovelBean illust) {
         MuteEntity temp = AppDatabase.getAppDatabase(Shaft.getContext())
                 .searchDao()
-                .getMuteEntityByID(illust.getUser().getUserId());
+                .getUserMuteEntityByID(illust.getUser().getUserId());
         return temp != null;
     }
 

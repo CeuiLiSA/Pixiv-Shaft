@@ -91,7 +91,7 @@ public class UActivity extends BaseActivity<ActivityNewUserBinding> implements D
                 invoke(userDetailResponse);
             }
         });
-        final MuteEntity entity = AppDatabase.getAppDatabase(this).searchDao().getMuteEntityByID(userID);
+        final MuteEntity entity = AppDatabase.getAppDatabase(this).searchDao().getUserMuteEntityByID(userID);
         mUserViewModel.isUserMuted.setValue(entity != null);
 
         final MuteEntity block = AppDatabase.getAppDatabase(this).searchDao().getBlockMuteEntityByID(userID);
