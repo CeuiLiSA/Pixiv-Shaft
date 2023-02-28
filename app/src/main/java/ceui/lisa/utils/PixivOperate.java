@@ -432,6 +432,26 @@ public class PixivOperate {
         Common.showToast(Shaft.getContext().getString(R.string.string_383));
     }
 
+    public static void blockUser(UserBean userBean) {
+        MuteEntity muteEntity = new MuteEntity();
+        muteEntity.setType(Params.BLOCK_USER);
+        muteEntity.setId(userBean.getId());
+        muteEntity.setTagJson(Shaft.sGson.toJson(userBean));
+        muteEntity.setSearchTime(System.currentTimeMillis());
+        AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().insertMuteTag(muteEntity);
+        Common.showToast(Shaft.getContext().getString(R.string.string_382));
+    }
+
+    public static void unBlockUser(UserBean userBean) {
+        MuteEntity muteEntity = new MuteEntity();
+        muteEntity.setType(Params.BLOCK_USER);
+        muteEntity.setId(userBean.getId());
+        muteEntity.setTagJson(Shaft.sGson.toJson(userBean));
+        muteEntity.setSearchTime(System.currentTimeMillis());
+        AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().unMuteTag(muteEntity);
+        Common.showToast(Shaft.getContext().getString(R.string.string_383));
+    }
+
     public static void muteIllust(IllustsBean illust) {
         MuteEntity muteEntity = new MuteEntity();
         muteEntity.setType(Params.MUTE_ILLUST);

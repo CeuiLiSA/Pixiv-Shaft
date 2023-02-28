@@ -82,6 +82,8 @@ public class Params {
     public static final int    MUTE_NOVEL = 2;
     public static final int    MUTE_USER = 3;
 
+    public static final int    BLOCK_USER = 4;
+
     // ColorPickerDialog
     public static final int DIALOG_NOVEL_BG_COLOR = 0;
     public static final int DIALOG_NOVEL_TEXT_COLOR = 1;

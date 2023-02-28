@@ -664,4 +664,7 @@
     <string name="flag_desc">违规描述</string>
     <string name="flag_hint">请告诉我们更多详细信息</string>
     <string name="submit_flag">提交举报</string>
+    <string name="block_this_users_work">屏蔽此用户的作品</string>
+    <string name="cancel_block_this_users_work">取消屏蔽此用户的作品</string>
+    <string name="add_user_to_blacklist">将此用户加入黑名单</string>
 </resources>

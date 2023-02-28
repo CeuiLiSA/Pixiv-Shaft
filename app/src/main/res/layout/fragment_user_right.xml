@@ -155,21 +155,21 @@
 
                 </RelativeLayout>
 
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/ban_user_rela">
+<!--                <RelativeLayout-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:id="@+id/ban_user_rela">-->
 
-                    <TextView
-                        style="@style/setting_text_left"
-                        android:text="@string/string_380" />
+<!--                    <TextView-->
+<!--                        style="@style/setting_text_left"-->
+<!--                        android:text="@string/string_380" />-->
 
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/ban_user"
-                        android:checked="false"
-                        style="@style/setting_right_switch"/>
+<!--                    <androidx.appcompat.widget.SwitchCompat-->
+<!--                        android:id="@+id/ban_user"-->
+<!--                        android:checked="false"-->
+<!--                        style="@style/setting_right_switch"/>-->
 
-                </RelativeLayout>
+<!--                </RelativeLayout>-->
 
 
                 <RelativeLayout
