@@ -637,4 +637,7 @@
   <string name="flag_desc">Violation description</string>
   <string name="flag_hint">Please tell us more details</string>
   <string name="submit_flag">Submit a report</string>
+  <string name="block_this_users_work">Block this user’s work</string>
+  <string name="cancel_block_this_users_work">Unblock this user’s work</string>
+  <string name="add_user_to_blacklist">Add this user to Blacklist</string>
 </resources>
