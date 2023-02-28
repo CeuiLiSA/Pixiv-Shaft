@@ -79,7 +79,6 @@ import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseResult;
 import ceui.loxia.FlagDescFragment;
 import ceui.loxia.FlagReasonFragment;
-import ceui.loxia.ObjectSpec;
 
 public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> implements ColorPickerDialogListener {
 

@@ -2,9 +2,8 @@ package ceui.lisa.models;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.stream.Collectors;
 
-public class IllustsBean implements Serializable, Starable, Deduplicatable {
+public class IllustsBean implements Serializable, Starable, Deduplicatable, ModelObject {
     /**
      * id : 73949833
      * title : 命に繋がる魂の絆
@@ -347,5 +346,15 @@ public class IllustsBean implements Serializable, Starable, Deduplicatable {
     @Override
     public Object getDuplicateKey() {
         return id;
+    }
+
+    @Override
+    public long getObjectUniqueId() {
+        return id;
+    }
+
+    @Override
+    public int getObjectType() {
+        return ObjectSpec.POST;
     }
 }

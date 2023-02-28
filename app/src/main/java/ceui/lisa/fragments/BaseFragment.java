@@ -22,6 +22,7 @@ import java.util.UUID;
 public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragment {
 
     protected View rootView;
+    @NonNull
     protected Layout baseBind;
     protected String className = getClass().getSimpleName() + " ";
 
