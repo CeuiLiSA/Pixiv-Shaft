@@ -13,6 +13,7 @@ import com.scwang.smart.refresh.header.FalsifyFooter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
@@ -42,6 +43,7 @@ import ceui.lisa.utils.Params;
 import ceui.lisa.view.SpacesItemWithHeadDecoration;
 import ceui.lisa.viewmodel.BaseModel;
 import ceui.lisa.viewmodel.RecmdModel;
+import ceui.loxia.ObjectPool;
 
 public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding,
         RecmdIllust, IllustsBean> {
@@ -213,6 +215,12 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
         }, new NullCtrl<List<IllustsBean>>() {
             @Override
             public void success(List<IllustsBean> illustsBeans) {
+                illustsBeans.forEach(new Consumer<IllustsBean>() {
+                    @Override
+                    public void accept(IllustsBean illustsBean) {
+                        ObjectPool.INSTANCE.updateIllust(illustsBean);
+                    }
+                });
                 allItems.addAll(illustsBeans);
                 ((RecmdModel) mModel).getRankList().addAll(illustsBeans);
                 mModel.tidyAppViewModel(illustsBeans);

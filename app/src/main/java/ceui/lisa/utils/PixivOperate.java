@@ -64,6 +64,7 @@ import ceui.lisa.models.UserBean;
 import ceui.lisa.models.UserModel;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.viewmodel.AppLevelViewModel;
+import ceui.loxia.ObjectPool;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
@@ -104,6 +105,7 @@ public class PixivOperate {
                         intent.putExtra(Params.IS_LIKED, true);
                         LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
 
+                        ObjectPool.INSTANCE.followUser(userID);
                         if (followType.equals(Params.TYPE_PUBLIC)) {
                             Shaft.appViewModel.updateFollowUserStatus(userID, AppLevelViewModel.FollowUserStatus.FOLLOWED_PUBLIC);
                             Common.showToast(getString(R.string.like_success_public));
@@ -128,7 +130,7 @@ public class PixivOperate {
                         intent.putExtra(Params.IS_LIKED, false);
                         LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
                         Shaft.appViewModel.updateFollowUserStatus(userID, AppLevelViewModel.FollowUserStatus.NOT_FOLLOW);
-
+                        ObjectPool.INSTANCE.unFollowUser(userID);
                         Common.showToast(getString(R.string.cancel_like));
                     }
                 });

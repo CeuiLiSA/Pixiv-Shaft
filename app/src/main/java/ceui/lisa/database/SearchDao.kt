@@ -70,6 +70,9 @@ interface SearchDao {
     @Query("SELECT * FROM tag_mute_table WHERE type = 4 AND id = :userID LIMIT 1")
     fun getBlockMuteEntityByID(userID: Int): MuteEntity
 
+    @Delete
+    fun deleteMuteEntity(muteEntity: MuteEntity)
+
     @get:Query("SELECT * FROM tag_mute_table")
     val allMuteEntities: List<MuteEntity>
 

@@ -18,9 +18,6 @@ import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import android.widget.TextView
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.isVisible
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -28,19 +25,14 @@ import ceui.lisa.R
 import ceui.lisa.activities.*
 import ceui.lisa.adapters.IllustAdapter
 import ceui.lisa.database.AppDatabase
-import ceui.lisa.database.MuteEntity
 import ceui.lisa.databinding.FragmentIllustBinding
 import ceui.lisa.dialogs.MuteDialog
 import ceui.lisa.download.IllustDownload
-import ceui.lisa.models.IllustsBean
-import ceui.lisa.models.ObjectSpec
-import ceui.lisa.models.TagsBean
+import ceui.lisa.models.*
 import ceui.lisa.notification.CallBackReceiver
 import ceui.lisa.utils.*
 import ceui.lisa.viewmodel.AppLevelViewModel.FollowUserStatus
-import ceui.loxia.FlagDescFragment
-import ceui.loxia.ObjectPool
-import ceui.loxia.combineLatest
+import ceui.loxia.*
 import ceui.refactor.setOnClick
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
@@ -60,42 +52,26 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class IllustViewModel : ViewModel() {
+class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
 
-    private val muteEntity = MutableLiveData<MuteEntity>()
-}
-
-class FragmentIllust : SwipeFragment<FragmentIllustBinding?>() {
-
-    private lateinit var illust: IllustsBean
-    private val viewModel by viewModels<IllustViewModel>()
-
-    public override fun initBundle(bundle: Bundle) {
-        illust = bundle.getSerializable(Params.CONTENT) as IllustsBean
-    }
+    private val safeArgs by threadSafeArgs<FragmentIllustArgs>()
 
     public override fun initLayout() {
         mLayoutID = R.layout.fragment_illust
     }
 
     override fun initView() {
-        if (illust.id == 0 || !illust.isVisible) {
-            Common.showToast(R.string.string_206)
-            Handler().postDelayed({ finish() }, 1000)
-            return
+        val illustLiveData = ObjectPool.get<IllustsBean>(safeArgs.illustId.toLong())
+        illustLiveData.observe(viewLifecycleOwner) { illust ->
+            updateIllust(illust)
         }
-        baseBind.leave.setOnClick {
-            viewLifecycleOwner.lifecycleScope.launch {
-                it.showProgress()
-                delay(600L)
-                requireActivity().finish()
-                it.hideProgress()
-            }
+        val userId = illustLiveData.value?.user?.id ?: return
+        ObjectPool.get<UserBean>(userId.toLong()).observe(viewLifecycleOwner) { illust ->
+            updateUser(illust)
         }
-
+        val illust = illustLiveData.value ?: return
         viewLifecycleOwner.lifecycleScope.launch {
             val dao = AppDatabase.getAppDatabase(requireContext()).searchDao()
-            val downloadDao = AppDatabase.getAppDatabase(requireContext()).downloadDao()
             val muteIllust = withContext(Dispatchers.IO) {
                 dao.getIllustMuteEntityByID(illust.id)
             }
@@ -119,7 +95,7 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding?>() {
                             viewLifecycleOwner.lifecycleScope.launch {
                                 it.showProgress()
                                 delay(600L)
-                                downloadDao.deleteMuteEntity(illustEntity)
+                                dao.deleteMuteEntity(illustEntity)
                                 it.hideProgress()
                             }
                         }
@@ -129,7 +105,7 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding?>() {
                             viewLifecycleOwner.lifecycleScope.launch {
                                 it.showProgress()
                                 delay(600L)
-                                downloadDao.deleteMuteEntity(userEntity)
+                                dao.deleteMuteEntity(userEntity)
                                 it.hideProgress()
                             }
                         }
@@ -137,11 +113,62 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding?>() {
                 }
             }
         }
+    }
 
-
-        ObjectPool.get<IllustsBean>(illust.id.toLong()).observe(viewLifecycleOwner) { illust ->
-            Common.showLog("ObjectPoolTest " + illust.title)
+    private fun updateUser(user: UserBean) {
+        if (user.isIs_followed) {
+            baseBind.follow.setText(R.string.string_177)
+            baseBind.follow.setOnClickListener {
+                PixivOperate.postUnFollowUser(user.id)
+            }
+            baseBind.follow.setOnLongClickListener {
+                true
+            }
+        } else {
+            baseBind.follow.setText(R.string.string_178)
+            baseBind.follow.setOnClickListener {
+                PixivOperate.postFollowUser(user.id, Params.TYPE_PUBLIC)
+            }
+            baseBind.follow.setOnLongClickListener { v1: View? ->
+                PixivOperate.postFollowUser(user.id, Params.TYPE_PRIVATE)
+                true
+            }
         }
+        val toUserActivityListener = View.OnClickListener {
+            val intent = Intent(mContext, UserActivity::class.java)
+            intent.putExtra(Params.USER_ID, user.id)
+            startActivity(intent)
+        }
+        baseBind.relaIllustBrief.setOnClickListener(toUserActivityListener)
+        baseBind.userName.setOnClickListener(toUserActivityListener)
+        baseBind.userName.setOnLongClickListener {
+            Common.copy(mContext, user.name)
+            true
+        }
+
+        baseBind.userName.text = user.name
+        Glide.with(mContext)
+            .load(GlideUtil.getUrl(user.profile_image_urls.medium))
+            .error(R.drawable.no_profile)
+            .into(baseBind.userHead)
+    }
+
+    private fun updateIllust(illust: IllustsBean) {
+        if (illust.id == 0 || !illust.isVisible) {
+            Common.showToast(R.string.string_206)
+            Handler().postDelayed({ finish() }, 1000)
+            return
+        }
+
+        baseBind.leave.setOnClick {
+            viewLifecycleOwner.lifecycleScope.launch {
+                it.showProgress()
+                delay(600L)
+                requireActivity().finish()
+                it.hideProgress()
+            }
+        }
+
         if (illust.series != null && !TextUtils.isEmpty(illust.series.title)) {
             val clickableSpan: ClickableSpan = object : ClickableSpan() {
                 override fun onClick(widget: View) {
@@ -401,38 +428,6 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding?>() {
         } else {
             baseBind.description.visibility = View.GONE
         }
-        val toUserActivityListener = View.OnClickListener {
-            val intent = Intent(mContext, UserActivity::class.java)
-            intent.putExtra(Params.USER_ID, illust.user.id)
-            startActivity(intent)
-        }
-        baseBind.relaIllustBrief.setOnClickListener(toUserActivityListener)
-        baseBind.userName.setOnClickListener(toUserActivityListener)
-        baseBind.userName.setOnLongClickListener {
-            Common.copy(mContext, illust.user.name)
-            true
-        }
-        baseBind.follow.setOnClickListener {
-            val integerValue = Shaft.appViewModel.getFollowUserLiveData(illust.user.id).value ?: FollowUserStatus.UNKNOWN
-            if (FollowUserStatus.isFollowed(integerValue)) {
-                PixivOperate.postUnFollowUser(illust.user.id)
-                illust.user.isIs_followed = false
-            } else {
-                PixivOperate.postFollowUser(illust.user.id, Params.TYPE_PUBLIC)
-                illust.user.isIs_followed = true
-            }
-        }
-        baseBind.follow.setOnLongClickListener { v1: View? ->
-            val integerValue = Shaft.appViewModel.getFollowUserLiveData(
-                illust.user.id
-            ).value ?: FollowUserStatus.UNKNOWN
-            if (!FollowUserStatus.isFollowed(integerValue)) {
-                illust.user.isIs_followed = true
-            }
-            PixivOperate.postFollowUser(illust.user.id, Params.TYPE_PRIVATE)
-            true
-        }
-        baseBind.userName.text = illust.user.name
         baseBind.postTime.text = String.format(
             "%s投递", Common.getLocalYYYYMMDDHHMMString(
                 illust.create_date
@@ -491,12 +486,7 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding?>() {
         }
         baseBind.illustId.setOnClickListener { Common.copy(mContext, illust.id.toString()) }
         baseBind.userId.setOnClickListener { Common.copy(mContext, illust.user.id.toString()) }
-        Glide.with(mContext)
-            .load(GlideUtil.getUrl(illust.user.profile_image_urls.medium))
-            .error(R.drawable.no_profile)
-            .into(baseBind.userHead)
-        Shaft.appViewModel.getFollowUserLiveData(illust.user.id)
-            .observe(this) { integer -> updateFollowUserUI(integer) }
+
     }
 
     private var mReceiver: CallBackReceiver? = null
@@ -507,6 +497,7 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding?>() {
 
     private var recyHeight = 0
     private fun checkDownload() {
+        val illust = ObjectPool.get<IllustsBean>(safeArgs.illustId.toLong()).value ?: return
         if (Common.isIllustDownloaded(illust)) {
             baseBind.download.setText(R.string.string_337)
         } else {
@@ -517,6 +508,7 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding?>() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val intentFilter = IntentFilter()
+        val illust = ObjectPool.get<IllustsBean>(safeArgs.illustId.toLong()).value ?: return
         mReceiver = CallBackReceiver { context, intent ->
             val bundle = intent.extras
             if (bundle != null) {
@@ -572,22 +564,14 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding?>() {
         return baseBind.refreshLayout
     }
 
-    private fun updateFollowUserUI(status: Int) {
-        if (FollowUserStatus.isFollowed(status)) {
-            baseBind.follow.setText(R.string.string_177)
-        } else {
-            baseBind.follow.setText(R.string.string_178)
-        }
-    }
-
     companion object {
         @JvmStatic
-        fun newInstance(illustsBean: IllustsBean?): FragmentIllust {
-            val args = Bundle()
-            args.putSerializable(Params.CONTENT, illustsBean)
-            val fragment = FragmentIllust()
-            fragment.arguments = args
-            return fragment
+        fun newInstance(illustId: Int): FragmentIllust {
+            return FragmentIllust().apply {
+                arguments = Bundle().apply {
+                    putInt("illust_id", illustId)
+                }
+            }
         }
     }
 }

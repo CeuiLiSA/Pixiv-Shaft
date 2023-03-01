@@ -6,6 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.models.ModelObject
 import ceui.lisa.models.ObjectSpec
+import ceui.lisa.models.UserBean
 import java.io.Serializable
 import kotlin.reflect.KClass
 
@@ -34,6 +35,18 @@ object ObjectPool {
         illust.user?.let { user ->
             update(user)
         }
+    }
+
+    fun followUser(userId: Long) {
+        val exist = get<UserBean>(userId).value ?: return
+        exist.isIs_followed = true
+        update(exist)
+    }
+
+    fun unFollowUser(userId: Long) {
+        val exist = get<UserBean>(userId).value ?: return
+        exist.isIs_followed = false
+        update(exist)
     }
 
     inline fun <reified ObjectT : ModelObject> get(id: Long): LiveData<ObjectT> {
@@ -86,7 +99,7 @@ object ObjectPool {
             "IllustsBean", "Novel" -> {
                 ObjectSpec.POST
             }
-            "User" -> {
+            "UserBean" -> {
                 ObjectSpec.USER
             }
             "Article" -> {

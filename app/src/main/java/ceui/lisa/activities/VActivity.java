@@ -64,7 +64,7 @@ public class VActivity extends BaseActivity<ActivityViewPagerBinding> {
                         return FragmentSingleUgora.newInstance(illustsBean);
                     } else {
                         if (Shaft.sSettings.isUseFragmentIllust()) {
-                            return FragmentIllust.newInstance(illustsBean);
+                            return FragmentIllust.newInstance(illustsBean.getId());
                         } else {
                             return FragmentSingleIllust.newInstance(illustsBean);
                         }
