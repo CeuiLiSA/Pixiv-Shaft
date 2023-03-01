@@ -19,8 +19,8 @@
     <string name="empty_list_6">居然啥也没有</string>
     <string name="empty_list_7">居然啥也没有</string>
     <string name="empty_list_8">居然啥也没有</string>
-    <string name="post_follow">+ 关注</string>
-    <string name="post_unfollow">取消关注</string>
+    <string name="post_follow">关注</string>
+    <string name="post_unfollow">取关</string>
     <string name="double_click_finish">再按一次退出~</string>
     <string name="delete_all">删除全部</string>
     <string name="illust_filter">筛选</string>
@@ -667,4 +667,6 @@
     <string name="block_this_users_work">屏蔽此用户的作品</string>
     <string name="cancel_block_this_users_work">取消屏蔽此用户的作品</string>
     <string name="add_user_to_blacklist">将此用户加入黑名单</string>
+    <string name="follow">关注</string>
+    <string name="unfollow">取关</string>
 </resources>

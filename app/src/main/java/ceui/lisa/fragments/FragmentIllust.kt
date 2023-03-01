@@ -118,29 +118,47 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
     private fun updateUser(user: UserBean) {
         if (user.isIs_followed) {
             baseBind.follow.setText(R.string.string_177)
-            baseBind.follow.setOnClickListener {
-                PixivOperate.postUnFollowUser(user.id)
+            baseBind.follow.setOnClick {
+                viewLifecycleOwner.lifecycleScope.launch {
+                    it.showProgress()
+                    PixivOperate.postUnFollowUser(user.id)
+                    delay(600L)
+                    it.hideProgress()
+                }
             }
             baseBind.follow.setOnLongClickListener {
                 true
             }
         } else {
             baseBind.follow.setText(R.string.string_178)
-            baseBind.follow.setOnClickListener {
-                PixivOperate.postFollowUser(user.id, Params.TYPE_PUBLIC)
+            baseBind.follow.setOnClick {
+                viewLifecycleOwner.lifecycleScope.launch {
+                    it.showProgress()
+                    PixivOperate.postFollowUser(user.id, Params.TYPE_PUBLIC)
+                    delay(600L)
+                    it.hideProgress()
+                }
             }
-            baseBind.follow.setOnLongClickListener { v1: View? ->
-                PixivOperate.postFollowUser(user.id, Params.TYPE_PRIVATE)
+            baseBind.follow.setOnLongClickListener {
+                viewLifecycleOwner.lifecycleScope.launch {
+                    (it as? ProgressTextButton)?.showProgress()
+                    PixivOperate.postFollowUser(user.id, Params.TYPE_PRIVATE)
+                    delay(600L)
+                    (it as? ProgressTextButton)?.hideProgress()
+                }
                 true
             }
         }
-        val toUserActivityListener = View.OnClickListener {
+        baseBind.relaIllustBrief.setOnClick {
             val intent = Intent(mContext, UserActivity::class.java)
             intent.putExtra(Params.USER_ID, user.id)
             startActivity(intent)
         }
-        baseBind.relaIllustBrief.setOnClickListener(toUserActivityListener)
-        baseBind.userName.setOnClickListener(toUserActivityListener)
+        baseBind.userName.setOnClick {
+            val intent = Intent(mContext, UserActivity::class.java)
+            intent.putExtra(Params.USER_ID, user.id)
+            startActivity(intent)
+        }
         baseBind.userName.setOnLongClickListener {
             Common.copy(mContext, user.name)
             true
@@ -295,7 +313,7 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
         } else {
             baseBind.postLike.setImageResource(R.drawable.ic_favorite_grey_24dp)
         }
-        baseBind.postLike.setOnClickListener {
+        baseBind.postLike.setOnClick {
             if (illust.isIs_bookmarked) {
                 baseBind.postLike.setImageResource(R.drawable.ic_favorite_grey_24dp)
             } else {
@@ -402,21 +420,21 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
                 baseBind.coreLinear.viewTreeObserver.removeOnGlobalLayoutListener(this)
             }
         })
-        baseBind.related.setOnClickListener {
+        baseBind.related.setOnClick {
             val intent = Intent(mContext, TemplateActivity::class.java)
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关作品")
             intent.putExtra(Params.ILLUST_ID, illust.id)
             intent.putExtra(Params.ILLUST_TITLE, illust.title)
             startActivity(intent)
         }
-        baseBind.comment.setOnClickListener {
+        baseBind.comment.setOnClick {
             val intent = Intent(mContext, TemplateActivity::class.java)
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关评论")
             intent.putExtra(Params.ILLUST_ID, illust.id)
             intent.putExtra(Params.ILLUST_TITLE, illust.title)
             startActivity(intent)
         }
-        baseBind.illustLike.setOnClickListener {
+        baseBind.illustLike.setOnClick {
             val intent = Intent(mContext, TemplateActivity::class.java)
             intent.putExtra(Params.CONTENT, illust)
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "喜欢这个作品的用户")
@@ -438,7 +456,7 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
         baseBind.download.setChangeAlphaWhenPress(true)
         baseBind.related.setChangeAlphaWhenPress(true)
         baseBind.comment.setChangeAlphaWhenPress(true)
-        baseBind.download.setOnClickListener { v: View? ->
+        baseBind.download.setOnClick { v: View? ->
             if (illust.page_count == 1) {
                 IllustDownload.downloadIllustFirstPage(illust, mContext as BaseActivity<*>)
             } else {
@@ -484,8 +502,8 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
                 .show()
             true
         }
-        baseBind.illustId.setOnClickListener { Common.copy(mContext, illust.id.toString()) }
-        baseBind.userId.setOnClickListener { Common.copy(mContext, illust.user.id.toString()) }
+        baseBind.illustId.setOnClick { Common.copy(mContext, illust.id.toString()) }
+        baseBind.userId.setOnClick { Common.copy(mContext, illust.user.id.toString()) }
 
     }
 

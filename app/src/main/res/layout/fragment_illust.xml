@@ -4,7 +4,9 @@
     xmlns:zhy="http://schemas.android.com/tools">
 
     <data>
-
+        <variable
+            name="user"
+            type="androidx.lifecycle.LiveData&lt;ceui.lisa.models.UserBean>" />
     </data>
 
     <FrameLayout
@@ -106,8 +108,8 @@
                         <TextView
                             android:id="@+id/title"
                             android:layout_width="match_parent"
-                            android:layout_height="@dimen/twenty_four_dp"
-                            android:layout_marginStart="@dimen/twenty_four_dp"
+                            android:layout_height="@dimen/sixteen_dp"
+                            android:layout_marginStart="@dimen/sixteen_dp"
                             android:layout_marginEnd="56dp"
                             android:gravity="start|bottom"
                             android:ellipsize="end"
@@ -127,14 +129,14 @@
                             android:id="@+id/rela_illust_brief"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/twenty_four_dp"
+                            android:layout_marginStart="@dimen/sixteen_dp"
                             android:layout_marginTop="@dimen/four_dp"
-                            android:layout_marginEnd="@dimen/twenty_four_dp"
+                            android:layout_marginEnd="@dimen/sixteen_dp"
                             android:layout_marginBottom="@dimen/six_dp"
                             android:orientation="vertical"
                             app:qmui_backgroundColor="?attr/colorPrimaryDark"
                             app:qmui_borderWidth="0dp"
-                            app:qmui_radius="20dp">
+                            app:qmui_radius="16dp">
 
                             <de.hdodenhof.circleimageview.CircleImageView
                                 android:id="@+id/user_head"
@@ -157,7 +159,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_alignTop="@+id/user_head"
                                 android:layout_marginTop="@dimen/four_dp"
-                                android:layout_toStartOf="@+id/follow"
+                                android:layout_toStartOf="@+id/follow_layout"
                                 android:layout_toEndOf="@+id/user_head"
                                 android:ellipsize="end"
                                 android:includeFontPadding="false"
@@ -185,24 +187,58 @@
 
                             </TextView>
 
-                            <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton
-                                android:id="@+id/follow"
+
+                            <FrameLayout
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
+                                android:id="@+id/follow_layout"
                                 android:layout_alignParentEnd="true"
                                 android:layout_centerVertical="true"
-                                android:layout_marginEnd="@dimen/eight_dp"
-                                android:paddingStart="@dimen/eight_dp"
-                                android:paddingTop="@dimen/four_dp"
-                                android:paddingEnd="@dimen/eight_dp"
-                                android:paddingBottom="@dimen/four_dp"
-                                android:text="@string/string_69"
-                                android:textColor="@color/white"
-                                app:qmui_backgroundColor="?attr/colorPrimary"
-                                app:qmui_borderWidth="0dp"
-                                app:qmui_radius="@dimen/six_dp">
+                                android:layout_height="wrap_content">
 
-                            </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton>
+                                <ceui.loxia.ProgressTextButton
+                                    android:id="@+id/follow"
+                                    style="@style/BlueShiningButton"
+                                    android:layout_width="wrap_content"
+                                    android:visibility="gone"
+                                    android:layout_height="32dp"
+                                    android:paddingHorizontal="16dp"
+                                    visibleOrGone="@{!user.is_followed}"
+                                    android:text="@{user.is_followed ? @string/unfollow : @string/follow}"
+                                    app:ptb_progress_stroke_width="3dp"
+                                    app:ptb_progress_width="14dp" />
+
+                                <ceui.loxia.ProgressTextButton
+                                    android:id="@+id/unfollow"
+                                    visibleOrGone="@{user.is_followed}"
+                                    style="@style/RedShiningButton"
+                                    android:visibility="gone"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="32dp"
+                                    android:paddingHorizontal="16dp"
+                                    android:layout_marginEnd="@dimen/eight_dp"
+                                    android:text="@{user.is_followed ? @string/unfollow : @string/follow}"
+                                    app:ptb_progress_stroke_width="3dp"
+                                    app:ptb_progress_width="14dp" />
+                            </FrameLayout>
+
+<!--                            <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton-->
+<!--                                android:id="@+id/follow_old"-->
+<!--                                android:layout_width="wrap_content"-->
+<!--                                android:layout_height="wrap_content"-->
+<!--                                android:layout_alignParentEnd="true"-->
+<!--                                android:layout_centerVertical="true"-->
+<!--                                android:layout_marginEnd="@dimen/eight_dp"-->
+<!--                                android:paddingStart="@dimen/eight_dp"-->
+<!--                                android:paddingTop="@dimen/four_dp"-->
+<!--                                android:paddingEnd="@dimen/eight_dp"-->
+<!--                                android:paddingBottom="@dimen/four_dp"-->
+<!--                                android:text="@string/string_69"-->
+<!--                                android:textColor="@color/white"-->
+<!--                                app:qmui_backgroundColor="?attr/colorPrimary"-->
+<!--                                app:qmui_borderWidth="0dp"-->
+<!--                                app:qmui_radius="@dimen/six_dp">-->
+
+<!--                            </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton>-->
 
                         </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout>
 
@@ -212,8 +248,8 @@
                         android:id="@+id/view_divider"
                         android:layout_width="match_parent"
                         android:layout_height="0.5dp"
-                        android:layout_marginStart="@dimen/twenty_four_dp"
-                        android:layout_marginEnd="@dimen/twenty_four_dp"
+                        android:layout_marginStart="@dimen/sixteen_dp"
+                        android:layout_marginEnd="@dimen/sixteen_dp"
                         android:background="@color/settings_divider">
 
                     </View>
@@ -246,7 +282,7 @@
                                         android:id="@+id/left_rela"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:layout_marginStart="@dimen/twenty_four_dp"
+                                        android:layout_marginStart="@dimen/sixteen_dp"
                                         app:qmui_backgroundColor="#e8e8f2"
                                         app:qmui_borderWidth="0dp"
                                         app:qmui_radius="@dimen/six_dp">
@@ -355,8 +391,8 @@
                                 android:id="@+id/illust_tag"
                                 android:layout_width="fill_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="20dp"
-                                android:layout_marginEnd="20dp"
+                                android:layout_marginStart="12dp"
+                                android:layout_marginEnd="12dp"
                                 zhy:max_select="-1">
 
                             </com.zhy.view.flowlayout.TagFlowLayout>
@@ -365,9 +401,9 @@
                                 android:id="@+id/description"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="@dimen/twenty_four_dp"
+                                android:layout_marginStart="@dimen/sixteen_dp"
                                 android:layout_marginTop="@dimen/six_dp"
-                                android:layout_marginEnd="@dimen/twenty_four_dp"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
                                 android:layout_marginBottom="@dimen/four_dp"
                                 android:gravity="start"
                                 android:textColor="#9b9bb1"
@@ -379,9 +415,9 @@
                             <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="@dimen/twenty_four_dp"
+                                android:layout_marginStart="@dimen/sixteen_dp"
                                 android:layout_marginTop="@dimen/eight_dp"
-                                android:layout_marginEnd="@dimen/twenty_four_dp"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
                                 android:orientation="horizontal">
 
                                 <TextView
@@ -413,9 +449,9 @@
                             <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="@dimen/twenty_four_dp"
+                                android:layout_marginStart="@dimen/sixteen_dp"
                                 android:layout_marginTop="@dimen/four_dp"
-                                android:layout_marginEnd="@dimen/twenty_four_dp"
+                                android:layout_marginEnd="@dimen/sixteen_dp"
                                 android:layout_marginBottom="@dimen/eight_dp"
                                 android:orientation="horizontal">
 
@@ -468,8 +504,8 @@
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="0.5dp"
-                    android:layout_marginStart="@dimen/twenty_four_dp"
-                    android:layout_marginEnd="@dimen/twenty_four_dp"
+                    android:layout_marginStart="@dimen/sixteen_dp"
+                    android:layout_marginEnd="@dimen/sixteen_dp"
                     android:background="@color/settings_divider">
 
                 </View>
@@ -484,7 +520,7 @@
                         android:id="@+id/comment"
                         android:layout_width="0dp"
                         android:layout_height="40dp"
-                        android:layout_marginStart="@dimen/twenty_four_dp"
+                        android:layout_marginStart="@dimen/sixteen_dp"
                         android:layout_marginEnd="@dimen/six_dp"
                         android:layout_weight="1"
                         android:background="@drawable/button_stroke_new"
@@ -508,7 +544,7 @@
                         android:layout_width="0dp"
                         android:layout_height="40dp"
                         android:layout_marginStart="@dimen/six_dp"
-                        android:layout_marginEnd="@dimen/twenty_four_dp"
+                        android:layout_marginEnd="@dimen/sixteen_dp"
                         android:layout_weight="2"
                         android:text="@string/string_72"
                         android:textColor="@color/white"
