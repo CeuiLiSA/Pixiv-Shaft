@@ -1,4 +1,9 @@
-package ceui.loxia
+package ceui.lisa.models
+
+interface ModelObject {
+    val objectUniqueId: Long
+    val objectType: Int
+}
 
 object ObjectSpec {
     const val UNKNOWN = 0
