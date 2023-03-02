@@ -245,47 +245,6 @@ fun <T1, T2, T3, T4, T5, T6> combineLatest(
 
 fun <T> MutableLiveData<T>.asLiveData() = this as LiveData<T>
 
-fun <T> LiveData<T>.timeout(mills: Long): LiveData<T?> {
-
-    var hasEmitted = false
-
-    val result = MediatorLiveData<T>()
-    result.addSource(this) { v ->
-        if (!hasEmitted) {
-            result.value = v
-            hasEmitted = true
-        }
-    }
-
-    MainScope().launch {
-        delay(mills)
-        if (!hasEmitted) {
-            result.value = null
-            hasEmitted = true
-        }
-    }
-
-    return result
-}
-
-fun <T> LiveData<T>.waitAtLeast(mills: Long): LiveData<T?> {
-    val start = System.currentTimeMillis()
-
-    val result = MediatorLiveData<T>()
-    result.addSource(this) { v ->
-        val wait = mills - (System.currentTimeMillis() - start)
-        if (wait > 0) {
-            MainScope().launch {
-                delay(wait)
-                result.value = v
-            }
-        } else {
-            result.value = v
-        }
-    }
-
-    return result
-}
 
 fun <T> LiveData<T>.delay(mills: Long): LiveData<T?> {
     val result = MediatorLiveData<T>()
@@ -483,27 +442,6 @@ fun<T> LiveData<T>.requireValue(): T {
     return value!!
 }
 
-/**
- * @param com 如果返回true，代表发生改变
- */
-fun <X> LiveData<X>.distinctUntilChangedBy(com: (X, X) -> Boolean): LiveData<X> {
-    val outputLiveData: MediatorLiveData<X> = MediatorLiveData<X>()
-    outputLiveData.addSource(this, object : Observer<X?> {
-        var mFirstTime = true
-        override fun onChanged(currentValue: X?) {
-            val previousValue: X? = outputLiveData.value
-            if (mFirstTime
-                || previousValue == null && currentValue != null
-                || previousValue != null && previousValue != currentValue
-                || previousValue != null && currentValue != null && com(previousValue, currentValue)
-            ) {
-                mFirstTime = false
-                outputLiveData.value = currentValue
-            }
-        }
-    })
-    return outputLiveData.asLiveData()
-}
 
 infix fun <A, B, C> Pair<A, B>.to(that: C) = Triple(this.first, this.second, that)
 
