@@ -192,6 +192,7 @@
                                 android:layout_width="wrap_content"
                                 android:id="@+id/follow_layout"
                                 android:layout_alignParentEnd="true"
+                                android:layout_marginEnd="12dp"
                                 android:layout_centerVertical="true"
                                 android:layout_height="wrap_content">
 
@@ -202,43 +203,21 @@
                                     android:visibility="gone"
                                     android:layout_height="32dp"
                                     android:paddingHorizontal="16dp"
-                                    visibleOrGone="@{!user.is_followed}"
-                                    android:text="@{user.is_followed ? @string/unfollow : @string/follow}"
+                                    android:text="@string/follow"
                                     app:ptb_progress_stroke_width="3dp"
                                     app:ptb_progress_width="14dp" />
 
                                 <ceui.loxia.ProgressTextButton
                                     android:id="@+id/unfollow"
-                                    visibleOrGone="@{user.is_followed}"
                                     style="@style/RedShiningButton"
                                     android:visibility="gone"
                                     android:layout_width="wrap_content"
                                     android:layout_height="32dp"
                                     android:paddingHorizontal="16dp"
-                                    android:layout_marginEnd="@dimen/eight_dp"
-                                    android:text="@{user.is_followed ? @string/unfollow : @string/follow}"
+                                    android:text="@string/unfollow"
                                     app:ptb_progress_stroke_width="3dp"
                                     app:ptb_progress_width="14dp" />
                             </FrameLayout>
-
-<!--                            <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton-->
-<!--                                android:id="@+id/follow_old"-->
-<!--                                android:layout_width="wrap_content"-->
-<!--                                android:layout_height="wrap_content"-->
-<!--                                android:layout_alignParentEnd="true"-->
-<!--                                android:layout_centerVertical="true"-->
-<!--                                android:layout_marginEnd="@dimen/eight_dp"-->
-<!--                                android:paddingStart="@dimen/eight_dp"-->
-<!--                                android:paddingTop="@dimen/four_dp"-->
-<!--                                android:paddingEnd="@dimen/eight_dp"-->
-<!--                                android:paddingBottom="@dimen/four_dp"-->
-<!--                                android:text="@string/string_69"-->
-<!--                                android:textColor="@color/white"-->
-<!--                                app:qmui_backgroundColor="?attr/colorPrimary"-->
-<!--                                app:qmui_borderWidth="0dp"-->
-<!--                                app:qmui_radius="@dimen/six_dp">-->
-
-<!--                            </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundButton>-->
 
                         </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout>
 
@@ -274,9 +253,7 @@
                                 <RelativeLayout
                                     android:layout_width="0dp"
                                     android:layout_height="wrap_content"
-                                    android:layout_weight="1"
-                                    android:clickable="true"
-                                    android:foreground="?attr/selectableItemBackground">
+                                    android:layout_weight="1">
 
                                     <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
                                         android:id="@+id/left_rela"
@@ -331,9 +308,7 @@
                                     android:id="@+id/illust_like"
                                     android:layout_width="0dp"
                                     android:layout_height="wrap_content"
-                                    android:layout_weight="1"
-                                    android:clickable="true"
-                                    android:foreground="?attr/selectableItemBackground">
+                                    android:layout_weight="1">
 
                                     <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
                                         android:id="@+id/right_rela"

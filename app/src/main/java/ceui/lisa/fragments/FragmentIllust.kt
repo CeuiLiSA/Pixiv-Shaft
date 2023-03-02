@@ -66,10 +66,13 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
             updateIllust(illust)
         }
         val userId = illustLiveData.value?.user?.id ?: return
-        ObjectPool.get<UserBean>(userId.toLong()).observe(viewLifecycleOwner) { illust ->
-            updateUser(illust)
+        val userLiveData = ObjectPool.get<UserBean>(userId.toLong())
+        userLiveData.observe(viewLifecycleOwner) { user ->
+            updateUser(user)
+            Common.showLog("updateUser invoke ${user.isIs_followed}")
         }
         val illust = illustLiveData.value ?: return
+        baseBind.user = userLiveData
         viewLifecycleOwner.lifecycleScope.launch {
             val dao = AppDatabase.getAppDatabase(requireContext()).searchDao()
             val muteIllust = withContext(Dispatchers.IO) {
@@ -117,25 +120,27 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
 
     private fun updateUser(user: UserBean) {
         if (user.isIs_followed) {
-            baseBind.follow.setText(R.string.string_177)
-            baseBind.follow.setOnClick {
+            baseBind.follow.isVisible = false
+            baseBind.unfollow.isVisible = true
+            baseBind.unfollow.setOnClick {
                 viewLifecycleOwner.lifecycleScope.launch {
                     it.showProgress()
                     PixivOperate.postUnFollowUser(user.id)
-                    delay(600L)
+                    delay(800L)
                     it.hideProgress()
                 }
             }
-            baseBind.follow.setOnLongClickListener {
+            baseBind.unfollow.setOnLongClickListener {
                 true
             }
         } else {
-            baseBind.follow.setText(R.string.string_178)
+            baseBind.unfollow.isVisible = false
+            baseBind.follow.isVisible = true
             baseBind.follow.setOnClick {
                 viewLifecycleOwner.lifecycleScope.launch {
                     it.showProgress()
                     PixivOperate.postFollowUser(user.id, Params.TYPE_PUBLIC)
-                    delay(600L)
+                    delay(800L)
                     it.hideProgress()
                 }
             }
@@ -143,7 +148,7 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
                 viewLifecycleOwner.lifecycleScope.launch {
                     (it as? ProgressTextButton)?.showProgress()
                     PixivOperate.postFollowUser(user.id, Params.TYPE_PRIVATE)
-                    delay(600L)
+                    delay(800L)
                     (it as? ProgressTextButton)?.hideProgress()
                 }
                 true
