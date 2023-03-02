@@ -31,7 +31,6 @@ import ceui.lisa.download.IllustDownload
 import ceui.lisa.models.*
 import ceui.lisa.notification.CallBackReceiver
 import ceui.lisa.utils.*
-import ceui.lisa.viewmodel.AppLevelViewModel.FollowUserStatus
 import ceui.loxia.*
 import ceui.refactor.setOnClick
 import com.bumptech.glide.Glide
@@ -123,34 +122,16 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
             baseBind.follow.isVisible = false
             baseBind.unfollow.isVisible = true
             baseBind.unfollow.setOnClick {
-                viewLifecycleOwner.lifecycleScope.launch {
-                    it.showProgress()
-                    PixivOperate.postUnFollowUser(user.id)
-                    delay(800L)
-                    it.hideProgress()
-                }
-            }
-            baseBind.unfollow.setOnLongClickListener {
-                true
+                unfollowUser(it, user.id)
             }
         } else {
             baseBind.unfollow.isVisible = false
             baseBind.follow.isVisible = true
             baseBind.follow.setOnClick {
-                viewLifecycleOwner.lifecycleScope.launch {
-                    it.showProgress()
-                    PixivOperate.postFollowUser(user.id, Params.TYPE_PUBLIC)
-                    delay(800L)
-                    it.hideProgress()
-                }
+                followUser(it, user.id, Params.TYPE_PUBLIC)
             }
             baseBind.follow.setOnLongClickListener {
-                viewLifecycleOwner.lifecycleScope.launch {
-                    (it as? ProgressTextButton)?.showProgress()
-                    PixivOperate.postFollowUser(user.id, Params.TYPE_PRIVATE)
-                    delay(800L)
-                    (it as? ProgressTextButton)?.hideProgress()
-                }
+                followUser((it as ProgressTextButton), user.id, Params.TYPE_PRIVATE)
                 true
             }
         }
@@ -170,10 +151,6 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
         }
 
         baseBind.userName.text = user.name
-        Glide.with(mContext)
-            .load(GlideUtil.getUrl(user.profile_image_urls.medium))
-            .error(R.drawable.no_profile)
-            .into(baseBind.userHead)
     }
 
     private fun updateIllust(illust: IllustsBean) {
@@ -509,7 +486,10 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
         }
         baseBind.illustId.setOnClick { Common.copy(mContext, illust.id.toString()) }
         baseBind.userId.setOnClick { Common.copy(mContext, illust.user.id.toString()) }
-
+        Glide.with(mContext)
+            .load(GlideUtil.getUrl(illust.user?.profile_image_urls?.medium))
+            .error(R.drawable.no_profile)
+            .into(baseBind.userHead)
     }
 
     private var mReceiver: CallBackReceiver? = null

@@ -59,7 +59,7 @@ interface SearchDao {
     fun getMutedUser(limit: Int, offset: Int): List<MuteEntity>
 
     @Query("SELECT * FROM tag_mute_table WHERE type = 3 AND id = :userID LIMIT 1")
-    fun getUserMuteEntityByID(userID: Int): MuteEntity
+    fun getUserMuteEntityByID(userID: Int): MuteEntity?
 
     @Query("SELECT * FROM tag_mute_table WHERE type = 3 AND id = :userID LIMIT 1")
     fun getUserMuteEntityByIDLiveData(userID: Int): LiveData<MuteEntity>
@@ -68,7 +68,7 @@ interface SearchDao {
     fun getIllustMuteEntityByID(illustId: Int): LiveData<MuteEntity>
 
     @Query("SELECT * FROM tag_mute_table WHERE type = 4 AND id = :userID LIMIT 1")
-    fun getBlockMuteEntityByID(userID: Int): MuteEntity
+    fun getBlockMuteEntityByID(userID: Int): MuteEntity?
 
     @Delete
     fun deleteMuteEntity(muteEntity: MuteEntity)
