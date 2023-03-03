@@ -1,8 +1,10 @@
 package ceui.loxia
 
-import android.content.Context
+import ceui.lisa.activities.Shaft
 import ceui.lisa.http.AccountTokenApi
-import ceui.lisa.http.AppApi
+import ceui.lisa.http.HttpDns
+import ceui.lisa.http.RubySSLSocketFactory
+import ceui.lisa.http.pixivOkHttpClient
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
 import retrofit2.Retrofit
@@ -13,8 +15,22 @@ object Client {
 
     private val clientManager = ClientManager()
 
-    val appApi: API by lazy {
-        clientManager.createAPPAPI(API::class.java)
+    private var _appApi: API? = null
+
+    val appApi: API get() {
+        val _api = _appApi
+        return if (_api != null) {
+            _api
+        } else {
+            val impl = clientManager.createAPPAPI(API::class.java)
+            _appApi = impl
+            impl
+        }
+    }
+
+    fun reset() {
+        _appApi = null
+        _appApi = clientManager.createAPPAPI(API::class.java)
     }
 
     val authApi: AccountTokenApi by lazy {
@@ -53,6 +69,11 @@ class ClientManager {
             .writeTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
             .readTimeout(REQUIEST_TIME, TimeUnit.SECONDS)
             .protocols(listOf(Protocol.HTTP_1_1))
+
+        if (Shaft.sSettings.isAutoFuckChina) {
+            httpBuilder.sslSocketFactory(RubySSLSocketFactory(), pixivOkHttpClient())
+            httpBuilder.dns(HttpDns.getInstance())
+        }
 
         httpBuilder.addInterceptor(HeaderInterceptor(false))
         httpBuilder.addInterceptor(TokenFetcherInterceptor())
