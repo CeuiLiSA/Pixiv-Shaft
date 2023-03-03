@@ -5,6 +5,7 @@ import java.util.List;
 
 import ceui.lisa.helper.IllustNovelFilter;
 import ceui.lisa.interfaces.ListShow;
+import ceui.lisa.model.ListTrendingtag;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.NovelBean;
 import ceui.loxia.ObjectPool;
@@ -28,6 +29,7 @@ public class Mapper<T extends ListShow<?>> implements Function<T, T> {
                 if (isTagBanned || isIdBanned || isUserBanned || isR18FilterBanned) {
                     dash.add(o);
                 }
+                ObjectPool.INSTANCE.updateIllust((IllustsBean) o);
             }
             if (o instanceof NovelBean) {
                 boolean isTagBanned = IllustNovelFilter.judgeTag((NovelBean) o);
