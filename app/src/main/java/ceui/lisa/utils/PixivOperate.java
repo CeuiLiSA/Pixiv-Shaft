@@ -277,6 +277,8 @@ public class PixivOperate {
                             return;
                         }
 
+                        ObjectPool.INSTANCE.updateIllust(illust);
+
                         if (illust.getId() == 0 || !illust.isVisible()) {
                             Common.showToast(R.string.string_206);
                             return;
