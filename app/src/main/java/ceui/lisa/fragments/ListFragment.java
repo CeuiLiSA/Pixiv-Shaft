@@ -21,6 +21,7 @@ import com.scwang.smart.refresh.layout.listener.OnLoadMoreListener;
 import com.scwang.smart.refresh.layout.listener.OnRefreshListener;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
@@ -28,10 +29,13 @@ import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.core.BaseRepo;
 import ceui.lisa.helper.StaggeredManager;
 import ceui.lisa.interfaces.FeedBack;
+import ceui.lisa.model.ListTrendingtag;
+import ceui.lisa.models.IllustsBean;
 import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.view.LinearItemDecoration;
 import ceui.lisa.view.SpacesItemDecoration;
 import ceui.lisa.viewmodel.BaseModel;
+import ceui.loxia.ObjectPool;
 import jp.wasabeef.recyclerview.animators.BaseItemAnimator;
 import jp.wasabeef.recyclerview.animators.LandingAnimator;
 

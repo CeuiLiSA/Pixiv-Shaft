@@ -32,6 +32,7 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Params;
 import ceui.lisa.viewmodel.BaseModel;
 import ceui.lisa.viewmodel.HistoryModel;
+import ceui.loxia.ObjectPool;
 
 
 public class FragmentHistory extends LocalListFragment<FragmentBaseListBinding,

@@ -215,12 +215,6 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
         }, new NullCtrl<List<IllustsBean>>() {
             @Override
             public void success(List<IllustsBean> illustsBeans) {
-                illustsBeans.forEach(new Consumer<IllustsBean>() {
-                    @Override
-                    public void accept(IllustsBean illustsBean) {
-                        ObjectPool.INSTANCE.updateIllust(illustsBean);
-                    }
-                });
                 allItems.addAll(illustsBeans);
                 ((RecmdModel) mModel).getRankList().addAll(illustsBeans);
                 mModel.tidyAppViewModel(illustsBeans);
