@@ -14,7 +14,7 @@ android {
         applicationId "ceui.lisa.pixiv"
         minSdkVersion 21
         targetSdkVersion 33
-        versionCode 248
+        versionCode 250
         versionName "3.3.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
