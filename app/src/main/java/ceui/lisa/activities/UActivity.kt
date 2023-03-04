@@ -231,7 +231,7 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
             intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "正在关注")
             startActivity(intent)
         }
-        baseBind.follow.setOnClickListener(follow)
+        baseBind.followCount.setOnClickListener(follow)
         baseBind.followS.setOnClickListener(follow)
     }
 }

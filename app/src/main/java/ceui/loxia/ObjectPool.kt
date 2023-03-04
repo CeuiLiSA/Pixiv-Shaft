@@ -37,6 +37,10 @@ object ObjectPool {
         }
     }
 
+    fun getIllust(illustId: Long): LiveData<IllustsBean> {
+        return get(illustId)
+    }
+
     fun updateUser(userBean: UserBean) {
         update(userBean)
     }
