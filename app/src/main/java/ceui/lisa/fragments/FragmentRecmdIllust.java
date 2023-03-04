@@ -180,6 +180,12 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
                 return null;
             }
         }, new TryCatchObserverImpl<>());
+        mResponse.getRanking_illusts().forEach(new Consumer<IllustsBean>() {
+            @Override
+            public void accept(IllustsBean illustsBean) {
+                ObjectPool.INSTANCE.updateIllust(illustsBean);
+            }
+        });
         ((RecmdModel) mModel).getRankList().addAll(mResponse.getRanking_illusts());
         ((IAdapterWithHeadView) mAdapter).setHeadData(((RecmdModel) mModel).getRankList());
         mModel.tidyAppViewModel(((RecmdModel) mModel).getRankList());
@@ -216,6 +222,12 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
             @Override
             public void success(List<IllustsBean> illustsBeans) {
                 allItems.addAll(illustsBeans);
+                illustsBeans.forEach(new Consumer<IllustsBean>() {
+                    @Override
+                    public void accept(IllustsBean illustsBean) {
+                        ObjectPool.INSTANCE.updateIllust(illustsBean);
+                    }
+                });
                 ((RecmdModel) mModel).getRankList().addAll(illustsBeans);
                 mModel.tidyAppViewModel(illustsBeans);
                 ((IAdapterWithHeadView) mAdapter).setHeadData(((RecmdModel) mModel).getRankList());

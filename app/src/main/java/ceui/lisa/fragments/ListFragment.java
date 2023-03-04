@@ -268,11 +268,21 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
     }
 
     public void onFirstLoaded(List<Item> items) {
-
+        items.forEach(item -> {
+            if (item instanceof IllustsBean) {
+                ObjectPool.INSTANCE.updateIllust((IllustsBean) item);
+            } else if (item instanceof ListTrendingtag.TrendTagsBean) {
+                ObjectPool.INSTANCE.updateIllust(((ListTrendingtag.TrendTagsBean) item).getIllust());
+            }
+        });
     }
 
     public void onNextLoaded(List<Item> items) {
-
+        items.forEach(item -> {
+            if (item instanceof IllustsBean) {
+                ObjectPool.INSTANCE.updateIllust((IllustsBean) item);
+            }
+        });
     }
 
     public void clear() {
