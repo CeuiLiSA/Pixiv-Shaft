@@ -92,6 +92,8 @@
 
                         <TextView
                             android:id="@+id/p_size"
+                            style="@style/textBlack"
+                            android:includeFontPadding="false"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:background="@drawable/tag_stroke"
@@ -101,7 +103,7 @@
                             android:layout_margin="@dimen/twelve_dp"
                             android:paddingBottom="2dp"
                             android:textColor="@color/always_white"
-                            android:textSize="12sp" />
+                            android:textSize="11sp" />
 
                     </ceui.lisa.view.ExpandCard>
 

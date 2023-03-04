@@ -33,6 +33,7 @@ import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.viewmodel.UserViewModel;
+import ceui.loxia.ObjectPool;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
@@ -79,8 +80,8 @@ public class UserActivity extends BaseActivity<ActicityUserBinding> implements D
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ErrorCtrl<UserDetailResponse>() {
                     @Override
-                    public void next(UserDetailResponse user) {
-                        mUserViewModel.getUser().setValue(user);
+                    public void next(UserDetailResponse userResponse) {
+                        mUserViewModel.getUser().setValue(userResponse);
                     }
                 });
         baseBind.turnGray.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {

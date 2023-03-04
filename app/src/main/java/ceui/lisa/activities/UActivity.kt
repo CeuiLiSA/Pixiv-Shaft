@@ -88,8 +88,7 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
         mUserViewModel.isUserMuted.value = entity != null
         val block = AppDatabase.getAppDatabase(this).searchDao().getBlockMuteEntityByID(userId)
         mUserViewModel.isUserBlocked.value = block != null
-        val userLiveData = ObjectPool.get<UserBean>(userId.toLong())
-        userLiveData.observe(this) { user ->
+        ObjectPool.get<UserBean>(userId.toLong()).observe(this) { user ->
             updateUser(user)
             Common.showLog("updateUser invoke ${user.isIs_followed}")
         }
@@ -124,11 +123,15 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
             .subscribeOn(Schedulers.newThread())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(object : NullCtrl<UserDetailResponse>() {
-                override fun success(user: UserDetailResponse) {
-                    mUserViewModel.user.value = user
+                override fun success(userResponse: UserDetailResponse) {
+                    ObjectPool.updateUser(userResponse.user)
+                    mUserViewModel.user.value = userResponse
                     Shaft.appViewModel.updateFollowUserStatus(
                         userId,
-                        if (user.user.isIs_followed) AppLevelViewModel.FollowUserStatus.FOLLOWED else AppLevelViewModel.FollowUserStatus.NOT_FOLLOW
+                        if (userResponse.user.isIs_followed)
+                            AppLevelViewModel.FollowUserStatus.FOLLOWED
+                        else
+                            AppLevelViewModel.FollowUserStatus.NOT_FOLLOW
                     )
                 }
 
@@ -164,10 +167,12 @@ class UActivity : BaseActivity<ActivityNewUserBinding>(), Display<UserDetailResp
             .beginTransaction()
             .replace(R.id.fragment_container, newInstance())
             .commitNowAllowingStateLoss()
-        if (userId == Shaft.sUserModel.userId) {
+        if (userId.toLong() == Shaft.sUserModel.userId.toLong()) {
+            Common.showLog("saasdasdaw2 aa ${userId.toLong()}, ${Shaft.sUserModel.userId.toLong()}, ${userId.toLong() == Shaft.sUserModel.userId.toLong()}")
             baseBind.followLayout.visibility = View.GONE
             baseBind.moreAction.visibility = View.GONE
         } else {
+            Common.showLog("saasdasdaw2 bb ${userId.toLong()}, ${Shaft.sUserModel.userId.toLong()}, ${userId.toLong() == Shaft.sUserModel.userId.toLong()}")
             baseBind.followLayout.visibility = View.VISIBLE
             baseBind.moreAction.visibility = View.VISIBLE
             baseBind.moreAction.setOnClickListener { v: View? ->
