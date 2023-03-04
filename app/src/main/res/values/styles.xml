@@ -297,6 +297,30 @@
         <item name="android:background">@drawable/round_corner_shining_btn_red</item>
         <item name="android:stateListAnimator">@animator/button_press_alpha</item>
     </style>
+
+    <style name="textMontserratRegular">
+        <item name="fontFamily">@font/montserrat_regular</item>
+    </style>
+
+    <style name="textMontserratBold">
+        <item name="fontFamily">@font/montserrat_bold</item>
+    </style>
+
+    <style name="textBlack">
+        <item name="fontFamily">@font/montserrat_extra_bold</item>
+    </style>
+
+    <style name="textMontserratMedium">
+        <item name="fontFamily">@font/montserrat_medium</item>
+    </style>
+
+    <style name="textMontserratSemiBold">
+        <item name="fontFamily">@font/montserrat_semi_bold</item>
+    </style>
+
+    <style name="textMontserratExtraBold">
+        <item name="fontFamily">@font/montserrat_extra_bold</item>
+    </style>
 </resources>
 
 

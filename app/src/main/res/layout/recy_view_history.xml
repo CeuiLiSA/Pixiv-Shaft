@@ -93,10 +93,12 @@
                 android:background="@drawable/btn_follow"
                 android:paddingStart="@dimen/four_dp"
                 android:paddingTop="2dp"
+                style="@style/textBlack"
+                android:includeFontPadding="false"
                 android:paddingEnd="@dimen/four_dp"
                 android:paddingBottom="2dp"
                 android:textColor="@android:color/white"
-                android:textSize="12sp" />
+                android:textSize="11sp" />
 
 
         </RelativeLayout>

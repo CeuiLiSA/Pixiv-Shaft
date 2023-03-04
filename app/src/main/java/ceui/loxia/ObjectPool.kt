@@ -37,6 +37,10 @@ object ObjectPool {
         }
     }
 
+    fun updateUser(userBean: UserBean) {
+        update(userBean)
+    }
+
     fun followUser(userId: Long) {
         val exist = get<UserBean>(userId).value ?: return
         exist.isIs_followed = true

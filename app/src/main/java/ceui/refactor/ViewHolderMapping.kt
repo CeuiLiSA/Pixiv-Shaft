@@ -17,23 +17,7 @@ object ViewHolderMapping {
         parent: ViewGroup,
         itemType: Int
     ): ListItemViewHolder<ViewDataBinding, ListItemHolder> {
-        if (itemType == AAAAHolder::class.java.hashCode()) {
-            return AAAAViewHolder(
-                FragmentItemAaaaBinding.inflate(
-                    LayoutInflater.from(parent.context),
-                    parent,
-                    false
-                )
-            ) as ListItemViewHolder<ViewDataBinding, ListItemHolder>
-        } else if (itemType == BBBBHolder::class.java.hashCode()) {
-            return BBBBViewHolder(
-                FragmentItemBbbbBinding.inflate(
-                    LayoutInflater.from(parent.context),
-                    parent,
-                    false
-                )
-            ) as ListItemViewHolder<ViewDataBinding, ListItemHolder>
-        } else if (itemType == FlagReasonHolder::class.java.hashCode()) {
+        if (itemType == FlagReasonHolder::class.java.hashCode()) {
             return FlagReasonViewHolder(
                 CellFlagReasonBinding.inflate(
                     LayoutInflater.from(parent.context),
