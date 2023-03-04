@@ -130,7 +130,6 @@ public class FragmentHistory extends LocalListFragment<FragmentBaseListBinding,
             if (illustHistoryEntities.get(i).getType() == 0) {
                 IllustsBean illustsBean = Shaft.sGson.fromJson(
                         illustHistoryEntities.get(i).getIllustJson(), IllustsBean.class);
-                ObjectPool.INSTANCE.updateIllust(illustsBean);
                 ((HistoryModel)mModel).getAll().add(illustsBean);
             }
         }
@@ -142,7 +141,6 @@ public class FragmentHistory extends LocalListFragment<FragmentBaseListBinding,
             if (illustHistoryEntities.get(i).getType() == 0) {
                 IllustsBean illustsBean = Shaft.sGson.fromJson(
                         illustHistoryEntities.get(i).getIllustJson(), IllustsBean.class);
-                ObjectPool.INSTANCE.updateIllust(illustsBean);
                 ((HistoryModel)mModel).getAll().add(illustsBean);
             }
         }
