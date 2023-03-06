@@ -151,6 +151,11 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
         } else {
             bindView.baseBind.pRelated.setVisibility(View.GONE);
         }
+        if (target.isCreatedByAI()) {
+            bindView.baseBind.createdByAi.setVisibility(View.VISIBLE);
+        } else {
+            bindView.baseBind.createdByAi.setVisibility(View.GONE);
+        }
     }
 
     public RequestBuilder<Drawable> getBuilder(IllustsBean illust) {

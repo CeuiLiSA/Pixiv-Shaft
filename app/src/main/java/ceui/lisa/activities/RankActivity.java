@@ -45,6 +45,7 @@ public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> im
                 mContext.getString(R.string.daily_rank),
                 mContext.getString(R.string.weekly_rank),
                 mContext.getString(R.string.monthly_rank),
+                mContext.getString(R.string.created_by_ai),
                 mContext.getString(R.string.man_like),
                 mContext.getString(R.string.woman_like),
                 mContext.getString(R.string.self_done),

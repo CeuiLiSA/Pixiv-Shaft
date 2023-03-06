@@ -69,6 +69,23 @@
                     android:textSize="11sp" />
 
                 <TextView
+                    android:id="@+id/created_by_ai"
+                    android:visibility="gone"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/tag_stroke"
+                    android:paddingStart="@dimen/four_dp"
+                    android:paddingTop="@dimen/two_dp"
+                    style="@style/textBlack"
+                    android:text="AI"
+                    android:includeFontPadding="false"
+                    android:layout_marginEnd="@dimen/six_dp"
+                    android:paddingEnd="@dimen/four_dp"
+                    android:paddingBottom="2dp"
+                    android:textColor="@color/always_white"
+                    android:textSize="11sp" />
+
+                <TextView
                     android:id="@+id/p_related"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

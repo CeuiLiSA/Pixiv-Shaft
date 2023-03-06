@@ -669,4 +669,5 @@
     <string name="add_user_to_blacklist">将此用户加入黑名单</string>
     <string name="follow">关注</string>
     <string name="unfollow">取关</string>
+    <string name="created_by_ai">AI生成</string>
 </resources>

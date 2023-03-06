@@ -5,6 +5,7 @@ import java.util.List;
 
 import ceui.lisa.helper.IllustNovelFilter;
 import ceui.lisa.interfaces.ListShow;
+import ceui.lisa.model.ListTrendingtag;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.models.NovelBean;
 import ceui.loxia.ObjectPool;
