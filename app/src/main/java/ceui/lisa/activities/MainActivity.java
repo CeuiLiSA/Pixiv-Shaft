@@ -49,7 +49,6 @@ import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseImage;
 import ceui.lisa.utils.ReverseWebviewCallback;
 import ceui.lisa.view.DrawerLayoutViewPager;
-import ceui.loxia.test.ListActivity;
 
 import static ceui.lisa.activities.Shaft.sUserModel;
 

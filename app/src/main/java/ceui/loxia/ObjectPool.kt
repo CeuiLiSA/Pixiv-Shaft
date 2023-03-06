@@ -37,6 +37,14 @@ object ObjectPool {
         }
     }
 
+    fun getIllust(illustId: Long): LiveData<IllustsBean> {
+        return get(illustId)
+    }
+
+    fun updateUser(userBean: UserBean) {
+        update(userBean)
+    }
+
     fun followUser(userId: Long) {
         val exist = get<UserBean>(userId).value ?: return
         exist.isIs_followed = true
