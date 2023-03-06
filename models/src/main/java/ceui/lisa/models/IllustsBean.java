@@ -49,6 +49,8 @@ public class IllustsBean implements Serializable, Starable, Deduplicatable, Mode
     private MetaSinglePageBean meta_single_page;
     private int total_view;
     private int total_bookmarks;
+
+    private int illust_ai_type;
     private boolean is_bookmarked;
     private boolean visible;
     private boolean is_muted;
@@ -356,5 +358,22 @@ public class IllustsBean implements Serializable, Starable, Deduplicatable, Mode
     @Override
     public int getObjectType() {
         return ObjectSpec.POST;
+    }
+
+    public int getIllust_ai_type() {
+        return illust_ai_type;
+    }
+
+    public void setIllust_ai_type(int illust_ai_type) {
+        this.illust_ai_type = illust_ai_type;
+    }
+
+    public boolean isCreatedByAI() {
+        return illust_ai_type == IllustAIType.CreatedByAI;
+    }
+
+    public static class IllustAIType {
+        public static final int CreatedByHuman = 1;
+        public static final int CreatedByAI = 2;
     }
 }
