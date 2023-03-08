@@ -73,7 +73,7 @@ public class IllustDownload {
         check(activity, () -> {
             if (illust.getPage_count() == 1) {
                 DownloadItem item = buildDownloadItem(illust, 0, imageResolution);
-                Common.showToast(1 + "个任务已经加入下载队列");
+                Common.showToast(Shaft.getContext().getString(R.string.one_item_added));
                 Manager.get().addTask(item);
             }
         });
@@ -86,7 +86,7 @@ public class IllustDownload {
     public static void downloadIllustFirstPageWithResolution(IllustsBean illust, String imageResolution) {
         if (illust.getPage_count() == 1) {
             DownloadItem item = buildDownloadItem(illust, 0, imageResolution);
-            Common.showToast(1 + "个任务已经加入下载队列");
+            Common.showToast(Shaft.getContext().getString(R.string.one_item_added));
             Manager.get().addTask(item);
         }
     }
@@ -98,7 +98,7 @@ public class IllustDownload {
                 downloadIllustFirstPage(illust);
             } else {
                 DownloadItem item = buildDownloadItem(illust, index);
-                Common.showToast(1 + "个任务已经加入下载队列");
+                Common.showToast(Shaft.getContext().getString(R.string.one_item_added));
                 Manager.get().addTask(item);
             }
         });
@@ -118,7 +118,7 @@ public class IllustDownload {
                     DownloadItem item = buildDownloadItem(illust, i, imageResolution);
                     tempList.add(item);
                 }
-                Common.showToast(tempList.size() + "个任务已经加入下载队列");
+                Common.showToast(tempList.size() + Shaft.getContext().getString(R.string.has_been_added));
                 Manager.get().addTasks(tempList);
             }
         });
@@ -135,7 +135,7 @@ public class IllustDownload {
                 DownloadItem item = buildDownloadItem(illust, i);
                 tempList.add(item);
             }
-            Common.showToast(tempList.size() + "个任务已经加入下载队列");
+            Common.showToast(tempList.size() + Shaft.getContext().getString(R.string.has_been_added));
             Manager.get().addTasks(tempList);
         }
     }
@@ -169,7 +169,7 @@ public class IllustDownload {
                     }
                 }
             }
-            Common.showToast(taskCount + "个任务已经加入下载队列");
+            Common.showToast(taskCount + Shaft.getContext().getString(R.string.has_been_added));
             Manager.get().addTasks(tempList);
         });
     }

@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.database.DownloadEntity;
@@ -114,7 +115,7 @@ public class Manager {
             entity.setUuid(item.getUuid());
             entity.setTaskGson(Shaft.sGson.toJson(item));
             AppDatabase.getAppDatabase(mContext).downloadDao().deleteDownloading(entity);
-            Common.showToast(item.getName() + "已下载完成");
+            Common.showToast(item.getName() + mContext.getString(R.string.has_been_downloaded));
         } else {
             item.setNonius(0);
             item.setState(DownloadItem.DownloadState.FAILED);
