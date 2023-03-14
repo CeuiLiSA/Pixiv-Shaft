@@ -670,4 +670,5 @@
     <string name="follow">关注</string>
     <string name="unfollow">取关</string>
     <string name="created_by_ai">AI生成</string>
+    <string name="has_been_downloaded">已下载完成</string>
 </resources>

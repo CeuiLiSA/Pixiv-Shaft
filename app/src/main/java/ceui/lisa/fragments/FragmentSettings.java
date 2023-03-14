@@ -709,21 +709,26 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
             });
 
             //下载限制类型
-            baseBind.downloadLimitType.setText(DownloadLimitTypeUtil.getCurrentStatusName());
+            final String[] DOWNLOAD_START_TYPE_NAMES = new String[]{
+                    getString(DownloadLimitTypeUtil.DOWNLOAD_START_TYPE_IDS[0]),
+                    getString(DownloadLimitTypeUtil.DOWNLOAD_START_TYPE_IDS[1]),
+                    getString(DownloadLimitTypeUtil.DOWNLOAD_START_TYPE_IDS[2])
+            };
+            baseBind.downloadLimitType.setText(DOWNLOAD_START_TYPE_NAMES[DownloadLimitTypeUtil.getCurrentStatusIndex()]);
             baseBind.downloadLimitType.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     new QMUIDialog.CheckableDialogBuilder(mActivity)
                             .setCheckedIndex(Shaft.sSettings.getDownloadLimitType())
                             .setSkinManager(QMUISkinManager.defaultInstance(mContext))
-                            .addItems(DownloadLimitTypeUtil.DOWNLOAD_START_TYPE_NAMES, new DialogInterface.OnClickListener() {
+                            .addItems(DOWNLOAD_START_TYPE_NAMES, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     if (which == Shaft.sSettings.getDownloadLimitType()) {
                                         Common.showLog("什么也不做");
                                     } else {
                                         Shaft.sSettings.setDownloadLimitType(which);
-                                        baseBind.downloadLimitType.setText(DownloadLimitTypeUtil.getCurrentStatusName());
+                                        baseBind.downloadLimitType.setText(DOWNLOAD_START_TYPE_NAMES[DownloadLimitTypeUtil.getCurrentStatusIndex()]);
                                         Common.showToast(getString(R.string.string_428));
                                         Local.setSettings(Shaft.sSettings);
                                     }
