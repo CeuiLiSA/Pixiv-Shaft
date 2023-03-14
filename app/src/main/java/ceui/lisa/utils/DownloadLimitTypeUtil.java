@@ -9,20 +9,17 @@ import ceui.lisa.activities.Shaft;
 
 public class DownloadLimitTypeUtil {
 
-    private static final Resources resources = Shaft.getContext().getResources();
-
-    public static String[] DOWNLOAD_START_TYPE_NAMES = new String[]{
-            resources.getString(R.string.string_289),
-            resources.getString(R.string.string_448),
-            resources.getString(R.string.string_453)
+    public static int[] DOWNLOAD_START_TYPE_IDS = new int[]{
+            R.string.string_289,
+            R.string.string_448,
+            R.string.string_453
     };
-
-    public static String getCurrentStatusName() {
+    public static int getCurrentStatusIndex() {
         int currentIndex = Shaft.sSettings.getDownloadLimitType();
-        if (currentIndex < 0 || currentIndex >= DOWNLOAD_START_TYPE_NAMES.length) {
+        if (currentIndex < 0 || currentIndex >= DOWNLOAD_START_TYPE_IDS.length) {
             currentIndex = 0;
         }
-        return DOWNLOAD_START_TYPE_NAMES[currentIndex];
+        return currentIndex;
     }
 
     /**
