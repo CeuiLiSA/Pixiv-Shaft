@@ -139,13 +139,17 @@
     </style>
 
 
+    <style name="setting_text_left_and_center" parent="setting_text_left">
+        <item name="android:layout_centerVertical">true</item>
+    </style>
+
     <style name="setting_text_left">
         <item name="android:textColor">@color/black_to_grey</item>
         <item name="android:layout_marginStart">@dimen/sixteen_dp</item>
         <item name="android:layout_marginTop">@dimen/twelve_dp</item>
         <item name="android:layout_marginBottom">@dimen/twelve_dp</item>
         <item name="android:layout_marginEnd">@dimen/eighty_dp</item>
-        <item name="android:textSize">15sp</item>
+        <item name="android:textSize">16sp</item>
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
     </style>
@@ -195,6 +199,7 @@
     <style name="ripple_rela">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">70dp</item>
         <item name="android:clickable">true</item>
         <item name="android:background">?android:attr/selectableItemBackground</item>
     </style>
