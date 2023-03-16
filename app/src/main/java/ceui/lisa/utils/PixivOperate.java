@@ -92,8 +92,9 @@ public class PixivOperate {
     }
 
     public static void postFollowUser(int userID, String followType) {
+        String pendingFollowType = Shaft.sSettings.isPrivateStar() ? Params.TYPE_PRIVATE : followType;
         Retro.getAppApi().postFollow(
-                sUserModel.getAccess_token(), userID, followType)
+                sUserModel.getAccess_token(), userID, pendingFollowType)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ErrorCtrl<NullResponse>() {
@@ -106,7 +107,7 @@ public class PixivOperate {
                         LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
 
                         ObjectPool.INSTANCE.followUser(userID);
-                        if (followType.equals(Params.TYPE_PUBLIC)) {
+                        if (pendingFollowType.equals(Params.TYPE_PUBLIC)) {
                             Shaft.appViewModel.updateFollowUserStatus(userID, AppLevelViewModel.FollowUserStatus.FOLLOWED_PUBLIC);
                             Common.showToast(getString(R.string.like_success_public));
                         } else {
@@ -137,9 +138,9 @@ public class PixivOperate {
     }
 
     public static void postLikeDefaultStarType(IllustsBean illustsBean) {
-        if(Shaft.sSettings.isPrivateStar()){
+        if (Shaft.sSettings.isPrivateStar()) {
             postLike(illustsBean, Params.TYPE_PRIVATE, false, 0);
-        }else{
+        } else{
             postLike(illustsBean, Params.TYPE_PUBLIC, false, 0);
         }
     }
@@ -236,7 +237,8 @@ public class PixivOperate {
                     });
         } else { //没有收藏
             novelBean.setIs_bookmarked(true);
-            Retro.getAppApi().postLikeNovel(userModel.getAccess_token(), novelBean.getId(), starType)
+            String pendingType = Shaft.sSettings.isPrivateStar() ? Params.TYPE_PRIVATE : starType;
+            Retro.getAppApi().postLikeNovel(userModel.getAccess_token(), novelBean.getId(), pendingType)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {
@@ -250,7 +252,7 @@ public class PixivOperate {
                             if(view instanceof Button){
                                 ((Button) view).setText(getString(R.string.string_179));
                             }
-                            if (Params.TYPE_PUBLIC.equals(starType)) {
+                            if (Params.TYPE_PUBLIC.equals(pendingType)) {
                                 Common.showToast(getString(R.string.like_novel_success_public));
                             } else {
                                 Common.showToast(getString(R.string.like_novel_success_private));
