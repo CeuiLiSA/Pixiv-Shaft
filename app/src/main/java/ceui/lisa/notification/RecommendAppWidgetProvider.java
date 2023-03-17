@@ -128,7 +128,7 @@ public class RecommendAppWidgetProvider extends AppWidgetProvider {
             if (Shaft.sUserModel == null) {
                 return START_STICKY;
             }
-            Retro.getAppApi().getRecmdIllust(Shaft.sUserModel.getAccess_token())
+            Retro.getAppApi().getRecmdIllust(Shaft.sUserModel.getAccess_token(), true)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new NullCtrl<ListIllust>() {
