@@ -161,5 +161,20 @@
     <color name="green_mark_shadow_color">#009262</color>
 
     <color name="red_button_shadow_color">#A7002A</color>
+
+
+
+    <color name="event_sample_color_1">#8633FF</color>
+    <color name="event_sample_color_2">#F1347C</color>
+    <color name="event_sample_color_3">#FF7335</color>
+    <color name="event_sample_color_4">#F3AA00</color>
+    <color name="event_sample_color_5">#6CBE44</color>
+    <color name="event_sample_color_6">#00B994</color>
+    <color name="event_sample_color_7">#00ADF3</color>
+    <color name="event_sample_color_8">#6068FF</color>
+    <color name="event_sample_color_9">#8633FF</color>
+    <color name="event_sample_color_10">#C500FF</color>
+    <color name="event_sample_color_11">#F234C6</color>
+
 </resources>
 
