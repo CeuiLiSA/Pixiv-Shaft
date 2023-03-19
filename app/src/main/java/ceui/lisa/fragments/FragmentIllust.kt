@@ -204,6 +204,7 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
             Common.copy(mContext, illust.title)
             true
         }
+        baseBind.toolbar.menu?.clear()
         baseBind.toolbar.inflateMenu(R.menu.share)
         baseBind.toolbar.setNavigationOnClickListener { v: View? -> mActivity.finish() }
         baseBind.toolbar.setOnMenuItemClickListener(Toolbar.OnMenuItemClickListener { menuItem ->

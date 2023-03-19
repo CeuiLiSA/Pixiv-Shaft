@@ -8,6 +8,14 @@ abstract class Repository<FragmentT: NavFragment> {
     val refreshState = MutableLiveData<RefreshState>()
     val holderList = MutableLiveData<List<ListItemHolder>>()
 
+    abstract suspend fun refresh(
+        fragment: FragmentT
+    )
+
+    abstract suspend fun loadMore(
+        fragment: FragmentT
+    )
+
     suspend fun refreshInvoker(
         frag: FragmentT,
         hint: RefreshHint
@@ -32,12 +40,4 @@ abstract class Repository<FragmentT: NavFragment> {
             refreshState.value = RefreshState.ERROR(ex)
         }
     }
-
-    abstract suspend fun refresh(
-        fragment: FragmentT
-    )
-
-    abstract suspend fun loadMore(
-        fragment: FragmentT
-    )
 }

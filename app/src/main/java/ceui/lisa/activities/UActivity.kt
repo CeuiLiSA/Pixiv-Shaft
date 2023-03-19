@@ -243,11 +243,16 @@ fun Fragment.followUser(sender: ProgressTextButton, userId: Int, followType: Str
 fun FragmentActivity.followUser(sender: ProgressTextButton, userId: Int, followType: String) {
     lifecycleScope.launch {
         try {
+            val pendingFollowType = if (Shaft.sSettings.isPrivateStar) {
+                Params.TYPE_PRIVATE
+            } else {
+                followType
+            }
             sender.showProgress()
-            Client.appApi.postFollow(userId.toLong(), followType)
+            Client.appApi.postFollow(userId.toLong(), pendingFollowType)
             delay(500L)
             ObjectPool.followUser(userId.toLong())
-            if (followType == Params.TYPE_PUBLIC) {
+            if (pendingFollowType == Params.TYPE_PUBLIC) {
                 Shaft.appViewModel.updateFollowUserStatus(
                     userId,
                     AppLevelViewModel.FollowUserStatus.FOLLOWED_PUBLIC

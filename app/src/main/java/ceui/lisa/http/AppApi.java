@@ -70,8 +70,8 @@ public interface AppApi {
      * @param token
      * @return
      */
-    @GET("v1/illust/recommended?include_privacy_policy=true&filter=for_android&include_ranking_illusts=true")
-    Observable<RecmdIllust> getRecmdIllust(@Header("Authorization") String token);
+    @GET("v1/illust/recommended?include_privacy_policy=true&filter=for_android")
+    Observable<RecmdIllust> getRecmdIllust(@Header("Authorization") String token, @Query("include_ranking_illusts") boolean include_ranking_illusts);
 
 
     @GET("v1/manga/recommended?include_privacy_policy=true&filter=for_android&include_ranking_illusts=true")

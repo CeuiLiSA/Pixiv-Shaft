@@ -78,9 +78,12 @@
                             android:orientation="horizontal"
                             android:rowCount="2">
 
-                            <RelativeLayout
+                            <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
+                                app:qmui_radius="10dp"
                                 android:layout_width="0dp"
                                 android:layout_height="0dp"
+                                android:id="@+id/manga"
+                                android:stateListAnimator="@animator/button_press_scale"
                                 android:layout_rowWeight="1"
                                 android:layout_columnWeight="1"
                                 android:layout_marginStart="@dimen/twelve_dp"
@@ -89,7 +92,6 @@
                                 android:layout_marginBottom="@dimen/six_dp">
 
                                 <ImageView
-                                    android:id="@+id/manga"
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
                                     android:scaleType="centerCrop"
@@ -110,12 +112,15 @@
                                     android:textSize="16sp"
                                     android:textStyle="bold" />
 
-                            </RelativeLayout>
+                            </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout>
 
-                            <RelativeLayout
+                            <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
+                                app:qmui_radius="10dp"
                                 android:layout_width="0dp"
                                 android:layout_height="0dp"
                                 android:layout_rowWeight="1"
+                                android:id="@+id/novel"
+                                android:stateListAnimator="@animator/button_press_scale"
                                 android:layout_columnWeight="1"
                                 android:layout_marginStart="@dimen/six_dp"
                                 android:layout_marginTop="@dimen/twelve_dp"
@@ -123,7 +128,6 @@
                                 android:layout_marginBottom="@dimen/six_dp">
 
                                 <ImageView
-                                    android:id="@+id/novel"
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
                                     android:background="@drawable/shape_round_outline"
@@ -146,20 +150,22 @@
                                     android:textSize="16sp"
                                     android:textStyle="bold" />
 
-                            </RelativeLayout>
+                            </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout>
 
-                            <RelativeLayout
+                            <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
+                                app:qmui_radius="10dp"
                                 android:layout_width="0dp"
                                 android:layout_height="0dp"
                                 android:layout_rowWeight="1"
                                 android:layout_columnWeight="1"
                                 android:layout_marginStart="@dimen/twelve_dp"
+                                android:id="@+id/walk_through"
+                                android:stateListAnimator="@animator/button_press_scale"
                                 android:layout_marginTop="@dimen/six_dp"
                                 android:layout_marginEnd="@dimen/six_dp"
                                 android:layout_marginBottom="@dimen/twelve_dp">
 
                                 <ImageView
-                                    android:id="@+id/walk_through"
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
                                     android:scaleType="centerCrop"
@@ -181,20 +187,22 @@
                                     android:textSize="16sp"
                                     android:textStyle="bold" />
 
-                            </RelativeLayout>
+                            </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout>
 
-                            <RelativeLayout
+                            <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
+                                app:qmui_radius="10dp"
                                 android:layout_width="0dp"
                                 android:layout_height="0dp"
                                 android:layout_rowWeight="1"
                                 android:layout_columnWeight="1"
+                                android:id="@+id/follow_novels"
+                                android:stateListAnimator="@animator/button_press_scale"
                                 android:layout_marginStart="@dimen/six_dp"
                                 android:layout_marginTop="@dimen/six_dp"
                                 android:layout_marginEnd="@dimen/twelve_dp"
                                 android:layout_marginBottom="@dimen/twelve_dp">
 
                                 <ImageView
-                                    android:id="@+id/follow_novels"
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
                                     android:scaleType="centerCrop"
@@ -217,7 +225,7 @@
                                     android:textSize="16sp"
                                     android:textStyle="bold" />
 
-                            </RelativeLayout>
+                            </com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout>
 
                         </GridLayout>
 

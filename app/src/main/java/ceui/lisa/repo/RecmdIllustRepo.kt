@@ -14,11 +14,15 @@ open class RecmdIllustRepo(
         return if ("漫画" == dataType) {
             Retro.getAppApi().getRecmdManga(token())
         } else {
-            Retro.getAppApi().getRecmdIllust(token())
+            Retro.getAppApi().getRecmdIllust(token(), true)
         }
     }
 
     override fun initNextApi(): Observable<ListIllust> {
         return Retro.getAppApi().getNextIllust(token(), nextUrl)
+    }
+
+    companion object {
+        const val RankingIllustTag = "RankingIllustTag"
     }
 }
