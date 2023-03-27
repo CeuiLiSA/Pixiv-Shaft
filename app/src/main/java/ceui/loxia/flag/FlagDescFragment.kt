@@ -1,8 +1,7 @@
-package ceui.loxia
+package ceui.loxia.flag
 
 import android.os.Bundle
 import android.view.View
-import androidx.core.os.bundleOf
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -10,7 +9,7 @@ import androidx.lifecycle.lifecycleScope
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentFlagDescBinding
 import ceui.lisa.utils.Common
-import ceui.lisa.utils.PixivOperate
+import ceui.loxia.*
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
 import kotlinx.coroutines.delay
@@ -67,7 +66,7 @@ class FlagDescFragment : NavFragment(R.layout.fragment_flag_desc) {
                         hideKeyboard()
                         val activity = requireActivity()
                         it.showProgress()
-                        val resp = Client.appApi.postFlagIllust(safeArgs.flagObjectId, flagReasonSpec, reasonDesc)
+                        Client.appApi.postFlagIllust(safeArgs.flagObjectId, flagReasonSpec, reasonDesc)
                         FlagReasonFragment.shouldAutoFinish = true
                         delay(200L)
                         Common.showToast(getString(R.string.flag_send_successfully))

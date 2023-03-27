@@ -3,7 +3,7 @@ package ceui.loxia
 import androidx.lifecycle.MutableLiveData
 import ceui.refactor.ListItemHolder
 
-abstract class Repository<FragmentT> {
+abstract class Repository<FragmentT: NavFragment> {
 
     val refreshState = MutableLiveData<RefreshState>()
     val holderList = MutableLiveData<List<ListItemHolder>>()

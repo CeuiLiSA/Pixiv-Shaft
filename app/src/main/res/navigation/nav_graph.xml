@@ -25,7 +25,7 @@
 
     <fragment
         android:id="@+id/navigation_flag_reason"
-        android:name="ceui.loxia.FlagReasonFragment">
+        android:name="ceui.loxia.flag.FlagReasonFragment">
         <argument
             android:name="flag_object_id"
             app:argType="integer" />
