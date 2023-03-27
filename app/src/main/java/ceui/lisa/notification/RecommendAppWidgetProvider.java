@@ -71,10 +71,10 @@ public class RecommendAppWidgetProvider extends AppWidgetProvider {
                 illustIntent.putExtra(Params.PAGE_UUID, pageData.getUUID());
                 context.startActivity(illustIntent);
             } else if (WIDGET_CLICK_TYPE_BTN.equals(intent.getStringExtra(WIDGET_CLICK_TYPE))) {
-                int appWidgetID = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, 0);
-                if (appWidgetID != 0) {
-                    startService(context, new int[]{appWidgetID});
-                }
+//                int appWidgetID = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, 0);
+//                if (appWidgetID != 0) {
+//                    startService(context, new int[]{appWidgetID});
+//                }
             }
         }
     }
@@ -82,7 +82,7 @@ public class RecommendAppWidgetProvider extends AppWidgetProvider {
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         super.onUpdate(context, appWidgetManager, appWidgetIds);
-        startService(context, appWidgetIds);
+//        startService(context, appWidgetIds);
     }
 
     @Override

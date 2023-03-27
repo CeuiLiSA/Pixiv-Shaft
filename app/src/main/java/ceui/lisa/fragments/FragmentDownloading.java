@@ -63,9 +63,13 @@ public class FragmentDownloading extends LocalListFragment<FragmentBaseListBindi
             } else if(holder.getCode() == Params.DOWNLOAD_SUCCESS) {
                 int position = holder.getIndex();
                 if (position < allItems.size()) {
-                    allItems.remove(position);
-                    mAdapter.notifyItemRemoved(position);
-                    mAdapter.notifyItemRangeChanged(position, allItems.size() - position);
+                    try {
+                        allItems.remove(position);
+                        mAdapter.notifyItemRemoved(position);
+                        mAdapter.notifyItemRangeChanged(position, allItems.size() - position);
+                    } catch (Exception exception) {
+                        exception.printStackTrace();
+                    }
                 }
 
                 if (allItems.size() == 0) {

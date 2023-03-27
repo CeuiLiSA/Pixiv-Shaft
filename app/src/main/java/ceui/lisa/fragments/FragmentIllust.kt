@@ -373,6 +373,8 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
         baseBind.coreLinear.viewTreeObserver.addOnGlobalLayoutListener(object :
             OnGlobalLayoutListener {
             override fun onGlobalLayout() {
+                val v = view ?: return
+                val ctx = context ?: return
                 val realHeight = baseBind.bottomBar.height +
                         baseBind.viewDivider.height +
                         baseBind.secondLinear.height
