@@ -22,12 +22,11 @@
             android:orientation="vertical">
 
 
-            <ceui.lisa.view.DynamicHeightImageView
+            <ImageView
                 android:id="@+id/illust_image"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:adjustViewBounds="true"
-                android:scaleType="fitCenter" />
+                android:scaleType="centerCrop" />
 
 
             <LinearLayout
@@ -114,6 +113,12 @@
                 app:tint="#a4afb3">
 
             </ImageButton>
+
+<!--            <TextView-->
+<!--                android:id="@+id/debug_message"-->
+<!--                android:textColor="@color/black"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"/>-->
 
         </RelativeLayout>
     </androidx.cardview.widget.CardView>
