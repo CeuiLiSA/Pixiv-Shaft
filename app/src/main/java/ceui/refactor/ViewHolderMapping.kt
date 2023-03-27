@@ -5,10 +5,8 @@ import android.view.ViewGroup
 import androidx.databinding.ViewDataBinding
 import ceui.lisa.databinding.CellFlagReasonBinding
 import ceui.lisa.databinding.CellNoneBinding
-import ceui.lisa.databinding.FragmentItemAaaaBinding
-import ceui.lisa.databinding.FragmentItemBbbbBinding
-import ceui.loxia.FlagReasonHolder
-import ceui.loxia.FlagReasonViewHolder
+import ceui.loxia.flag.FlagReasonHolder
+import ceui.loxia.flag.FlagReasonViewHolder
 
 object ViewHolderMapping {
 

@@ -23,7 +23,6 @@ import ceui.lisa.utils.DensityUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.view.LinearItemHorizontalDecoration;
 import jp.wasabeef.recyclerview.animators.BaseItemAnimator;
-import jp.wasabeef.recyclerview.animators.FadeInLeftAnimator;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 
@@ -82,12 +81,7 @@ public class FragmentPivisionHorizontal extends NetListFragment<FragmentPivision
 
     @Override
     public BaseItemAnimator animation() {
-        FadeInLeftAnimator landingAnimator = new FadeInLeftAnimator();
-        landingAnimator.setAddDuration(animateDuration);
-        landingAnimator.setRemoveDuration(animateDuration);
-        landingAnimator.setMoveDuration(animateDuration);
-        landingAnimator.setChangeDuration(animateDuration);
-        return landingAnimator;
+        return null;
     }
 
     @Override

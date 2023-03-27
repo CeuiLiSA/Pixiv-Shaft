@@ -83,6 +83,7 @@
                         android:layout_alignParentEnd="true"
                         android:layout_marginTop="@dimen/twelve_dp"
                         android:id="@+id/see_more"
+                        android:stateListAnimator="@animator/button_press_alpha"
                         app:drawableTint="?attr/colorPrimary"
                         android:textColor="?attr/colorPrimary"
                         android:layout_marginEnd="@dimen/twelve_dp"

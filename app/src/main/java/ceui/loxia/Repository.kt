@@ -3,10 +3,18 @@ package ceui.loxia
 import androidx.lifecycle.MutableLiveData
 import ceui.refactor.ListItemHolder
 
-abstract class Repository<FragmentT> {
+abstract class Repository<FragmentT: NavFragment> {
 
     val refreshState = MutableLiveData<RefreshState>()
     val holderList = MutableLiveData<List<ListItemHolder>>()
+
+    abstract suspend fun refresh(
+        fragment: FragmentT
+    )
+
+    abstract suspend fun loadMore(
+        fragment: FragmentT
+    )
 
     suspend fun refreshInvoker(
         frag: FragmentT,
@@ -32,12 +40,4 @@ abstract class Repository<FragmentT> {
             refreshState.value = RefreshState.ERROR(ex)
         }
     }
-
-    abstract suspend fun refresh(
-        fragment: FragmentT
-    )
-
-    abstract suspend fun loadMore(
-        fragment: FragmentT
-    )
 }

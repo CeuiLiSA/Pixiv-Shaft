@@ -5,7 +5,7 @@
 
         <variable
             name="viewModel"
-            type="ceui.loxia.FlagDescViewModel" />
+            type="ceui.loxia.flag.FlagDescViewModel" />
     </data>
 
     <RelativeLayout

@@ -9,6 +9,7 @@
     <com.qmuiteam.qmui.widget.roundwidget.QMUIRoundRelativeLayout
         android:layout_width="220dp"
         app:qmui_radius="@dimen/twelve_dp"
+        android:stateListAnimator="@animator/button_press_alpha"
         app:qmui_borderWidth="0dp"
         android:layout_height="160dp">
 
@@ -27,6 +28,11 @@
             android:layout_height="36dp">
 
         </View>
+
+        <View
+            android:layout_width="match_parent"
+            android:background="@drawable/round_corner_white05_r12"
+            android:layout_height="match_parent"/>
 
         <TextView
             android:id="@+id/title"

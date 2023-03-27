@@ -32,6 +32,7 @@ import ceui.lisa.models.*
 import ceui.lisa.notification.CallBackReceiver
 import ceui.lisa.utils.*
 import ceui.loxia.*
+import ceui.loxia.flag.FlagDescFragment
 import ceui.refactor.setOnClick
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
@@ -203,6 +204,7 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
             Common.copy(mContext, illust.title)
             true
         }
+        baseBind.toolbar.menu?.clear()
         baseBind.toolbar.inflateMenu(R.menu.share)
         baseBind.toolbar.setNavigationOnClickListener { v: View? -> mActivity.finish() }
         baseBind.toolbar.setOnMenuItemClickListener(Toolbar.OnMenuItemClickListener { menuItem ->
@@ -372,6 +374,8 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
         baseBind.coreLinear.viewTreeObserver.addOnGlobalLayoutListener(object :
             OnGlobalLayoutListener {
             override fun onGlobalLayout() {
+                val v = view ?: return
+                val ctx = context ?: return
                 val realHeight = baseBind.bottomBar.height +
                         baseBind.viewDivider.height +
                         baseBind.secondLinear.height
