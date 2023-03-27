@@ -390,6 +390,23 @@
                         <View style="@style/half_divider" />
 
                         <RelativeLayout
+                            android:id="@+id/delete_ai_illust_rela"
+                            style="@style/ripple_rela">
+
+                            <TextView
+                                style="@style/setting_text_left_and_center"
+                                android:text="@string/delete_ai_illust" />
+
+                            <androidx.appcompat.widget.SwitchCompat
+                                android:id="@+id/delete_ai_illust"
+                                style="@style/setting_right_switch"/>
+
+
+                        </RelativeLayout>
+
+                        <View style="@style/half_divider" />
+
+                        <RelativeLayout
                             android:id="@+id/search_filter_rela"
                             style="@style/ripple_rela">
 
