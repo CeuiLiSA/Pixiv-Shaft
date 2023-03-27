@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.drawable.Drawable;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.PopupWindow;
 
@@ -36,14 +37,15 @@ import ceui.lisa.interfaces.MultiDownload;
 import ceui.lisa.interfaces.OnItemClickListener;
 import ceui.lisa.interfaces.OnItemLongClickListener;
 import ceui.lisa.models.IllustsBean;
+import ceui.lisa.page.ScreenUtils;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 
 public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding> implements MultiDownload {
 
-    private static final float MIN_HEIGHT_RATIO = 0.4f;
-    private static final float MAX_HEIGHT_RATIO = 3.0f;
+    private static final float MIN_HEIGHT_RATIO = 0.6f;
+    private static final float MAX_HEIGHT_RATIO = 2.0f;
 
     public IAdapter(List<IllustsBean> targetList, Context context) {
         super(targetList, context);
@@ -59,16 +61,21 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
     @Override
     public void bindData(IllustsBean target, ViewHolder<RecyIllustStaggerBinding> bindView, int position) {
 
-        float ratio = 1.0f * target.getHeight() / target.getWidth();
+        float ratio = (float) target.getHeight() / (float) target.getWidth();
+        ViewGroup.LayoutParams params = bindView.baseBind.illustImage.getLayoutParams();
+        int itemWidth =
+                (ScreenUtils.getDisplayMetrics().widthPixels - ScreenUtils.dpToPx(24)) / 2;
+        params.width = itemWidth;
         if (ratio > MAX_HEIGHT_RATIO) {
-            ratio = MAX_HEIGHT_RATIO;
-            bindView.baseBind.illustImage.setHeightRatioAndScaleType(ratio, ImageView.ScaleType.CENTER_CROP);
+            // 如果图片很窄，但是高度很高，则限制最大高度，是宽的 1.8 倍
+            params.height = (int) (itemWidth * MAX_HEIGHT_RATIO);
         } else if (ratio < MIN_HEIGHT_RATIO) {
-            ratio = MIN_HEIGHT_RATIO;
-            bindView.baseBind.illustImage.setHeightRatioAndScaleType(ratio, ImageView.ScaleType.CENTER_CROP);
+            params.height = (int) (itemWidth * MIN_HEIGHT_RATIO);
         } else {
-            bindView.baseBind.illustImage.setHeightRatioAndScaleType(ratio, ImageView.ScaleType.FIT_CENTER);
+            params.height = (int) ((itemWidth * (float) target.getHeight()) / (float) target.getWidth());
         }
+        bindView.baseBind.illustImage.setLayoutParams(params);
+//        bindView.baseBind.debugMessage.setText("宽：" + target.getWidth() + "高：" + target.getHeight() + "id: " + target.getId());
 
         if (target.isIs_bookmarked()) {
             bindView.baseBind.likeButton.setImageTintList(
@@ -110,22 +117,27 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
         GlideUrl imgUrl = Shaft.sSettings.isShowLargeThumbnailImage() ? GlideUtil.getLargeImage(target) : GlideUtil.getMediumImg(target);
         RequestBuilder<Drawable> requestBuilder = Glide.with(mContext)
                 .load(imgUrl);
-        if (ratio == MIN_HEIGHT_RATIO || ratio == MAX_HEIGHT_RATIO) {
-            requestBuilder
-                    .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
-                    .centerCrop()
-                    .placeholder(R.color.second_light_bg)
-                    .transition(DrawableTransitionOptions.withCrossFade())
-                    .error(getBuilder(target))
-                    .into(bindView.baseBind.illustImage);
-        } else {
-            requestBuilder
-                    .fitCenter()
-                    .placeholder(R.color.second_light_bg)
-                    .transition(DrawableTransitionOptions.withCrossFade())
-                    .error(getBuilder(target))
-                    .into(bindView.baseBind.illustImage);
-        }
+//        if (ratio == MIN_HEIGHT_RATIO || ratio == MAX_HEIGHT_RATIO) {
+//            requestBuilder
+//                    .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
+//                    .centerCrop()
+//                    .placeholder(R.color.second_light_bg)
+//                    .transition(DrawableTransitionOptions.withCrossFade())
+//                    .error(getBuilder(target))
+//                    .into(bindView.baseBind.illustImage);
+//        } else {
+//            requestBuilder
+//                    .fitCenter()
+//                    .placeholder(R.color.second_light_bg)
+//                    .transition(DrawableTransitionOptions.withCrossFade())
+//                    .error(getBuilder(target))
+//                    .into(bindView.baseBind.illustImage);
+//        }
+        requestBuilder
+                .placeholder(R.color.second_light_bg)
+                .transition(DrawableTransitionOptions.withCrossFade())
+                .error(getBuilder(target))
+                .into(bindView.baseBind.illustImage);
 
         if (target.getPage_count() == 1) {
             bindView.baseBind.pSize.setVisibility(View.GONE);
@@ -158,9 +170,10 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
         }
     }
 
-    public RequestBuilder<Drawable> getBuilder(IllustsBean illust) {
+    public RequestBuilder<Drawable> getBuilder(IllustsBean target) {
+        GlideUrl imgUrl = Shaft.sSettings.isShowLargeThumbnailImage() ? GlideUtil.getLargeImage(target) : GlideUtil.getMediumImg(target);
         return Glide.with(mContext)
-                .load(GlideUtil.getMediumImg(illust))
+                .load(imgUrl)
                 .placeholder(R.color.second_light_bg)
                 .transition(DrawableTransitionOptions.withCrossFade());
     }
