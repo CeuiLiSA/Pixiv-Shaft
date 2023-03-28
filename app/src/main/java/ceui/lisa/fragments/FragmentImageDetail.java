@@ -87,21 +87,24 @@ public class FragmentImageDetail extends BaseFragment<FragmentImageDetailBinding
         baseBind.emptyFrame.setVisibility(View.GONE);
         baseBind.progressLayout.getRoot().setVisibility(View.VISIBLE);
         String imageUrl;
-        baseBind.bigImage.setMaxScale(3.5F);
-        baseBind.bigImage.setDoubleTapZoomScale(2F);
         if (mIllustsBean == null && !TextUtils.isEmpty(url)) {
+            setUpMediumResolutionDoubleTap();
             imageUrl = url;
         } else {
             final String originUrl = IllustDownload.getUrl(mIllustsBean, index);
             if (Shaft.getMMKV().decodeBool(originUrl)) {
+                setUpHighResolutionDoubleTap();
                 imageUrl = originUrl;
             } else {
                 if (!TextUtils.isEmpty(url)) {
+                    setUpMediumResolutionDoubleTap();
                     imageUrl = url;
                 } else {
                     if (Shaft.sSettings.isShowOriginalImage()) {
+                        setUpHighResolutionDoubleTap();
                         imageUrl = IllustDownload.getUrl(mIllustsBean, index, Params.IMAGE_RESOLUTION_ORIGINAL);
                     } else {
+                        setUpMediumResolutionDoubleTap();
                         imageUrl = IllustDownload.getUrl(mIllustsBean, index, Params.IMAGE_RESOLUTION_LARGE);
                     }
                 }
@@ -154,6 +157,16 @@ public class FragmentImageDetail extends BaseFragment<FragmentImageDetailBinding
                     protected void onResourceCleared(@Nullable Drawable placeholder) {
                     }
                 });
+    }
+
+    private void setUpHighResolutionDoubleTap() {
+        baseBind.bigImage.setMaxScale(3.8F);
+        baseBind.bigImage.setDoubleTapZoomScale(1.8F);
+    }
+
+    private void setUpMediumResolutionDoubleTap() {
+        baseBind.bigImage.setMaxScale(7F);
+        baseBind.bigImage.setDoubleTapZoomScale(4F);
     }
 
     @Override
