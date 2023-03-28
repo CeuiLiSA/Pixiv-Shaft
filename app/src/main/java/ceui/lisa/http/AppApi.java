@@ -316,7 +316,7 @@ public interface AppApi {
 
     @GET("v1/illust/detail?filter=for_android")
     Observable<IllustSearchResponse> getIllustByID(@Header("Authorization") String token,
-                                                   @Query("illust_id") int illust_id);
+                                                   @Query("illust_id") long illust_id);
 
 
     @GET("v1/search/user?filter=for_android")
@@ -441,7 +441,7 @@ public interface AppApi {
 
     @GET("v2/novel/detail")
     Observable<NovelSearchResponse> getNovelByID(@Header("Authorization") String token,
-                                                 @Query("novel_id") int novel_id);
+                                                 @Query("novel_id") long novel_id);
 
     @GET("v1/illust/series?filter=for_android")
     Observable<ListMangaOfSeries> getMangaSeriesById(@Header("Authorization") String token,

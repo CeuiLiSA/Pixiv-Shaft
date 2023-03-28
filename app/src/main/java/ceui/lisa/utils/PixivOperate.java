@@ -262,7 +262,7 @@ public class PixivOperate {
         }
     }
 
-    public static void getIllustByID(UserModel userModel, int illustID, Context context) {
+    public static void getIllustByID(UserModel userModel, long illustID, Context context) {
         QMUITipDialog tipDialog = new QMUITipDialog.Builder(context)
                 .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
                 .setTipWord(getString(R.string.string_429))
@@ -313,7 +313,7 @@ public class PixivOperate {
                 });
     }
 
-    public static void getIllustByID(UserModel userModel, int illustID, Context context,
+    public static void getIllustByID(UserModel userModel, long illustID, Context context,
                                      ceui.lisa.interfaces.Callback<Void> success,ceui.lisa.interfaces.Callback<Void> fail) {
         Retro.getAppApi().getIllustByID(userModel.getAccess_token(), illustID)
                 .subscribeOn(Schedulers.newThread())
@@ -355,7 +355,7 @@ public class PixivOperate {
                 });
     }
 
-    public static void getNovelByID(UserModel userModel, int novel, Context context,
+    public static void getNovelByID(UserModel userModel, long novel, Context context,
                                      ceui.lisa.interfaces.Callback<Void> callback) {
         Retro.getAppApi().getNovelByID(userModel.getAccess_token(), novel)
                 .subscribeOn(Schedulers.newThread())

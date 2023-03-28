@@ -196,7 +196,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
         } else if (searchType == 1) {
             if (Common.isNumeric(trimmedKeyword)) {
                 PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_ILLUSTSID);
-                PixivOperate.getIllustByID(sUserModel, Integer.parseInt(trimmedKeyword), mContext);
+                PixivOperate.getIllustByID(sUserModel, tryParseId(trimmedKeyword), mContext);
             } else {
                 Common.showToast(getString(R.string.string_154));
             }
@@ -212,7 +212,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
         } else if (searchType == 3) {
             if (Common.isNumeric(trimmedKeyword)) {
                 PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_NOVELID);
-                PixivOperate.getNovelByID(sUserModel, Integer.parseInt(trimmedKeyword), mContext, null);
+                PixivOperate.getNovelByID(sUserModel, tryParseId(trimmedKeyword), mContext, null);
             } else {
                 Common.showToast(getString(R.string.string_154));
             }
@@ -249,7 +249,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                         .create();
                 tipDialog.show();
                 //先假定为作品id
-                PixivOperate.getIllustByID(sUserModel, Integer.parseInt(trimmedKeyword), mContext, new Callback<Void>() {
+                PixivOperate.getIllustByID(sUserModel, tryParseId(trimmedKeyword), mContext, new Callback<Void>() {
                     @Override
                     public void doSomething(Void t) {
                         PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_ILLUSTSID);
@@ -448,7 +448,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                 } else if (history.get(position).getSearchType() == SearchTypeUtil.SEARCH_TYPE_DB_ILLUSTSID) {
                     history.get(position).setSearchTime(System.currentTimeMillis());
                     AppDatabase.getAppDatabase(mContext).searchDao().insert(history.get(position));
-                    PixivOperate.getIllustByID(sUserModel, Integer.parseInt(history.get(position).getKeyword()), mContext);
+                    PixivOperate.getIllustByID(sUserModel, tryParseId(history.get(position).getKeyword()), mContext);
                 } else if (history.get(position).getSearchType() == SearchTypeUtil.SEARCH_TYPE_DB_USERKEYWORD) {
                     baseBind.hintList.setVisibility(View.INVISIBLE);
                     Intent intent = new Intent(mContext, SearchActivity.class);
@@ -464,7 +464,7 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
                 } else if (history.get(position).getSearchType() == SearchTypeUtil.SEARCH_TYPE_DB_NOVELID) {
                     history.get(position).setSearchTime(System.currentTimeMillis());
                     AppDatabase.getAppDatabase(mContext).searchDao().insert(history.get(position));
-                    PixivOperate.getNovelByID(sUserModel, Integer.parseInt(history.get(position).getKeyword()), mContext, null);
+                    PixivOperate.getNovelByID(sUserModel, tryParseId(history.get(position).getKeyword()), mContext, null);
                 } else if (history.get(position).getSearchType() == SearchTypeUtil.SEARCH_TYPE_DB_URL) {
                     history.get(position).setSearchTime(System.currentTimeMillis());
                     AppDatabase.getAppDatabase(mContext).searchDao().insert(history.get(position));
