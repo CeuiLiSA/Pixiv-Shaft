@@ -4,46 +4,49 @@
 [![open issues](https://img.shields.io/github/issues/CeuiLiSA/Pixiv-Shaft?color=brightgreen)](https://github.com/CeuiLiSA/Pixiv-Shaft/issues?q=is%3Aopen+is%3Aissue)
 [![license](https://img.shields.io/github/license/CeuiLiSA/Pixiv-Shaft)](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/LICENSE)
 
-* 本应用为日本插画交流网站Pixiv的安卓客户端第三方重制版
-* 项目已开源且仅做交流和学习使用，不得用于任何商业用途
-* APP内所有插画、漫画、小说作品版权均归属于其著作者或Pixiv所有
-* 推荐使用原版Pixiv
+[中文(中国語)](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/README.md)
+
+* このアプリは日本のイラスト特化型SNS「Pixiv」の非公式Androidクライアントです。
+* このプロジェクトはオープンソースであり、当アプリを商業目的で使用することにより発生する責任に関し、一切の責任を負いません。
+* アプリ内のすべてのイラスト、漫画、小説の著作権は作者またはPixivに帰属します。
+* このアプリは非公式のものです。可能な限り公式のPixivアプリを使用することをお勧めします。
 
 ## 1.機能
 
 * ログインと会員登録
-* 大陆用户支持直连（详见[Pix-EzViewer](https://github.com/Notsfsssf/Pix-EzViewer)）
-* 非会员用户支持按热度排序，按收藏量筛选
+* アプリ内VPN（詳しくは[Pix-EzViewer](https://github.com/Notsfsssf/Pix-EzViewer)をご確認ください）
+* 非ログインでの人気順表示
 * GIFの表示・保存
 * 閲覧履歴の表示と保存
-* マルチアカウント対応
-* 插画，漫画，小说推荐及热门TAG
-* 插画，漫画，小说排行榜，支持按日查看
+* マルチアカウント
+* おすすめイラスト・漫画・小説・タグの表示
+* イラスト、漫画、小説を人気順・新しい順・古い順で検索
 * コメントの閲覧・送信・返信
-* 批量下载，支持导出下载链接
+* 一括ダウンロードとダウンロードリンクの表示
 * 小説の閲覧
-* Pixiv特辑
-* R18显示（需自行到官网开启）
+* Pixivision
+* R-18コンテンツの閲覧（Pixiv側での設定が必要）
 * スパムコメントのフィルタリング(初期状態では無効)
-* ダークモード対応
+* ダークモード
 
-## 2.特性
-* 美观大方的界面，融合多家客户端设计优点
-* 支持按热度排序
-* 流畅的动画
-* 简单的操作逻辑，丰富的操作反馈
-* 支持查看小说
-* 支持多国语言
+## 2.特徴
 
-## 3.快照
+* 様々なクライアントの「いいとこ取り」をした使いやすいUI
+* 「人気順」表示
+* スムーズなアニメーション
+* 操作が簡単
+* 小説の閲覧に対応
+* 多言語対応
+
+## 3.スクリーンショット
 
 
-|作品详情|推荐小说|评论列表|
+|イラスト表示ページ|おすすめの小説|コメント欄|
 |:---:|:---:|:---:|
 |![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-0.jpg)|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-1.jpg)|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-2.jpg)
 
 
-|动态页面|作品详情|热门标签|
+|新着作品のタブ|イラスト表示ページ|人気のタグ|
 |:---:|:---:|:---:|
 |![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-3.jpg)|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-4.jpg)|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-5.jpg)
 
