@@ -43,12 +43,12 @@
 
 |イラスト表示ページ|おすすめの小説|コメント欄|
 |:---:|:---:|:---:|
-|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-0.jpg)|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-1.jpg)|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-2.jpg)
+|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/ja/illust.jpg)|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-1.jpg)|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/ja/comment.jpg)
 
 
 |新着作品のタブ|イラスト表示ページ|人気のタグ|
 |:---:|:---:|:---:|
-|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-3.jpg)|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-4.jpg)|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-5.jpg)
+|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-3.jpg)|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-4.jpg)|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/ja/hotTag.jpg)
 
 ## 4. Google Playからダウンロード
 
