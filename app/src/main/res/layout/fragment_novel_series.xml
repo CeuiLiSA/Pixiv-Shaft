@@ -94,7 +94,7 @@
                                     android:paddingTop="@dimen/four_dp"
                                     android:paddingEnd="@dimen/sixteen_dp"
                                     android:paddingBottom="@dimen/four_dp"
-                                    android:text="@string/string_85"
+                                    android:text="@string/string_4"
                                     android:textColor="?attr/colorPrimary"
                                     android:textSize="13sp"
                                     app:qmui_borderColor="?attr/colorPrimary" />

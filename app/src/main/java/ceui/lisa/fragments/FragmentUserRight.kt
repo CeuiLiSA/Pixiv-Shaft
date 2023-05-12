@@ -39,25 +39,25 @@ class FragmentUserRight : SwipeFragment<FragmentUserRightBinding>() {
         val data = mUserViewModel.user.value ?: return
         val content: MutableList<String> = ArrayList()
         if (data.profile.total_illusts > 0) {
-            content.add("插画作品：" + data.profile.total_illusts)
+            content.add(getString(R.string.string_246) + ": " + data.profile.total_illusts)
         }
         if (data.profile.total_manga > 0) {
-            content.add("漫画作品：" + data.profile.total_manga)
+            content.add(getString(R.string.string_233) + ": " + data.profile.total_manga)
         }
         if (data.profile.total_illust_series > 0) {
-            content.add("漫画系列：" + data.profile.total_illust_series)
+            content.add(getString(R.string.string_230) +": " + data.profile.total_illust_series) //漫画系列
         }
         if (data.profile.total_novels > 0) {
-            content.add("小说作品：" + data.profile.total_novels)
+            content.add(getString(R.string.string_237) + ": " + data.profile.total_novels)
         }
         if (data.profile.total_novel_series > 0) {
-            content.add("小说系列：" + data.profile.total_novel_series)
+            content.add(getString(R.string.string_257)+ ": " + data.profile.total_novel_series)
         }
         if (data.profile.total_illust_bookmarks_public > 0) {
-            content.add("插画/漫画收藏：" + data.profile.total_illust_bookmarks_public)
+            content.add(getString(R.string.string_164) + ":" + data.profile.total_illust_bookmarks_public)
         }
-        content.add("小说收藏")
-        content.add("相关用户")
+        content.add(getString(R.string.string_192)) //小说收藏
+        content.add(getString(R.string.string_436)) //相关用户
         baseBind.tagLayout.adapter = object : TagAdapter<String>(content) {
             override fun getView(parent: FlowLayout, position: Int, s: String?): View {
                 val binding: TagItemBinding = DataBindingUtil.inflate(
@@ -84,28 +84,28 @@ class FragmentUserRight : SwipeFragment<FragmentUserRightBinding>() {
             val intent = Intent(mContext, TemplateActivity::class.java)
             intent.putExtra(Params.USER_ID, data.user.userId)
             when {
-                content[position].contains("插画作品") -> {
+                content[position].contains(getString(R.string.string_246)) -> {
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "插画作品")
                 }
-                content[position].contains("漫画作品") -> {
+                content[position].contains(getString(R.string.string_233)) -> {
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "漫画作品")
                 }
-                content[position].contains("漫画系列") -> {
+                content[position].contains(getString(R.string.string_230)) -> {
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "漫画系列作品")
                 }
-                content[position].contains("小说作品") -> {
+                content[position].contains(getString(R.string.string_237)) -> {
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说作品")
                 }
-                content[position].contains("小说系列") -> {
+                content[position].contains(getString(R.string.string_257)) -> {
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说系列作品")
                 }
-                content[position].contains("插画/漫画收藏") -> {
+                content[position].contains(getString(R.string.string_164)) -> {
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "插画/漫画收藏")
                 }
-                content[position].contains("小说收藏") -> {
+                content[position].contains(getString(R.string.string_192)) -> {
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说收藏")
                 }
-                content[position].contains("相关用户") -> {
+                content[position].contains(getString(R.string.string_436)) -> {
                     intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "相关用户")
                 }
             }

@@ -40,14 +40,14 @@ class FragmentHolder : BaseFragment<FragmentHolderBinding>() {
 
         when {
             data.userId == Shaft.sUserModel.user.id -> {
-                titles = arrayOf("收藏", "其他")
+                titles = arrayOf(getString(R.string.userTab_collection), getString(R.string.userTab_other))
                 items = arrayOf<Fragment>(
                         FragmentLikeIllust.newInstance(data.userId, Params.TYPE_PUBLIC),
                         FragmentUserRight()
                 )
             }
             data.profile.total_manga > 0 -> {
-                titles = arrayOf("插画", "漫画", "其他")
+                titles = arrayOf(getString(R.string.type_illust), getString(R.string.type_manga), getString(R.string.userTab_other))
                 items = arrayOf<Fragment>(
                         FragmentUserIllust.newInstance(data.userId, false),
                         FragmentUserManga.newInstance(data.userId, false),
@@ -55,7 +55,7 @@ class FragmentHolder : BaseFragment<FragmentHolderBinding>() {
                 )
             }
             else -> {
-                titles = arrayOf("插画", "其他")
+                titles = arrayOf(getString(R.string.type_illust), getString(R.string.userTab_other))
                 items = arrayOf<Fragment>(
                         FragmentUserIllust.newInstance(data.userId, false),
                         FragmentUserRight()

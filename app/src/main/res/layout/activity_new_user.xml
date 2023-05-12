@@ -129,7 +129,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center_vertical"
-                            android:text="@string/string_147"
+                            android:text="@+id/text"
                             android:id="@+id/p_friend_s"
                             android:textColor="@color/white"
                             android:textSize="13sp">

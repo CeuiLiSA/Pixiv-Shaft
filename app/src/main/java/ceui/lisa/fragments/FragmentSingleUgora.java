@@ -594,7 +594,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
         if(AppLevelViewModel.FollowUserStatus.isFollowed(status)){
             baseBind.follow.setText(R.string.string_177);
         }else{
-            baseBind.follow.setText(R.string.string_178);
+            baseBind.follow.setText(R.string.string_4);
         }
     }
 }

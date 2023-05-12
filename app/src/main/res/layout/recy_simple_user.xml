@@ -58,7 +58,7 @@
                 android:layout_centerVertical="true"
                 android:layout_margin="@dimen/twelve_dip"
                 android:gravity="center"
-                android:text="@string/string_123"
+                android:text="@string/string_4"
                 android:textColor="?attr/colorPrimary" />
 
         </RelativeLayout>

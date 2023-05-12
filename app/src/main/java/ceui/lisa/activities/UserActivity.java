@@ -45,8 +45,8 @@ import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOption
  */
 public class UserActivity extends BaseActivity<ActicityUserBinding> implements Display<UserDetailResponse> {
 
-    private UserViewModel mUserViewModel;
 
+    private UserViewModel mUserViewModel;
     @Override
     protected int initLayout() {
         return R.layout.acticity_user;
@@ -61,6 +61,9 @@ public class UserActivity extends BaseActivity<ActicityUserBinding> implements D
     @Override
     protected void initData() {
         int userID = getIntent().getIntExtra(Params.USER_ID, 0);
+        TextView textView = findViewById(R.id.text);
+        //    textView.setText("お");
+        textView.setText("void setText (CharSequence text)");
         if (Shaft.sSettings.isUseNewUserPage()) {
             Intent intent = new Intent(mContext, UActivity.class);
             intent.putExtra(Params.USER_ID, userID);
@@ -117,7 +120,7 @@ public class UserActivity extends BaseActivity<ActicityUserBinding> implements D
         baseBind.userAddress.setText(Common.checkEmpty(currentUser.getProfile().getRegion()));
         baseBind.userAddress.setVisibility(View.VISIBLE);
         List<String> tagList = new ArrayList<>();
-        tagList.add(getString(R.string.string_147) + currentUser.getProfile().getTotal_mypixiv_users());
+        tagList.add(getString(R.string.string_235) + ": " + currentUser.getProfile().getTotal_mypixiv_users());
         tagList.add(getString(R.string.string_145) + currentUser.getProfile().getTotal_follow_users());
         tagList.add(getString(R.string.string_146));
         baseBind.tagType.setAdapter(new TagAdapter<String>(tagList) {

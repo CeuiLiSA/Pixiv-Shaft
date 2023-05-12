@@ -47,7 +47,7 @@
                     android:layout_marginStart="@dimen/eight_dp"
                     android:layout_marginTop="@dimen/eight_dp"
                     android:layout_marginBottom="@dimen/eight_dp"
-                    android:text="@string/string_74"
+                    android:text="@string/string_164"
                     android:textColor="@color/rank_text_color"
                     android:textSize="15sp">
 
