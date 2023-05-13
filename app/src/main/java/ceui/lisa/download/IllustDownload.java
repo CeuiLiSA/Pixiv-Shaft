@@ -73,7 +73,7 @@ public class IllustDownload {
         check(activity, () -> {
             if (illust.getPage_count() == 1) {
                 DownloadItem item = buildDownloadItem(illust, 0, imageResolution);
-                Common.showToast(Shaft.getContext().getString(R.string.one_item_added));
+                Common.showToast('1' + Shaft.getContext().getString(R.string.has_been_added));
                 Manager.get().addTask(item);
             }
         });
@@ -86,7 +86,7 @@ public class IllustDownload {
     public static void downloadIllustFirstPageWithResolution(IllustsBean illust, String imageResolution) {
         if (illust.getPage_count() == 1) {
             DownloadItem item = buildDownloadItem(illust, 0, imageResolution);
-            Common.showToast(Shaft.getContext().getString(R.string.one_item_added));
+            Common.showToast('1' + Shaft.getContext().getString(R.string.has_been_added));
             Manager.get().addTask(item);
         }
     }
@@ -98,7 +98,7 @@ public class IllustDownload {
                 downloadIllustFirstPage(illust);
             } else {
                 DownloadItem item = buildDownloadItem(illust, index);
-                Common.showToast(Shaft.getContext().getString(R.string.one_item_added));
+                Common.showToast('1' + Shaft.getContext().getString(R.string.has_been_added));
                 Manager.get().addTask(item);
             }
         });

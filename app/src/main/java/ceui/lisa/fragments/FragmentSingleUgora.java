@@ -360,7 +360,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
                 }
             } else {
                 IllustDownload.downloadGif(illust);
-                Common.showToast(requireContext().getString(R.string.one_item_added));
+                Common.showToast('1' + requireContext().getString(R.string.has_been_added));
             }
         });
         baseBind.userName.setOnLongClickListener(new View.OnLongClickListener() {
