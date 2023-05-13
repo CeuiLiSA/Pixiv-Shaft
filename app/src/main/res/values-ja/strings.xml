@@ -60,7 +60,7 @@
   <string name="hello_blank_fragment">hello blank fragment</string>  
   <string name="cannot_download">ダウンロードエラー</string>  
   <string name="image_alredy_exist">写真はすでに存在します</string>  
-  <string name="has_been_added">個が、ダウンロードキューに追加されました</string>  
+  <string name="has_been_added">個がダウンロードキューに追加されました</string>  
   <string name="type_illust">イラスト</string>  
   <string name="type_manga">漫画</string>  
   <string name="type_walk_through">ギャラリー</string>  
