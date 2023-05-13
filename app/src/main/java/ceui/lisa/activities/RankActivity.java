@@ -36,7 +36,7 @@ public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> im
     protected void initView() {
         setSupportActionBar(baseBind.toolbar);
         baseBind.toolbar.setNavigationOnClickListener(v -> finish());
-        baseBind.toolbarTitle.setText("排行榜");
+        baseBind.toolbarTitle.setText(mContext.getString(R.string.ranking_illust));
         dataType = getIntent().getStringExtra("dataType");
         queryDate = getIntent().getStringExtra("date");
         baseBind.viewPager.setPageTransformer(true, new DrawerTransformer());
