@@ -61,9 +61,6 @@ public class UserActivity extends BaseActivity<ActicityUserBinding> implements D
     @Override
     protected void initData() {
         int userID = getIntent().getIntExtra(Params.USER_ID, 0);
-        TextView textView = findViewById(R.id.text);
-        //    textView.setText("お");
-        textView.setText("void setText (CharSequence text)");
         if (Shaft.sSettings.isUseNewUserPage()) {
             Intent intent = new Intent(mContext, UActivity.class);
             intent.putExtra(Params.USER_ID, userID);
