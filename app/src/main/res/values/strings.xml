@@ -663,4 +663,21 @@
     <string name="male">男性</string>
     <string name="female">女性</string>
     <string name="unknown_gender">未知性別</string>
+    <string name="singlePage_isAdd_p0">单P作品，文件名带上p0</string>
+    <string name="success_clearImageCache">图片缓存清除成功！</string>
+    <string name="success_clearGifCache">GIF缓存清除成功！</string>
+    <string name="restore_success">还原成功</string>
+    <string name="restore_failed">还原失败</string>
+    <string name="backup_success">备份成功</string>
+    <string name="color_shiYinPurple">矢尹紫</string>
+    <string name="color_classicBlue">经典蓝</string>
+    <string name="color_officialBlue">官方蓝</string>
+    <string name="color_scallionGreen">浅葱绿</string>
+    <string name="color_summerYellow">盛夏黄</string>
+    <string name="color_activeRed">元气红</string>
+    <string name="color_girlPink">少女粉</string>
+    <string name="color_classicGreen">老实绿</string>
+    <string name="color_classicPurple">基佬紫</string>
+    <string name="color_peachPink">樱桃粉</string>
+    <string name="theme_nowUsing">（正在使用）</string>
 </resources>

@@ -226,7 +226,7 @@
   <string name="string_57">12345678_タイトル.png</string>  
   <string name="string_58">空をクリア</string>  
   <string name="string_59">プレビュー</string>  
-  <string name="string_60">ファイル名のフォーマットを保存</string>
+  <string name="string_60">フォーマットを保存</string>
   <string name="string_61">検索条件</string>
   <string name="string_62">すき!数フィルタ</string>  
   <string name="string_63">並び替え</string>
@@ -470,7 +470,7 @@
   <string name="string_326">開始</string>  
   <string name="string_327">停止</string>  
   <string name="string_328">タスクをクリアする</string>  
-  <string name="string_329">Android 10以下のAndroidバージョンではフォルダのカスタマイズは利用できません。</string>  
+  <string name="string_329">10以下のAndroidバージョンではフォルダのカスタマイズは利用できません。</string>
   <string name="string_330">設定されていません</string>  
   <string name="r_eighteen_weekly_rank">今週のR-18</string>
   <string name="r_eighteen_male_rank">男性向けR-18</string>
@@ -638,4 +638,21 @@
   <string name="female">女性</string>
   <string name="male">男性</string>
   <string name="unknown_gender">性別不明</string>
+  <string name="singlePage_isAdd_p0">1ページの作品にもファイル名にp0をつける</string>
+  <string name="success_clearImageCache">画像キャッシュをクリアしました</string>
+  <string name="success_clearGifCache">GIFキャッシュをクリアしました</string>
+  <string name="restore_success">情報を復元しました！</string>
+  <string name="restore_failed">復元に失敗しました</string>
+  <string name="backup_success">"バックアップしました。保存先: "</string>
+  <string name="color_shiYinPurple">矢尹紫</string>
+  <string name="color_classicBlue">クラシックブルー</string>
+  <string name="color_officialBlue">ブルー</string>
+  <string name="color_scallionGreen">浅葱色</string>
+  <string name="color_summerYellow">サマーイエロー</string>
+  <string name="color_peachPink">ピーチピンク</string>
+  <string name="color_activeRed">アクティブレッド</string>
+  <string name="color_girlPink">ガールピンク</string>
+  <string name="color_classicGreen">クラシックグリーン</string>
+  <string name="color_classicPurple">クラシックパープル</string>
+  <string name="theme_nowUsing">(使用中)</string>
 </resources>
