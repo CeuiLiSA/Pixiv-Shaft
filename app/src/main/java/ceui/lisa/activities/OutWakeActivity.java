@@ -188,7 +188,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
                         if (!TextUtils.isEmpty(host)) {
 
                             if (host.equals("account")) {
-                                Common.showToast("尝试登录");
+                                Common.showToast(getString(R.string.trying_login));
                                 String code = uri.getQueryParameter("code");
                                 Retro.getAccountApi().newLogin(
                                         FragmentLogin.CLIENT_ID,

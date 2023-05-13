@@ -5,6 +5,7 @@ import androidx.databinding.ViewDataBinding;
 import java.util.ArrayList;
 import java.util.List;
 
+import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
 import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.adapters.ColorAdapter;
@@ -38,34 +39,31 @@ public class FragmentColors extends LocalListFragment<FragmentBaseListBinding, C
     public List<ColorItem> getList() {
         List<ColorItem> itemList = new ArrayList<>();
         int current = Shaft.sSettings.getThemeIndex();
-        itemList.add(new ColorItem(0, COLOR_NAMES[0], "#686bdd", current == 0));
-        itemList.add(new ColorItem(1, COLOR_NAMES[1], "#56baec", current == 1));
-        itemList.add(new ColorItem(2, COLOR_NAMES[2], "#008BF3", current == 2));
-        itemList.add(new ColorItem(3, COLOR_NAMES[3], "#03d0bf", current == 3));
-        itemList.add(new ColorItem(4, COLOR_NAMES[4], "#fee65e", current == 4));
-        itemList.add(new ColorItem(5, COLOR_NAMES[5], "#fe83a2", current == 5));
-        itemList.add(new ColorItem(6, COLOR_NAMES[6], "#f44336", current == 6));
-        itemList.add(new ColorItem(7, COLOR_NAMES[7], "#673AB7", current == 7));
-        itemList.add(new ColorItem(8, COLOR_NAMES[8], "#4CAF50", current == 8));
-        itemList.add(new ColorItem(9, COLOR_NAMES[9], "#E91E63", current == 9));
+        itemList.add(new ColorItem(0, getString(COLOR_NAME_CODES[0]), "#686bdd", current == 0));
+        itemList.add(new ColorItem(1, getString(COLOR_NAME_CODES[1]), "#56baec", current == 1));
+        itemList.add(new ColorItem(2, getString(COLOR_NAME_CODES[2]), "#008BF3", current == 2));
+        itemList.add(new ColorItem(3, getString(COLOR_NAME_CODES[3]), "#03d0bf", current == 3));
+        itemList.add(new ColorItem(4, getString(COLOR_NAME_CODES[4]), "#fee65e", current == 4));
+        itemList.add(new ColorItem(5, getString(COLOR_NAME_CODES[5]), "#fe83a2", current == 5));
+        itemList.add(new ColorItem(6, getString(COLOR_NAME_CODES[6]), "#f44336", current == 6));
+        itemList.add(new ColorItem(7, getString(COLOR_NAME_CODES[7]), "#673AB7", current == 7));
+        itemList.add(new ColorItem(8, getString(COLOR_NAME_CODES[8]), "#4CAF50", current == 8));
+        itemList.add(new ColorItem(9, getString(COLOR_NAME_CODES[9]), "#E91E63", current == 9));
         return itemList;
     }
 
-    public static String[] COLOR_NAMES = new String[]{
-            "矢尹紫", //纪念尹子烨（尹桂祥）
-            "经典蓝",
-            "官方蓝",
-            "浅葱绿",
-            "盛夏黄",
-            "樱桃粉",
-            "元气红",
-            "基佬紫",
-            "老实绿",
-            "少女粉"
+    public static int[] COLOR_NAME_CODES = new int[]{
+                R.string.color_shiYinPurple, //纪念尹子烨（尹桂祥）
+                R.string.color_classicBlue,
+                R.string.color_officialBlue,
+                R.string.color_scallionGreen,
+                R.string.color_summerYellow,
+                R.string.color_peachPink,
+                R.string.color_activeRed,
+                R.string.color_classicPurple,
+                R.string.color_classicGreen,
+                R.string.color_girlPink
     };
-
     @Override
-    public String getToolbarTitle() {
-        return "主题颜色";
-    }
+    public String getToolbarTitle() {return getString(R.string.string_324);}
 }

@@ -1,9 +1,11 @@
 package ceui.lisa.models;
 
+
 import android.text.TextUtils;
 
 import java.io.Serializable;
 import java.util.Calendar;
+
 
 public class ProfileBean implements Serializable {
     /**

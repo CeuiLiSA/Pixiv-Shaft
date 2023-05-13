@@ -360,7 +360,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
                 }
             } else {
                 IllustDownload.downloadGif(illust);
-                Common.showToast(requireContext().getString(R.string.one_item_added));
+                Common.showToast('1' + requireContext().getString(R.string.has_been_added));
             }
         });
         baseBind.userName.setOnLongClickListener(new View.OnLongClickListener() {
@@ -594,7 +594,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
         if(AppLevelViewModel.FollowUserStatus.isFollowed(status)){
             baseBind.follow.setText(R.string.string_177);
         }else{
-            baseBind.follow.setText(R.string.string_178);
+            baseBind.follow.setText(R.string.string_4);
         }
     }
 }
