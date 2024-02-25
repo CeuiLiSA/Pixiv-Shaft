@@ -4,7 +4,7 @@
 [![open issues](https://img.shields.io/github/issues/CeuiLiSA/Pixiv-Shaft?color=brightgreen)](https://github.com/CeuiLiSA/Pixiv-Shaft/issues?q=is%3Aopen+is%3Aissue)
 [![license](https://img.shields.io/github/license/CeuiLiSA/Pixiv-Shaft)](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/LICENSE)
 
-[日本語(日文)](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/README/README.ja.md)
+[日本語(日文)](./README/README.ja.md)
 
 
 * 本应用为日本插画交流网站Pixiv的安卓客户端第三方重制版
