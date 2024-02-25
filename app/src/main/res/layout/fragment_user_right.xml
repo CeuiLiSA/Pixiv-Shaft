@@ -171,45 +171,21 @@
 
 <!--                </RelativeLayout>-->
 
+                <View style="@style/full_divider" />
 
                 <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+                    android:id="@+id/show_detail"
+                    style="@style/ripple_rela">
 
                     <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:layout_marginStart="@dimen/sixteen_dp"
-                        android:layout_marginTop="@dimen/sixteen_dp"
-                        android:layout_marginBottom="@dimen/eight_dp"
-                        android:text="@string/string_33"
-                        android:textSize="16sp"
-                        android:textColor="?attr/colorPrimary">
+                        style="@style/setting_text_left_and_center"
+                        android:text="@string/string_33" />
 
-                    </TextView>
-
-
-                    <Button
-                        android:id="@+id/show_detail"
-                        style="@android:style/Widget.DeviceDefault.Button.Borderless.Small"
-                        android:layout_width="wrap_content"
-                        android:layout_height="40dp"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true"
-                        android:layout_marginStart="@dimen/sixteen_dp"
-                        android:layout_marginTop="@dimen/four_dp"
-                        android:layout_marginEnd="@dimen/sixteen_dp"
-                        android:layout_marginBottom="@dimen/four_dp"
-                        android:drawableEnd="@drawable/ic_arrow_right_little"
-                        android:gravity="center"
-                        android:text="@string/string_146"
-                        android:textColor="#999999"
-                        android:textSize="13sp">
-
-                    </Button>
+                    <TextView style="@style/setting_right_arrow" />
 
                 </RelativeLayout>
+
+                <View style="@style/full_divider" />
 
                 <TextView
                     android:layout_width="match_parent"

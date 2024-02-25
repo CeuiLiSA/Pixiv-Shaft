@@ -969,6 +969,10 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                     FirebaseAnalytics.getInstance(mContext).setAnalyticsCollectionEnabled(isChecked);
                 }
             });
+            baseBind.isFirebaseEnableRela.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v){ baseBind.isFirebaseEnable.performClick(); }
+            });
         }
 
         // 缓存
