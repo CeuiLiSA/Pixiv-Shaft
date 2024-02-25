@@ -1,14 +1,14 @@
 <resources>
-    <string name="app_name">Shaft</string>
-    <string name="navigation_drawer_open">Open navigation drawer</string>
-    <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="nav_header_title">Android Studio</string>
-    <string name="nav_header_subtitle">android.studio@android.com</string>
-    <string name="nav_header_desc">Navigation header</string>
+    <string name="app_name" translatable="false">Shaft</string>
+    <string name="navigation_drawer_open" translatable="false">Open navigation drawer</string>
+    <string name="navigation_drawer_close" translatable="false">Close navigation drawer</string>
+    <string name="nav_header_title" translatable="false">Android Studio</string>
+    <string name="nav_header_subtitle" translatable="false">android.studio@android.com</string>
+    <string name="nav_header_desc" translatable="false">Navigation header</string>
     <string name="action_settings">设置</string>
     <string name="action_import">从剪切板导入</string>
     <string name="action_qcode">扫描二维码</string>
-    <string name="title_activity_blank">BlankActivity</string>
+    <string name="title_activity_blank" translatable="false">BlankActivity</string>
 
 
     <string name="empty_list_1">居然啥也没有</string>
@@ -24,7 +24,7 @@
     <string name="double_click_finish">再按一次退出~</string>
     <string name="delete_all">删除全部</string>
     <string name="illust_filter">筛选</string>
-    <string name="share_illust">%1$s | %2$s #Pixiv %3$s</string>
+    <string name="share_illust" translatable="false">%1$s | %2$s #Pixiv %3$s</string>
     <string name="share">分享</string>
     <string name="webview_handler_open_in_browser">在浏览器中打开</string>
     <string name="webview_handler_copy_link_addr">复制链接地址</string>
@@ -46,9 +46,9 @@
     <string name="the_others">其他</string>
     <string name="search_image_origin">以图搜源</string>
 
-    <string name="title_activity_fullscreen">FullscreenActivity</string>
-    <string name="dummy_button">Dummy Button</string>
-    <string name="dummy_content">全屏测试</string>
+    <string name="title_activity_fullscreen" translatable="false">FullscreenActivity</string>
+    <string name="dummy_button" translatable="false">Dummy Button</string>
+    <string name="dummy_content" translatable="false">全屏测试</string>
     <string name="pixiv_use_detail">服务条款</string>
     <string name="privacy">隐私政策</string>
     <string name="about_app">关于</string>
@@ -62,7 +62,7 @@
     <string name="develop">开发者预览</string>
 
     <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="hello_blank_fragment" translatable="false">Hello blank fragment</string>
     <string name="cannot_download">你下你🐴呢？</string>
     <string name="image_alredy_exist">图片已存在</string>
     <string name="has_been_added">个项目已加入下载队列</string>
@@ -100,7 +100,7 @@
     <string name="cancel_like">取消关注~</string>
     <string name="cancel_like_illust">取消收藏</string>
     <string name="like_illust_success">收藏成功</string>
-    <string name="how_about_trending">动态页面展示谁的作品？</string>
+    <string name="how_about_trending" translatable="false">动态页面展示谁的作品？</string>
     <string name="recomment_user">推荐用户</string>
     <string name="you_mother_fucker_want_to_read_novel">啥？您还想看日语小说？？</string>
     <string name="user_info">详细信息</string>
@@ -180,12 +180,12 @@
     <string name="how_many_novels">%d个作品，%d个字，看完需要：%d小时 %d分钟</string>
 
 
-    <string name="scroll_behavior">ceui.lisa.pixiv.ScrollBehavior</string>
-    <string name="head_behavior">ceui.lisa.pixiv.HeadBehavior</string>
-    <string name="title_activity_splash">SplashActivity</string>
+    <string name="scroll_behavior" translatable="false">ceui.lisa.pixiv.ScrollBehavior</string>
+    <string name="head_behavior" translatable="false">ceui.lisa.pixiv.HeadBehavior</string>
+    <string name="title_activity_splash" translatable="false">SplashActivity</string>
     <!-- Strings used for fragments for navigation -->
-    <string name="first_fragment_label">First Fragment</string>
-    <string name="second_fragment_label">Second Fragment</string>
+    <string name="first_fragment_label" translatable="false">First Fragment</string>
+    <string name="second_fragment_label" translatable="false">Second Fragment</string>
     <string name="next">Next</string>
     <string name="previous">Previous</string>
 
@@ -220,7 +220,7 @@
     <string name="string_29">捐助作者</string>
     <string name="string_30">捐赠者列表</string>
     <string name="string_31">Github</string>
-    <string name="string_32">https://github.com/CeuiLiSA/Pixiv-Shaft</string>
+    <string name="string_32" translatable="false">https://github.com/CeuiLiSA/Pixiv-Shaft</string>
     <string name="string_33">个人介绍：</string>
     <string name="string_34">个人主页：</string>
     <string name="string_35">Twitter：</string>
@@ -254,9 +254,9 @@
     <string name="string_63">排序方式</string>
     <string name="string_64">热度排序(仅会员可用)</string>
     <string name="string_65">查找结果</string>
-    <string name="string_66">ブリタンニア(ルト系ブリトン人)の アルトリア・ペンドラゴン</string>
-    <string name="string_67">仮面みたいになっ</string>
-    <string name="string_68">2018年4月29日6点13分投递</string>
+    <string name="string_66" translatable="false">ブリタンニア(ルト系ブリトン人)の アルトリア・ペンドラゴン</string>
+    <string name="string_67" translatable="false">仮面みたいになっ</string>
+    <string name="string_68" translatable="false">2018年4月29日6点13分投递</string>
     <string name="string_70">表示回数</string>
     <string name="string_71">收藏次数</string>
     <string name="string_72">下载</string>
