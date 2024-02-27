@@ -54,6 +54,12 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile.class).configureEach {
+        kotlinOptions {
+            jvmTarget = "1.8"
+        }
+    }
+
     sourceSets {
         main {
             //jni库的调用会到资源文件夹下libs里面找so文件

@@ -24,6 +24,13 @@ android {
         sourceCompatibility = '1.8'
         targetCompatibility = '1.8'
     }
+
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile.class).configureEach {
+        kotlinOptions {
+            jvmTarget = "1.8"
+        }
+    }
+
     namespace 'ceui.lisa.models'
 }
 
