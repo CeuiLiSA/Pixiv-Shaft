@@ -111,7 +111,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
                         .into(baseBind.bgImage);
                 break;
             case Configuration.UI_MODE_NIGHT_YES:
-                baseBind.bgImage.setImageResource(R.color.black);
+                baseBind.bgImage.setImageResource(com.just.agentweb.R.color.black);
                 break;
         }
 
@@ -475,7 +475,7 @@ public class FragmentSingleUgora extends BaseFragment<FragmentUgoraBinding> {
         baseBind.userName.setText(illust.getUser().getName());
 
         SpannableString sizeString = new SpannableString(getString(R.string.string_193, illust.getWidth(), illust.getHeight()));
-        int currentPrimaryColorId = Common.resolveThemeAttribute(mContext, R.attr.colorPrimary);
+        int currentPrimaryColorId = Common.resolveThemeAttribute(mContext, androidx.appcompat.R.attr.colorPrimary);
         sizeString.setSpan(new ForegroundColorSpan(currentPrimaryColorId),
                 sizeString.length()-illust.getSize().length(), sizeString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         baseBind.illustPx.setText(sizeString);

@@ -96,7 +96,7 @@ public class GlareLayout extends RelativeLayout {
     }
 
     private void check(int index) {
-        int currentColor = Common.resolveThemeAttribute(mContext,R.attr.colorPrimary);
+        int currentColor = Common.resolveThemeAttribute(mContext, androidx.appcompat.R.attr.colorPrimary);
         if (index == 0) {
             baseBind.left.setTextColor(currentColor);
             baseBind.left.setBackgroundResource(R.drawable.glare_selected);
