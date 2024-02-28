@@ -2,16 +2,19 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-    ext.kotlin_version = '1.8.0'
+    ext {
+        agp_version = '8.2.2'
+    }
+    ext.kotlin_version = '1.9.10'
     repositories {
         google()
         mavenCentral()
         maven { url 'https://jcenter.bintray.com/' }
     }
     dependencies {
-        classpath "com.android.tools.build:gradle:8.1.4"
-        classpath 'com.google.gms:google-services:4.3.15'
-        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.4'
+        classpath "com.android.tools.build:gradle:$agp_version"
+        classpath 'com.google.gms:google-services:4.4.1'
+        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.9'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "org.jmailen.gradle:kotlinter-gradle:3.7.0"
 
@@ -23,8 +26,9 @@ buildscript {
 }
 
 plugins {
-    id "com.github.ben-manes.versions" version "0.41.0"
-    id 'org.jetbrains.kotlin.android' version '1.8.0' apply false
+    id "com.github.ben-manes.versions" version "0.42.0"
+    id 'org.jetbrains.kotlin.android' version '1.9.10' apply false
+    id 'com.google.devtools.ksp' version '1.9.10-1.0.13' apply false
 }
 
 allprojects {

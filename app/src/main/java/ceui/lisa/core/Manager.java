@@ -34,10 +34,11 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.functions.Action;
 import io.reactivex.rxjava3.functions.Consumer;
-import rxhttp.RxHttp;
 import rxhttp.wrapper.callback.UriFactory;
 import rxhttp.wrapper.entity.Progress;
+import rxhttp.wrapper.param.RxHttp;
 import rxhttp.wrapper.utils.UriUtil;
+
 
 public class Manager {
 
@@ -242,6 +243,7 @@ public class Manager {
         return null;
     }
 
+
     private void downloadOne(Context context, DownloadItem downloadItem) {
         // check network status, if setting don't download when mobile data, stop all task
         if(!DownloadLimitTypeUtil.canDownloadNow()){
@@ -265,7 +267,8 @@ public class Manager {
         handle = RxHttp.get(downloadItem.getUrl())
                 .addHeader(Params.MAP_KEY, Params.IMAGE_REFERER)
                 .setRangeHeader(passSize, true)
-                .asDownload(factory, AndroidSchedulers.mainThread(), new Consumer<Progress>() {
+                .toDownloadObservable(factory, false)
+                .onMainProgress(new Consumer<Progress>() {
                     @Override
                     public void accept(Progress progress) {
                         //downloadItem.setTransferredBytes(progress.getCurrentSize());

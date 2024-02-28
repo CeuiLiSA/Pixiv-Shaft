@@ -46,7 +46,7 @@ class ImageFragment : NavFragment(R.layout.fragment_image) {
                 }
                 progressbar.isVisible = false
                 if (bitmap != null) {
-                    image.setImage(ImageSource.bitmap(bitmap))
+                    image.setImage(ImageSource.bitmap(bitmap!!))
                 }
             }
         }
