@@ -59,7 +59,7 @@ public class Settings {
     private boolean mainViewR18 = false;
 
     //是否启用 FIREBASE_ANALYTICS_COLLECTION
-    private boolean isFirebaseEnable = true;
+    private boolean isFirebaseEnable = false;
 
     private long currentProgress = 0L;
 

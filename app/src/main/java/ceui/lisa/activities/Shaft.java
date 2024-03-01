@@ -12,7 +12,6 @@ import android.net.ConnectivityManager;
 import android.view.Gravity;
 
 import com.billy.android.swipe.SmartSwipeBack;
-import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.gson.Gson;
 import com.hjq.toast.ToastUtils;
 
@@ -117,10 +116,6 @@ public class Shaft extends Application implements ServicesProvider {
         ToastUtils.init(this);
         ToastUtils.setGravity(Gravity.BOTTOM, 0, 0);
         ToastUtils.initStyle(new ToastStyle(this));
-
-        FirebaseAnalytics.getInstance(this).setAnalyticsCollectionEnabled(
-                sSettings.isFirebaseEnable()
-        );
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
