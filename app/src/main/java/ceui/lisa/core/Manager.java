@@ -59,8 +59,12 @@ public class Manager {
                 content = new ArrayList<>();
             }
             for (DownloadingEntity entity : downloadingEntities) {
-                DownloadItem downloadItem = Shaft.sGson.fromJson(entity.getTaskGson(), DownloadItem.class);
-                content.add(downloadItem);
+                try {
+                    DownloadItem downloadItem = Shaft.sGson.fromJson(entity.getTaskGson(), DownloadItem.class);
+                    content.add(downloadItem);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
             }
             Common.showToast("下载记录恢复成功");
         }

@@ -32,12 +32,15 @@ public class NovelBean implements Serializable, Starable {
 
     private int id;
     private String title;
+    private String coverUrl;
     private String caption;
     private int restrict;
     private int x_restrict;
     private boolean is_original;
+    private boolean viewable;
     private ImageUrlsBean image_urls;
     private String create_date;
+    private String contentOrder;
     private int page_count;
     private int text_length;
     private UserBean user;
@@ -301,5 +304,29 @@ public class NovelBean implements Serializable, Starable {
 
     public String[] getTagNames(){
         return tags.stream().map(TagsBean::getName).toArray(String[]::new);
+    }
+
+    public String getCoverUrl() {
+        return coverUrl;
+    }
+
+    public void setCoverUrl(String coverUrl) {
+        this.coverUrl = coverUrl;
+    }
+
+    public boolean isViewable() {
+        return viewable;
+    }
+
+    public void setViewable(boolean viewable) {
+        this.viewable = viewable;
+    }
+
+    public String getContentOrder() {
+        return contentOrder;
+    }
+
+    public void setContentOrder(String contentOrder) {
+        this.contentOrder = contentOrder;
     }
 }

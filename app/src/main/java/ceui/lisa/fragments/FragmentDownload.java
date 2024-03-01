@@ -15,6 +15,7 @@ import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
 
 import ceui.lisa.R;
 import ceui.lisa.activities.Shaft;
+import ceui.lisa.adapters.BaseAdapter;
 import ceui.lisa.core.Manager;
 import ceui.lisa.database.AppDatabase;
 import ceui.lisa.databinding.ViewpagerWithTablayoutBinding;
@@ -74,13 +75,19 @@ public class FragmentDownload extends BaseFragment<ViewpagerWithTablayoutBinding
                     return true;
                 } else if (item.getItemId() == R.id.action_start) {
                     Manager.get().startAll();
-                    if(allPages[0] instanceof FragmentDownloading){
-                        ((FragmentDownloading) allPages[0]).mAdapter.notifyDataSetChanged();
+                    if (allPages[0] instanceof FragmentDownloading){
+                        final BaseAdapter<?, ?> adapter = ((FragmentDownloading) allPages[0]).mAdapter;
+                        if (adapter != null) {
+                            adapter.notifyDataSetChanged();
+                        }
                     }
                 } else if (item.getItemId() == R.id.action_stop) {
                     Manager.get().stopAll();
-                    if(allPages[0] instanceof FragmentDownloading){
-                        ((FragmentDownloading) allPages[0]).mAdapter.notifyDataSetChanged();
+                    if (allPages[0] instanceof FragmentDownloading){
+                        final BaseAdapter<?, ?> adapter = ((FragmentDownloading) allPages[0]).mAdapter;
+                        if (adapter != null) {
+                            adapter.notifyDataSetChanged();
+                        }
                     }
                 } else if (item.getItemId() == R.id.action_clear) {
                     if (allPages[0] instanceof FragmentDownloading &&

@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
 import androidx.databinding.ViewDataBinding;
 
@@ -23,6 +24,7 @@ import ceui.lisa.cache.Cache;
 import ceui.lisa.core.BaseRepo;
 import ceui.lisa.databinding.FragmentNovelSeriesBinding;
 import ceui.lisa.download.IllustDownload;
+import ceui.lisa.helper.NovelParseHelper;
 import ceui.lisa.http.NullCtrl;
 import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.Callback;
@@ -38,6 +40,9 @@ import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Response;
 
 public class FragmentNovelSeriesDetail extends NetListFragment<FragmentNovelSeriesBinding,
         ListNovelOfSeries, NovelBean> {
@@ -69,16 +74,21 @@ public class FragmentNovelSeriesDetail extends NetListFragment<FragmentNovelSeri
                         if (novelBean.isLocalSaved()) {
                             saveNovelToDownload(novelBean, Cache.get().getModel(Params.NOVEL_KEY + novelBean.getId(), NovelDetail.class));
                         } else {
-                            Retro.getAppApi().getNovelDetail(Shaft.sUserModel.getAccess_token(), novelBean.getId())
-                                    .subscribeOn(Schedulers.newThread())
-                                    .observeOn(AndroidSchedulers.mainThread())
-                                    .subscribe(new NullCtrl<NovelDetail>() {
-
+                            Retro.getAppApi().getNovelDetailV2(Shaft.sUserModel.getAccess_token(), novelBean.getId()).enqueue(new retrofit2.Callback<ResponseBody>() {
+                                @Override
+                                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                                    new WebNovelParser(response) {
                                         @Override
-                                        public void success(NovelDetail novelDetail) {
+                                        public void onNovelPrepared(@NonNull NovelDetail novelDetail) {
                                             saveNovelToDownload(novelBean, novelDetail);
                                         }
-                                    });
+                                    };
+                                }
+
+                                @Override
+                                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                                }
+                            });
                         }
                     }
                 } else if (item.getItemId() == R.id.batch_download_as_one) {
@@ -94,13 +104,12 @@ public class FragmentNovelSeriesDetail extends NetListFragment<FragmentNovelSeri
                                 saveNovelSeriesToDownload(mResponse.getNovel_series_detail(), content);
                             }
                         } else {
-                            Retro.getAppApi().getNovelDetail(Shaft.sUserModel.getAccess_token(), novelBean.getId())
-                                    .subscribeOn(Schedulers.newThread())
-                                    .observeOn(AndroidSchedulers.mainThread())
-                                    .subscribe(new NullCtrl<NovelDetail>() {
-
+                            Retro.getAppApi().getNovelDetailV2(Shaft.sUserModel.getAccess_token(), novelBean.getId()).enqueue(new retrofit2.Callback<ResponseBody>() {
+                                @Override
+                                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                                    new WebNovelParser(response) {
                                         @Override
-                                        public void success(NovelDetail novelDetail) {
+                                        public void onNovelPrepared(@NonNull NovelDetail novelDetail) {
                                             String sb = lineSeparator + novelBean.getTitle() + " - " + novelBean.getId() + lineSeparator +
                                                     novelDetail.getNovel_text();
                                             taskContainer.put(novelBean.getId(), sb);
@@ -109,7 +118,13 @@ public class FragmentNovelSeriesDetail extends NetListFragment<FragmentNovelSeri
                                                 saveNovelSeriesToDownload(mResponse.getNovel_series_detail(), content);
                                             }
                                         }
-                                    });
+                                    };
+                                }
+
+                                @Override
+                                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                                }
+                            });
                         }
                     }
                 }
