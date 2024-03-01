@@ -1,5 +1,7 @@
 package ceui.lisa.fragments;
 
+import static ceui.lisa.activities.Shaft.sUserModel;
+
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.net.Uri;
@@ -45,6 +47,7 @@ import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.NovelDetail;
+import ceui.lisa.models.NovelSearchResponse;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
@@ -107,7 +110,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
 
     @Override
     protected void initData() {
-        getNovel(mNovelBean);
+        displayNovel(mNovelBean);
     }
 
     public void setBackgroundColor(int color) {
@@ -121,7 +124,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
         setNovelAdapter();
     }
 
-    private void getNovel(NovelBean novelBean) {
+    private void displayNovel(NovelBean novelBean) {
         mNovelBean = novelBean;
         if (mNovelBean.isIs_bookmarked()) {
             baseBind.like.setText(mContext.getString(R.string.string_179));
@@ -288,7 +291,15 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                 @Override
                 public void onClick(View view) {
                     baseBind.transformationLayout.finishTransform();
-                    getNovel(novelDetail.getSeries_prev());
+                    Retro.getAppApi().getNovelByID(sUserModel.getAccess_token(), novelDetail.getSeries_prev().getId())
+                            .subscribeOn(Schedulers.newThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new NullCtrl<NovelSearchResponse>() {
+                                @Override
+                                public void success(NovelSearchResponse novelSearchResponse) {
+                                    displayNovel(novelSearchResponse.getNovel());
+                                }
+                            });
                 }
             });
         } else {
@@ -300,7 +311,15 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                 @Override
                 public void onClick(View view) {
                     baseBind.transformationLayout.finishTransform();
-                    getNovel(novelDetail.getSeries_next());
+                    Retro.getAppApi().getNovelByID(sUserModel.getAccess_token(), novelDetail.getSeries_next().getId())
+                            .subscribeOn(Schedulers.newThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new NullCtrl<NovelSearchResponse>() {
+                                @Override
+                                public void success(NovelSearchResponse novelSearchResponse) {
+                                    displayNovel(novelSearchResponse.getNovel());
+                                }
+                            });
                 }
             });
         } else {
@@ -404,13 +423,15 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                 int pageIndex = Math.min(novelDetail.getNovel_marker().getPage(),novelDetail.getParsedChapters().get(parsedSize-1).getChapterIndex());
                 pageIndex = Math.max(pageIndex,novelDetail.getParsedChapters().get(0).getChapterIndex());
                 baseBind.viewPager.scrollToPosition(pageIndex-1);
-            }
 
-            // 设置书签
-            int markerPage = mNovelDetail.getNovel_marker().getPage();
-            if(markerPage > 0){
-                baseBind.saveNovel.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.novel_marker_add)));
-            }else{
+                // 设置书签
+                int markerPage = mNovelDetail.getNovel_marker().getPage();
+                if(markerPage > 0){
+                    baseBind.saveNovel.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.novel_marker_add)));
+                }else{
+                    baseBind.saveNovel.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.novel_marker_none)));
+                }
+            } else  {
                 baseBind.saveNovel.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.novel_marker_none)));
             }
 
