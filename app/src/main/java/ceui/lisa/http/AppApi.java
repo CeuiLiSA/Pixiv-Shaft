@@ -31,6 +31,8 @@ import ceui.lisa.models.UserFollowDetail;
 import ceui.lisa.models.UserState;
 import io.reactivex.Observable;
 import okhttp3.MultipartBody;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
 import retrofit2.http.Field;
 import retrofit2.http.FieldMap;
 import retrofit2.http.FormUrlEncoded;
@@ -411,10 +413,9 @@ public interface AppApi {
     Observable<ListNovel> getNewNovels(@Header("Authorization") String token);
 
 
-    //获取好P友
-    @GET("v1/novel/text")
-    Observable<NovelDetail> getNovelDetail(@Header("Authorization") String token,
-                                           @Query("novel_id") int novel_id);
+    @GET("/webview/v2/novel")
+    Call<ResponseBody> getNovelDetailV2(@Header("Authorization") String token,
+                                        @Query("id") long id);
 
 
     //获取好P友

@@ -23,6 +23,7 @@ import com.zhy.view.flowlayout.TagFlowLayout;
 import java.util.Arrays;
 import java.util.Collections;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import ceui.lisa.R;
@@ -55,6 +56,9 @@ import gdut.bsx.share2.Share2;
 import gdut.bsx.share2.ShareContentType;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Response;
 
 public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding> {
 
@@ -226,21 +230,24 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
             refreshDetail(mNovelDetail);
         } else {
             baseBind.progressRela.setVisibility(View.VISIBLE);
-            Retro.getAppApi().getNovelDetail(Shaft.sUserModel.getAccess_token(), novelBean.getId())
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new NullCtrl<NovelDetail>() {
+            Retro.getAppApi().getNovelDetailV2(Shaft.sUserModel.getAccess_token(), novelBean.getId()).enqueue(new retrofit2.Callback<ResponseBody>() {
+                @Override
+                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                    baseBind.progressRela.setVisibility(View.INVISIBLE);
+                    new WebNovelParser(response) {
                         @Override
-                        public void success(NovelDetail novelDetail) {
+                        public void onNovelPrepared(@NonNull NovelDetail novelDetail) {
                             novelDetail.setParsedChapters(NovelParseHelper.tryParseChapters(novelDetail.getNovel_text()));
                             refreshDetail(novelDetail);
                         }
+                    };
+                }
 
-                        @Override
-                        public void must(boolean isSuccess) {
-                            baseBind.progressRela.setVisibility(View.INVISIBLE);
-                        }
-                    });
+                @Override
+                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                    baseBind.progressRela.setVisibility(View.INVISIBLE);
+                }
+            });
         }
 
         baseBind.toolbar.setOnTouchListener(new View.OnTouchListener() {
