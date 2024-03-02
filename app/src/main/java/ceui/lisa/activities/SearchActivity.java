@@ -233,7 +233,7 @@ public class SearchActivity extends BaseActivity<FragmentNewSearchBinding> {
                             .create();
                     tipDialog.show();
                     //先假定为作品id
-                    PixivOperate.getIllustByID(sUserModel, Integer.parseInt(trimmedKeyword), mContext, new Callback<Void>() {
+                    PixivOperate.getIllustByID(sUserModel, tryParseId(trimmedKeyword), mContext, new Callback<Void>() {
                         @Override
                         public void doSomething(Void t) {
                             PixivOperate.insertSearchHistory(trimmedKeyword, SearchTypeUtil.SEARCH_TYPE_DB_ILLUSTSID);

@@ -1,5 +1,7 @@
 package ceui.lisa.fragments;
 
+import static ceui.lisa.activities.Shaft.sUserModel;
+
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.net.Uri;
@@ -23,6 +25,7 @@ import com.zhy.view.flowlayout.TagFlowLayout;
 import java.util.Arrays;
 import java.util.Collections;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import ceui.lisa.R;
@@ -44,6 +47,7 @@ import ceui.lisa.http.Retro;
 import ceui.lisa.interfaces.Callback;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.NovelDetail;
+import ceui.lisa.models.NovelSearchResponse;
 import ceui.lisa.models.TagsBean;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
@@ -55,6 +59,9 @@ import gdut.bsx.share2.Share2;
 import gdut.bsx.share2.ShareContentType;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Response;
 
 public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding> {
 
@@ -103,7 +110,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
 
     @Override
     protected void initData() {
-        getNovel(mNovelBean);
+        displayNovel(mNovelBean);
     }
 
     public void setBackgroundColor(int color) {
@@ -117,7 +124,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
         setNovelAdapter();
     }
 
-    private void getNovel(NovelBean novelBean) {
+    private void displayNovel(NovelBean novelBean) {
         mNovelBean = novelBean;
         if (mNovelBean.isIs_bookmarked()) {
             baseBind.like.setText(mContext.getString(R.string.string_179));
@@ -226,21 +233,24 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
             refreshDetail(mNovelDetail);
         } else {
             baseBind.progressRela.setVisibility(View.VISIBLE);
-            Retro.getAppApi().getNovelDetail(Shaft.sUserModel.getAccess_token(), novelBean.getId())
-                    .subscribeOn(Schedulers.newThread())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new NullCtrl<NovelDetail>() {
+            Retro.getAppApi().getNovelDetailV2(Shaft.sUserModel.getAccess_token(), novelBean.getId()).enqueue(new retrofit2.Callback<ResponseBody>() {
+                @Override
+                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                    baseBind.progressRela.setVisibility(View.INVISIBLE);
+                    new WebNovelParser(response) {
                         @Override
-                        public void success(NovelDetail novelDetail) {
+                        public void onNovelPrepared(@NonNull NovelDetail novelDetail) {
                             novelDetail.setParsedChapters(NovelParseHelper.tryParseChapters(novelDetail.getNovel_text()));
                             refreshDetail(novelDetail);
                         }
+                    };
+                }
 
-                        @Override
-                        public void must(boolean isSuccess) {
-                            baseBind.progressRela.setVisibility(View.INVISIBLE);
-                        }
-                    });
+                @Override
+                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                    baseBind.progressRela.setVisibility(View.INVISIBLE);
+                }
+            });
         }
 
         baseBind.toolbar.setOnTouchListener(new View.OnTouchListener() {
@@ -281,7 +291,15 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                 @Override
                 public void onClick(View view) {
                     baseBind.transformationLayout.finishTransform();
-                    getNovel(novelDetail.getSeries_prev());
+                    Retro.getAppApi().getNovelByID(sUserModel.getAccess_token(), novelDetail.getSeries_prev().getId())
+                            .subscribeOn(Schedulers.newThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new NullCtrl<NovelSearchResponse>() {
+                                @Override
+                                public void success(NovelSearchResponse novelSearchResponse) {
+                                    displayNovel(novelSearchResponse.getNovel());
+                                }
+                            });
                 }
             });
         } else {
@@ -293,7 +311,15 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                 @Override
                 public void onClick(View view) {
                     baseBind.transformationLayout.finishTransform();
-                    getNovel(novelDetail.getSeries_next());
+                    Retro.getAppApi().getNovelByID(sUserModel.getAccess_token(), novelDetail.getSeries_next().getId())
+                            .subscribeOn(Schedulers.newThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new NullCtrl<NovelSearchResponse>() {
+                                @Override
+                                public void success(NovelSearchResponse novelSearchResponse) {
+                                    displayNovel(novelSearchResponse.getNovel());
+                                }
+                            });
                 }
             });
         } else {
@@ -397,13 +423,15 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                 int pageIndex = Math.min(novelDetail.getNovel_marker().getPage(),novelDetail.getParsedChapters().get(parsedSize-1).getChapterIndex());
                 pageIndex = Math.max(pageIndex,novelDetail.getParsedChapters().get(0).getChapterIndex());
                 baseBind.viewPager.scrollToPosition(pageIndex-1);
-            }
 
-            // 设置书签
-            int markerPage = mNovelDetail.getNovel_marker().getPage();
-            if(markerPage > 0){
-                baseBind.saveNovel.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.novel_marker_add)));
-            }else{
+                // 设置书签
+                int markerPage = mNovelDetail.getNovel_marker().getPage();
+                if(markerPage > 0){
+                    baseBind.saveNovel.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.novel_marker_add)));
+                }else{
+                    baseBind.saveNovel.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.novel_marker_none)));
+                }
+            } else  {
                 baseBind.saveNovel.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(mContext, R.color.novel_marker_none)));
             }
 
