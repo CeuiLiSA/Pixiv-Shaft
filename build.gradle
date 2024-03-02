@@ -25,8 +25,8 @@ buildscript {
 
 plugins {
     id "com.github.ben-manes.versions" version "0.42.0"
-    id 'org.jetbrains.kotlin.android' version '1.9.10' apply false
-    id 'com.google.devtools.ksp' version '1.9.10-1.0.13' apply false
+    id 'org.jetbrains.kotlin.android' version '1.9.22' apply false
+    id 'com.google.devtools.ksp' version '1.9.22-1.0.17' apply false
 }
 
 allprojects {
