@@ -20,6 +20,7 @@ abstract class WebNovelParser(response: Response<ResponseBody>) {
                         novel_text = webNovel.text
                         series_next = webNovel.seriesNavigation?.nextNovel
                         series_prev = webNovel.seriesNavigation?.prevNovel
+                        novel_marker = webNovel.marker
                     })
                 }
             }

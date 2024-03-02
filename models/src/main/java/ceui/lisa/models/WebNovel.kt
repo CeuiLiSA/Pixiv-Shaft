@@ -1,5 +1,7 @@
 package ceui.lisa.models
 
+import ceui.lisa.models.NovelDetail.NovelMarkerBean
+
 data class WebNovel(
     val aiType: Int? = null,
     val caption: String? = null,
@@ -7,10 +9,8 @@ data class WebNovel(
     val glossaryItems: List<Any?>? = null,
     val id: String? = null,
     val text: String? = null,
-    val illusts: List<Any?>? = null,
-    val images: List<Any?>? = null,
     val isOriginal: Boolean? = null,
-    val marker: Any? = null,
+    val marker: NovelMarkerBean? = null,
     val replaceableItemIds: List<Any?>? = null,
     val seriesId: String? = null,
     val seriesIsWatched: Boolean? = null,
