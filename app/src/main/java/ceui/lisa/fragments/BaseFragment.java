@@ -156,4 +156,13 @@ public abstract class BaseFragment<Layout extends ViewDataBinding> extends Fragm
     public void initModel() {
 
     }
+
+    protected long tryParseId(String str) {
+        try {
+            return Long.parseLong(str);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return 0;
+    }
 }
