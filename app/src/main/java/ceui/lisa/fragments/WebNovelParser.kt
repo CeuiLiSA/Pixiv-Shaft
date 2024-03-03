@@ -2,6 +2,7 @@ package ceui.lisa.fragments
 
 import ceui.lisa.models.NovelDetail
 import ceui.lisa.models.WebNovel
+import ceui.lisa.utils.Common
 import com.google.gson.Gson
 import okhttp3.ResponseBody
 import retrofit2.Response
@@ -16,6 +17,7 @@ abstract class WebNovelParser(response: Response<ResponseBody>) {
                     val cleaned = it.trim()
                     val result = cleaned.substring(7, cleaned.length - 1)
                     val webNovel = Gson().fromJson(result, WebNovel::class.java)
+                    Common.showLog("${webNovel.illusts}")
                     onNovelPrepared(NovelDetail().apply {
                         novel_text = webNovel.text
                         series_next = webNovel.seriesNavigation?.nextNovel

@@ -11,6 +11,7 @@ data class WebNovel(
     val text: String? = null,
     val isOriginal: Boolean? = null,
     val marker: NovelMarkerBean? = null,
+    val illusts: Map<String, WebIllustHolder>? = null,
     val replaceableItemIds: List<Any?>? = null,
     val seriesId: String? = null,
     val seriesIsWatched: Boolean? = null,

@@ -197,7 +197,7 @@ public class IAdapter extends BaseAdapter<IllustsBean, RecyIllustStaggerBinding>
 
                 Intent intent = new Intent(mContext, VActivity.class);
                 intent.putExtra(Params.POSITION, position);
-                intent.putExtra(Params.PAGE_UUID, pageData.getUUID());
+                intent.putExtra(Params.PAGE_UUID, uuid);
                 mContext.startActivity(intent);
             }
         });
