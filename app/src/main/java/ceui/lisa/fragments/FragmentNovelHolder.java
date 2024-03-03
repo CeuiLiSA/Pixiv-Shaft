@@ -461,7 +461,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                         int indexInIllust = 0;
                         try {
                             if (result.contains("-")) {
-                                String[] ret = s.split("-");
+                                String[] ret = result.split("-");
                                 indexInIllust = Integer.parseInt(ret[1]);
                                 id = Long.parseLong(ret[0]);
                             } else  {

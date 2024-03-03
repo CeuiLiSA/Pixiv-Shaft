@@ -54,7 +54,7 @@ class NovelImageViewHolder(private val bd: CellNovelImageBinding) : ListItemView
             val urls = if (holder.indexInIllust == 0) {
                 holder.webNovel.illusts?.get(holder.id.toString())?.illust?.images?.medium
             } else {
-                ""
+                holder.webNovel.illusts?.get("${holder.id}-${holder.indexInIllust}")?.illust?.images?.medium
             }
             binding.novelImage.setOnClick {
                 PixivOperate.getIllustByID(Shaft.sUserModel, holder.id, binding.novelImage.context)
