@@ -23,7 +23,7 @@ abstract class WebNovelParser(response: Response<ResponseBody>) {
                         series_next = webNovel.seriesNavigation?.nextNovel
                         series_prev = webNovel.seriesNavigation?.prevNovel
                         novel_marker = webNovel.marker
-                    })
+                    }, webNovel)
                 }
             }
         } catch (ex: Exception) {
@@ -31,5 +31,5 @@ abstract class WebNovelParser(response: Response<ResponseBody>) {
         }
     }
 
-    abstract fun onNovelPrepared(novelDetail: NovelDetail)
+    abstract fun onNovelPrepared(novelDetail: NovelDetail, webNovel: WebNovel)
 }
