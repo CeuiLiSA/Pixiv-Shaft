@@ -45,11 +45,11 @@
             android:id="@+id/novel_detail"
             android:textSize="17sp"
             android:layout_margin="@dimen/sixteen_dp"
-            android:textColor="@color/white_to_gray"
             android:lineSpacingExtra="@dimen/six_dp"
-            android:layout_height="wrap_content"
             android:textIsSelectable="true"
-            android:textColorHighlight="?attr/colorPrimary"/>
+            android:textColor="@color/white_to_gray"
+            android:textColorHighlight="?attr/colorPrimary"
+            android:layout_height="wrap_content"/>
 
         <TextView
             android:layout_width="match_parent"

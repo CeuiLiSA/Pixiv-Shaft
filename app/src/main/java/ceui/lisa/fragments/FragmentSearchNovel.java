@@ -35,11 +35,6 @@ public class FragmentSearchNovel extends NetListFragment<FragmentBaseListBinding
     }
 
     @Override
-    public void initLayout() {
-        mLayoutID = R.layout.fragment_base_scroll_list;
-    }
-
-    @Override
     public void initModel() {
         searchModel = new ViewModelProvider(requireActivity()).get(SearchModel.class);
         super.initModel();

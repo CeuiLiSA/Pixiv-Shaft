@@ -33,6 +33,7 @@ import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.NovelDetail;
 import ceui.lisa.models.NovelSeriesItem;
 import ceui.lisa.models.UserBean;
+import ceui.lisa.models.WebNovel;
 import ceui.lisa.repo.NovelSeriesDetailRepo;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.GlideUtil;
@@ -79,7 +80,7 @@ public class FragmentNovelSeriesDetail extends NetListFragment<FragmentNovelSeri
                                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                                     new WebNovelParser(response) {
                                         @Override
-                                        public void onNovelPrepared(@NonNull NovelDetail novelDetail) {
+                                        public void onNovelPrepared(@NonNull NovelDetail novelDetail, @NonNull WebNovel webNovel) {
                                             saveNovelToDownload(novelBean, novelDetail);
                                         }
                                     };
@@ -109,7 +110,7 @@ public class FragmentNovelSeriesDetail extends NetListFragment<FragmentNovelSeri
                                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                                     new WebNovelParser(response) {
                                         @Override
-                                        public void onNovelPrepared(@NonNull NovelDetail novelDetail) {
+                                        public void onNovelPrepared(@NonNull NovelDetail novelDetail, @NonNull WebNovel webNovel) {
                                             String sb = lineSeparator + novelBean.getTitle() + " - " + novelBean.getId() + lineSeparator +
                                                     novelDetail.getNovel_text();
                                             taskContainer.put(novelBean.getId(), sb);
