@@ -4,7 +4,7 @@
 [![open issues](https://img.shields.io/github/issues/CeuiLiSA/Pixiv-Shaft?color=brightgreen)](https://github.com/CeuiLiSA/Pixiv-Shaft/issues?q=is%3Aopen+is%3Aissue)
 [![license](https://img.shields.io/github/license/CeuiLiSA/Pixiv-Shaft)](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/LICENSE)
 
-[中文(中国語)](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/README.md)
+[中文(中国語)](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/README.md)
 
 * このアプリは日本のイラスト特化型SNS「Pixiv」の非公式Androidクライアントです。
 * このプロジェクトはオープンソースであり、当アプリを商業目的で使用することにより発生する責任に関し、一切の責任を負いません。
