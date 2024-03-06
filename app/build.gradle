@@ -14,8 +14,8 @@ android {
         applicationId "ceui.lisa.pixiv"
         minSdkVersion 21
         targetSdkVersion 33
-        versionCode 270
-        versionName "3.3.8"
+        versionCode 272
+        versionName "3.3.9"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         javaCompileOptions {
@@ -139,14 +139,15 @@ dependencies {
 //    api 'com.scwang.smartrefresh:SmartRefreshLayout:1.1.3'
 //    api 'com.scwang.smartrefresh:SmartRefreshHeader:1.1.3'
 
-    implementation  'io.github.scwang90:refresh-layout-kernel:2.0.5'      //核心必须依赖
-    implementation  'io.github.scwang90:refresh-header-classics:2.0.5'    //经典刷新头
-    implementation  'io.github.scwang90:refresh-header-radar:2.0.5'       //雷达刷新头
-    implementation  'io.github.scwang90:refresh-header-falsify:2.0.5'     //虚拟刷新头
-    implementation  'io.github.scwang90:refresh-header-material:2.0.5'    //谷歌刷新头
-    implementation  'io.github.scwang90:refresh-header-two-level:2.0.5'   //二级刷新头
-    implementation  'io.github.scwang90:refresh-footer-ball:2.0.5'        //球脉冲加载
-    implementation  'io.github.scwang90:refresh-footer-classics:2.0.5'    //经典加载
+    def refresh_version = "2.0.6"
+    implementation  "io.github.scwang90:refresh-layout-kernel:$refresh_version"     //核心必须依赖
+    implementation  "io.github.scwang90:refresh-header-classics:$refresh_version"    //经典刷新头
+    implementation  "io.github.scwang90:refresh-header-radar:$refresh_version"       //雷达刷新头
+    implementation  "io.github.scwang90:refresh-header-falsify:$refresh_version"     //虚拟刷新头
+    implementation  "io.github.scwang90:refresh-header-material:$refresh_version"    //谷歌刷新头
+    implementation  "io.github.scwang90:refresh-header-two-level:$refresh_version"   //二级刷新头
+    implementation  "io.github.scwang90:refresh-footer-ball:$refresh_version"        //球脉冲加载
+    implementation  "io.github.scwang90:refresh-footer-classics:$refresh_version"    //经典加载
 
     // okhttp3系列组件版本最高到 4.4.1，参看 RubySSLSocketFactory
     implementation 'com.squareup.okhttp3:logging-interceptor:4.4.1'

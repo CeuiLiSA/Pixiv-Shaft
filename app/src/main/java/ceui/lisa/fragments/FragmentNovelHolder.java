@@ -22,8 +22,11 @@ import com.zhy.view.flowlayout.FlowLayout;
 import com.zhy.view.flowlayout.TagAdapter;
 import com.zhy.view.flowlayout.TagFlowLayout;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+import java.util.function.Function;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
@@ -49,12 +52,19 @@ import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.NovelDetail;
 import ceui.lisa.models.NovelSearchResponse;
 import ceui.lisa.models.TagsBean;
+import ceui.lisa.models.WebNovel;
 import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Dev;
 import ceui.lisa.utils.GlideUtil;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
 import ceui.lisa.view.ScrollChange;
+import ceui.loxia.SpaceHolder;
+import ceui.loxia.TextDescHolder;
+import ceui.loxia.novel.NovelImageHolder;
+import ceui.loxia.novel.NovelTextHolder;
+import ceui.refactor.CommonAdapter;
+import ceui.refactor.ListItemHolder;
 import gdut.bsx.share2.Share2;
 import gdut.bsx.share2.ShareContentType;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -68,6 +78,7 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
     private boolean isOpen = false;
     private NovelBean mNovelBean;
     private NovelDetail mNovelDetail;
+    private WebNovel mWebNovel;
 
     public static FragmentNovelHolder newInstance(NovelBean novelBean) {
         Bundle args = new Bundle();
@@ -239,7 +250,8 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
                     baseBind.progressRela.setVisibility(View.INVISIBLE);
                     new WebNovelParser(response) {
                         @Override
-                        public void onNovelPrepared(@NonNull NovelDetail novelDetail) {
+                        public void onNovelPrepared(@NonNull NovelDetail novelDetail, @NonNull WebNovel webNovel) {
+                            mWebNovel = webNovel;
                             novelDetail.setParsedChapters(NovelParseHelper.tryParseChapters(novelDetail.getNovel_text()));
                             refreshDetail(novelDetail);
                         }
@@ -415,9 +427,63 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
     private void setNovelAdapter() {
         NovelDetail novelDetail = mNovelDetail;
         // 如果解析成功，就使用新方式
+        String novelText = novelDetail.getNovel_text();
+        if (novelText == null || novelText.isEmpty()) {
+            novelText = "";
+        }
         if(novelDetail.getParsedChapters() != null && novelDetail.getParsedChapters().size() > 0){
-
-            baseBind.viewPager.setAdapter(new VNewAdapter(novelDetail.getParsedChapters(), mContext));
+            String uploadedImageMark = "[uploadedimage:";
+            String pixivImageMark = "[pixivimage:";
+            if (novelText.contains(uploadedImageMark) || novelText.contains(pixivImageMark)) {
+                do {
+                    novelText = novelText.replace("][", "]\n[");
+                } while (novelText.contains("]["));
+                String[] stringArray = novelText.split("\n");
+                List<String> textList = new ArrayList<>(Arrays.asList(stringArray));
+                List<ListItemHolder> holderList = new ArrayList<>();
+                holderList.add(new SpaceHolder());
+                for (String s : textList) {
+                    if (s.contains(uploadedImageMark)) {
+                        long id = 0L;
+                        int startIndex = s.indexOf(uploadedImageMark) + uploadedImageMark.length();
+                        int endIndex = s.indexOf("]");
+                        try {
+                            id = Long.parseLong(s.substring(startIndex, endIndex));
+                        } catch (Exception exception) {
+                            exception.printStackTrace();
+                        }
+                        holderList.add(new NovelImageHolder(NovelImageHolder.Type.UploadedImage, id, 0, mWebNovel));
+                    } else if (s.contains(pixivImageMark)) {
+                        long id = 0L;
+                        int startIndex = s.indexOf(pixivImageMark) + pixivImageMark.length();
+                        int endIndex = s.indexOf("]");
+                        String result = s.substring(startIndex, endIndex);
+                        int indexInIllust = 0;
+                        try {
+                            if (result.contains("-")) {
+                                String[] ret = result.split("-");
+                                indexInIllust = Integer.parseInt(ret[1]);
+                                id = Long.parseLong(ret[0]);
+                            } else  {
+                                id = Long.parseLong(result);
+                            }
+                        } catch (Exception exception) {
+                            exception.printStackTrace();
+                        }
+                        holderList.add(new NovelImageHolder(NovelImageHolder.Type.PixivImage, id, indexInIllust, mWebNovel));
+                    } else {
+                        holderList.add(new NovelTextHolder(s, Common.getNovelTextColor()));
+                    }
+                }
+                holderList.add(new SpaceHolder());
+                holderList.add(new TextDescHolder(getString(R.string.string_107)));
+                holderList.add(new SpaceHolder());
+                CommonAdapter commonAdapter = new CommonAdapter(getViewLifecycleOwner());
+                baseBind.viewPager.setAdapter(commonAdapter);
+                commonAdapter.submitList(holderList);
+            } else  {
+                baseBind.viewPager.setAdapter(new VNewAdapter(novelDetail.getParsedChapters(), mContext));
+            }
             if(novelDetail.getNovel_marker() != null){
                 int parsedSize = novelDetail.getParsedChapters().size();
                 int pageIndex = Math.min(novelDetail.getNovel_marker().getPage(),novelDetail.getParsedChapters().get(parsedSize-1).getChapterIndex());
