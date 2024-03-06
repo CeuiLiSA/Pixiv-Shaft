@@ -18,47 +18,6 @@ fun <T: View> T.setOnClick(listener: (T) -> Unit) {
     }
 }
 
-inline fun <reified F : Fragment> View.findFragmentOrNull(): F? {
-    return try {
-        val targetFragment = findFragment<Fragment>()
-        if (targetFragment is F) {
-            targetFragment as F
-        } else null
-    } catch (e: Exception) {
-        null
-    }
-}
-
-inline fun<reified ActionReceiverT> Fragment.findActionReceiverOrNull(): ActionReceiverT? {
-    var itr: Fragment? = this
-    while (itr != null) {
-        val receiver = itr as? ActionReceiverT
-        if (receiver != null) {
-            return receiver
-        } else {
-            itr = itr.parentFragment
-        }
-    }
-
-    val receiver = this.activity as? ActionReceiverT
-    if (receiver != null) {
-        return receiver
-    } else {
-        return null
-    }
-}
-
-
-inline fun<reified ActionReceiverT> View.findActionReceiverOrNull(): ActionReceiverT? {
-    val fragment = this.findFragmentOrNull<Fragment>()
-    return fragment?.findActionReceiverOrNull<ActionReceiverT>()
-}
-
-inline fun<reified ActionReceiverT> View.findActionReceiver(): ActionReceiverT {
-    val fragment = this.findFragment<Fragment>()
-    return fragment.findActionReceiverOrNull<ActionReceiverT>()!!
-}
-
 
 internal val Int.ppppx: Int
     get() = (this * Resources.getSystem().displayMetrics.density).toInt()

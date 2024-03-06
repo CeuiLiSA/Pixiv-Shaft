@@ -188,7 +188,6 @@
         </activity>
         <activity android:name=".activities.VPActivity" />
         <activity android:name=".activities.NovelActivity" />
-        <activity android:name=".jetpack.NavActivity" />
 
         <receiver
             android:name=".notification.RecommendAppWidgetProvider"

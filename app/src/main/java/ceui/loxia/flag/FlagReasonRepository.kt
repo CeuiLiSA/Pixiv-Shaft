@@ -4,9 +4,10 @@ import ceui.lisa.R
 import ceui.lisa.databinding.CellFlagReasonBinding
 import ceui.loxia.RefreshState
 import ceui.loxia.Repository
+import ceui.loxia.findActionReceiverOrNull
+import ceui.loxia.findFragmentOrNull
 import ceui.refactor.ListItemHolder
 import ceui.refactor.ListItemViewHolder
-import ceui.refactor.findFragmentOrNull
 import ceui.refactor.setOnClick
 
 class FlagReasonRepository : Repository<FlagReasonFragment>() {
@@ -57,7 +58,11 @@ class FlagReasonViewHolder(binding: CellFlagReasonBinding) :
     override fun onBindViewHolder(holder: FlagReasonHolder, position: Int) {
         binding.flagReasonTv.text = holder.content
         binding.root.setOnClick {
-            it.findFragmentOrNull<FlagReasonFragment>()?.onHolderClick(holder)
+            it.findActionReceiverOrNull<FlagActionReceiver>()?.onClickFlag(holder)
         }
     }
+}
+
+interface FlagActionReceiver {
+    fun onClickFlag(holder: FlagReasonHolder)
 }

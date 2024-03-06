@@ -10,7 +10,7 @@ import ceui.lisa.databinding.FragmentSlinkyListBinding
 import ceui.loxia.*
 import ceui.refactor.viewBinding
 
-class FlagReasonFragment : SlinkyListFragment() {
+class FlagReasonFragment : SlinkyListFragment(), FlagActionReceiver {
 
     private val binding by viewBinding(FragmentSlinkyListBinding::bind)
     private val safeArgs by threadSafeArgs<FlagReasonFragmentArgs>()
@@ -25,15 +25,6 @@ class FlagReasonFragment : SlinkyListFragment() {
         binding.toolbar.toolbarTitle.text = getString(R.string.violated_rule)
         binding.listView.layoutManager = LinearLayoutManager(activity)
         setUpSlinkyList(binding.listView, binding.refreshLayout, binding.itemLoading, viewModel)
-    }
-
-    fun onHolderClick(holder: FlagReasonHolder) {
-        startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
-            putExtra(TemplateActivity.EXTRA_FRAGMENT, "填写举报详细信息")
-            putExtra(FlagDescFragment.FlagReasonIdKey, holder.id)
-            putExtra(FlagDescFragment.FlagObjectIdKey, safeArgs.flagObjectId)
-            putExtra(FlagDescFragment.FlagObjectTypeKey, safeArgs.flagObjectType)
-        })
     }
 
     companion object {
@@ -55,5 +46,14 @@ class FlagReasonFragment : SlinkyListFragment() {
             shouldAutoFinish = false
             requireActivity().finish()
         }
+    }
+
+    override fun onClickFlag(holder: FlagReasonHolder) {
+        startActivity(Intent(requireContext(), TemplateActivity::class.java).apply {
+            putExtra(TemplateActivity.EXTRA_FRAGMENT, "填写举报详细信息")
+            putExtra(FlagDescFragment.FlagReasonIdKey, holder.id)
+            putExtra(FlagDescFragment.FlagObjectIdKey, safeArgs.flagObjectId)
+            putExtra(FlagDescFragment.FlagObjectTypeKey, safeArgs.flagObjectType)
+        })
     }
 }
