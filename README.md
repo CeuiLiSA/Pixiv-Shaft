@@ -4,6 +4,9 @@
 [![open issues](https://img.shields.io/github/issues/CeuiLiSA/Pixiv-Shaft?color=brightgreen)](https://github.com/CeuiLiSA/Pixiv-Shaft/issues?q=is%3Aopen+is%3Aissue)
 [![license](https://img.shields.io/github/license/CeuiLiSA/Pixiv-Shaft)](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/LICENSE)
 
+[日本語(日文)](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/README/README.ja.md)
+
+
 * 本应用为日本插画交流网站Pixiv的安卓客户端第三方重制版
 * 项目已开源且仅做交流和学习使用，不得用于任何商业用途
 * APP内所有插画、漫画、小说作品版权均归属于其著作者或Pixiv所有
@@ -40,12 +43,12 @@
 
 |作品详情|推荐小说|评论列表|
 |:---:|:---:|:---:|
-|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-0.jpg)|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-1.jpg)|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-2.jpg)
+|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/zh-cn/illust.jpg)|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-1.jpg)|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/zh-cn/comment.jpg)
 
 
 |动态页面|作品详情|热门标签|
 |:---:|:---:|:---:|
-|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-3.jpg)|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-4.jpg)|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-5.jpg)
+|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-3.jpg)|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/QQ20200106-4.jpg)|![](https://github.com/CeuiLiSA/Pixiv-Shaft/blob/master/snap/zh-cn/hotTag.jpg)
 
 ## 4.在 Google Play 上获取
 

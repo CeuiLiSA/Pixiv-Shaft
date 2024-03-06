@@ -103,7 +103,7 @@
 <!--                            android:textSize="13sp"-->
 <!--                            android:id="@+id/save_novel"-->
 <!--                            android:layout_marginEnd="@dimen/six_dp"-->
-<!--                            android:text="@string/string_104"-->
+<!--                            android:text="@string/string_4"-->
 <!--                            android:layout_centerVertical="true"-->
 <!--                            android:textColor="@color/white_to_gray">-->
 

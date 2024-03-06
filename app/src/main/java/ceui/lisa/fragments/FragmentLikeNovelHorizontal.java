@@ -69,7 +69,7 @@ public class FragmentLikeNovelHorizontal extends BaseFragment<FragmentLikeIllust
         baseBind.recyclerView.addItemDecoration(new
                 LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));
         if (type == 1) {
-            baseBind.title.setText(R.string.string_168);
+            baseBind.title.setText(R.string.string_237);
             baseBind.howMany.setText(String.format(getString(R.string.how_many_illust_works), novelSize));
             baseBind.howMany.setOnClickListener(new View.OnClickListener() {
                 @Override
