@@ -1,6 +1,7 @@
 package ceui.loxia.novel
 
 import ceui.lisa.activities.Shaft
+import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellNovelImageBinding
 import ceui.lisa.databinding.CellNovelTextBinding
 import ceui.lisa.models.NovelImages
@@ -8,6 +9,7 @@ import ceui.lisa.models.WebNovel
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.PixivOperate
+import ceui.loxia.SpaceHolder
 import ceui.refactor.ListItemHolder
 import ceui.refactor.ListItemViewHolder
 import ceui.refactor.setOnClick
@@ -19,6 +21,7 @@ class NovelTextHolder(val text: String, val textColor: Int) : ListItemHolder() {
 
 }
 
+@ItemHolder(NovelTextHolder::class)
 class NovelTextViewHolder(private val bd: CellNovelTextBinding) : ListItemViewHolder<CellNovelTextBinding, NovelTextHolder>(bd) {
 
     override fun onBindViewHolder(holder: NovelTextHolder, position: Int) {
@@ -42,6 +45,7 @@ class NovelImageHolder(
     }
 }
 
+@ItemHolder(NovelImageHolder::class)
 class NovelImageViewHolder(private val bd: CellNovelImageBinding) : ListItemViewHolder<CellNovelImageBinding, NovelImageHolder>(bd) {
 
     override fun onBindViewHolder(holder: NovelImageHolder, position: Int) {
