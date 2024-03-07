@@ -74,7 +74,7 @@
 
             <CheckBox
                 android:layout_width="wrap_content"
-                android:text="单P作品，文件名带上p0"
+                android:text="@string/singlePage_isAdd_p0"
                 android:paddingTop="@dimen/four_dp"
                 android:id="@+id/has_p0"
                 android:paddingBottom="@dimen/four_dp"

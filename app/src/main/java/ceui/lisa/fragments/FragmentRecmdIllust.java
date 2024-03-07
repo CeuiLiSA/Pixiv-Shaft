@@ -152,12 +152,12 @@ public class FragmentRecmdIllust extends NetListFragment<FragmentBaseListBinding
 
     @Override
     public String getToolbarTitle() {
-        return getString(R.string.string_239) + dataType;
+        return getString(R.string.recommend) + dataType;
     }
 
     @Override
     public boolean showToolbar() {
-        return getString(R.string.string_240).equals(dataType);
+        return getString(R.string.type_manga).equals(dataType);
     }
 
     @Override

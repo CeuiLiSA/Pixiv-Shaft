@@ -183,7 +183,7 @@
                         android:layout_marginStart="@dimen/sixteen_dp"
                         android:layout_marginTop="@dimen/sixteen_dp"
                         android:layout_marginBottom="@dimen/eight_dp"
-                        android:text="个人介绍"
+                        android:text="@string/string_33"
                         android:textSize="16sp"
                         android:textColor="?attr/colorPrimary">
 
@@ -203,7 +203,7 @@
                         android:layout_marginBottom="@dimen/four_dp"
                         android:drawableEnd="@drawable/ic_arrow_right_little"
                         android:gravity="center"
-                        android:text="详细信息"
+                        android:text="@string/string_146"
                         android:textColor="#999999"
                         android:textSize="13sp">
 

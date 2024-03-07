@@ -66,7 +66,6 @@
     <string name="cannot_download">你下你🐴呢？</string>
     <string name="image_alredy_exist">图片已存在</string>
     <string name="has_been_added">个项目已加入下载队列</string>
-    <string name="one_item_added">1个项目已加入下载队列</string>
     <string name="type_illust">插画</string>
     <string name="type_manga">漫画</string>
     <string name="type_walk_through">画廊</string>
@@ -201,10 +200,8 @@
     <string name="string_5">下载</string>
     <string name="string_6">收藏</string>
     <string name="string_7">下载图片</string>
-    <string name="string_8">Shaft</string>
     <string name="string_9">用户名/邮箱账号</string>
     <string name="string_10">密码</string>
-    <string name="string_11">Shaft</string>
     <string name="string_12">用户名（可随时变更）</string>
     <string name="string_13">+ 关 注</string>
     <string name="string_14">添加</string>
@@ -215,7 +212,6 @@
     <string name="string_20">全部选择</string>
     <string name="string_21">取消全选</string>
     <string name="string_22">导出下载链接</string>
-    <string name="string_23">Shaft</string>
     <string name="string_24">版本名称：</string>
     <string name="string_25">版本型号：</string>
     <string name="string_26">软件</string>
@@ -261,12 +257,10 @@
     <string name="string_66">ブリタンニア(ルト系ブリトン人)の アルトリア・ペンドラゴン</string>
     <string name="string_67">仮面みたいになっ</string>
     <string name="string_68">2018年4月29日6点13分投递</string>
-    <string name="string_69">+ 关注</string>
     <string name="string_70">表示回数</string>
     <string name="string_71">收藏次数</string>
     <string name="string_72">下载</string>
     <string name="string_73">重新加载</string>
-    <string name="string_74">插画/漫画收藏</string>
     <string name="string_75">发现</string>
     <string name="string_76">其他分类</string>
     <string name="string_77">动态</string>
@@ -277,7 +271,6 @@
     <string name="string_82">保存本地（已下载中可查看）</string>
     <string name="string_83">上一章节</string>
     <string name="string_84">下一章节</string>
-    <string name="string_85">+ 关注</string>
     <string name="string_86">切换</string>
     <string name="string_87">搜索历史</string>
     <string name="string_88">搜索发现</string>
@@ -290,15 +283,13 @@
     <string name="string_95">主题</string>
     <string name="string_96">10000</string>
     <string name="string_97">简体中文</string>
-    <string name="string_98">/storage/emulated/0/Shaft/SingleImages</string>
-    <string name="string_99">/storage/emulated/0/Shaft/SingleImages</string>
+    <string name="string_98" translatable="false">/storage/emulated/0/Shaft/SingleImages</string>
+    <string name="string_99" translatable="false">/storage/emulated/0/Shaft/SingleImages</string>
     <string name="string_100">缓存</string>
     <string name="string_101">清除图片缓存</string>
     <string name="string_102">清除 GIF 缓存</string>
     <string name="string_103">点击展开</string>
-    <string name="string_104">+ 关注</string>
     <string name="string_105">点击展开</string>
-    <string name="string_106">+ 关注</string>
     <string name="string_107">--- END ---</string>
     <string name="string_108">取消关注</string>
     <string name="string_109">查看评论</string>
@@ -314,7 +305,6 @@
     <string name="string_120">复制</string>
     <string name="string_121">显示</string>
     <string name="string_122">收藏</string>
-    <string name="string_123">+ 关注</string>
     <string name="string_124">日榜</string>
     <string name="string_125">每周</string>
     <string name="string_126">每月</string>
@@ -359,7 +349,6 @@
     <string name="string_165">请选择要屏蔽的标签</string>
     <string name="string_166">小说收藏</string>
     <string name="string_167">查看全部</string>
-    <string name="string_168">小说作品</string>
     <string name="string_169">取消收藏</string>
     <string name="string_170">收藏</string>
     <string name="string_171">小说</string>
@@ -369,7 +358,6 @@
     <string name="string_175">的评论</string>
     <string name="string_176">回复</string>
     <string name="string_177">取消关注</string>
-    <string name="string_178">+ 关注</string>
     <string name="string_179">取消收藏</string>
     <string name="string_180">收藏</string>
     <string name="string_181">保存成功</string>
@@ -429,15 +417,12 @@
     <string name="string_236">搜索用户</string>
     <string name="string_237">小说作品</string>
     <string name="string_238">按标签收藏</string>
-    <string name="string_239">推荐</string>
-    <string name="string_240">漫画</string>
     <string name="string_241">近期任务中模糊缩略图</string>
     <string name="string_242">设置命名方式（长按拖拽）</string>
     <string name="string_243">这里什么都没有呢</string>
     <string name="string_244">按标签筛选</string>
     <string name="string_245">收藏到精华</string>
     <string name="string_246">插画作品</string>
-    <string name="string_247">漫画作品</string>
     <string name="string_248">精华列</string>
     <string name="string_249">精华列表</string>
     <string name="string_250">编辑账号信息</string>
@@ -466,7 +451,7 @@
     <string name="string_273">自我介绍：</string>
     <string name="string_274">好P友的插画/漫画作品</string>
     <string name="string_275">好P友的小说作品</string>
-    <string name="string_276">/storage/emulated/0/Shaft/SingleNovels</string>
+    <string name="string_276" translatable="false">/storage/emulated/0/Shaft/SingleNovels</string>
     <string name="string_277">导出TXT（文件夹中可查看）</string>
     <string name="string_278">导出TXT并分享</string>
     <string name="string_279">导出成功</string>
@@ -672,4 +657,27 @@
     <string name="created_by_ai">AI生成</string>
     <string name="has_been_downloaded">已下载完成</string>
     <string name="delete_ai_illust">不显示AI生成的作品</string>
+    <string name="trying_login">尝试登录</string>
+    <string name="userTab_other">其他</string>
+    <string name="userTab_collection">收藏</string>
+    <string name="male">男性</string>
+    <string name="female">女性</string>
+    <string name="unknown_gender">未知性別</string>
+    <string name="singlePage_isAdd_p0">单P作品，文件名带上p0</string>
+    <string name="success_clearImageCache">图片缓存清除成功！</string>
+    <string name="success_clearGifCache">GIF缓存清除成功！</string>
+    <string name="restore_success">还原成功</string>
+    <string name="restore_failed">还原失败</string>
+    <string name="backup_success">备份成功</string>
+    <string name="color_shiYinPurple">矢尹紫</string>
+    <string name="color_classicBlue">经典蓝</string>
+    <string name="color_officialBlue">官方蓝</string>
+    <string name="color_scallionGreen">浅葱绿</string>
+    <string name="color_summerYellow">盛夏黄</string>
+    <string name="color_activeRed">元气红</string>
+    <string name="color_girlPink">少女粉</string>
+    <string name="color_classicGreen">老实绿</string>
+    <string name="color_classicPurple">基佬紫</string>
+    <string name="color_peachPink">樱桃粉</string>
+    <string name="theme_nowUsing">（正在使用）</string>
 </resources>
