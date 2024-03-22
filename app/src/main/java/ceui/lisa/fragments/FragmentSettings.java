@@ -666,6 +666,23 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 }
             });
 
+            // AI作品下载至单独的目录
+            baseBind.aiDivideSave.setChecked(Shaft.sSettings.isAIDivideSave());
+            baseBind.aiDivideSave.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    Shaft.sSettings.setAIDivideSave(isChecked);
+                    Common.showToast(getString(R.string.string_428));
+                    Local.setSettings(Shaft.sSettings);
+                }
+            });
+            baseBind.aiDivideSaveRela.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    baseBind.aiDivideSave.performClick();
+                }
+            });
+
             // 自定义下载文件名
             baseBind.fileNameRela.setOnClickListener(new View.OnClickListener() {
                 @Override
