@@ -475,6 +475,8 @@
   <string name="r_eighteen_weekly_rank">This week R</string>  
   <string name="r_eighteen_male_rank">Male r</string>  
   <string name="r_eighteen_female_rank">Female r</string>  
+  <string name="r_eighteen_ai_rank">AI Generated R</string>
+  <string name="r_eighteen_guro_rank">This week G</string>
   <string name="string_331">Using pixivcat agent</string>  
   <string name="string_332">The secondary details page displays the original picture</string>
   <string name="string_333">Speed up the loading of pictures. If you think the loading is slow, you can close it</string>  

@@ -111,13 +111,15 @@ public class FragmentViewPager extends BaseFragment<ViewpagerWithTablayoutBindin
                     Shaft.getContext().getString(R.string.r_eighteen_weekly_rank),
                     Shaft.getContext().getString(R.string.r_eighteen_male_rank),
                     Shaft.getContext().getString(R.string.r_eighteen_female_rank),
+                    Shaft.getContext().getString(R.string.r_eighteen_ai_rank)
             };
             mFragments = new ListFragment[]{
 //                    FragmentRankIllust.newInstance(7, "", false),
                     FragmentRankIllust.newInstance(8, "", false),
                     FragmentRankIllust.newInstance(9, "", false),
                     FragmentRankIllust.newInstance(10, "", false),
-                    FragmentRankIllust.newInstance(11, "", false)
+                    FragmentRankIllust.newInstance(11, "", false),
+                    FragmentRankIllust.newInstance(12, "", false)
             };
             baseBind.toolbarTitle.setText(R.string.string_r);
             baseBind.viewPager.setAdapter(new FragmentPagerAdapter(getChildFragmentManager()) {

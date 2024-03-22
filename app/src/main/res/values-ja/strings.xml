@@ -475,6 +475,8 @@
   <string name="r_eighteen_weekly_rank">今週のR-18</string>
   <string name="r_eighteen_male_rank">男性向けR-18</string>
   <string name="r_eighteen_female_rank">女性向けR-18</string>
+  <string name="r_eighteen_ai_rank">AI生成のR-18</string>
+  <string name="r_eighteen_guro_rank">今週のR-18G</string>
   <string name="string_331">PixivCatエージェントを使う</string>  
   <string name="string_332">二級詳細ページでオリジナルの画質で表示する</string>
   <string name="string_333">画像の読み込み速度が向上する場合があります。</string>

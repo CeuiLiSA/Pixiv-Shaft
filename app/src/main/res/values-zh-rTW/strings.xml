@@ -477,6 +477,8 @@
   <string name="r_eighteen_weekly_rank">本週R</string>  
   <string name="r_eighteen_male_rank">男性R</string>  
   <string name="r_eighteen_female_rank">女性R</string>  
+  <string name="r_eighteen_ai_rank">AI生成R</string>
+  <string name="r_eighteen_guro_rank">本週G</string>
   <string name="string_331">使用 PixivCat 代理</string>
   <string name="string_332">二級詳情頁面顯示原圖</string>
   <string name="string_333">加速載入圖片，如果覺得載入變慢了，可以關閉</string>  

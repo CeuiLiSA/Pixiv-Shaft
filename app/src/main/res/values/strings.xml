@@ -167,6 +167,8 @@
     <string name="r_eighteen_weekly_rank">本周R</string>
     <string name="r_eighteen_male_rank">男性R</string>
     <string name="r_eighteen_female_rank">女性R</string>
+    <string name="r_eighteen_ai_rank">AI生成R</string>
+    <string name="r_eighteen_guro_rank">本周G</string>
     <string name="ranking_list">排行榜</string>
     <string name="recmd_for_you">为你推荐</string>
     <string name="email_address">邮箱地址</string>
