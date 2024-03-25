@@ -475,6 +475,8 @@
   <string name="r_eighteen_weekly_rank">금주 R</string>  
   <string name="r_eighteen_male_rank">남성 R</string>  
   <string name="r_eighteen_female_rank">여성 R</string>  
+  <string name="r_eighteen_ai_rank">AI 생성 R</string>
+  <string name="r_eighteen_guro_rank">금주 G</string>
   <string name="string_331">PixivCat 대 리 를 사용 합 니 다.</string>  
   <string name="string_332">2 급 자세 한 화면 은 원 그림 을 표시 합 니 다.</string>
   <string name="string_333">가속 로 딩 이미지, 로 딩 이 느 려 지 는 느낌 이 들 면 닫 을 수 있 습 니 다.</string>  

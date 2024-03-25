@@ -475,6 +475,8 @@
   <string name="r_eighteen_weekly_rank">Bu hafta R</string>  
   <string name="r_eighteen_male_rank">Erkek r</string>  
   <string name="r_eighteen_female_rank">Kadın r</string>  
+  <string name="r_eighteen_ai_rank">AI Oluşturuldu R</string>
+  <string name="r_eighteen_guro_rank">Bu hafta G</string>
   <string name="string_331">pixivcat aracını kullanma</string>  
   <string name="string_332">İkincil ayrıntı sayfası orijinal resimi göstersin</string>
   <string name="string_333">Resim yükleme hızını arttır. Yükleme hızı size yavaş geliyorsa, kapatabilirsiniz.</string>  
