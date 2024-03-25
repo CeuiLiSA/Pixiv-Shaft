@@ -606,6 +606,7 @@
   <string name="string_452">Download limit type</string>
   <string name="string_453">Do not auto start</string>
   <string name="string_454">Share first image</string>
+  <string name="string_455">AI works download to another directory</string>  
   <string name="refresh">Refresh</string>
   <string name="now_loading">Loading…</string>
   <string name="retry">Retry</string>
