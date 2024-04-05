@@ -20,7 +20,7 @@ public class FragmentRankIllust extends NetListFragment<FragmentBaseListBinding,
 
     private static final String[] API_TITLES = new String[]{"day", "week",
             "month", "day_ai", "day_male", "day_female", "week_original", "week_rookie",
-            "day_r18", "week_r18", "day_male_r18", "day_female_r18"};
+            "day_r18", "week_r18", "day_male_r18", "day_female_r18", "day_r18_ai", "week_r18g"};
     private static final String[] API_TITLES_MANGA = new String[]{"day_manga",
             "week_manga", "month_manga", "week_rookie_manga", "day_r18_manga"};
 

@@ -765,6 +765,22 @@
                         <View style="@style/half_divider" />
 
                         <RelativeLayout
+                            android:id="@+id/ai_divide_save_rela"
+                            style="@style/ripple_rela">
+
+                            <TextView
+                                style="@style/setting_text_left_and_center"
+                                android:text="@string/string_455" />
+
+                            <androidx.appcompat.widget.SwitchCompat
+                                android:id="@+id/ai_divide_save"
+                                style="@style/setting_right_switch"/>
+
+                        </RelativeLayout>
+
+                        <View style="@style/half_divider" />
+
+                        <RelativeLayout
                             android:id="@+id/file_name_rela"
                             style="@style/ripple_rela">
 

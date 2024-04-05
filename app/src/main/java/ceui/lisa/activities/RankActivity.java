@@ -53,7 +53,9 @@ public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> im
                 mContext.getString(R.string.r_eighteen),
                 mContext.getString(R.string.r_eighteen_weekly_rank),
                 mContext.getString(R.string.r_eighteen_male_rank),
-                mContext.getString(R.string.r_eighteen_female_rank)
+                mContext.getString(R.string.r_eighteen_female_rank),
+                mContext.getString(R.string.r_eighteen_ai_rank),
+                mContext.getString(R.string.r_eighteen_guro_rank)
         };
 
         final String[] CHINESE_TITLES_MANGA = new String[]{

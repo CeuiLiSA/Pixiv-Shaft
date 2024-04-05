@@ -118,6 +118,9 @@ public class Settings {
 
     private boolean r18DivideSave = false;
 
+    //AI作品下载至单独的目录
+    private boolean AIDivideSave = false;
+
 
     //在我的收藏列表，隐藏收藏按钮，默认显示
     private boolean hideStarButtonAtMyCollection = false;
@@ -215,6 +218,14 @@ public class Settings {
 
     public void setR18DivideSave(boolean r18DivideSave) {
         this.r18DivideSave = r18DivideSave;
+    }
+
+    public boolean isAIDivideSave() {
+        return AIDivideSave;
+    }
+
+    public void setAIDivideSave(boolean AIDivideSave) {
+        this.AIDivideSave = AIDivideSave;
     }
 
     public String getRootPathUri() {

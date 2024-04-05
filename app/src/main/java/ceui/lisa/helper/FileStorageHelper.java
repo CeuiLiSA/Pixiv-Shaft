@@ -26,19 +26,40 @@ public class FileStorageHelper {
     }
 
     public static String getIllustFileSAFFullName(String id, IllustsBean illustsBean, String fileName){
-        return id + getShaftIllustPathPartWithInnerR18Folder(illustsBean) + getAuthorPathPart(illustsBean) + File.separator + fileName;
+        String fullName = id;
+        if (isSaveToAIDir(illustsBean)) {
+            fullName += getShaftIllustPathPartWithInnerAIFolder(illustsBean);
+        } else if (isSaveToR18Dir(illustsBean)) {
+            fullName += getShaftIllustPathPartWithInnerR18Folder(illustsBean);
+        }
+        fullName += getAuthorPathPart(illustsBean) + File.separator + fileName;
+        return fullName;
     }
 
     public static String getIllustAbsolutePath(IllustsBean illustsBean){
-        return PathUtils.getExternalPicturesPath() + sep + getShaftIllustDirWithInnerR18Folder(isSaveToR18Dir(illustsBean)) + getAuthorPathPart(illustsBean);
+        String absolutePath = PathUtils.getExternalPicturesPath() + sep;
+        if (isSaveToAIDir(illustsBean)) {
+            absolutePath += getShaftIllustDirWithInnerAIFolder(true);
+        } else if (isSaveToR18Dir(illustsBean)) {
+            absolutePath += getShaftIllustDirWithInnerR18Folder(true);
+        }
+        absolutePath += getAuthorPathPart(illustsBean);
+        return absolutePath;
     }
 
-    public static String getIllustAbsolutePath(IllustsBean illustsBean, boolean isR18){
-        return PathUtils.getExternalPicturesPath() + sep + getShaftIllustDirWithInnerR18Folder(isR18) + getAuthorPathPart(illustsBean);
-    }
+    // public static String getIllustAbsolutePath(IllustsBean illustsBean, boolean isR18){
+    //     return PathUtils.getExternalPicturesPath() + sep + getShaftIllustDirWithInnerR18Folder(isR18) + getAuthorPathPart(illustsBean);
+    // }
 
     public static String getIllustRelativePathQ(IllustsBean illustsBean) {
-        return Environment.DIRECTORY_PICTURES + sep + getShaftIllustDirWithInnerR18Folder(isSaveToR18Dir(illustsBean)) + getAuthorPathPart(illustsBean);
+        String relativePath = Environment.DIRECTORY_PICTURES + sep;
+        if (isSaveToAIDir(illustsBean)) {
+            relativePath += getShaftIllustDirWithInnerAIFolder(true);
+        } else if (isSaveToR18Dir(illustsBean)) {
+            relativePath += getShaftIllustDirWithInnerR18Folder(true);
+        }
+        relativePath += getAuthorPathPart(illustsBean);
+        return relativePath;
     }
 
     public static String getNovelRelativePathQ() {
@@ -73,6 +94,26 @@ public class FileStorageHelper {
 
     private static boolean isSaveToR18Dir(IllustsBean illustsBean){
         return illustsBean.isR18File() && Shaft.sSettings.isR18DivideSave();
+    }
+
+    public static String getShaftIllustAIDirNameWithInnerAIFolder(IllustsBean illustsBean) {
+        return isSaveToAIDir(illustsBean) ? "ShaftImages-AI" : "";
+    }
+
+    public static String getShaftIllustPathPartWithInnerAIFolder(IllustsBean illustsBean) {
+        return getShaftIllustPathPartWithInnerAIFolder(isSaveToAIDir(illustsBean));
+    }
+
+    public static String getShaftIllustPathPartWithInnerAIFolder(boolean isAI) {
+        return isAI ? sep + "ShaftImages-AI" : "";
+    }
+
+    public static String getShaftIllustDirWithInnerAIFolder(boolean isAI) {
+        return "ShaftImages" + getShaftIllustPathPartWithInnerAIFolder(isAI);
+    }
+
+    private static boolean isSaveToAIDir(IllustsBean illustsBean){
+        return illustsBean.isCreatedByAI() && Shaft.sSettings.isAIDivideSave();
     }
 
     private static String getAuthorPathPart(IllustsBean illustsBean) {

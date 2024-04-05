@@ -475,6 +475,8 @@
   <string name="r_eighteen_weekly_rank">неделя R</string>  
   <string name="r_eighteen_male_rank">мужской r</string>  
   <string name="r_eighteen_female_rank">женский R</string>  
+  <string name="r_eighteen_ai_rank">AI Сгенерировано R</string>
+  <string name="r_eighteen_guro_rank">неделя G</string>
   <string name="string_331">Использовать прокси PixivCat</string>  
   <string name="string_332">Исходное изображение отображается на вторичной странице сведений.</string>
   <string name="string_333">ускорить загрузку изображений, если вы чувствуете, что загрузка замедлилась, можно закрыть</string>  
@@ -604,4 +606,5 @@
   <string name="string_452">Тип лимита загрузки</string>
   <string name="string_453">Не автозапуск</string>
   <string name="string_454">Поделитесь первой картинкой</string>
+  <string name="string_455">работа AI загружена в другой каталог</string>  
 </resources>
