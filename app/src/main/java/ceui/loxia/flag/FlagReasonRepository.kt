@@ -1,12 +1,15 @@
 package ceui.loxia.flag
 
 import ceui.lisa.R
+import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellFlagReasonBinding
 import ceui.loxia.RefreshState
 import ceui.loxia.Repository
+import ceui.loxia.findActionReceiverOrNull
+import ceui.loxia.findFragmentOrNull
+import ceui.loxia.novel.NovelTextHolder
 import ceui.refactor.ListItemHolder
 import ceui.refactor.ListItemViewHolder
-import ceui.refactor.findFragmentOrNull
 import ceui.refactor.setOnClick
 
 class FlagReasonRepository : Repository<FlagReasonFragment>() {
@@ -51,13 +54,18 @@ class FlagReasonHolder(val id: Int, val content: String, val key: String) : List
     }
 }
 
+@ItemHolder(FlagReasonHolder::class)
 class FlagReasonViewHolder(binding: CellFlagReasonBinding) :
     ListItemViewHolder<CellFlagReasonBinding, FlagReasonHolder>(binding) {
 
     override fun onBindViewHolder(holder: FlagReasonHolder, position: Int) {
         binding.flagReasonTv.text = holder.content
         binding.root.setOnClick {
-            it.findFragmentOrNull<FlagReasonFragment>()?.onHolderClick(holder)
+            it.findActionReceiverOrNull<FlagActionReceiver>()?.onClickFlag(holder)
         }
     }
+}
+
+interface FlagActionReceiver {
+    fun onClickFlag(holder: FlagReasonHolder)
 }
