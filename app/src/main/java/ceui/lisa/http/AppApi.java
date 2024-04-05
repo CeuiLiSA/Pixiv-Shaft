@@ -240,11 +240,11 @@ public interface AppApi {
                                               @Query("user_id") int user_id);
 
 
-    @GET("v1/illust/comments")
+    @GET("/v3/illust/comments")
     Observable<ListComment> getIllustComment(@Header("Authorization") String token,
                                              @Query("illust_id") int illust_id);
 
-    @GET("v1/novel/comments")
+    @GET("v3/novel/comments")
     Observable<ListComment> getNovelComment(@Header("Authorization") String token,
                                        @Query("novel_id") int novel_id);
 
