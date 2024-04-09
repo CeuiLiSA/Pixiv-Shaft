@@ -175,6 +175,7 @@
     <color name="event_sample_color_9">#8633FF</color>
     <color name="event_sample_color_10">#C500FF</color>
     <color name="event_sample_color_11">#F234C6</color>
+    <color name="image_background">#1AFFFFFF</color>
 
 </resources>
 
