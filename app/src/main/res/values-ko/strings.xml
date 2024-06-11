@@ -170,7 +170,10 @@
   <string name="next">다음</string>  
   <string name="previous">이전</string>  
   <string name="file_path">경로:</string>  
-  <string name="add_account">계 정 추가</string>  
+  <string name="add_account">계 정 추가</string>
+  <string name="read_latest_episode">최신화 읽기</string>
+  <string name="watchlist">워치리스트</string>
+  <string name="episode_number">%d화</string>
   <string name="string_1">차단 설정</string>  
   <string name="string_2">개발 자 미리보기</string>  
   <string name="string_3">함께 나누다</string>  

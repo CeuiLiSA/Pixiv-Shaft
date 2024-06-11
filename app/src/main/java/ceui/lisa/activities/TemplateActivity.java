@@ -233,6 +233,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return FragmentCollection.newInstance(0);
                 case "我的小说收藏":
                     return FragmentCollection.newInstance(1);
+                case "追更列表":
+                    return FragmentCollection.newInstance(3);
                 case "我的关注":
                     return FragmentCollection.newInstance(2);
                 case "主题颜色":
