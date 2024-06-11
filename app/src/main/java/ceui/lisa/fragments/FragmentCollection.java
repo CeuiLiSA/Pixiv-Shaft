@@ -31,7 +31,7 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
     private Fragment[] allPages;
     private String[] CHINESE_TITLES;
 
-    private int type; //0插画收藏，1小说收藏，2关注
+    private int type; //0插画收藏，1小说收藏，2关注, 3追更列表
     private final static Set<Integer> filterType = new HashSet<>(Arrays.asList(0,1));
 
     public static FragmentCollection newInstance(int type) {
@@ -87,6 +87,14 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
                     Shaft.getContext().getString(R.string.public_like_user),
                     Shaft.getContext().getString(R.string.private_like_user)
             };
+        } else if (type == 3) {
+            // TODO: manga watchlist
+            allPages = new Fragment[]{
+                    new FragmentWatchlistNovel()
+            };
+            CHINESE_TITLES = new String[]{
+                    Shaft.getContext().getString(R.string.watchlist_novel)
+            };
         }
 
         if (type == 0) {
@@ -95,6 +103,8 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
             baseBind.toolbarTitle.setText(R.string.string_320);
         } else if (type == 2) {
             baseBind.toolbarTitle.setText(R.string.string_321);
+        } else if (type == 3) {
+            baseBind.toolbarTitle.setText(R.string.string_457);
         }
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
         baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {

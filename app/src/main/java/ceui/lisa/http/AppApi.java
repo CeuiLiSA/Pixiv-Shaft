@@ -17,6 +17,7 @@ import ceui.lisa.model.ListSimpleUser;
 import ceui.lisa.model.ListTag;
 import ceui.lisa.model.ListTrendingtag;
 import ceui.lisa.model.ListUser;
+import ceui.lisa.model.ListWatchlistNovel;
 import ceui.lisa.model.RecmdIllust;
 import ceui.lisa.models.CommentHolder;
 import ceui.lisa.models.GifResponse;
@@ -531,4 +532,12 @@ public interface AppApi {
     @GET("v1/user/related?filter=for_android")
     Observable<ListUser> getRelatedUsers(@Header("Authorization") String token,
                                              @Query("seed_user_id") int seed_user_id);
+
+    // 小说追更列表
+    @GET("v1/watchlist/novel")
+    Observable<ListWatchlistNovel> getWatchlistNovel(@Header("Authorization") String token);
+
+    @GET
+    Observable<ListWatchlistNovel> getNextWatchlistNovel(@Header("Authorization") String token,
+                                                         @Url String next_url);
 }

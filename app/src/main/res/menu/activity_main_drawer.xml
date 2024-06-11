@@ -43,6 +43,11 @@
                 android:title="@string/string_320" />
 
             <item
+                android:id="@+id/watchlist"
+                android:icon="@drawable/ic_fiber_new_black_24dp"
+                android:title="@string/string_457" />
+
+            <item
                 android:id="@+id/follow_user"
                 android:icon="@drawable/ic_baseline_how_to_reg_24"
                 android:title="@string/string_321" />
