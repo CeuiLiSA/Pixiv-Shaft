@@ -172,7 +172,10 @@
   <string name="next">下一個</string>  
   <string name="previous">上一個</string>  
   <string name="file_path">路徑：</string>  
-  <string name="add_account">添加帳號</string>  
+  <string name="add_account">添加帳號</string>
+  <string name="read_latest_episode">閱讀最新話</string>
+  <string name="watchlist">追蹤列表</string>
+  <string name="episode_number">%d話</string>
   <string name="string_1">遮罩設定</string>  
   <string name="string_2">開發者預覽</string>  
   <string name="string_3">分享</string>  

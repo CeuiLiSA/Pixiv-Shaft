@@ -128,7 +128,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
-                    android:text="@string/string_456"
+                    android:text="@string/read_latest_episode"
                     android:textColor="?attr/colorPrimary">
                 </Button>
             </LinearLayout>

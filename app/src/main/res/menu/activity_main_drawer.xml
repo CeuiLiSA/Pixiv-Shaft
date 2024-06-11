@@ -45,7 +45,7 @@
             <item
                 android:id="@+id/watchlist"
                 android:icon="@drawable/ic_fiber_new_black_24dp"
-                android:title="@string/string_457" />
+                android:title="@string/watchlist" />
 
             <item
                 android:id="@+id/follow_user"

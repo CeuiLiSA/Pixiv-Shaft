@@ -93,7 +93,7 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
                     new FragmentWatchlistNovel()
             };
             CHINESE_TITLES = new String[]{
-                    Shaft.getContext().getString(R.string.watchlist_novel)
+                    Shaft.getContext().getString(R.string.type_novel)
             };
         }
 
@@ -104,7 +104,7 @@ public class FragmentCollection extends BaseFragment<ViewpagerWithTablayoutBindi
         } else if (type == 2) {
             baseBind.toolbarTitle.setText(R.string.string_321);
         } else if (type == 3) {
-            baseBind.toolbarTitle.setText(R.string.string_457);
+            baseBind.toolbarTitle.setText(R.string.watchlist);
         }
         baseBind.toolbar.setNavigationOnClickListener(v -> mActivity.finish());
         baseBind.toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {

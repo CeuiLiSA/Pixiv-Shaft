@@ -77,7 +77,6 @@
     <string name="private_like_user">私人关注</string>
     <string name="private_like_novel">私人收藏小说</string>
     <string name="public_like_novel">公开收藏小说</string>
-    <string name="watchlist_novel">追更小说</string>
     <string name="bookmark">收藏夹</string>
     <string name="filter_by_bookmark">按标签筛选</string>
     <string name="access_denied">请给与足够的权限</string>
@@ -194,6 +193,10 @@
 
     <string name="file_path">路径：</string>
     <string name="add_account">添加账号</string>
+
+    <string name="read_latest_episode">阅读最新话</string>
+    <string name="watchlist">追更列表</string>
+    <string name="episode_number">%d话</string>
 
 
     <string name="string_1">屏蔽设置</string>
@@ -633,8 +636,6 @@
     <string name="string_453">不自动下载</string>
     <string name="string_454">分享首图</string>
     <string name="string_455">AI 作品下载至另一目录</string>
-    <string name="string_456">阅读最新话</string>
-    <string name="string_457">追更列表</string>
     <string name="terms_of_service">服务条款</string>
     <string name="privacy_policy">隐私政策</string>
     <string name="landing_terms_base">欢迎使用！继续即表示你同意 Shaft 的 %s 并且确认已阅读我们的 %s.</string>
