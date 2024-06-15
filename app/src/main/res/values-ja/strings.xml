@@ -658,4 +658,5 @@
   <string name="color_classicGreen">クラシックグリーン</string>
   <string name="color_classicPurple">クラシックパープル</string>
   <string name="theme_nowUsing">(使用中)</string>
+  <string name="core_string_novel_marker">しおり</string>
 </resources>
