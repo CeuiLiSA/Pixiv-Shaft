@@ -11,6 +11,7 @@ import ceui.lisa.model.ListLive;
 import ceui.lisa.model.ListMangaOfSeries;
 import ceui.lisa.model.ListMangaSeries;
 import ceui.lisa.model.ListNovel;
+import ceui.lisa.model.ListNovelMarkers;
 import ceui.lisa.model.ListNovelOfSeries;
 import ceui.lisa.model.ListNovelSeries;
 import ceui.lisa.model.ListSimpleUser;
@@ -531,4 +532,12 @@ public interface AppApi {
     @GET("v1/user/related?filter=for_android")
     Observable<ListUser> getRelatedUsers(@Header("Authorization") String token,
                                              @Query("seed_user_id") int seed_user_id);
+
+    // 小说书签
+    @GET("v2/novel/markers")
+    Observable<ListNovelMarkers> getNovelMarkers(@Header("Authorization") String token);
+
+    @GET
+    Observable<ListNovelMarkers> getNextNovelMarkers(@Header("Authorization") String token,
+                                                     @Url String next_url);
 }

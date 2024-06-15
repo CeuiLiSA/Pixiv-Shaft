@@ -55,6 +55,7 @@ import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.FramesBean;
 import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.IllustSearchResponse;
+import ceui.lisa.models.MarkedNovelItem;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.NovelDetail;
 import ceui.lisa.models.NovelSearchResponse;
@@ -848,6 +849,42 @@ public class PixivOperate {
             novelMarkerBean.setPage(0);
             Retro.getAppApi().postDeleteNovelMarker(
                     sUserModel.getAccess_token(), novelId)
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new ErrorCtrl<NullResponse>() {
+                        @Override
+                        public void next(NullResponse nullResponse) {
+                            if(view instanceof ImageView){
+                                ((ImageView)view).setImageTintList(ColorStateList.valueOf(getColor(R.color.novel_marker_none)));
+                            }
+                            Common.showToast(getString(R.string.string_369));
+                        }
+                    });
+        }
+    }
+
+    // For markers page
+    public static void postNovelMarker(MarkedNovelItem.NovelMarker marker, int novelId, View view) {
+        int page = marker.getPage();
+        if (marker.isCancelled()) {
+            marker.setCancelled(false);
+            Retro.getAppApi().postAddNovelMarker(
+                            sUserModel.getAccess_token(), novelId, page)
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new ErrorCtrl<NullResponse>() {
+                        @Override
+                        public void next(NullResponse nullResponse) {
+                            if(view instanceof ImageView){
+                                ((ImageView)view).setImageTintList(ColorStateList.valueOf(getColor(R.color.novel_marker_add)));
+                            }
+                            Common.showToast(getString(R.string.string_368, page));
+                        }
+                    });
+        } else {
+            marker.setCancelled(true);
+            Retro.getAppApi().postDeleteNovelMarker(
+                            sUserModel.getAccess_token(), novelId)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {
