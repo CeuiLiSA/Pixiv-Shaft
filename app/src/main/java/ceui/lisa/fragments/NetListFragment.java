@@ -54,6 +54,9 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
     protected BroadcastReceiver mReceiver = null, dataReceiver = null, scrollReceiver = null;
     protected boolean isLoading = false;
 
+    /**
+     * Fresh the page
+     * */
     @Override
     public void fresh() {
         if (!mRemoteRepo.localData()) {

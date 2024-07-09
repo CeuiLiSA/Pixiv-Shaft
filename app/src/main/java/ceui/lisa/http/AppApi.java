@@ -54,9 +54,9 @@ public interface AppApi {
 
     /**
      * 获取排行榜
-     *
-     * @param mode
-     * @return
+     * @param mode The type of rank:day/week/.../
+     * @param token Token of current user
+     * @return ListIllust Observable<ListIllust>{@link ListIllust}
      */
     @GET("v1/illust/ranking?filter=for_android")
     Observable<ListIllust> getRank(@Header("Authorization") String token,
@@ -70,9 +70,9 @@ public interface AppApi {
 
     /**
      * 推荐榜单
-     *
-     * @param token
-     * @return
+     * @param token Token of current user
+     * @param include_ranking_illusts (indoubt)
+     * @return RecmdIllust Observable<RecmdIllust>{@link RecmdIllust}
      */
     @GET("v1/illust/recommended?include_privacy_policy=true&filter=for_android")
     Observable<RecmdIllust> getRecmdIllust(@Header("Authorization") String token, @Query("include_ranking_illusts") boolean include_ranking_illusts);

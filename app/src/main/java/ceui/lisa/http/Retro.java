@@ -29,6 +29,11 @@ import static ceui.lisa.http.SignApi.SIGN_API;
 
 public class Retro {
 
+    /**
+     * @return AppApi the api that the request needed
+     * <p>
+     * Configued in {@link AppApi}
+     */
     public static AppApi getAppApi() {
         return get().create(AppApi.class);
     }
@@ -132,7 +137,9 @@ public class Retro {
     private static class Holder {
         private static Retrofit appRetrofit = buildRetrofit(API_BASE_URL);
     }
-
+    /**
+     * @return
+     */
     private static Retrofit get() {
         return Holder.appRetrofit;
     }
