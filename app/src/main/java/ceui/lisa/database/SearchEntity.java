@@ -3,13 +3,28 @@ package ceui.lisa.database;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
+import ceui.lisa.http.AppApi;
+
+/**
+ * A class represents the search history
+ * <p>
+ *     String keyword:The search content
+ *     <p>
+ *         Value 1:{@link AppApi#getIllustByID(String, long)}
+ *     </p>
+ *     <p>
+ *         Value 2:{@link AppApi#getIllustByID(String, long)}
+ *     </p>
+ *
+ * </p>
+ * */
 @Entity(tableName = "search_table")
 public final class SearchEntity {
 
     @PrimaryKey()
     private int id;
-    private String keyword;
-    private long searchTime;
+    private String keyword;//The search content
+    private long searchTime;//Time from 1970s to now
     private int searchType;
     private boolean pinned;
 

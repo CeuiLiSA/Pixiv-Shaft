@@ -1,14 +1,19 @@
 package ceui.lisa.models;
 
 import java.io.Serializable;
-
+/**
+ * This class contains the user information
+ * */
 public class UserModel extends UserHolder implements Serializable, UserContainer {
 
     @Override
     public int getUserId() {
         return getUser().getId();
     }
-
+    /**
+     * Access Token: This is the short-lived key used to access protected resources on the server. It typically expires after a short period (e.g., an hour) for security reasons.
+     * Refresh Token: This is a longer-lived token (e.g., days or weeks) used to acquire new access tokens when the original one expires. It's stored securely by the application.
+     * */
     private String access_token;
     private int expires_in;
     private String token_type;
@@ -17,6 +22,11 @@ public class UserModel extends UserHolder implements Serializable, UserContainer
     private String device_token;
     private String local_user;
 
+    /**
+     * @return "Bearer " + access_token:
+     * <p>
+     * Access Token of current user
+     * */
     public String getAccess_token() {
         return "Bearer " + access_token;
     }

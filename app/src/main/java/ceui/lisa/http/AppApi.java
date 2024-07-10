@@ -343,6 +343,28 @@ public interface AppApi {
                                           @Query("search_target") String search_target);
 
 
+    /**
+     * (In doubt)
+     * Search by key word
+     * <p>
+     *     For example:
+     * </p>
+     * <p>
+     *     "洛天依" in Chinese
+     * </p>
+     * <p>
+     *     "\u6d1b\u5929\u4f9d" in Unicode
+     * </p>
+     * <p>
+     *     "%E6%B4%9B%E5%A4%A9%E4%BE%9D" in URL
+     * </p>
+     * <p>
+     *     URL:"https://app-api.pixiv.net/v2/search/autocomplete?merge_plain_keyword_results=true&word=%E6%B4%9B%E5%A4%A9%E4%BE%9D"
+     * </p>
+     *
+     * @return {"tags":[{"name":"\u6d1b\u5929\u4f9d","translated_name":null}]}
+     *
+     */
     // v2/search/autocomplete?merge_plain_keyword_results=true&word=%E5%A5%B3%E4%BD%93 HTTP/1.1
     @GET("v2/search/autocomplete?merge_plain_keyword_results=true")
     Observable<ListTrendingtag> searchCompleteWord(@Header("Authorization") String token,
