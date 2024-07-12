@@ -3,6 +3,7 @@ package ceui.lisa.utils;
 import android.text.TextUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,15 +12,19 @@ import ceui.lisa.model.EmojiItem;
 
 public class Emoji {
 
-    private static final String EMOJI_1  = "(normal)";
-    private static final String EMOJI_2  = "(surprise)";
-    private static final String EMOJI_3  = "(serious)";
-    private static final String EMOJI_4  = "(heaven)";
-    private static final String EMOJI_5  = "(happy)";
-    private static final String EMOJI_6  = "(excited)"; //为你写诗，为你静止
-    private static final String EMOJI_7  = "(sing)";
-    private static final String EMOJI_8  = "(cry)";
-    private static final String EMOJI_9  = "(normal2)";
+    public static void main(String[] args) {
+        System.out.println(111);
+    }
+
+    private static final String EMOJI_1 = "(normal)";
+    private static final String EMOJI_2 = "(surprise)";
+    private static final String EMOJI_3 = "(serious)";
+    private static final String EMOJI_4 = "(heaven)";
+    private static final String EMOJI_5 = "(happy)";
+    private static final String EMOJI_6 = "(excited)"; //为你写诗，为你静止
+    private static final String EMOJI_7 = "(sing)";
+    private static final String EMOJI_8 = "(cry)";
+    private static final String EMOJI_9 = "(normal2)";
     private static final String EMOJI_10 = "(shame2)";
     private static final String EMOJI_11 = "(love2)";
     private static final String EMOJI_12 = "(interesting2)";
@@ -78,6 +83,7 @@ public class Emoji {
 
     /**
      * 将字符串中的表情全部替换为<img 巴拉巴拉>
+     *
      * @param origin
      * @return
      */
@@ -86,16 +92,27 @@ public class Emoji {
             return null;
         }
         StringBuilder res = new StringBuilder(origin);
-        int[] range;
-        while ((range = emojiDic.containsByReturnRange(res)) != null) {
-            String after = map.get(res.substring(range[0], range[1]));
-            if (!TextUtils.isEmpty(after)) {
-                res.replace(range[0], range[1], after);
-            }
+        RangeAndTarget range;
+        while ((range = emojiDic.containsByReturnTarget(res)) != null) {
+            res.replace(range.start, range.end, range.target);
         }
         return res.toString();
     }
 
+    static class RangeAndTarget {
+        public int start;
+        public int end;
+        public String target;
+
+        public RangeAndTarget() {
+        }
+
+        public RangeAndTarget(int start, int end, String target) {
+            this.start = start;
+            this.end = end;
+            this.target = target;
+        }
+    }
 
     public static String replace(String origin, String emoji) {
         String after = map.get(emoji);
@@ -112,15 +129,15 @@ public class Emoji {
     //        map.put(EMOJI_1 , HEAD + "https://s.pximg.net/common/images/emoji/101.png" + OFF);
     static {
         map.clear();
-        map.put(EMOJI_1, HEAD +  "101.png" + OFF);
-        map.put(EMOJI_2, HEAD +  "102.png" + OFF);
-        map.put(EMOJI_3, HEAD +  "103.png" + OFF);
-        map.put(EMOJI_4, HEAD +  "104.png" + OFF);
-        map.put(EMOJI_5, HEAD +  "105.png" + OFF);
-        map.put(EMOJI_6, HEAD +  "106.png" + OFF);
-        map.put(EMOJI_7, HEAD +  "107.png" + OFF);
-        map.put(EMOJI_8, HEAD +  "108.png" + OFF);
-        map.put(EMOJI_9, HEAD +  "201.png" + OFF);
+        map.put(EMOJI_1, HEAD + "101.png" + OFF);
+        map.put(EMOJI_2, HEAD + "102.png" + OFF);
+        map.put(EMOJI_3, HEAD + "103.png" + OFF);
+        map.put(EMOJI_4, HEAD + "104.png" + OFF);
+        map.put(EMOJI_5, HEAD + "105.png" + OFF);
+        map.put(EMOJI_6, HEAD + "106.png" + OFF);
+        map.put(EMOJI_7, HEAD + "107.png" + OFF);
+        map.put(EMOJI_8, HEAD + "108.png" + OFF);
+        map.put(EMOJI_9, HEAD + "201.png" + OFF);
         map.put(EMOJI_10, HEAD + "202.png" + OFF);
         map.put(EMOJI_11, HEAD + "203.png" + OFF);
         map.put(EMOJI_12, HEAD + "204.png" + OFF);
@@ -168,4 +185,170 @@ public class Emoji {
         }
         return result;
     }
+
+    static class CharDicWithArr {
+
+        static List<String> dicList = new ArrayList<>(Arrays.asList(
+                "normal", "surprise", "serious", "heaven", "happy", "excited", "sing", "cry", "normal2", "shame2",
+                "love2", "interesting2", "blush2", "fire2", "angry2", "shine2", "panic2", "normal3", "satisfaction3",
+                "surprise3", "smile3", "shock3", "gaze3", "wink3", "happy3", "excited3", "love3", "normal4",
+                "surprise4", "serious4", "love4", "shine4", "sweat4", "shame4", "sleep4", "heart", "teardrop", "star"
+                , "st你好ar"
+        ));
+
+        public static void main(String[] args) {
+
+            字典树检测表情_测试一();
+            字典树检测表情_测试二();
+
+        }
+
+        private static void 字典树检测表情_测试二() {
+            System.out.println("================ 字典树检测表情_测试二 ");
+            List<String> dicListFix = new ArrayList<>();
+            for (String s : dicList) {
+                dicListFix.add("(" + s + ")");
+            }
+            CharDicWithArr dic = new CharDicWithArr(dicListFix);
+
+            System.out.println(dic.containsBy("465456456(fsdf)5645") + " , 预期 : false ");
+            System.out.println(dic.containsBy("465456456(love4)9347457") + " , 预期 : true ");
+            System.out.println(dic.containsBy("4654564{5}6(lov)9347{heart}457") + " , 预期 : false ");
+            System.out.println(dic.containsBy("46545(lovvvv)64{5}6(love4)9347(heart)") + " , 预期 : true ");
+            System.out.println(dic.containsBy("46545(lovvvv)64{5}6(love4)9347(heart)457") + " , 预期 : true ");
+            System.out.println(dic.containsBy("") + " , 预期 : false ");
+            System.out.println(dic.containsBy("(love4)") + " , 预期 : true ");
+            System.out.println(dic.containsBy("(lov5756756757)") + " , 预期 : false ");
+        }
+
+        private static void 字典树检测表情_测试一() {
+            System.out.println("================ 字典树检测表情_测试一 ");
+            CharDicWithArr dic = new CharDicWithArr(dicList);
+
+            System.out.println(dic.containsByWithPrefix("(", "(love4)") + " , 预期 : true ");
+            System.out.println(dic.containsByWithPrefix("(", "465456456(fsdf)5645") + " , 预期 : false ");
+            System.out.println(dic.containsByWithPrefix("(", "465456456(love4)9347457") + " , 预期 : true ");
+            System.out.println(dic.containsByWithPrefix("{", "4654564{5}6(love4)9347{heart}457") + " , 预期 : true ");
+            System.out.println(dic.containsByWithPrefix("{", "46545(lovvvv)64{5}6(love4)9347(heart)") + " , 预期 : false ");
+            System.out.println(dic.containsByWithPrefix("(", "46545(lovvvv)64{5}6(love4)9347(heart)457") + " , 预期 : true ");
+            System.out.println(dic.containsByWithPrefix("(", "") + " , 预期 : false ");
+            System.out.println(dic.containsByWithPrefix("(", "(") + " , 预期 : false ");
+            System.out.println(dic.containsByWithPrefix("(", "(love4)") + " , 预期 : true ");
+            System.out.println(dic.containsByWithPrefix("(", "(lov5756756757)") + " , 预期 : false ");
+        }
+
+        private boolean containsByWithPrefix(String prefix, String s) {
+            for (int left = -1, length = prefix.length(); (left = s.indexOf(prefix, left + 1) + length) >= length; ) {
+                for (Node ro = root; left < s.length() && s.charAt(left) < arrLen && (ro = ro.sons[s.charAt(left++)]) != null; ) {
+                    if (ro.isEnd) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        static int arrLen = 128;
+
+        public static class Node {
+            public Node[] sons;
+            /**
+             * 是否是字母的末位
+             */
+            public boolean isEnd;
+            public String forReplace;
+            public int length;
+
+            public Node() {
+                sons = new Node[arrLen];
+                isEnd = false;
+            }
+
+        }
+
+        public CharDicWithArr() {
+            root = new Node();
+        }
+
+        public CharDicWithArr(List<String> list) {
+            root = new Node();
+            generateNodeByStringList(list);
+        }
+
+        public Node root;
+
+        public void generateNodeByStringList(List<String> list) {
+            for (String f : list) {
+                Node ro = root;
+                for (char c : f.toCharArray()) {
+                    if ((int) c >= arrLen) {
+                        System.err.println(" 不是 ascii ");
+                        break;
+                    }
+                    if (ro.sons[c] == null) {
+                        ro.sons[c] = new Node();
+                    }
+                    ro = ro.sons[c];
+                }
+                ro.isEnd = true;
+            }
+        }
+
+        public CharDicWithArr(String[] list) {
+            root = new Node();
+            generateNodeByStringList(list);
+        }
+
+        public void generateNodeByStringList(String[] list) {
+            for (String f : list) {
+                Node ro = root;
+                for (char c : f.toCharArray()) {
+                    if ((int) c >= arrLen) {
+                        System.err.println(" 不是 ascii ");
+                        break;
+                    }
+                    if (ro.sons[c] == null) {
+                        ro.sons[c] = new Node();
+                    }
+                    ro = ro.sons[c];
+                }
+                ro.isEnd = true;
+            }
+        }
+
+        public boolean containsBy(String s) {
+            for (int i = 0, left = 0; i < s.length(); i++, left = i) {
+                for (Node ro = root; left < s.length() && s.charAt(left) < arrLen && (ro = ro.sons[s.charAt(left++)]) != null; ) {
+                    if (ro.isEnd) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        public int[] containsByReturnRange(CharSequence s) {
+            for (int i = 0, left = 0; i < s.length(); i++, left = i) {
+                for (Node ro = root; left < s.length() && s.charAt(left) < arrLen && (ro = ro.sons[s.charAt(left++)]) != null; ) {
+                    if (ro.isEnd) {
+                        return new int[]{i, left};
+                    }
+                }
+            }
+            return null;
+        }
+
+        public RangeAndTarget containsByReturnTarget(CharSequence s) {
+            for (int i = 0, left = 0; i < s.length(); i++, left = i) {
+                for (CharDicWithArr.Node ro = root; left < s.length() && s.charAt(left) < arrLen && (ro = ro.sons[s.charAt(left++)]) != null; ) {
+                    if (ro.isEnd) {
+                        return new RangeAndTarget(i, left, ro.forReplace);
+                    }
+                }
+            }
+            return null;
+        }
+
+    }
+
 }
