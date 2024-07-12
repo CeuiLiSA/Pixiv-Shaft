@@ -50,6 +50,17 @@ public class Emoji {
     private static final String EMOJI_37 = "(teardrop)";
     private static final String EMOJI_38 = "(star)";
 
+    private static final String[] NAMES = new String[]{
+            EMOJI_1, EMOJI_2, EMOJI_3, EMOJI_4, EMOJI_5, EMOJI_6,
+            EMOJI_7, EMOJI_8, EMOJI_9, EMOJI_10, EMOJI_11, EMOJI_12,
+            EMOJI_13, EMOJI_14, EMOJI_15, EMOJI_16, EMOJI_17, EMOJI_18,
+            EMOJI_19, EMOJI_20, EMOJI_21, EMOJI_22, EMOJI_23, EMOJI_24,
+            EMOJI_25, EMOJI_26, EMOJI_27, EMOJI_28, EMOJI_29, EMOJI_30,
+            EMOJI_31, EMOJI_32, EMOJI_33, EMOJI_34, EMOJI_35, EMOJI_36,
+            EMOJI_37, EMOJI_38
+    };
+
+    static CharDicWithArr emojiDic = new CharDicWithArr(NAMES);
 
     /**
      * 判断一个字符串中是否包含形如 (sleep4) (heart) (star) 这样的表情
@@ -62,14 +73,7 @@ public class Emoji {
         if (TextUtils.isEmpty(origin)) {
             return false;
         }
-        boolean hasEmoji = false;
-        for (String name : NAMES) {
-            if (origin.contains(name)) {
-                hasEmoji = true;
-                break;
-            }
-        }
-        return hasEmoji;
+        return emojiDic.containsBy(origin);
     }
 
     /**
@@ -78,21 +82,20 @@ public class Emoji {
      * @return
      */
     public static String transform(String origin) {
-        String before = origin;
-        while (hasEmoji(before)) {
-            String temp = "";
-            for (String name : NAMES) {
-                if (before.contains(name)) {
-                    temp = name;
-                    break;
-                }
-            }
-            if (!TextUtils.isEmpty(temp)) {
-                before = replace(before, temp);
+        if (null == origin) {
+            return null;
+        }
+        StringBuilder res = new StringBuilder(origin);
+        int[] range;
+        while ((range = emojiDic.containsByReturnRange(res)) != null) {
+            String after = map.get(res.substring(range[0], range[1]));
+            if (!TextUtils.isEmpty(after)) {
+                res.replace(range[0], range[1], after);
             }
         }
-        return before;
+        return res.toString();
     }
+
 
     public static String replace(String origin, String emoji) {
         String after = map.get(emoji);
@@ -156,16 +159,6 @@ public class Emoji {
             "305.png", "306.png", "307.png", "308.png", "309.png", "310.png", "401.png",
             "402.png", "403.png", "404.png", "405.png", "406.png", "407.png", "408.png",
             "501.png", "502.png", "503.png"
-    };
-
-    private static final String[] NAMES = new String[]{
-            EMOJI_1, EMOJI_2, EMOJI_3, EMOJI_4, EMOJI_5, EMOJI_6,
-            EMOJI_7, EMOJI_8, EMOJI_9, EMOJI_10, EMOJI_11, EMOJI_12,
-            EMOJI_13, EMOJI_14, EMOJI_15, EMOJI_16, EMOJI_17, EMOJI_18,
-            EMOJI_19, EMOJI_20, EMOJI_21, EMOJI_22, EMOJI_23, EMOJI_24,
-            EMOJI_25, EMOJI_26, EMOJI_27, EMOJI_28, EMOJI_29, EMOJI_30,
-            EMOJI_31, EMOJI_32, EMOJI_33, EMOJI_34, EMOJI_35, EMOJI_36,
-            EMOJI_37, EMOJI_38
     };
 
     public static List<EmojiItem> getEmojis() {
