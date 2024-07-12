@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import ceui.lisa.model.EmojiItem;
 
@@ -65,7 +66,7 @@ public class Emoji {
             EMOJI_37, EMOJI_38
     };
 
-    static CharDicWithArr emojiDic = new CharDicWithArr(NAMES);
+    static CharDicWithArr emojiDic;
 
     /**
      * 判断一个字符串中是否包含形如 (sleep4) (heart) (star) 这样的表情
@@ -167,6 +168,8 @@ public class Emoji {
         map.put(EMOJI_36, HEAD + "501.png" + OFF);
         map.put(EMOJI_37, HEAD + "502.png" + OFF);
         map.put(EMOJI_38, HEAD + "503.png" + OFF);
+
+        emojiDic = new CharDicWithArr(map.entrySet());
     }
 
     private static final String[] RESOURCE = new String[]{
@@ -315,6 +318,31 @@ public class Emoji {
                 ro.isEnd = true;
             }
         }
+
+        public CharDicWithArr(Set<Map.Entry<String, String>> list) {
+            root = new CharDicWithArr.Node();
+            generateNodeByStringList(list);
+        }
+
+        public void generateNodeByStringList(Set<Map.Entry<String, String>> list) {
+            for (Map.Entry<String, String> kv : list) {
+                String f = kv.getKey();
+                CharDicWithArr.Node ro = root;
+                for (char c : f.toCharArray()) {
+                    if ((int) c >= arrLen) {
+                        System.err.println(" 不是 ascii ");
+                        break;
+                    }
+                    if (ro.sons[c] == null) {
+                        ro.sons[c] = new CharDicWithArr.Node();
+                    }
+                    ro = ro.sons[c];
+                }
+                ro.isEnd = true;
+                ro.forReplace = kv.getValue();
+            }
+        }
+
 
         public boolean containsBy(String s) {
             for (int i = 0, left = 0; i < s.length(); i++, left = i) {
