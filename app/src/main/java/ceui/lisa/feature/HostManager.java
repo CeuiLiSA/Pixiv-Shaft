@@ -14,6 +14,7 @@ import retrofit2.Callback;
 
 public class HostManager {
 
+    //For example:https://i.pximg.net/img-original/img/2024/02/28/05/42/23/116457142_p0.jpg
     public static final String HOST_OLD = "i.pximg.net";
 //    public static final String HOST_OLD = "app-api.pixiv.net";
     public static final String HOST_NEW = "i.pixiv.re";
@@ -42,6 +43,11 @@ public class HostManager {
             updateHost();
         }
     }
+
+    /**
+     *  Get IP address refers to "imgaz.pixiv.net"
+     * @return Random IP address refers to "imgaz.pixiv.net" in String type
+     */
 
     private String randomHost() {
         String[] already = new String[]{

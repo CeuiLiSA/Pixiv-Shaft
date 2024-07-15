@@ -18,6 +18,7 @@ interface CloudFlareDNSService {
 
     companion object {
 
+        //DOH:DNS over HTTPS
         val CLOUDFLARE_DOH_POINT : String = "https://1.0.0.1/"
         val DNSSB_DOH_POINT : String = "https://185.222.222.222/"
 

@@ -549,6 +549,11 @@ public class PixivOperate {
         }
     }
 
+    /**
+     * @param key
+     * @param searchType The type of search.
+     * @see ceui.lisa.database.SearchEntity
+     * */
     public static void insertSearchHistory(String key, int searchType) {
         if (TextUtils.isEmpty(key)) {
             return;
@@ -559,6 +564,7 @@ public class PixivOperate {
         searchEntity.setSearchTime(System.currentTimeMillis());
         searchEntity.setId(searchEntity.getKeyword().hashCode() + searchEntity.getSearchType());
         Common.showLog("insertSearchHistory " + searchType + " " + searchEntity.getId());
+        //If the search history already exists,set it as pinned
         SearchEntity existEntity = AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().getSearchEntity(searchEntity.getId());
         if (existEntity != null) {
             searchEntity.setPinned(existEntity.isPinned());

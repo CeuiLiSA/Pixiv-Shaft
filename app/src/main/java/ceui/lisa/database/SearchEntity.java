@@ -8,6 +8,9 @@ import ceui.lisa.http.AppApi;
 /**
  * A class represents the search history
  * <p>
+ *     int id:searchEntity.getKeyword().hashCode() + searchEntity.getSearchType()
+ * </p>
+ * <p>
  *     String keyword:The search content
  *     <p>
  *         Value 1:{@link AppApi#getIllustByID(String, long)}
