@@ -15,7 +15,7 @@ class RankIllustRepo(
      */
     override fun initApi(): Observable<ListIllust> {
         //for debug usage
-        //var debug = Retro.getAppApi().getRank(token(), mode, date)
+        var debug = Retro.getAppApi().getRank(token(), mode, date)
         return Retro.getAppApi().getRank(token(), mode, date)
     }
 

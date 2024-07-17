@@ -43,14 +43,14 @@ import ceui.lisa.utils.Params;
  * 联网获取xx列表，
  *
  * @param <Layout>   这个列表的LayoutBinding
- * @param <Response> 这次请求的Response
+ * @param <Response> Type: {@link ListIllust}这次请求的Response.
  * @param <Item>     这个列表的单个Item实体类
  */
 public abstract class NetListFragment<Layout extends ViewDataBinding,
         Response extends ListShow<Item>, Item> extends ListFragment<Layout, Item> {
 
     protected RemoteRepo<Response> mRemoteRepo;
-    protected Response mResponse;
+    protected Response mResponse;//ListIllust
     protected BroadcastReceiver mReceiver = null, dataReceiver = null, scrollReceiver = null;
     protected boolean isLoading = false;
 
