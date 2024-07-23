@@ -272,11 +272,13 @@ public class PixivOperate {
      * @param context   (In doubt)The current activity
      */
     public static void getIllustByID(UserModel userModel, long illustID, Context context) {
+        //Show "Loading" icon
         QMUITipDialog tipDialog = new QMUITipDialog.Builder(context)
                 .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
                 .setTipWord(getString(R.string.string_429))
                 .create();
         tipDialog.show();
+        //Get response data
         Retro.getAppApi()
                 .getIllustByID(userModel.getAccess_token(), illustID)
                 .subscribeOn(Schedulers.newThread())

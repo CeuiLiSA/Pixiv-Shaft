@@ -63,7 +63,18 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
             emptyRela.setVisibility(View.INVISIBLE);
             if(isLoading) return;
             isLoading = true;
-            mRemoteRepo.getFirstData(new NullCtrl<Response>() {
+            mRemoteRepo.getFirstData(new NullCtrl<Response>()
+            {
+                /**
+                 * The method is called when the response is successfully received
+                 * @param response The response of previous request
+                 *          <p>
+                 *                 For example:
+                 *          </p>
+                 *                 <p>
+                 *                 Request for the daily rank list,response is an ArrayList of IllustsBean
+                 *                 </p>
+                 * */
                 @Override
                 public void success(Response response) {
                     Common.showLog("trace 000");
@@ -74,6 +85,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                     mResponse = response;
                     tryCatchResponse(mResponse);
                     List<Item> mResponseList = mResponse.getList();
+                    //Show the received data
                     if (!Common.isEmpty(mResponseList)) {
                         Common.showLog("trace 222 " + mAdapter.getItemCount());
                         beforeFirstLoad(mResponseList);
@@ -82,7 +94,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                         if (mRemoteRepo.hasEffectiveUserFollowStatus()) {
                             mModel.tidyAppViewModel();
                         }
-                        allItems = mModel.getContent();
+                        allItems = mModel.getContent();//Get all the critical information such as IllustBean list
                         int afterLoadSize = getStartSize();
                         onFirstLoaded(mResponseList);
                         mRecyclerView.setVisibility(View.VISIBLE);
@@ -118,7 +130,8 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
                     mRecyclerView.setVisibility(View.INVISIBLE);
                     emptyRela.setVisibility(View.VISIBLE);
                 }
-            });
+            }
+            );
         } else {
             showDataBase();
         }

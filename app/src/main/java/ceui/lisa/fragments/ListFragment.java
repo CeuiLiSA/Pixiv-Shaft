@@ -290,9 +290,9 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
     }
 
     /**
-     * mAdapter in not null
+     * mAdapter is not null
      * Clear all items on the page
-     * */
+     */
     public void clear() {
         if (mAdapter != null) {
             mAdapter.clear();
