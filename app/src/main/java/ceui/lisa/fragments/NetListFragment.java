@@ -61,6 +61,76 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
     public void fresh() {
         //For debug usage:
         boolean debug = false;
+        if(debug) {
+            mRemoteRepo.getLofterFirstData(new NullCtrl<Response>() {
+                /**
+                 * The method is called when the response is successfully received
+                 *
+                 * @param response The response of previous request
+                 *                 <p>
+                 *                 For example:
+                 *                 </p>
+                 *                 <p>
+                 *                 Request for the daily rank list,response is an ArrayList of IllustsBean
+                 *                 </p>
+                 */
+                @Override
+                public void success(Response response) {
+                    Common.showLog("trace 000");
+                    if (!isAdded()) {
+                        return;
+                    }
+                    Common.showLog("trace 111");
+                    mResponse = response;
+                    tryCatchResponse(mResponse);
+                    List<Item> mResponseList = mResponse.getList();
+                    //Show the received data
+                    if (!Common.isEmpty(mResponseList)) {
+                        Common.showLog("trace 222 " + mAdapter.getItemCount());
+                        beforeFirstLoad(mResponseList);
+                        int beforeLoadSize = getStartSize();
+                        mModel.load(mResponseList, true);
+                        if (mRemoteRepo.hasEffectiveUserFollowStatus()) {
+                            mModel.tidyAppViewModel();
+                        }
+                        allItems = mModel.getContent();//Get all the critical information such as IllustBean list
+                        int afterLoadSize = getStartSize();
+                        onFirstLoaded(mResponseList);
+                        mRecyclerView.setVisibility(View.VISIBLE);
+                        emptyRela.setVisibility(View.INVISIBLE);
+                        mAdapter.notifyItemRangeInserted(beforeLoadSize, afterLoadSize - beforeLoadSize);
+                        Common.showLog("trace 777 " + mAdapter.getItemCount() + " allItems.size():" + allItems.size() + " modelSize:" + mModel.getContent().size());
+                    } else {
+                        Common.showLog("trace 333");
+                        mRecyclerView.setVisibility(View.INVISIBLE);
+                        emptyRela.setVisibility(View.VISIBLE);
+                    }
+                    Common.showLog("trace 444");
+                    mRemoteRepo.setNextUrl(mResponse.getNextUrl());
+                    mAdapter.setNextUrl(mResponse.getNextUrl());
+                    if (!TextUtils.isEmpty(mResponse.getNextUrl())) {
+                        Common.showLog("trace 555");
+                        mRefreshLayout.setRefreshFooter(new ClassicsFooter(mContext));
+                    } else {
+                        Common.showLog("trace 666");
+                        mRefreshLayout.setRefreshFooter(new FalsifyFooter(mContext));
+                    }
+                }
+
+                @Override
+                public void must(boolean isSuccess) {
+                    mRefreshLayout.finishRefresh(isSuccess);
+                    isLoading = false;
+                }
+
+                @Override
+                public void onError(Throwable e) {
+                    super.onError(e);
+                    mRecyclerView.setVisibility(View.INVISIBLE);
+                    emptyRela.setVisibility(View.VISIBLE);
+                }
+            });
+        }
 
         if (!mRemoteRepo.localData()) {
             emptyRela.setVisibility(View.INVISIBLE);
