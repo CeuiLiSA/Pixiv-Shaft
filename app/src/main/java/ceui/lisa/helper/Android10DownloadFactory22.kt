@@ -69,10 +69,13 @@ class Android10DownloadFactory22 constructor(
                     put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath) // 下载到指定目录
                     put(MediaStore.MediaColumns.DISPLAY_NAME, item.name) // 文件名
                     // 取contentType响应头作为文件类型
-                    put(
-                        MediaStore.MediaColumns.MIME_TYPE,
-                        response.body?.contentType().toString()
-                    )
+
+
+                    // 可能会导致相册生成形如 aaa.png(2).jpg 的图片
+//                    put(
+//                        MediaStore.MediaColumns.MIME_TYPE,
+//                        response.body?.contentType().toString()
+//                    )
                     context.contentResolver.insert(
                         MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                         this

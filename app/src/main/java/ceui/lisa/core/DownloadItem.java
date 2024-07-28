@@ -30,6 +30,7 @@ public class DownloadItem implements Serializable {
             this.name = new FileName().zipName(illustsBean);
         } else {
             this.name = FileCreator.customFileName(illustsBean, index);
+            Common.showLog("saasdadw 给DownloadItem " + this.name);
         }
         this.index = index;
         Common.showLog("随机生成一个UUID");

@@ -310,6 +310,22 @@ public class FragmentSettings extends SwipeFragment<FragmentSettingsBinding> {
                 }
             });
 
+            baseBind.toastDownloadResult.setChecked(Shaft.sSettings.isToastDownloadResult());
+            baseBind.toastDownloadResult.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    Shaft.sSettings.setToastDownloadResult(isChecked);
+                    Common.showToast(getString(R.string.string_428), 2);
+                    Local.setSettings(Shaft.sSettings);
+                }
+            });
+            baseBind.toastDownloadResultRela.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    baseBind.toastDownloadResult.performClick();
+                }
+            });
+
             final String searchFilter = Shaft.sSettings.getSearchFilter();
             baseBind.searchFilter.setText(PixivSearchParamUtil.getSizeName(searchFilter));
             baseBind.searchFilterRela.setOnClickListener(new View.OnClickListener() {
