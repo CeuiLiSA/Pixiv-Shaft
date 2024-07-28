@@ -55,7 +55,7 @@ public abstract class NetListFragment<Layout extends ViewDataBinding,
     protected boolean isLoading = false;
 
     /**
-     * Fresh the page
+     * Fresh the page.
      * */
     @Override
     public void fresh() {
