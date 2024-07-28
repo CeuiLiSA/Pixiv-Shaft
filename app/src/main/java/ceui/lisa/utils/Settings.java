@@ -185,6 +185,8 @@ public class Settings {
 
     private boolean r18FilterDefaultEnable = false; // 默认开启R18内容过滤
 
+    private boolean toastDownloadResult = true; // 默认提示下载结果
+
     private transient boolean r18FilterTempEnableInitialed = false;
     private transient boolean r18FilterTempEnable = false; // 临时开启R18内容过滤
 
@@ -204,6 +206,14 @@ public class Settings {
         } else {
             return ALL_LANGUAGE[0];
         }
+    }
+
+    public boolean isToastDownloadResult() {
+        return toastDownloadResult;
+    }
+
+    public void setToastDownloadResult(boolean toastDownloadResult) {
+        this.toastDownloadResult = toastDownloadResult;
     }
 
     public int getDownloadWay() {

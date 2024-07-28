@@ -12,6 +12,6 @@
         android:id="@+id/batch_download_as_one"
         android:orderInCategory="200"
         android:title="@string/string_438"
-        app:showAsAction="never" />
+        app:showAsAction="ifRoom" />
 
 </menu>
