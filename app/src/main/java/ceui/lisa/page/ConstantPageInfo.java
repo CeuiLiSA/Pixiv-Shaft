@@ -31,5 +31,5 @@ public class ConstantPageInfo {
     /**
      * 默认字体颜色
      */
-    public static int textColor = R.color.black;
+    public static int textColor = R.color.black_to_grey;
 }

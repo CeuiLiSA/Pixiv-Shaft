@@ -340,7 +340,7 @@ public class FragmentEditFile extends SwipeFragment<FragmentEditFileBinding> imp
                                 start.set(now.get(Calendar.YEAR) - 100, 0, 1);
                                 dpd.setMinDate(start);
                                 dpd.setMaxDate(now);
-                                dpd.setAccentColor(Common.resolveThemeAttribute(mContext, R.attr.colorPrimary));
+                                dpd.setAccentColor(Common.resolveThemeAttribute(mContext, androidx.appcompat.R.attr.colorPrimary));
                                 dpd.setThemeDark(mContext.getResources().getBoolean(R.bool.is_night_mode));
                                 dpd.show(getParentFragmentManager(), "DatePickerDialog");
                             }

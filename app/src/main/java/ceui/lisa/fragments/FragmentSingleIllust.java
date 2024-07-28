@@ -104,7 +104,7 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
                         .into(baseBind.bgImage);
                 break;
             case Configuration.UI_MODE_NIGHT_YES:
-                baseBind.bgImage.setImageResource(R.color.black);
+                baseBind.bgImage.setImageResource(R.color.black_to_grey);
                 break;
         }
 
@@ -194,7 +194,7 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
 
                 @Override
                 public void updateDrawState(TextPaint ds) {
-                    ds.setColor(Common.resolveThemeAttribute(mContext, R.attr.colorPrimary));
+                    ds.setColor(Common.resolveThemeAttribute(mContext, androidx.appcompat.R.attr.colorPrimary));
                 }
             };
             SpannableString spannableString;
@@ -366,7 +366,7 @@ public class FragmentSingleIllust extends BaseFragment<FragmentSingleIllustBindi
         baseBind.userName.setText(illust.getUser().getName());
 
         SpannableString sizeString = new SpannableString(getString(R.string.string_193, illust.getWidth(), illust.getHeight()));
-        int currentPrimaryColorId = Common.resolveThemeAttribute(mContext, R.attr.colorPrimary);
+        int currentPrimaryColorId = Common.resolveThemeAttribute(mContext, androidx.appcompat.R.attr.colorPrimary);
         sizeString.setSpan(new ForegroundColorSpan(currentPrimaryColorId),
                 sizeString.length()-illust.getSize().length(), sizeString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         baseBind.illustPx.setText(sizeString);

@@ -2,11 +2,11 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 33
+    compileSdk 34
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 33
+        targetSdkVersion 34
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles 'consumer-rules.pro'
@@ -21,8 +21,8 @@ android {
 
     compileOptions {
         coreLibraryDesugaringEnabled = true
-        sourceCompatibility = '1.8'
-        targetCompatibility = '1.8'
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     namespace 'ceui.lisa.models'
 }

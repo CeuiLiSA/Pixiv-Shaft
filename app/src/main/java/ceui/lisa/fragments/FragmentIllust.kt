@@ -180,7 +180,7 @@ class FragmentIllust : SwipeFragment<FragmentIllustBinding>() {
                 }
 
                 override fun updateDrawState(ds: TextPaint) {
-                    ds.color = Common.resolveThemeAttribute(mContext, R.attr.colorPrimary)
+                    ds.color = Common.resolveThemeAttribute(mContext, androidx.appcompat.R.attr.colorPrimary)
                 }
             }
             val spannableString: SpannableString

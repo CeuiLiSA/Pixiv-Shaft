@@ -49,6 +49,8 @@ import ceui.lisa.utils.ReverseImage;
 import ceui.lisa.utils.ReverseWebviewCallback;
 import ceui.lisa.view.DrawerLayoutViewPager;
 
+import static ceui.lisa.R.id.nav_gallery;
+import static ceui.lisa.R.id.nav_slideshow;
 import static ceui.lisa.activities.Shaft.sUserModel;
 
 /**
@@ -253,82 +255,63 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
         int id = item.getItemId();
 
         Intent intent = null;
-        switch (id) {
-            case R.id.nav_gallery:
-                intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载管理");
-                intent.putExtra("hideStatusBar", false);
-                break;
-            case R.id.nav_slideshow:
-                intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "浏览记录");
-                break;
-            case R.id.nav_manage:
-                intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "设置");
-                break;
-            case R.id.nav_share:
-                intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "关于软件");
-                break;
-            case R.id.main_page:
-                intent = new Intent(mContext, UserActivity.class);
-                intent.putExtra(Params.USER_ID, sUserModel.getUser().getId());
-                break;
-            case R.id.nav_reverse:
-                selectPhoto();
-                break;
-            case R.id.nav_new_work:
-                intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "最新作品");
-                intent.putExtra("hideStatusBar", false);
-                break;
-            case R.id.muted_list:
-                intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "标签屏蔽记录");
-                break;
-            case R.id.nav_feature:
-                intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "精华列");
-                break;
-            case R.id.nav_fans:
-                intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "粉丝");
-                break;
-            case R.id.illust_star:
-                intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "我的插画收藏");
-                intent.putExtra("hideStatusBar", false);
-                break;
-            case R.id.novel_star:
-                intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "我的小说收藏");
-                intent.putExtra("hideStatusBar", false);
-                break;
-            case R.id.watchlist:
-                intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "追更列表");
-                intent.putExtra("hideStatusBar", false);
-                break;
-            case R.id.novel_markers:
-                intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说书签");
-                intent.putExtra("hideStatusBar", false);
-                break;
-            case R.id.follow_user:
-                intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "我的关注");
-                intent.putExtra("hideStatusBar", false);
-                break;
-            case R.id.new_work:
-                intent = new Intent(mContext, TemplateActivity.class);
-                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
-                intent.putExtra(Params.URL, "https://www.pixiv.net/upload.php");
-                intent.putExtra(Params.TITLE, getString(R.string.string_444));
-                intent.putExtra(Params.PREFER_PRESERVE, true);
-                break;
-            default:
-                break;
+        if (id == nav_gallery) {
+            intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "下载管理");
+            intent.putExtra("hideStatusBar", false);
+        } else if (id == nav_slideshow) {
+            intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "浏览记录");
+        } else if (id == R.id.nav_manage) {
+            intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "设置");
+        } else if (id == R.id.nav_share) {
+            intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "关于软件");
+        } else if (id == R.id.main_page) {
+            intent = new Intent(mContext, UserActivity.class);
+            intent.putExtra(Params.USER_ID, sUserModel.getUser().getId());
+        } else if (id == R.id.nav_reverse) {
+            selectPhoto();
+        } else if (id == R.id.nav_new_work) {
+            intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "最新作品");
+            intent.putExtra("hideStatusBar", false);
+        } else if (id == R.id.muted_list) {
+            intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "标签屏蔽记录");
+        } else if (id == R.id.nav_feature) {
+            intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "精华列");
+        } else if (id == R.id.nav_fans) {
+            intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "粉丝");
+        } else if (id == R.id.illust_star) {
+            intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "我的插画收藏");
+            intent.putExtra("hideStatusBar", false);
+        } else if (id == R.id.novel_star) {
+            intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "我的小说收藏");
+            intent.putExtra("hideStatusBar", false);
+        } else if (id == R.id.watchlist) {
+            intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "追更列表");
+            intent.putExtra("hideStatusBar", false);
+        } else if (id == R.id.novel_markers) {
+            intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说书签");
+            intent.putExtra("hideStatusBar", false);
+        } else if (id == R.id.follow_user) {
+            intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "我的关注");
+            intent.putExtra("hideStatusBar", false);
+        } else if (id == R.id.new_work) {
+            intent = new Intent(mContext, TemplateActivity.class);
+            intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "网页链接");
+            intent.putExtra(Params.URL, "https://www.pixiv.net/upload.php");
+            intent.putExtra(Params.TITLE, getString(R.string.string_444));
+            intent.putExtra(Params.PREFER_PRESERVE, true);
         }
         if (intent != null) {
             startActivity(intent);
