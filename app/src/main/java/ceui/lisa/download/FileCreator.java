@@ -22,6 +22,7 @@ public class FileCreator {
     public static boolean isExist(IllustsBean illust, int index) {
         String fileName = illust.isGif() ? new FileName().gifName(illust) : customFileName(illust, index);
         File file = new File(FileStorageHelper.getIllustAbsolutePath(illust), fileName);
+        Common.showLog("saasdadw 给是否存在 " + file.getPath());
         return file.exists();
     }
 
@@ -63,8 +64,9 @@ public class FileCreator {
         } else {
             fileUrl = illustsBean.getMeta_pages().get(index).getImage_urls().getOriginal();
         }
-        return deleteSpecialWords(illustToFileName(illustsBean, result, index) +
+        String ret = deleteSpecialWords(illustToFileName(illustsBean, result, index) +
                 "." + getMimeTypeFromUrl(fileUrl));
+        return ret;
     }
 
     public static String customGifFileName(IllustsBean illustsBean){

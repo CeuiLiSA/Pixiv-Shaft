@@ -618,7 +618,7 @@
     <string name="string_435">搜索选项仅对插画/小说有效</string>
     <string name="string_436">相关用户</string>
     <string name="string_437">添加正则</string>
-    <string name="string_438">批量下载为一个文件</string>
+    <string name="string_438">合并下载</string>
     <string name="string_439">搜索结果排序方式</string>
     <string name="string_440">全年龄</string>
     <string name="string_441">R-18</string>
@@ -688,4 +688,5 @@
     <string name="color_peachPink">樱桃粉</string>
     <string name="theme_nowUsing">（正在使用）</string>
     <string name="core_string_novel_marker">小说书签</string>
+    <string name="toast_download_result">下载完成App内提示</string>
 </resources>

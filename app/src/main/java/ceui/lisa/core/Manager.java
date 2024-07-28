@@ -119,7 +119,9 @@ public class Manager {
             entity.setUuid(item.getUuid());
             entity.setTaskGson(Shaft.sGson.toJson(item));
             AppDatabase.getAppDatabase(mContext).downloadDao().deleteDownloading(entity);
-            Common.showToast(item.getName() + mContext.getString(R.string.has_been_downloaded));
+            if (Shaft.sSettings.isToastDownloadResult()) {
+                Common.showToast(item.getName() + mContext.getString(R.string.has_been_downloaded));
+            }
         } else {
             item.setNonius(0);
             item.setState(DownloadItem.DownloadState.FAILED);
@@ -351,7 +353,9 @@ public class Manager {
                     //下载失败，处理相关逻辑
                     throwable.printStackTrace();
                     if (!Dev.isDev) {
-                        Common.showToast("下载失败，原因：" + throwable.toString());
+                        if (Shaft.sSettings.isToastDownloadResult()) {
+                            Common.showToast("下载失败，原因：" + throwable.toString());
+                        }
                     }
                     Common.showLog("下载失败，原因：" + throwable.toString());
                     complete(downloadItem, false);
