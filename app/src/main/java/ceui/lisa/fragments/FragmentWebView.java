@@ -322,7 +322,7 @@ public class FragmentWebView extends BaseFragment<FragmentWebviewBinding> {
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         WebView.HitTestResult result = mWebView.getHitTestResult();
         mIntentUrl = result.getExtra();
-        menu.setHeaderView(new ContextMenuTitleView(mContext, mIntentUrl, Common.resolveThemeAttribute(mContext, R.attr.colorPrimary)));
+        menu.setHeaderView(new ContextMenuTitleView(mContext, mIntentUrl, Common.resolveThemeAttribute(mContext, androidx.appcompat.R.attr.colorPrimary)));
 
         if (result.getType() == WebView.HitTestResult.SRC_ANCHOR_TYPE) {
             mIntentUrl = result.getExtra();

@@ -69,7 +69,7 @@ public class FragmentLikeIllustHorizontal extends BaseFragment<FragmentLikeIllus
     @Override
     public void initView() {
         Wave wave = new Wave();
-        wave.setColor(R.attr.colorPrimary);
+        wave.setColor(androidx.appcompat.R.attr.colorPrimary);
         baseBind.progress.setIndeterminateDrawable(wave);
         baseBind.recyclerView.addItemDecoration(new
                 LinearItemHorizontalDecoration(DensityUtil.dp2px(8.0f)));

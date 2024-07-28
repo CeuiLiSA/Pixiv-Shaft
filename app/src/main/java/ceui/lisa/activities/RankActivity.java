@@ -39,7 +39,7 @@ public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> im
         baseBind.toolbarTitle.setText(mContext.getString(R.string.ranking_illust));
         dataType = getIntent().getStringExtra("dataType");
         queryDate = getIntent().getStringExtra("date");
-        baseBind.viewPager.setPageTransformer(true, new DrawerTransformer());
+//        baseBind.viewPager.setPageTransformer(true, new DrawerTransformer());
 
         final String[] CHINESE_TITLES = new String[]{
                 mContext.getString(R.string.daily_rank),
@@ -173,7 +173,7 @@ public class RankActivity extends BaseActivity<ActivityMultiViewPagerBinding> im
             start.set(2008, 0, 1);
             dpd.setMinDate(start);
             dpd.setMaxDate(now);
-            dpd.setAccentColor(Common.resolveThemeAttribute(mContext, R.attr.colorPrimary));
+            dpd.setAccentColor(Common.resolveThemeAttribute(mContext, androidx.appcompat.R.attr.colorPrimary));
             dpd.setThemeDark(mContext.getResources().getBoolean(R.bool.is_night_mode));
             dpd.show(getSupportFragmentManager(), "DatePickerDialog");
             return true;
