@@ -147,7 +147,7 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
             }
         });*/
         baseBind.restrictionToggle.setElements(PixivSearchParamUtil.R18_RESTRICTION_NAME);
-        baseBind.restrictionToggle.setColors(Common.resolveThemeAttribute(mContext, R.attr.colorPrimary), getResources().getColor(R.color.fragment_center));
+        baseBind.restrictionToggle.setColors(Common.resolveThemeAttribute(mContext, androidx.appcompat.R.attr.colorPrimary), getResources().getColor(R.color.fragment_center));
         baseBind.restrictionToggle.setValue(0);
         baseBind.restrictionToggle.setOnValueChangedListener(new ToggleButton.OnValueChangedListener() {
             @Override
@@ -217,7 +217,7 @@ public class FragmentFilter extends BaseFragment<FragmentFilterBinding> {
         start.set(1970, 0, 1);
         dpd.setMinDate(start);
         dpd.setMaxDate(now);
-        dpd.setAccentColor(Common.resolveThemeAttribute(mContext, R.attr.colorPrimary));
+        dpd.setAccentColor(Common.resolveThemeAttribute(mContext, androidx.appcompat.R.attr.colorPrimary));
         dpd.setThemeDark(mContext.getResources().getBoolean(R.bool.is_night_mode));
         dpd.show(getParentFragmentManager(), "DatePickerDialog");
     }

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item type="id" name="nav_gallery" />
+    <item type="id" name="nav_slideshow" />
+
+    <item type="id" name="nav_manage" />
+
+    <item type="id" name="nav_share" />
+    <item type="id" name="main_page" />
+
+    <item type="id" name="nav_reverse" />
+    <item type="id" name="nav_new_work" />
+    <item type="id" name="muted_list" />
+    <item type="id" name="nav_feature" />
+    <item type="id" name="nav_fans" />
+    <item type="id" name="illust_star" />
+    <item type="id" name="novel_star" />
+    <item type="id" name="watchlist" />
+    <item type="id" name="novel_markers" />
+    <item type="id" name="follow_user" />
+    <item type="id" name="new_work" />
+</resources>
