@@ -11,6 +11,7 @@ import ceui.lisa.model.ListLive;
 import ceui.lisa.model.ListMangaOfSeries;
 import ceui.lisa.model.ListMangaSeries;
 import ceui.lisa.model.ListNovel;
+import ceui.lisa.model.ListNovelMarkers;
 import ceui.lisa.model.ListNovelOfSeries;
 import ceui.lisa.model.ListNovelSeries;
 import ceui.lisa.model.ListSimpleUser;
@@ -540,4 +541,11 @@ public interface AppApi {
     @GET
     Observable<ListWatchlistNovel> getNextWatchlistNovel(@Header("Authorization") String token,
                                                          @Url String next_url);
+    // 小说书签
+    @GET("v2/novel/markers")
+    Observable<ListNovelMarkers> getNovelMarkers(@Header("Authorization") String token);
+
+    @GET
+    Observable<ListNovelMarkers> getNextNovelMarkers(@Header("Authorization") String token,
+                                                     @Url String next_url);
 }

@@ -310,6 +310,11 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "追更列表");
                 intent.putExtra("hideStatusBar", false);
                 break;
+            case R.id.novel_markers:
+                intent = new Intent(mContext, TemplateActivity.class);
+                intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "小说书签");
+                intent.putExtra("hideStatusBar", false);
+                break;
             case R.id.follow_user:
                 intent = new Intent(mContext, TemplateActivity.class);
                 intent.putExtra(TemplateActivity.EXTRA_FRAGMENT, "我的关注");

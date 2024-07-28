@@ -46,6 +46,11 @@
                 android:id="@+id/watchlist"
                 android:icon="@drawable/ic_fiber_new_black_24dp"
                 android:title="@string/watchlist" />
+          
+            <item
+                android:id="@+id/novel_markers"
+                android:icon="@drawable/ic_baseline_bookmark_24"
+                android:title="@string/core_string_novel_marker" />
 
             <item
                 android:id="@+id/follow_user"

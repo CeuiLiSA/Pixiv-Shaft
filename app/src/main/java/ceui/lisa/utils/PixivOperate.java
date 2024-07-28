@@ -55,6 +55,7 @@ import ceui.lisa.model.ListIllust;
 import ceui.lisa.models.FramesBean;
 import ceui.lisa.models.GifResponse;
 import ceui.lisa.models.IllustSearchResponse;
+import ceui.lisa.models.MarkedNovelItem;
 import ceui.lisa.models.NovelBean;
 import ceui.lisa.models.NovelDetail;
 import ceui.lisa.models.NovelSearchResponse;
@@ -65,6 +66,7 @@ import ceui.lisa.models.UserModel;
 import ceui.lisa.models.IllustsBean;
 import ceui.lisa.viewmodel.AppLevelViewModel;
 import ceui.loxia.ObjectPool;
+import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
@@ -74,10 +76,12 @@ import static ceui.lisa.activities.Shaft.sUserModel;
 import static com.blankj.utilcode.util.ColorUtils.getColor;
 import static com.blankj.utilcode.util.StringUtils.getString;
 
-
+/**
+ * A class about Pixiv operations.
+ */
 public class PixivOperate {
 
-    private static final Map<Integer,Back> sBack = new HashMap<>();
+    private static final Map<Integer, Back> sBack = new HashMap<>();
     private static final Map<Integer, Long> gifEncodingWorkSet = new HashMap<>();
     private static final long reEncodeTimeThresholdMillis = 60 * 1000;
 
@@ -94,7 +98,7 @@ public class PixivOperate {
     public static void postFollowUser(int userID, String followType) {
         String pendingFollowType = Shaft.sSettings.isPrivateStar() ? Params.TYPE_PRIVATE : followType;
         Retro.getAppApi().postFollow(
-                sUserModel.getAccess_token(), userID, pendingFollowType)
+                        sUserModel.getAccess_token(), userID, pendingFollowType)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ErrorCtrl<NullResponse>() {
@@ -120,7 +124,7 @@ public class PixivOperate {
 
     public static void postUnFollowUser(int userID) {
         Retro.getAppApi().postUnFollow(
-                sUserModel.getAccess_token(), userID)
+                        sUserModel.getAccess_token(), userID)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new ErrorCtrl<NullResponse>() {
@@ -140,7 +144,7 @@ public class PixivOperate {
     public static void postLikeDefaultStarType(IllustsBean illustsBean) {
         if (Shaft.sSettings.isPrivateStar()) {
             postLike(illustsBean, Params.TYPE_PRIVATE, false, 0);
-        } else{
+        } else {
             postLike(illustsBean, Params.TYPE_PUBLIC, false, 0);
         }
     }
@@ -229,7 +233,7 @@ public class PixivOperate {
                             intent.putExtra(Params.IS_LIKED, false);
                             LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
 
-                            if(view instanceof Button){
+                            if (view instanceof Button) {
                                 ((Button) view).setText(getString(R.string.string_180));
                             }
                             Common.showToast(getString(R.string.cancel_like_illust));
@@ -249,7 +253,7 @@ public class PixivOperate {
                             intent.putExtra(Params.IS_LIKED, true);
                             LocalBroadcastManager.getInstance(Shaft.getContext()).sendBroadcast(intent);
 
-                            if(view instanceof Button){
+                            if (view instanceof Button) {
                                 ((Button) view).setText(getString(R.string.string_179));
                             }
                             if (Params.TYPE_PUBLIC.equals(pendingType)) {
@@ -262,32 +266,45 @@ public class PixivOperate {
         }
     }
 
+    /**
+     * @param userModel The model of current user
+     * @param illustID  The id of illustration user searching for
+     * @param context   (In doubt)The current activity
+     */
     public static void getIllustByID(UserModel userModel, long illustID, Context context) {
         QMUITipDialog tipDialog = new QMUITipDialog.Builder(context)
                 .setIconType(QMUITipDialog.Builder.ICON_TYPE_LOADING)
                 .setTipWord(getString(R.string.string_429))
                 .create();
         tipDialog.show();
-        Retro.getAppApi().getIllustByID(userModel.getAccess_token(), illustID)
+        Retro.getAppApi()
+                .getIllustByID(userModel.getAccess_token(), illustID)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new NullCtrl<IllustSearchResponse>() {
+
+
+                    /**
+                     *
+                     * @param illustSearchResponse The response message returned by {@link NullCtrl}
+                     *                             In case that the illustration information conveyed by illustSearchResponse is null
+                     */
                     @Override
                     public void success(IllustSearchResponse illustSearchResponse) {
                         IllustsBean illust = illustSearchResponse.getIllust();
                         if (illust == null) {
                             return;
                         }
-
+                        //Update the illustration object in ObjectPool
                         ObjectPool.INSTANCE.updateIllust(illust);
-
+                        //Check the permission to view the illustration
                         if (illust.getId() == 0 || !illust.isVisible()) {
                             Common.showToast(R.string.string_206);
                             return;
                         }
-
+                        //Get the user who posts the illustration
                         UserBean user = illust.getUser();
-                        if(user != null){
+                        if (user != null) {
                             Shaft.appViewModel.updateFollowUserStatus(user.getId(), user.isIs_followed() ? AppLevelViewModel.FollowUserStatus.FOLLOWED : AppLevelViewModel.FollowUserStatus.NOT_FOLLOW);
                         }
 
@@ -314,7 +331,7 @@ public class PixivOperate {
     }
 
     public static void getIllustByID(UserModel userModel, long illustID, Context context,
-                                     ceui.lisa.interfaces.Callback<Void> success,ceui.lisa.interfaces.Callback<Void> fail) {
+                                     ceui.lisa.interfaces.Callback<Void> success, ceui.lisa.interfaces.Callback<Void> fail) {
         Retro.getAppApi().getIllustByID(userModel.getAccess_token(), illustID)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -324,7 +341,7 @@ public class PixivOperate {
                         IllustsBean illust = illustSearchResponse.getIllust();
                         if (illust != null) {
                             UserBean user = illust.getUser();
-                            if(user != null){
+                            if (user != null) {
                                 Shaft.appViewModel.updateFollowUserStatus(user.getId(), user.isIs_followed() ? AppLevelViewModel.FollowUserStatus.FOLLOWED : AppLevelViewModel.FollowUserStatus.NOT_FOLLOW);
                             }
 
@@ -342,9 +359,10 @@ public class PixivOperate {
                             }
                         }
                     }
+
                     @Override
                     public void must(boolean isSuccess) {
-                        if(!isSuccess&&fail!=null) fail.doSomething(null);
+                        if (!isSuccess && fail != null) fail.doSomething(null);
                     }
 
                     @Override
@@ -356,7 +374,7 @@ public class PixivOperate {
     }
 
     public static void getNovelByID(UserModel userModel, long novel, Context context,
-                                     ceui.lisa.interfaces.Callback<Void> callback) {
+                                    ceui.lisa.interfaces.Callback<Void> callback) {
         Retro.getAppApi().getNovelByID(userModel.getAccess_token(), novel)
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -532,7 +550,7 @@ public class PixivOperate {
     }
 
     public static void insertSearchHistory(String key, int searchType) {
-        if(TextUtils.isEmpty(key)){
+        if (TextUtils.isEmpty(key)) {
             return;
         }
         SearchEntity searchEntity = new SearchEntity();
@@ -549,7 +567,7 @@ public class PixivOperate {
     }
 
     public static void insertPinnedSearchHistory(String key, int searchType, boolean pinned) {
-        if(TextUtils.isEmpty(key)){
+        if (TextUtils.isEmpty(key)) {
             return;
         }
         SearchEntity searchEntity = new SearchEntity();
@@ -563,7 +581,7 @@ public class PixivOperate {
         AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().insert(searchEntity);
     }
 
-    public static SearchEntity getSearchHistory(String key, int searchType){
+    public static SearchEntity getSearchHistory(String key, int searchType) {
         int id = key.hashCode() + searchType;
         return AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().getSearchEntity(id);
     }
@@ -642,10 +660,9 @@ public class PixivOperate {
                 BitmapFactory.Options options = new BitmapFactory.Options();
                 options.inJustDecodeBounds = true;//这个参数设置为true才有效，
                 BitmapFactory.decodeFile(allFiles.get(0).getPath(), options);//这里的bitmap是个空
-                int outHeight=options.outHeight;
-                int outWidth= options.outWidth;
+                int outHeight = options.outHeight;
+                int outWidth = options.outWidth;
                 Common.showLog("通过Options获取到的图片大小" + "width:" + outWidth + " height: " + outHeight);
-
 
 
                 gifEncoder.init(outWidth, outHeight, gifFile.getPath(),
@@ -689,8 +706,6 @@ public class PixivOperate {
                 Common.showLog("allFiles size " + allFiles.size());
 
 
-
-
                 gifEncoder.close();
 
                 Common.showLog("gifFile gifFile " + FileUtils.getSize(gifFile));
@@ -703,13 +718,13 @@ public class PixivOperate {
         }, new TryCatchObserverImpl<>());
     }
 
-    public static void encodeGifV2(Context context, File parentFile, IllustsBean illustsBean, boolean autoSave){
+    public static void encodeGifV2(Context context, File parentFile, IllustsBean illustsBean, boolean autoSave) {
         RxRun.runOn(new RxRunnable<Void>() {
             @Override
             public Void execute() throws Exception {
                 long currentTimeMillis = System.currentTimeMillis();
-                if(gifEncodingWorkSet.containsKey(illustsBean.getId())
-                        && (currentTimeMillis - gifEncodingWorkSet.get(illustsBean.getId())) < reEncodeTimeThresholdMillis){
+                if (gifEncodingWorkSet.containsKey(illustsBean.getId())
+                        && (currentTimeMillis - gifEncodingWorkSet.get(illustsBean.getId())) < reEncodeTimeThresholdMillis) {
                     return null;
                 }
                 gifEncodingWorkSet.put(illustsBean.getId(), currentTimeMillis);
@@ -787,8 +802,8 @@ public class PixivOperate {
                 outStream.write(bos.toByteArray());
                 outStream.close();
 
-                if(autoSave){
-                    OutPut.outPutGif(context, gifFile,illustsBean);
+                if (autoSave) {
+                    OutPut.outPutGif(context, gifFile, illustsBean);
                 }
 
                 Common.showLog("gifFile gifFile " + FileUtils.getSize(gifFile));
@@ -823,7 +838,7 @@ public class PixivOperate {
         sBack.put(illustId, back);
     }
 
-    public static void clearBack(){
+    public static void clearBack() {
         sBack.clear();
     }
 
@@ -832,7 +847,43 @@ public class PixivOperate {
         if (currentMarkPage == 0 || (currentMarkPage > 0 && currentMarkPage != page)) {
             novelMarkerBean.setPage(page);
             Retro.getAppApi().postAddNovelMarker(
-                    sUserModel.getAccess_token(), novelId, page)
+                            sUserModel.getAccess_token(), novelId, page)
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new ErrorCtrl<NullResponse>() {
+                        @Override
+                        public void next(NullResponse nullResponse) {
+                            if (view instanceof ImageView) {
+                                ((ImageView) view).setImageTintList(ColorStateList.valueOf(getColor(R.color.novel_marker_add)));
+                            }
+                            Common.showToast(getString(R.string.string_368, page));
+                        }
+                    });
+        } else {
+            novelMarkerBean.setPage(0);
+            Retro.getAppApi().postDeleteNovelMarker(
+                            sUserModel.getAccess_token(), novelId)
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(new ErrorCtrl<NullResponse>() {
+                        @Override
+                        public void next(NullResponse nullResponse) {
+                            if (view instanceof ImageView) {
+                                ((ImageView) view).setImageTintList(ColorStateList.valueOf(getColor(R.color.novel_marker_none)));
+                            }
+                            Common.showToast(getString(R.string.string_369));
+                        }
+                    });
+        }
+    }
+
+    // For markers page
+    public static void postNovelMarker(MarkedNovelItem.NovelMarker marker, int novelId, View view) {
+        int page = marker.getPage();
+        if (marker.isCancelled()) {
+            marker.setCancelled(false);
+            Retro.getAppApi().postAddNovelMarker(
+                            sUserModel.getAccess_token(), novelId, page)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {
@@ -845,9 +896,9 @@ public class PixivOperate {
                         }
                     });
         } else {
-            novelMarkerBean.setPage(0);
+            marker.setCancelled(true);
             Retro.getAppApi().postDeleteNovelMarker(
-                    sUserModel.getAccess_token(), novelId)
+                            sUserModel.getAccess_token(), novelId)
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new ErrorCtrl<NullResponse>() {
