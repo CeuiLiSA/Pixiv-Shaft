@@ -47,6 +47,7 @@ import ceui.lisa.fragments.FragmentNewNovel;
 import ceui.lisa.fragments.FragmentNewNovels;
 import ceui.lisa.fragments.FragmentNiceFriend;
 import ceui.lisa.fragments.FragmentNovelHolder;
+import ceui.lisa.fragments.FragmentNovelMarkers;
 import ceui.lisa.fragments.FragmentNovelSeries;
 import ceui.lisa.fragments.FragmentNovelSeriesDetail;
 import ceui.lisa.fragments.FragmentPopularNovel;
@@ -235,6 +236,8 @@ public class TemplateActivity extends BaseActivity<ActivityFragmentBinding> impl
                     return FragmentCollection.newInstance(1);
                 case "我的关注":
                     return FragmentCollection.newInstance(2);
+                case "小说书签":
+                    return new FragmentNovelMarkers();
                 case "主题颜色":
                     return new FragmentColors();
                 case "测试测试":
