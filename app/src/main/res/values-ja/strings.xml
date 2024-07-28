@@ -170,7 +170,10 @@
   <string name="next">次</string>  
   <string name="previous">前</string>  
   <string name="file_path">パス:</string>  
-  <string name="add_account">アカウントを追加</string>  
+  <string name="add_account">アカウントを追加</string>
+  <string name="read_latest_episode">最新話を読む</string>
+  <string name="watchlist">ウォッチリスト</string>
+  <string name="episode_number">%d話</string>
   <string name="string_1">ブロック設定</string>  
   <string name="string_2">開発者のプレビュー</string>  
   <string name="string_3">シェア</string>  

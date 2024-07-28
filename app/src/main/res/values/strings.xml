@@ -194,6 +194,10 @@
     <string name="file_path">路径：</string>
     <string name="add_account">添加账号</string>
 
+    <string name="read_latest_episode">阅读最新话</string>
+    <string name="watchlist">追更列表</string>
+    <string name="episode_number">%d话</string>
+
 
     <string name="string_1">屏蔽设置</string>
     <string name="string_2">开发者预览</string>

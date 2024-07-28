@@ -170,7 +170,10 @@
   <string name="next">Next</string>  
   <string name="previous">Previous</string>  
   <string name="file_path">path:</string>  
-  <string name="add_account">Add accounts</string>  
+  <string name="add_account">Add accounts</string>
+  <string name="read_latest_episode">Read latest episode</string>
+  <string name="watchlist">Watchlist</string>
+  <string name="episode_number">%d ep</string>
   <string name="string_1">Mask Setting</string>  
   <string name="string_2">Developer Preview</string>  
   <string name="string_3">share</string>  
@@ -606,7 +609,7 @@
   <string name="string_452">Download limit type</string>
   <string name="string_453">Do not auto start</string>
   <string name="string_454">Share first image</string>
-  <string name="string_455">AI works download to another directory</string>  
+  <string name="string_455">AI works download to another directory</string>
   <string name="refresh">Refresh</string>
   <string name="now_loading">Loading…</string>
   <string name="retry">Retry</string>
