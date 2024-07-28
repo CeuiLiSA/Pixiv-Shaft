@@ -74,14 +74,26 @@
             android:layout_alignStart="@+id/user_name"
             android:layout_marginTop="@dimen/eight_dp"
             android:textColor="@color/comment_content"
-            android:textSize="14sp"
+            android:textSize="15sp"
             android:textIsSelectable="true" />
+
+        <com.makeramen.roundedimageview.RoundedImageView
+            android:id="@+id/comment_image"
+            android:visibility="gone"
+            android:layout_width="100dp"
+            android:layout_marginTop="@dimen/eight_dp"
+            android:layout_alignStart="@id/user_name"
+            android:layout_below="@+id/content"
+            app:riv_corner_radius="6dp"
+            android:background="@drawable/image_place_holder"
+            android:scaleType="centerCrop"
+            android:layout_height="100dp"/>
 
         <org.sufficientlysecure.htmltextview.HtmlTextView
             android:id="@+id/reply_content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/content"
+            android:layout_below="@+id/comment_image"
             android:layout_alignStart="@id/user_name"
             android:layout_marginTop="@dimen/eight_dp"
             android:background="@color/light_bg"

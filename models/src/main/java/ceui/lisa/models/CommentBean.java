@@ -4,11 +4,20 @@ public class CommentBean extends UserHolder {
 
     private String comment;
     private String date;
+    private CommentStamp stamp;
     private int id;
     private String commentWithConvertedEmoji;
 
     public String getComment() {
         return this.comment;
+    }
+
+    public CommentStamp getStamp() {
+        return stamp;
+    }
+
+    public void setStamp(CommentStamp stamp) {
+        this.stamp = stamp;
     }
 
     public void setComment(String comment) {

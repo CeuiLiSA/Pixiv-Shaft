@@ -6,11 +6,13 @@ import android.text.Html;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextPaint;
+import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
 import android.view.View;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.model.GlideUrl;
 
 import java.util.List;
 
@@ -19,6 +21,7 @@ import ceui.lisa.core.ImgGetter;
 import ceui.lisa.databinding.RecyCommentListBinding;
 import ceui.lisa.models.ReplyCommentBean;
 import ceui.lisa.utils.Common;
+import ceui.lisa.utils.GlideUrlChild;
 import ceui.lisa.utils.GlideUtil;
 
 /**
@@ -43,8 +46,14 @@ public class CommentAdapter extends BaseAdapter<ReplyCommentBean, RecyCommentLis
                 .into(bindView.baseBind.userHead);
         bindView.baseBind.userName.setText(allItems.get(position).getUser().getName());
         bindView.baseBind.time.setText(Common.getLocalYYYYMMDDHHMMSSString(allItems.get(position).getDate()));
-        bindView.baseBind.content.setHtml(allItems.get(position).getCommentWithConvertedEmoji(),
-                new ImgGetter(bindView.baseBind.content));
+
+        if (!TextUtils.isEmpty(allItems.get(position).getComment())) {
+            bindView.baseBind.content.setVisibility(View.VISIBLE);
+            bindView.baseBind.content.setHtml(allItems.get(position).getCommentWithConvertedEmoji(),
+                    new ImgGetter(bindView.baseBind.content));
+        } else  {
+            bindView.baseBind.content.setVisibility(View.GONE);
+        }
 
         if (allItems.get(position).getParent_comment() != null &&
                 allItems.get(position).getParent_comment().getUser() != null) {
@@ -83,6 +92,14 @@ public class CommentAdapter extends BaseAdapter<ReplyCommentBean, RecyCommentLis
             bindView.baseBind.replyContent.setText(spannableString);
         } else {
             bindView.baseBind.replyContent.setVisibility(View.GONE);
+        }
+
+        if (allItems.get(position).getStamp() != null && !TextUtils.isEmpty(allItems.get(position).getStamp().getStamp_url())) {
+            bindView.baseBind.commentImage.setVisibility(View.VISIBLE);
+            Glide.with(mContext).load(new GlideUrlChild(allItems.get(position).getStamp().getStamp_url()))
+                    .into(bindView.baseBind.commentImage);
+        } else  {
+            bindView.baseBind.commentImage.setVisibility(View.GONE);
         }
 
 
