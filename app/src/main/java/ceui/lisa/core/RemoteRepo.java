@@ -7,6 +7,7 @@ import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
+
 /**
  * The class stores response got from remote repo (pixiv) in the form of {@link ListShow}
  * */
@@ -43,6 +44,11 @@ public abstract class RemoteRepo<Response extends ListShow<?>> extends BaseRepo 
      * */
     public abstract Observable<? extends Response> initApi();
 
+    /**
+     * Early development,it only returns JSON Array now
+     * */
+    public abstract Observable<? extends Response> initLofterApi();
+
     public abstract Observable<? extends Response> initNextApi();
 
     /**
@@ -51,6 +57,16 @@ public abstract class RemoteRepo<Response extends ListShow<?>> extends BaseRepo 
      * */
     public void getFirstData(NullCtrl<Response> nullCtrl) {
         mApi = initApi();//mApi contains the response data
+        if (mApi != null) {
+            mApi.subscribeOn(Schedulers.newThread())
+                    .map(mFunction)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(nullCtrl);
+        }
+    }
+
+    public void getLofterFirstData(NullCtrl<Response> nullCtrl) {
+        mApi = initLofterApi();//mApi contains the response data
         if (mApi != null) {
             mApi.subscribeOn(Schedulers.newThread())
                     .map(mFunction)

@@ -8,7 +8,7 @@ apply plugin: 'org.jmailen.kotlinter'
 apply plugin: "androidx.navigation.safeargs"
 
 android {
-    compileSdkVersion 33
+    compileSdkVersion 34
 
     defaultConfig {
         applicationId "ceui.lisa.pixiv"

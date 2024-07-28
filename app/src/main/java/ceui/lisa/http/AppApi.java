@@ -62,7 +62,6 @@ public interface AppApi {
     Observable<ListIllust> getRank(@Header("Authorization") String token,
                                    @Query("mode") String mode,
                                    @Query("date") String date);
-
     @GET("v1/novel/ranking?filter=for_android")
     Observable<ListNovel> getRankNovel(@Header("Authorization") String token,
                                        @Query("mode") String mode,
