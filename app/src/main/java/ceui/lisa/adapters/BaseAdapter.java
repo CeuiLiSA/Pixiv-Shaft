@@ -27,6 +27,9 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
     protected int mLayoutID = -1;
     protected OnItemClickListener mOnItemClickListener;
     protected OnItemLongClickListener mOnItemLongClickListener;
+    /**
+     * The nextUrl variable is typically used in APIs to indicate the URL for the next page of results in a paginated response. Pagination is a common technique used to handle large datasets by splitting them into smaller, more manageable chunks.
+     * */
     protected String nextUrl, uuid;
     public Runnable onPreload = null;
     public int preloadItemCount = 5;
@@ -88,6 +91,9 @@ public abstract class BaseAdapter<Item, BindView extends ViewDataBinding> extend
         return this;
     }
 
+    /**
+     * Clear all the object
+     * */
     public void clear() {
         final int size = allItems.size();
         allItems.clear();

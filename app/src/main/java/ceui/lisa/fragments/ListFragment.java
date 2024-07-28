@@ -107,6 +107,10 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
                 mModel.getBaseRepo().getFooter(mContext) : new FalsifyFooter(mContext));
 
         mRefreshLayout.setOnRefreshListener(new OnRefreshListener() {
+            /**
+             * The method was called when refreshing the page
+             * @param refreshLayout (In doubt)
+             */
             @Override
             public void onRefresh(@NonNull RefreshLayout refreshLayout) {
                 try {
@@ -285,6 +289,10 @@ public abstract class ListFragment<Layout extends ViewDataBinding, Item>
         });
     }
 
+    /**
+     * mAdapter is not null
+     * Clear all items on the page
+     */
     public void clear() {
         if (mAdapter != null) {
             mAdapter.clear();

@@ -20,6 +20,11 @@ interface SearchDao {
     @Query("DELETE FROM search_table WHERE pinned = 0")
     fun deleteAllUnpinned()
 
+    /**
+     * Get all search history
+     * @param limit The maximum number of search history
+     * @return The search history List
+     * */
     @Query("SELECT * FROM search_table ORDER BY pinned DESC, searchTime DESC LIMIT :limit")
     fun getAll(limit: Int): List<SearchEntity>
 

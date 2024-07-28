@@ -10,6 +10,7 @@ apply plugin: "androidx.navigation.safeargs"
 android {
     compileSdk 34
 
+
     defaultConfig {
         applicationId "ceui.lisa.pixiv"
         minSdkVersion 21

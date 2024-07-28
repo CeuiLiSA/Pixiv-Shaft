@@ -379,7 +379,14 @@ public class FragmentSearch extends BaseFragment<FragmentSearchBinding> {
         predictSearchType();
     }
 
+    /**
+     * Load the search history
+     * */
     private void loadHistory() {
+        /**
+         * history:Represents the search history
+         * history: size = {x} (x Represents the number of search history)
+         * */
         List<SearchEntity> history = AppDatabase.getAppDatabase(Shaft.getContext()).searchDao().getAll(50);
         baseBind.searchHistory.setAdapter(new TagAdapter<SearchEntity>(history) {
             @Override
