@@ -3,6 +3,9 @@ package ceui.loxia
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.findFragment
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import kotlin.reflect.KClass
 
 inline fun<reified InterfaceT> Fragment.sendAction(action: (receiver: InterfaceT)->Boolean) {
@@ -29,6 +32,12 @@ inline fun<reified InterfaceT> Fragment.sendAction(action: (receiver: InterfaceT
 inline fun<reified InterfaceT> View.sendAction(action: (receiver: InterfaceT)->Boolean) {
     val fragment = this.findFragment<Fragment>()
     fragment.sendAction<InterfaceT>(action)
+}
+
+fun Fragment.launchSuspend(block: suspend CoroutineScope.() -> Unit) {
+    viewLifecycleOwnerLiveData.value?.lifecycleScope?.launch {
+        block()
+    }
 }
 
 inline fun <reified ActionReceiverT> Fragment.findActionReceiverOrNull(): ActionReceiverT? {

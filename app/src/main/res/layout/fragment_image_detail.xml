@@ -11,17 +11,11 @@
         android:background="@color/black"
         android:layout_height="match_parent">
 
-        <com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
+        <com.github.panpf.zoomimage.SketchZoomImageView
             android:id="@+id/big_image"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-<!--        <xyz.zpayh.hdimage.HDImageView-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:id="@+id/real_illust_image"-->
-<!--            android:transitionName="big_image"-->
-<!--            android:scaleType="fitCenter"-->
-<!--            android:layout_height="match_parent" />-->
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter" />
 
         <LinearLayout
             android:id="@+id/empty_frame"

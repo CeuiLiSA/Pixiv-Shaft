@@ -1,178 +1,154 @@
-package ceui.lisa.fragments;
+package ceui.lisa.fragments
 
-import android.graphics.drawable.Drawable;
-import android.net.Uri;
-import android.os.Bundle;
-import android.text.TextUtils;
-import android.view.View;
+import android.os.Bundle
+import android.text.TextUtils
+import android.view.View
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import ceui.lisa.R
+import ceui.lisa.activities.Shaft
+import ceui.lisa.core.GlideApp
+import ceui.lisa.databinding.FragmentImageDetailBinding
+import ceui.lisa.download.IllustDownload
+import ceui.lisa.models.IllustsBean
+import ceui.lisa.utils.Common
+import ceui.lisa.utils.GlideUrlChild
+import ceui.lisa.utils.Params
+import ceui.loxia.launchSuspend
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
+import com.github.panpf.sketch.loadImage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import me.jessyan.progressmanager.ProgressListener
+import me.jessyan.progressmanager.ProgressManager
+import me.jessyan.progressmanager.body.ProgressInfo
+import java.io.File
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+class ImageFileViewModel : ViewModel() {
+    val fileLiveData = MutableLiveData<File>()
+    var isHighQualityImageLoaded: Boolean = false
+}
 
-import com.bumptech.glide.load.DataSource;
-import com.bumptech.glide.load.engine.GlideException;
-import com.bumptech.glide.request.RequestListener;
-import com.bumptech.glide.request.target.CustomViewTarget;
-import com.bumptech.glide.request.target.Target;
-import com.bumptech.glide.request.transition.Transition;
-import com.davemorrissey.labs.subscaleview.ImageSource;
-import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView;
 
-import java.io.File;
+class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
+    private var mIllustsBean: IllustsBean? = null
+    private var index = 0
+    private var url: String? = null
 
-import ceui.lisa.R;
-import ceui.lisa.activities.Shaft;
-import ceui.lisa.core.GlideApp;
-import ceui.lisa.databinding.FragmentImageDetailBinding;
-import ceui.lisa.download.IllustDownload;
-import ceui.lisa.models.IllustsBean;
-import ceui.lisa.utils.Common;
-import ceui.lisa.utils.GlideUrlChild;
-import ceui.lisa.utils.Params;
-import me.jessyan.progressmanager.ProgressListener;
-import me.jessyan.progressmanager.ProgressManager;
-import me.jessyan.progressmanager.body.ProgressInfo;
+    private val fileViewModel by viewModels<ImageFileViewModel>()
 
-public class FragmentImageDetail extends BaseFragment<FragmentImageDetailBinding> {
-
-    private IllustsBean mIllustsBean;
-    private int index;
-    private String url;
-
-    public static FragmentImageDetail newInstance(IllustsBean illustsBean, int index) {
-        Bundle args = new Bundle();
-        args.putSerializable(Params.CONTENT, illustsBean);
-        args.putInt(Params.INDEX, index);
-        FragmentImageDetail fragment = new FragmentImageDetail();
-        fragment.setArguments(args);
-        return fragment;
+    public override fun initBundle(bundle: Bundle) {
+        url = bundle.getString(Params.URL)
+        mIllustsBean = bundle.getSerializable(Params.CONTENT) as IllustsBean?
+        index = bundle.getInt(Params.INDEX)
     }
 
-    public static FragmentImageDetail newInstance(String pUrl) {
-        Bundle args = new Bundle();
-        args.putString(Params.URL, pUrl);
-        FragmentImageDetail fragment = new FragmentImageDetail();
-        fragment.setArguments(args);
-        return fragment;
+    public override fun initLayout() {
+        mLayoutID = R.layout.fragment_image_detail
     }
 
-    @Override
-    public void initBundle(Bundle bundle) {
-        url = bundle.getString(Params.URL);
-        mIllustsBean = (IllustsBean) bundle.getSerializable(Params.CONTENT);
-        index = bundle.getInt(Params.INDEX);
-    }
-
-    @Override
-    public void initLayout() {
-        mLayoutID = R.layout.fragment_image_detail;
-    }
-
-    @Override
-    protected void initView() {
-        baseBind.emptyActionButton.setOnClickListener(v -> loadImage());
-        baseBind.bigImage.setDoubleTapZoomDuration(250);
+    override fun initView() {
+        baseBind.emptyActionButton.setOnClickListener { v: View? -> loadImage() }
         //插画二级详情保持屏幕常亮
-        if (Shaft.sSettings.isIllustDetailKeepScreenOn()) {
-            baseBind.getRoot().setKeepScreenOn(true);
+        if (Shaft.sSettings.isIllustDetailKeepScreenOn) {
+            baseBind.root.keepScreenOn = true
+        }
+
+        fileViewModel.fileLiveData.observe(viewLifecycleOwner) { file ->
+            baseBind.bigImage.loadImage(file)
         }
     }
 
-    @Override
-    protected void initData() {
-        loadImage();
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        loadImage()
     }
 
-    private void loadImage() {
-        baseBind.emptyFrame.setVisibility(View.GONE);
-        baseBind.progressLayout.getRoot().setVisibility(View.VISIBLE);
-        String imageUrl;
+    private fun loadImage() {
+        baseBind.emptyFrame.visibility = View.GONE
+        baseBind.progressLayout.root.visibility = View.VISIBLE
+        val imageUrl: String?
         if (mIllustsBean == null && !TextUtils.isEmpty(url)) {
-            setUpMediumResolutionDoubleTap();
-            imageUrl = url;
+            imageUrl = url
         } else {
-            final String originUrl = IllustDownload.getUrl(mIllustsBean, index);
-            if (Shaft.getMMKV().decodeBool(originUrl)) {
-                setUpHighResolutionDoubleTap();
-                imageUrl = originUrl;
+            val originUrl = IllustDownload.getUrl(mIllustsBean, index)
+            imageUrl = if (Shaft.getMMKV().decodeBool(originUrl)) {
+                originUrl
             } else {
                 if (!TextUtils.isEmpty(url)) {
-                    setUpMediumResolutionDoubleTap();
-                    imageUrl = url;
+                    url
                 } else {
-                    if (Shaft.sSettings.isShowOriginalImage()) {
-                        setUpHighResolutionDoubleTap();
-                        imageUrl = IllustDownload.getUrl(mIllustsBean, index, Params.IMAGE_RESOLUTION_ORIGINAL);
+                    if (Shaft.sSettings.isShowOriginalImage) {
+                        IllustDownload.getUrl(mIllustsBean, index, Params.IMAGE_RESOLUTION_ORIGINAL)
                     } else {
-                        setUpMediumResolutionDoubleTap();
-                        imageUrl = IllustDownload.getUrl(mIllustsBean, index, Params.IMAGE_RESOLUTION_LARGE);
+                        IllustDownload.getUrl(mIllustsBean, index, Params.IMAGE_RESOLUTION_LARGE)
                     }
                 }
             }
         }
-        ProgressManager.getInstance().addResponseListener(imageUrl, new ProgressListener() {
-            @Override
-            public void onProgress(ProgressInfo progressInfo) {
-                baseBind.progressLayout.donutProgress.setProgress(progressInfo.getPercent());
+        ProgressManager.getInstance().addResponseListener(imageUrl, object : ProgressListener {
+            override fun onProgress(progressInfo: ProgressInfo) {
+                Common.showLog("dsaasdsawq2 ${progressInfo.percent.toFloat()}")
+                baseBind.progressLayout.donutProgress.progress = progressInfo.percent.toFloat()
             }
 
-            @Override
-            public void onError(long id, Exception e) {
-
+            override fun onError(id: Long, e: Exception) {
             }
-        });
-        GlideApp.with(mContext)
-                .asFile()
-                .load(new GlideUrlChild(imageUrl))
-                .listener(new RequestListener<File>() {
-                    @Override
-                    public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<File> target, boolean isFirstResource) {
-                        baseBind.progressLayout.getRoot().setVisibility(View.GONE);
-                        baseBind.emptyFrame.setVisibility(View.VISIBLE);
-                        if (e != null) {
-                            baseBind.emptyTitle.setText(e.getMessage());
-                        }
-                        return false;
-                    }
+        })
 
-                    @Override
-                    public boolean onResourceReady(File resource, Object model, Target<File> target, DataSource dataSource, boolean isFirstResource) {
-                        baseBind.progressLayout.getRoot().setVisibility(View.GONE);
-                        baseBind.emptyFrame.setVisibility(View.GONE);
-                        Common.showLog("onResourceReady " + resource.getPath());
-                        return false;
+        launchSuspend {
+            withContext(Dispatchers.IO) {
+                try {
+                    val file = GlideApp.with(mContext)
+                        .asFile()
+                        .load(GlideUrlChild(imageUrl))
+                        .submit()
+                        .get()
+                    withContext(Dispatchers.Main) {
+                        baseBind.progressLayout.root.visibility = View.GONE
+                        baseBind.emptyFrame.visibility = View.GONE
                     }
-                })
-                .into(new CustomViewTarget<SubsamplingScaleImageView, File>(baseBind.bigImage) {
-                    @Override
-                    public void onLoadFailed(@Nullable Drawable errorDrawable) {
+                    fileViewModel.isHighQualityImageLoaded = true
+                    fileViewModel.fileLiveData.postValue(file)
+                } catch (ex: Exception) {
+                    ex.printStackTrace()
+                    withContext(Dispatchers.Main) {
+                        baseBind.progressLayout.root.visibility = View.GONE
+                        baseBind.emptyFrame.visibility = View.VISIBLE
                     }
-
-                    @Override
-                    public void onResourceReady(@NonNull File resource, @Nullable Transition<? super File> transition) {
-                        baseBind.bigImage.setImage(ImageSource.uri(Uri.fromFile(resource)));
-                    }
-
-                    @Override
-                    protected void onResourceCleared(@Nullable Drawable placeholder) {
-                    }
-                });
+                }
+            }
+        }
     }
 
-    private void setUpHighResolutionDoubleTap() {
-        baseBind.bigImage.setMaxScale(3.8F);
-        baseBind.bigImage.setDoubleTapZoomScale(1.8F);
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putSerializable("mIllustsBean", mIllustsBean)
+        outState.putInt("index", index)
     }
 
-    private void setUpMediumResolutionDoubleTap() {
-        baseBind.bigImage.setMaxScale(7F);
-        baseBind.bigImage.setDoubleTapZoomScale(4F);
-    }
+    companion object {
+        @JvmStatic
+        fun newInstance(illustsBean: IllustsBean?, index: Int): FragmentImageDetail {
+            val args = Bundle()
+            args.putSerializable(Params.CONTENT, illustsBean)
+            args.putInt(Params.INDEX, index)
+            val fragment = FragmentImageDetail()
+            fragment.arguments = args
+            return fragment
+        }
 
-    @Override
-    public void onSaveInstanceState(@NonNull Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putSerializable("mIllustsBean", mIllustsBean);
-        outState.putInt("index", index);
+        @JvmStatic
+        fun newInstance(pUrl: String?): FragmentImageDetail {
+            val args = Bundle()
+            args.putString(Params.URL, pUrl)
+            val fragment = FragmentImageDetail()
+            fragment.arguments = args
+            return fragment
+        }
     }
 }
