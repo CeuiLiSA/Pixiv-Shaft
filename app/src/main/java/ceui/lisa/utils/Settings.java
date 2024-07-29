@@ -101,8 +101,6 @@ public class Settings {
     //一级详情FragmentIllust 图片显示原图
     private boolean showOriginalPreviewImage = false;
 
-    //二级详情FragmentImageDetail 图片显示原图
-    private boolean showOriginalImage = false;
 
     //是否显示开屏 dialog
     private boolean showPixivDialog = true;
@@ -176,8 +174,6 @@ public class Settings {
     private boolean globalSwipeBack = true; // 全局滑动返回
 
     private boolean illustLongPressDownload = false; // 插画详情长按下载
-
-    private boolean illustDetailShowNavbar = true; // 插画二级详情显示导航栏
 
     private int saveForSeparateAuthorStatus = 0; // 不同作者单独保存
 
@@ -386,14 +382,6 @@ public class Settings {
         this.settingsAnimate = settingsAnimate;
     }
 
-    public boolean isShowOriginalImage() {
-        return showOriginalImage;
-    }
-
-    public void setShowOriginalImage(boolean showOriginalImage) {
-        this.showOriginalImage = showOriginalImage;
-    }
-
     public boolean isDirectDownloadAllImage() {
         return directDownloadAllImage;
     }
@@ -576,14 +564,6 @@ public class Settings {
 
     public void setIllustLongPressDownload(boolean illustLongPressDownload) {
         this.illustLongPressDownload = illustLongPressDownload;
-    }
-
-    public boolean isIllustDetailShowNavbar() {
-        return illustDetailShowNavbar;
-    }
-
-    public void setIllustDetailShowNavbar(boolean illustDetailShowNavbar) {
-        this.illustDetailShowNavbar = illustDetailShowNavbar;
     }
 
     public boolean isAutoPostLikeWhenDownload() {

@@ -82,11 +82,7 @@ class FragmentImageDetail : BaseFragment<FragmentImageDetailBinding?>() {
                 if (!TextUtils.isEmpty(url)) {
                     url
                 } else {
-                    if (Shaft.sSettings.isShowOriginalImage) {
-                        IllustDownload.getUrl(mIllustsBean, index, Params.IMAGE_RESOLUTION_ORIGINAL)
-                    } else {
-                        IllustDownload.getUrl(mIllustsBean, index, Params.IMAGE_RESOLUTION_LARGE)
-                    }
+                    IllustDownload.getUrl(mIllustsBean, index, Params.IMAGE_RESOLUTION_ORIGINAL)
                 }
             }
         }

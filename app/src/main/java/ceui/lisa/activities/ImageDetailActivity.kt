@@ -183,23 +183,4 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
     override fun hideStatusBar(): Boolean {
         return true
     }
-
-
-    private fun refreshSystemUiVisibility() {
-        val includeFlag = (View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                or View.SYSTEM_UI_FLAG_FULLSCREEN
-                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                or View.SYSTEM_UI_FLAG_FULLSCREEN)
-        var excludeFlag = 0
-        if (Shaft.sSettings.isIllustDetailShowNavbar) {
-            excludeFlag = (excludeFlag
-                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION)
-        }
-        val flag = window.decorView.systemUiVisibility
-        window.decorView.systemUiVisibility = flag or (includeFlag and excludeFlag.inv())
-    }
 }
