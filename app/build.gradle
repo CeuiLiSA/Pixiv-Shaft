@@ -194,8 +194,10 @@ dependencies {
     implementation 'com.billy.android:smart-swipe:1.1.2'
     implementation 'org.honorato.multistatetogglebutton:multistatetogglebutton:0.2.2'
     implementation "io.noties.markwon:core:4.6.2"
+    // Java language implementation
+    implementation("androidx.activity:activity-ktx:1.8.1")
 
-    implementation 'com.davemorrissey.labs:subsampling-scale-image-view-androidx:3.10.0'
+    implementation("io.github.panpf.zoomimage:zoomimage-view-sketch:1.1.0-alpha04")
 
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
 

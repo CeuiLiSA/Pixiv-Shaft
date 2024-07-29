@@ -11,10 +11,11 @@
         android:layout_height="match_parent"
         android:background="@color/black">
 
-        <com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
+        <com.github.panpf.zoomimage.SketchZoomImageView
             android:id="@+id/big_image"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter" />
 
         <com.google.android.material.progressindicator.CircularProgressIndicator
             android:id="@+id/progress_circular_small"

@@ -4,49 +4,55 @@ import android.os.Bundle
 import android.view.View
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
-import androidx.lifecycle.lifecycleScope
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import ceui.lisa.R
 import ceui.lisa.activities.Shaft
 import ceui.lisa.core.GlideApp
 import ceui.lisa.databinding.FragmentImageBinding
 import ceui.refactor.viewBinding
-import com.davemorrissey.labs.subscaleview.ImageSource
-import kotlinx.coroutines.launch
-import kotlin.concurrent.thread
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
+import com.github.panpf.sketch.loadImage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.File
+
+class ImageFileViewModel : ViewModel() {
+    val fileLiveData = MutableLiveData<File>()
+}
 
 class ImageFragment : NavFragment(R.layout.fragment_image) {
 
     private val binding by viewBinding(FragmentImageBinding::bind)
+    private val fileViewModel by viewModels<ImageFileViewModel>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val image = binding.bigImage
-        image.setDoubleTapZoomDuration(250)
+
+        fileViewModel.fileLiveData.observe(viewLifecycleOwner) { file ->
+            binding.bigImage.loadImage(file)
+        }
+        val progressbar = binding.progressCircularSmall
+
+        val scope = this
 
         val highQualityUrl = arguments?.getString(highQualityUrl)
         if (highQualityUrl?.isNotEmpty() == true) {
-            val progressbar = binding.progressCircularSmall
-            viewLifecycleOwner.lifecycleScope.launch {
-                val bitmap = suspendCoroutine { task ->
-                    thread {
-                        task.resume(
-                            try {
-                                GlideApp.with(this@ImageFragment)
-                                    .asBitmap()
-                                    .load(highQualityUrl)
-                                    .submit()
-                                    .get()
-                            } catch (ex: Exception) {
-                                null
-                            }
-                        )
+            launchSuspend {
+                withContext(Dispatchers.IO) {
+                    try {
+                        val file = GlideApp.with(scope)
+                            .asFile()
+                            .load(highQualityUrl)
+                            .submit()
+                            .get()
+                        withContext(Dispatchers.Main) {
+                            progressbar.isVisible = false
+                        }
+                        fileViewModel.fileLiveData.postValue(file)
+                    } catch (ex: Exception) {
+                        ex.printStackTrace()
                     }
-                }
-                progressbar.isVisible = false
-                if (bitmap != null) {
-                    image.setImage(ImageSource.bitmap(bitmap))
                 }
             }
         }
