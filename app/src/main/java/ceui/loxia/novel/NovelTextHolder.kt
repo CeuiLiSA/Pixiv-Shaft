@@ -63,7 +63,6 @@ class NovelImageViewHolder(private val bd: CellNovelImageBinding) : ListItemView
             binding.novelImage.setOnClick {
                 PixivOperate.getIllustByID(Shaft.sUserModel, holder.id, binding.novelImage.context)
             }
-            Common.showLog("sadsaddas2 ${urls}")
             Glide.with(binding.novelImage).load(urls?.toGlideUrl()).into(binding.novelImage)
         }
     }
