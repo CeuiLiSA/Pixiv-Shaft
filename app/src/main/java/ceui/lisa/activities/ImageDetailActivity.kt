@@ -18,8 +18,6 @@ import ceui.lisa.helper.PageTransformerHelper
 import ceui.lisa.models.IllustsBean
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.PixivOperate
-import com.zackratos.ultimatebarx.ultimatebarx.navigationBar
-import com.zackratos.ultimatebarx.ultimatebarx.statusBar
 import java.io.UnsupportedEncodingException
 import java.net.URLDecoder
 import java.util.Locale
