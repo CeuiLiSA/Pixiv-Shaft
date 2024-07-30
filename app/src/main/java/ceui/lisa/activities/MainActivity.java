@@ -48,6 +48,7 @@ import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseImage;
 import ceui.lisa.utils.ReverseWebviewCallback;
 import ceui.lisa.view.DrawerLayoutViewPager;
+import ceui.pixiv.HomeActivity;
 
 import static ceui.lisa.R.id.nav_gallery;
 import static ceui.lisa.R.id.nav_slideshow;
@@ -219,22 +220,26 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
     @Override
     protected void initData() {
         if (sUserModel != null && sUserModel.getUser() != null && sUserModel.getUser().isIs_login()) {
-            if (Common.isAndroidQ()) {
-                initFragment();
-//                startActivity(new Intent(this, ListActivity.class));
+            if (Dev.isDev) {
+                startActivity(new Intent(this, HomeActivity.class));
             } else {
-                new RxPermissions(mActivity)
-                        .requestEachCombined(
-                                Manifest.permission.WRITE_EXTERNAL_STORAGE
-                        )
-                        .subscribe(permission -> {
-                            if (permission.granted) {
-                                initFragment();
-                            } else {
-                                Common.showToast(mActivity.getString(R.string.access_denied));
-                                finish();
-                            }
-                        });
+                if (Common.isAndroidQ()) {
+                    initFragment();
+//                startActivity(new Intent(this, ListActivity.class));
+                } else {
+                    new RxPermissions(mActivity)
+                            .requestEachCombined(
+                                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+                            )
+                            .subscribe(permission -> {
+                                if (permission.granted) {
+                                    initFragment();
+                                } else {
+                                    Common.showToast(mActivity.getString(R.string.access_denied));
+                                    finish();
+                                }
+                            });
+                }
             }
         } else {
             Intent intent = new Intent(mContext, TemplateActivity.class);

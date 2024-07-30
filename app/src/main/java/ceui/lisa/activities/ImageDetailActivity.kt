@@ -12,6 +12,7 @@ import androidx.viewpager.widget.ViewPager
 import ceui.lisa.R
 import ceui.lisa.databinding.ActivityImageDetailBinding
 import ceui.lisa.download.IllustDownload
+import ceui.lisa.fragments.FragmentImageDetail
 import ceui.lisa.fragments.FragmentImageDetail.Companion.newInstance
 import ceui.lisa.fragments.FragmentLocalImageDetail
 import ceui.lisa.helper.PageTransformerHelper
@@ -118,7 +119,7 @@ class ImageDetailActivity : BaseActivity<ActivityImageDetailBinding?>() {
                 supportFragmentManager
             ) {
                 override fun getItem(i: Int): Fragment {
-                    return FragmentLocalImageDetail.newInstance(localIllust!![i])
+                    return newInstance(localIllust!![i])
                 }
 
                 override fun getCount(): Int {

@@ -34,8 +34,9 @@
         android:theme="@style/AppTheme"
         tools:ignore="UnusedAttribute">
         <activity
-            android:name="ceui.loxia.test.ListActivity"
-            android:exported="false" />
+            android:name="ceui.pixiv.HomeActivity"
+            android:exported="false"
+            android:label="@string/title_activity_home" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

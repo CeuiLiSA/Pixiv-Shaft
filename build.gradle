@@ -11,9 +11,6 @@ buildscript {
         maven { url "https://plugins.gradle.org/m2/" }
         mavenCentral()
         google()
-        flatDir {
-            dirs 'libs'
-        }
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:8.5.1'
@@ -44,9 +41,6 @@ allprojects {
         maven { url "https://plugins.gradle.org/m2/" }
         mavenCentral()
         google()
-        flatDir {
-            dirs 'libs'
-        }
     }
 }
 

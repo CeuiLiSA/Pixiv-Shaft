@@ -274,13 +274,6 @@ public class FragmentNovelHolder extends BaseFragment<FragmentNovelHolderBinding
     }
 
     private void refreshDetail(NovelDetail novelDetail) {
-        if (Dev.isDev && false) {
-            Intent intent = new Intent(mContext, NovelActivity.class);
-            intent.putExtra(Params.NOVEL_DETAIL, novelDetail);
-            startActivity(intent);
-            finish();
-            return;
-        }
         mNovelDetail = novelDetail;
         baseBind.viewPager.setVisibility(View.VISIBLE);
         baseBind.awesomeCardCon.setOnTouchListener(new View.OnTouchListener() {
