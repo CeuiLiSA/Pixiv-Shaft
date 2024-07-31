@@ -3,7 +3,10 @@ package ceui.loxia
 import ceui.lisa.models.NullResponse
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
+import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface API {
 
@@ -27,4 +30,7 @@ interface API {
     suspend fun postUnFollow(
         @Field("user_id") user_id: Long
     )
+
+    @GET("/v1/illust/recommended?include_ranking_illusts=true&include_privacy_policy=true&filter=for_ios")
+    suspend fun getHomeData(): HomeIllustResponse
 }

@@ -26,6 +26,15 @@ data class IllustResponse(
     override val nextPageUrl: String? get() = next_url
 }
 
+data class HomeIllustResponse(
+    val illusts: List<Illust> = listOf(),
+    val ranking_illusts: List<Illust> = listOf(),
+    val next_url: String? = null
+) : Serializable, KListShow<Illust> {
+    override val displayList: List<Illust> get() = illusts
+    override val nextPageUrl: String? get() = next_url
+}
+
 object ObjectType {
     const val ILLUST = "illust"
     const val MANGA = "manga"
@@ -83,7 +92,7 @@ data class Illust(
     override val objectUniqueId: Long
         get() = id
     override val objectType: Int
-        get() = ObjectSpec.POST
+        get() = ObjectSpec.Illust
 
     fun displayCreateDate(): String {
         return DateParse.displayCreateDate(create_date)

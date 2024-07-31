@@ -1,9 +1,13 @@
 package ceui.loxia
 
+import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.findFragment
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavOptions
+import androidx.navigation.fragment.findNavController
+import ceui.lisa.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.reflect.KClass
@@ -38,6 +42,22 @@ fun Fragment.launchSuspend(block: suspend CoroutineScope.() -> Unit) {
     viewLifecycleOwnerLiveData.value?.lifecycleScope?.launch {
         block()
     }
+}
+
+fun NavOptions.Builder.setHorizontalSlide(): NavOptions.Builder {
+    return setEnterAnim(R.anim.h_slide_enter)
+        .setExitAnim(R.anim.h_slide_exit)
+        .setPopEnterAnim(R.anim.h_slide_popenter)
+        .setPopExitAnim(R.anim.h_slide_popexit)
+}
+
+
+fun Fragment.pushFragment(id: Int, bundle: Bundle? = null) {
+    findNavController().navigate(
+        id,
+        bundle,
+        NavOptions.Builder().setHorizontalSlide().build(),
+    )
 }
 
 inline fun <reified ActionReceiverT> Fragment.findActionReceiverOrNull(): ActionReceiverT? {

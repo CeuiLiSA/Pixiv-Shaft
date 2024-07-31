@@ -21,6 +21,10 @@ public class UserModel extends UserHolder implements Serializable, UserContainer
         return "Bearer " + access_token;
     }
 
+    public String getRawAccessToken() {
+        return access_token;
+    }
+
     public void setAccess_token(String access_token) {
         this.access_token = access_token;
     }

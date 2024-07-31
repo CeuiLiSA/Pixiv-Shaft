@@ -107,6 +107,9 @@ object ObjectPool {
             "IllustsBean", "Novel" -> {
                 ObjectSpec.POST
             }
+            "Illust" -> {
+                ObjectSpec.Illust
+            }
             "UserBean" -> {
                 ObjectSpec.USER
             }

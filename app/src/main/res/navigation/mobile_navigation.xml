@@ -22,4 +22,24 @@
         android:name="ceui.pixiv.ui.notifications.NotificationsFragment"
         android:label="@string/title_notifications"
         tools:layout="@layout/fragment_notifications" />
+
+    <fragment
+        android:id="@+id/navigation_illust"
+        android:name="ceui.pixiv.ui.works.IllustFragment"
+        tools:layout="@layout/fragment_fancy_illust" >
+
+        <argument
+            android:name="illust_id"
+            app:argType="long" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_user_profile"
+        android:name="ceui.pixiv.ui.user.UserProfileFragment"
+        tools:layout="@layout/fragment_user_profile" >
+
+        <argument
+            android:name="user_id"
+            app:argType="long" />
+    </fragment>
 </navigation>

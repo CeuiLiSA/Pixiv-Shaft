@@ -42,7 +42,7 @@ class TokenFetcherInterceptor : Interceptor {
 
     @Synchronized
     private fun refreshToken(oldToken: String): String? {
-        if (!TextUtils.equals(Shaft.sUserModel.access_token, oldToken)) {
+        if (!TextUtils.equals(Shaft.sUserModel.rawAccessToken, oldToken)) {
             return Shaft.sUserModel.access_token
         }
 

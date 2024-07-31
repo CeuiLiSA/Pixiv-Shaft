@@ -3,17 +3,13 @@ package ceui.refactor
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.databinding.ViewDataBinding
 import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
-import ceui.lisa.databinding.CellNoneBinding
-import ceui.lisa.databinding.FragmentItemAaaaBinding
-import ceui.lisa.databinding.FragmentItemBbbbBinding
-import ceui.loxia.flag.viewholdermap.ViewHolderFactory
+import ceui.pixiv.ui.viewholdermap.ViewHolderFactory
 import java.lang.RuntimeException
 
 val listItemHolderDiffUtil = object :
