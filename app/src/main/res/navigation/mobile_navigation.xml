@@ -3,25 +3,18 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
-    app:startDestination="@+id/navigation_home">
+    app:startDestination="@+id/navigation_home_viewpager">
+
+    <fragment
+        android:id="@+id/navigation_home_viewpager"
+        android:name="ceui.pixiv.ui.home.HomeViewPagerFragment"
+        tools:layout="@layout/fragment_home_viewpager" />
 
     <fragment
         android:id="@+id/navigation_home"
         android:name="ceui.pixiv.ui.home.HomeFragment"
-        android:label="@string/title_home"
-        tools:layout="@layout/fragment_home" />
+        tools:layout="@layout/fragment_pixiv_list" />
 
-    <fragment
-        android:id="@+id/navigation_dashboard"
-        android:name="ceui.pixiv.ui.dashboard.DashboardFragment"
-        android:label="@string/title_dashboard"
-        tools:layout="@layout/fragment_dashboard" />
-
-    <fragment
-        android:id="@+id/navigation_notifications"
-        android:name="ceui.pixiv.ui.notifications.NotificationsFragment"
-        android:label="@string/title_notifications"
-        tools:layout="@layout/fragment_notifications" />
 
     <fragment
         android:id="@+id/navigation_illust"
@@ -62,6 +55,20 @@
 
         <argument
             android:name="object_type"
+            app:argType="string"/>
+    </fragment>
+
+
+    <fragment
+        android:id="@+id/navigation_user_following_list"
+        android:name="ceui.pixiv.ui.user.UserFollowingFragment">
+
+        <argument
+            android:name="user_id"
+            app:argType="long" />
+
+        <argument
+            android:name="restrict_type"
             app:argType="string"/>
     </fragment>
 </navigation>

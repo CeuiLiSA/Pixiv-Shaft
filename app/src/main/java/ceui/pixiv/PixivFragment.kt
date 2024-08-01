@@ -2,9 +2,10 @@ package ceui.pixiv
 
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.R
-import ceui.lisa.databinding.FragmentHomeBinding
+import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.view.SpacesItemDecoration
 import ceui.loxia.Illust
 import ceui.loxia.RefreshHint
@@ -27,7 +28,7 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionRe
     }
 }
 
-fun Fragment.setUpStaggerLayout(binding: FragmentHomeBinding, viewModel: PixivListViewModel<*, *>) {
+fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: PixivListViewModel<*, *>) {
     val ctx = requireContext()
     binding.refreshLayout.setRefreshHeader(MaterialHeader(ctx))
     binding.refreshLayout.setOnRefreshListener {
@@ -50,9 +51,24 @@ fun Fragment.setUpStaggerLayout(binding: FragmentHomeBinding, viewModel: PixivLi
         }
         binding.progressCircular.isVisible = state is RefreshState.LOADING && state.refreshHint == RefreshHint.initialLoad()
     }
+}
+
+fun Fragment.setUpStaggerLayout(binding: FragmentPixivListBinding, viewModel: PixivListViewModel<*, *>) {
+    setUpRefreshState(binding, viewModel)
     binding.listView.addItemDecoration(SpacesItemDecoration(4.ppppx))
-    val adapter = CommonAdapter(viewLifecycleOwner)
     binding.listView.layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
+    val adapter = CommonAdapter(viewLifecycleOwner)
+    binding.listView.adapter = adapter
+    viewModel.holders.observe(viewLifecycleOwner) { holders ->
+        adapter.submitList(holders)
+    }
+}
+
+fun Fragment.setUpLinearLayout(binding: FragmentPixivListBinding, viewModel: PixivListViewModel<*, *>) {
+    val ctx = requireContext()
+    setUpRefreshState(binding, viewModel)
+    val adapter = CommonAdapter(viewLifecycleOwner)
+    binding.listView.layoutManager = LinearLayoutManager(ctx)
     binding.listView.adapter = adapter
     viewModel.holders.observe(viewLifecycleOwner) { holders ->
         adapter.submitList(holders)

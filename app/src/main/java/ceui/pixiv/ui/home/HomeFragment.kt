@@ -1,17 +1,12 @@
 package ceui.pixiv.ui.home
 
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.R
-import ceui.lisa.databinding.FragmentFancyIllustBinding
-import ceui.lisa.databinding.FragmentHomeBinding
+import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.lisa.view.SpacesItemDecoration
 import ceui.loxia.Illust
 import ceui.loxia.RefreshState
@@ -23,9 +18,9 @@ import ceui.refactor.CommonAdapter
 import ceui.refactor.ppppx
 import ceui.refactor.viewBinding
 
-class HomeFragment : Fragment(R.layout.fragment_home), IllustCardActionReceiver {
+class HomeFragment : Fragment(R.layout.fragment_pixiv_list), IllustCardActionReceiver {
 
-    private val binding by viewBinding(FragmentHomeBinding::bind)
+    private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val viewModel by viewModels<HomeViewModel>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

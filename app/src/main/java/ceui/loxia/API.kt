@@ -53,6 +53,12 @@ interface API {
         @Query("user_id") user_id: Long,
     ): UserResponse
 
+    @GET("/v1/user/following")
+    suspend fun getFollowingUsers(
+        @Query("user_id") user_id: Long,
+        @Query("restrict") restrict: String,
+    ): UserPreviewResponse
+
     @GET
     suspend fun generalGet(@Url url: String): ResponseBody
 }
