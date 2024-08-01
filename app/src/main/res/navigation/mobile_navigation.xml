@@ -42,4 +42,13 @@
             android:name="user_id"
             app:argType="long" />
     </fragment>
+
+    <fragment
+        android:id="@+id/navigation_user_created_illust"
+        android:name="ceui.pixiv.ui.user.UserCreatedIllustsFragment">
+
+        <argument
+            android:name="user_id"
+            app:argType="long" />
+    </fragment>
 </navigation>

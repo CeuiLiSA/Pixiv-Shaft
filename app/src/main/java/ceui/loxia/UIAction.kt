@@ -56,7 +56,6 @@ fun Fragment.pushFragment(id: Int, bundle: Bundle? = null) {
     findNavController().navigate(
         id,
         bundle,
-        NavOptions.Builder().setHorizontalSlide().build(),
     )
 }
 

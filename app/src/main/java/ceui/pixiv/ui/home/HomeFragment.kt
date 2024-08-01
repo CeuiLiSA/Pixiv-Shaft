@@ -10,6 +10,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.R
+import ceui.lisa.databinding.FragmentFancyIllustBinding
 import ceui.lisa.databinding.FragmentHomeBinding
 import ceui.lisa.view.SpacesItemDecoration
 import ceui.loxia.Illust
@@ -20,23 +21,12 @@ import ceui.pixiv.ui.IllustCardHolder
 import ceui.pixiv.ui.works.IllustFragmentArgs
 import ceui.refactor.CommonAdapter
 import ceui.refactor.ppppx
+import ceui.refactor.viewBinding
 
-class HomeFragment : Fragment(), IllustCardActionReceiver {
+class HomeFragment : Fragment(R.layout.fragment_home), IllustCardActionReceiver {
 
-    private var _binding: FragmentHomeBinding? = null
-
-    private val binding get() = _binding!!
+    private val binding by viewBinding(FragmentHomeBinding::bind)
     private val viewModel by viewModels<HomeViewModel>()
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentHomeBinding.inflate(inflater, container, false)
-        val root: View = binding.root
-        return root
-    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -59,11 +49,6 @@ class HomeFragment : Fragment(), IllustCardActionReceiver {
                 }
             )
         }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 
     override fun onClickIllustCard(illust: Illust) {

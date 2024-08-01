@@ -1,12 +1,14 @@
 package ceui.loxia
 
 import ceui.lisa.models.NullResponse
+import okhttp3.ResponseBody
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
+import retrofit2.http.Url
 
 interface API {
 
@@ -33,4 +35,22 @@ interface API {
 
     @GET("/v1/illust/recommended?include_ranking_illusts=true&include_privacy_policy=true&filter=for_ios")
     suspend fun getHomeData(): HomeIllustResponse
+
+    @GET("/v1/user/illusts?type=illust&filter=for_ios")
+    suspend fun getUserCreatedIllusts(
+        @Query("user_id") user_id: Long,
+    ): IllustResponse
+
+    @GET("/v1/user/bookmarks/illust?filter=for_ios&restrict=public")
+    suspend fun getUserBookmarkedIllusts(
+        @Query("user_id") user_id: Long,
+    ): IllustResponse
+
+    @GET("/v1/user/illusts?type=illust&filter=for_ios")
+    suspend fun getNextIllust(
+        @Query("user_id") user_id: Long,
+    ): IllustResponse
+
+    @GET
+    suspend fun generalGet(@Url url: String): ResponseBody
 }
