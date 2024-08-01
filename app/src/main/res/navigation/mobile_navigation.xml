@@ -44,11 +44,24 @@
     </fragment>
 
     <fragment
+        android:id="@+id/navigation_user_bookmarked_illust"
+        android:name="ceui.pixiv.ui.user.UserBookmarkedIllustsFragment" >
+
+        <argument
+            android:name="user_id"
+            app:argType="long" />
+    </fragment>
+
+    <fragment
         android:id="@+id/navigation_user_created_illust"
         android:name="ceui.pixiv.ui.user.UserCreatedIllustsFragment">
 
         <argument
             android:name="user_id"
             app:argType="long" />
+
+        <argument
+            android:name="object_type"
+            app:argType="string"/>
     </fragment>
 </navigation>

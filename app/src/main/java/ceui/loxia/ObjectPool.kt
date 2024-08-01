@@ -113,6 +113,9 @@ object ObjectPool {
             "UserBean" -> {
                 ObjectSpec.USER
             }
+            "User" -> {
+                ObjectSpec.KUser
+            }
             "Article" -> {
                 ObjectSpec.ARTICLE
             }

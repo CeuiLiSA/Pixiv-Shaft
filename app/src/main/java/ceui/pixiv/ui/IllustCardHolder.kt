@@ -19,6 +19,9 @@ class IllustCardHolder(val illust: Illust) : ListItemHolder() {
 
     init {
         ObjectPool.update(illust)
+        illust.user?.let {
+            ObjectPool.update(it)
+        }
     }
 
     override fun areItemsTheSame(other: ListItemHolder): Boolean {

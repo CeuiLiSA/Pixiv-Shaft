@@ -32,7 +32,7 @@ class UserBookmarkedIllustsFragment: PixivFragment(R.layout.fragment_home) {
         loader = { Client.appApi.getUserBookmarkedIllusts(args.userId) },
         mapper = { illust -> listOf(IllustCardHolder(illust)) }
     )
-    private val args by navArgs<UserCreatedIllustsFragmentArgs>()
+    private val args by navArgs<UserBookmarkedIllustsFragmentArgs>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

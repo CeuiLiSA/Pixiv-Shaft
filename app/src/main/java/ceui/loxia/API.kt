@@ -36,9 +36,10 @@ interface API {
     @GET("/v1/illust/recommended?include_ranking_illusts=true&include_privacy_policy=true&filter=for_ios")
     suspend fun getHomeData(): HomeIllustResponse
 
-    @GET("/v1/user/illusts?type=illust&filter=for_ios")
+    @GET("/v1/user/illusts?filter=for_ios")
     suspend fun getUserCreatedIllusts(
         @Query("user_id") user_id: Long,
+        @Query("type") type: String,
     ): IllustResponse
 
     @GET("/v1/user/bookmarks/illust?filter=for_ios&restrict=public")
@@ -46,10 +47,6 @@ interface API {
         @Query("user_id") user_id: Long,
     ): IllustResponse
 
-    @GET("/v1/user/illusts?type=illust&filter=for_ios")
-    suspend fun getNextIllust(
-        @Query("user_id") user_id: Long,
-    ): IllustResponse
 
     @GET("/v2/user/detail?filter=for_ios")
     suspend fun getUserProfile(

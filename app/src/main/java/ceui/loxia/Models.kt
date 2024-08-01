@@ -164,7 +164,7 @@ data class User(
     override val objectUniqueId: Long
         get() = id
     override val objectType: Int
-        get() = ObjectSpec.USER
+        get() = ObjectSpec.KUser
 
     fun isOfficial(): Boolean {
         return ConstantUser.officialUsers.contains(id)

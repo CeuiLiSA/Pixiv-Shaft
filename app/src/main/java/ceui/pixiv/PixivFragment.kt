@@ -15,6 +15,7 @@ import ceui.pixiv.ui.works.IllustFragmentArgs
 import ceui.refactor.CommonAdapter
 import ceui.refactor.ppppx
 import com.scwang.smart.refresh.header.FalsifyFooter
+import com.scwang.smart.refresh.header.MaterialHeader
 
 open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionReceiver {
 
@@ -27,12 +28,11 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionRe
 }
 
 fun Fragment.setUpStaggerLayout(binding: FragmentHomeBinding, viewModel: PixivListViewModel<*, *>) {
+    val ctx = requireContext()
+    binding.refreshLayout.setRefreshHeader(MaterialHeader(ctx))
     binding.refreshLayout.setOnRefreshListener {
         viewModel.refresh(RefreshHint.pullToRefresh())
     }
-
-    val ctx = requireContext()
-
     viewModel.refreshState.observe(viewLifecycleOwner) { state ->
         if (state !is RefreshState.LOADING) {
             binding.refreshLayout.finishRefresh()

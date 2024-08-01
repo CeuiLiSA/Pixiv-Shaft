@@ -10,6 +10,7 @@ import ceui.lisa.databinding.FragmentUserProfileBinding
 import ceui.lisa.utils.GlideUrlChild
 import ceui.loxia.Client
 import ceui.loxia.ObjectPool
+import ceui.loxia.ObjectType
 import ceui.loxia.User
 import ceui.pixivValueViewModel
 import ceui.refactor.viewBinding
@@ -28,23 +29,41 @@ class UserProfileFragment : Fragment(R.layout.fragment_user_profile) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        ObjectPool.get<User>(args.userId).observe(viewLifecycleOwner) { user ->
+            if (user?.profile_image_urls?.findMaxSizeUrl()?.isNotEmpty() == true) {
+                Glide.with(this).load(GlideUrlChild(user.profile_image_urls.findMaxSizeUrl())).into(binding.userIcon)
+            }
+            binding.userName.text = user?.name
+        }
         viewModel.result.observe(viewLifecycleOwner) { result ->
-            Glide.with(this).load(GlideUrlChild(result.profile?.background_image_url)).into(binding.headerImage)
+            if (result.profile?.background_image_url?.isNotEmpty() == true) {
+                Glide.with(this).load(GlideUrlChild(result.profile.background_image_url)).into(binding.headerImage)
+            }
         }
 
         binding.viewPager.adapter = object : FragmentStateAdapter(this) {
             override fun getItemCount(): Int {
-                return 2
+                return 3
             }
 
             override fun createFragment(position: Int): Fragment {
                 return if (position == 0) {
                     UserCreatedIllustsFragment().apply {
-                        arguments = args.toBundle()
+                        arguments = UserCreatedIllustsFragmentArgs(
+                            userId = args.userId,
+                            objectType = ObjectType.ILLUST
+                        ).toBundle()
+                    }
+                } else if (position == 1) {
+                    UserCreatedIllustsFragment().apply {
+                        arguments = UserCreatedIllustsFragmentArgs(
+                            userId = args.userId,
+                            objectType = ObjectType.MANGA
+                        ).toBundle()
                     }
                 } else {
                     UserBookmarkedIllustsFragment().apply {
-                        arguments = args.toBundle()
+                        arguments = UserBookmarkedIllustsFragmentArgs(args.userId).toBundle()
                     }
                 }
             }

@@ -30,6 +30,27 @@
                 android:background="@color/colorBlack40"
                 android:layout_height="wrap_content"/>
 
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_gravity="center_horizontal|bottom"
+                android:layout_marginBottom="20dp"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:layout_height="wrap_content">
+
+                <net.csdn.roundview.CircleImageView
+                    android:id="@+id/user_icon"
+                    android:layout_marginBottom="12dp"
+                    android:scaleType="centerCrop"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"/>
+
+                <TextView
+                    android:id="@+id/user_name"
+                    android:layout_width="wrap_content"
+                    android:textColor="@color/text00"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
 
         </com.google.android.material.appbar.CollapsingToolbarLayout>
 
