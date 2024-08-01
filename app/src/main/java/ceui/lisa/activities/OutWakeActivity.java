@@ -24,6 +24,7 @@ import ceui.lisa.utils.Common;
 import ceui.lisa.utils.Local;
 import ceui.lisa.utils.Params;
 import ceui.lisa.utils.PixivOperate;
+import ceui.loxia.AccountResponse;
 import ceui.pixiv.session.SessionManager;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
@@ -210,6 +211,7 @@ public class OutWakeActivity extends BaseActivity<ActivityOutWakeBinding> {
 
                                         userModel.getUser().setIs_login(true);
                                         Local.saveUser(userModel);
+                                        SessionManager.INSTANCE.updateSession(userModel);
 
                                         UserEntity userEntity = new UserEntity();
                                         userEntity.setLoginTime(System.currentTimeMillis());

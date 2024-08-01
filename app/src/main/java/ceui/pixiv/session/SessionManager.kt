@@ -1,9 +1,17 @@
 package ceui.pixiv.session
 
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import ceui.lisa.fragments.FragmentLogin
+import ceui.lisa.models.UserModel
+import ceui.lisa.utils.Local
 import ceui.loxia.AccountResponse
+import ceui.loxia.Client
+import ceui.loxia.User
 import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 
 object SessionManager {
 
@@ -20,6 +28,10 @@ object SessionManager {
         return _loggedInAccount.value != null
     }
 
+    val loggedInUid: Long get() {
+        return _loggedInAccount.value?.user?.id ?: 0L
+    }
+
     fun load() {
         val json = prefStore.getString(LoggedInUserJsonKey, "")
         if (json?.isNotEmpty() == true) {
@@ -31,13 +43,36 @@ object SessionManager {
         }
     }
 
-    fun updateSession(accountResponse: AccountResponse) {
+    fun updateSession(userModel: UserModel) {
+        val javaJson = gson.toJson(userModel)
+        val accountResponse = gson.fromJson(javaJson, AccountResponse::class.java)
         prefStore.putString(LoggedInUserJsonKey, gson.toJson(accountResponse))
         _loggedInAccount.value = accountResponse
     }
 
-    suspend fun refreshAccessToken() {
 
+    fun refreshAccessToken(): String? {
+        return runBlocking(Dispatchers.IO) {
+            try {
+                val refreshToken = _loggedInAccount.value?.refresh_token ?: throw RuntimeException("refresh_token not exist")
+                val userModel = Client.authApi.newRefreshToken(
+                    FragmentLogin.CLIENT_ID,
+                    FragmentLogin.CLIENT_SECRET,
+                    FragmentLogin.REFRESH_TOKEN,
+                    refreshToken,
+                    true
+                ).execute().body()
+                if (userModel != null) {
+                    updateSession(userModel)
+                    getAccessToken()
+                } else {
+                    throw RuntimeException("newRefreshToken failed")
+                }
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+                null
+            }
+        }
     }
 
     fun getAccessToken(): String {

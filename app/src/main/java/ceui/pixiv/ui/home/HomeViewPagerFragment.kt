@@ -7,6 +7,7 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentHomeViewpagerBinding
 import ceui.pixiv.PixivFragment
+import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.user.UserFollowingFragment
 import ceui.pixiv.ui.user.UserFollowingFragmentArgs
 import ceui.refactor.viewBinding
@@ -26,7 +27,7 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager) {
                     return HomeFragment()
                 }
                 return UserFollowingFragment().apply {
-                    arguments = UserFollowingFragmentArgs(31660292L, "public").toBundle()
+                    arguments = UserFollowingFragmentArgs(SessionManager.loggedInUid, "public").toBundle()
                 }
             }
         }

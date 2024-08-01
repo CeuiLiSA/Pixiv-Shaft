@@ -49,6 +49,7 @@ import ceui.lisa.utils.ReverseImage;
 import ceui.lisa.utils.ReverseWebviewCallback;
 import ceui.lisa.view.DrawerLayoutViewPager;
 import ceui.pixiv.HomeActivity;
+import ceui.pixiv.session.SessionManager;
 
 import static ceui.lisa.R.id.nav_gallery;
 import static ceui.lisa.R.id.nav_slideshow;
@@ -219,7 +220,7 @@ public class MainActivity extends BaseActivity<ActivityCoverBinding>
 
     @Override
     protected void initData() {
-        if (sUserModel != null && sUserModel.getUser() != null && sUserModel.getUser().isIs_login()) {
+        if (SessionManager.INSTANCE.isLoggedIn()) {
             if (Dev.isDev) {
                 startActivity(new Intent(this, HomeActivity.class));
             } else {

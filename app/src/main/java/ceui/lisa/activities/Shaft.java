@@ -36,6 +36,7 @@ import ceui.lisa.utils.Settings;
 import ceui.lisa.view.MyDeliveryHeader;
 import ceui.lisa.viewmodel.AppLevelViewModel;
 import ceui.loxia.ServicesProvider;
+import ceui.pixiv.session.SessionManager;
 import me.jessyan.progressmanager.ProgressManager;
 import okhttp3.OkHttpClient;
 
@@ -92,6 +93,8 @@ public class Shaft extends Application implements ServicesProvider {
 
 
         sSettings = Local.getSettings();
+
+        SessionManager.INSTANCE.load();
 
         updateTheme();
 

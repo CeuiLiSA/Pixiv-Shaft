@@ -4,6 +4,9 @@ import android.text.TextUtils
 import ceui.lisa.activities.Shaft
 import ceui.lisa.fragments.FragmentLogin
 import ceui.lisa.utils.Local
+import ceui.pixiv.session.SessionManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.Response
 import kotlin.Exception
@@ -26,7 +29,7 @@ class TokenFetcherInterceptor : Interceptor {
                 if (accessToken != null) {
                     val newRequest = chain.request()
                         .newBuilder()
-                        .header(ClientManager.HEADER_AUTH, accessToken)
+                        .header(ClientManager.HEADER_AUTH, ClientManager.TOKEN_HEAD + SessionManager.getAccessToken())
                         .build()
                     chain.proceed(newRequest)
                 } else {
@@ -42,26 +45,11 @@ class TokenFetcherInterceptor : Interceptor {
 
     @Synchronized
     private fun refreshToken(oldToken: String): String? {
-        if (!TextUtils.equals(Shaft.sUserModel.rawAccessToken, oldToken)) {
-            return Shaft.sUserModel.access_token
+        val freshAccessToken = SessionManager.getAccessToken()
+        if (!TextUtils.equals(freshAccessToken, oldToken)) {
+            return freshAccessToken
         }
 
-        val refreshToken = Shaft.sUserModel.refresh_token ?: ""
-        try {
-            val accountResponse = Client.authApi.newRefreshToken(
-                FragmentLogin.CLIENT_ID,
-                FragmentLogin.CLIENT_SECRET,
-                FragmentLogin.REFRESH_TOKEN,
-                refreshToken,
-                true
-            ).execute().body()
-            if (accountResponse != null) {
-                Local.saveUser(accountResponse)
-                return accountResponse.access_token
-            }
-        } catch (ex: Exception) {
-            ex.printStackTrace()
-        }
-        return null
+        return SessionManager.refreshAccessToken()
     }
 }
