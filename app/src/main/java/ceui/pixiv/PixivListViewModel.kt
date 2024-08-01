@@ -8,11 +8,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import ceui.loxia.Client
-import ceui.loxia.IllustResponse
 import ceui.loxia.KListShow
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
-import ceui.pixiv.ui.IllustCardHolder
 import ceui.refactor.ListItemHolder
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
@@ -50,17 +48,22 @@ class PixivListViewModel<Item, T: KListShow<Item>>(
         refresh(RefreshHint.initialLoad())
     }
 
+    private var classSpec: Class<T>? = null
 
     fun refresh(hint: RefreshHint) {
         viewModelScope.launch {
             try {
                 _refreshState.value = RefreshState.LOADING(refreshHint = hint)
                 val batch = mutableListOf<ListItemHolder>()
-                val illustResponse = loader()
-                _nextUrl = illustResponse.nextPageUrl
-                batch.addAll(illustResponse.displayList.flatMap(mapper))
+                val response = loader()
+                classSpec = response::class.java as Class<T>
+                _nextUrl = response.nextPageUrl
+                batch.addAll(response.displayList.flatMap(mapper))
                 _holders.value = batch
-                _refreshState.value = RefreshState.LOADED(hasNext = illustResponse.nextPageUrl?.isNotEmpty() == true)
+                _refreshState.value = RefreshState.LOADED(
+                    hasContent = response.displayList.isNotEmpty(),
+                    hasNext = response.nextPageUrl?.isNotEmpty() == true
+                )
             } catch (ex: Exception) {
                 _refreshState.value = RefreshState.ERROR(ex)
                 ex.printStackTrace()
@@ -75,14 +78,17 @@ class PixivListViewModel<Item, T: KListShow<Item>>(
                 _refreshState.value = RefreshState.LOADING(refreshHint = RefreshHint.loadMore())
                 val responseBody = Client.appApi.generalGet(nextUrl)
                 val jsonString = responseBody.string()
-                val illustResponse = gson.fromJson(jsonString, IllustResponse::class.java)
-                _nextUrl = illustResponse.next_url
-                if (illustResponse.illusts.isNotEmpty()) {
+                val response = gson.fromJson(jsonString, classSpec)
+                _nextUrl = response.nextPageUrl
+                if (response.displayList.isNotEmpty()) {
                     val existing = (_holders.value ?: listOf()).toMutableList()
-                    existing.addAll(illustResponse.illusts.map { IllustCardHolder(it) })
+                    existing.addAll(response.displayList.flatMap(mapper))
                     _holders.value = existing
                 }
-                _refreshState.value = RefreshState.LOADED(hasNext = illustResponse.nextPageUrl?.isNotEmpty() == true)
+                _refreshState.value = RefreshState.LOADED(
+                    hasContent = _holders.value?.isNotEmpty() == true,
+                    hasNext = response.nextPageUrl?.isNotEmpty() == true
+                )
             } catch (ex: Exception) {
                 _refreshState.value = RefreshState.ERROR(ex)
                 ex.printStackTrace()

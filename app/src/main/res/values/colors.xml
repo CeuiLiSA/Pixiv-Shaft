@@ -179,6 +179,9 @@
 
 
     <color name="text00">#FFFFFF</color>
+    <color name="transparent">#00000000</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="purple_200">#FFBB86FC</color>
 
 </resources>
 

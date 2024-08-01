@@ -21,4 +21,5 @@
     <dimen name="middle_progress_width">3.5dp</dimen>
     <dimen name="middle_progress_radius">10dp</dimen>
     <dimen name="hair_line_width">0.6dp</dimen>
+    <dimen name="playlist_app_bar_height">180dp</dimen>
 </resources>

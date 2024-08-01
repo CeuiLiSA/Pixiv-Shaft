@@ -13,8 +13,32 @@
         android:layout_height="wrap_content">
         <ProgressBar
             android:id="@+id/progress_circular"
+            android:visibility="gone"
+            android:layout_gravity="center"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
+
+        <LinearLayout
+            android:id="@+id/empty_layout"
+            android:layout_width="wrap_content"
+            android:visibility="gone"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:id="@+id/empty_image"
+                android:layout_width="wrap_content"
+                android:src="@drawable/icon_empty_state"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="@string/string_48"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
     </FrameLayout>
 
     <com.scwang.smart.refresh.layout.SmartRefreshLayout

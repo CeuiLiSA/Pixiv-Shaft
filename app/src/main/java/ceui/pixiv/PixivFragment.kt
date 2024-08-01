@@ -38,6 +38,7 @@ fun Fragment.setUpStaggerLayout(binding: FragmentHomeBinding, viewModel: PixivLi
             binding.refreshLayout.finishRefresh()
             binding.refreshLayout.finishLoadMore()
         }
+        binding.emptyLayout.isVisible = state is RefreshState.LOADED && !state.hasContent
         if (state is RefreshState.LOADED) {
             if (state.hasNext) {
                 binding.refreshLayout.setOnLoadMoreListener {

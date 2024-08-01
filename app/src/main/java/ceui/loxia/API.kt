@@ -51,6 +51,11 @@ interface API {
         @Query("user_id") user_id: Long,
     ): IllustResponse
 
+    @GET("/v2/user/detail?filter=for_ios")
+    suspend fun getUserProfile(
+        @Query("user_id") user_id: Long,
+    ): UserResponse
+
     @GET
     suspend fun generalGet(@Url url: String): ResponseBody
 }
