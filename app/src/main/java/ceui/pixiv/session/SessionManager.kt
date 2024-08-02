@@ -1,6 +1,7 @@
 package ceui.pixiv.session
 
 import android.text.TextUtils
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import ceui.lisa.fragments.FragmentLogin
@@ -21,6 +22,10 @@ object SessionManager {
 
     private val _loggedInAccount = MutableLiveData<AccountResponse>()
     private val gson = Gson()
+
+
+    private val _isRenewToken = MutableLiveData(false)
+    val isRenewToken: LiveData<Boolean> = _isRenewToken
 
     private val prefStore: MMKV by lazy {
         MMKV.defaultMMKV()
@@ -61,6 +66,7 @@ object SessionManager {
 
         return runBlocking(Dispatchers.IO) {
             try {
+                _isRenewToken.postValue(true)
                 val refreshToken = _loggedInAccount.value?.refresh_token ?: throw RuntimeException("refresh_token not exist")
                 val userModel = Client.authApi.newRefreshToken(
                     FragmentLogin.CLIENT_ID,
@@ -70,7 +76,7 @@ object SessionManager {
                     true
                 ).execute().body()
                 if (userModel != null) {
-                    withContext(Dispatchers.IO) {
+                    withContext(Dispatchers.Main) {
                         updateSession(userModel)
                     }
                     userModel.rawAccessToken
@@ -80,6 +86,8 @@ object SessionManager {
             } catch (ex: Exception) {
                 ex.printStackTrace()
                 null
+            } finally {
+                _isRenewToken.postValue(false)
             }
         }
     }

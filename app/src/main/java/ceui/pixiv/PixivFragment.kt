@@ -23,17 +23,6 @@ import com.scwang.smart.refresh.header.MaterialHeader
 
 open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionReceiver {
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        reenterTransition = MaterialSharedAxis(MaterialSharedAxis.X, false)
-        exitTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
-
-
-        enterTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
-        returnTransition = MaterialSharedAxis(MaterialSharedAxis.X, false)
-    }
-
     override fun onClickIllustCard(illust: Illust) {
         pushFragment(
             R.id.navigation_illust,

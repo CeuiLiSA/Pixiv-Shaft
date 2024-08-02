@@ -46,15 +46,23 @@ object ObjectPool {
     }
 
     fun followUser(userId: Long) {
-        val exist = get<UserBean>(userId).value ?: return
-        exist.isIs_followed = true
-        update(exist)
+        get<UserBean>(userId).value?.let { exist ->
+            exist.isIs_followed = true
+            update(exist)
+        }
+        get<User>(userId).value?.let { exist ->
+            update(exist.copy(is_followed = true))
+        }
     }
 
     fun unFollowUser(userId: Long) {
-        val exist = get<UserBean>(userId).value ?: return
-        exist.isIs_followed = false
-        update(exist)
+        get<UserBean>(userId).value?.let { exist ->
+            exist.isIs_followed = false
+            update(exist)
+        }
+        get<User>(userId).value?.let { exist ->
+            update(exist.copy(is_followed = false))
+        }
     }
 
     inline fun <reified ObjectT : ModelObject> get(id: Long): LiveData<ObjectT> {

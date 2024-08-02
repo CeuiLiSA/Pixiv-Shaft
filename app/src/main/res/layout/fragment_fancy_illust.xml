@@ -30,8 +30,31 @@
         <TextView
             android:id="@+id/user_name"
             android:textColor="@color/text00"
+            android:layout_marginEnd="10dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
+
+        <ceui.loxia.ProgressTextButton
+            android:id="@+id/follow"
+            style="@style/BlueShiningButton"
+            android:layout_width="wrap_content"
+            android:visibility="gone"
+            android:layout_height="32dp"
+            android:paddingHorizontal="16dp"
+            android:text="@string/follow"
+            app:ptb_progress_stroke_width="3dp"
+            app:ptb_progress_width="14dp" />
+
+        <ceui.loxia.ProgressTextButton
+            android:id="@+id/unfollow"
+            style="@style/RedShiningButton"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:paddingHorizontal="16dp"
+            android:text="@string/unfollow"
+            app:ptb_progress_stroke_width="3dp"
+            app:ptb_progress_width="14dp" />
     </LinearLayout>
 
 

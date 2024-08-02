@@ -52,13 +52,6 @@
                     android:layout_height="wrap_content"/>
             </LinearLayout>
 
-            <FrameLayout
-                android:id="@+id/static_placeholder"
-                android:layout_width="match_parent"
-                android:layout_height="80dp"
-                app:layout_collapseMode="pin">
-            </FrameLayout>
-
         </com.google.android.material.appbar.CollapsingToolbarLayout>
 
         <com.google.android.material.tabs.TabLayout

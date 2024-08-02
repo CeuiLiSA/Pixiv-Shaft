@@ -51,11 +51,35 @@ fun NavOptions.Builder.setHorizontalSlide(): NavOptions.Builder {
         .setPopExitAnim(R.anim.h_slide_popexit)
 }
 
+fun NavOptions.Builder.setVerticalSlide(): NavOptions.Builder {
+    return setEnterAnim(R.anim.v_slide_enter)
+        .setExitAnim(R.anim.v_slide_exit)
+        .setPopEnterAnim(R.anim.v_slide_popenter)
+        .setPopExitAnim(R.anim.v_slide_popexit)
+}
+
+
+fun NavOptions.Builder.setFadeIn(): NavOptions.Builder {
+    return setEnterAnim(R.anim.slow_fade_in)
+        .setExitAnim(R.anim.slow_fade_out)
+        .setPopEnterAnim(R.anim.slow_fade_in)
+        .setPopExitAnim(R.anim.slow_fade_out)
+}
+
 
 fun Fragment.pushFragment(id: Int, bundle: Bundle? = null) {
     findNavController().navigate(
         id,
         bundle,
+        NavOptions.Builder().setHorizontalSlide().build()
+    )
+}
+
+fun Fragment.fadeInFragment(id: Int, bundle: Bundle? = null) {
+    findNavController().navigate(
+        id,
+        bundle,
+        NavOptions.Builder().setFadeIn().build()
     )
 }
 
