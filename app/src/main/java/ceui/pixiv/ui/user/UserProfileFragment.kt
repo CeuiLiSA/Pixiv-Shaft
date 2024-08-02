@@ -2,12 +2,16 @@ package ceui.pixiv.ui.user
 
 import android.os.Bundle
 import android.view.View
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.navArgs
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import ceui.lisa.R
+import ceui.lisa.activities.followUser
+import ceui.lisa.activities.unfollowUser
 import ceui.lisa.databinding.FragmentUserProfileBinding
 import ceui.lisa.utils.GlideUrlChild
+import ceui.lisa.utils.Params
 import ceui.loxia.Client
 import ceui.loxia.ObjectPool
 import ceui.loxia.ObjectType
@@ -16,6 +20,7 @@ import ceui.pixiv.PixivFragment
 import ceui.pixiv.ViewPagerFragment
 import ceui.pixivValueViewModel
 import ceui.refactor.ppppx
+import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
 import com.bumptech.glide.Glide
 import com.google.android.material.appbar.AppBarLayout
@@ -36,6 +41,14 @@ class UserProfileFragment : PixivFragment(R.layout.fragment_user_profile), ViewP
         ObjectPool.get<User>(args.userId).observe(viewLifecycleOwner) { user ->
             if (user?.profile_image_urls?.findMaxSizeUrl()?.isNotEmpty() == true) {
                 Glide.with(this).load(GlideUrlChild(user.profile_image_urls.findMaxSizeUrl())).into(binding.userIcon)
+            }
+            binding.follow.isVisible = user.is_followed != true
+            binding.unfollow.isVisible = user.is_followed == true
+            binding.follow.setOnClick {
+                followUser(it, user.id.toInt(), Params.TYPE_PUBLIC)
+            }
+            binding.unfollow.setOnClick {
+                unfollowUser(it, user.id.toInt())
             }
             binding.userName.text = user?.name
         }
