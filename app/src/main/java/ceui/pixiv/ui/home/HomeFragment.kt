@@ -11,14 +11,17 @@ import ceui.lisa.view.SpacesItemDecoration
 import ceui.loxia.Illust
 import ceui.loxia.RefreshState
 import ceui.loxia.pushFragment
+import ceui.pixiv.PixivFragment
 import ceui.pixiv.ui.IllustCardActionReceiver
 import ceui.pixiv.ui.IllustCardHolder
 import ceui.pixiv.ui.works.IllustFragmentArgs
 import ceui.refactor.CommonAdapter
 import ceui.refactor.ppppx
 import ceui.refactor.viewBinding
+import com.google.android.material.transition.platform.MaterialFadeThrough
+import com.google.android.material.transition.platform.MaterialSharedAxis
 
-class HomeFragment : Fragment(R.layout.fragment_pixiv_list), IllustCardActionReceiver {
+class HomeFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
     private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val viewModel by viewModels<HomeViewModel>()
@@ -44,12 +47,5 @@ class HomeFragment : Fragment(R.layout.fragment_pixiv_list), IllustCardActionRec
                 }
             )
         }
-    }
-
-    override fun onClickIllustCard(illust: Illust) {
-        pushFragment(
-            R.id.navigation_illust,
-            IllustFragmentArgs(illust.id).toBundle()
-        )
     }
 }

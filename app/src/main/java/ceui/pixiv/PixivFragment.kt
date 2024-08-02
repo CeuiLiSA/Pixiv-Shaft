@@ -1,5 +1,6 @@
 package ceui.pixiv
 
+import android.os.Bundle
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -15,10 +16,23 @@ import ceui.pixiv.ui.IllustCardActionReceiver
 import ceui.pixiv.ui.works.IllustFragmentArgs
 import ceui.refactor.CommonAdapter
 import ceui.refactor.ppppx
+import com.google.android.material.transition.platform.MaterialFadeThrough
+import com.google.android.material.transition.platform.MaterialSharedAxis
 import com.scwang.smart.refresh.header.FalsifyFooter
 import com.scwang.smart.refresh.header.MaterialHeader
 
 open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionReceiver {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        reenterTransition = MaterialSharedAxis(MaterialSharedAxis.X, false)
+        exitTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
+
+
+        enterTransition = MaterialSharedAxis(MaterialSharedAxis.X, true)
+        returnTransition = MaterialSharedAxis(MaterialSharedAxis.X, false)
+    }
 
     override fun onClickIllustCard(illust: Illust) {
         pushFragment(
@@ -26,6 +40,10 @@ open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionRe
             IllustFragmentArgs(illust.id).toBundle()
         )
     }
+}
+
+interface ViewPagerFragment {
+
 }
 
 fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: PixivListViewModel<*, *>) {

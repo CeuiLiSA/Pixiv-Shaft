@@ -1,5 +1,6 @@
 package ceui.pixiv.session
 
+import android.text.TextUtils
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import ceui.lisa.fragments.FragmentLogin
@@ -12,6 +13,7 @@ import com.google.gson.Gson
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 
 object SessionManager {
 
@@ -51,7 +53,12 @@ object SessionManager {
     }
 
 
-    fun refreshAccessToken(): String? {
+    fun refreshAccessToken(tokenForThisRequest: String): String? {
+        val freshAccessToken = getAccessToken()
+        if (!TextUtils.equals(freshAccessToken, tokenForThisRequest)) {
+            return freshAccessToken
+        }
+
         return runBlocking(Dispatchers.IO) {
             try {
                 val refreshToken = _loggedInAccount.value?.refresh_token ?: throw RuntimeException("refresh_token not exist")
@@ -63,8 +70,10 @@ object SessionManager {
                     true
                 ).execute().body()
                 if (userModel != null) {
-                    updateSession(userModel)
-                    getAccessToken()
+                    withContext(Dispatchers.IO) {
+                        updateSession(userModel)
+                    }
+                    userModel.rawAccessToken
                 } else {
                     throw RuntimeException("newRefreshToken failed")
                 }
