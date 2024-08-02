@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Duration (in milliseconds) for slide transition animation -->
-    <integer name="h_slide">300</integer>
+    <integer name="h_slide">1000</integer>
     <integer name="v_slide">200</integer>
     <integer name="slideOffset">100</integer>
 </resources>
