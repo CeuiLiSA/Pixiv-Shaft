@@ -22,4 +22,6 @@
     <dimen name="middle_progress_radius">10dp</dimen>
     <dimen name="hair_line_width">0.6dp</dimen>
     <dimen name="playlist_app_bar_height">200dp</dimen>
+    <dimen name="list_item_spacing">16dp</dimen>
+    <dimen name="list_item_spacing_half">8dp</dimen>
 </resources>

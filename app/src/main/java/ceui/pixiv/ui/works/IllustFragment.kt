@@ -15,6 +15,7 @@ import ceui.loxia.ObjectPool
 import ceui.loxia.User
 import ceui.loxia.pushFragment
 import ceui.pixiv.PixivFragment
+import ceui.pixiv.ui.bottom.ItemListDialogFragment
 import ceui.pixiv.ui.user.UserProfileFragmentArgs
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
@@ -53,7 +54,6 @@ class IllustFragment : PixivFragment(R.layout.fragment_fancy_illust) {
                 unfollowUser(it, u.id.toInt())
             }
         }
-
 
     }
 }
