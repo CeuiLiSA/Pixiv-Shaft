@@ -48,7 +48,7 @@ import ceui.lisa.utils.Params;
 import ceui.lisa.utils.ReverseImage;
 import ceui.lisa.utils.ReverseWebviewCallback;
 import ceui.lisa.view.DrawerLayoutViewPager;
-import ceui.pixiv.HomeActivity;
+import ceui.pixiv.ui.common.HomeActivity;
 import ceui.pixiv.session.SessionManager;
 
 import static ceui.lisa.R.id.nav_gallery;

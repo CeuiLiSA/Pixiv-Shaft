@@ -31,16 +31,8 @@ class HomeViewModel : ViewModel() {
     fun refresh() {
         viewModelScope.launch {
             try {
-                val key = "home-data"
                 _refreshState.value = RefreshState.LOADING()
-                val json = prefStore.getString(key, "")
-                if (json?.isNotEmpty() == true) {
-                    obj.value = gson.fromJson(json, HomeIllustResponse::class.java)
-                } else {
-                    val apiData = Client.appApi.getHomeData()
-                    prefStore.putString(key, gson.toJson(apiData))
-                    obj.value = apiData
-                }
+
                 _refreshState.value = RefreshState.LOADED()
             } catch (ex: Exception) {
                 _refreshState.value = RefreshState.ERROR(ex)

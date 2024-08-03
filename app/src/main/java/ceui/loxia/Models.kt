@@ -329,7 +329,7 @@ interface KListShow<T> {
 }
 
 data class UserPreview(
-    val illusts: List<Illust>? = null,
+    val illusts: List<Illust> = listOf(),
     val is_muted: Boolean? = null,
     val novels: List<Any>? = null,
     val user: User? = null

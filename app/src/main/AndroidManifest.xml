@@ -34,7 +34,7 @@
         android:theme="@style/AppTheme"
         tools:ignore="UnusedAttribute">
         <activity
-            android:name="ceui.pixiv.HomeActivity"
+            android:name="ceui.pixiv.ui.common.HomeActivity"
             android:exported="false"
             android:label="@string/title_activity_home" />
 

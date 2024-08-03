@@ -1,4 +1,4 @@
-package ceui.pixiv.ui
+package ceui.pixiv.ui.common
 
 import androidx.core.view.updateLayoutParams
 import ceui.lisa.R
@@ -8,8 +8,6 @@ import ceui.lisa.utils.GlideUrlChild
 import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
 import ceui.loxia.findActionReceiverOrNull
-import ceui.refactor.ListItemHolder
-import ceui.refactor.ListItemViewHolder
 import ceui.refactor.ppppx
 import ceui.refactor.screenWidth
 import ceui.refactor.setOnClick

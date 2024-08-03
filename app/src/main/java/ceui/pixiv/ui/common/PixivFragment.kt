@@ -1,6 +1,5 @@
-package ceui.pixiv
+package ceui.pixiv.ui.common
 
-import android.os.Bundle
 import android.view.ViewGroup
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -17,10 +16,8 @@ import ceui.loxia.Illust
 import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.loxia.pushFragment
-import ceui.pixiv.ui.IllustCardActionReceiver
-import ceui.pixiv.ui.common.BottomDividerDecoration
+import ceui.pixiv.ui.list.PixivListViewModel
 import ceui.pixiv.ui.works.IllustFragmentArgs
-import ceui.refactor.CommonAdapter
 import ceui.refactor.ppppx
 import ceui.refactor.setOnClick
 import com.scwang.smart.refresh.header.FalsifyFooter

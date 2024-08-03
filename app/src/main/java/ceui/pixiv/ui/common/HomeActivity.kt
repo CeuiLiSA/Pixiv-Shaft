@@ -1,14 +1,10 @@
-package ceui.pixiv
+package ceui.pixiv.ui.common
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
-import androidx.navigation.findNavController
-import androidx.navigation.ui.setupWithNavController
-import ceui.lisa.R
 import ceui.lisa.databinding.ActivityHomeBinding
 import ceui.pixiv.session.SessionManager
 

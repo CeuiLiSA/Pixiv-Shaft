@@ -100,8 +100,8 @@ class FileGenerator : AbstractProcessor() {
         content.append("import android.view.ViewGroup\n")
         content.append("import android.view.View\n")
         content.append("import androidx.viewbinding.ViewBinding\n")
-        content.append("import ceui.refactor.ListItemHolder\n")
-        content.append("import ceui.refactor.ListItemViewHolder\n")
+        content.append("import ceui.pixiv.ui.common.ListItemHolder\n")
+        content.append("import ceui.pixiv.ui.common.ListItemViewHolder\n")
         holderEntries.forEach {
             content.append("import ${ it.existingPackage }${it.viewHolder}\n")
         }

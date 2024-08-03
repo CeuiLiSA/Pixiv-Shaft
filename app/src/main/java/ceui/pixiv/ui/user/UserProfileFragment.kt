@@ -16,15 +16,12 @@ import ceui.loxia.Client
 import ceui.loxia.ObjectPool
 import ceui.loxia.ObjectType
 import ceui.loxia.User
-import ceui.pixiv.PixivFragment
-import ceui.pixiv.ViewPagerFragment
-import ceui.pixivValueViewModel
-import ceui.refactor.ppppx
+import ceui.pixiv.ui.common.PixivFragment
+import ceui.pixiv.ui.common.ViewPagerFragment
+import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
 import com.bumptech.glide.Glide
-import com.google.android.material.appbar.AppBarLayout
-import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 
 class UserProfileFragment : PixivFragment(R.layout.fragment_user_profile), ViewPagerFragment {

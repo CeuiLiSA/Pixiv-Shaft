@@ -5,7 +5,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.*
 import androidx.lifecycle.viewmodel.CreationExtras
-import ceui.refactor.ListItemHolder
+import ceui.pixiv.ui.common.ListItemHolder
 import kotlinx.coroutines.launch
 import kotlin.reflect.KClass
 

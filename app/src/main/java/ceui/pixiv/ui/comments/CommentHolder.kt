@@ -11,9 +11,9 @@ import ceui.loxia.Comment
 import ceui.loxia.DateParse
 import ceui.loxia.findActionReceiverOrNull
 import ceui.pixiv.ui.common.BottomDividerDecoration
-import ceui.refactor.CommonAdapter
-import ceui.refactor.ListItemHolder
-import ceui.refactor.ListItemViewHolder
+import ceui.pixiv.ui.common.CommonAdapter
+import ceui.pixiv.ui.common.ListItemHolder
+import ceui.pixiv.ui.common.ListItemViewHolder
 import ceui.refactor.ppppx
 import ceui.refactor.setOnClick
 import com.bumptech.glide.Glide

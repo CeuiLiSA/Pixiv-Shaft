@@ -1,10 +1,9 @@
 package ceui.loxia
 
 import ceui.lisa.annotations.ItemHolder
-import ceui.lisa.databinding.CellSpaceBinding
 import ceui.lisa.databinding.CellTextDescBinding
-import ceui.refactor.ListItemHolder
-import ceui.refactor.ListItemViewHolder
+import ceui.pixiv.ui.common.ListItemHolder
+import ceui.pixiv.ui.common.ListItemViewHolder
 
 class TextDescHolder(val content: String) : ListItemHolder() {
 }

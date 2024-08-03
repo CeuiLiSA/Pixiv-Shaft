@@ -1,4 +1,4 @@
-package ceui
+package ceui.pixiv.ui.common
 
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels

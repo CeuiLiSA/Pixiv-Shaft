@@ -6,12 +6,9 @@ import ceui.lisa.databinding.CellNovelImageBinding
 import ceui.lisa.databinding.CellNovelTextBinding
 import ceui.lisa.models.NovelImages
 import ceui.lisa.models.WebNovel
-import ceui.lisa.utils.Common
-import ceui.lisa.utils.GlideUtil
 import ceui.lisa.utils.PixivOperate
-import ceui.loxia.SpaceHolder
-import ceui.refactor.ListItemHolder
-import ceui.refactor.ListItemViewHolder
+import ceui.pixiv.ui.common.ListItemHolder
+import ceui.pixiv.ui.common.ListItemViewHolder
 import ceui.refactor.setOnClick
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.model.GlideUrl

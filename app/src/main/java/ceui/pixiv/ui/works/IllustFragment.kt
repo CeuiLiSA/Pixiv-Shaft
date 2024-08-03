@@ -14,8 +14,7 @@ import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
 import ceui.loxia.User
 import ceui.loxia.pushFragment
-import ceui.pixiv.PixivFragment
-import ceui.pixiv.ui.bottom.ItemListDialogFragment
+import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.comments.CommentsFragmentArgs
 import ceui.pixiv.ui.user.UserProfileFragmentArgs
 import ceui.refactor.setOnClick

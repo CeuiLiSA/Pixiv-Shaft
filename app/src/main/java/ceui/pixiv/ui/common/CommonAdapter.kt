@@ -1,4 +1,4 @@
-package ceui.refactor
+package ceui.pixiv.ui.common
 
 import android.content.Context
 import android.util.Log
@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import ceui.pixiv.ui.viewholdermap.ViewHolderFactory
+import ceui.refactor.setOnClick
 import java.lang.RuntimeException
 
 val listItemHolderDiffUtil = object :
