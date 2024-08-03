@@ -7,6 +7,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.R
@@ -21,6 +22,7 @@ import ceui.pixiv.ui.common.BottomDividerDecoration
 import ceui.pixiv.ui.works.IllustFragmentArgs
 import ceui.refactor.CommonAdapter
 import ceui.refactor.ppppx
+import ceui.refactor.setOnClick
 import com.scwang.smart.refresh.header.FalsifyFooter
 import com.scwang.smart.refresh.header.MaterialHeader
 
@@ -40,9 +42,12 @@ interface ViewPagerFragment {
 
 fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: PixivListViewModel<*, *>) {
     val ctx = requireContext()
+    binding.naviBack.setOnClick {
+        findNavController().popBackStack()
+    }
     ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
         val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-        binding.listView.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+        binding.toolbarLayout.updateLayoutParams<ViewGroup.MarginLayoutParams> {
             topMargin = insets.top
         }
         WindowInsetsCompat.CONSUMED
