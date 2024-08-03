@@ -11,12 +11,30 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
-        <ProgressBar
-            android:id="@+id/progress_circular"
+
+        <LinearLayout
+            android:id="@+id/loading_layout"
+            android:layout_width="wrap_content"
             android:visibility="gone"
             android:layout_gravity="center"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:gravity="center"
+            android:orientation="vertical"
+            android:layout_height="wrap_content">
+
+            <ProgressBar
+                android:id="@+id/progress_circular"
+                android:layout_gravity="center"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_marginTop="10dp"
+                android:textColor="@color/text10"
+                android:text="@string/now_loading"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+
 
         <LinearLayout
             android:id="@+id/empty_layout"
@@ -36,6 +54,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_marginTop="10dp"
+                android:textColor="@color/text10"
                 android:text="@string/string_48"
                 android:layout_height="wrap_content"/>
         </LinearLayout>
