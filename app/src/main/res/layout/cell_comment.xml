@@ -69,9 +69,8 @@
 
         <net.csdn.roundview.RoundImageView
             android:id="@+id/comment_stamp"
-            android:layout_width="90dp"
-            android:layout_height="90dp"
-            android:textSize="16sp"
+            android:layout_width="110dp"
+            android:layout_height="110dp"
             app:rRadius="4dp" />
     </FrameLayout>
 
@@ -123,6 +122,7 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/child_comments_list"
+        android:visibility="gone"
         android:layout_width="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/action_layout"

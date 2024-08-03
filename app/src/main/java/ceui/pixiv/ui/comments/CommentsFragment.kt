@@ -43,8 +43,8 @@ class CommentsFragment : PixivFragment(R.layout.fragment_pixiv_list), CommentAct
     override fun onClickShowMoreReply(commentId: Long) {
         launchSuspend {
             val resp = Client.appApi.getIllustReplyComments(commentId)
-            viewModel.update(commentId) { old ->
-                CommentHolder((old as CommentHolder).comment, args.illustArthurId, resp.comments)
+            viewModel.update<CommentHolder>(commentId) { old ->
+                CommentHolder(old.comment, args.illustArthurId, resp.comments)
             }
         }
     }

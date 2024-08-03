@@ -7,8 +7,8 @@
 
     <net.csdn.roundview.CircleImageView
         android:id="@+id/user_icon"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         android:scaleType="centerCrop"
         app:civ_border_color="@color/white"
         app:civ_border_overlay="true"
@@ -23,7 +23,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
         android:textColor="@color/text00"
-        android:textSize="16sp"
+        android:textSize="15sp"
         app:layout_constraintStart_toEndOf="@+id/user_icon"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -46,7 +46,7 @@
         android:textStyle="bold"
         android:paddingBottom="2dp"
         android:textColor="#B620E0"
-        android:textSize="12sp" />
+        android:textSize="11sp" />
 
     <FrameLayout
         android:id="@+id/content_frame"
@@ -63,14 +63,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/text10"
-            android:textSize="16sp" />
+            android:textSize="15sp" />
 
 
         <net.csdn.roundview.RoundImageView
             android:id="@+id/comment_stamp"
             android:layout_width="90dp"
             android:layout_height="90dp"
-            android:textSize="16sp"
             app:rRadius="4dp" />
     </FrameLayout>
 

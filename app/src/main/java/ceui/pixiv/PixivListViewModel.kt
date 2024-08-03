@@ -96,18 +96,23 @@ class PixivListViewModel<Item, T: KListShow<Item>>(
         }
     }
 
-    fun update(id: Long, validate: (ListItemHolder) -> ListItemHolder) {
+    fun <ListItemHolderT : ListItemHolder> update(id: Long, invalidate: (ListItemHolderT) -> ListItemHolderT) {
         _holders.value?.let { currentHolders ->
-            val target = currentHolders.firstOrNull { it.getItemId() == id }
-            if (target != null) {
-                val index = currentHolders.indexOf(target)
-                val updated = validate(target)
-                val mutableList = currentHolders.toMutableList()
-                mutableList.removeAt(index)
-                mutableList.add(index, updated)
-                _holders.value = mutableList
+            val index = currentHolders.indexOfFirst { it.getItemId() == id }
+            if (index != -1) {
+                try {
+                    val target = currentHolders[index] as ListItemHolderT
+                    val updated = invalidate(target)
+                    val mutableList = currentHolders.toMutableList().apply {
+                        set(index, updated)
+                    }
+                    _holders.value = mutableList
+                } catch (ex: Exception) {
+                    ex.printStackTrace()
+                }
             }
         }
     }
+
 
 }
