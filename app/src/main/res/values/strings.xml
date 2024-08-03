@@ -691,6 +691,5 @@
     <string name="toast_download_result">下载完成App内提示</string>
     <string name="title_activity_home">HomeActivity</string>
     <string name="title_home">Home</string>
-    <string name="title_dashboard">Dashboard</string>
-    <string name="title_notifications">Notifications</string>
+    <string name="show_reply">查看回复</string>
 </resources>

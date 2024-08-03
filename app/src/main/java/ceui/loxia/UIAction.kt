@@ -40,7 +40,11 @@ inline fun<reified InterfaceT> View.sendAction(action: (receiver: InterfaceT)->B
 
 fun Fragment.launchSuspend(block: suspend CoroutineScope.() -> Unit) {
     viewLifecycleOwnerLiveData.value?.lifecycleScope?.launch {
-        block()
+        try {
+            block()
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+        }
     }
 }
 

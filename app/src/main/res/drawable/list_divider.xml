@@ -1,0 +1,10 @@
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:insetLeft="@dimen/default_content_horizontal_margin"
+    android:insetRight="@dimen/default_content_horizontal_margin">
+
+    <shape>
+        <size android:height="0.5px" />
+        <solid android:color="@color/list_divider" />
+    </shape>
+
+</inset>

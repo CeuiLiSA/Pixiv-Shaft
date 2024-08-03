@@ -59,6 +59,21 @@ interface API {
         @Query("restrict") restrict: String,
     ): UserPreviewResponse
 
+    @GET("/v1/illust/ranking?filter=for_ios")
+    suspend fun getRankingIllusts(
+        @Query("mode") mode: String,
+    ): IllustResponse
+
+    @GET("/v3/illust/comments")
+    suspend fun getIllustComments(
+        @Query("illust_id") illust_id: Long,
+    ): CommentResponse
+
+    @GET("/v2/illust/comment/replies")
+    suspend fun getIllustReplyComments(
+        @Query("comment_id") comment_id: Long,
+    ): CommentResponse
+
     @GET
     suspend fun generalGet(@Url url: String): ResponseBody
 }

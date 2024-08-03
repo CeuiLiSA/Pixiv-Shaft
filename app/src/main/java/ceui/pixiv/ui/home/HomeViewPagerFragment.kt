@@ -9,6 +9,7 @@ import ceui.lisa.databinding.FragmentHomeViewpagerBinding
 import ceui.pixiv.PixivFragment
 import ceui.pixiv.ViewPagerFragment
 import ceui.pixiv.session.SessionManager
+import ceui.pixiv.ui.rank.RankingIllustsFragment
 import ceui.pixiv.ui.user.UserFollowingFragment
 import ceui.pixiv.ui.user.UserFollowingFragmentArgs
 import ceui.refactor.viewBinding
@@ -22,15 +23,18 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
         super.onViewCreated(view, savedInstanceState)
         binding.homeViewPager.adapter = object : FragmentStateAdapter(this) {
             override fun getItemCount(): Int {
-                return 2
+                return 3
             }
 
             override fun createFragment(position: Int): Fragment {
                 if (position == 0) {
                     return HomeFragment()
-                }
-                return UserFollowingFragment().apply {
-                    arguments = UserFollowingFragmentArgs(SessionManager.loggedInUid, "public").toBundle()
+                } else if (position == 1) {
+                    return RankingIllustsFragment()
+                } else {
+                    return UserFollowingFragment().apply {
+                        arguments = UserFollowingFragmentArgs(SessionManager.loggedInUid, "public").toBundle()
+                    }
                 }
             }
         }

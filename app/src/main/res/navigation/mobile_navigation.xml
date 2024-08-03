@@ -33,6 +33,22 @@
             app:argType="long" />
     </fragment>
 
+
+
+    <fragment
+        android:id="@+id/navigation_illust_comments"
+        android:name="ceui.pixiv.ui.comments.CommentsFragment"
+        tools:layout="@layout/fragment_pixiv_list" >
+
+        <argument
+            android:name="illust_id"
+            app:argType="long" />
+
+        <argument
+            android:name="illust_arthur_id"
+            app:argType="long" />
+    </fragment>
+
     <fragment
         android:id="@+id/navigation_user_profile"
         android:name="ceui.pixiv.ui.user.UserProfileFragment"

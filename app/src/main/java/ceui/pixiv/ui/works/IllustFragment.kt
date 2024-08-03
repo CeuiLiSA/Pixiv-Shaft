@@ -16,6 +16,7 @@ import ceui.loxia.User
 import ceui.loxia.pushFragment
 import ceui.pixiv.PixivFragment
 import ceui.pixiv.ui.bottom.ItemListDialogFragment
+import ceui.pixiv.ui.comments.CommentsFragmentArgs
 import ceui.pixiv.ui.user.UserProfileFragmentArgs
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
@@ -53,7 +54,12 @@ class IllustFragment : PixivFragment(R.layout.fragment_fancy_illust) {
             binding.unfollow.setOnClick {
                 unfollowUser(it, u.id.toInt())
             }
+
+            binding.comment.setOnClick {
+                pushFragment(R.id.navigation_illust_comments, CommentsFragmentArgs(args.illustId, illustArthurId = u.id).toBundle())
+            }
         }
+
 
     }
 }

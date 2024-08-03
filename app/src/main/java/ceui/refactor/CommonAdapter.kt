@@ -1,5 +1,6 @@
 package ceui.refactor
 
+import android.content.Context
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
@@ -30,7 +31,7 @@ val listItemHolderDiffUtil = object :
 }
 
 
-class CommonAdapter(private val lifecycleOwner: LifecycleOwner) :
+class CommonAdapter(private val viewLifecycleOwner: LifecycleOwner) :
     ListAdapter<ListItemHolder, ListItemViewHolder<ViewBinding, ListItemHolder>>(
         listItemHolderDiffUtil
     ) {
@@ -51,8 +52,9 @@ class CommonAdapter(private val lifecycleOwner: LifecycleOwner) :
         position: Int
     ) {
         val item = getItem(position)
+        holder.lifecycleOwner = viewLifecycleOwner
         if (holder.binding is ViewDataBinding) {
-            holder.binding.lifecycleOwner = lifecycleOwner
+            holder.binding.lifecycleOwner = viewLifecycleOwner
         }
         holder.binding.root.setOnClick {
             item.retrieveListener()(it)
@@ -63,12 +65,19 @@ class CommonAdapter(private val lifecycleOwner: LifecycleOwner) :
     override fun getItemViewType(position: Int): Int {
         return getItem(position).getItemViewType() // use layout id to unique the item type
     }
+
+    override fun getItemId(position: Int): Long {
+        return getItem(position).getItemId()
+    }
 }
 
 open class ListItemHolder {
 
     private var onItemClickListener: (View) -> Unit = {
-        Log.d("ListItemHolder", "OnItemClick: ${this.javaClass.simpleName}, view: ${it.javaClass.simpleName}")
+        Log.d(
+            "ListItemHolder",
+            "OnItemClick: ${this.javaClass.simpleName}, view: ${it.javaClass.simpleName}"
+        )
     }
 
     open fun areItemsTheSame(other: ListItemHolder): Boolean {
@@ -83,7 +92,11 @@ open class ListItemHolder {
         return this::class.java.hashCode()
     }
 
-    fun onItemClick(block: (View) -> Unit) : ListItemHolder {
+    open fun getItemId(): Long {
+        return 0L
+    }
+
+    fun onItemClick(block: (View) -> Unit): ListItemHolder {
         this.onItemClickListener = block
         return this
     }
@@ -95,6 +108,9 @@ open class ListItemHolder {
 
 open class ListItemViewHolder<Binding : ViewBinding, T : ListItemHolder>(val binding: Binding) :
     RecyclerView.ViewHolder(binding.root) {
+
+    protected val context: Context = binding.root.context
+    var lifecycleOwner: LifecycleOwner? = null
 
     open fun onBindViewHolder(holder: T, position: Int) {
 

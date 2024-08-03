@@ -13,11 +13,10 @@ import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.loxia.pushFragment
 import ceui.pixiv.ui.IllustCardActionReceiver
+import ceui.pixiv.ui.common.BottomDividerDecoration
 import ceui.pixiv.ui.works.IllustFragmentArgs
 import ceui.refactor.CommonAdapter
 import ceui.refactor.ppppx
-import com.google.android.material.transition.platform.MaterialFadeThrough
-import com.google.android.material.transition.platform.MaterialSharedAxis
 import com.scwang.smart.refresh.header.FalsifyFooter
 import com.scwang.smart.refresh.header.MaterialHeader
 

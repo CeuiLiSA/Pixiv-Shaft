@@ -96,4 +96,18 @@ class PixivListViewModel<Item, T: KListShow<Item>>(
         }
     }
 
+    fun update(id: Long, validate: (ListItemHolder) -> ListItemHolder) {
+        _holders.value?.let { currentHolders ->
+            val target = currentHolders.firstOrNull { it.getItemId() == id }
+            if (target != null) {
+                val index = currentHolders.indexOf(target)
+                val updated = validate(target)
+                val mutableList = currentHolders.toMutableList()
+                mutableList.removeAt(index)
+                mutableList.add(index, updated)
+                _holders.value = mutableList
+            }
+        }
+    }
+
 }

@@ -55,6 +55,12 @@
             android:text="@string/unfollow"
             app:ptb_progress_stroke_width="3dp"
             app:ptb_progress_width="14dp" />
+
+        <Button
+            android:id="@+id/comment"
+            android:text="Comments"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
     </LinearLayout>
 
 
