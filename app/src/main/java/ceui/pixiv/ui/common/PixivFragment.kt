@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
+import ceui.lisa.databinding.LayoutToolbarBinding
 import ceui.lisa.view.SpacesItemDecoration
 import ceui.loxia.Illust
 import ceui.loxia.RefreshHint
@@ -37,8 +38,7 @@ interface ViewPagerFragment {
 
 }
 
-fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: PixivListViewModel<*, *>) {
-    val ctx = requireContext()
+fun Fragment.setUpToolbar(binding: LayoutToolbarBinding) {
     if (parentFragment is ViewPagerFragment) {
         binding.toolbarLayout.isVisible = false
     } else {
@@ -54,6 +54,11 @@ fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: Pix
             WindowInsetsCompat.CONSUMED
         }
     }
+}
+
+fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: PixivListViewModel<*, *>) {
+    val ctx = requireContext()
+    setUpToolbar(binding.toolbarLayout)
     binding.refreshLayout.setRefreshHeader(MaterialHeader(ctx))
     binding.refreshLayout.setOnRefreshListener {
         viewModel.refresh(RefreshHint.pullToRefresh())

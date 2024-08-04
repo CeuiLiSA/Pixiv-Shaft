@@ -16,6 +16,7 @@ import ceui.loxia.User
 import ceui.loxia.pushFragment
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.comments.CommentsFragmentArgs
+import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.user.UserProfileFragmentArgs
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
@@ -28,6 +29,8 @@ class IllustFragment : PixivFragment(R.layout.fragment_fancy_illust) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        setUpToolbar(binding.toolbarLayout)
         val liveIllust = ObjectPool.get<Illust>(args.illustId)
         liveIllust.observe(viewLifecycleOwner) { illust ->
             Glide.with(this).load(GlideUrlChild(illust.image_urls?.large)).into(binding.image)

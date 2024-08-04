@@ -4,47 +4,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/toolbar_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingHorizontal="18dp"
-        android:paddingVertical="12dp"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:background="@color/black">
-
-        <ImageView
-            android:id="@+id/navi_back"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/icon_navi_back"
-            app:layout_constraintStart_toStartOf="parent" />
-
-        <FrameLayout
-            android:layout_width="0dp"
-            app:layout_constraintStart_toEndOf="@+id/navi_back"
-            app:layout_constraintEnd_toStartOf="@+id/navi_more"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_height="0dp">
-
-            <TextView
-                android:layout_gravity="center"
-                android:textSize="18sp"
-                android:textColor="@color/text00"
-                android:id="@+id/navi_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-        </FrameLayout>
-
-        <ImageView
-            android:id="@+id/navi_more"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/icon_navi_more"
-            app:layout_constraintEnd_toEndOf="parent" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    <include
+        layout="@layout/layout_toolbar"
+        android:id="@+id/toolbar_layout"/>
 
     <com.scwang.smart.refresh.layout.SmartRefreshLayout
         android:id="@+id/refresh_layout"

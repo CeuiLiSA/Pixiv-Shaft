@@ -19,6 +19,7 @@ import ceui.loxia.User
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.ViewPagerFragment
 import ceui.pixiv.ui.common.pixivValueViewModel
+import ceui.pixiv.ui.common.setUpToolbar
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
 import com.bumptech.glide.Glide
@@ -34,6 +35,8 @@ class UserProfileFragment : PixivFragment(R.layout.fragment_user_profile), ViewP
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        setUpToolbar(binding.toolbarLayout)
 
         ObjectPool.get<User>(args.userId).observe(viewLifecycleOwner) { user ->
             if (user?.profile_image_urls?.findMaxSizeUrl()?.isNotEmpty() == true) {

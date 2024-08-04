@@ -4,7 +4,11 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <net.csdn.roundview.RoundImageView
+    <include
+        layout="@layout/layout_toolbar"
+        android:id="@+id/toolbar_layout"/>
+
+    <com.github.panpf.zoomimage.SketchZoomImageView
         android:id="@+id/image"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>

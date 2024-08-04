@@ -28,7 +28,7 @@ class CommentsFragment : PixivFragment(R.layout.fragment_pixiv_list), CommentAct
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.naviTitle.text = getString(R.string.comments)
+        binding.toolbarLayout.naviTitle.text = getString(R.string.comments)
         setUpLinearLayout(binding, viewModel)
         val dividerDecoration = BottomDividerDecoration(
             requireContext(),

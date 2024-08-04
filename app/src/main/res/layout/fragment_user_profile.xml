@@ -11,12 +11,11 @@
         app:elevation="0dp">
 
         <com.google.android.material.appbar.CollapsingToolbarLayout
-            android:id="@+id/toolbar_layout"
+            android:id="@+id/collapsing_toolbar_layout"
             android:layout_width="match_parent"
             android:layout_height="@dimen/playlist_app_bar_height"
             app:contentScrim="@color/colorBlack40"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed"
-            app:toolbarId="@+id/toolbar">
+            app:layout_scrollFlags="scroll|exitUntilCollapsed">
 
             <ImageView
                 android:id="@+id/header_image"
@@ -75,6 +74,12 @@
                     app:ptb_progress_stroke_width="3dp"
                     app:ptb_progress_width="14dp" />
             </LinearLayout>
+
+            <include
+                android:id="@+id/toolbar_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                layout="@layout/layout_toolbar"/>
 
         </com.google.android.material.appbar.CollapsingToolbarLayout>
 
