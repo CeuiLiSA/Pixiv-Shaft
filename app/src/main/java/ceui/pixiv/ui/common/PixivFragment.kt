@@ -39,15 +39,20 @@ interface ViewPagerFragment {
 
 fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: PixivListViewModel<*, *>) {
     val ctx = requireContext()
-    binding.naviBack.setOnClick {
-        findNavController().popBackStack()
-    }
-    ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
-        val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-        binding.toolbarLayout.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-            topMargin = insets.top
+    if (parentFragment is ViewPagerFragment) {
+        binding.toolbarLayout.isVisible = false
+    } else {
+        binding.toolbarLayout.isVisible = true
+        binding.naviBack.setOnClick {
+            findNavController().popBackStack()
         }
-        WindowInsetsCompat.CONSUMED
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            binding.toolbarLayout.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                topMargin = insets.top
+            }
+            WindowInsetsCompat.CONSUMED
+        }
     }
     binding.refreshLayout.setRefreshHeader(MaterialHeader(ctx))
     binding.refreshLayout.setOnRefreshListener {

@@ -31,7 +31,7 @@ data class HomeIllustResponse(
     val ranking_illusts: List<Illust> = listOf(),
     val next_url: String? = null
 ) : Serializable, KListShow<Illust> {
-    override val displayList: List<Illust> get() = illusts
+    override val displayList: List<Illust> get() = ranking_illusts + illusts
     override val nextPageUrl: String? get() = next_url
 }
 

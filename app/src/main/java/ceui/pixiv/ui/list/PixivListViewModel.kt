@@ -36,7 +36,7 @@ class PixivListViewModel<Item, T: KListShow<Item>>(
 ) : ViewModel() {
 
     val refreshState: LiveData<RefreshState> = dataSource.refreshState
-    val holders: LiveData<List<ListItemHolder>> = dataSource.holders
+    val holders: LiveData<List<ListItemHolder>> = dataSource.itemHolders
 
     init {
         refresh(RefreshHint.initialLoad())
@@ -44,13 +44,13 @@ class PixivListViewModel<Item, T: KListShow<Item>>(
 
     fun refresh(hint: RefreshHint) {
         viewModelScope.launch {
-            dataSource.refreshImpl(hint)
+            dataSource.refreshData(hint)
         }
     }
 
     fun loadMore() {
         viewModelScope.launch {
-            dataSource.loadMoreImpl()
+            dataSource.loadMoreData()
         }
     }
 }

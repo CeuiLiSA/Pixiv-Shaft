@@ -19,8 +19,8 @@ class UserCreatedIllustsFragment : PixivFragment(R.layout.fragment_pixiv_list) {
     private val args by navArgs<UserCreatedIllustsFragmentArgs>()
     private val viewModel by pixivListViewModel {
         DataSource(
-            loader = { Client.appApi.getUserCreatedIllusts(args.userId, args.objectType) },
-            mapper = { illust -> listOf(IllustCardHolder(illust)) }
+            dataFetcher = { Client.appApi.getUserCreatedIllusts(args.userId, args.objectType) },
+            itemMapper = { illust -> listOf(IllustCardHolder(illust)) }
         )
     }
 

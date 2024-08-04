@@ -6,6 +6,7 @@ import androidx.navigation.fragment.navArgs
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.loxia.Client
+import ceui.loxia.ProgressTextButton
 import ceui.loxia.User
 import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
@@ -44,9 +45,9 @@ class CommentsFragment : PixivFragment(R.layout.fragment_pixiv_list), CommentAct
     override fun onClickReply(replyUser: User) {
     }
 
-    override fun onClickShowMoreReply(commentId: Long) {
+    override fun onClickShowMoreReply(commentId: Long, sender: ProgressTextButton) {
         launchSuspend {
-            dataSource.showMoreReply(commentId)
+            dataSource.showMoreReply(commentId, sender)
         }
     }
 
@@ -58,5 +59,5 @@ interface CommentActionReceiver {
 
     fun onClickReply(replyUser: User)
 
-    fun onClickShowMoreReply(commentId: Long)
+    fun onClickShowMoreReply(commentId: Long, sender: ProgressTextButton)
 }

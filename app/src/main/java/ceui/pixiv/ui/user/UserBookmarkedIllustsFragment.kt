@@ -18,8 +18,8 @@ class UserBookmarkedIllustsFragment: PixivFragment(R.layout.fragment_pixiv_list)
     private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val viewModel by pixivListViewModel {
         DataSource(
-            loader = { Client.appApi.getUserBookmarkedIllusts(args.userId) },
-            mapper = { illust -> listOf(IllustCardHolder(illust)) }
+            dataFetcher = { Client.appApi.getUserBookmarkedIllusts(args.userId) },
+            itemMapper = { illust -> listOf(IllustCardHolder(illust)) }
         )
     }
     private val args by navArgs<UserBookmarkedIllustsFragmentArgs>()

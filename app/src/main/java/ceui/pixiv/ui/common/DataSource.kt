@@ -9,38 +9,32 @@ import ceui.loxia.RefreshState
 import com.google.gson.Gson
 
 open class DataSource<Item, T: KListShow<Item>>(
-    private val loader: suspend () -> T,
-    private val mapper: (Item) -> List<ListItemHolder>
+    private val dataFetcher: suspend () -> T,
+    private val itemMapper: (Item) -> List<ListItemHolder>
 ) {
 
-    private val _holders = MutableLiveData<List<ListItemHolder>>()
-    val holders: LiveData<List<ListItemHolder>> = _holders
+    private val _itemHolders = MutableLiveData<List<ListItemHolder>>()
+    val itemHolders: LiveData<List<ListItemHolder>> = _itemHolders
 
-    private var _nextUrl: String? = null
-    protected val gson = Gson()
+    private var _nextPageUrl: String? = null
+    private val gson = Gson()
 
-
-    private var classSpec: Class<T>? = null
+    private var responseClass: Class<T>? = null
 
     private val _refreshState = MutableLiveData<RefreshState>()
     val refreshState: LiveData<RefreshState> = _refreshState
 
-    open suspend fun prepareRefreshResponse(): T {
-        return loader()
-    }
-
-    open suspend fun refreshImpl(hint: RefreshHint) {
+    open suspend fun refreshData(hint: RefreshHint) {
+        _refreshState.value = RefreshState.LOADING(refreshHint = hint)
         try {
-            _refreshState.value = RefreshState.LOADING(refreshHint = hint)
-            val batch = mutableListOf<ListItemHolder>()
-            val response = prepareRefreshResponse()
-            classSpec = response::class.java as Class<T>
-            _nextUrl = response.nextPageUrl
-            batch.addAll(response.displayList.flatMap(mapper))
-            _holders.value = batch
+            val response = dataFetcher()
+            responseClass = response::class.java as Class<T>
+            _nextPageUrl = response.nextPageUrl
+            val holders = response.displayList.flatMap(itemMapper)
+            _itemHolders.value = holders
             _refreshState.value = RefreshState.LOADED(
-                hasContent = response.displayList.isNotEmpty(),
-                hasNext = response.nextPageUrl?.isNotEmpty() == true
+                hasContent = holders.isNotEmpty(),
+                hasNext = _nextPageUrl?.isNotEmpty() == true
             )
         } catch (ex: Exception) {
             _refreshState.value = RefreshState.ERROR(ex)
@@ -48,22 +42,23 @@ open class DataSource<Item, T: KListShow<Item>>(
         }
     }
 
-    open suspend fun loadMoreImpl() {
+    open suspend fun loadMoreData() {
+        val nextPageUrl = _nextPageUrl ?: return
+        _refreshState.value = RefreshState.LOADING(refreshHint = RefreshHint.loadMore())
         try {
-            val nextUrl = _nextUrl ?: return
-            _refreshState.value = RefreshState.LOADING(refreshHint = RefreshHint.loadMore())
-            val responseBody = Client.appApi.generalGet(nextUrl)
-            val jsonString = responseBody.string()
-            val response = gson.fromJson(jsonString, classSpec)
-            _nextUrl = response.nextPageUrl
-            if (response.displayList.isNotEmpty()) {
-                val existing = (_holders.value ?: listOf()).toMutableList()
-                existing.addAll(response.displayList.flatMap(mapper))
-                _holders.value = existing
+            val responseBody = Client.appApi.generalGet(nextPageUrl)
+            val responseJson = responseBody.string()
+            val response = gson.fromJson(responseJson, responseClass)
+            _nextPageUrl = response.nextPageUrl
+            val newHolders = response.displayList.flatMap(itemMapper)
+            if (newHolders.isNotEmpty()) {
+                val existingHolders = (_itemHolders.value ?: listOf()).toMutableList()
+                existingHolders.addAll(newHolders)
+                _itemHolders.value = existingHolders
             }
             _refreshState.value = RefreshState.LOADED(
-                hasContent = _holders.value?.isNotEmpty() == true,
-                hasNext = response.nextPageUrl?.isNotEmpty() == true
+                hasContent = _itemHolders.value?.isNotEmpty() == true,
+                hasNext = _nextPageUrl?.isNotEmpty() == true
             )
         } catch (ex: Exception) {
             _refreshState.value = RefreshState.ERROR(ex)
@@ -71,17 +66,17 @@ open class DataSource<Item, T: KListShow<Item>>(
         }
     }
 
-    fun <ListItemHolderT : ListItemHolder> update(id: Long, invalidate: (ListItemHolderT) -> ListItemHolderT) {
-        _holders.value?.let { currentHolders ->
+    fun <HolderT : ListItemHolder> updateItem(id: Long, update: (HolderT) -> HolderT) {
+        _itemHolders.value?.let { currentHolders ->
             val index = currentHolders.indexOfFirst { it.getItemId() == id }
             if (index != -1) {
                 try {
-                    val target = currentHolders[index] as ListItemHolderT
-                    val updated = invalidate(target)
-                    val mutableList = currentHolders.toMutableList().apply {
+                    val target = currentHolders[index] as HolderT
+                    val updated = update(target)
+                    val updatedHolders = currentHolders.toMutableList().apply {
                         set(index, updated)
                     }
-                    _holders.value = mutableList
+                    _itemHolders.value = updatedHolders
                 } catch (ex: Exception) {
                     ex.printStackTrace()
                 }

@@ -17,8 +17,8 @@ class RankingIllustsFragment : PixivFragment(R.layout.fragment_pixiv_list) {
     private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val viewModel by pixivListViewModel {
         DataSource(
-            loader = { Client.appApi.getRankingIllusts("month") },
-            mapper = { illust -> listOf(IllustCardHolder(illust)) }
+            dataFetcher = { Client.appApi.getRankingIllusts("month") },
+            itemMapper = { illust -> listOf(IllustCardHolder(illust)) }
         )
     }
 

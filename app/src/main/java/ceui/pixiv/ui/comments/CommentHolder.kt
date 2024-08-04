@@ -1,6 +1,7 @@
 package ceui.pixiv.ui.comments
 
 import androidx.core.view.isVisible
+import androidx.lifecycle.LiveData
 import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
 import ceui.lisa.annotations.ItemHolder
@@ -9,6 +10,7 @@ import ceui.lisa.databinding.CellCommentBinding
 import ceui.lisa.utils.GlideUrlChild
 import ceui.loxia.Comment
 import ceui.loxia.DateParse
+import ceui.loxia.RefreshState
 import ceui.loxia.findActionReceiverOrNull
 import ceui.pixiv.ui.common.BottomDividerDecoration
 import ceui.pixiv.ui.common.CommonAdapter
@@ -18,7 +20,11 @@ import ceui.refactor.ppppx
 import ceui.refactor.setOnClick
 import com.bumptech.glide.Glide
 
-class CommentHolder(val comment: Comment, val illustArthurId: Long, val childComments: List<Comment> = listOf()) : ListItemHolder() {
+class CommentHolder(
+    val comment: Comment,
+    val illustArthurId: Long,
+    val childComments: List<Comment> = listOf(),
+) : ListItemHolder() {
 
     override fun areItemsTheSame(other: ListItemHolder): Boolean {
         return comment.id == (other as? CommentHolder)?.comment?.id
@@ -32,17 +38,21 @@ class CommentHolder(val comment: Comment, val illustArthurId: Long, val childCom
         return comment.id
     }
 
-    val isArthurCommented: Boolean get() {
-        return illustArthurId == comment.user.id
-    }
+    val isArthurCommented: Boolean
+        get() {
+            return illustArthurId == comment.user.id
+        }
 }
 
 @ItemHolder(CommentHolder::class)
-class CommentViewHolder(bd: CellCommentBinding) : ListItemViewHolder<CellCommentBinding, CommentHolder>(bd) {
+class CommentViewHolder(bd: CellCommentBinding) :
+    ListItemViewHolder<CellCommentBinding, CommentHolder>(bd) {
     override fun onBindViewHolder(holder: CommentHolder, position: Int) {
         super.onBindViewHolder(holder, position)
 
-        Glide.with(context).load(GlideUrlChild(holder.comment.user.profile_image_urls?.findMaxSizeUrl())).into(binding.userIcon)
+        Glide.with(context)
+            .load(GlideUrlChild(holder.comment.user.profile_image_urls?.findMaxSizeUrl()))
+            .into(binding.userIcon)
         binding.userName.text = holder.comment.user.name
         binding.commentContent.text = holder.comment.comment
 
@@ -65,24 +75,32 @@ class CommentViewHolder(bd: CellCommentBinding) : ListItemViewHolder<CellComment
         }
 
         binding.showReply.setOnClick { sender ->
-            sender.findActionReceiverOrNull<CommentActionReceiver>()?.onClickShowMoreReply(holder.comment.id)
+            sender.findActionReceiverOrNull<CommentActionReceiver>()
+                ?.onClickShowMoreReply(holder.comment.id, sender)
         }
 
         binding.commentTime.text = DateParse.displayCreateDate(holder.comment.date)
 
-        binding.showReply.isVisible = holder.comment.has_replies == true && holder.childComments.isEmpty()
+        binding.showReply.isVisible =
+            holder.comment.has_replies == true && holder.childComments.isEmpty()
 
         if (holder.childComments.isNotEmpty()) {
             binding.childCommentsList.isVisible = true
             lifecycleOwner?.let {
                 val childAdapter = CommonAdapter(it)
-                val dividerDecoration = BottomDividerDecoration(context, R.drawable.list_divider, marginLeft = 48.ppppx)
+                val dividerDecoration =
+                    BottomDividerDecoration(context, R.drawable.list_divider, marginLeft = 48.ppppx)
                 if (binding.childCommentsList.itemDecorationCount == 0) {
                     binding.childCommentsList.addItemDecoration(dividerDecoration)
                 }
                 binding.childCommentsList.layoutManager = LinearLayoutManager(context)
                 binding.childCommentsList.adapter = childAdapter
-                childAdapter.submitList(holder.childComments.map { childComment -> CommentChildHolder(childComment, holder.illustArthurId) })
+                childAdapter.submitList(holder.childComments.map { childComment ->
+                    CommentChildHolder(
+                        childComment,
+                        holder.illustArthurId
+                    )
+                })
             }
         } else {
             binding.childCommentsList.isVisible = false
@@ -105,17 +123,21 @@ class CommentChildHolder(val comment: Comment, val illustArthurId: Long) : ListI
         return comment.id
     }
 
-    val isArthurCommented: Boolean get() {
-        return illustArthurId == comment.user.id
-    }
+    val isArthurCommented: Boolean
+        get() {
+            return illustArthurId == comment.user.id
+        }
 }
 
 @ItemHolder(CommentChildHolder::class)
-class CellChildCommentViewHolder(bd: CellChildCommentBinding) : ListItemViewHolder<CellChildCommentBinding, CommentChildHolder>(bd) {
+class CellChildCommentViewHolder(bd: CellChildCommentBinding) :
+    ListItemViewHolder<CellChildCommentBinding, CommentChildHolder>(bd) {
     override fun onBindViewHolder(holder: CommentChildHolder, position: Int) {
         super.onBindViewHolder(holder, position)
 
-        Glide.with(context).load(GlideUrlChild(holder.comment.user.profile_image_urls?.findMaxSizeUrl())).into(binding.userIcon)
+        Glide.with(context)
+            .load(GlideUrlChild(holder.comment.user.profile_image_urls?.findMaxSizeUrl()))
+            .into(binding.userIcon)
         binding.userName.text = holder.comment.user.name
         binding.commentContent.text = holder.comment.comment
 

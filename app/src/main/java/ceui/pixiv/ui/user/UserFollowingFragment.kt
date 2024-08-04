@@ -25,8 +25,8 @@ class UserFollowingFragment : PixivFragment(R.layout.fragment_pixiv_list) {
     private val args by navArgs<UserFollowingFragmentArgs>()
     private val viewModel by pixivListViewModel {
         DataSource(
-            loader = { Client.appApi.getFollowingUsers(args.userId, args.restrictType) },
-            mapper = { preview -> preview.illusts.map { IllustCardHolder(it) } }
+            dataFetcher = { Client.appApi.getFollowingUsers(args.userId, args.restrictType) },
+            itemMapper = { preview -> preview.illusts.map { IllustCardHolder(it) } }
         )
     }
 

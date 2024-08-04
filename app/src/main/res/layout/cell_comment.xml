@@ -34,7 +34,7 @@
         android:layout_width="wrap_content"
         android:layout_marginTop="3dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="2dp"
+        android:layout_marginStart="4dp"
         app:layout_constraintTop_toTopOf="parent"
         android:visibility="gone"
         android:text="Arthur"
@@ -101,9 +101,11 @@
             android:textColor="@color/button_primary_color"
             android:textSize="12sp" />
 
-        <TextView
+        <ceui.loxia.ProgressTextButton
             android:id="@+id/show_reply"
             android:layout_width="wrap_content"
+            app:ptb_progress_stroke_width="2dp"
+            app:ptb_progress_width="12dp"
             android:text="@string/show_reply"
             android:padding="12dp"
             android:layout_height="wrap_content"
