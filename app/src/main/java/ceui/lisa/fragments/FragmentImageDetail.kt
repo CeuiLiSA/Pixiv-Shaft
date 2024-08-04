@@ -33,6 +33,12 @@ class ImageFileViewModel : ViewModel() {
     val fileLiveData = MutableLiveData<File>()
     var isHighQualityImageLoaded: Boolean = false
     val progressLiveData = MutableLiveData<Int>()
+    val isFullscreenMode = MutableLiveData(false)
+
+    fun toggleFullscreen() {
+        val current = isFullscreenMode.value ?: false
+        isFullscreenMode.value = !current
+    }
 }
 
 

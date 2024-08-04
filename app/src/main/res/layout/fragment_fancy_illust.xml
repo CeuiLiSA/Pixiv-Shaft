@@ -74,14 +74,36 @@
             android:text="@string/unfollow"
             app:ptb_progress_stroke_width="3dp"
             app:ptb_progress_width="14dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/button_layout"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="60dp"
+        android:layout_marginEnd="20dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
 
         <Button
             android:id="@+id/comment"
-            android:text="Comments"
+            android:text="@string/comments"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <Button
+            android:id="@+id/download"
+            android:text="@string/string_5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <Button
+            android:id="@+id/bookmark"
+            android:text="@string/string_6"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
     </LinearLayout>
-
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

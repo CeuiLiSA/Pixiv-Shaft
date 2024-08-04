@@ -6,7 +6,12 @@ import android.animation.ValueAnimator
 import android.os.Build
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import ceui.lisa.R
@@ -23,9 +28,16 @@ import ceui.loxia.User
 import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
 import ceui.pixiv.ui.comments.CommentsFragmentArgs
+import ceui.pixiv.ui.common.HomeActivity
 import ceui.pixiv.ui.common.PixivFragment
+import ceui.pixiv.ui.common.isImageInGallery
+import ceui.pixiv.ui.common.saveImageToGallery
 import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.user.UserProfileFragmentArgs
+import ceui.refactor.animateFadeIn
+import ceui.refactor.animateFadeInQuickly
+import ceui.refactor.animateFadeOut
+import ceui.refactor.animateFadeOutQuickly
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
 import com.bumptech.glide.Glide
@@ -48,7 +60,7 @@ class IllustFragment : PixivFragment(R.layout.fragment_fancy_illust) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setUpToolbar(binding.toolbarLayout)
+        setUpFullScreen()
         val liveIllust = ObjectPool.get<Illust>(args.illustId)
         liveIllust.observe(viewLifecycleOwner) { illust ->
             binding.toolbarLayout.naviTitle.text = illust.title
@@ -76,12 +88,18 @@ class IllustFragment : PixivFragment(R.layout.fragment_fancy_illust) {
                 }
             }
         }
+        val context = requireContext()
+        val displayName = "pixiv_works_${args.illustId}.png"
         viewModel.fileLiveData.observe(viewLifecycleOwner) { file ->
             if (viewModel.progressLiveData.value != 100) {
                 viewModel.progressLiveData.value = 100
             }
-            binding.image.loadImage(file){ }
+            binding.image.loadImage(file)
+            binding.download.setOnClick {
+                saveImageToGallery(context, file, displayName)
+            }
         }
+        Common.showLog("saasdasd ${isImageInGallery(context, displayName)}")
         binding.progressCircular.max = 100
         viewModel.progressLiveData.observe(viewLifecycleOwner) { percent ->
             if (percent == -1 || percent == 100) {
@@ -112,6 +130,45 @@ class IllustFragment : PixivFragment(R.layout.fragment_fancy_illust) {
                     CommentsFragmentArgs(args.illustId, illustArthurId = u.id).toBundle()
                 )
             }
+        }
+
+    }
+
+    private fun setUpFullScreen() {
+        val infoItems = listOf(
+            binding.toolbarLayout.root,
+            binding.userLayout,
+            binding.buttonLayout
+        )
+        val windowInsetsController = WindowInsetsControllerCompat(
+            requireActivity().window,
+            requireActivity().window.decorView
+        )
+        viewModel.isFullscreenMode.observe(viewLifecycleOwner) { isFullScreen ->
+            if (isFullScreen) {
+                windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
+                ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
+                    WindowInsetsCompat.CONSUMED
+                }
+                infoItems.forEach {
+                    it.animateFadeOutQuickly()
+                }
+            } else {
+                windowInsetsController.show(WindowInsetsCompat.Type.systemBars())
+                ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
+                    val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+                    binding.toolbarLayout.root.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                        topMargin = insets.top
+                    }
+                    WindowInsetsCompat.CONSUMED
+                }
+                infoItems.forEach {
+                    it.animateFadeInQuickly()
+                }
+            }
+        }
+        binding.image.setOnClick {
+            viewModel.toggleFullscreen()
         }
     }
 
