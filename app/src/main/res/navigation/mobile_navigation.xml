@@ -69,6 +69,12 @@
     </fragment>
 
     <fragment
+        android:id="@+id/navigation_mine_profile"
+        android:name="ceui.pixiv.ui.user.MineProfileFragment" >
+
+    </fragment>
+
+    <fragment
         android:id="@+id/navigation_user_created_illust"
         android:name="ceui.pixiv.ui.user.UserCreatedIllustsFragment">
 

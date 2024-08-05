@@ -23,6 +23,8 @@ object SessionManager {
     private val _loggedInAccount = MutableLiveData<AccountResponse>()
     private val gson = Gson()
 
+    val loggedInAccount: LiveData<AccountResponse> = _loggedInAccount
+
 
     private val _isRenewToken = MutableLiveData(false)
     val isRenewToken: LiveData<Boolean> = _isRenewToken
