@@ -66,21 +66,7 @@ open class DataSource<Item, T: KListShow<Item>>(
         }
     }
 
-    fun <HolderT : ListItemHolder> updateItem(id: Long, update: (HolderT) -> HolderT) {
-        _itemHolders.value?.let { currentHolders ->
-            val index = currentHolders.indexOfFirst { it.getItemId() == id }
-            if (index != -1) {
-                try {
-                    val target = currentHolders[index] as HolderT
-                    val updated = update(target)
-                    val updatedHolders = currentHolders.toMutableList().apply {
-                        set(index, updated)
-                    }
-                    _itemHolders.value = updatedHolders
-                } catch (ex: Exception) {
-                    ex.printStackTrace()
-                }
-            }
-        }
+    protected fun pickItemHolders(): MutableLiveData<List<ListItemHolder>> {
+        return _itemHolders
     }
 }

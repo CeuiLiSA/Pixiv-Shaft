@@ -15,6 +15,7 @@ import ceui.pixiv.ui.list.pixivListViewModel
 import ceui.pixiv.ui.common.setUpLinearLayout
 import ceui.pixiv.ui.common.BottomDividerDecoration
 import ceui.pixiv.ui.common.DataSource
+import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.pixiv.ui.user.UserProfileFragmentArgs
 import ceui.refactor.ppppx
 import ceui.refactor.viewBinding
@@ -38,8 +39,8 @@ class CommentsFragment : PixivFragment(R.layout.fragment_pixiv_list), CommentAct
         binding.listView.addItemDecoration(dividerDecoration)
     }
 
-    override fun onClickUser(uid: Long) {
-        pushFragment(R.id.navigation_user_profile, UserProfileFragmentArgs(uid).toBundle())
+    override fun onClickUser(id: Long) {
+        pushFragment(R.id.navigation_user_profile, UserProfileFragmentArgs(id).toBundle())
     }
 
     override fun onClickReply(replyUser: User) {
@@ -53,9 +54,7 @@ class CommentsFragment : PixivFragment(R.layout.fragment_pixiv_list), CommentAct
 
 }
 
-interface CommentActionReceiver {
-
-    fun onClickUser(uid: Long)
+interface CommentActionReceiver : UserActionReceiver {
 
     fun onClickReply(replyUser: User)
 

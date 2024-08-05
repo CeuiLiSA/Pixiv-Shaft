@@ -57,9 +57,6 @@ class CommonAdapter(private val viewLifecycleOwner: LifecycleOwner) :
         if (holder.binding is ViewDataBinding) {
             holder.binding.lifecycleOwner = viewLifecycleOwner
         }
-        holder.binding.root.setOnClick {
-            item.retrieveListener()(it)
-        }
         holder.onBindViewHolder(item, position)
     }
 
@@ -74,12 +71,6 @@ class CommonAdapter(private val viewLifecycleOwner: LifecycleOwner) :
 
 open class ListItemHolder {
 
-    private var onItemClickListener: (View) -> Unit = {
-        Log.d(
-            "ListItemHolder",
-            "OnItemClick: ${this.javaClass.simpleName}, view: ${it.javaClass.simpleName}"
-        )
-    }
 
     open fun areItemsTheSame(other: ListItemHolder): Boolean {
         return this == other
@@ -95,15 +86,6 @@ open class ListItemHolder {
 
     open fun getItemId(): Long {
         return 0L
-    }
-
-    fun onItemClick(block: (View) -> Unit): ListItemHolder {
-        this.onItemClickListener = block
-        return this
-    }
-
-    fun retrieveListener(): ((View) -> Unit) {
-        return onItemClickListener
     }
 }
 
