@@ -1,69 +1,59 @@
 package ceui.pixiv.ui.works
 
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
-import android.animation.ValueAnimator
-import android.os.Build
 import android.os.Bundle
 import android.view.View
-import android.view.ViewGroup
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isVisible
-import androidx.core.view.updateLayoutParams
-import androidx.fragment.app.viewModels
-import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import ceui.lisa.R
 import ceui.lisa.activities.followUser
 import ceui.lisa.activities.unfollowUser
 import ceui.lisa.databinding.FragmentFancyIllustBinding
-import ceui.lisa.fragments.ImageFileViewModel
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.Params
 import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
 import ceui.loxia.User
-import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
 import ceui.pixiv.ui.comments.CommentsFragmentArgs
-import ceui.pixiv.ui.common.HomeActivity
-import ceui.pixiv.ui.common.PixivFragment
+import ceui.pixiv.ui.common.ImgDisplayFragment
 import ceui.pixiv.ui.common.getFileSize
 import ceui.pixiv.ui.common.getImageDimensions
 import ceui.pixiv.ui.common.isImageInGallery
 import ceui.pixiv.ui.common.saveImageToGallery
-import ceui.pixiv.ui.common.setUpToolbar
 import ceui.pixiv.ui.user.UserProfileFragmentArgs
-import ceui.refactor.animateFadeIn
-import ceui.refactor.animateFadeInQuickly
-import ceui.refactor.animateFadeOut
-import ceui.refactor.animateFadeOutQuickly
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
 import com.bumptech.glide.Glide
 import com.github.panpf.sketch.loadImage
-import com.google.android.material.progressindicator.CircularProgressIndicator
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.withContext
-import me.jessyan.progressmanager.ProgressListener
-import me.jessyan.progressmanager.ProgressManager
-import me.jessyan.progressmanager.body.ProgressInfo
 
-class IllustFragment : PixivFragment(R.layout.fragment_fancy_illust) {
+class IllustFragment : ImgDisplayFragment(R.layout.fragment_fancy_illust) {
 
     private val binding by viewBinding(FragmentFancyIllustBinding::bind)
     private val args by navArgs<IllustFragmentArgs>()
-    private val viewModel by viewModels<ImageFileViewModel>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setUpFullScreen()
+        setUpFullScreen(
+            listOf(
+                binding.toolbarLayout.root,
+                binding.userLayout,
+                binding.buttonLayout
+            ),
+            binding.image,
+            binding.toolbarLayout
+        )
+        setUpProgressBar(binding.progressCircular)
+        val context = requireContext()
+        val displayName = "pixiv_works_${args.illustId}.png"
+        viewModel.fileLiveData.observe(viewLifecycleOwner) { file ->
+            binding.image.loadImage(file)
+            binding.download.setOnClick {
+                saveImageToGallery(context, file, displayName)
+            }
+        }
+
         val liveIllust = ObjectPool.get<Illust>(args.illustId)
         liveIllust.observe(viewLifecycleOwner) { illust ->
             binding.toolbarLayout.naviTitle.text = illust.title
@@ -92,31 +82,6 @@ class IllustFragment : PixivFragment(R.layout.fragment_fancy_illust) {
                 }
             }
         }
-        val context = requireContext()
-        val displayName = "pixiv_works_${args.illustId}.png"
-        viewModel.fileLiveData.observe(viewLifecycleOwner) { file ->
-            if (viewModel.progressLiveData.value != 100) {
-                viewModel.progressLiveData.value = 100
-            }
-            binding.image.loadImage(file)
-            val resolution = getImageDimensions(file)
-            Common.showLog("sadasd2 bb ${resolution}")
-            Common.showLog("sadasd2 cc ${getFileSize(file)}")
-            binding.download.setOnClick {
-                saveImageToGallery(context, file, displayName)
-            }
-        }
-        Common.showLog("saasdasd ${isImageInGallery(context, displayName)}")
-        binding.progressCircular.max = 100
-        viewModel.progressLiveData.observe(viewLifecycleOwner) { percent ->
-            if (percent == -1 || percent == 100) {
-                binding.progressCircular.isVisible = false
-            } else {
-                binding.progressCircular.isVisible = true
-                binding.progressCircular.progress = percent
-            }
-            Common.showLog("dsaasddsasa ${percent}")
-        }
 
         liveIllust.value?.user?.let { u ->
             ObjectPool.get<User>(u.id).observe(viewLifecycleOwner) { user ->
@@ -136,90 +101,6 @@ class IllustFragment : PixivFragment(R.layout.fragment_fancy_illust) {
                     R.id.navigation_illust_comments,
                     CommentsFragmentArgs(args.illustId, illustArthurId = u.id).toBundle()
                 )
-            }
-        }
-
-    }
-
-    private fun setUpFullScreen() {
-        val infoItems = listOf(
-            binding.toolbarLayout.root,
-            binding.userLayout,
-            binding.buttonLayout
-        )
-        val windowInsetsController = WindowInsetsControllerCompat(
-            requireActivity().window,
-            requireActivity().window.decorView
-        )
-        viewModel.isFullscreenMode.observe(viewLifecycleOwner) { isFullScreen ->
-            if (isFullScreen) {
-                windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())
-                ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
-                    WindowInsetsCompat.CONSUMED
-                }
-                infoItems.forEach {
-                    it.animateFadeOutQuickly()
-                }
-            } else {
-                windowInsetsController.show(WindowInsetsCompat.Type.systemBars())
-                ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
-                    val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-                    binding.toolbarLayout.root.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                        topMargin = insets.top
-                    }
-                    WindowInsetsCompat.CONSUMED
-                }
-                infoItems.forEach {
-                    it.animateFadeInQuickly()
-                }
-            }
-        }
-        binding.toolbarLayout.naviBack.setOnClick {
-            findNavController().popBackStack()
-        }
-        binding.image.setOnClick {
-            viewModel.toggleFullscreen()
-        }
-    }
-
-    private fun prepareOriginalImage(url: String?) {
-        if (url.isNullOrEmpty()) {
-            return
-        }
-
-        val frag = this
-
-        ProgressManager.getInstance()
-            .addResponseListener(url, object : ProgressListener {
-                override fun onProgress(progressInfo: ProgressInfo) {
-                    viewModel.progressLiveData.value = progressInfo.percent
-                    if (progressInfo.isFinish) {
-                        ProgressManager.getInstance().removeResponseListener(
-                            url,
-                            this
-                        )
-                    }
-                }
-
-                override fun onError(id: Long, e: Exception) {
-                    viewModel.progressLiveData.value = -1
-                }
-            })
-
-        launchSuspend {
-            withContext(Dispatchers.IO) {
-                try {
-                    val file = Glide.with(frag)
-                        .asFile()
-                        .load(GlideUrlChild(url))
-                        .submit()
-                        .get()
-                    viewModel.isHighQualityImageLoaded = true
-                    viewModel.fileLiveData.postValue(file)
-                } catch (ex: Exception) {
-                    viewModel.progressLiveData.value = -1
-                    throw ex
-                }
             }
         }
     }

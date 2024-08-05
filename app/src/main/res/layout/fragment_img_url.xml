@@ -9,6 +9,10 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
+    <include
+        layout="@layout/layout_toolbar"
+        android:id="@+id/toolbar_layout"/>
+
     <Button
         android:id="@+id/download"
         app:layout_constraintBottom_toBottomOf="parent"
