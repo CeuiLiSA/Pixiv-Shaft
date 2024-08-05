@@ -34,7 +34,13 @@ class UserProfileFragment : PixivFragment(R.layout.fragment_user_profile), ViewP
     private val binding by viewBinding(FragmentUserProfileBinding::bind)
     private val args by navArgs<UserProfileFragmentArgs>()
     private val viewModel by pixivValueViewModel(
-        loader = { Client.appApi.getUserProfile(args.userId) }
+        loader = {
+            val resp = Client.appApi.getUserProfile(args.userId)
+            resp.user?.let {
+                ObjectPool.update(it)
+            }
+            resp
+        }
     )
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

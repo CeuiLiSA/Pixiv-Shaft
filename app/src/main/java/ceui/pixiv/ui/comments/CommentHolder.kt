@@ -10,6 +10,7 @@ import ceui.lisa.utils.Emoji
 import ceui.lisa.utils.GlideUrlChild
 import ceui.loxia.Comment
 import ceui.loxia.DateParse
+import ceui.loxia.ObjectPool
 import ceui.loxia.findActionReceiverOrNull
 import ceui.pixiv.ui.common.BottomDividerDecoration
 import ceui.pixiv.ui.common.CommonAdapter
@@ -73,9 +74,11 @@ class CommentViewHolder(bd: CellCommentBinding) :
         }
 
         binding.userIcon.setOnClick {
+            ObjectPool.update(holder.comment.user)
             it.findActionReceiverOrNull<UserActionReceiver>()?.onClickUser(holder.comment.user.id)
         }
         binding.userName.setOnClick {
+            ObjectPool.update(holder.comment.user)
             it.findActionReceiverOrNull<UserActionReceiver>()?.onClickUser(holder.comment.user.id)
         }
 
@@ -172,9 +175,11 @@ class CellChildCommentViewHolder(bd: CellChildCommentBinding) :
         binding.arthurLabel.isVisible = holder.isArthurCommented
 
         binding.userIcon.setOnClick {
+            ObjectPool.update(holder.comment.user)
             it.findActionReceiverOrNull<UserActionReceiver>()?.onClickUser(holder.comment.user.id)
         }
         binding.userName.setOnClick {
+            ObjectPool.update(holder.comment.user)
             it.findActionReceiverOrNull<UserActionReceiver>()?.onClickUser(holder.comment.user.id)
         }
 
