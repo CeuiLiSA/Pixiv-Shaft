@@ -1,21 +1,21 @@
 package ceui.pixiv.ui.comments
 
 import androidx.core.view.isVisible
-import androidx.lifecycle.LiveData
 import androidx.recyclerview.widget.LinearLayoutManager
 import ceui.lisa.R
 import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellChildCommentBinding
 import ceui.lisa.databinding.CellCommentBinding
+import ceui.lisa.utils.Emoji
 import ceui.lisa.utils.GlideUrlChild
 import ceui.loxia.Comment
 import ceui.loxia.DateParse
-import ceui.loxia.RefreshState
 import ceui.loxia.findActionReceiverOrNull
 import ceui.pixiv.ui.common.BottomDividerDecoration
 import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
+import ceui.pixiv.ui.user.UserActionReceiver
 import ceui.refactor.ppppx
 import ceui.refactor.setOnClick
 import com.bumptech.glide.Glide
@@ -54,7 +54,14 @@ class CommentViewHolder(bd: CellCommentBinding) :
             .load(GlideUrlChild(holder.comment.user.profile_image_urls?.findMaxSizeUrl()))
             .into(binding.userIcon)
         binding.userName.text = holder.comment.user.name
+
         binding.commentContent.text = holder.comment.comment
+//        if (Emoji.hasEmoji(holder.comment.comment)) {
+//            val newComment = Emoji.transform(holder.comment.comment)
+//            binding.commentContent.text = newComment
+//        } else {
+//            binding.commentContent.text = holder.comment.comment
+//        }
 
         if (holder.comment.stamp != null) {
             binding.commentStamp.isVisible = true
@@ -63,6 +70,13 @@ class CommentViewHolder(bd: CellCommentBinding) :
                 .into(binding.commentStamp)
         } else {
             binding.commentStamp.isVisible = false
+        }
+
+        binding.userIcon.setOnClick {
+            it.findActionReceiverOrNull<UserActionReceiver>()?.onClickUser(holder.comment.user.id)
+        }
+        binding.userName.setOnClick {
+            it.findActionReceiverOrNull<UserActionReceiver>()?.onClickUser(holder.comment.user.id)
         }
 
         binding.arthurLabel.isVisible = holder.isArthurCommented
@@ -89,7 +103,7 @@ class CommentViewHolder(bd: CellCommentBinding) :
             lifecycleOwner?.let {
                 val childAdapter = CommonAdapter(it)
                 val dividerDecoration =
-                    BottomDividerDecoration(context, R.drawable.list_divider, marginLeft = 48.ppppx)
+                    BottomDividerDecoration(context, R.drawable.list_divider, marginLeft = 24.ppppx)
                 if (binding.childCommentsList.itemDecorationCount == 0) {
                     binding.childCommentsList.addItemDecoration(dividerDecoration)
                 }
@@ -140,6 +154,12 @@ class CellChildCommentViewHolder(bd: CellChildCommentBinding) :
             .into(binding.userIcon)
         binding.userName.text = holder.comment.user.name
         binding.commentContent.text = holder.comment.comment
+//        if (Emoji.hasEmoji(holder.comment.comment)) {
+//            val newComment = Emoji.transform(holder.comment.comment)
+//            binding.commentContent.text = newComment
+//        } else {
+//            binding.commentContent.text = holder.comment.comment
+//        }
 
         if (holder.comment.stamp != null) {
             binding.commentStamp.isVisible = true
@@ -150,6 +170,13 @@ class CellChildCommentViewHolder(bd: CellChildCommentBinding) :
             binding.commentStamp.isVisible = false
         }
         binding.arthurLabel.isVisible = holder.isArthurCommented
+
+        binding.userIcon.setOnClick {
+            it.findActionReceiverOrNull<UserActionReceiver>()?.onClickUser(holder.comment.user.id)
+        }
+        binding.userName.setOnClick {
+            it.findActionReceiverOrNull<UserActionReceiver>()?.onClickUser(holder.comment.user.id)
+        }
 
         binding.reply.setOnClick { sender ->
             holder.comment.user.let {

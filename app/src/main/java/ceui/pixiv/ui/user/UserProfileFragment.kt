@@ -25,6 +25,10 @@ import ceui.refactor.viewBinding
 import com.bumptech.glide.Glide
 import com.google.android.material.tabs.TabLayoutMediator
 
+interface UserActionReceiver {
+    fun onClickUser(id: Long)
+}
+
 class UserProfileFragment : PixivFragment(R.layout.fragment_user_profile), ViewPagerFragment {
 
     private val binding by viewBinding(FragmentUserProfileBinding::bind)
