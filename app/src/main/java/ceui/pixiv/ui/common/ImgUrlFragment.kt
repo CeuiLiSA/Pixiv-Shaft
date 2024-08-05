@@ -22,6 +22,7 @@ import me.jessyan.progressmanager.ProgressListener
 import me.jessyan.progressmanager.ProgressManager
 import me.jessyan.progressmanager.body.ProgressInfo
 import java.io.File
+import java.util.Locale
 
 class ImgUrlFragment : PixivFragment(R.layout.fragment_img_url) {
 
@@ -103,13 +104,36 @@ class ImgUrlFragment : PixivFragment(R.layout.fragment_img_url) {
             }
         }
     }
+}
 
-    fun getImageDimensions(file: File): Pair<Int, Int> {
-        val options = BitmapFactory.Options().apply {
-            // 设置为 true 只解析图片的宽高，不加载图片到内存中
-            inJustDecodeBounds = true
-        }
-        BitmapFactory.decodeFile(file.absolutePath, options)
-        return Pair(options.outWidth, options.outHeight)
+fun getImageDimensions(file: File): Pair<Int, Int> {
+    val options = BitmapFactory.Options().apply {
+        // 设置为 true 只解析图片的宽高，不加载图片到内存中
+        inJustDecodeBounds = true
+    }
+    BitmapFactory.decodeFile(file.absolutePath, options)
+    return Pair(options.outWidth, options.outHeight)
+}
+
+fun getFileSize(file: File): String {
+    val fileSizeInBytes = file.length()
+
+    return when {
+        fileSizeInBytes < 1000 -> "${fileSizeInBytes}B" // 小于 1KB
+        fileSizeInBytes < 1000 * 1000 -> String.format(
+            Locale.getDefault(),
+            "%.2f KB",
+            fileSizeInBytes / 1000f
+        ) // 小于 1MB
+        fileSizeInBytes < 1000 * 1000 * 1000 -> String.format(
+            Locale.getDefault(),
+            "%.2f MB",
+            fileSizeInBytes / (1000f * 1000)
+        ) // 小于 1GB
+        else -> String.format(
+            Locale.getDefault(),
+            "%.2f GB",
+            fileSizeInBytes / (1000f * 1000 * 1000)
+        ) // 大于等于 1GB
     }
 }

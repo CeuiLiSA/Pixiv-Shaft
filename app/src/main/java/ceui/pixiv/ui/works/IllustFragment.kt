@@ -31,6 +31,8 @@ import ceui.loxia.pushFragment
 import ceui.pixiv.ui.comments.CommentsFragmentArgs
 import ceui.pixiv.ui.common.HomeActivity
 import ceui.pixiv.ui.common.PixivFragment
+import ceui.pixiv.ui.common.getFileSize
+import ceui.pixiv.ui.common.getImageDimensions
 import ceui.pixiv.ui.common.isImageInGallery
 import ceui.pixiv.ui.common.saveImageToGallery
 import ceui.pixiv.ui.common.setUpToolbar
@@ -76,6 +78,7 @@ class IllustFragment : PixivFragment(R.layout.fragment_fancy_illust) {
             } else {
                 illust.meta_pages?.getOrNull(0)?.image_urls?.original
             }
+            Common.showLog("sadasd2 aa ${url}")
             prepareOriginalImage(url)
 
             binding.userName.text = illust.user?.name
@@ -96,6 +99,9 @@ class IllustFragment : PixivFragment(R.layout.fragment_fancy_illust) {
                 viewModel.progressLiveData.value = 100
             }
             binding.image.loadImage(file)
+            val resolution = getImageDimensions(file)
+            Common.showLog("sadasd2 bb ${resolution}")
+            Common.showLog("sadasd2 cc ${getFileSize(file)}")
             binding.download.setOnClick {
                 saveImageToGallery(context, file, displayName)
             }
