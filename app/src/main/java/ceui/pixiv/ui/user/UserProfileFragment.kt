@@ -16,6 +16,9 @@ import ceui.loxia.Client
 import ceui.loxia.ObjectPool
 import ceui.loxia.ObjectType
 import ceui.loxia.User
+import ceui.loxia.pushFragment
+import ceui.pixiv.ui.common.ImgUrlFragment
+import ceui.pixiv.ui.common.ImgUrlFragmentArgs
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.ViewPagerFragment
 import ceui.pixiv.ui.common.pixivValueViewModel
@@ -55,6 +58,14 @@ class UserProfileFragment : PixivFragment(R.layout.fragment_user_profile), ViewP
         viewModel.result.observe(viewLifecycleOwner) { result ->
             if (result.profile?.background_image_url?.isNotEmpty() == true) {
                 Glide.with(this).load(GlideUrlChild(result.profile.background_image_url)).into(binding.headerImage)
+                binding.headerImage.setOnClick {
+                    pushFragment(
+                        R.id.navigation_img_url,
+                        ImgUrlFragmentArgs(
+                            result.profile.background_image_url,
+                            "user_${args.userId}_bg.png"
+                        ).toBundle())
+                }
             }
         }
 

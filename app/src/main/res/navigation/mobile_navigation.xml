@@ -94,4 +94,18 @@
             android:name="restrict_type"
             app:argType="string"/>
     </fragment>
+
+
+    <fragment
+        android:id="@+id/navigation_img_url"
+        android:name="ceui.pixiv.ui.common.ImgUrlFragment">
+
+        <argument
+            android:name="url"
+            app:argType="string"/>
+
+        <argument
+            android:name="display_name"
+            app:argType="string"/>
+    </fragment>
 </navigation>
