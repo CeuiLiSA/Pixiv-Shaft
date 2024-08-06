@@ -1,5 +1,6 @@
 package ceui.pixiv.ui.task
 
+import androidx.core.view.isVisible
 import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellTaskStatusBinding
 import ceui.pixiv.ui.common.ListItemHolder
@@ -26,6 +27,16 @@ class TaskStatusViewHolder(bd: CellTaskStatusBinding) : ListItemViewHolder<CellT
                 } else if (status is TaskStatus.Error) {
                     binding.taskStatus.text = "Error"
                 }
+
+                binding.iconDone.isVisible = status is TaskStatus.Finished
+
+                if (status is TaskStatus.Executing) {
+                    binding.progress.isVisible = true
+                    binding.progress.progress = status.percentage
+                } else {
+                    binding.progress.isVisible = false
+                }
+
             }
         }
     }

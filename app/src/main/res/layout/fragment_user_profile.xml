@@ -33,6 +33,8 @@
             <LinearLayout
                 android:id="@+id/info_layout"
                 android:layout_width="wrap_content"
+                app:layout_collapseMode="parallax"
+                app:layout_collapseParallaxMultiplier="0.5"
                 android:layout_gravity="center_horizontal|bottom"
                 android:layout_marginBottom="20dp"
                 android:gravity="center"

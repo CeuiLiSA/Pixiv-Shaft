@@ -57,6 +57,28 @@ class UserProfileFragment : PixivFragment(R.layout.fragment_user_profile), ViewP
         }
     )
 
+    private fun buildTabText(position: Int): String {
+        val profile = viewModel.result.value?.profile
+        if (profile != null) {
+            if (position == 0) {
+                return "发布插画(${profile.total_illusts})"
+            } else if (position == 1) {
+                return "发布漫画(${profile.total_manga})"
+            } else if (position == 2) {
+                return "收藏插画(${profile.total_illust_bookmarks_public})"
+            }
+        } else {
+            if (position == 0) {
+                return "发布插画"
+            } else if (position == 1) {
+                return "发布漫画"
+            } else if (position == 2) {
+                return "收藏插画"
+            }
+        }
+        return "hello world"
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -100,7 +122,8 @@ class UserProfileFragment : PixivFragment(R.layout.fragment_user_profile), ViewP
 
         ObjectPool.get<User>(args.userId).observe(viewLifecycleOwner) { user ->
             if (user?.profile_image_urls?.findMaxSizeUrl()?.isNotEmpty() == true) {
-                Glide.with(this).load(GlideUrlChild(user.profile_image_urls.findMaxSizeUrl())).into(binding.userIcon)
+                Glide.with(this).load(GlideUrlChild(user.profile_image_urls.findMaxSizeUrl()))
+                    .into(binding.userIcon)
             }
             binding.follow.isVisible = user.is_followed != true
             binding.unfollow.isVisible = user.is_followed == true
@@ -114,16 +137,21 @@ class UserProfileFragment : PixivFragment(R.layout.fragment_user_profile), ViewP
         }
         viewModel.result.observe(viewLifecycleOwner) { result ->
             if (result.profile?.background_image_url?.isNotEmpty() == true) {
-                Glide.with(this).load(GlideUrlChild(result.profile.background_image_url)).into(binding.headerImage)
+                Glide.with(this).load(GlideUrlChild(result.profile.background_image_url))
+                    .into(binding.headerImage)
                 binding.headerImage.setOnClick {
                     pushFragment(
                         R.id.navigation_img_url,
                         ImgUrlFragmentArgs(
                             result.profile.background_image_url,
                             "user_${args.userId}_bg.png"
-                        ).toBundle())
+                        ).toBundle()
+                    )
                 }
             }
+            binding.tabLayout.getTabAt(0)?.text = buildTabText(0)
+            binding.tabLayout.getTabAt(1)?.text = buildTabText(1)
+            binding.tabLayout.getTabAt(2)?.text = buildTabText(2)
         }
 
         binding.viewPager.adapter = object : FragmentStateAdapter(this) {
@@ -153,7 +181,10 @@ class UserProfileFragment : PixivFragment(R.layout.fragment_user_profile), ViewP
                 }
             }
         }
-        TabLayoutMediator(binding.tabLayout, binding.viewPager
-        ) { tab, position -> tab.setText("hello world") }.attach()
+        TabLayoutMediator(
+            binding.tabLayout, binding.viewPager
+        ) { tab, position ->
+            tab.setText(buildTabText(position))
+        }.attach()
     }
 }
