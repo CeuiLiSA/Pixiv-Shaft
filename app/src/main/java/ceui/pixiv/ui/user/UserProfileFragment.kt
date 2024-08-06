@@ -25,7 +25,7 @@ import ceui.loxia.ObjectPool
 import ceui.loxia.ObjectType
 import ceui.loxia.User
 import ceui.loxia.pushFragment
-import ceui.pixiv.task.FetchAllTask
+import ceui.pixiv.ui.task.FetchAllTask
 import ceui.pixiv.ui.common.ImgUrlFragment
 import ceui.pixiv.ui.common.ImgUrlFragmentArgs
 import ceui.pixiv.ui.common.PixivFragment

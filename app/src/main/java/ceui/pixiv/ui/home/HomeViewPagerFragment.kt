@@ -18,6 +18,7 @@ import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.rank.RankingIllustsFragment
 import ceui.pixiv.ui.user.UserFollowingFragment
 import ceui.pixiv.ui.user.UserFollowingFragmentArgs
+import ceui.pixiv.ui.user.UserProfileFragmentArgs
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
 import com.bumptech.glide.Glide

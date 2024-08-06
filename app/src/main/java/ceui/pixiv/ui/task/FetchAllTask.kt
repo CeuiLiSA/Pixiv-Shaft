@@ -1,4 +1,4 @@
-package ceui.pixiv.task
+package ceui.pixiv.ui.task
 
 import ceui.lisa.utils.Common
 import ceui.loxia.Client
