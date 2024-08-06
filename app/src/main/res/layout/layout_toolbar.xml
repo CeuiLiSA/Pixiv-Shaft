@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:paddingHorizontal="18dp"
-    android:paddingVertical="12dp"
+    android:paddingVertical="10dp"
     tools:background="@color/black"
     app:layout_constraintTop_toTopOf="parent"
     xmlns:android="http://schemas.android.com/apk/res/android"
@@ -30,6 +30,8 @@
         <TextView
             android:layout_gravity="center"
             android:textSize="18sp"
+            android:maxLines="1"
+            android:ellipsize="end"
             android:textColor="@color/text00"
             android:id="@+id/navi_title"
             android:layout_width="wrap_content"

@@ -9,6 +9,22 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
+
+    <View
+        android:id="@+id/top_shadow"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_width="match_parent"
+        android:background="@drawable/black_gradient_revert"
+        android:layout_height="150dp"/>
+
+    <View
+        android:id="@+id/bottom_shadow"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_width="match_parent"
+        android:background="@drawable/black_gradient"
+        android:layout_height="150dp"/>
+
+
     <include
         layout="@layout/layout_toolbar"
         android:id="@+id/toolbar_layout"/>

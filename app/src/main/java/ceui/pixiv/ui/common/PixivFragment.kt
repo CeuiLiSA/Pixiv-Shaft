@@ -5,6 +5,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -38,9 +39,14 @@ interface ViewPagerFragment {
 
 }
 
-fun Fragment.setUpToolbar(binding: LayoutToolbarBinding) {
+fun Fragment.setUpToolbar(binding: LayoutToolbarBinding, content: ViewGroup) {
     if (parentFragment is ViewPagerFragment) {
         binding.toolbarLayout.isVisible = false
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            content.updatePadding(0, 0, 0, insets.bottom)
+            WindowInsetsCompat.CONSUMED
+        }
     } else {
         binding.toolbarLayout.isVisible = true
         binding.naviBack.setOnClick {
@@ -51,6 +57,7 @@ fun Fragment.setUpToolbar(binding: LayoutToolbarBinding) {
             binding.toolbarLayout.updateLayoutParams<ViewGroup.MarginLayoutParams> {
                 topMargin = insets.top
             }
+            content.updatePadding(0, 0, 0, insets.bottom)
             WindowInsetsCompat.CONSUMED
         }
     }
@@ -58,7 +65,7 @@ fun Fragment.setUpToolbar(binding: LayoutToolbarBinding) {
 
 fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: PixivListViewModel<*, *>) {
     val ctx = requireContext()
-    setUpToolbar(binding.toolbarLayout)
+    setUpToolbar(binding.toolbarLayout, binding.refreshLayout)
     binding.refreshLayout.setRefreshHeader(MaterialHeader(ctx))
     binding.refreshLayout.setOnRefreshListener {
         viewModel.refresh(RefreshHint.pullToRefresh())

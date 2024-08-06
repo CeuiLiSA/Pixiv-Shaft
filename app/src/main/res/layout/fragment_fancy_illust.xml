@@ -9,20 +9,21 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
-    <com.google.android.material.progressindicator.CircularProgressIndicator
-        android:id="@+id/progress_circular"
-        android:layout_width="wrap_content"
+
+    <View
+        android:id="@+id/top_shadow"
         app:layout_constraintTop_toTopOf="parent"
+        android:layout_width="match_parent"
+        android:background="@drawable/black_gradient_revert"
+        android:layout_height="150dp"/>
+
+    <View
+        android:id="@+id/bottom_shadow"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        app:indicatorColor="@color/white"
-        app:indicatorSize="30dp"
-        app:trackColor="@color/voice_record_track_color"
-        app:trackCornerRadius="4dp"
-        app:trackThickness="5dp" />
+        android:layout_width="match_parent"
+        android:background="@drawable/black_gradient"
+        android:layout_height="150dp"/>
+
 
     <include
         layout="@layout/layout_toolbar"
@@ -75,6 +76,22 @@
             app:ptb_progress_stroke_width="3dp"
             app:ptb_progress_width="14dp" />
     </LinearLayout>
+
+
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:id="@+id/progress_circular"
+        android:layout_width="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        app:indicatorColor="@color/white"
+        app:indicatorSize="30dp"
+        app:trackColor="@color/voice_record_track_color"
+        app:trackCornerRadius="4dp"
+        app:trackThickness="5dp" />
 
     <LinearLayout
         android:id="@+id/button_layout"

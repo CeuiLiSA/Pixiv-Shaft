@@ -9,6 +9,7 @@
         android:id="@+id/toolbar_layout"
         app:layout_constraintTop_toTopOf="parent"
         android:paddingStart="18dp"
+        android:paddingEnd="18dp"
         android:paddingVertical="12dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">

@@ -3,6 +3,7 @@ package ceui.pixiv.ui.common
 import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
+import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore

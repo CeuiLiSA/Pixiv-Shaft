@@ -2,30 +2,41 @@ package ceui.pixiv.ui.user
 
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import ceui.lisa.R
 import ceui.lisa.activities.followUser
 import ceui.lisa.activities.unfollowUser
 import ceui.lisa.databinding.FragmentUserProfileBinding
+import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.Params
 import ceui.loxia.Client
+import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
 import ceui.loxia.ObjectType
 import ceui.loxia.User
 import ceui.loxia.pushFragment
+import ceui.pixiv.task.FetchAllTask
 import ceui.pixiv.ui.common.ImgUrlFragment
 import ceui.pixiv.ui.common.ImgUrlFragmentArgs
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.ViewPagerFragment
 import ceui.pixiv.ui.common.pixivValueViewModel
 import ceui.pixiv.ui.common.setUpToolbar
+import ceui.refactor.ppppx
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
 import com.bumptech.glide.Glide
+import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.tabs.TabLayoutMediator
 
 interface UserActionReceiver {
@@ -49,7 +60,43 @@ class UserProfileFragment : PixivFragment(R.layout.fragment_user_profile), ViewP
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setUpToolbar(binding.toolbarLayout)
+        binding.naviBack.setOnClick {
+            findNavController().popBackStack()
+        }
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            binding.toolbar.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                topMargin = insets.top - 10.ppppx
+            }
+            windowInsets
+        }
+
+        binding.naviMore.setOnClick {
+            FetchAllTask { Client.appApi.getUserCreatedIllusts(args.userId, ObjectType.ILLUST) }
+        }
+
+
+        binding.appBar.addOnOffsetChangedListener { appBarLayout, verticalOffset ->
+            val totalScrollRange = appBarLayout.totalScrollRange
+            if (totalScrollRange == 0) {
+                return@addOnOffsetChangedListener
+            }
+
+            val percentage = (Math.abs(verticalOffset) / totalScrollRange.toFloat())
+
+            if (percentage == 0f) {
+                // AppBarLayout fully expanded
+                Common.showLog("asdadsas onAppBarExpanded ${totalScrollRange}, ${verticalOffset}")
+            } else if (percentage == 100f) {
+                // AppBarLayout fully collapsed
+                Common.showLog("asdadsas onAppBarCollapsed ${totalScrollRange}, ${verticalOffset}")
+            } else {
+                // AppBarLayout partially collapsed
+                Common.showLog("asdadsas onAppBarPartiallyCollapsed ${totalScrollRange}, ${verticalOffset}, ${percentage}")
+            }
+
+            binding.infoLayout.alpha = 1F - percentage
+        }
 
         ObjectPool.get<User>(args.userId).observe(viewLifecycleOwner) { user ->
             if (user?.profile_image_urls?.findMaxSizeUrl()?.isNotEmpty() == true) {

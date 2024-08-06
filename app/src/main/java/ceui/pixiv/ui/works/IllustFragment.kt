@@ -26,11 +26,20 @@ import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
 import com.bumptech.glide.Glide
 import com.github.panpf.sketch.loadImage
+import com.github.panpf.zoomimage.SketchZoomImageView
 
 class IllustFragment : ImgDisplayFragment(R.layout.fragment_fancy_illust) {
 
     private val binding by viewBinding(FragmentFancyIllustBinding::bind)
     private val args by navArgs<IllustFragmentArgs>()
+    override val downloadButton: View
+        get() = binding.download
+    override val displayImg: SketchZoomImageView
+        get() = binding.image
+
+    override fun displayName(): String {
+        return "pixiv_works_${args.illustId}.png"
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -39,21 +48,14 @@ class IllustFragment : ImgDisplayFragment(R.layout.fragment_fancy_illust) {
             listOf(
                 binding.toolbarLayout.root,
                 binding.userLayout,
-                binding.buttonLayout
+                binding.buttonLayout,
+                binding.topShadow,
+                binding.bottomShadow
             ),
             binding.image,
             binding.toolbarLayout
         )
         setUpProgressBar(binding.progressCircular)
-        val context = requireContext()
-        val displayName = "pixiv_works_${args.illustId}.png"
-        viewModel.fileLiveData.observe(viewLifecycleOwner) { file ->
-            binding.image.loadImage(file)
-            binding.download.setOnClick {
-                saveImageToGallery(context, file, displayName)
-            }
-        }
-
         val liveIllust = ObjectPool.get<Illust>(args.illustId)
         liveIllust.observe(viewLifecycleOwner) { illust ->
             binding.toolbarLayout.naviTitle.text = illust.title

@@ -30,12 +30,18 @@ class BottomDividerDecoration(
             val child = parent.getChildAt(i)
             if (parent.getChildAdapterPosition(child) == RecyclerView.NO_POSITION) continue
 
-            val params = child.layoutParams as RecyclerView.LayoutParams
-            val top = child.bottom + params.bottomMargin
-            val bottom = top + divider.intrinsicHeight
+            // Check if the current item is the last item
+            val isLastItem = parent.getChildAdapterPosition(child) == parent.adapter?.itemCount?.minus(1)
 
-            divider.setBounds(left, top, right, bottom)
-            divider.draw(canvas)
+            // Only draw the divider if it is not the last item
+            if (!isLastItem) {
+                val params = child.layoutParams as RecyclerView.LayoutParams
+                val top = child.bottom + params.bottomMargin
+                val bottom = top + divider.intrinsicHeight
+
+                divider.setBounds(left, top, right, bottom)
+                divider.draw(canvas)
+            }
         }
     }
 }

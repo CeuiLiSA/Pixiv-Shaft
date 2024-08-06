@@ -14,12 +14,13 @@
             android:id="@+id/collapsing_toolbar_layout"
             android:layout_width="match_parent"
             android:layout_height="@dimen/playlist_app_bar_height"
-            app:contentScrim="@color/colorBlack40"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed">
+            app:toolbarId="@+id/toolbar"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed|snap">
 
             <ImageView
                 android:id="@+id/header_image"
                 app:layout_collapseMode="parallax"
+                app:layout_collapseParallaxMultiplier="0.5"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop" />
@@ -30,6 +31,7 @@
                 android:layout_height="wrap_content"/>
 
             <LinearLayout
+                android:id="@+id/info_layout"
                 android:layout_width="wrap_content"
                 android:layout_gravity="center_horizontal|bottom"
                 android:layout_marginBottom="20dp"
@@ -75,11 +77,29 @@
                     app:ptb_progress_width="14dp" />
             </LinearLayout>
 
-            <include
-                android:id="@+id/toolbar_layout"
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                layout="@layout/layout_toolbar"/>
+                android:layout_height="?actionBarSize"
+                app:layout_collapseMode="pin">
+
+                <ImageView
+                    android:id="@+id/navi_back"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/icon_navi_back"/>
+
+                <ImageView
+                    android:id="@+id/navi_more"
+                    android:layout_gravity="end"
+                    android:layout_marginEnd="18dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/icon_navi_more"/>
+
+            </androidx.appcompat.widget.Toolbar>
+
+
 
         </com.google.android.material.appbar.CollapsingToolbarLayout>
 

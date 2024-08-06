@@ -31,22 +31,32 @@ import me.jessyan.progressmanager.body.ProgressInfo
 import java.io.File
 import java.util.Locale
 
-open class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
+abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
 
     protected val viewModel by viewModels<ImageFileViewModel>()
+
+    abstract val downloadButton: View
+    abstract val displayImg: SketchZoomImageView
+    abstract fun displayName(): String
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val context = requireContext()
         viewModel.fileLiveData.observe(viewLifecycleOwner) { file ->
             if (viewModel.progressLiveData.value != 100) {
                 viewModel.progressLiveData.value = 100
+            }
+            displayImg.loadImage(file)
+            downloadButton.setOnClick {
+                saveImageToGallery(context, file, displayName())
             }
             val resolution = getImageDimensions(file)
             Common.showLog("sadasd2 bb ${resolution}")
             Common.showLog("sadasd2 cc ${getFileSize(file)}")
         }
     }
+
 
     protected fun prepareOriginalImage(url: String?) {
         if (url.isNullOrEmpty()) {
@@ -83,7 +93,7 @@ open class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
                     viewModel.isHighQualityImageLoaded = true
                     viewModel.fileLiveData.postValue(file)
                 } catch (ex: Exception) {
-                    viewModel.progressLiveData.value = -1
+                    viewModel.progressLiveData.postValue(-1)
                     throw ex
                 }
             }
