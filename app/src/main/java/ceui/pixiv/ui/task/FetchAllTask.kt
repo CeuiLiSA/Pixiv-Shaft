@@ -21,7 +21,7 @@ import java.io.FileOutputStream
 import java.io.InputStreamReader
 import java.io.OutputStreamWriter
 
-class FetchAllTask<Item, ResponseT: KListShow<Item>>(
+open class FetchAllTask<Item, ResponseT: KListShow<Item>>(
     initialLoader: suspend () -> KListShow<Item>
 ) {
 
@@ -49,7 +49,6 @@ class FetchAllTask<Item, ResponseT: KListShow<Item>>(
 
                     // Fetch subsequent pages
                     while (!nextPageUrl.isNullOrEmpty()) {
-                        delay(3000L)
                         val responseClass = resp::class.java
                         Common.showLog("FetchAllTask subsequent start ${results.size}")
                         val responseBody = Client.appApi.generalGet(nextPageUrl)
@@ -63,7 +62,18 @@ class FetchAllTask<Item, ResponseT: KListShow<Item>>(
                         nextPageUrl = response.nextPageUrl
                     }
 
-                    onEnd()
+                    // Serialize results to JSON and write to cache file
+                    val json = gson.toJson(results)
+                    val cacheFile = File(PathUtils.getInternalAppCachePath(), "task-result.text")
+
+                    BufferedWriter(OutputStreamWriter(FileOutputStream(cacheFile), "UTF-8")).use { writer ->
+                        writer.write(json)
+                    }
+
+                    val fileSize = getFileSize(cacheFile)
+                    Common.showLog("FetchAllTask fileSize ${fileSize}")
+
+                    onEnd(results)
                 } catch (ex: Exception) {
                     ex.printStackTrace()
                     // Handle exceptions accordingly
@@ -72,18 +82,8 @@ class FetchAllTask<Item, ResponseT: KListShow<Item>>(
         }
     }
 
-    private fun onEnd() {
-        Common.showLog("FetchAllTask all end ${results.size}")
-        // Serialize results to JSON and write to cache file
-        val json = gson.toJson(results)
-        val cacheFile = File(PathUtils.getInternalAppCachePath(), "task-result.text")
-
-        BufferedWriter(OutputStreamWriter(FileOutputStream(cacheFile), "UTF-8")).use { writer ->
-            writer.write(json)
-        }
-
-        val fileSize = getFileSize(cacheFile)
-        Common.showLog("FetchAllTask fileSize ${fileSize}")
+    open fun onEnd(results: List<Item>) {
+        Common.showLog("FetchAllTask all end ${this.results.size}")
     }
 }
 

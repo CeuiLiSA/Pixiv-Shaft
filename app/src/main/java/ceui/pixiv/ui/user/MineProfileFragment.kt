@@ -30,7 +30,7 @@ class MineProfileFragment : PixivFragment(R.layout.fragment_mine_profile) {
         }
 
         binding.tasks.setOnClick {
-            pushFragment(R.id.navigation_task_status)
+            pushFragment(R.id.navigation_cache_list)
         }
     }
 }
