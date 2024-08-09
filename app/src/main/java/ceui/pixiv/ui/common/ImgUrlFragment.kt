@@ -52,8 +52,4 @@ class ImgUrlFragment : ImgDisplayFragment(R.layout.fragment_img_url) {
         val task = viewModel.loadNamedUrl(NamedUrl(displayName(), args.url), requireContext())
         setUpLoadTask(context, task)
     }
-
-    fun onClickDownload() {
-
-    }
 }

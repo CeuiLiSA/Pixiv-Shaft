@@ -27,6 +27,7 @@ import ceui.pixiv.ui.task.LoadTask
 import ceui.pixiv.ui.task.NamedUrl
 import ceui.pixiv.ui.task.TaskStatus
 import ceui.pixiv.ui.works.PagedImgActionReceiver
+import ceui.pixiv.ui.works.SharedViewModel
 import ceui.pixiv.ui.works.ToggleToolnarViewModel
 import ceui.refactor.animateFadeInQuickly
 import ceui.refactor.animateFadeOutQuickly
@@ -67,6 +68,7 @@ open class ImgDisplayViewModel : ToggleToolnarViewModel() {
 abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
 
     protected val viewModel by viewModels<ImgDisplayViewModel>()
+    private val sharedViewModel by viewModels<SharedViewModel>(ownerProducer = { requireParentFragment() })
 
     abstract val downloadButton: View
     abstract val progressCircular: CircularProgressIndicator
@@ -94,6 +96,14 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
             val resolution = getImageDimensions(file)
             Common.showLog("sadasd2 bb ${resolution}")
             Common.showLog("sadasd2 cc ${getFileSize(file)}")
+        }
+        if (parentFragment is ViewPagerFragment) {
+            sharedViewModel.event.observe(viewLifecycleOwner) { ev ->
+                if (ev >= 0) {
+                    downloadButton.performClick()
+                    sharedViewModel.markAsTriggered()
+                }
+            }
         }
         progressCircular.setUpWithTaskStatus(task.status, viewLifecycleOwner)
     }

@@ -16,7 +16,7 @@ import ceui.pixiv.ui.common.ImgUrlFragmentArgs
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.ViewPagerFragment
 import ceui.pixiv.ui.common.setUpFullScreen
-import ceui.pixiv.ui.common.setUpToolbar
+import ceui.refactor.setOnClick
 
 interface PagedImgActionReceiver {
     fun onClickPagedImg()
@@ -27,6 +27,7 @@ class PagedImgUrlFragment : PixivFragment(R.layout.fragment_paged_img_url), Page
 
     private val args by navArgs<PagedImgUrlFragmentArgs>()
     private val viewModel by viewModels<ToggleToolnarViewModel>()
+    private val sharedViewModel by viewModels<SharedViewModel>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -41,6 +42,10 @@ class PagedImgUrlFragment : PixivFragment(R.layout.fragment_paged_img_url), Page
             ),
             binding.toolbarLayout
         )
+
+        binding.download.setOnClick {
+            sharedViewModel.triggerEvent(binding.pagedViewpager.currentItem)
+        }
 
         val illust = ObjectPool.get<Illust>(args.illustId).value ?: return
         binding.pagedViewpager.adapter = object : FragmentStateAdapter(this) {
