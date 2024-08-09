@@ -11,4 +11,13 @@
         android:layout_height="100dp"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <TextView
+        android:id="@+id/p_size"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_margin="10dp"
+        android:textColor="@color/text00"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

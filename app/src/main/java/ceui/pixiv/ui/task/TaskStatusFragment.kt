@@ -8,6 +8,7 @@ import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.pixiv.ui.common.CommonAdapter
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.setUpToolbar
+import ceui.pixiv.ui.works.buildPixivWorksFileName
 import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
 
@@ -22,15 +23,13 @@ class TaskStatusFragment : PixivFragment(R.layout.fragment_pixiv_list) {
             val items = mutableListOf<NamedUrl>()
             loadIllustsFromCache()?.forEach { illust ->
                 if (illust.page_count == 1) {
-                    val displayName = "pixiv_works_${illust.id}_p0.png"
                     illust.meta_single_page?.original_image_url?.let {
-                        items.add(NamedUrl(displayName, it))
+                        items.add(NamedUrl(buildPixivWorksFileName(illust.id), it))
                     }
                 } else {
                     illust.meta_pages?.forEachIndexed { index, page ->
-                        val displayName = "pixiv_works_${illust.id}_p${index}.png"
                         page.image_urls?.original?.let {
-                            items.add(NamedUrl(displayName, it))
+                            items.add(NamedUrl(buildPixivWorksFileName(illust.id, index), it))
                         }
                     }
                 }

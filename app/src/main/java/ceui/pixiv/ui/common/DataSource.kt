@@ -10,7 +10,8 @@ import com.google.gson.Gson
 
 open class DataSource<Item, T: KListShow<Item>>(
     private val dataFetcher: suspend () -> T,
-    private val itemMapper: (Item) -> List<ListItemHolder>
+    private val itemMapper: (Item) -> List<ListItemHolder>,
+    private val filter: (Item) -> Boolean = { item -> true }
 ) {
 
     private val _itemHolders = MutableLiveData<List<ListItemHolder>>()
@@ -30,7 +31,12 @@ open class DataSource<Item, T: KListShow<Item>>(
             val response = dataFetcher()
             responseClass = response::class.java as Class<T>
             _nextPageUrl = response.nextPageUrl
-            val holders = response.displayList.flatMap(itemMapper)
+            val holders = response
+                .displayList
+                .filter { item ->
+                    filter(item)
+                }
+                .flatMap(itemMapper)
             _itemHolders.value = holders
             _refreshState.value = RefreshState.LOADED(
                 hasContent = holders.isNotEmpty(),
@@ -50,7 +56,12 @@ open class DataSource<Item, T: KListShow<Item>>(
             val responseJson = responseBody.string()
             val response = gson.fromJson(responseJson, responseClass)
             _nextPageUrl = response.nextPageUrl
-            val newHolders = response.displayList.flatMap(itemMapper)
+            val newHolders = response
+                .displayList
+                .filter { item ->
+                    filter(item)
+                }
+                .flatMap(itemMapper)
             if (newHolders.isNotEmpty()) {
                 val existingHolders = (_itemHolders.value ?: listOf()).toMutableList()
                 existingHolders.addAll(newHolders)

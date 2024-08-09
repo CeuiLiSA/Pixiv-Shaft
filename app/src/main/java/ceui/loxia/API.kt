@@ -33,7 +33,7 @@ interface API {
         @Field("user_id") user_id: Long
     )
 
-    @GET("/v1/illust/recommended?include_ranking_illusts=true&include_privacy_policy=true&filter=for_ios")
+    @GET("/v1/manga/recommended?include_ranking_illusts=true&include_privacy_policy=true&filter=for_ios")
     suspend fun getHomeData(): HomeIllustResponse
 
     @GET("/v1/user/illusts?filter=for_ios")

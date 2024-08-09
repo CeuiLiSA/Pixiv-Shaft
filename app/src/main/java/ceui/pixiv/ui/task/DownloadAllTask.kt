@@ -53,28 +53,34 @@ class DownloadAllTask(
     }
 }
 
-class DownloadTask(val content: NamedUrl, val context: Context) {
-
+open class LoadTask(val content: NamedUrl, private val context: Context) {
     private val _status = MutableLiveData<TaskStatus>(TaskStatus.NotStart)
     val status: LiveData<TaskStatus> = _status
+
+    private val _file = MutableLiveData<File>()
+    val file: LiveData<File> = _file
 
     suspend fun execute() {
         if (_status.value is TaskStatus.Executing || _status.value is TaskStatus.Finished) {
             return
         }
         coroutineScope {
-            var shouldDelay = false
             try {
                 _status.postValue(TaskStatus.Executing(0))
-                ProgressManager.getInstance().addResponseListener(content.url, object : ProgressListener {
-                    override fun onProgress(progressInfo: ProgressInfo) {
-                        _status.postValue(TaskStatus.Executing(progressInfo.percent))
-                    }
+                ProgressManager.getInstance()
+                    .addResponseListener(content.url, object : ProgressListener {
+                        override fun onProgress(progressInfo: ProgressInfo) {
+                            if (progressInfo.isFinish || progressInfo.percent == 100) {
+                                _status.postValue(TaskStatus.Finished)
+                            } else {
+                                _status.postValue(TaskStatus.Executing(progressInfo.percent))
+                            }
+                        }
 
-                    override fun onError(id: Long, e: Exception) {
-                        _status.postValue(TaskStatus.Error(e))
-                    }
-                })
+                        override fun onError(id: Long, e: Exception) {
+                            _status.postValue(TaskStatus.Error(e))
+                        }
+                    })
 
                 val file = Glide.with(context)
                     .asFile()
@@ -99,24 +105,34 @@ class DownloadTask(val content: NamedUrl, val context: Context) {
                             dataSource: DataSource,
                             isFirstResource: Boolean
                         ): Boolean {
-                            shouldDelay = dataSource != DataSource.DATA_DISK_CACHE
                             Common.showLog("dsaasdw2 onResourceReady ${dataSource.name} ${resource.path}")
                             return false
                         }
                     })
                     .submit()
                     .get()
-                saveImageToGallery(context, file, content.name)
+                _file.postValue(file)
+                onFilePrepared(file)
                 _status.postValue(TaskStatus.Finished)
             } catch (ex: Exception) {
                 _status.postValue(TaskStatus.Error(ex))
                 ex.printStackTrace()
-            } finally {
-                if (shouldDelay) {
-                    delay(5000)
-                }
             }
         }
+    }
+
+    open fun onFilePrepared(file: File) {
+
+    }
+}
+
+
+class DownloadTask(content: NamedUrl, private val context: Context) :
+    LoadTask(content, context) {
+
+    override fun onFilePrepared(file: File) {
+        super.onFilePrepared(file)
+        saveImageToGallery(context, file, content.name)
     }
 }
 

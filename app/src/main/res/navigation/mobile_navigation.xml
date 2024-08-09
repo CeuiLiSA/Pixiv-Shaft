@@ -125,4 +125,17 @@
             android:name="display_name"
             app:argType="string"/>
     </fragment>
+
+    <fragment
+        android:id="@+id/navigation_paged_img_urls"
+        android:name="ceui.pixiv.ui.works.PagedImgUrlFragment" >
+
+        <argument
+            android:name="illust_id"
+            app:argType="long" />
+
+        <argument
+            android:name="index"
+            app:argType="integer"/>
+    </fragment>
 </navigation>

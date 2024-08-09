@@ -64,17 +64,17 @@ class UserProfileFragment : PixivFragment(R.layout.fragment_user_profile), ViewP
                 return "发布插画(${profile.total_illusts})"
             } else if (position == 1) {
                 return "发布漫画(${profile.total_manga})"
-            } else if (position == 2) {
-                return "收藏插画(${profile.total_illust_bookmarks_public})"
             }
         } else {
             if (position == 0) {
                 return "发布插画"
             } else if (position == 1) {
                 return "发布漫画"
-            } else if (position == 2) {
-                return "收藏插画"
             }
+        }
+
+        if (position == 2) {
+            return "收藏插画"
         }
         return "hello world"
     }
@@ -124,6 +124,15 @@ class UserProfileFragment : PixivFragment(R.layout.fragment_user_profile), ViewP
             if (user?.profile_image_urls?.findMaxSizeUrl()?.isNotEmpty() == true) {
                 Glide.with(this).load(GlideUrlChild(user.profile_image_urls.findMaxSizeUrl()))
                     .into(binding.userIcon)
+                binding.userIcon.setOnClick {
+                    pushFragment(
+                        R.id.navigation_img_url,
+                        ImgUrlFragmentArgs(
+                            user.profile_image_urls.findMaxSizeUrl() ?: "",
+                            "user_${args.userId}_avatar.png"
+                        ).toBundle()
+                    )
+                }
             }
             binding.follow.isVisible = user.is_followed != true
             binding.unfollow.isVisible = user.is_followed == true

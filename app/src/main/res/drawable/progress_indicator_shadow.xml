@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#80000000"/> <!-- 半透明黑色阴影 -->
+            <corners android:radius="12dp"/> <!-- 圆角半径 -->
+        </shape>
+    </item>
+    <item android:bottom="4dp" android:right="4dp">
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/white"/> <!-- 进度指示器的背景色 -->
+            <corners android:radius="12dp"/>
+        </shape>
+    </item>
+</layer-list>

@@ -1,5 +1,6 @@
 package ceui.pixiv.ui.common
 
+import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import ceui.lisa.R
 import ceui.lisa.annotations.ItemHolder
@@ -49,6 +50,13 @@ class IllustCardViewHolder(bd: CellIllustCardBinding) :
         binding.image.updateLayoutParams {
             width = itemWidth
             height = itemHeight
+        }
+
+        if (holder.illust.page_count > 1) {
+            binding.pSize.isVisible = true
+            binding.pSize.text = "${holder.illust.page_count}P"
+        } else {
+            binding.pSize.isVisible = false
         }
 
         Glide.with(binding.root.context)

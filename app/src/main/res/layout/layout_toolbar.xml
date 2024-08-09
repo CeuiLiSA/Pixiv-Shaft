@@ -21,6 +21,7 @@
 
     <FrameLayout
         android:layout_width="0dp"
+        android:paddingHorizontal="10dp"
         app:layout_constraintStart_toEndOf="@+id/navi_back"
         app:layout_constraintEnd_toStartOf="@+id/navi_more"
         app:layout_constraintTop_toTopOf="parent"

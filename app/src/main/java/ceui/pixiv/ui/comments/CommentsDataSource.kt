@@ -20,6 +20,9 @@ class CommentsDataSource(
                 childCommentsMap[comment.id] ?: listOf()
             )
         )
+    },
+    filter = { comment ->
+        comment.comment?.contains("翻墙") != true
     }
 ) {
 
