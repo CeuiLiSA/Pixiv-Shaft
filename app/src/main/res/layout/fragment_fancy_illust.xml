@@ -109,23 +109,31 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
 
-        <Button
+        <ImageView
+            android:src="@drawable/icon_comments"
             android:id="@+id/comment"
-            android:text="@string/comments"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:padding="4dp"
+            android:layout_width="50dp"
+            android:layout_marginBottom="16dp"
+            android:layout_height="50dp"/>
 
-        <Button
+        <ImageView
             android:id="@+id/download"
-            android:text="@string/string_5"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:padding="5dp"
+            android:src="@drawable/icon_save"
+            android:layout_marginBottom="16dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"/>
 
-        <Button
+        <ceui.loxia.ProgressImageButton
             android:id="@+id/bookmark"
-            android:text="@string/string_6"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            app:ptb_progress_stroke_width="3dp"
+            android:padding="8dp"
+            android:layout_marginBottom="16dp"
+            app:ptb_progress_width="14dp"
+            android:src="@drawable/icon_not_liked"
+            android:layout_width="50dp"
+            android:layout_height="50dp"/>
     </LinearLayout>
 
 

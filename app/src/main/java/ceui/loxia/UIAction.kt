@@ -48,6 +48,32 @@ fun Fragment.launchSuspend(block: suspend CoroutineScope.() -> Unit) {
     }
 }
 
+fun Fragment.launchSuspend(sender: ProgressTextButton, block: suspend CoroutineScope.() -> Unit) {
+    viewLifecycleOwnerLiveData.value?.lifecycleScope?.launch {
+        try {
+            sender.showProgress()
+            block()
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+        } finally {
+            sender.hideProgress()
+        }
+    }
+}
+
+fun Fragment.launchSuspend(sender: ProgressImageButton, block: suspend CoroutineScope.() -> Unit) {
+    viewLifecycleOwnerLiveData.value?.lifecycleScope?.launch {
+        try {
+            sender.showProgress(true)
+            block()
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+        } finally {
+            sender.showProgress(false)
+        }
+    }
+}
+
 fun NavOptions.Builder.setHorizontalSlide(): NavOptions.Builder {
     return setEnterAnim(R.anim.h_slide_enter)
         .setExitAnim(R.anim.h_slide_exit)

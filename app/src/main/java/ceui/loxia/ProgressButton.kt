@@ -34,8 +34,8 @@ class ProgressImageButton(context: Context, attrs: AttributeSet?, defStyle: Int)
                 return
             }
 
+            originalState = OriginalState(drawable, isClickable)
             if (value) {
-                originalState = OriginalState(drawable, isClickable)
 
                 val progressDrawable = CircularProgressDrawable(context).apply {
                     setColorSchemeColors(Color.WHITE)

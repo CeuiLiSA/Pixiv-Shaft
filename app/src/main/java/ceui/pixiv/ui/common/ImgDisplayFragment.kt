@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -16,18 +15,17 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
 import ceui.lisa.databinding.LayoutToolbarBinding
 import ceui.lisa.utils.Common
 import ceui.loxia.findActionReceiverOrNull
+import ceui.loxia.observeEvent
 import ceui.pixiv.ui.task.LoadTask
 import ceui.pixiv.ui.task.NamedUrl
 import ceui.pixiv.ui.task.TaskStatus
 import ceui.pixiv.ui.works.PagedImgActionReceiver
-import ceui.pixiv.ui.works.SharedViewModel
+import ceui.pixiv.ui.works.ViewPagerViewModel
 import ceui.pixiv.ui.works.ToggleToolnarViewModel
 import ceui.refactor.animateFadeInQuickly
 import ceui.refactor.animateFadeOutQuickly
@@ -68,7 +66,7 @@ open class ImgDisplayViewModel : ToggleToolnarViewModel() {
 abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
 
     protected val viewModel by viewModels<ImgDisplayViewModel>()
-    private val sharedViewModel by viewModels<SharedViewModel>(ownerProducer = { requireParentFragment() })
+    private val viewPagerViewModel by viewModels<ViewPagerViewModel>(ownerProducer = { requireParentFragment() })
 
     abstract val downloadButton: View
     abstract val progressCircular: CircularProgressIndicator
@@ -98,10 +96,9 @@ abstract class ImgDisplayFragment(layoutId: Int) : PixivFragment(layoutId) {
             Common.showLog("sadasd2 cc ${getFileSize(file)}")
         }
         if (parentFragment is ViewPagerFragment) {
-            sharedViewModel.event.observe(viewLifecycleOwner) { ev ->
-                if (ev >= 0) {
-                    downloadButton.performClick()
-                    sharedViewModel.markAsTriggered()
+            viewPagerViewModel.downloadEvent.observeEvent(viewLifecycleOwner) { index ->
+                task.file.value?.let { file ->
+                    saveImageToGallery(context, file, displayName())
                 }
             }
         }

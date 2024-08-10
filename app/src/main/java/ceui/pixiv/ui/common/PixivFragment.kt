@@ -19,19 +19,25 @@ import ceui.loxia.RefreshHint
 import ceui.loxia.RefreshState
 import ceui.loxia.pushFragment
 import ceui.pixiv.ui.list.PixivListViewModel
+import ceui.pixiv.ui.user.UserActionReceiver
+import ceui.pixiv.ui.user.UserProfileFragmentArgs
 import ceui.pixiv.ui.works.IllustFragmentArgs
 import ceui.refactor.ppppx
 import ceui.refactor.setOnClick
 import com.scwang.smart.refresh.header.FalsifyFooter
 import com.scwang.smart.refresh.header.MaterialHeader
 
-open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionReceiver {
+open class PixivFragment(layoutId: Int) : Fragment(layoutId), IllustCardActionReceiver, UserActionReceiver {
 
     override fun onClickIllustCard(illust: Illust) {
         pushFragment(
             R.id.navigation_illust,
             IllustFragmentArgs(illust.id).toBundle()
         )
+    }
+
+    override fun onClickUser(id: Long) {
+        pushFragment(R.id.navigation_user_profile, UserProfileFragmentArgs(id).toBundle())
     }
 }
 
@@ -87,26 +93,20 @@ fun Fragment.setUpRefreshState(binding: FragmentPixivListBinding, viewModel: Pix
         }
         binding.loadingLayout.isVisible = state is RefreshState.LOADING && state.refreshHint == RefreshHint.initialLoad()
     }
+    val adapter = CommonAdapter(viewLifecycleOwner)
+    binding.listView.adapter = adapter
+    viewModel.holders.observe(viewLifecycleOwner) { holders ->
+        adapter.submitList(holders)
+    }
 }
 
 fun Fragment.setUpStaggerLayout(binding: FragmentPixivListBinding, viewModel: PixivListViewModel<*, *>) {
     setUpRefreshState(binding, viewModel)
     binding.listView.addItemDecoration(SpacesItemDecoration(4.ppppx))
     binding.listView.layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
-    val adapter = CommonAdapter(viewLifecycleOwner)
-    binding.listView.adapter = adapter
-    viewModel.holders.observe(viewLifecycleOwner) { holders ->
-        adapter.submitList(holders)
-    }
 }
 
 fun Fragment.setUpLinearLayout(binding: FragmentPixivListBinding, viewModel: PixivListViewModel<*, *>) {
-    val ctx = requireContext()
     setUpRefreshState(binding, viewModel)
-    val adapter = CommonAdapter(viewLifecycleOwner)
-    binding.listView.layoutManager = LinearLayoutManager(ctx)
-    binding.listView.adapter = adapter
-    viewModel.holders.observe(viewLifecycleOwner) { holders ->
-        adapter.submitList(holders)
-    }
+    binding.listView.layoutManager = LinearLayoutManager(requireContext())
 }

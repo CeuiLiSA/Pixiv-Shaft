@@ -1,137 +1,150 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:paddingHorizontal="18dp"
-    android:paddingTop="12dp">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <net.csdn.roundview.CircleImageView
-        android:id="@+id/user_icon"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
-        android:scaleType="centerCrop"
-        app:civ_border_color="@color/white"
-        app:civ_border_overlay="true"
-        app:civ_border_width="1dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    <data>
+        <import type="ceui.pixiv.ui.comments.CommentHolder"/>
+        <variable
+            name="holder"
+            type="CommentHolder" />
+    </data>
 
-
-    <TextView
-        android:id="@+id/user_name"
-        android:layout_width="wrap_content"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
-        android:textColor="@color/text00"
-        android:textSize="16sp"
-        app:layout_constraintStart_toEndOf="@+id/user_icon"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:background="@drawable/cell_background"
+        android:paddingHorizontal="18dp"
+        android:paddingTop="12dp">
 
-    <TextView
-        app:layout_constraintStart_toEndOf="@+id/user_name"
-        android:id="@+id/arthur_label"
-        android:layout_width="wrap_content"
-        android:layout_marginTop="3dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
-        app:layout_constraintTop_toTopOf="parent"
-        android:visibility="gone"
-        android:text="Arthur"
-        android:background="@drawable/arthur_bg"
-        android:paddingStart="@dimen/four_dp"
-        android:paddingTop="2dp"
-        android:paddingEnd="@dimen/four_dp"
-        android:includeFontPadding="false"
-        android:layout_marginEnd="@dimen/six_dp"
-        android:textStyle="bold"
-        android:paddingBottom="2dp"
-        android:textColor="#B620E0"
-        android:textSize="12sp" />
-
-    <FrameLayout
-        android:id="@+id/content_frame"
-        android:layout_width="0dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        app:layout_constraintStart_toStartOf="@+id/user_name"
-        app:layout_constraintTop_toBottomOf="@+id/user_name">
+        <net.csdn.roundview.CircleImageView
+            android:id="@+id/user_icon"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            userIcon="@{holder.comment.user}"
+            android:scaleType="centerCrop"
+            app:civ_border_color="@color/white"
+            app:civ_border_overlay="true"
+            app:civ_border_width="1dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
 
         <TextView
-            android:id="@+id/comment_content"
+            android:id="@+id/user_name"
             android:layout_width="wrap_content"
+            android:text="@{holder.comment.user.name}"
             android:layout_height="wrap_content"
-            android:textColor="@color/text10"
-            android:textSize="16sp" />
-
-
-        <net.csdn.roundview.RoundImageView
-            android:id="@+id/comment_stamp"
-            android:layout_width="110dp"
-            android:layout_height="110dp"
-            app:rRadius="4dp" />
-    </FrameLayout>
-
-
-    <LinearLayout
-        android:id="@+id/action_layout"
-        android:layout_width="wrap_content"
-        app:layout_constraintTop_toBottomOf="@+id/content_frame"
-        app:layout_constraintStart_toStartOf="@+id/user_name"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_height="wrap_content">
-
-        <TextView
-            android:id="@+id/comment_time"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/text20"
-            android:textSize="11sp" />
-
-        <TextView
-            android:id="@+id/reply"
-            android:layout_width="wrap_content"
             android:layout_marginStart="12dp"
-            android:text="@string/string_176"
-            android:padding="12dp"
-            android:layout_height="44dp"
-            android:textColor="@color/button_primary_color"
-            android:textSize="12sp" />
+            android:textColor="@color/text00"
+            android:textSize="16sp"
+            app:layout_constraintStart_toEndOf="@+id/user_icon"
+            app:layout_constraintTop_toTopOf="parent" />
 
-        <ceui.loxia.ProgressTextButton
-            android:id="@+id/show_reply"
+        <TextView
+            app:layout_constraintStart_toEndOf="@+id/user_name"
+            android:id="@+id/arthur_label"
             android:layout_width="wrap_content"
-            app:ptb_progress_stroke_width="3.5dp"
-            app:ptb_progress_width="15dp"
-            android:text="@string/show_reply"
-            android:padding="12dp"
-            android:layout_height="44dp"
-            android:textColor="@color/button_primary_color"
+            android:layout_marginTop="3dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            app:layout_constraintTop_toTopOf="parent"
+            android:visibility="gone"
+            android:text="Arthur"
+            android:background="@drawable/arthur_bg"
+            android:paddingStart="@dimen/four_dp"
+            android:paddingTop="2dp"
+            android:paddingEnd="@dimen/four_dp"
+            android:includeFontPadding="false"
+            android:layout_marginEnd="@dimen/six_dp"
+            android:textStyle="bold"
+            android:paddingBottom="2dp"
+            android:textColor="#B620E0"
             android:textSize="12sp" />
-    </LinearLayout>
 
-    <View
-        android:layout_width="0dp"
-        android:id="@+id/action_divider"
-        app:layout_constraintTop_toBottomOf="@+id/action_layout"
-        app:layout_constraintStart_toStartOf="@+id/user_name"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:background="@color/list_divider"
-        android:layout_height="0.5dp"/>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/child_comments_list"
-        android:visibility="gone"
-        android:layout_width="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/action_layout"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/user_name"
-        android:layout_height="wrap_content"/>
+        <FrameLayout
+            android:id="@+id/content_frame"
+            android:layout_width="0dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:layout_constraintStart_toStartOf="@+id/user_name"
+            app:layout_constraintTop_toBottomOf="@+id/user_name">
 
 
+            <TextView
+                android:id="@+id/comment_content"
+                android:layout_width="wrap_content"
+                android:text="@{holder.comment.comment}"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text10"
+                android:textSize="16sp" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+
+            <net.csdn.roundview.RoundImageView
+                android:id="@+id/comment_stamp"
+                android:layout_width="110dp"
+                android:layout_height="110dp"
+                app:rRadius="4dp" />
+        </FrameLayout>
+
+
+        <LinearLayout
+            android:id="@+id/action_layout"
+            android:layout_width="wrap_content"
+            app:layout_constraintTop_toBottomOf="@+id/content_frame"
+            app:layout_constraintStart_toStartOf="@+id/user_name"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/comment_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text20"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/reply"
+                android:layout_width="wrap_content"
+                android:layout_marginStart="12dp"
+                android:text="@string/string_176"
+                android:padding="12dp"
+                android:layout_height="44dp"
+                android:textColor="@color/button_primary_color"
+                android:textSize="12sp" />
+
+            <ceui.loxia.ProgressTextButton
+                android:id="@+id/show_reply"
+                android:layout_width="wrap_content"
+                app:ptb_progress_stroke_width="3.5dp"
+                app:ptb_progress_width="15dp"
+                android:text="@string/show_reply"
+                android:padding="12dp"
+                android:layout_height="44dp"
+                android:textColor="@color/button_primary_color"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="0dp"
+            android:id="@+id/action_divider"
+            app:layout_constraintTop_toBottomOf="@+id/action_layout"
+            app:layout_constraintStart_toStartOf="@+id/user_name"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:background="@color/list_divider"
+            android:layout_height="0.5dp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/child_comments_list"
+            android:visibility="gone"
+            android:layout_width="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/action_layout"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/user_name"
+            android:layout_height="wrap_content" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

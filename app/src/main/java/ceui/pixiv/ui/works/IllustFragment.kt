@@ -15,9 +15,11 @@ import ceui.lisa.databinding.FragmentFancyIllustBinding
 import ceui.lisa.utils.Common
 import ceui.lisa.utils.GlideUrlChild
 import ceui.lisa.utils.Params
+import ceui.loxia.Client
 import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
 import ceui.loxia.User
+import ceui.loxia.launchSuspend
 import ceui.loxia.pushFragment
 import ceui.pixiv.ui.comments.CommentsFragmentArgs
 import ceui.pixiv.ui.common.CommonAdapter
@@ -86,6 +88,24 @@ class IllustFragment : ImgDisplayFragment(R.layout.fragment_fancy_illust), Galle
                 }
             }
 
+            if (illust.is_bookmarked == true) {
+                binding.bookmark.setImageResource(R.drawable.icon_liked)
+                binding.bookmark.setOnClick {
+                    launchSuspend(it) {
+                        Client.appApi.removeBookmark(args.illustId)
+                        ObjectPool.update(illust.copy(is_bookmarked = false))
+                    }
+                }
+            } else {
+                binding.bookmark.setImageResource(R.drawable.icon_not_liked)
+                binding.bookmark.setOnClick {
+                    launchSuspend(it) {
+                        Client.appApi.postBookmark(args.illustId)
+                        ObjectPool.update(illust.copy(is_bookmarked = true))
+                    }
+                }
+            }
+
             if (illust.page_count == 1) {
                 renderSingleImageIllust(illust, context)
             } else if (illust.page_count > 1) {
@@ -108,7 +128,7 @@ class IllustFragment : ImgDisplayFragment(R.layout.fragment_fancy_illust), Galle
 
             binding.comment.setOnClick {
                 pushFragment(
-                    R.id.navigation_illust_comments,
+                    R.id.navigation_comments_illust,
                     CommentsFragmentArgs(args.illustId, illustArthurId = u.id).toBundle()
                 )
             }
@@ -119,6 +139,7 @@ class IllustFragment : ImgDisplayFragment(R.layout.fragment_fancy_illust), Galle
         Glide.with(this).load(GlideUrlChild(illust.image_urls?.large)).into(binding.image)
         binding.image.isVisible = true
         binding.galleryList.isVisible = false
+        binding.download.isVisible = true
         val url = illust.meta_single_page?.original_image_url ?: return
         val task = viewModel.loadNamedUrl(NamedUrl(displayName(), url), context)
         setUpLoadTask(context, task)
@@ -126,6 +147,7 @@ class IllustFragment : ImgDisplayFragment(R.layout.fragment_fancy_illust), Galle
 
     private fun renderGalleryIllust(illust: Illust, context: Context, adapter: CommonAdapter) {
         binding.image.isVisible = false
+        binding.download.isVisible = false
         binding.progressCircular.isVisible = false
         binding.galleryList.isVisible = true
         binding.galleryList.adapter = adapter

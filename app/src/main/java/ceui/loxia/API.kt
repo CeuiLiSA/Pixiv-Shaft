@@ -1,6 +1,7 @@
 package ceui.loxia
 
 import ceui.lisa.models.NullResponse
+import ceui.lisa.utils.Params
 import okhttp3.ResponseBody
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
@@ -33,8 +34,24 @@ interface API {
         @Field("user_id") user_id: Long
     )
 
-    @GET("/v1/manga/recommended?include_ranking_illusts=true&include_privacy_policy=true&filter=for_ios")
-    suspend fun getHomeData(): HomeIllustResponse
+    @FormUrlEncoded
+    @POST("/v2/illust/bookmark/add")
+    suspend fun postBookmark(
+        @Field("illust_id") illust_id: Long,
+        @Field("restrict") restrict: String = Params.TYPE_PUBLIC
+    )
+
+    @FormUrlEncoded
+    @POST("/v1/illust/bookmark/delete")
+    suspend fun removeBookmark(
+        @Field("illust_id") illust_id: Long
+    )
+
+
+    @GET("/v1/{type}/recommended?include_ranking_illusts=true&include_privacy_policy=true&filter=for_ios")
+    suspend fun getHomeData(
+        @Path("type") type: String,
+    ): HomeIllustResponse
 
     @GET("/v1/user/illusts?filter=for_ios")
     suspend fun getUserCreatedIllusts(
@@ -59,10 +76,45 @@ interface API {
         @Query("restrict") restrict: String,
     ): UserPreviewResponse
 
+    @GET("/v1/user/recommended?filter=for_ios")
+    suspend fun recommendedUsers(): UserPreviewResponse
+
     @GET("/v1/illust/ranking?filter=for_ios")
     suspend fun getRankingIllusts(
         @Query("mode") mode: String,
     ): IllustResponse
+
+    @GET("/v1/search/popular-preview/illust?search_ai_type=0&filter=for_ios")
+    suspend fun popularPreview(
+        @Query("word") word: String,
+        @Query("sort") sort: String,
+        @Query("search_target") search_target: String,
+        @Query("merge_plain_keyword_results") merge_plain_keyword_results: Boolean,
+        @Query("include_translated_tag_results") include_translated_tag_results: Boolean,
+    ): IllustResponse
+
+    @GET("/v1/search/illust?search_ai_type=0&filter=for_ios")
+    suspend fun searchIllustManga(
+        @Query("word") word: String,
+        @Query("sort") sort: String,
+        @Query("search_target") search_target: String,
+        @Query("merge_plain_keyword_results") merge_plain_keyword_results: Boolean,
+        @Query("include_translated_tag_results") include_translated_tag_results: Boolean,
+    ): IllustResponse
+
+
+    @GET("/v1/search/user?filter=for_ios")
+    suspend fun searchUser(
+        @Query("word") word: String,
+    ): UserPreviewResponse
+
+
+    // :path	/v1/trending-tags/?filter=for_ios
+    @GET("/v1/trending-tags/{type}?filter=for_ios")
+    suspend fun trendingTags(
+        @Path("type") type: String,
+    ): TrendingTagsResponse
+
 
     @GET("/v3/illust/comments")
     suspend fun getIllustComments(

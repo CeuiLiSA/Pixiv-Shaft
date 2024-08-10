@@ -11,7 +11,7 @@ import com.google.gson.Gson
 open class DataSource<Item, T: KListShow<Item>>(
     private val dataFetcher: suspend () -> T,
     private val itemMapper: (Item) -> List<ListItemHolder>,
-    private val filter: (Item) -> Boolean = { item -> true }
+    private val filter: (Item) -> Boolean = { _ -> true }
 ) {
 
     private val _itemHolders = MutableLiveData<List<ListItemHolder>>()
@@ -79,5 +79,9 @@ open class DataSource<Item, T: KListShow<Item>>(
 
     protected fun pickItemHolders(): MutableLiveData<List<ListItemHolder>> {
         return _itemHolders
+    }
+
+    open fun initialLoad(): Boolean {
+        return true
     }
 }

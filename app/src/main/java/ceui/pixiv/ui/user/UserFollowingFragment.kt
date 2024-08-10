@@ -2,14 +2,20 @@ package ceui.pixiv.ui.user
 
 import android.os.Bundle
 import android.view.View
+import android.widget.ImageView
+import androidx.core.view.isVisible
+import androidx.databinding.BindingAdapter
 import androidx.navigation.fragment.navArgs
 import ceui.lisa.R
 import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellUserPreviewBinding
 import ceui.lisa.databinding.FragmentPixivListBinding
+import ceui.lisa.utils.GlideUrlChild
 import ceui.loxia.Client
 import ceui.loxia.ObjectPool
+import ceui.loxia.User
 import ceui.loxia.UserPreview
+import ceui.loxia.findActionReceiverOrNull
 import ceui.pixiv.ui.common.DataSource
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.list.pixivListViewModel
@@ -17,7 +23,9 @@ import ceui.pixiv.ui.common.setUpStaggerLayout
 import ceui.pixiv.ui.common.IllustCardHolder
 import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
+import ceui.refactor.setOnClick
 import ceui.refactor.viewBinding
+import com.bumptech.glide.Glide
 
 class UserFollowingFragment : PixivFragment(R.layout.fragment_pixiv_list) {
 
@@ -42,12 +50,35 @@ class UserPreviewHolder(val userPreview: UserPreview) : ListItemHolder() {
             ObjectPool.update(it)
         }
     }
+
+    override fun areItemsTheSame(other: ListItemHolder): Boolean {
+        return userPreview.user?.id == (other as? UserPreviewHolder)?.userPreview?.user?.id
+    }
+
+    override fun areContentsTheSame(other: ListItemHolder): Boolean {
+        return userPreview == (other as? UserPreviewHolder)?.userPreview
+    }
 }
 
 @ItemHolder(UserPreviewHolder::class)
-class UserPreviewViewHolder(bd: CellUserPreviewBinding) : ListItemViewHolder<CellUserPreviewBinding, UserPreviewHolder>(bd) {
+class UserPreviewViewHolder(bd: CellUserPreviewBinding) :
+    ListItemViewHolder<CellUserPreviewBinding, UserPreviewHolder>(bd) {
     override fun onBindViewHolder(holder: UserPreviewHolder, position: Int) {
         super.onBindViewHolder(holder, position)
-        binding.userName.text = holder.userPreview.user?.name
+        binding.holder = holder
+        binding.root.setOnClickListener { sender ->
+            holder.userPreview.user?.id?.let {
+                sender.findActionReceiverOrNull<UserActionReceiver>()?.onClickUser(it)
+            }
+        }
     }
+}
+
+@BindingAdapter("userIcon")
+fun ImageView.binding_loadUserIcon(user: User?) {
+    val url = user?.profile_image_urls?.findMaxSizeUrl() ?: return
+    scaleType = ImageView.ScaleType.CENTER_CROP
+    Glide.with(this)
+        .load(GlideUrlChild(url))
+        .into(this)
 }

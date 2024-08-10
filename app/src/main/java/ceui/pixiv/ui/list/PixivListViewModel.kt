@@ -39,7 +39,9 @@ class PixivListViewModel<Item, T: KListShow<Item>>(
     val holders: LiveData<List<ListItemHolder>> = dataSource.itemHolders
 
     init {
-        refresh(RefreshHint.initialLoad())
+        if (dataSource.initialLoad()) {
+            refresh(RefreshHint.initialLoad())
+        }
     }
 
     fun refresh(hint: RefreshHint) {

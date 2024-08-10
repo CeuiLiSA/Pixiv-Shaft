@@ -11,11 +11,15 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentHomeViewpagerBinding
 import ceui.lisa.utils.GlideUrlChild
+import ceui.loxia.ObjectType
 import ceui.loxia.pushFragment
 import ceui.pixiv.ui.common.PixivFragment
 import ceui.pixiv.ui.common.ViewPagerFragment
 import ceui.pixiv.session.SessionManager
 import ceui.pixiv.ui.rank.RankingIllustsFragment
+import ceui.pixiv.ui.trending.TrendingTagsFragment
+import ceui.pixiv.ui.trending.TrendingTagsFragmentArgs
+import ceui.pixiv.ui.user.RecommendUsersFragment
 import ceui.pixiv.ui.user.UserFollowingFragment
 import ceui.pixiv.ui.user.UserFollowingFragmentArgs
 import ceui.pixiv.ui.user.UserProfileFragmentArgs
@@ -34,11 +38,14 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
             binding.toolbarLayout.updateLayoutParams<ViewGroup.MarginLayoutParams> {
                 topMargin = insets.top
             }
-            WindowInsetsCompat.CONSUMED
+            windowInsets
         }
 
         binding.userIcon.setOnClick {
             pushFragment(R.id.navigation_mine_profile)
+        }
+        binding.naviSearch.setOnClick {
+            pushFragment(R.id.navigation_search_viewpager)
         }
 
         SessionManager.loggedInAccount.observe(viewLifecycleOwner) { account ->
@@ -55,11 +62,14 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
                 if (position == 0) {
                     return HomeFragment()
                 } else if (position == 1) {
-                    return RankingIllustsFragment()
-                } else {
-                    return UserFollowingFragment().apply {
-                        arguments = UserFollowingFragmentArgs(SessionManager.loggedInUid, "public").toBundle()
+                    return TrendingTagsFragment().apply {
+                        arguments = TrendingTagsFragmentArgs(ObjectType.ILLUST).toBundle()
                     }
+                } else {
+                    return RecommendUsersFragment()
+//                    return UserFollowingFragment().apply {
+//                        arguments = UserFollowingFragmentArgs(SessionManager.loggedInUid, "public").toBundle()
+//                    }
                 }
             }
         }

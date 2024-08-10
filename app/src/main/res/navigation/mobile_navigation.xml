@@ -23,6 +23,23 @@
         tools:layout="@layout/fragment_home_viewpager" />
 
     <fragment
+        android:id="@+id/navigation_search_viewpager"
+        android:name="ceui.pixiv.ui.search.SearchViewPagerFragment"
+        tools:layout="@layout/fragment_search_viewpager" >
+
+        <argument
+            app:argType="string"
+            android:defaultValue=""
+            android:name="keyword"/>
+
+        <argument
+            app:argType="integer"
+            android:defaultValue="0"
+            android:name="landing_index"
+            />
+    </fragment>
+
+    <fragment
         android:id="@+id/navigation_home"
         android:name="ceui.pixiv.ui.home.HomeFragment"
         tools:layout="@layout/fragment_pixiv_list" />
@@ -41,7 +58,7 @@
 
 
     <fragment
-        android:id="@+id/navigation_illust_comments"
+        android:id="@+id/navigation_comments_illust"
         android:name="ceui.pixiv.ui.comments.CommentsFragment"
         tools:layout="@layout/fragment_pixiv_list" >
 
@@ -98,6 +115,14 @@
             app:argType="string"/>
     </fragment>
 
+    <fragment
+        android:id="@+id/navigation_trending_tags"
+        android:name="ceui.pixiv.ui.trending.TrendingTagsFragment">
+
+        <argument
+            android:name="object_type"
+            app:argType="string"/>
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_user_following_list"

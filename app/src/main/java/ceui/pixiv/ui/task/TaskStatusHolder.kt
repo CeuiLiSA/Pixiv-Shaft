@@ -7,6 +7,14 @@ import ceui.pixiv.ui.common.ListItemHolder
 import ceui.pixiv.ui.common.ListItemViewHolder
 
 class TaskStatusHolder(val downloadTask: DownloadTask) : ListItemHolder() {
+
+    override fun areItemsTheSame(other: ListItemHolder): Boolean {
+        return downloadTask.content.name == (other as? TaskStatusHolder)?.downloadTask?.content?.name
+    }
+
+    override fun areContentsTheSame(other: ListItemHolder): Boolean {
+        return downloadTask.content == (other as? TaskStatusHolder)?.downloadTask?.content
+    }
 }
 
 @ItemHolder(TaskStatusHolder::class)

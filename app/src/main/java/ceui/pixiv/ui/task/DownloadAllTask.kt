@@ -117,11 +117,17 @@ open class LoadTask(val content: NamedUrl, private val context: Context) {
             } catch (ex: Exception) {
                 _status.postValue(TaskStatus.Error(ex))
                 ex.printStackTrace()
+            } finally {
+                optionalDelay()
             }
         }
     }
 
     open fun onFilePrepared(file: File) {
+
+    }
+
+    open suspend fun optionalDelay() {
 
     }
 }

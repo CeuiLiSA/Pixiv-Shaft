@@ -9,6 +9,7 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPagedImgUrlBinding
+import ceui.lisa.utils.Common
 import ceui.loxia.Illust
 import ceui.loxia.ObjectPool
 import ceui.pixiv.ui.common.ImgUrlFragment
@@ -27,7 +28,7 @@ class PagedImgUrlFragment : PixivFragment(R.layout.fragment_paged_img_url), Page
 
     private val args by navArgs<PagedImgUrlFragmentArgs>()
     private val viewModel by viewModels<ToggleToolnarViewModel>()
-    private val sharedViewModel by viewModels<SharedViewModel>()
+    private val viewPagerViewModel by viewModels<ViewPagerViewModel>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -43,11 +44,12 @@ class PagedImgUrlFragment : PixivFragment(R.layout.fragment_paged_img_url), Page
             binding.toolbarLayout
         )
 
-        binding.download.setOnClick {
-            sharedViewModel.triggerEvent(binding.pagedViewpager.currentItem)
-        }
 
         val illust = ObjectPool.get<Illust>(args.illustId).value ?: return
+        binding.download.setOnClick {
+            viewPagerViewModel.triggerDownloadEvent(binding.pagedViewpager.currentItem)
+        }
+
         binding.pagedViewpager.adapter = object : FragmentStateAdapter(this) {
             override fun getItemCount(): Int {
                 return illust.page_count
@@ -73,6 +75,7 @@ class PagedImgUrlFragment : PixivFragment(R.layout.fragment_paged_img_url), Page
 
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
+                Common.showLog("sdaasdasdw ${position}")
                 binding.toolbarLayout.naviTitle.text = "${position + 1}/${illust.page_count}"
             }
 

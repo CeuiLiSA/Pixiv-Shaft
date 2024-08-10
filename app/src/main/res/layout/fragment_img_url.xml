@@ -29,13 +29,14 @@
         layout="@layout/layout_toolbar"
         android:id="@+id/toolbar_layout"/>
 
-    <Button
+    <ImageView
+        android:src="@drawable/icon_save"
         android:id="@+id/download"
+        android:padding="12dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginBottom="40dp"
-        android:text="@string/string_5"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 

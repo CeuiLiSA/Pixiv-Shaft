@@ -8,16 +8,38 @@
         android:id="@+id/my_bookmark"
         android:text="我的收藏"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/search"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 
     <Button
+        android:id="@+id/search"
+        android:text="搜索"
+        app:layout_constraintTop_toBottomOf="@+id/my_bookmark"
+        app:layout_constraintBottom_toTopOf="@+id/cache"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+
+    <Button
+        android:id="@+id/cache"
+        android:text="缓存表"
+        app:layout_constraintTop_toBottomOf="@+id/search"
+        app:layout_constraintBottom_toTopOf="@+id/tasks"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+
+    <Button
         android:id="@+id/tasks"
         android:text="进度表"
-        app:layout_constraintTop_toBottomOf="@+id/my_bookmark"
+        app:layout_constraintTop_toBottomOf="@+id/cache"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

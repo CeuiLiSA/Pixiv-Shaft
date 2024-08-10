@@ -51,19 +51,11 @@ class CommentViewHolder(bd: CellCommentBinding) :
     override fun onBindViewHolder(holder: CommentHolder, position: Int) {
         super.onBindViewHolder(holder, position)
 
-        Glide.with(context)
-            .load(GlideUrlChild(holder.comment.user.profile_image_urls?.findMaxSizeUrl()))
-            .into(binding.userIcon)
-        binding.userName.text = holder.comment.user.name
+        binding.holder = holder
 
-        binding.commentContent.text = holder.comment.comment
-//        if (Emoji.hasEmoji(holder.comment.comment)) {
-//            val newComment = Emoji.transform(holder.comment.comment)
-//            binding.commentContent.text = newComment
-//        } else {
-//            binding.commentContent.text = holder.comment.comment
-//        }
-
+        binding.root.setOnClickListener { sender ->
+            sender.findActionReceiverOrNull<CommentActionReceiver>()?.onClickComment(holder.comment)
+        }
         if (holder.comment.stamp != null) {
             binding.commentStamp.isVisible = true
             Glide.with(context).load(GlideUrlChild(holder.comment.stamp.stamp_url))
@@ -152,18 +144,10 @@ class CellChildCommentViewHolder(bd: CellChildCommentBinding) :
     override fun onBindViewHolder(holder: CommentChildHolder, position: Int) {
         super.onBindViewHolder(holder, position)
 
-        Glide.with(context)
-            .load(GlideUrlChild(holder.comment.user.profile_image_urls?.findMaxSizeUrl()))
-            .into(binding.userIcon)
-        binding.userName.text = holder.comment.user.name
-        binding.commentContent.text = holder.comment.comment
-//        if (Emoji.hasEmoji(holder.comment.comment)) {
-//            val newComment = Emoji.transform(holder.comment.comment)
-//            binding.commentContent.text = newComment
-//        } else {
-//            binding.commentContent.text = holder.comment.comment
-//        }
-
+        binding.holder = holder
+        binding.root.setOnClickListener { sender ->
+            sender.findActionReceiverOrNull<CommentActionReceiver>()?.onClickComment(holder.comment)
+        }
         if (holder.comment.stamp != null) {
             binding.commentStamp.isVisible = true
             Glide.with(context).load(GlideUrlChild(holder.comment.stamp.stamp_url))

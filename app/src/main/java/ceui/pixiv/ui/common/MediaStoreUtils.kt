@@ -3,10 +3,14 @@ package ceui.pixiv.ui.common
 import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
+import ceui.lisa.R
+import com.blankj.utilcode.util.ImageUtils
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
@@ -20,7 +24,7 @@ fun saveImageToGallery(context: Context, imageFile: File, displayName: String) {
             // Specify the directory path in the Pictures folder
             put(
                 MediaStore.Images.Media.RELATIVE_PATH,
-                "${Environment.DIRECTORY_PICTURES}/ShaftImages"
+                "${Environment.DIRECTORY_DCIM}/ShaftImages"
             )
         }
 
@@ -50,6 +54,11 @@ fun saveImageToGallery(context: Context, imageFile: File, displayName: String) {
         // Handle any other unexpected exceptions
         e.printStackTrace()
     }
+//    ImageUtils.save2Album(
+//        ImageUtils.getBitmap(imageFile),
+//        context.getString(R.string.app_name),
+//        Bitmap.CompressFormat.PNG,
+//    )
 }
 
 fun isImageInGallery(context: Context, displayName: String): Boolean {

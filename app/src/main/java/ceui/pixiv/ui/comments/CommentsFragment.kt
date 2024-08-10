@@ -6,6 +6,7 @@ import androidx.navigation.fragment.navArgs
 import ceui.lisa.R
 import ceui.lisa.databinding.FragmentPixivListBinding
 import ceui.loxia.Client
+import ceui.loxia.Comment
 import ceui.loxia.ProgressTextButton
 import ceui.loxia.User
 import ceui.loxia.launchSuspend
@@ -39,9 +40,6 @@ class CommentsFragment : PixivFragment(R.layout.fragment_pixiv_list), CommentAct
         binding.listView.addItemDecoration(dividerDecoration)
     }
 
-    override fun onClickUser(id: Long) {
-        pushFragment(R.id.navigation_user_profile, UserProfileFragmentArgs(id).toBundle())
-    }
 
     override fun onClickReply(replyUser: User) {
     }
@@ -52,6 +50,10 @@ class CommentsFragment : PixivFragment(R.layout.fragment_pixiv_list), CommentAct
         }
     }
 
+    override fun onClickComment(comment: Comment) {
+
+    }
+
 }
 
 interface CommentActionReceiver : UserActionReceiver {
@@ -59,4 +61,6 @@ interface CommentActionReceiver : UserActionReceiver {
     fun onClickReply(replyUser: User)
 
     fun onClickShowMoreReply(commentId: Long, sender: ProgressTextButton)
+
+    fun onClickComment(comment: Comment)
 }

@@ -6,6 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import ceui.lisa.annotations.ItemHolder
 import ceui.lisa.databinding.CellGalleryBinding
 import ceui.lisa.utils.GlideUrlChild
+import ceui.loxia.Illust
 import ceui.loxia.MetaPage
 import ceui.loxia.findActionReceiver
 import ceui.loxia.findActionReceiverOrNull
@@ -15,13 +16,17 @@ import ceui.pixiv.ui.common.getImageDimensions
 import ceui.pixiv.ui.common.setUpWithTaskStatus
 import ceui.pixiv.ui.task.LoadTask
 import ceui.pixiv.ui.task.TaskStatus
+import ceui.refactor.ppppx
 import ceui.refactor.screenWidth
 import ceui.refactor.setOnClick
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.github.panpf.sketch.loadImage
 import java.io.File
 import kotlin.math.roundToInt
 
 class GalleryHolder(
+    val illust: Illust,
     val index: Int,
     val loadTask: LoadTask,
     val loadUrl: () -> Unit
@@ -43,15 +48,35 @@ class GalleryViewHolder(bd: CellGalleryBinding) :
     override fun onBindViewHolder(holder: GalleryHolder, position: Int) {
         super.onBindViewHolder(holder, position)
         holder.loadUrl()
+        if (holder.index == 0 && holder.loadTask.file.value == null) {
+            val imgHeight =
+                (screenWidth * holder.illust.height / holder.illust.width.toFloat()).roundToInt()
+            binding.image.updateLayoutParams {
+                width = screenWidth
+                height = imgHeight
+            }
+            Glide.with(context)
+                .load(GlideUrlChild(holder.illust.meta_pages?.get(0)?.image_urls?.large))
+                .into(binding.image)
+        } else {
+            binding.image.updateLayoutParams {
+                width = screenWidth
+                height = 300.ppppx
+            }
+        }
         lifecycleOwner?.let {
             holder.loadTask.file.observe(it) { file ->
                 val resolution = getImageDimensions(file)
-                val imgHeight = (screenWidth * resolution.second / resolution.first.toFloat()).roundToInt()
+                val imgHeight =
+                    (screenWidth * resolution.second / resolution.first.toFloat()).roundToInt()
                 binding.image.updateLayoutParams {
                     width = screenWidth
                     height = imgHeight
                 }
-                Glide.with(context).load(file).into(binding.image)
+                binding.image.loadImage(file)
+//                Glide.with(context)
+//                    .load(file)
+//                    .into(binding.image)
             }
             binding.progressCircular.setUpWithTaskStatus(
                 holder.loadTask.status,
@@ -64,7 +89,8 @@ class GalleryViewHolder(bd: CellGalleryBinding) :
         }
 
         binding.image.setOnClick {
-            it.findActionReceiverOrNull<GalleryActionReceiver>()?.onClickGalleryHolder(holder.index, holder)
+            it.findActionReceiverOrNull<GalleryActionReceiver>()
+                ?.onClickGalleryHolder(holder.index, holder)
         }
     }
 }
