@@ -52,7 +52,6 @@ class SearchUserFragment : PixivFragment(R.layout.fragment_pixiv_list) {
         val dividerDecoration = BottomDividerDecoration(
             requireContext(),
             R.drawable.list_divider,
-            marginLeft = 59.ppppx
         )
         binding.listView.addItemDecoration(dividerDecoration)
         searchViewModel.searchUserEvent.observeEvent(viewLifecycleOwner) {

@@ -28,10 +28,7 @@ class TrendingTagsFragment : PixivFragment(R.layout.fragment_pixiv_list), Trendi
     private val binding by viewBinding(FragmentPixivListBinding::bind)
     private val args by navArgs<TrendingTagsFragmentArgs>()
     private val viewModel by pixivListViewModel {
-        DataSource(
-            dataFetcher = { Client.appApi.trendingTags(args.objectType) },
-            itemMapper = { trendingTag -> listOf(TrendingTagHolder(trendingTag)) }
-        )
+        TrendingTagsDataSource(args)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -49,6 +46,9 @@ class TrendingTagsFragment : PixivFragment(R.layout.fragment_pixiv_list), Trendi
     override fun onLongClickTrendingTag(trendingTag: TrendingTag) {
         trendingTag.illust?.let {
             ObjectPool.update(it)
+            it.user?.let { user ->
+                ObjectPool.update(user)
+            }
             onClickIllustCard(it)
         }
     }

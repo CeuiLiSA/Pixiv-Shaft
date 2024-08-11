@@ -26,20 +26,17 @@ import ceui.pixiv.ui.task.LoadTask
 import ceui.pixiv.ui.task.NamedUrl
 import ceui.pixiv.ui.task.TaskStatus
 import ceui.pixiv.ui.works.PagedImgActionReceiver
-import ceui.pixiv.ui.works.ViewPagerViewModel
 import ceui.pixiv.ui.works.ToggleToolnarViewModel
+import ceui.pixiv.ui.works.ViewPagerViewModel
 import ceui.refactor.animateFadeInQuickly
 import ceui.refactor.animateFadeOutQuickly
 import ceui.refactor.setOnClick
 import com.github.panpf.sketch.loadImage
 import com.github.panpf.zoomimage.SketchZoomImageView
 import com.google.android.material.progressindicator.CircularProgressIndicator
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.Locale
-
 
 
 open class ImgDisplayViewModel : ToggleToolnarViewModel() {
@@ -115,6 +112,8 @@ fun Fragment.setUpFullScreen(
         requireActivity().window,
         requireActivity().window.decorView
     )
+    windowInsetsController.systemBarsBehavior =
+        WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
     viewModel.isFullscreenMode.observe(viewLifecycleOwner) { isFullScreen ->
         if (isFullScreen) {
             windowInsetsController.hide(WindowInsetsCompat.Type.systemBars())

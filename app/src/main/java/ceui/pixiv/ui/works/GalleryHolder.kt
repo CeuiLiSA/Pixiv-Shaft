@@ -53,6 +53,7 @@ class GalleryViewHolder(bd: CellGalleryBinding) :
                 val resolution = getImageDimensions(file)
                 val imgHeight =
                     (screenWidth * resolution.second / resolution.first.toFloat()).roundToInt()
+                binding.resolution.text = "${resolution.first}x${resolution.second}"
                 binding.image.updateLayoutParams {
                     width = screenWidth
                     height = imgHeight

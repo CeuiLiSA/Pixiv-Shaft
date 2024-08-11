@@ -34,7 +34,8 @@ class PagedImgUrlFragment : PixivFragment(R.layout.fragment_paged_img_url), Page
         super.onViewCreated(view, savedInstanceState)
         val binding = FragmentPagedImgUrlBinding.bind(view)
 
-        setUpFullScreen(viewModel,
+        setUpFullScreen(
+            viewModel,
             listOf(
                 binding.download,
                 binding.toolbarLayout.root,

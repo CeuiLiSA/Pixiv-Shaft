@@ -9,7 +9,7 @@ import ceui.pixiv.ui.common.IllustCardHolder
 import ceui.pixiv.ui.common.ResponseStore
 
 class HomeDataSource(
-    val responseStore: ResponseStore<HomeIllustResponse> = ResponseStore(
+    private val responseStore: ResponseStore<HomeIllustResponse> = ResponseStore(
         { "home-recommend-api" },
         1800 * 1000L,
         HomeIllustResponse::class.java,
