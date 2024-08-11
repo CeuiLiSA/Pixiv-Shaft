@@ -71,8 +71,9 @@ class CommentsFragment : PixivFragment(R.layout.fragment_pixiv_list), CommentAct
         }
     }
 
-    override fun onClickReply(comment: Comment) {
+    override fun onClickReply(comment: Comment, parentCommentId: Long) {
         dataSource.replyToComment.value = comment
+        dataSource.replyParentComment.value = parentCommentId
     }
 
     override fun onClickShowMoreReply(sender: ProgressTextButton, commentId: Long) {
@@ -94,7 +95,7 @@ class CommentsFragment : PixivFragment(R.layout.fragment_pixiv_list), CommentAct
 
 interface CommentActionReceiver : UserActionReceiver {
 
-    fun onClickReply(comment: Comment)
+    fun onClickReply(comment: Comment, parentCommentId: Long)
 
     fun onClickShowMoreReply(sender: ProgressTextButton, commentId: Long)
 

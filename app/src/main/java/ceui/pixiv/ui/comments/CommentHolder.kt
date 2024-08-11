@@ -79,7 +79,7 @@ class CommentViewHolder(bd: CellCommentBinding) :
 
         binding.reply.setOnClick { sender ->
             holder.comment.user.let {
-                sender.findActionReceiverOrNull<CommentActionReceiver>()?.onClickReply(holder.comment)
+                sender.findActionReceiverOrNull<CommentActionReceiver>()?.onClickReply(holder.comment, 0L)
             }
         }
 
@@ -103,7 +103,7 @@ class CommentViewHolder(bd: CellCommentBinding) :
             lifecycleOwner?.let {
                 val childAdapter = CommonAdapter(it)
                 val dividerDecoration =
-                    BottomDividerDecoration(context, R.drawable.list_divider, marginLeft = 24.ppppx)
+                    BottomDividerDecoration(context, R.drawable.list_divider_no_end, marginLeft = 24.ppppx)
                 if (binding.childCommentsList.itemDecorationCount == 0) {
                     binding.childCommentsList.addItemDecoration(dividerDecoration)
                 }
@@ -175,7 +175,7 @@ class CellChildCommentViewHolder(bd: CellChildCommentBinding) :
 
         binding.reply.setOnClick { sender ->
             holder.comment.user.let {
-                sender.findActionReceiverOrNull<CommentActionReceiver>()?.onClickReply(holder.comment)
+                sender.findActionReceiverOrNull<CommentActionReceiver>()?.onClickReply(holder.comment, holder.parentCommentId)
             }
         }
 

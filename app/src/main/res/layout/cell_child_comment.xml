@@ -34,7 +34,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@{holder.comment.user.name}"
-            android:layout_marginStart="12dp"
+            android:layout_marginStart="10dp"
             android:textColor="@color/text00"
             android:textSize="15sp"
             app:layout_constraintStart_toEndOf="@+id/user_icon"
@@ -111,7 +111,7 @@
                 android:layout_marginStart="12dp"
                 android:text="@string/string_176"
                 android:padding="12dp"
-                android:layout_height="44dp"
+                android:layout_height="42dp"
                 android:textColor="@color/button_primary_color"
                 android:textSize="12sp" />
 
@@ -124,7 +124,7 @@
                 app:ptb_progress_stroke_width="3.5dp"
                 app:ptb_progress_width="15dp"
                 android:padding="12dp"
-                android:layout_height="44dp"
+                android:layout_height="42dp"
                 android:textColor="@color/button_primary_color"
                 android:textSize="12sp" />
         </LinearLayout>

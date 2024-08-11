@@ -112,7 +112,7 @@
                 android:layout_marginStart="12dp"
                 android:text="@string/string_176"
                 android:padding="12dp"
-                android:layout_height="44dp"
+                android:layout_height="42dp"
                 android:textColor="@color/button_primary_color"
                 android:textSize="12sp" />
 
@@ -125,7 +125,7 @@
                 app:ptb_progress_stroke_width="3.5dp"
                 app:ptb_progress_width="15dp"
                 android:padding="12dp"
-                android:layout_height="44dp"
+                android:layout_height="42dp"
                 android:textColor="@color/button_primary_color"
                 android:textSize="12sp" />
 
@@ -137,7 +137,7 @@
                 app:ptb_progress_width="15dp"
                 android:text="@string/show_reply"
                 android:padding="12dp"
-                android:layout_height="44dp"
+                android:layout_height="42dp"
                 android:textColor="@color/button_primary_color"
                 android:textSize="12sp" />
         </LinearLayout>

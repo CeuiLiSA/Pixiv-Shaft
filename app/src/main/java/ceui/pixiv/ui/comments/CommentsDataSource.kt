@@ -29,6 +29,7 @@ class CommentsDataSource(
 
     val editingComment = MutableLiveData<String>()
     val replyToComment = MutableLiveData<Comment?>()
+    val replyParentComment = MutableLiveData<Long?>()
 
     suspend fun showMoreReply(commentId: Long) {
         val resp = Client.appApi.getIllustReplyComments(commentId)
@@ -67,12 +68,16 @@ class CommentsDataSource(
             return
         }
 
-        val parentCommentId = replyToComment.value?.id ?: 0L
+        val parentCommentId = if ((replyParentComment.value ?: 0L) > 0L) {
+            replyParentComment.value ?: 0L
+        } else {
+            replyToComment.value?.id ?: 0L
+        }
         if (parentCommentId > 0L) {
             val resp = Client.appApi.postComment(args.illustId, content, parentCommentId)
             resp.comment?.let {
                 updateItem(parentCommentId) { old ->
-                    val childComments = old.childComments + listOf(it)
+                    val childComments = listOf(it) + old.childComments
                     childCommentsMap[parentCommentId] = childComments
                     CommentHolder(old.comment, args.illustArthurId, childComments = childComments)
                 }
@@ -87,6 +92,7 @@ class CommentsDataSource(
             }
         }
         replyToComment.value = null
+        replyParentComment.value = null
         editingComment.value = ""
     }
 
