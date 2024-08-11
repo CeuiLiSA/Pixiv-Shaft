@@ -161,6 +161,8 @@ public final class ProgressManager {
             if (progressListeners == null) {
                 progressListeners = new LinkedList<>();
                 mResponseListeners.put(url, progressListeners);
+            } else {
+                Log.d("dsaasdasw2", "url is exist");
             }
         }
         progressListeners.add(listener);

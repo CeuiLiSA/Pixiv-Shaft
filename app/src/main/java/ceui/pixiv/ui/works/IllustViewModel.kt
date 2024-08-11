@@ -35,9 +35,7 @@ class IllustViewModel : ImgDisplayViewModel() {
                 )
                 GalleryHolder(illust, index, loadTask) {
                     viewModelScope.launch {
-                        withContext(Dispatchers.IO) {
-                            loadTask.execute()
-                        }
+                        loadTask.execute()
                     }
                 }
             } else {

@@ -74,13 +74,22 @@ class UserPreviewViewHolder(bd: CellUserPreviewBinding) :
     }
 }
 
+const val NO_PROFILE_IMG = "https://s.pximg.net/common/images/no_profile.png"
+
 @BindingAdapter("userIcon")
 fun ImageView.binding_loadUserIcon(user: User?) {
-    val url = user?.profile_image_urls?.findMaxSizeUrl() ?: return
+    val url = user?.profile_image_urls?.medium ?: return
     scaleType = ImageView.ScaleType.CENTER_CROP
-    Glide.with(this)
-        .load(GlideUrlChild(url))
-        .into(this)
+    if (url == NO_PROFILE_IMG) {
+        Glide.with(this)
+            .load(R.drawable.icon_user_mask)
+            .into(this)
+    } else {
+        Glide.with(this)
+            .load(GlideUrlChild(url))
+            .placeholder(R.drawable.icon_user_mask)
+            .into(this)
+    }
 }
 
 fun TextView.setTextOrGone(content: String?) {

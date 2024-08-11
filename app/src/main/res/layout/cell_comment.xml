@@ -17,15 +17,14 @@
         android:paddingHorizontal="18dp"
         android:paddingTop="12dp">
 
-        <net.csdn.roundview.CircleImageView
+        <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/user_icon"
             android:layout_width="36dp"
             android:layout_height="36dp"
             userIcon="@{holder.comment.user}"
             android:scaleType="centerCrop"
-            app:civ_border_color="@color/white"
-            app:civ_border_overlay="true"
             app:civ_border_width="1dp"
+            app:civ_border_color="@color/white"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -83,8 +82,8 @@
 
             <net.csdn.roundview.RoundImageView
                 android:id="@+id/comment_stamp"
-                android:layout_width="110dp"
-                android:layout_height="110dp"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
                 app:rRadius="4dp" />
         </FrameLayout>
 
@@ -120,7 +119,6 @@
                 android:id="@+id/delete"
                 visibleOrGone="@{SessionManager.INSTANCE.loggedInUid == holder.comment.user.id}"
                 android:layout_width="wrap_content"
-                android:layout_marginStart="8dp"
                 android:text="@string/string_219"
                 app:ptb_progress_stroke_width="3.5dp"
                 app:ptb_progress_width="15dp"
@@ -132,7 +130,6 @@
             <ceui.loxia.ProgressTextButton
                 android:id="@+id/show_reply"
                 android:layout_width="wrap_content"
-                android:layout_marginStart="8dp"
                 app:ptb_progress_stroke_width="3.5dp"
                 app:ptb_progress_width="15dp"
                 android:text="@string/show_reply"

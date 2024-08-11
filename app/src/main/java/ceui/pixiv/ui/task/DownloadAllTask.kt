@@ -44,10 +44,8 @@ class DownloadAllTask(
 
     fun go() {
         MainScope().launch {
-            withContext(Dispatchers.IO) {
-                pendingTasks.forEach {
-                    it.execute()
-                }
+            pendingTasks.forEach {
+                it.execute()
             }
         }
     }
@@ -64,23 +62,23 @@ open class LoadTask(val content: NamedUrl, private val context: Context) {
         if (_status.value is TaskStatus.Executing || _status.value is TaskStatus.Finished) {
             return
         }
-        coroutineScope {
+        withContext(Dispatchers.IO) {
             try {
                 _status.postValue(TaskStatus.Executing(0))
-                ProgressManager.getInstance()
-                    .addResponseListener(content.url, object : ProgressListener {
-                        override fun onProgress(progressInfo: ProgressInfo) {
-                            if (progressInfo.isFinish || progressInfo.percent == 100) {
-                                _status.postValue(TaskStatus.Finished)
-                            } else {
-                                _status.postValue(TaskStatus.Executing(progressInfo.percent))
-                            }
+                ProgressManager.getInstance().addResponseListener(content.url, object : ProgressListener {
+                    override fun onProgress(progressInfo: ProgressInfo) {
+                        Common.showLog("dsaasdasw2 ${progressInfo.percent}")
+                        if (progressInfo.isFinish || progressInfo.percent == 100) {
+                            _status.postValue(TaskStatus.Finished)
+                        } else {
+                            _status.postValue(TaskStatus.Executing(progressInfo.percent))
                         }
+                    }
 
-                        override fun onError(id: Long, e: Exception) {
-                            _status.postValue(TaskStatus.Error(e))
-                        }
-                    })
+                    override fun onError(id: Long, e: Exception) {
+                        _status.postValue(TaskStatus.Error(e))
+                    }
+                })
 
                 val file = Glide.with(context)
                     .asFile()

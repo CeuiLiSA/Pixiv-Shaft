@@ -16,12 +16,11 @@
         android:paddingHorizontal="20dp">
 
 
-        <net.csdn.roundview.CircleImageView
+        <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/user_icon"
             userIcon="@{holder.userPreview.user}"
             app:civ_border_width="1dp"
             app:civ_border_color="@color/white"
-            app:civ_border_overlay="true"
             android:layout_width="45dp"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"

@@ -48,10 +48,7 @@ class HomeViewPagerFragment : PixivFragment(R.layout.fragment_home_viewpager), V
             pushFragment(R.id.navigation_search_viewpager)
         }
 
-        SessionManager.loggedInAccount.observe(viewLifecycleOwner) { account ->
-            Glide.with(this).load(GlideUrlChild(account.user?.profile_image_urls?.findMaxSizeUrl())).into(binding.userIcon)
-            binding.userName.text = account.user?.name
-        }
+        binding.account = SessionManager.loggedInAccount
 
         binding.homeViewPager.adapter = object : FragmentStateAdapter(this) {
             override fun getItemCount(): Int {

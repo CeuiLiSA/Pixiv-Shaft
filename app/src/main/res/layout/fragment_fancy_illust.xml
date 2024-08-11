@@ -1,182 +1,197 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <com.github.panpf.zoomimage.SketchZoomImageView
-        android:id="@+id/image"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+    <data>
+        <variable
+            name="user"
+            type="androidx.lifecycle.LiveData&lt;ceui.loxia.User>" />
+    </data>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/gallery_list"
-        app:layout_constraintTop_toTopOf="parent"
-        android:visibility="gone"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent">
 
-    <View
-        android:id="@+id/top_shadow"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_width="match_parent"
-        android:background="@drawable/black_gradient_revert"
-        android:layout_height="130dp"/>
+        <com.github.panpf.zoomimage.SketchZoomImageView
+            android:id="@+id/image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
 
-    <include
-        layout="@layout/layout_toolbar"
-        android:id="@+id/toolbar_layout"/>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/gallery_list"
+            app:layout_constraintTop_toTopOf="parent"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
 
-    <LinearLayout
-        android:id="@+id/info_layout"
-        android:layout_width="match_parent"
-        android:background="@drawable/black_gradient"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        android:paddingBottom="30dp"
-        android:paddingTop="20dp"
-        android:paddingHorizontal="@dimen/default_content_horizontal_margin"
-        android:orientation="vertical"
-        android:layout_height="wrap_content">
+        <View
+            android:id="@+id/top_shadow"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_width="match_parent"
+            android:background="@drawable/black_gradient_revert"
+            android:layout_height="130dp" />
+
+        <include
+            layout="@layout/layout_toolbar"
+            android:id="@+id/toolbar_layout" />
 
         <LinearLayout
-            android:id="@+id/user_layout"
-            android:orientation="horizontal"
+            android:id="@+id/info_layout"
             android:layout_width="match_parent"
-            android:gravity="center_vertical|start"
+            android:background="@drawable/black_gradient"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:paddingBottom="30dp"
+            android:paddingTop="20dp"
+            android:paddingHorizontal="@dimen/default_content_horizontal_margin"
+            android:orientation="vertical"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:id="@+id/user_layout"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:gravity="center_vertical|start"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_height="wrap_content">
+
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:id="@+id/user_icon"
+                    userIcon="@{user}"
+                    android:layout_width="40dp"
+                    app:civ_border_color="@color/white"
+                    app:civ_border_width="1dp"
+                    android:scaleType="centerCrop"
+                    android:layout_marginEnd="8dp"
+                    android:layout_height="40dp" />
+
+                <TextView
+                    android:id="@+id/user_name"
+                    android:text="@{user.name}"
+                    android:textColor="@color/text00"
+                    android:layout_marginEnd="8dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <ceui.loxia.ProgressTextButton
+                    android:id="@+id/follow"
+                    visibleOrGone="@{!user.is_followed()}"
+                    style="@style/BlueShiningButton"
+                    android:layout_width="wrap_content"
+                    android:visibility="gone"
+                    android:layout_height="32dp"
+                    android:paddingHorizontal="12dp"
+                    android:text="@string/follow"
+                    app:ptb_progress_stroke_width="3dp"
+                    app:ptb_progress_width="14dp" />
+
+                <ceui.loxia.ProgressTextButton
+                    android:id="@+id/unfollow"
+                    visibleOrGone="@{user.is_followed()}"
+                    style="@style/RedShiningButton"
+                    android:visibility="gone"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:paddingHorizontal="12dp"
+                    android:text="@string/unfollow"
+                    app:ptb_progress_stroke_width="3dp"
+                    app:ptb_progress_width="14dp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/description"
+                android:layout_marginTop="8dp"
+                android:textColor="@color/text10"
+                android:textSize="14sp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/date_time"
+                    android:textColor="@color/text10"
+                    android:textSize="13sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/visit_count"
+                    android:textColor="@color/text10"
+                    android:layout_marginStart="16dp"
+                    android:textSize="13sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/bookmark_count"
+                    android:layout_marginStart="6dp"
+                    android:textColor="@color/text10"
+                    android:textSize="13sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+
+        </LinearLayout>
+
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/progress_circular"
+            android:layout_width="wrap_content"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:layout_height="wrap_content">
-
-            <net.csdn.roundview.CircleImageView
-                android:id="@+id/user_icon"
-                android:layout_width="40dp"
-                android:scaleType="centerCrop"
-                android:layout_marginEnd="8dp"
-                android:layout_height="40dp"/>
-
-            <TextView
-                android:id="@+id/user_name"
-                android:textColor="@color/text00"
-                android:layout_marginEnd="8dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-
-            <ceui.loxia.ProgressTextButton
-                android:id="@+id/follow"
-                style="@style/BlueShiningButton"
-                android:layout_width="wrap_content"
-                android:visibility="gone"
-                android:layout_height="32dp"
-                android:paddingHorizontal="16dp"
-                android:text="@string/follow"
-                app:ptb_progress_stroke_width="3dp"
-                app:ptb_progress_width="14dp" />
-
-            <ceui.loxia.ProgressTextButton
-                android:id="@+id/unfollow"
-                style="@style/RedShiningButton"
-                android:visibility="gone"
-                android:layout_width="wrap_content"
-                android:layout_height="32dp"
-                android:paddingHorizontal="16dp"
-                android:text="@string/unfollow"
-                app:ptb_progress_stroke_width="3dp"
-                app:ptb_progress_width="14dp" />
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/description"
-            android:layout_marginTop="8dp"
-            android:textColor="@color/text10"
-            android:textSize="14sp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            app:indicatorColor="@color/white"
+            app:indicatorSize="30dp"
+            app:trackColor="@color/voice_record_track_color"
+            app:trackCornerRadius="4dp"
+            app:trackThickness="5dp" />
 
         <LinearLayout
-            android:layout_width="match_parent"
-            android:orientation="horizontal"
-            android:layout_marginTop="8dp"
+            android:id="@+id/button_layout"
+            android:orientation="vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginBottom="60dp"
+            android:layout_marginEnd="20dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content">
-            <TextView
-                android:id="@+id/date_time"
-                android:textColor="@color/text10"
-                android:textSize="13sp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
 
-            <TextView
-                android:id="@+id/visit_count"
-                android:textColor="@color/text10"
-                android:layout_marginStart="16dp"
-                android:textSize="13sp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+            <ImageView
+                android:src="@drawable/icon_comments"
+                android:id="@+id/comment"
+                android:padding="4dp"
+                android:layout_width="50dp"
+                android:layout_marginBottom="16dp"
+                android:layout_height="50dp" />
 
-            <TextView
-                android:id="@+id/bookmark_count"
-                android:layout_marginStart="6dp"
-                android:textColor="@color/text10"
-                android:textSize="13sp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+            <ImageView
+                android:id="@+id/download"
+                android:padding="5dp"
+                android:src="@drawable/icon_save"
+                android:layout_marginBottom="16dp"
+                android:layout_width="50dp"
+                android:layout_height="50dp" />
+
+            <ceui.loxia.ProgressImageButton
+                android:id="@+id/bookmark"
+                app:ptb_progress_stroke_width="3dp"
+                android:padding="8dp"
+                android:layout_marginBottom="16dp"
+                app:ptb_progress_width="14dp"
+                android:src="@drawable/icon_not_liked"
+                android:layout_width="50dp"
+                android:layout_height="50dp" />
         </LinearLayout>
 
 
-
-    </LinearLayout>
-
-
-    <com.google.android.material.progressindicator.CircularProgressIndicator
-        android:id="@+id/progress_circular"
-        android:layout_width="wrap_content"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        app:indicatorColor="@color/white"
-        app:indicatorSize="30dp"
-        app:trackColor="@color/voice_record_track_color"
-        app:trackCornerRadius="4dp"
-        app:trackThickness="5dp" />
-
-    <LinearLayout
-        android:id="@+id/button_layout"
-        android:orientation="vertical"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_marginBottom="60dp"
-        android:layout_marginEnd="20dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
-
-        <ImageView
-            android:src="@drawable/icon_comments"
-            android:id="@+id/comment"
-            android:padding="4dp"
-            android:layout_width="50dp"
-            android:layout_marginBottom="16dp"
-            android:layout_height="50dp"/>
-
-        <ImageView
-            android:id="@+id/download"
-            android:padding="5dp"
-            android:src="@drawable/icon_save"
-            android:layout_marginBottom="16dp"
-            android:layout_width="50dp"
-            android:layout_height="50dp"/>
-
-        <ceui.loxia.ProgressImageButton
-            android:id="@+id/bookmark"
-            app:ptb_progress_stroke_width="3dp"
-            android:padding="8dp"
-            android:layout_marginBottom="16dp"
-            app:ptb_progress_width="14dp"
-            android:src="@drawable/icon_not_liked"
-            android:layout_width="50dp"
-            android:layout_height="50dp"/>
-    </LinearLayout>
-
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

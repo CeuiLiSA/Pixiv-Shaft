@@ -55,9 +55,7 @@ open class ImgDisplayViewModel : ToggleToolnarViewModel() {
     fun loadNamedUrl(namedUrl: NamedUrl, context: Context): LoadTask {
         val task = taskFactory(0, namedUrl, context)
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                task.execute()
-            }
+            task.execute()
         }
         return task
     }

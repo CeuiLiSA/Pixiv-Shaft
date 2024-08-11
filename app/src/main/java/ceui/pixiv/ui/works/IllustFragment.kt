@@ -68,9 +68,6 @@ class IllustFragment : ImgDisplayFragment(R.layout.fragment_fancy_illust), Galle
         val context = requireContext()
         liveIllust.observe(viewLifecycleOwner) { illust ->
             binding.toolbarLayout.naviTitle.text = illust.title
-            Glide.with(this).load(GlideUrlChild(illust.user?.profile_image_urls?.findMaxSizeUrl()))
-                .into(binding.userIcon)
-            binding.userName.text = illust.user?.name
 
             binding.userLayout.setOnClick {
                 illust.user?.id?.let {
@@ -114,18 +111,20 @@ class IllustFragment : ImgDisplayFragment(R.layout.fragment_fancy_illust), Galle
             } else if (illust.page_count > 1) {
                 renderGalleryIllust(illust, context, adapter)
             }
-            binding.description.setTextOrGone(illust.caption)
+            if (illust.caption?.isNotEmpty() == true) {
+                binding.description.isVisible = true
+                binding.description.text = illust.caption
+            } else {
+                binding.description.isVisible = false
+            }
             binding.dateTime.setTextOrGone(DateParse.displayCreateDate(illust.create_date))
             binding.visitCount.setTextOrGone("展示 " + illust.total_view)
             binding.bookmarkCount.setTextOrGone("收藏 " + illust.total_bookmarks)
         }
 
         liveIllust.value?.user?.let { u ->
-            ObjectPool.get<User>(u.id).observe(viewLifecycleOwner) { user ->
-                binding.follow.isVisible = user.is_followed != true
-                binding.unfollow.isVisible = user.is_followed == true
-            }
-
+            val liveUser = ObjectPool.get<User>(u.id)
+            binding.user = liveUser
             binding.follow.setOnClick {
                 followUser(it, u.id.toInt(), Params.TYPE_PUBLIC)
             }

@@ -120,10 +120,10 @@ class UserProfileFragment : PixivFragment(R.layout.fragment_user_profile), ViewP
             binding.infoLayout.alpha = 1F - percentage
         }
 
-        ObjectPool.get<User>(args.userId).observe(viewLifecycleOwner) { user ->
+        val liveUser = ObjectPool.get<User>(args.userId)
+        binding.user = liveUser
+        liveUser.observe(viewLifecycleOwner) { user ->
             if (user?.profile_image_urls?.findMaxSizeUrl()?.isNotEmpty() == true) {
-                Glide.with(this).load(GlideUrlChild(user.profile_image_urls.findMaxSizeUrl()))
-                    .into(binding.userIcon)
                 binding.userIcon.setOnClick {
                     pushFragment(
                         R.id.navigation_img_url,
@@ -134,15 +134,12 @@ class UserProfileFragment : PixivFragment(R.layout.fragment_user_profile), ViewP
                     )
                 }
             }
-            binding.follow.isVisible = user.is_followed != true
-            binding.unfollow.isVisible = user.is_followed == true
             binding.follow.setOnClick {
                 followUser(it, user.id.toInt(), Params.TYPE_PUBLIC)
             }
             binding.unfollow.setOnClick {
                 unfollowUser(it, user.id.toInt())
             }
-            binding.userName.text = user?.name
         }
         viewModel.result.observe(viewLifecycleOwner) { result ->
             if (result.profile?.background_image_url?.isNotEmpty() == true) {
